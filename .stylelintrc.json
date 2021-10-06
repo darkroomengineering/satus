@@ -1,0 +1,9 @@
+{
+  "plugins": ["stylelint-scss"],
+  "extends": "@studio-freight/stylelint-config-base-css",
+  "rules": {
+    "at-rule-no-unknown": null,
+    "scss/at-rule-no-unknown": true
+  },
+  "ignoreFiles": "**/*.js"
+}

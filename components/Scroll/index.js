@@ -10,10 +10,15 @@ import {
 import { raf } from '@react-spring/rafz'
 import { useIsTouchDevice } from 'hooks/useIsTouchDevice'
 import { useDebounce, useMeasure } from 'react-use'
+import { useStore } from 'lib/store'
 
 export const ScrollContext = createContext(null)
 
 export const Scroll = ({ children }) => {
+  const { setScroll } = useStore((state) => ({
+    setScroll: state.setScroll,
+  }))
+
   const el = useRef()
   const [ref, { width, height }] = useMeasure()
 
@@ -43,6 +48,10 @@ export const Scroll = ({ children }) => {
   }
 
   useLayoutEffect(() => {
+    const onScroll = (e) => {
+      setScroll(e)
+    }
+
     async function initScroll() {
       setIsReady(false)
       const LocomotiveScroll = (
@@ -60,18 +69,19 @@ export const Scroll = ({ children }) => {
         },
         autoRaf: false,
       })
+      scroll.current.on('scroll', onScroll)
       setIsReady(true)
     }
 
     if (isTouchDevice !== undefined) {
       initScroll()
+      //https://github.com/pmndrs/react-spring/tree/master/packages/rafz#readme
+      raf.onFrame(update)
     }
-
-    //https://github.com/pmndrs/react-spring/tree/master/packages/rafz#readme
-    raf.onFrame(update)
 
     return () => {
       raf.cancel(update)
+      scroll.current?.off('scroll', onScroll)
       scroll.current?.destroy()
     }
   }, [isTouchDevice])

@@ -1,4 +1,4 @@
-import { useRouter } from 'next/dist/client/router'
+import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
 import { createContext, useLayoutEffect, useRef } from 'react'
 import { raf } from '@react-spring/rafz'
@@ -12,7 +12,7 @@ export const Scroll = ({ children }) => {
   const router = useRouter()
 
   useLayoutEffect(() => {
-    const onRouteChangeComplete = (url, { shallow }) => {
+    const onRouteChangeComplete = () => {
       scroll.current.setScroll(0, 0)
       scroll.current.update()
     }

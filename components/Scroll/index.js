@@ -1,23 +1,33 @@
 import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
-import { createContext, useLayoutEffect, useRef } from 'react'
+import {
+  createContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react'
 import { raf } from '@react-spring/rafz'
 import { useIsTouchDevice } from 'hooks/useIsTouchDevice'
+import { useDebounce, useMeasure } from 'react-use'
 
 export const ScrollContext = createContext(null)
 
 export const Scroll = ({ children }) => {
   const el = useRef()
+  const [ref, { width, height }] = useMeasure()
+
   const scroll = useRef()
+  const [isReady, setIsReady] = useState(false)
 
   const isTouchDevice = useIsTouchDevice()
 
   const router = useRouter()
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const onRouteChangeComplete = () => {
-      scroll.current.setScroll(0, 0)
-      scroll.current.update()
+      scroll.current?.setScroll(0, 0)
+      scroll.current?.update()
     }
 
     router.events.on('routeChangeComplete', onRouteChangeComplete)
@@ -34,6 +44,7 @@ export const Scroll = ({ children }) => {
 
   useLayoutEffect(() => {
     async function initScroll() {
+      setIsReady(false)
       const LocomotiveScroll = (
         await import('@studio-freight/locomotive-scroll')
       ).default
@@ -49,6 +60,7 @@ export const Scroll = ({ children }) => {
         },
         autoRaf: false,
       })
+      setIsReady(true)
     }
 
     if (isTouchDevice !== undefined) {
@@ -64,11 +76,23 @@ export const Scroll = ({ children }) => {
     }
   }, [isTouchDevice])
 
-  useLayoutEffect(() => {}, [])
+  useDebounce(
+    () => {
+      scroll.current?.update()
+    },
+    1000,
+    [width, height]
+  )
 
   return (
-    <ScrollContext.Provider value={{ scroll: scroll.current }}>
-      <div ref={el} data-scroll-container>
+    <ScrollContext.Provider value={{ scroll: scroll.current, isReady }}>
+      <div
+        ref={(node) => {
+          el.current = node
+          ref(node)
+        }}
+        data-scroll-container
+      >
         {children}
       </div>
     </ScrollContext.Provider>

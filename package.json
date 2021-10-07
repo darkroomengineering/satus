@@ -9,10 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@react-spring/rafz": "^9.2.6",
     "@studio-freight/locomotive-scroll": "0.0.1",
     "next": "11.1.2",
     "react": "17.0.2",
     "react-dom": "17.0.2",
+    "react-spring": "^9.2.6",
     "sass": "^1.42.1"
   },
   "devDependencies": {

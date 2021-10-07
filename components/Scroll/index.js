@@ -1,6 +1,7 @@
 import { useRouter } from 'next/dist/client/router'
 import dynamic from 'next/dynamic'
 import { createContext, useLayoutEffect, useRef } from 'react'
+import { raf } from '@react-spring/rafz'
 
 export const ScrollContext = createContext(null)
 
@@ -38,9 +39,20 @@ export const Scroll = ({ children }) => {
           smartphone: {
             smooth: true,
           },
+          autoRaf: false,
+        })
+
+        // https://github.com/pmndrs/react-spring/tree/master/packages/rafz#readme
+        raf.onFrame(() => {
+          scroll.current.raf()
+          return true
         })
       }
     })()
+
+    return () => {
+      scroll.current?.destroy()
+    }
   }, [])
 
   return (

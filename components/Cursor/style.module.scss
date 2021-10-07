@@ -1,0 +1,25 @@
+.appCursor {
+  $self: &;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100%;
+  z-index: 10000;
+  pointer-events: none;
+
+  &__cursor {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    height: 40px;
+    width: 40px;
+    background-color: blue;
+    border-radius: 100%;
+    transition: 600ms transform var(--ease-out-expo);
+
+    #{$self}--pointer & {
+      transform: translate(-50%, -50%) scale(0.5);
+    }
+  }
+}

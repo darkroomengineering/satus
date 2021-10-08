@@ -1,3 +1,31 @@
+@import "styles/_functions";
+
 .pageHome {
   height: 200vh;
+  padding: mobile-vw(80px) 0;
+
+  @include desktop {
+    padding: desktop-vw(160px) 0;
+  }
+
+  &__accordion {
+    &:first-child {
+      border-top: 1px solid var(--black);
+    }
+
+    border-bottom: 1px solid var(--black);
+    padding: mobile-vw(10px) 0;
+
+    @include desktop {
+      padding: desktop-vw(10px) 0;
+    }
+
+    &__body {
+      padding-top: mobile-vw(10px);
+
+      @include desktop {
+        padding-top: desktop-vw(10px);
+      }
+    }
+  }
 }

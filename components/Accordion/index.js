@@ -1,69 +1,84 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import {
+  cloneElement,
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import { useMeasure } from 'react-use'
-import s from './accordion.module.scss'
+import s from './style.module.scss'
+import cn from 'clsx'
 
 const AccordionsGroupContext = createContext()
 
-export const Accordion = ({ children, isOpen, label, index = 0 }) => {
-  const { opened, setOpened } = useContext(AccordionsGroupContext)
+const Header = () => null
 
-  // useEffect(() => {
-  //   console.log({ index })
-  // }, [index])
+const Body = () => null
+
+export const Accordion = ({ children, index = 0, className }) => {
+  const { opened, toggle } = useContext(AccordionsGroupContext)
+
+  const header = children.find((el) => el.type === Header)
+  const body = children.find((el) => el.type === Body)
 
   const isOpened = useMemo(() => {
-    return index === opened
+    return opened.includes(index)
   }, [opened])
 
   const [contentRef, { height }] = useMeasure()
 
-  console.log('updated', index)
-
   return (
-    <div className={s.accordion}>
-      <div
-        className={s.accordion__head}
+    <div className={cn(s.accordion, className)}>
+      <button
+        className={s.accordion__header}
         onClick={() => {
-          setOpened((prev) => (prev === index ? undefined : index))
+          toggle(index)
         }}
       >
-        {label}
-      </div>
+        {header?.props?.children}
+      </button>
       <div
-        className={s.accordion__content}
+        className={s.accordion__body}
         style={{
-          height: opened ? height + 'px' : 0,
+          height: isOpened ? height + 'px' : 0,
           opacity: isOpened ? 1 : 0,
           pointerEvents: isOpened ? 'all' : 'none',
         }}
       >
-        <div ref={contentRef}>{children}</div>
+        <div ref={contentRef}>{body?.props?.children}</div>
       </div>
     </div>
   )
 }
 
-export const AccordionsGroup = ({ children }) => {
-  const [opened, setOpened] = useState()
+export const AccordionGroup = ({ children, limit }) => {
+  const [opened, setOpened] = useState([])
 
-  console.log('accordion updated')
+  const toggle = (index) => {
+    setOpened((prev) => {
+      if (prev.includes(index)) {
+        return prev.filter((i) => i !== index)
+      } else if (limit !== undefined && prev.length === limit) {
+        return [...prev, index].slice(1)
+      }
+      return [...prev, index]
+    })
+  }
+
+  const renderAccordions = useMemo(() => {
+    return (children[0] ? children : [children])
+      .filter((el) => el.type === Accordion)
+      .map((el, i) => cloneElement(el, { index: i, key: i }))
+  }, [children])
 
   return (
-    <AccordionsGroupContext.Provider value={{ opened, setOpened }}>
-      {children}
+    <AccordionsGroupContext.Provider value={{ opened, toggle }}>
+      {renderAccordions}
     </AccordionsGroupContext.Provider>
   )
 }
 
-{
-  /* <Accordions.group >
-    <Accordion  className=""/>
-        <Accodion.header className="">
-            header
-        <Accodion.header>
-        <Accodion.content  className="">
-            content
-        <Accodion.content>  
-    </Accordion>
-</Accordions.group> */
-}
+Accordion.Header = Header
+Accordion.Body = Body
+Accordion.Group = AccordionGroup

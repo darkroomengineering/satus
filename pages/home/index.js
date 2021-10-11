@@ -21,23 +21,39 @@ export default function Home() {
 
   return (
     <div className={s.pageHome}>
-      <Accordion.Group limit={1}>
-        <Accordion className={s.pageHome__accordion}>
-          <Accordion.Header>
-            <div className={s.pageHome__accordion__header}>header</div>
-          </Accordion.Header>
-          <Accordion.Body className={s.pageHome__accordion__body}>
-            <div className={s.pageHome__accordion__body}>body</div>
-          </Accordion.Body>
-        </Accordion>
-        <Accordion className={s.pageHome__accordion}>
-          <Accordion.Header>
-            <div className={s.pageHome__accordion__header}>header</div>
-          </Accordion.Header>
-          <Accordion.Body className={s.pageHome__accordion__body}>
-            <div className={s.pageHome__accordion__body}>body</div>
-          </Accordion.Body>
-        </Accordion>
+      <Accordion.Group maxAccordionsOpenSimultaniously={3}>
+        {Array(6)
+          .fill({ header: 'this is header', body: 'this is body' })
+          .map((item, idx) => (
+            <Accordion
+              className={s.pageHome__accordion}
+              key={`accordion-item-${idx}`}
+            >
+              <Accordion.Body className={s.pageHome__accordion__body}>
+                <div className={s.pageHome__accordion__body}>{item.body}</div>
+              </Accordion.Body>
+              <Accordion.Header>
+                <div className={s.pageHome__accordion__header}>header</div>
+              </Accordion.Header>
+            </Accordion>
+          ))}
+      </Accordion.Group>
+      <Accordion.Group maxAccordionsOpenSimultaniously={3}>
+        {Array(6)
+          .fill({ header: 'this is header', body: 'this is body' })
+          .map((item, idx) => (
+            <Accordion
+              className={s.pageHome__accordion}
+              key={`accordion-item-${idx}`}
+            >
+              <Accordion.Header>
+                <div className={s.pageHome__accordion__header}>header</div>
+              </Accordion.Header>
+              <Accordion.Body className={s.pageHome__accordion__body}>
+                <div className={s.pageHome__accordion__body}>{item.body}</div>
+              </Accordion.Body>
+            </Accordion>
+          ))}
       </Accordion.Group>
     </div>
   )

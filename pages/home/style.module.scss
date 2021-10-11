@@ -8,6 +8,10 @@
     padding: desktop-vw(160px) 0;
   }
 
+  &__marquee {
+    font-size: 6vw;
+  }
+
   &__accordion {
     &:first-child {
       border-top: 1px solid var(--black);

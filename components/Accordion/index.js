@@ -33,6 +33,7 @@ export const Accordion = ({ children, index = 0, className }) => {
             onClick={() => {
               toggle(index)
             }}
+            key="header"
           >
             {el.props.children}
           </button>
@@ -46,8 +47,9 @@ export const Accordion = ({ children, index = 0, className }) => {
               opacity: isOpened ? 1 : 0,
               pointerEvents: isOpened ? 'all' : 'none',
             }}
+            key="body"
           >
-            <div ref={contentRef}>{el?.props?.children}</div>
+            <div ref={contentRef}>{el.props.children}</div>
           </div>
         )
     }
@@ -60,14 +62,20 @@ export const Accordion = ({ children, index = 0, className }) => {
   )
 }
 
-export const AccordionGroup = ({ children, limit }) => {
+export const AccordionGroup = ({
+  children,
+  maxAccordionsOpenSimultaniously,
+}) => {
   const [opened, setOpened] = useState([])
 
   const toggle = (index) => {
     setOpened((prev) => {
       if (prev.includes(index)) {
         return prev.filter((i) => i !== index)
-      } else if (limit !== undefined && prev.length === limit) {
+      } else if (
+        maxAccordionsOpenSimultaniously !== undefined &&
+        prev.length === maxAccordionsOpenSimultaniously
+      ) {
         return [...prev, index].slice(1)
       }
       return [...prev, index]

@@ -7,7 +7,11 @@ specifiers:
   '@studio-freight/stylelint-config-base-css': ^1.1.0
   '@svgr/webpack': ^5.5.0
   clsx: ^1.1.1
+<<<<<<< HEAD
   critters: ^0.0.10
+=======
+  embla-carousel-react: ^5.0.1
+>>>>>>> 276582b (fix build)
   eslint: 7.32.0
   eslint-config-next: 11.1.2
   eslint-config-prettier: ^8.3.0
@@ -33,6 +37,7 @@ dependencies:
   '@react-spring/rafz': 9.2.6
   '@studio-freight/locomotive-scroll': 0.0.1
   clsx: 1.1.1
+  embla-carousel-react: 5.0.1_react@17.0.2
   next: 11.1.2_94019d5ea9236784e4778c48676ab990
   react: 17.0.2
   react-dom: 17.0.2_react@17.0.2
@@ -2897,6 +2902,19 @@ packages:
       inherits: 2.0.4
       minimalistic-assert: 1.0.1
       minimalistic-crypto-utils: 1.0.1
+    dev: false
+
+  /embla-carousel-react/5.0.1_react@17.0.2:
+    resolution: {integrity: sha512-zR9kmMVxh3TNza7Anj/McBQLeFD7nB0vVMmahyDl6XmH1K6o3X6T6Wwhh4fUeRH9nJhAn7yyRqT22qqGjd66oA==}
+    peerDependencies:
+      react: ^17.0.2
+    dependencies:
+      embla-carousel: 5.0.1
+      react: 17.0.2
+    dev: false
+
+  /embla-carousel/5.0.1:
+    resolution: {integrity: sha512-pFvUI9mI/pxU92+4VDkPx0yP4Bs3VqJuRX/aw6ESYJdRBtzLx+6X2kXMu9aXK+SwO2zYsD2WURb1SeBaAv6zQA==}
     dev: false
 
   /emoji-regex/8.0.0:

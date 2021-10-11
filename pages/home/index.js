@@ -21,25 +21,6 @@ export default function Home() {
 
   return (
     <div className={s.pageHome}>
-<<<<<<< HEAD
-      <Accordion.Group limit={1}>
-        <Accordion className={s.pageHome__accordion}>
-          <Accordion.Header>
-            <div className={s.pageHome__accordion__header}>header</div>
-          </Accordion.Header>
-          <Accordion.Body>
-            <div className={s.pageHome__accordion__body}>body</div>
-          </Accordion.Body>
-        </Accordion>
-        <Accordion className={s.pageHome__accordion}>
-          <Accordion.Header>
-            <div className={s.pageHome__accordion__header}>header</div>
-          </Accordion.Header>
-          <Accordion.Body>
-            <div className={s.pageHome__accordion__body}>body</div>
-          </Accordion.Body>
-        </Accordion>
-=======
       <Accordion.Group maxAccordionsOpenSimultaniously={3}>
         {Array(6)
           .fill({ header: 'this is header', body: 'this is body' })
@@ -58,7 +39,6 @@ export default function Home() {
               </Accordion.Body>
             </Accordion>
           ))}
->>>>>>> ac94aa58becca65f0f3029cb666496bc8b2881dd
       </Accordion.Group>
     </div>
   )

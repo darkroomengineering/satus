@@ -26,7 +26,7 @@ export default function Home() {
           <Accordion.Header>
             <div className={s.pageHome__accordion__header}>header</div>
           </Accordion.Header>
-          <Accordion.Body className={s.pageHome__accordion__body}>
+          <Accordion.Body>
             <div className={s.pageHome__accordion__body}>body</div>
           </Accordion.Body>
         </Accordion>
@@ -34,7 +34,7 @@ export default function Home() {
           <Accordion.Header>
             <div className={s.pageHome__accordion__header}>header</div>
           </Accordion.Header>
-          <Accordion.Body className={s.pageHome__accordion__body}>
+          <Accordion.Body>
             <div className={s.pageHome__accordion__body}>body</div>
           </Accordion.Body>
         </Accordion>

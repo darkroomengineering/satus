@@ -21,11 +21,16 @@
     "zustand": "^3.5.13"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^11.1.2",
     "@studio-freight/stylelint-config-base-css": "^1.1.0",
+    "@svgr/webpack": "^5.5.0",
+    "critters": "^0.0.10",
     "eslint": "7.32.0",
     "eslint-config-next": "11.1.2",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
+    "next-compose-plugins": "^2.2.1",
+    "next-transpile-modules": "^8.0.0",
     "prettier": "^2.4.1",
     "prettier-eslint": "^13.0.0",
     "stylelint": "^13.13.1",

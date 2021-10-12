@@ -80,13 +80,10 @@ export const Scroll = ({ children }) => {
       raf.onFrame(update)
     }
 
-    console.log('isTouchDevice', isTouchDevice)
-
     return () => {
       raf.cancel(update)
       scroll.current?.off('scroll', onScroll)
       scroll.current?.destroy()
-      console.log('destory')
     }
   }, [isTouchDevice])
 

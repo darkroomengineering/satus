@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router'
+// import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
 import {
   createContext,
@@ -27,20 +27,20 @@ export const Scroll = ({ children }) => {
 
   const isTouchDevice = useIsTouchDevice()
 
-  const router = useRouter()
+  // const router = useRouter()
 
-  useEffect(() => {
-    const onRouteChangeComplete = () => {
-      scroll.current?.setScroll(0, 0)
-      scroll.current?.update()
-    }
+  // useEffect(() => {
+  //   const onRouteChangeComplete = () => {
+  //     scroll.current?.setScroll(0, 0)
+  //     scroll.current?.update()
+  //   }
 
-    router.events.on('routeChangeComplete', onRouteChangeComplete)
+  //   router.events.on('routeChangeComplete', onRouteChangeComplete)
 
-    return () => {
-      router.events.off('routeChangeComplete', onRouteChangeComplete)
-    }
-  }, [])
+  //   return () => {
+  //     router.events.off('routeChangeComplete', onRouteChangeComplete)
+  //   }
+  // }, [])
 
   function update() {
     scroll.current?.raf()
@@ -48,6 +48,7 @@ export const Scroll = ({ children }) => {
   }
 
   useLayoutEffect(() => {
+    setScroll(undefined)
     const onScroll = (e) => {
       setScroll(e)
     }
@@ -79,10 +80,13 @@ export const Scroll = ({ children }) => {
       raf.onFrame(update)
     }
 
+    console.log('isTouchDevice', isTouchDevice)
+
     return () => {
       raf.cancel(update)
       scroll.current?.off('scroll', onScroll)
       scroll.current?.destroy()
+      console.log('destory')
     }
   }, [isTouchDevice])
 

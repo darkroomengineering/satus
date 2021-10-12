@@ -1,6 +1,6 @@
 import { ScrollContext } from 'components/Scroll'
 import cn from 'clsx'
-import { useContext, useEffect, useLayoutEffect } from 'react'
+import { useContext, useEffect, useLayoutEffect, Fragment } from 'react'
 import s from './style.module.scss'
 import { raf } from '@react-spring/rafz'
 import { useStore } from 'lib/store'
@@ -74,53 +74,47 @@ export default function Home() {
               </Accordion>
             ))}
         </Accordion.Group>
-        <Slider>
-          <Slider.Header>
-            <div className={s['slider-header']}>
-              <p>Slider Header</p>
-              <p>Slider Title</p>
-            </div>
-          </Slider.Header>
-          <Slider.Embla
-            emblaApi={{
-              slidesToScroll: 1,
-              skipSnaps: false,
-              startIndex: 1,
-              loop: true,
-              autoScroll: true,
-            }}
-          >
-            <Slider.Embla.Slide>
-              {devs.map((item, idx) => (
-                <div className={s['slide']} key={`slide-item-${idx}`}>
-                  <div className={s['slide-inner']}>
-                    <img src={item.image} alt="" className={s['slide-img']} />
-                    <p className={s['slide-title']}>{item.name}</p>
-                    <p className={s['slide-text']}>{item.position}</p>
-                  </div>
+        <Slider
+          emblaApi={{
+            slidesToScroll: 1,
+            skipSnaps: false,
+            startIndex: 1,
+            loop: true,
+            autoScroll: true,
+          }}
+        >
+          {({ scrollPrev, scrollNext, emblaRef }) => {
+            return (
+              <Fragment>
+                <div className={s['slider-header']}>
+                  <p>Slider Hader</p>
+                  <p>Slider Title</p>
                 </div>
-              ))}
-            </Slider.Embla.Slide>
-            <Slider.Embla.Buttons />
-          </Slider.Embla>
+                <Slider.Slides emblaRef={emblaRef}>
+                  {devs.map((item, idx) => (
+                    <div className={s['slide']} key={`slide-item-${idx}`}>
+                      <div className={s['slide-inner']}>
+                        <img
+                          src={item.image}
+                          alt=""
+                          className={s['slide-img']}
+                        />
+                        <p className={s['slide-title']}>{item.name}</p>
+                        <p className={s['slide-text']}>{item.position}</p>
+                      </div>
+                    </div>
+                  ))}
+                </Slider.Slides>
+                <button onClick={scrollPrev} className={s['slide-buttons']}>
+                  previous
+                </button>
+                <button onClick={scrollPrev} className={s['slide-buttons']}>
+                  next
+                </button>
+              </Fragment>
+            )
+          }}
         </Slider>
-
-        {/* <Slider>
-        {({prevSlide, nextSlide, currentSlide}) => (
-          <>
-            <Slider.Slides>
-              <div/>
-              <div/>
-              <div/>
-              <div/>
-            </Slider.Slides>
-            <div>
-              <button onClick={prevSlide} >prev</button>
-              <button onClick={nextSlide} >next</button>
-            </div>
-          <>
-        )}
-      </Slider> */}
       </div>
     </Layout>
   )

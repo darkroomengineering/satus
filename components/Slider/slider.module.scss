@@ -1,59 +1,23 @@
 @import "styles/_functions";
 
-.slider-section {
-  position: relative;
-}
-
-.slide-content-wrapper {
-  // width: 100%;
-  // position: absolute;
-  position: relative;
-  z-index: 999;
-  top: 0%;
-  left: 0%;
-}
-
-.slider-wrapper {
-  overflow: hidden;
-  width: 100%;
+.slider {
   position: relative;
 
-  .is-draggable {
-    cursor: move;
-    cursor: grab;
-  }
-  .is-dragging {
-    cursor: grabbing;
-  }
-}
-
-.button-wrapper {
-  margin-top: 0.5vw;
-  display: flex;
-  align-items: center;
-  gap: desktop-vw(5px);
-  width: desktop-vw(77px);
-  height: desktop-vw(36px);
-  padding-bottom: desktop-vw(30px);
-
-  .slider-button {
-    outline: 0;
-    cursor: pointer;
-    background-color: transparent;
-    touch-action: manipulation;
-    border: 0;
+  .slides-wrapper {
     overflow: hidden;
-    width: desktop-vw(36px);
-    height: desktop-vw(36px);
-  }
-}
+    width: 100%;
+    position: relative;
 
-.slider-container {
-  display: flex;
-  gap: tovw(20px);
+    .is-draggable {
+      cursor: move;
+      cursor: grab;
+    }
+    .is-dragging {
+      cursor: grabbing;
+    }
 
-  @include mobile {
-    gap: mobile-vw(12px);
-    margin-left: -6vw;
+    .container {
+      display: flex;
+    }
   }
 }

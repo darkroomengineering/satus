@@ -18,11 +18,11 @@ const Body = () => null
 
 export const Accordion = ({ children, index = 0, className }) => {
   const { opened, toggle } = useContext(AccordionsGroupContext)
-  const childrens = children[0] ? children : [children]
   const [contentRef, { height }] = useMeasure()
+
   const isOpened = useMemo(() => {
     return opened.includes(index)
-  }, [opened])
+  }, [opened, index])
 
   const Renders = (el) => {
     switch (el.type) {
@@ -55,11 +55,15 @@ export const Accordion = ({ children, index = 0, className }) => {
     }
   }
 
-  return (
-    <div className={cn(s.accordion, className)}>
-      {childrens.map((item) => Renders(item))}
-    </div>
-  )
+  const template = useMemo(() => {
+    return (
+      <div className={cn(s.accordion, className)}>
+        {(children[0] ? children : [children]).map((item) => Renders(item))}
+      </div>
+    )
+  }, [isOpened, height, children, className])
+
+  return template
 }
 
 export const AccordionGroup = ({

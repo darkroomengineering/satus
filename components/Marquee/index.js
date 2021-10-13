@@ -1,4 +1,4 @@
-import s from './style.module.scss'
+import s from './marquee.module.scss'
 import cn from 'clsx'
 
 const Marquee = ({

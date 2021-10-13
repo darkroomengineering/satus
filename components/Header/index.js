@@ -1,4 +1,4 @@
-import s from './style.module.scss'
+import s from './header.module.scss'
 import Link from 'next/link'
 import { Navigation } from 'components/Navigation'
 import { useStore } from 'lib/store'

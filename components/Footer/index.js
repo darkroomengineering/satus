@@ -1,4 +1,4 @@
-import s from './style.module.scss'
+import s from './footer.module.scss'
 
 export const Footer = () => {
   return (

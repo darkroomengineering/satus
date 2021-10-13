@@ -1,4 +1,4 @@
-import s from './style.module.scss'
+import s from './navigation.module.scss'
 import cn from 'clsx'
 import { useStore } from 'lib/store'
 import { useLayoutEffect } from 'react'

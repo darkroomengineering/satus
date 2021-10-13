@@ -8,7 +8,7 @@ import {
   useState,
 } from 'react'
 import { raf } from '@react-spring/rafz'
-import { useIsTouchDevice } from 'hooks/useIsTouchDevice'
+import { useIsTouchDevice } from 'hooks/use-is-touch-device'
 import { useDebounce, useMeasure } from 'react-use'
 import { useStore } from 'lib/store'
 

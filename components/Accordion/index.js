@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react'
 import { useMeasure } from 'react-use'
-import s from './style.module.scss'
+import s from './accordion.module.scss'
 import cn from 'clsx'
 
 const AccordionsGroupContext = createContext()

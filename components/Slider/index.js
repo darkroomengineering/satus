@@ -1,7 +1,7 @@
 import cn from 'clsx'
 import useEmblaCarousel from 'embla-carousel-react'
 import { useCallback, useEffect, useState } from 'react'
-import useInterval from 'hooks/useInterval'
+import useInterval from 'hooks/use-interval'
 import s from './slider.module.scss'
 
 const Slides = ({ children, emblaRef }) => {

@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import s from './style.module.scss'
+import s from './cursor.module.scss'
 import { useSpring, animated } from 'react-spring'
 
 const Cursor = () => {

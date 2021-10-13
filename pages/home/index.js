@@ -1,12 +1,12 @@
-import { ScrollContext } from 'components/Scroll'
+import { ScrollContext } from 'components/scroll'
 import cn from 'clsx'
 import { useContext, useEffect, useLayoutEffect, Fragment } from 'react'
-import s from './style.module.scss'
+import s from './home.module.scss'
 import { raf } from '@react-spring/rafz'
 import { useStore } from 'lib/store'
-import { Accordion } from 'components/Accordion'
-import { Marquee } from 'components/Marquee'
-import Slider from 'components/Slider'
+import { Accordion } from 'components/accordion'
+import { Marquee } from 'components/marquee'
+import Slider from 'components/slider'
 import { Layout } from 'layouts/default'
 
 const devs = [

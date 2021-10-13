@@ -1,0 +1,8 @@
+.accordion {
+  overflow: hidden;
+  &__body {
+    transition-duration: 600ms;
+    transition-property: height, opacity;
+    transition-timing-function: var(--ease-out-expo);
+  }
+}

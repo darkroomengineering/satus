@@ -1,0 +1,23 @@
+@import "styles/_functions";
+
+.slider {
+  position: relative;
+
+  .slides-wrapper {
+    overflow: hidden;
+    width: 100%;
+    position: relative;
+
+    .is-draggable {
+      cursor: move;
+      cursor: grab;
+    }
+    .is-dragging {
+      cursor: grabbing;
+    }
+
+    .container {
+      display: flex;
+    }
+  }
+}

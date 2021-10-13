@@ -6,6 +6,7 @@ import { useIsTouchDevice } from 'hooks/use-is-touch-device'
 
 function MyApp({ Component, pageProps }) {
   const isTouchDevice = useIsTouchDevice()
+  
 
   return (
     <>

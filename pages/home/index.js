@@ -7,7 +7,7 @@ import { useStore } from 'lib/store'
 import { Accordion } from 'components/Accordion'
 import { Marquee } from 'components/Marquee'
 import Slider from 'components/Slider'
-import Layout from 'layouts/default'
+import { Layout } from 'layouts/default'
 
 const devs = [
   {

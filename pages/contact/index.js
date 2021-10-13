@@ -1,4 +1,4 @@
-import Layout from 'layouts/default'
+import { Layout } from 'layouts/default'
 import s from './style.module.scss'
 
 export default function Contact() {

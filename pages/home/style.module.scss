@@ -2,11 +2,6 @@
 
 .pageHome {
   height: 200vh;
-  padding: mobile-vw(80px) 0;
-
-  @include desktop {
-    padding: desktop-vw(160px) 0;
-  }
 
   &__marquee {
     font-size: 6vw;

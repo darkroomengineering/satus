@@ -1,0 +1,32 @@
+:root {
+  --grid-columns: 12;
+  --grid-gap: 20px;
+  --max-width: calc(100vw - 40px);
+  @include desktop {
+    --max-width: min(1180px, calc(100vw - 160px));
+  }
+
+  --border: calc((100vw - var(--max-width)) / 2);
+}
+
+.block {
+  max-width: var(--max-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.grid {
+  @extend .block;
+
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), 1fr);
+  grid-gap: var(--grid-gap);
+}
+
+.section {
+  margin-bottom: 80px;
+
+  @include desktop {
+    margin-bottom: 200px;
+  }
+}

@@ -12,9 +12,13 @@ import cn from 'clsx'
 
 const AccordionsGroupContext = createContext()
 
-const Header = () => null
+const Header = (props) => {
+  return <div {...props}>{props.children}</div>
+}
 
-const Body = () => null
+const Body = (props) => {
+  return <div {...props}>{props.children}</div>
+}
 
 export const Accordion = ({ children, index = 0, className }) => {
   const { opened, toggle } = useContext(AccordionsGroupContext)
@@ -35,7 +39,7 @@ export const Accordion = ({ children, index = 0, className }) => {
             }}
             key="header"
           >
-            {el.props.children}
+            <Header {...el.props}>{el.props.children}</Header>
           </button>
         )
       case Body:
@@ -49,7 +53,9 @@ export const Accordion = ({ children, index = 0, className }) => {
             }}
             key="body"
           >
-            <div ref={contentRef}>{el.props.children}</div>
+            <div ref={contentRef}>
+              <Body {...el.props}>{el.props.children}</Body>
+            </div>
           </div>
         )
     }

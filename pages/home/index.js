@@ -63,13 +63,11 @@ export default function Home() {
                 className={s.pageHome__accordion}
                 key={`accordion-item-${idx}`}
               >
-                <Accordion.Header>
-                  <div className={s.pageHome__accordion__header}>
-                    header : {`accordion-item-${idx}`}
-                  </div>
+                <Accordion.Header className={s.pageHome__accordion__header}>
+                  header : {`accordion-item-${idx}`}
                 </Accordion.Header>
-                <Accordion.Body>
-                  <div className={s.pageHome__accordion__body}>{item.body}</div>
+                <Accordion.Body className={s.pageHome__accordion__body}>
+                  {item.body}
                 </Accordion.Body>
               </Accordion>
             ))}

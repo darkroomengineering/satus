@@ -1,6 +1,6 @@
 import { ScrollContext } from 'components/scroll'
 import cn from 'clsx'
-import { useContext, useEffect, useLayoutEffect, Fragment } from 'react'
+import { useContext, useEffect, useLayoutEffect, Fragment, useRef } from 'react'
 import s from './home.module.scss'
 import { raf } from '@react-spring/rafz'
 import { useStore } from 'lib/store'
@@ -8,6 +8,7 @@ import { Accordion } from 'components/accordion'
 import { Marquee } from 'components/marquee'
 import Slider from 'components/slider'
 import { Layout } from 'layouts/default'
+import { useRect } from 'hooks/use-rect'
 
 const devs = [
   {
@@ -33,8 +34,22 @@ const devs = [
 ]
 
 export default function Home() {
+  const rectRef = useRef()
+  const [ref, compute] = useRect()
+
   function update() {
-    const y = useStore.getState()?.scroll?.scroll?.y
+    const rect = compute()
+    if (rect) {
+      const string = `inView: ${rect.inView}<br>left:${Math.round(
+        rect.left
+      )}px<br>top:${Math.round(rect.top)}px<br>width:${
+        rect.width
+      }px<br>height:${rect.height}px<br>right:${Math.round(
+        rect.right
+      )}px<br>bottom:${Math.round(rect.bottom)}px`
+      rectRef.current.innerHTML = string
+    }
+
     return true
   }
 
@@ -113,6 +128,19 @@ export default function Home() {
             )
           }}
         </Slider>
+
+        <div
+          ref={(node) => {
+            rectRef.current = node
+            ref.current = node
+          }}
+          style={{
+            width: '250px',
+            height: '250px',
+            backgroundColor: 'cyan',
+            margin: '0 auto',
+          }}
+        ></div>
       </div>
     </Layout>
   )

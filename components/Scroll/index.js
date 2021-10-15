@@ -15,9 +15,7 @@ import { useStore } from 'lib/store'
 export const ScrollContext = createContext(null)
 
 export const Scroll = ({ children }) => {
-  const { setScroll } = useStore((state) => ({
-    setScroll: state.setScroll,
-  }))
+  const setScroll = useStore((state) => state.setScroll)
 
   const el = useRef()
   const [ref, { width, height }] = useMeasure()
@@ -61,6 +59,7 @@ export const Scroll = ({ children }) => {
 
       scroll.current = new LocomotiveScroll({
         el: el.current,
+        scrollFromAnywhere: true,
         smooth: !isTouchDevice,
         tablet: {
           smooth: !isTouchDevice,

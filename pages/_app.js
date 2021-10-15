@@ -10,7 +10,7 @@ import { useStore } from 'lib/store'
 function MyApp({ Component, pageProps }) {
   const isTouchDevice = useIsTouchDevice()
   const isDarkMode = useMediaQuery('(prefers-color-scheme: dark)')
-  const { setTheme } = useStore((state) => ({ setTheme: state.setTheme }))
+  const setTheme = useStore((state) => state.setTheme)
 
   useLayoutEffect(() => {
     setTheme(isDarkMode ? 'dark' : 'light')

@@ -4,12 +4,13 @@ import { useStore } from 'lib/store'
 import { useLayoutEffect } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
+import shallow from 'zustand/shallow'
 
 export const Navigation = () => {
-  const { navIsOpen, setNavIsOpen } = useStore((state) => ({
-    navIsOpen: state.navIsOpen,
-    setNavIsOpen: state.setNavIsOpen,
-  }))
+  const [navIsOpen, setNavIsOpen] = useStore(
+    (state) => [state.navIsOpen, state.setNavIsOpen],
+    shallow
+  )
 
   const router = useRouter()
 

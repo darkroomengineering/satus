@@ -1,11 +1,12 @@
-TIPS: 2 ways to get scroll position
+## 2 ways to get scroll position
 
-using store
+```javascript
+//using store
 import { raf } from '@react-spring/rafz'
 import { useStore } from 'lib/store'
 
 function update() {
-  console.log(useStore.getState().scroll)
+  const scrollY = useStore.getState().scroll?.scroll?.y || 0
   return true
 }
 
@@ -16,15 +17,17 @@ useEffect(() => {
     raf.cancel(update)
   }
 }, [])
+```
 
-using context
+```javascript
+//using context
 const { scroll, isReady } = useContext(ScrollContext)
 
 useEffect(() => {
   if (!scroll) return
 
   const onScroll = (e) => {
-    console.log(e)
+    const scrollY = e.scroll.y
   }
 
   scroll.on('scroll', onScroll)
@@ -33,3 +36,4 @@ useEffect(() => {
     scroll.off('scroll', onScroll)
   }
 }, [scroll, isReady])
+```

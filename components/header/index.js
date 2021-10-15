@@ -5,7 +5,7 @@ import { useStore } from 'lib/store'
 import cn from 'clsx'
 
 export const Header = () => {
-  const { toggleNav } = useStore((state) => ({ toggleNav: state.toggleNav }))
+  const toggleNav = useStore((state) => state.toggleNav)
 
   return (
     <header className={s.appHeader}>

@@ -1,5 +1,5 @@
-import { Scroll } from 'components/scroll_'
-import { Footer } from 'components/footer_'
+import { Scroll } from 'components/scroll'
+import { Footer } from 'components/footer'
 import s from './layout.module.scss'
 
 export function Layout({ children }) {

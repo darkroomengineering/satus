@@ -1,6 +1,6 @@
 import s from './header.module.scss'
 import Link from 'next/link'
-import { Navigation } from 'components/navigation_'
+import { Navigation } from 'components/navigation'
 import { useStore } from 'lib/store'
 import cn from 'clsx'
 

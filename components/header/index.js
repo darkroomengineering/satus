@@ -3,15 +3,25 @@ import Link from 'next/link'
 import { Navigation } from 'components/navigation'
 import { useStore } from 'lib/store'
 import cn from 'clsx'
+import shallow from 'zustand/shallow'
 
 export const Header = () => {
-  const toggleNav = useStore((state) => state.toggleNav)
+  const [navIsOpen, setNavIsOpen] = useStore(
+    (state) => [state.navIsOpen, state.setNavIsOpen],
+    shallow
+  )
 
   return (
     <header className={s.appHeader}>
       <Navigation />
       <div className={cn('block', s.appHeader__head)}>
-        <button onClick={toggleNav}>menu</button>
+        <button
+          onClick={() => {
+            setNavIsOpen(!navIsOpen)
+          }}
+        >
+          menu
+        </button>
         <div>
           <Link href="/">
             <a>home</a>

@@ -1,17 +1,25 @@
 import { useLayoutEffect, useState } from 'react'
-import { useWindowSize } from 'react-use'
+import { useEvent } from 'react-use'
 
 export const useIsTouchDevice = () => {
   const [isTouchDevice, setIsTouchDevice] = useState(undefined)
-  const { width, height } = useWindowSize()
 
   useLayoutEffect(() => {
-    setIsTouchDevice(
-      'ontouchstart' in window ||
-        navigator.maxTouchPoints > 0 ||
-        navigator.msMaxTouchPoints > 0
-    )
-  }, [width, height])
+    const onResize = () => {
+      setIsTouchDevice(
+        'ontouchstart' in window ||
+          navigator.maxTouchPoints > 0 ||
+          navigator.msMaxTouchPoints > 0
+      )
+    }
+
+    onResize()
+    window.addEventListener('resize', onResize, false)
+
+    return () => {
+      window.removeEventListener('resize', onResize, false)
+    }
+  }, [])
 
   return isTouchDevice
 }

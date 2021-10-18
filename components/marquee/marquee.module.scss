@@ -2,6 +2,7 @@
   $self: &;
 
   display: flex;
+  overflow: hidden;
 
   &__inner {
     display: flex;

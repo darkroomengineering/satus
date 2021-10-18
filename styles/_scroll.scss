@@ -1,4 +1,10 @@
 /*! locomotive-scroll v4.1.1 | MIT License | https://github.com/locomotivemtl/locomotive-scroll */
+html {
+  overflow: hidden;
+}
+html.has-scroll-init {
+  overflow: auto;
+}
 html.has-scroll-smooth {
   overflow: hidden;
 }

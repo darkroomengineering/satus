@@ -11,6 +11,7 @@ import { raf } from '@react-spring/rafz'
 import { useIsTouchDevice } from 'hooks/use-is-touch-device'
 import { useDebounce, useMeasure } from 'react-use'
 import { useStore } from 'lib/store'
+import LocomotiveScroll from '@studio-freight/locomotive-scroll'
 
 export const ScrollContext = createContext(null)
 
@@ -51,11 +52,11 @@ export const Scroll = ({ children }) => {
       setScroll(e)
     }
 
-    async function initScroll() {
+    function initScroll() {
       setIsReady(false)
-      const LocomotiveScroll = (
-        await import('@studio-freight/locomotive-scroll')
-      ).default
+      // const LocomotiveScroll = (
+      //   await import('@studio-freight/locomotive-scroll')
+      // ).default
 
       scroll.current = new LocomotiveScroll({
         el: el.current,

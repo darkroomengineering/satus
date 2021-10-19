@@ -1,4 +1,3 @@
-import { ScrollContext } from 'components/scroll'
 import cn from 'clsx'
 import { useContext, useEffect, useLayoutEffect, Fragment, useRef } from 'react'
 import s from './home.module.scss'

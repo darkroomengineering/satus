@@ -31,7 +31,7 @@ const Cursor = () => {
     [hasMoved]
   )
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     window.addEventListener('mousemove', onMouseMove, false)
 
     return () => {
@@ -39,7 +39,7 @@ const Cursor = () => {
     }
   }, [hasMoved])
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     document.documentElement.classList.add('has-custom-cursor')
 
     return () => {
@@ -47,7 +47,7 @@ const Cursor = () => {
     }
   }, [])
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     // custom cursor pointer events
     let pointerElements
 

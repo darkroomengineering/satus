@@ -6,6 +6,7 @@ import { useIsTouchDevice } from 'hooks/use-is-touch-device'
 import { useMediaQuery } from 'hooks/use-media-query'
 import { useLayoutEffect } from 'react'
 import { useStore } from 'lib/store'
+import 'resize-observer-polyfill'
 
 function MyApp({ Component, pageProps }) {
   const isTouchDevice = useIsTouchDevice()

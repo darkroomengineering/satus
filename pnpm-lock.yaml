@@ -13,6 +13,7 @@ specifiers:
   eslint-config-next: 11.1.2
   eslint-config-prettier: ^8.3.0
   eslint-plugin-prettier: ^4.0.0
+  husky: ^7.0.2
   next: 11.1.2
   next-compose-plugins: ^2.2.1
   next-transpile-modules: ^8.0.0
@@ -22,6 +23,7 @@ specifiers:
   react-dom: 17.0.2
   react-spring: ^9.2.6
   react-use: ^17.3.1
+  resize-observer-polyfill: ^1.5.1
   sass: ^1.42.1
   stylelint: ^13.13.1
   stylelint-scss: ^3.21.0
@@ -37,6 +39,7 @@ dependencies:
   react-dom: 17.0.2_react@17.0.2
   react-spring: 9.2.6_react-dom@17.0.2+react@17.0.2
   react-use: 17.3.1_react-dom@17.0.2+react@17.0.2
+  resize-observer-polyfill: 1.5.1
   sass: 1.42.1
   zustand: 3.5.13_react@17.0.2
 
@@ -49,6 +52,7 @@ devDependencies:
   eslint-config-next: 11.1.2_eslint@7.32.0+next@11.1.2
   eslint-config-prettier: 8.3.0_eslint@7.32.0
   eslint-plugin-prettier: 4.0.0_6e975bd57c7acf028c1a9ddbbf60c898
+  husky: 7.0.2
   next-compose-plugins: 2.2.1
   next-transpile-modules: 8.0.0
   prettier: 2.4.1
@@ -3703,6 +3707,12 @@ packages:
   /https-browserify/1.0.0:
     resolution: {integrity: sha1-7AbBDgo0wPL68Zn3/X/Hj//QPHM=}
     dev: false
+
+  /husky/7.0.2:
+    resolution: {integrity: sha512-8yKEWNX4z2YsofXAMT7KvA1g8p+GxtB1ffV8XtpAEGuXNAbCV5wdNKH+qTpw8SM9fh4aMPDR+yQuKfgnreyZlg==}
+    engines: {node: '>=12'}
+    hasBin: true
+    dev: true
 
   /hyphenate-style-name/1.0.4:
     resolution: {integrity: sha512-ygGZLjmXfPHj+ZWh6LwbC37l43MhfztxetbFCoYTM2VjkIUpeHgSNn7QIyVFj7YQ1Wl9Cbw5sholVJPzWvC2MQ==}

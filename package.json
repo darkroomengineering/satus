@@ -7,12 +7,16 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "analyze": "cross-env ANALYZE=true next build",
+    "analyze:server": "cross-env BUNDLE_ANALYZE=server next build",
+    "analyze:browser": "cross-env BUNDLE_ANALYZE=browser next build"
   },
   "dependencies": {
     "@react-spring/rafz": "^9.2.6",
     "@studio-freight/locomotive-scroll": "0.0.1",
     "clsx": "^1.1.1",
+    "cross-env": "^7.0.3",
     "embla-carousel-react": "^5.0.1",
     "next": "11.1.2",
     "react": "17.0.2",

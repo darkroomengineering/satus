@@ -1,13 +1,11 @@
-import cn from 'clsx'
-import { useContext, useEffect, useLayoutEffect, Fragment, useRef } from 'react'
-import s from './home.module.scss'
 import { raf } from '@react-spring/rafz'
-import { useStore } from 'lib/store'
 import { Accordion } from 'components/accordion'
 import { Marquee } from 'components/marquee'
 import Slider from 'components/slider'
-import { Layout } from 'layouts/default'
 import { useRect } from 'hooks/use-rect'
+import { Layout } from 'layouts/default'
+import { Fragment, useEffect, useRef } from 'react'
+import s from './home.module.scss'
 
 const devs = [
   {
@@ -67,7 +65,7 @@ export default function Home() {
           marquee stuff that scroll continuously
         </Marquee>
         <Marquee className={s.pageHome__marquee} inverted repeat={3}>
-          marquee stuff that scroll continuously
+          HOLA JORDAN
         </Marquee>
         <Accordion.Group maxAccordionsOpenSimultaniously={3}>
           {Array(6)

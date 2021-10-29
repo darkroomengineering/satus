@@ -1,0 +1,3 @@
+- add FPS meter [stats.js](https://github.com/mrdoob/stats.js)
+- clean slider (see on STORD)
+- use kebab-case everywhere

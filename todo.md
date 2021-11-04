@@ -2,3 +2,4 @@
 - clean slider (see on STORD)
 - use kebab-case everywhere
 - add locomotive instance to store
+- rewrite accordion (see on STORD)

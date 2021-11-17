@@ -1,3 +1,4 @@
+- update _scroll.scss (fix bug scroll top on Chrome)
 - update _reset.scss
 - add FPS meter [stats.js](https://github.com/mrdoob/stats.js)
 - clean slider (see on STORD)

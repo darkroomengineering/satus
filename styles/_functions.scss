@@ -1,5 +1,5 @@
-@use "sass:math";
-@import "./_variables.scss";
+@use 'sass:math';
+@import './_variables.scss';
 
 // Breakpoint
 @mixin mobile {
@@ -22,36 +22,8 @@
   @return math.div($px-vw * 100vw, $base-vw);
 }
 
-@mixin grid-offset-generator($grid-columns: 14, $gap: 40px) {
-  @for $i from 1 through $grid-columns {
-    .or-#{$i}-col {
-      margin-right: tovw(60px + ($i * $gap));
-    }
-    .ol-#{$i}-col {
-      margin-left: tovw(60px + ($i * $gap));
-    }
-  }
-}
-
-//Margin bottom generator
-@mixin mb-offset-generator($total: 15, $gap: 25px) {
-  @for $i from 2 through $total {
-    .mb-#{$i} {
-      margin-bottom: tovw($i * $gap);
-    }
-  }
-  .mb-1 {
-    margin-bottom: tovw(10 + $gap);
-  }
-  //mobile
-  @media (max-width: 800px) {
-    @for $i from 2 through $total {
-      // .mb-#{$i} {
-      //   margin-bottom: tovw($i * $gap, 375px);
-      // }
-    }
-    .mb-1 {
-      margin-bottom: tovw($gap, 375px);
-    }
-  }
+@function columns($columns) {
+  @return calc(
+    (#{$columns} * var(--column-width)) + ((#{$columns} - 1) * var(--grid-gap))
+  );
 }

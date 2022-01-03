@@ -1,10 +1,12 @@
-@import "./_reset.scss";
-@import "./_fonts.scss";
-@import "./_colors.scss";
-@import "./_easings.scss";
-@import "./_scroll.scss";
-@import "./_functions.scss";
-@import "./_grid.scss";
+@import './_reset.scss';
+@import './_fonts.scss';
+@import './_colors.scss';
+@import './_easings.scss';
+@import './_scroll.scss';
+@import './_functions.scss';
+@import './_grid.scss';
+@import './_utils.scss';
+@import './_font-style.scss';
 
 :root {
   --header-height: #{mobile-vw(58px)};
@@ -27,6 +29,7 @@ html {
 }
 
 body {
+  overscroll-behavior: none;
   min-height: 100vh;
 }
 

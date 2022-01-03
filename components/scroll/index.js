@@ -1,21 +1,14 @@
-// import { useRouter } from 'next/router'
-import dynamic from 'next/dynamic'
-import {
-  createContext,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react'
 import { raf } from '@react-spring/rafz'
 import { useIsTouchDevice } from 'hooks/use-is-touch-device'
-import { useDebounce, useMeasure } from 'react-use'
 import { useStore } from 'lib/store'
+import { createContext, useLayoutEffect, useRef, useState } from 'react'
+import { useDebounce, useMeasure } from 'react-use'
 
 export const ScrollContext = createContext(null)
 
-export const Scroll = ({ children }) => {
+export const Scroll = ({ children, className }) => {
   const setScroll = useStore((state) => state.setScroll)
+  const setLocomotive = useStore((state) => state.setLocomotive)
 
   const el = useRef()
   const [ref, { width, height }] = useMeasure()
@@ -25,34 +18,19 @@ export const Scroll = ({ children }) => {
 
   const isTouchDevice = useIsTouchDevice()
 
-  // const router = useRouter()
-
-  // useEffect(() => {
-  //   const onRouteChangeComplete = () => {
-  //     scroll.current?.setScroll(0, 0)
-  //     scroll.current?.update()
-  //   }
-
-  //   router.events.on('routeChangeComplete', onRouteChangeComplete)
-
-  //   return () => {
-  //     router.events.off('routeChangeComplete', onRouteChangeComplete)
-  //   }
-  // }, [])
-
-  function update() {
-    scroll.current?.raf()
-    return true
-  }
+  const [id] = useState(Math.random())
 
   useLayoutEffect(() => {
-    setScroll(undefined)
-    const onScroll = (e) => {
-      setScroll(e)
+    let runFrame = true
+    function update() {
+      if (!runFrame) return
+      scroll.current?.raf()
+      return true
     }
 
     async function initScroll() {
       setIsReady(false)
+      setLocomotive(undefined)
       const LocomotiveScroll = (
         await import('@studio-freight/locomotive-scroll')
       ).default
@@ -69,7 +47,8 @@ export const Scroll = ({ children }) => {
         },
         autoRaf: false,
       })
-      scroll.current.on('scroll', onScroll)
+
+      setLocomotive(scroll.current)
       setIsReady(true)
     }
 
@@ -80,9 +59,7 @@ export const Scroll = ({ children }) => {
     }
 
     return () => {
-      raf.cancel(update)
-      scroll.current?.off('scroll', onScroll)
-      scroll.current?.destroy()
+      runFrame = false
     }
   }, [isTouchDevice])
 
@@ -96,15 +73,16 @@ export const Scroll = ({ children }) => {
 
   return (
     <ScrollContext.Provider value={{ scroll: scroll.current, isReady }}>
-      <div
+      <main
         ref={(node) => {
           el.current = node
           ref(node)
         }}
+        className={className}
         data-scroll-container
       >
         {children}
-      </div>
+      </main>
     </ScrollContext.Provider>
   )
 }

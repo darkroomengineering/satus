@@ -1,29 +1,31 @@
+import { animated, useSpring } from '@react-spring/web'
 import cn from 'clsx'
 import { useRouter } from 'next/router'
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import s from './cursor.module.scss'
-import { useSpring, animated } from 'react-spring'
 
 const Cursor = () => {
   const cursor = useRef()
   const [state, setState] = useState('default')
+  const [isGrab, setIsGrab] = useState(false)
+  const [isPointer, setIsPointer] = useState(false)
   const [hasMoved, setHasMoved] = useState(false)
   const router = useRouter()
 
   const [styles, api] = useSpring(() => ({
-    transform: `translate3d(0px,0px,0)`,
+    x: 0,
+    y: 0,
   }))
 
   const onMouseMove = useCallback(
     ({ pageX, pageY }) => {
       api.start({
-        transform: `translate3d(${pageX}px,${pageY}px,0)`,
+        config: {
+          duration: 0,
+          easing: (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t)),
+        },
+        x: pageX,
+        y: pageY,
         immediate: !hasMoved,
       })
       setHasMoved(true)
@@ -48,63 +50,72 @@ const Cursor = () => {
   }, [])
 
   useEffect(() => {
-    // custom cursor pointer events
-    let pointerElements
+    let elements = []
 
     const onMouseEnter = () => {
-      //   events.emit('cursor:pointer')
-      setState('pointer')
+      setIsPointer(true)
     }
     const onMouseLeave = () => {
-      //   events.emit('cursor:default')
-      setState('default')
+      setIsPointer(false)
     }
 
-    const onPageMount = () => {
-      if (pointerElements) {
-        pointerElements.forEach((element) => {
-          element.removeEventListener('mouseenter', onMouseEnter, false)
-          element.removeEventListener('mouseleave', onMouseLeave, false)
-        })
-      }
+    elements = [
+      ...document.querySelectorAll(
+        "button,a,input,label,[data-cursor='pointer']"
+      ),
+    ]
 
-      pointerElements = [...document.querySelectorAll('button,a,input,label')]
-
-      pointerElements.forEach((element) => {
-        element.addEventListener('mouseenter', onMouseEnter, false)
-        element.addEventListener('mouseleave', onMouseLeave, false)
-      })
-    }
-
-    router.events.on('routeChangeComplete', onPageMount)
-    onPageMount()
-
-    // custom cursor click events
-    const onMouseDown = () => {
-      setState('click')
-      //   events.emit('cursor:click')
-    }
-    const onMouseUp = () => {
-      setState('default')
-      //   events.emit('cursor:default')
-    }
-
-    window.addEventListener('mousedown', onMouseDown, false)
-    window.addEventListener('mouseup', onMouseUp, false)
+    elements.forEach((element) => {
+      element.addEventListener('mouseenter', onMouseEnter, false)
+      element.addEventListener('mouseleave', onMouseLeave, false)
+    })
 
     return () => {
-      window.removeEventListener('mousedown', onMouseDown, false)
-      window.removeEventListener('mouseup', onMouseUp, false)
+      elements.forEach((element) => {
+        element.removeEventListener('mouseenter', onMouseEnter, false)
+        element.removeEventListener('mouseleave', onMouseLeave, false)
+      })
+    }
+  }, [])
+
+  useEffect(() => {
+    let elements = []
+
+    const onMouseEnter = () => {
+      setIsGrab(true)
+    }
+    const onMouseLeave = () => {
+      setIsGrab(false)
+    }
+
+    elements = [
+      ...document.querySelectorAll(
+        "button,a,input,label,[data-cursor='pointer']"
+      ),
+    ]
+
+    elements.forEach((element) => {
+      element.addEventListener('mouseenter', onMouseEnter, false)
+      element.addEventListener('mouseleave', onMouseLeave, false)
+    })
+
+    return () => {
+      elements.forEach((element) => {
+        element.removeEventListener('mouseenter', onMouseEnter, false)
+        element.removeEventListener('mouseleave', onMouseLeave, false)
+      })
     }
   }, [])
 
   return (
     <div
       style={{ opacity: hasMoved ? 1 : 0 }}
-      className={cn(s.appCursor, s[`appCursor--${state}`])}
+      className={cn(s['cursor-container'])}
     >
       <animated.div ref={cursor} style={styles}>
-        <div className={s.appCursor__cursor}></div>
+        <div
+          className={cn(s.cursor, isGrab && s.grab, isPointer && s.pointer)}
+        />
       </animated.div>
     </div>
   )

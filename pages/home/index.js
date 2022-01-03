@@ -1,7 +1,7 @@
+import * as Accordion from '@radix-ui/react-accordion'
 import { raf } from '@react-spring/rafz'
-import { Accordion } from 'components/accordion'
 import { Marquee } from 'components/marquee'
-import Slider from 'components/slider'
+import { Slider } from 'components/slider'
 import { useRect } from 'hooks/use-rect'
 import { Layout } from 'layouts/default'
 import { Fragment, useEffect, useRef } from 'react'
@@ -58,6 +58,8 @@ export default function Home() {
     }
   }, [])
 
+  console.log('update')
+
   return (
     <Layout>
       <div className={s.pageHome}>
@@ -67,23 +69,24 @@ export default function Home() {
         <Marquee className={s.pageHome__marquee} inverted repeat={3}>
           HOLA JORDAN
         </Marquee>
-        <Accordion.Group maxAccordionsOpenSimultaniously={3}>
-          {Array(6)
+        <Accordion.Root type="single" collapsible>
+          {Array(2)
             .fill({ header: 'this is header', body: 'this is body' })
-            .map((item, idx) => (
-              <Accordion
-                className={s.pageHome__accordion}
-                key={`accordion-item-${idx}`}
+            .map((item, key) => (
+              <Accordion.Item
+                key={key + 1}
+                value={key + 1}
+                className={s.accordion}
               >
-                <Accordion.Header className={s.pageHome__accordion__header}>
-                  header : {`accordion-item-${idx}`}
+                <Accordion.Header>
+                  <Accordion.Trigger>header</Accordion.Trigger>
                 </Accordion.Header>
-                <Accordion.Body className={s.pageHome__accordion__body}>
-                  {item.body}
-                </Accordion.Body>
-              </Accordion>
+                <Accordion.Content className={s.accordion__content}>
+                  <div>body</div>
+                </Accordion.Content>
+              </Accordion.Item>
             ))}
-        </Accordion.Group>
+        </Accordion.Root>
         <Slider
           emblaApi={{
             slidesToScroll: 1,

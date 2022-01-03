@@ -1,16 +1,18 @@
+import { Cursor } from 'components/cursor'
 import { Footer } from 'components/footer'
-import { GridDebugger } from 'components/grid-debugger'
+import { Header } from 'components/header'
 import { Scroll } from 'components/scroll'
+import { useIsTouchDevice } from 'hooks/use-is-touch-device'
 import s from './layout.module.scss'
 
 export function Layout({ children }) {
+  const isTouchDevice = useIsTouchDevice()
   return (
     <>
-      <Scroll>
-        <main className={s.main} id="main">
-          <GridDebugger />
-          {children}
-        </main>
+      {isTouchDevice === false && <Cursor />}
+      <Header />
+      <Scroll className={s.main}>
+        {children}
         <Footer />
       </Scroll>
     </>

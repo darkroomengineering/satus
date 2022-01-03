@@ -1,5 +1,4 @@
 import { useLayoutEffect, useState } from 'react'
-import { useEvent } from 'react-use'
 
 export const useIsTouchDevice = () => {
   const [isTouchDevice, setIsTouchDevice] = useState(undefined)

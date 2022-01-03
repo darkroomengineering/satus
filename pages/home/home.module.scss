@@ -1,31 +1,62 @@
-@import "styles/_functions";
+@import 'styles/_functions';
 
-.pageHome {
-  height: 300vh;
-
-  &__marquee {
-    font-size: 6vw;
+.accordion {
+  overflow: hidden;
+  &:first-child {
+    border-top: 1px solid var(--black);
   }
 
-  &__accordion {
-    &:first-child {
-      border-top: 1px solid var(--black);
-    }
+  border-bottom: 1px solid var(--black);
+  padding: mobile-vw(10px) 0;
 
-    border-bottom: 1px solid var(--black);
-    padding: mobile-vw(10px) 0;
+  @include desktop {
+    padding: desktop-vw(10px) 0;
+  }
 
-    @include desktop {
-      padding: desktop-vw(10px) 0;
-    }
+  &__content {
+    // height: 0;
 
-    &__body {
+    > :first-child {
       padding-top: mobile-vw(10px);
 
       @include desktop {
         padding-top: desktop-vw(10px);
       }
     }
+
+    @keyframes open {
+      from {
+        height: 0;
+      }
+      to {
+        height: var(--radix-collapsible-content-height);
+      }
+    }
+
+    @keyframes close {
+      from {
+        height: var(--radix-collapsible-content-height);
+      }
+      to {
+        height: 0;
+      }
+    }
+
+    &:global([data-state='open']) {
+      animation: open 600ms var(--ease-out-expo);
+    }
+
+    &:global([data-state='closed']) {
+      animation: close 600ms var(--ease-out-expo);
+    }
+  }
+}
+
+.pageHome {
+  height: 300vh;
+
+  &__marquee {
+    font-size: 6vw;
   }
 
   .slider-header {

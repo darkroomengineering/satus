@@ -20,7 +20,7 @@ html {
 }
 
 /* Remove all the styles of the "User-Agent-Stylesheet", except for the 'display' property */
-*:not(iframe, canvas, img, svg, video, path, ellipse, polygon, rect, circle, line, polyline) {
+*:not(iframe, canvas, img, svg, video, svg *) {
   all: unset;
   display: revert;
 }

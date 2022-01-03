@@ -1,51 +1,50 @@
 import cn from 'clsx'
+import Autoplay from 'embla-carousel-autoplay'
 import useEmblaCarousel from 'embla-carousel-react'
-import { useCallback, useEffect, useState } from 'react'
-import useInterval from 'hooks/use-interval'
+import { forwardRef, useCallback, useEffect, useState } from 'react'
 import s from './slider.module.scss'
 
-const Slides = ({ children, emblaRef }) => {
-  return (
-    <div className={s.slider}>
-      <div className={s['slides-wrapper']} ref={emblaRef}>
-        <div className={s.container}>{children.map((child, idx) => child)}</div>
-      </div>
-    </div>
-  )
-}
+const Slides = forwardRef(({ children, className }, ref) => (
+  <div className={cn(s.slider, className)} ref={ref}>
+    <div className={s.container}>{children.map((child, idx) => child)}</div>
+  </div>
+))
+Slides.displayName = 'Slides'
 
-const Slider = ({ children, emblaApi = {} }) => {
-  const [emblaRef, embla] = useEmblaCarousel(emblaApi)
+const Slider = ({
+  children,
+  emblaApi = { autoplay: false },
+  enabled = true,
+}) => {
   const [scrollSnaps, setScrollSnaps] = useState([])
-  const [selectedIndex, setSelectedIndex] = useState(0)
-  const [delay, setDelay] = useState(5000)
-  const [isRunning, setIsRunning] = useState(emblaApi.autoScroll ?? false)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const autoplay = Autoplay(
+    { delay: emblaApi?.autoplay?.delay || null },
+    (emblaRoot) => emblaRoot.parentElement
+  )
+  const [emblaRef, embla] = useEmblaCarousel(
+    emblaApi,
+    emblaApi.autoplay ? [autoplay] : []
+  )
 
   const scrollPrev = useCallback(() => {
     embla && embla.scrollPrev()
   }, [embla])
+
   const scrollNext = useCallback(() => {
     embla && embla.scrollNext()
   }, [embla])
-  const scrollTo = useCallback(
-    (index) => embla && embla.scrollTo(index),
-    [embla]
-  )
 
-  useInterval(
-    () => {
-      if (selectedIndex === scrollSnaps.length - 1) {
-        scrollTo(0)
-      } else {
-        scrollNext()
-      }
+  const scrollTo = useCallback(
+    (index) => {
+      embla && embla.scrollTo(index)
     },
-    isRunning ? delay : null
+    [embla]
   )
 
   useEffect(() => {
     const onSelect = () => {
-      setSelectedIndex(embla.selectedScrollSnap())
+      setCurrentIndex(embla.selectedScrollSnap())
     }
     if (embla) {
       setScrollSnaps(embla.scrollSnapList())
@@ -54,9 +53,22 @@ const Slider = ({ children, emblaApi = {} }) => {
     }
   }, [embla])
 
-  return children({ scrollPrev, scrollNext, emblaRef })
+  useEffect(() => {
+    if (!enabled && embla) {
+      embla.destroy()
+    }
+  }, [embla, enabled])
+
+  return children({
+    emblaRef,
+    currentIndex,
+    setCurrentIndex,
+    scrollPrev,
+    scrollNext,
+    scrollTo,
+  })
 }
 
 Slider.Slides = Slides
 
-export default Slider
+export { Slider }

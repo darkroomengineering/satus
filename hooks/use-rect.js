@@ -1,21 +1,6 @@
 import { useStore } from 'lib/store'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDebounce, useMeasure, useWindowSize } from 'react-use'
-
-class Viewport {
-  constructor() {
-    this.width = undefined
-    this.height = undefined
-
-    this.onResize()
-    window.addEventListener('resize', this.onResize)
-  }
-
-  onResize = () => {
-    this.width = window.innerWidth
-    this.height = window.innerHeight
-  }
-}
 
 export function offsetTop(element, accumulator = 0) {
   const top = accumulator + element.offsetTop
@@ -33,7 +18,7 @@ export function offsetLeft(element, accumulator = 0) {
   return left
 }
 
-export const useRect = () => {
+export const useRect = (scroll = true) => {
   const ref = useRef()
   const [refMeasure, { width, height }] = useMeasure()
   const [bodyRef, { height: bodyHeight }] = useMeasure()
@@ -43,23 +28,38 @@ export const useRect = () => {
   const windowSize = useRef({})
 
   const compute = () => {
-    const scrollY = useStore.getState().scroll?.scroll?.y || 0
+    const scrollY =
+      useStore.getState().locomotive?.scroll?.instance.scroll.y || 0
 
     const { top, left, width, height } = rect.current
     const { width: windowWidth, height: windowHeight } = windowSize.current
 
-    if (!top || !left || !width || !height) {
+    if (
+      typeof top !== 'number' ||
+      typeof left !== 'number' ||
+      typeof width !== 'number' ||
+      typeof height !== 'number'
+    ) {
       return
     }
 
-    const _rect = {
-      top: top - scrollY,
-      left: left,
-      height: height,
-      width: width,
-      bottom: windowHeight - (top - scrollY + height),
-      right: windowWidth - (left + width),
-    }
+    const _rect = scroll
+      ? {
+          top: top - scrollY,
+          left: left,
+          height: height,
+          width: width,
+          bottom: windowHeight - (top - scrollY + height),
+          right: windowWidth - (left + width),
+        }
+      : {
+          top,
+          left,
+          height,
+          width,
+          bottom: top + height,
+          right: left + width,
+        }
 
     const inView =
       _rect.top + _rect.height > 0 && _rect.bottom + _rect.height > 0

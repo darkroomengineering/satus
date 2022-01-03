@@ -7,6 +7,8 @@ import { useMediaQuery } from 'hooks/use-media-query'
 import { useLayoutEffect } from 'react'
 import { useStore } from 'lib/store'
 import 'resize-observer-polyfill'
+import { GridDebugger } from 'components/grid-debugger'
+import { useDebug } from 'hooks/use-debug'
 
 function MyApp({ Component, pageProps }) {
   const isTouchDevice = useIsTouchDevice()
@@ -17,11 +19,12 @@ function MyApp({ Component, pageProps }) {
     setTheme(isDarkMode ? 'dark' : 'light')
   }, [isDarkMode])
 
+  const debug = useDebug()
+
   return (
     <>
+      {debug && <GridDebugger />}
       <RealViewport />
-      {isTouchDevice === false && <Cursor />}
-      <Header />
       <Component {...pageProps} />
     </>
   )

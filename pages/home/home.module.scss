@@ -78,9 +78,7 @@
   }
 
   .slide {
-    padding-top: desktop-vw(20px);
-    position: relative;
-    width: 100%;
+    min-width: 33vw;
     display: flex;
     flex-direction: column;
 
@@ -110,6 +108,7 @@
         height: 50%;
         min-width: 50%;
         transform: translate(-50%, -50%);
+        object-fit: cover;
 
         > div {
           height: 100%;

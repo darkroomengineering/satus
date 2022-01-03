@@ -4,7 +4,7 @@ import { Marquee } from 'components/marquee'
 import { Slider } from 'components/slider'
 import { useRect } from 'hooks/use-rect'
 import { Layout } from 'layouts/default'
-import { Fragment, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import s from './home.module.scss'
 
 const devs = [
@@ -87,23 +87,15 @@ export default function Home() {
               </Accordion.Item>
             ))}
         </Accordion.Root>
-        <Slider
-          emblaApi={{
-            slidesToScroll: 1,
-            skipSnaps: false,
-            startIndex: 1,
-            loop: true,
-            autoScroll: true,
-          }}
-        >
+        <Slider emblaApi={{ align: 'center', skipSnaps: false }}>
           {({ scrollPrev, scrollNext, emblaRef }) => {
             return (
-              <Fragment>
+              <>
                 <div className={s['slider-header']}>
                   <p>Slider Hader</p>
                   <p>Slider Title</p>
                 </div>
-                <Slider.Slides emblaRef={emblaRef}>
+                <Slider.Slides ref={emblaRef}>
                   {devs.map((item, idx) => (
                     <div className={s['slide']} key={`slide-item-${idx}`}>
                       <div className={s['slide-inner']}>
@@ -124,7 +116,7 @@ export default function Home() {
                 <button onClick={scrollPrev} className={s['slide-buttons']}>
                   next
                 </button>
-              </Fragment>
+              </>
             )
           }}
         </Slider>

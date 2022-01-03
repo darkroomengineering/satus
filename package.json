@@ -29,6 +29,7 @@
     "resize-observer-polyfill": "^1.5.1",
     "sass": "^1.45.2",
     "stats.js": "^0.17.0",
+    "use-dark-mode": "^2.3.1",
     "zustand": "^3.6.8"
   },
   "devDependencies": {

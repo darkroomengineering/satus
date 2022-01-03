@@ -32,6 +32,7 @@ specifiers:
   stats.js: ^0.17.0
   stylelint: ^13.13.1
   stylelint-scss: ^3.21.0
+  use-dark-mode: ^2.3.1
   zustand: ^3.6.8
 
 dependencies:
@@ -51,6 +52,7 @@ dependencies:
   resize-observer-polyfill: 1.5.1
   sass: 1.45.2
   stats.js: 0.17.0
+  use-dark-mode: 2.3.1_react@17.0.2
   zustand: 3.6.8_react@17.0.2
 
 devDependencies:
@@ -2152,6 +2154,14 @@ packages:
       '@typescript-eslint/types': 4.33.0
       eslint-visitor-keys: 2.1.0
     dev: true
+
+  /@use-it/event-listener/0.1.7_react@17.0.2:
+    resolution: {integrity: sha512-hgfExDzUU9uTRTPDCpw2s9jWTxcxmpJya3fK5ADpf5VDpSy8WYwY/kh28XE0tUcbsljeP8wfan48QvAQTSSa3Q==}
+    peerDependencies:
+      react: '>=16.8.0'
+    dependencies:
+      react: 17.0.2
+    dev: false
 
   /@xobotyi/scrollbar-width/1.9.5:
     resolution: {integrity: sha512-N8tkAACJx2ww8vFMneJmaAgmjAG1tnVBZJRLRcx061tmsLRZHSEZSLuGWnwPtunsSLvSqXQ2wfp7Mgqg1I+2dQ==}
@@ -6700,6 +6710,25 @@ packages:
     dependencies:
       punycode: 2.1.1
     dev: true
+
+  /use-dark-mode/2.3.1_react@17.0.2:
+    resolution: {integrity: sha512-hmcdJR96tTustRQdaQwe6jMrZHnmPqXBxgy4jaQ4gsfhwajsCpjECuq9prgDe9XxMx/f9r96o2/md6O4Lwhwjg==}
+    peerDependencies:
+      react: ^16.8.0
+    dependencies:
+      '@use-it/event-listener': 0.1.7_react@17.0.2
+      react: 17.0.2
+      use-persisted-state: 0.3.3_react@17.0.2
+    dev: false
+
+  /use-persisted-state/0.3.3_react@17.0.2:
+    resolution: {integrity: sha512-pCNlvYC8+XjRxwnIut4teGC9f2p9aD88R8OGseQGZa2dvqG/h1vEGk1vRE1IZG0Vf161UDpn+NlW4+UGubQflQ==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0
+    dependencies:
+      '@use-it/event-listener': 0.1.7_react@17.0.2
+      react: 17.0.2
+    dev: false
 
   /use-subscription/1.5.1_react@17.0.2:
     resolution: {integrity: sha512-Xv2a1P/yReAjAbhylMfFplFKj9GssgTwN7RlcTxBujFQcloStWNDQdc4g4NRWH9xS4i/FDk04vQBptAXoF3VcA==}

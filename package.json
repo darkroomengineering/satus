@@ -28,6 +28,7 @@
     "react-use": "^17.3.2",
     "resize-observer-polyfill": "^1.5.1",
     "sass": "^1.45.2",
+    "stats.js": "^0.17.0",
     "zustand": "^3.6.8"
   },
   "devDependencies": {

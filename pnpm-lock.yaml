@@ -29,6 +29,7 @@ specifiers:
   react-use: ^17.3.2
   resize-observer-polyfill: ^1.5.1
   sass: ^1.45.2
+  stats.js: ^0.17.0
   stylelint: ^13.13.1
   stylelint-scss: ^3.21.0
   zustand: ^3.6.8
@@ -49,6 +50,7 @@ dependencies:
   react-use: 17.3.2_react-dom@17.0.2+react@17.0.2
   resize-observer-polyfill: 1.5.1
   sass: 1.45.2
+  stats.js: 0.17.0
   zustand: 3.6.8_react@17.0.2
 
 devDependencies:
@@ -6047,6 +6049,10 @@ packages:
     engines: {node: '>=6'}
     dependencies:
       type-fest: 0.7.1
+    dev: false
+
+  /stats.js/0.17.0:
+    resolution: {integrity: sha1-scPcRtlEmLV4t/05hbgaznExzH0=}
     dev: false
 
   /statuses/1.5.0:

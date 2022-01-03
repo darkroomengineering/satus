@@ -57,6 +57,7 @@ html.has-scroll-dragging {
   width: 10px;
   border: 2px solid transparent;
   background-clip: padding-box;
+  border-radius: 16px;
 }
 .has-scroll-dragging .c-scrollbar_thumb {
   cursor: grabbing;

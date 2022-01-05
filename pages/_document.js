@@ -6,7 +6,7 @@ class _Document extends Document {
     return (
       <Html lang="en">
         <Head>
-          <meta charset="UTF-8" />
+          <meta charSet="UTF-8" />
           {/* <link
             href="/fonts/aeonik/AeonikPro-Bold.woff2"
             as="font"

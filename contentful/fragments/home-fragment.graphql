@@ -1,0 +1,10 @@
+fragment quotes on Quotes {
+  authorName
+  authorPosition
+  companyLogo {
+    url
+  }
+  quote {
+    json
+  }
+}

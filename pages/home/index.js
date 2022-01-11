@@ -2,6 +2,8 @@ import * as Accordion from '@radix-ui/react-accordion'
 import { raf } from '@react-spring/rafz'
 import { Marquee } from 'components/marquee'
 import { Slider } from 'components/slider'
+import { CmsMethods, fetchCmsQuery } from 'contentful/api'
+import { homeQuery } from 'contentful/queries/homepage.graphql'
 import { useRect } from 'hooks/use-rect'
 import { Layout } from 'layouts/default'
 import { useEffect, useRef } from 'react'
@@ -136,4 +138,27 @@ export default function Home() {
       </div>
     </Layout>
   )
+}
+
+export const getStaticProps = async ({ preview = false }) => {
+  const cmsMethods = new CmsMethods()
+  const variables = {
+    pageId: '67aYLZRzNXmiiUsc2GDCnP',
+    preview: preview,
+  }
+  const fetchHomePage = await fetchCmsQuery(homeQuery, variables)
+  const data = fetchHomePage?.home
+
+  const homePageData = {
+    title: 'hola',
+  }
+
+  console.log(homePageData)
+
+  return {
+    props: {
+      homePageData,
+    },
+    revalidate: 1,
+  }
 }

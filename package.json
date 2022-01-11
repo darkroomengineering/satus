@@ -13,6 +13,8 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "@contentful/rich-text-react-renderer": "^15.11.1",
+    "@contentful/rich-text-types": "^15.11.1",
     "@radix-ui/react-accordion": "^0.1.5",
     "@react-spring/rafz": "^9.4.0",
     "@studio-freight/locomotive-scroll": "0.0.3",
@@ -20,6 +22,9 @@
     "cross-env": "^7.0.3",
     "embla-carousel-autoplay": "^6.0.2",
     "embla-carousel-react": "^6.0.2",
+    "graphql": "^16.2.0",
+    "graphql-request": "^3.7.0",
+    "graphql-tag": "^2.12.6",
     "husky": "^7.0.4",
     "lint-staged": "^12.1.5",
     "next": "12.0.7",

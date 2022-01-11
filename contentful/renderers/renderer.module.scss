@@ -1,0 +1,92 @@
+@import 'styles/_functions';
+
+.links {
+  color: var(--blue);
+}
+
+.double-wrapper {
+  overflow-x: auto;
+
+  @include desktop {
+    width: desktop-vw(1440px);
+    height: desktop-vw(500px);
+    margin-left: desktop-vw(-440px);
+    margin-top: desktop-vw(45px);
+    margin-bottom: desktop-vw(35px);
+  }
+
+  .double-image {
+    @include mobile {
+      grid-template-columns: repeat(11, 1fr);
+      min-width: mobile-vw(991px);
+      height: mobile-vw(435px);
+      margin-top: mobile-vw(15px);
+    }
+
+    .left {
+      grid-column: 1/5;
+      height: mobile-vw(435px);
+      width: mobile-vw(335px);
+
+      @include desktop {
+        grid-column: 1/5;
+        width: desktop-vw(400px);
+        height: desktop-vw(500px);
+      }
+    }
+
+    .right {
+      height: mobile-vw(435px);
+      width: mobile-vw(648px);
+      grid-column: 5/-1;
+
+      @include desktop {
+        padding-top: 0;
+        grid-column: 5/-1;
+        width: desktop-vw(840px);
+        height: desktop-vw(500px);
+      }
+    }
+  }
+}
+
+.full-width {
+  height: mobile-vw(260px);
+  width: mobile-vw(335px);
+  margin: mobile-vw(15px) 0 mobile-vw(40px) 0;
+
+  @include desktop {
+    margin-left: desktop-vw(-440px);
+    max-width: desktop-vw(1480px);
+    height: desktop-vw(500px);
+    margin-top: desktop-vw(45px);
+    margin-bottom: desktop-vw(45px);
+  }
+}
+
+.normal-width {
+  width: 100%;
+
+  > * {
+    width: 100%;
+  }
+
+  @include desktop {
+    width: desktop-vw(840px);
+    height: desktop-vw(500px);
+    margin-bottom: desktop-vw(80px);
+
+    > * {
+      width: desktop-vw(840px);
+      height: desktop-vw(500px);
+    }
+  }
+  position: relative;
+}
+
+.color-text {
+  display: block;
+  b {
+    color: var(--theme-contrast);
+  }
+}

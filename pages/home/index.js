@@ -32,7 +32,7 @@ const devs = [
   },
 ]
 
-export default function Home() {
+export default function Home({ homePageData }) {
   const rectRef = useRef()
   const [ref, compute] = useRect()
 
@@ -65,6 +65,7 @@ export default function Home() {
   return (
     <Layout>
       <div className={s.pageHome}>
+        <h2>{homePageData.title}</h2>
         <Marquee className={s.pageHome__marquee} offset={50} repeat={3}>
           marquee stuff that scroll continuously
         </Marquee>
@@ -150,10 +151,8 @@ export const getStaticProps = async ({ preview = false }) => {
   const data = fetchHomePage?.home
 
   const homePageData = {
-    title: 'hola',
+    title: data.title,
   }
-
-  console.log(homePageData)
 
   return {
     props: {

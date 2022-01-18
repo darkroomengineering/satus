@@ -1,10 +1,11 @@
 import * as Accordion from '@radix-ui/react-accordion'
-import { raf } from '@react-spring/rafz'
 import { Marquee } from 'components/marquee'
 import { Slider } from 'components/slider'
+import { useFrame } from 'hooks/use-frame'
 import { useRect } from 'hooks/use-rect'
 import { Layout } from 'layouts/default'
-import { useEffect, useRef } from 'react'
+import { useStore } from 'lib/store'
+import { useRef } from 'react'
 import s from './home.module.scss'
 
 const devs = [
@@ -33,8 +34,11 @@ const devs = [
 export default function Home() {
   const rectRef = useRef()
   const [ref, compute] = useRect()
+  const locomotive = useStore((state) => state.locomotive)
 
-  function update() {
+  useFrame(() => {
+    const scrollY = locomotive?.scroll.instance.scroll.y || 0
+
     const rect = compute()
     if (rect) {
       const string = `inView: ${rect.inView}<br>left:${Math.round(
@@ -46,17 +50,7 @@ export default function Home() {
       )}px<br>bottom:${Math.round(rect.bottom)}px`
       rectRef.current.innerHTML = string
     }
-
-    return true
-  }
-
-  useEffect(() => {
-    raf.onFrame(update)
-
-    return () => {
-      raf.cancel(update)
-    }
-  }, [])
+  }, 1)
 
   console.log('update')
 

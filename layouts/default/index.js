@@ -11,10 +11,17 @@ export function Layout({ children }) {
     <>
       {isTouchDevice === false && <Cursor />}
       <Header />
-      <Scroll className={s.main}>
-        {children}
-        <Footer />
-      </Scroll>
+      {typeof window !== undefined ? (
+        <Scroll className={s.main} tag="main" debounce={1000}>
+          {children}
+          <Footer />
+        </Scroll>
+      ) : (
+        <>
+          <main>{children}</main>
+          <Footer />
+        </>
+      )}
     </>
   )
 }

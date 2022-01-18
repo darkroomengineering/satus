@@ -50,7 +50,7 @@ export default function Home() {
       )}px<br>bottom:${Math.round(rect.bottom)}px`
       rectRef.current.innerHTML = string
     }
-  }, 1)
+  }, 0)
 
   console.log('update')
 

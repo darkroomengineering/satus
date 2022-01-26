@@ -1,0 +1,53 @@
+# This is a simple GitHub Actions CI workflow.
+name: CI
+
+# Limit permissions. See:
+# https://github.com/ossf/scorecard/blob/main/docs/checks.md#token-permissions
+# https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions
+# Since we set "permissions", anything unset has access "none".
+permissions:
+  contents: read
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE,
+      # so your job can access it.
+      # As required by OpenSSF Scorecard,
+      # we pin this to a specific hash value to prevent use of an unknown
+      # (and possibly subverted) version.
+      # Update by consulting: https://github.com/actions/checkout/releases
+      # We include the hash after '@', and comment "pin @SIMPLE-NAME"; this is
+      # the naming convention of https://github.com/mheap/pin-github-action
+      - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # pin @v2.4.0
+
+      # Runs a single command using the runners shell
+      - name: Run a one-line script
+        run: echo Hello, world!
+
+      # Runs a set of commands using the runners shell
+      - name: Run a multi-line script
+        run: |
+          echo Add other actions to build,
+          echo test, and deploy your project.
+      # Run Brakeman. See https://github.com/devmasx/brakeman-linter-action
+      - name: Brakeman linter
+        # To review release options see:
+        # https://github.com/devmasx/brakeman-linter-action/releases
+        uses: devmasx/brakeman-linter-action@0dc80fcccf87915ccb1761669014015214f36287 # pin@v1.0.0
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'

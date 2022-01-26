@@ -28,3 +28,15 @@
 .relative {
   position: relative;
 }
+
+.hide-on-desktop {
+  @include desktop {
+    display: none;
+  }
+}
+
+.hide-on-mobile {
+  @include mobile {
+    display: none;
+  }
+}

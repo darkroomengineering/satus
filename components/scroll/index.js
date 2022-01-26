@@ -1,7 +1,8 @@
+import LocomotiveScroll from '@studio-freight/locomotive-scroll'
 import { useFrame } from 'hooks/use-frame'
 import { useIsTouchDevice } from 'hooks/use-is-touch-device'
 import { useStore } from 'lib/store'
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { useDebounce, useMeasure } from 'react-use'
 
 export const Scroll = ({
@@ -18,7 +19,6 @@ export const Scroll = ({
   const [ref, { height }] = useMeasure()
 
   const scroll = useRef()
-  const [isReady, setIsReady] = useState(false)
 
   const isTouchDevice = useIsTouchDevice()
 
@@ -29,31 +29,22 @@ export const Scroll = ({
   useLayoutEffect(() => {
     if (isTouchDevice === undefined) return
 
-    async function initScroll() {
-      setIsReady(false)
-      setLocomotive(undefined)
-      const LocomotiveScroll = (
-        await import('@studio-freight/locomotive-scroll')
-      ).default
+    setLocomotive(undefined)
 
-      scroll.current = new LocomotiveScroll({
-        el: el.current,
-        scrollFromAnywhere: true,
+    scroll.current = new LocomotiveScroll({
+      el: el.current,
+      scrollFromAnywhere: true,
+      smooth: !isTouchDevice,
+      tablet: {
         smooth: !isTouchDevice,
-        tablet: {
-          smooth: !isTouchDevice,
-        },
-        smartphone: {
-          smooth: !isTouchDevice,
-        },
-        autoRaf: false,
-      })
+      },
+      smartphone: {
+        smooth: !isTouchDevice,
+      },
+      autoRaf: false,
+    })
 
-      setLocomotive(scroll.current)
-      setIsReady(true)
-    }
-
-    initScroll()
+    setLocomotive(scroll.current)
 
     return () => {
       scroll.current?.destroy()

@@ -6,7 +6,7 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 
 module.exports = withPlugins([withTM, withBundleAnalyzer], {
   reactStrictMode: true,
-  experimental: { optimizeCss: true },
+  experimental: { optimizeCss: true, removeConsole: true },
   swcMinify: true,
   images: {
     domains: ['images.ctfassets.net'],

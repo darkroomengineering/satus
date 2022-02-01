@@ -1,19 +1,11 @@
 import cn from 'clsx'
-import Link from 'next/link'
+import { Link } from 'components/link'
 import s from './button.module.scss'
 
 export const Button = ({ children, href, className, style }) => {
-  const isExternal = href && href.startsWith('http')
-
   return href ? (
-    <Link href={href} passHref={isExternal}>
-      <a
-        {...(isExternal && { target: '_blank', rel: 'noopener noreferrer' })}
-        className={cn(s.button, className)}
-        style={style}
-      >
-        {children}
-      </a>
+    <Link href={href} className={cn(s.button, className)} style={style}>
+      {children}
     </Link>
   ) : (
     <button className={cn(s.button, className)} style={style}>

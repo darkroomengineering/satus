@@ -1,5 +1,6 @@
 import { raf } from '@react-spring/rafz'
-import { useLayoutEffect } from 'react'
+import { useLayoutEffect, useMemo } from 'react'
+import { v4 as uuidv4 } from 'uuid'
 
 // https://github.com/pmndrs/react-spring/tree/master/packages/rafz#readme
 
@@ -9,19 +10,21 @@ raf.onFrame(() => {
   Object.entries(callbacks)
     .sort((a, b) => a[1].priority - b[1].priority)
     .forEach(([_, { callback }]) => {
-      callback()
+      callback(raf.now())
     })
   return true
 })
 
 export function useFrame(callback, priority = 0, deps = []) {
+  const id = useMemo(() => uuidv4(), [])
+
   useLayoutEffect(() => {
     if (callback) {
-      callbacks[callback] = { callback, priority }
+      callbacks[id] = { callback, priority }
 
       return () => {
-        delete callbacks[callback]
+        delete callbacks[id]
       }
     }
-  }, [callback, priority, ...deps])
+  }, [callback, id, priority, ...deps])
 }

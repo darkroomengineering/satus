@@ -18,14 +18,14 @@ const Cursor = () => {
   }))
 
   const onMouseMove = useCallback(
-    ({ pageX, pageY }) => {
+    ({ clientX, clientY }) => {
       api.start({
         config: {
           duration: 0,
           easing: (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t)),
         },
-        x: pageX,
-        y: pageY,
+        x: clientX,
+        y: clientY,
         immediate: !hasMoved,
       })
       setHasMoved(true)

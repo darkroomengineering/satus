@@ -89,7 +89,7 @@ export default function Home() {
                   <p>Slider Hader</p>
                   <p>Slider Title</p>
                 </div>
-                <Slider.Slides ref={emblaRef}>
+                <Slider.Slides ref={emblaRef} className={s.slider}>
                   {devs.map((item, idx) => (
                     <div className={s['slide']} key={`slide-item-${idx}`}>
                       <div className={s['slide-inner']}>

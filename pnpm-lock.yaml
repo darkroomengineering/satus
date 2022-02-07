@@ -4,7 +4,7 @@ specifiers:
   '@next/bundle-analyzer': ^12.0.8
   '@radix-ui/react-accordion': ^0.1.5
   '@react-spring/rafz': ^9.4.2
-  '@studio-freight/locomotive-scroll': 0.0.5
+  '@studio-freight/locomotive-scroll': 0.0.6
   '@svgr/webpack': ^6.2.0
   clsx: ^1.1.1
   critters: ^0.0.15
@@ -35,7 +35,7 @@ specifiers:
 dependencies:
   '@radix-ui/react-accordion': 0.1.5_react@17.0.2
   '@react-spring/rafz': 9.4.2
-  '@studio-freight/locomotive-scroll': 0.0.5
+  '@studio-freight/locomotive-scroll': 0.0.6
   clsx: 1.1.1
   cross-env: 7.0.3
   embla-carousel-autoplay: 6.1.1
@@ -1809,8 +1809,8 @@ packages:
     resolution: {integrity: sha512-JLo+Y592QzIE+q7Dl2pMUtt4q8SKYI5jDrZxrozEQxnGVOyYE+GWK9eLkwTaeN9DDctlaRAQ3TBmzZ1qdLE30A==}
     dev: true
 
-  /@studio-freight/locomotive-scroll/0.0.5:
-    resolution: {integrity: sha512-f2gGa9XWnfC9r9bVe4RwMbBEPt/deSUR51sdo8+3jeAgF2JQETb1uXZYnUPe7aiJ3rDf7/TgHL+aRu1uoTyAiw==}
+  /@studio-freight/locomotive-scroll/0.0.6:
+    resolution: {integrity: sha512-WWX0cMLqp760GWh8HfQVrTZjXYjRE8Hjo/kw9cSx62obg3IfkqA08AEejFAxGI59AbPHQBC5XcBL6R9MKumCHQ==}
     dependencies:
       bezier-easing: 2.1.0
       smoothscroll-polyfill: 0.4.4

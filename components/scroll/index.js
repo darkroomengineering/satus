@@ -11,6 +11,7 @@ export const Scroll = ({
   id,
   debounce = 1000,
   tag = 'div',
+  smooth = true,
 }) => {
   const setScroll = useStore((state) => state.setScroll)
   const setLocomotive = useStore((state) => state.setLocomotive)
@@ -34,12 +35,12 @@ export const Scroll = ({
     scroll.current = new LocomotiveScroll({
       el: el.current,
       scrollFromAnywhere: true,
-      smooth: !isTouchDevice,
+      smooth: !isTouchDevice && smooth,
       tablet: {
-        smooth: !isTouchDevice,
+        smooth: !isTouchDevice && smooth,
       },
       smartphone: {
-        smooth: !isTouchDevice,
+        smooth: !isTouchDevice && smooth,
       },
       autoRaf: false,
     })
@@ -49,7 +50,7 @@ export const Scroll = ({
     return () => {
       scroll.current?.destroy()
     }
-  }, [isTouchDevice])
+  }, [isTouchDevice, smooth])
 
   useDebounce(
     () => {

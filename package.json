@@ -1,6 +1,6 @@
 {
-  "name": "next-starter",
-  "version": "0.1.0",
+  "name": "satus",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",

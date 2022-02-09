@@ -1,34 +1,77 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+[![SWR](https://assets.vercel.com/image/upload/v1572289618/swr/banner.png)](https://swr.vercel.app)
 
-## Getting Started
+<!-- <p align="center">
+  <a aria-label="Vercel logo" href="https://vercel.com">
+    <img src="https://badgen.net/badge/icon/Next?icon=zeit&label&color=black&labelColor=black">
+  </a>
+  <br/>
+  <a aria-label="NPM version" href="https://www.npmjs.com/package/swr">
+    <img alt="" src="https://badgen.net/npm/v/swr?color=black&labelColor=black">
+  </a>
+  <a aria-label="Package size" href="https://bundlephobia.com/result?p=swr">
+    <img alt="" src="https://badgen.net/bundlephobia/minzip/swr?color=black&labelColor=black">
+  </a>
+  <a aria-label="License" href="https://github.com/vercel/swr/blob/main/LICENSE">
+    <img alt="" src="https://badgen.net/npm/license/swr?color=black&labelColor=black">
+  </a>
+</p> -->
 
-First, run the development server:
+## Introduction
 
-```bash
-npm run dev
-# or
-yarn dev
-```
+Satūs means start, beginning, planting, it's a set of tools we use as a template when starting a new project.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+<br/>
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+## Composition
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+This starter kit is composed of:
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+- [Next.js](https://nextjs.org)
+- [Zustand](https://github.com/pmndrs/zustand)
+- [React Spring](https://github.com/pmndrs/react-spring)
+- [Embla](https://embla-carousel.com)
+- [Lenis](https://github.com/studio-freight/lenis)
+- [Clsx](https://www.npmjs.com/package/clsx)
+- From [Radix UI](https://www.radix-ui.com/):
+  - [Accordion](https://www.radix-ui.com/docs/primitives/components/accordion)
 
-## Learn More
+<br/>
 
-To learn more about Next.js, take a look at the following resources:
+## Features
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This starter kit is composed of:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+- SVG import through [@svgr/webpack](https://www.npmjs.com/package/@svgr/webpack)
+- Sass architecture and tooling:
+  - To VW Functions
+  - Reset
+  - Easings
+- Hooks:
+  - useDebug
+  - useFrame
+  - useInterval
+  - useIsTouchDevice
+  - useMediaQuery
+  - useRect
+  - useSlots
+- Custom Cursor support
+- Real Viewport component
+- Grid Debugger
+- Stats
 
-## Deploy on Vercel
+<br/>
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Authors
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+This toolkit is curated and maintained by the Studio Freight Things team:
+
+- Clement Roche ([@clementroche\_](https://twitter.com/clementroche_)) – [Studio Freight](https://studiofreight.com)
+- Guido Fier ([@uido15](https://twitter.com/uido15)) – [Studio Freight](https://studiofreight.com)
+- Leandro Soengas ([@lsoengas](https://twitter.com/lsoengas)) - [Studio Freight](https://studiofreight.com)
+- Franco Arza ([@arzafran](https://twitter.com/arzafran)) - [Studio Freight](https://studiofreight.com)
+
+<br/>
+
+## License
+
+[The MIT License.](https://opensource.org/licenses/MIT)

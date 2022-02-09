@@ -1,6 +1,6 @@
 import NextLink from 'next/link'
 
-export const Link = ({ href, children, className, style }) => {
+export const Link = ({ href = '', children, className, style }) => {
   const isExternal = href?.startsWith('http')
 
   return (

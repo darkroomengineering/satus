@@ -1,4 +1,4 @@
-[![SWR](https://assets.vercel.com/image/upload/v1572289618/swr/banner.png)](https://swr.vercel.app)
+[![SATUS](https://assets.studiofreight.com/satus/header.png)](https://github.com/studio-freight/satus)
 
 <!-- <p align="center">
   <a aria-label="Vercel logo" href="https://vercel.com">

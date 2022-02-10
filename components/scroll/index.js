@@ -13,51 +13,43 @@ export const Scroll = ({
   tag = 'div',
   smooth = true,
 }) => {
-  const setScroll = useStore((state) => state.setScroll)
+  const locomotive = useStore((state) => state.locomotive)
   const setLocomotive = useStore((state) => state.setLocomotive)
 
   const el = useRef()
   const [ref, { height }] = useMeasure()
 
-  const scroll = useRef()
-
+  // smooth scroll is disabled on touch devices
   const isTouchDevice = useIsTouchDevice()
 
   useFrame(() => {
-    scroll.current?.raf()
+    locomotive?.raf()
   }, 0)
 
   useLayoutEffect(() => {
     if (isTouchDevice === undefined) return
 
-    setLocomotive(undefined)
-
-    scroll.current = new LocomotiveScroll({
+    const scroll = new LocomotiveScroll({
       el: el.current,
       scrollFromAnywhere: true,
       smooth: !isTouchDevice && smooth,
-      tablet: {
-        smooth: !isTouchDevice && smooth,
-      },
-      smartphone: {
-        smooth: !isTouchDevice && smooth,
-      },
       autoRaf: false,
     })
-
-    setLocomotive(scroll.current)
+    setLocomotive(scroll)
 
     return () => {
-      scroll.current?.destroy()
+      setLocomotive(undefined)
+      scroll?.destroy()
     }
   }, [isTouchDevice, smooth])
 
+  // update locomotive if container height changes
   useDebounce(
     () => {
-      scroll.current?.update()
+      locomotive?.update()
     },
     debounce,
-    [height, debounce]
+    [height, debounce, locomotive]
   )
 
   const Tag = tag

@@ -12,22 +12,22 @@ const devs = [
   {
     name: 'Franco',
     position: 'Lords of Lords',
-    image: '/devs/franco.png',
+    image: 'https://assets.studiofreight.com/devs/franco.png',
   },
   {
     name: 'Clement',
     position: 'Expert on Dark Magic',
-    image: '/devs/clement.png',
+    image: 'https://assets.studiofreight.com/devs/clement.png',
   },
   {
     name: 'Leandro',
     position: 'He didnt fucked it up',
-    image: '/devs/leandro.png',
+    image: 'https://assets.studiofreight.com/devs/leandro.png',
   },
   {
     name: 'Guido',
     position: 'Avoids owning projects',
-    image: '/devs/guido.png',
+    image: 'https://assets.studiofreight.com/devs/guido.png',
   },
 ]
 

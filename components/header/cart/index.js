@@ -5,7 +5,7 @@ import useClickOutsideEvent from 'hooks/use-click-outside'
 import { useStore } from 'lib/store'
 import Image from 'next/image'
 import { useEffect, useRef } from 'react'
-import useSWR, { mutate } from 'swr'
+import useSWR from 'swr'
 import s from './cart.module.scss'
 
 export const Cart = ({}) => {
@@ -23,7 +23,7 @@ export const Cart = ({}) => {
 
   const cart = useCart()
   const checkoutId = cart.checkoutId
-  const { data, isValidating } = useSWR(
+  const { data, mutate } = useSWR(
     checkoutId ? 'cart' : null,
     () => cart.cartFetcher(`/api/checkout/${checkoutId}`),
     { fallbackData: { products: [] } }
@@ -33,10 +33,21 @@ export const Cart = ({}) => {
     console.log(data)
   }, [data])
 
-  const removeITem = (id) => {
+  const removeItem = (id) => {
     cart.removeItem(id)
     const mutatedData = data.products.filter((product) => product.id !== id)
-    mutate('cart', ...mutatedData, false)
+    data.products = mutatedData
+    mutate(data, false)
+  }
+
+  const updateItemQuantiy = (quantity, id) => {
+    cart.updateItem(quantity, id)
+    data.products.map((product) => {
+      if (product.id === id) {
+        product.quantity = quantity
+      }
+    })
+    mutate(data, false)
   }
 
   return (
@@ -75,9 +86,32 @@ export const Cart = ({}) => {
                       <div className={s.quantity}>
                         <p className="text-uppercase">QTY</p>
                         <aside>
-                          <button> - </button>
+                          <button
+                            onClick={() => {
+                              updateItemQuantiy(
+                                Math.max(product.quantity - 1, 1),
+                                product.id
+                              )
+                            }}
+                          >
+                            -
+                          </button>
                           <p>{product.quantity}</p>
-                          <button> + </button>
+                          <button
+                            className={cn({
+                              [s['button-disabled']]:
+                                product.quantity ===
+                                product.options.availableQuantity,
+                            })}
+                            onClick={() => {
+                              updateItemQuantiy(
+                                product.quantity + 1,
+                                product.id
+                              )
+                            }}
+                          >
+                            +
+                          </button>
                         </aside>
                       </div>
                       <div className={s.size}>
@@ -88,7 +122,7 @@ export const Cart = ({}) => {
                     <button
                       className={s.remove}
                       onClick={() => {
-                        removeITem(product.id)
+                        removeItem(product.id)
                       }}
                     >
                       REMOVE

@@ -5,7 +5,7 @@ import { Layout } from 'layouts/default'
 import Shopify from 'lib/shopify'
 import { useStore } from 'lib/store'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import useSWR from 'swr'
 import s from './pdp.module.scss'
 
@@ -14,13 +14,22 @@ export default function Pdp({ product, defaultVariant }) {
   const setToggleCart = useStore((state) => state.setToggleCart)
   const cart = useCart()
   const checkoutId = cart.checkoutId
-  const [selectedVariant, setSelectedVariant] = useState(null)
+  const [selectedVariant, setSelectedVariant] = useState({
+    availableQuantity: 1000,
+  })
   const [purchaseQuantity, setPurchaseQuantity] = useState(1)
 
-  const { data, isValidating } = useSWR(
+  const { data, isValidating, mutate } = useSWR(
     checkoutId ? 'cart' : null,
     () => cart.cartFetcher(`/api/checkout/${checkoutId}`),
     { fallbackData: { products: [] } }
+  )
+
+  const updateQuantity = useCallback(
+    (quantity) => {
+      setPurchaseQuantity(quantity)
+    },
+    [purchaseQuantity]
   )
 
   return (
@@ -41,6 +50,7 @@ export default function Pdp({ product, defaultVariant }) {
                     key={`variant-${key}`}
                     onClick={() => {
                       setSelectedVariant(variant)
+                      updateQuantity(1)
                     }}
                     className={cn({
                       [s['selected-option']]:
@@ -60,17 +70,24 @@ export default function Pdp({ product, defaultVariant }) {
               <div className={s.quantity}>
                 <button
                   onClick={() => {
-                    setPurchaseQuantity(
-                      purchaseQuantity < 1 ? 1 : purchaseQuantity - 1
-                    )
+                    updateQuantity(Math.max(purchaseQuantity - 1, 1))
                   }}
                 >
                   -
                 </button>
                 <p>{purchaseQuantity}</p>
                 <button
+                  className={cn({
+                    [s['button-disabled']]:
+                      purchaseQuantity === selectedVariant.availableQuantity,
+                  })}
                   onClick={() => {
-                    setPurchaseQuantity(purchaseQuantity + 1)
+                    updateQuantity(
+                      Math.min(
+                        purchaseQuantity + 1,
+                        selectedVariant.availableQuantity
+                      )
+                    )
                   }}
                 >
                   +
@@ -80,10 +97,11 @@ export default function Pdp({ product, defaultVariant }) {
 
             <Button
               className={cn(s['add-cart'], {
-                [s['button-disabled']]: !selectedVariant,
+                [s['button-disabled']]: !selectedVariant.size,
               })}
               onClick={async () => {
                 await cart.addItem(purchaseQuantity, selectedVariant.id)
+                await mutate()
                 setToggleCart(true)
                 locomotive.stop()
               }}

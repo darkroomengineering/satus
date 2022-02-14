@@ -33,10 +33,19 @@ export const Cart = ({}) => {
     console.log(data)
   }, [data])
 
+  const updateCartPrice = () => {
+    return data.products.reduce(
+      (previousItem, currentItem) =>
+        previousItem + currentItem.options.price * currentItem.quantity,
+      0
+    )
+  }
+
   const removeItem = (id) => {
     cart.removeItem(id)
-    const mutatedData = data.products.filter((product) => product.id !== id)
-    data.products = mutatedData
+    const mutatedProducts = data.products.filter((product) => product.id !== id)
+    data.products = mutatedProducts
+    data.totalPrice = updateCartPrice()
     mutate(data, false)
   }
 
@@ -47,6 +56,7 @@ export const Cart = ({}) => {
         product.quantity = quantity
       }
     })
+    data.totalPrice = updateCartPrice()
     mutate(data, false)
   }
 

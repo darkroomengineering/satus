@@ -19,7 +19,7 @@ export default function Pdp({ product, defaultVariant }) {
   })
   const [purchaseQuantity, setPurchaseQuantity] = useState(1)
 
-  const { data, isValidating, mutate } = useSWR(
+  const { data, mutate } = useSWR(
     checkoutId ? 'cart' : null,
     () => cart.cartFetcher(`/api/checkout/${checkoutId}`),
     { fallbackData: { products: [] } }

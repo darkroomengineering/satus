@@ -9,7 +9,7 @@ import { useCallback, useState } from 'react'
 import useSWR from 'swr'
 import s from './pdp.module.scss'
 
-export default function Pdp({ product, defaultVariant }) {
+export default function Pdp({ product }) {
   const locomotive = useStore((state) => state.locomotive)
   const setToggleCart = useStore((state) => state.setToggleCart)
   const cart = useCart()
@@ -19,7 +19,7 @@ export default function Pdp({ product, defaultVariant }) {
   })
   const [purchaseQuantity, setPurchaseQuantity] = useState(1)
 
-  const { data, mutate } = useSWR(
+  const { data, isValidating, mutate } = useSWR(
     checkoutId ? 'cart' : null,
     () => cart.cartFetcher(`/api/checkout/${checkoutId}`),
     { fallbackData: { products: [] } }
@@ -67,7 +67,11 @@ export default function Pdp({ product, defaultVariant }) {
           </div>
           <div className={s.editable}>
             <div className={s.options}>
-              <div className={s.quantity}>
+              <div
+                className={cn(s.quantity, {
+                  [s['button-disabled']]: !selectedVariant.size,
+                })}
+              >
                 <button
                   onClick={() => {
                     updateQuantity(Math.max(purchaseQuantity - 1, 1))
@@ -94,7 +98,6 @@ export default function Pdp({ product, defaultVariant }) {
                 </button>
               </div>
             </div>
-
             <Button
               className={cn(s['add-cart'], {
                 [s['button-disabled']]: !selectedVariant.size,
@@ -137,39 +140,9 @@ export const getStaticProps = async ({ params }) => {
 
   // console.log(product.variants.map((item) => item))
 
-  const filteredSlider = products.filter(
-    (product) => product.slug !== params.slug
-  )
-
-  const hasVariants = !!product.variants
-
-  const selectDefaultVariant = () => {
-    const notAllAvailable = product.variants.some(
-      (variant) => !variant.isAvailable
-    )
-    const selectedVar = product.inStock
-      ? notAllAvailable
-        ? product.variants.find((variant) => variant.isAvailable)
-        : product.variants.length >= 2
-        ? product.variants[2]
-        : product.variants[0]
-      : product.variants[0]
-
-    return {
-      value: selectedVar.id,
-      label: selectedVar.size,
-    }
-  }
-
-  const fallbackNoVariants = {
-    label: 'sold-out',
-    value: 'sold-out',
-  }
-
   return {
     props: {
       product: product,
-      defaultVariant: hasVariants ? selectDefaultVariant() : fallbackNoVariants,
     },
     revalidate: 1,
   }

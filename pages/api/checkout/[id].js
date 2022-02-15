@@ -62,6 +62,7 @@ const Product = async (req, res) => {
                 {
                   id: lineItemId,
                   quantity: quantity,
+                  merchandiseId: variantId,
                 },
               ],
             })

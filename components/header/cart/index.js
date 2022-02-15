@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { useEffect, useRef } from 'react'
 import useSWR from 'swr'
 import s from './cart.module.scss'
+import { SizesDropdown } from './variant-size-dropdown'
 
 export const Cart = ({}) => {
   const locomotive = useStore((state) => state.locomotive)
@@ -23,14 +24,14 @@ export const Cart = ({}) => {
 
   const cart = useCart()
   const checkoutId = cart.checkoutId
-  const { data, mutate } = useSWR(
+  const { data, isValidating, mutate } = useSWR(
     checkoutId ? 'cart' : null,
     () => cart.cartFetcher(`/api/checkout/${checkoutId}`),
     { fallbackData: { products: [] } }
   )
 
   useEffect(() => {
-    console.log(data)
+    console.log({ data })
   }, [data])
 
   const updateCartPrice = () => {
@@ -49,13 +50,20 @@ export const Cart = ({}) => {
     mutate(data, false)
   }
 
-  const updateItemQuantiy = (quantity, id) => {
-    cart.updateItem(quantity, id)
-    data.products.map((product) => {
-      if (product.id === id) {
-        product.quantity = quantity
-      }
-    })
+  const updateItemQuantity = (quantity, product) => {
+    cart.updateItem(quantity, product.options.id, product.id)
+    const getItem = data.products.findIndex((item) => item.id === product.id)
+    data.products[getItem].quantity = quantity
+    data.totalPrice = updateCartPrice()
+    mutate(data, false)
+  }
+
+  const changeSelectedVariant = (product, newOption) => {
+    const newQuantity = Math.min(product.quantity, newOption.availableQuantity)
+    cart.updateItem(newQuantity, newOption.id, product.id)
+    const getItem = data.products.findIndex((item) => item.id === product.id)
+    data.products[getItem].options = newOption
+    data.products[getItem].quantity = newQuantity
     data.totalPrice = updateCartPrice()
     mutate(data, false)
   }
@@ -89,7 +97,7 @@ export const Cart = ({}) => {
                 <div className={s['product-details']}>
                   <div className={s['product-name-price']}>
                     <p>{product.name}</p>
-                    <p>{product.options.price}</p>
+                    <p>{Math.max(product.options.price, 1)}</p>
                   </div>
                   <div className={s['product-editables']}>
                     <div className={s.options}>
@@ -98,15 +106,19 @@ export const Cart = ({}) => {
                         <aside>
                           <button
                             onClick={() => {
-                              updateItemQuantiy(
+                              updateItemQuantity(
                                 Math.max(product.quantity - 1, 1),
-                                product.id
+                                product
                               )
                             }}
                           >
-                            -
+                            –
                           </button>
-                          <p>{product.quantity}</p>
+                          <p>
+                            {product.quantity < 10
+                              ? `0${product.quantity}`
+                              : product.quantity}
+                          </p>
                           <button
                             className={cn({
                               [s['button-disabled']]:
@@ -114,10 +126,7 @@ export const Cart = ({}) => {
                                 product.options.availableQuantity,
                             })}
                             onClick={() => {
-                              updateItemQuantiy(
-                                product.quantity + 1,
-                                product.id
-                              )
+                              updateItemQuantity(product.quantity + 1, product)
                             }}
                           >
                             +
@@ -126,7 +135,21 @@ export const Cart = ({}) => {
                       </div>
                       <div className={s.size}>
                         <p className="text-uppercase">SIZE</p>
-                        <aside>{`${product.options.option}`}</aside>
+                        <aside>
+                          <SizesDropdown
+                            product={product}
+                            variants={product.variants
+                              .filter(
+                                (variant) =>
+                                  variant.id !== product.options.id &&
+                                  variant.options.availableQuantity > 0
+                              )
+                              .map((variant) => variant)}
+                            onChange={(currentProduct, newVariant) => {
+                              changeSelectedVariant(currentProduct, newVariant)
+                            }}
+                          />
+                        </aside>
                       </div>
                     </div>
                     <button
@@ -143,7 +166,14 @@ export const Cart = ({}) => {
             ))}
           </div>
           <div className={s['cart-details']}>
-            <Button className={s.button}>Checkout</Button>
+            <Button
+              className={cn(s['check-out'], {
+                [s['button-disabled']]: isValidating || !data.products[0],
+              })}
+              href={data.products[0] ? data?.checkoutUrl : null}
+            >
+              <p>Checkout</p>
+            </Button>
             <div className={s['total-price']}>
               <p>total</p>
               <p>{data.totalPrice}</p>

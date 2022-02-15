@@ -24,11 +24,12 @@ const useCart = () => {
     return checkout
   }
 
-  const updateItem = async (quantity, lineItemId) => {
+  const updateItem = async (quantity, variantId, lineItemId) => {
     await fetch(`/api/checkout/${checkout}`, {
       method: 'PUT',
       body: JSON.stringify({
         lineItemId,
+        variantId,
         quantity,
         putAction: 'update',
       }),

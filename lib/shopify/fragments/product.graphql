@@ -1,25 +1,43 @@
-fragment variants on ProductVariant {
-  id
-  title
-  availableForSale
-  priceV2 {
-    amount
-    currencyCode
-  }
-  quantityAvailable
+fragment options on ProductVariant {
   selectedOptions {
     name
     value
   }
+}
+
+fragment price on ProductVariant {
+  priceV2 {
+    amount
+    currencyCode
+  }
+}
+
+fragment variants on ProductVariant {
+  id
+  title
+  availableForSale
+  quantityAvailable
+  weight
   image {
     originalSrc
   }
+  ...options
+  ...price
   product {
     id
     handle
     title
+    variants(first: 25) {
+      edges {
+        node {
+          id
+          quantityAvailable
+          ...options
+          ...price
+        }
+      }
+    }
   }
-  weight
 }
 
 fragment product on Product {

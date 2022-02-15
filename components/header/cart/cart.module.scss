@@ -155,7 +155,15 @@
                   width: desktop-vw(158px);
 
                   aside {
-                    padding: desktop-vw(10px) desktop-vw(20px);
+                    width: desktop-vw(84px);
+
+                    > div {
+                      height: 100%;
+                      width: 100%;
+                      button {
+                        padding: desktop-vw(10px) desktop-vw(20px);
+                      }
+                    }
                   }
                 }
               }
@@ -177,15 +185,22 @@
     .cart-details {
       height: desktop-vw(200px);
 
-      > .button {
-        width: 100%;
-        height: desktop-vw(80px);
-        background-color: #ff65be;
-        border-radius: 5px;
-        transition: 300ms border-radius var(--ease-out-circ);
+      .check-out {
+        p {
+          width: desktop-vw(639px);
+          height: desktop-vw(80px);
+          padding: desktop-vw(20px);
+          background-color: #ff65be;
+          color: black;
+          font-weight: 900;
+          font-size: desktop-vw(39px);
+          text-transform: uppercase;
+          border-radius: 5px;
+          transition: 300ms border-radius var(--ease-out-circ);
 
-        &:hover {
-          border-radius: 20px;
+          &:hover {
+            border-radius: 20px;
+          }
         }
       }
 

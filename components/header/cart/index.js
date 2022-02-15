@@ -105,12 +105,12 @@ export const Cart = ({}) => {
                         <p className="text-uppercase">QTY</p>
                         <aside>
                           <button
-                            onClick={() => {
+                            onClick={cart.debounce(() => {
                               updateItemQuantity(
                                 Math.max(product.quantity - 1, 1),
                                 product
                               )
-                            }}
+                            }, 150)}
                           >
                             –
                           </button>
@@ -125,9 +125,9 @@ export const Cart = ({}) => {
                                 product.quantity ===
                                 product.options.availableQuantity,
                             })}
-                            onClick={() => {
+                            onClick={cart.debounce(() => {
                               updateItemQuantity(product.quantity + 1, product)
-                            }}
+                            }, 150)}
                           >
                             +
                           </button>

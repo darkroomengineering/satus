@@ -62,12 +62,21 @@ const useCart = () => {
     })
   }
 
+  const debounce = (fn, wait) => {
+    let t
+    return function () {
+      clearTimeout(t)
+      t = setTimeout(() => fn.apply(this, arguments), wait)
+    }
+  }
+
   return {
     checkoutId: checkout,
     cartFetcher,
     updateItem,
     addItem,
     removeItem,
+    debounce,
   }
 }
 

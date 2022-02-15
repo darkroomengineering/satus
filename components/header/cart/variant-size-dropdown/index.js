@@ -7,12 +7,11 @@ export const SizesDropdown = ({
   variants = [],
   onChange = () => {},
 }) => {
-  const [previousValue, setPreviousValue] = useState(product.options)
   const [currentValue, setCurrentValue] = useState(product.options)
   const [opened, setOpened] = useState(false)
 
   useEffect(() => {
-    if (previousValue.id !== currentValue.id) {
+    if (product.id !== currentValue.id) {
       onChange(product, currentValue)
     }
   }, [currentValue])
@@ -56,7 +55,6 @@ export const SizesDropdown = ({
               key={key}
               onClick={(e) => {
                 e.stopPropagation()
-                setPreviousValue(currentValue)
                 setCurrentValue(variant.options)
                 setOpened(false)
               }}

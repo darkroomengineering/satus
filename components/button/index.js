@@ -4,7 +4,12 @@ import s from './button.module.scss'
 
 export const Button = ({ children, href, className, style, onClick }) => {
   return href ? (
-    <Link href={href} className={cn(s.button, className)} style={style}>
+    <Link
+      href={href}
+      className={cn(s.button, className)}
+      style={style}
+      onClick={onClick}
+    >
       {children}
     </Link>
   ) : (

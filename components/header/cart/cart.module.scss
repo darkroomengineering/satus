@@ -223,4 +223,6 @@
 .button-disabled {
   pointer-events: none;
   opacity: 0.3;
+
+  transition: 300ms opacity var(--ease-out-circ);
 }

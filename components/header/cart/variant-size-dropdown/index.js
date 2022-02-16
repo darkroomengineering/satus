@@ -11,7 +11,7 @@ export const SizesDropdown = ({
   const [opened, setOpened] = useState(false)
 
   useEffect(() => {
-    if (product.id !== currentValue.id) {
+    if (product.options.id !== currentValue.id) {
       onChange(product, currentValue)
     }
   }, [currentValue])

@@ -1,5 +1,4 @@
 import cn from 'clsx'
-import { Button } from 'components/button'
 import useClickOutsideEvent from 'hooks/use-click-outside'
 import { useStore } from 'lib/store'
 import useCart from 'lib/use-cart'
@@ -11,15 +10,19 @@ import { SizesDropdown } from './variant-size-dropdown'
 
 export const Cart = ({}) => {
   const locomotive = useStore((state) => state.locomotive)
+  const isDebouncing = useStore((state) => state.isDebouncing)
   const [toggleCart, setToggleCart] = useStore((state) => [
     state.toggleCart,
     state.setToggleCart,
   ])
   const menuRef = useRef(null)
+  const debouncingInterval = 400
 
   useClickOutsideEvent(menuRef, () => {
-    setToggleCart(false)
-    locomotive.start()
+    if (!isDebouncing) {
+      setToggleCart(false)
+      locomotive.start()
+    }
   })
 
   const cart = useCart()
@@ -42,7 +45,7 @@ export const Cart = ({}) => {
     )
   }
 
-  const removeItem = (id) => {
+  const removeItem = async (id) => {
     cart.removeItem(id)
     const mutatedProducts = data.products.filter((product) => product.id !== id)
     data.products = mutatedProducts
@@ -50,15 +53,31 @@ export const Cart = ({}) => {
     mutate(data, false)
   }
 
-  const updateItemQuantity = (quantity, product) => {
-    cart.updateItem(quantity, product.options.id, product.id)
-    const getItem = data.products.findIndex((item) => item.id === product.id)
+  const updateItemQuantity = async (quantity, lineItemId, variantId) => {
+    cart.updateItem(quantity, variantId, lineItemId)
+    const getItem = data.products.findIndex((item) => item.id === lineItemId)
     data.products[getItem].quantity = quantity
     data.totalPrice = updateCartPrice()
     mutate(data, false)
   }
 
-  const changeSelectedVariant = (product, newOption) => {
+  const changeSelectedVariant = async (product, newOption) => {
+    const checkExistingVariant = data.products.find(
+      (item) => item.options.option === newOption.option
+    )
+    if (checkExistingVariant !== undefined) {
+      updateItemQuantity(
+        Math.min(
+          product.quantity + checkExistingVariant.quantity,
+          newOption.availableQuantity
+        ),
+        checkExistingVariant.id,
+        checkExistingVariant.options.id
+      )
+      removeItem(product.id)
+      return
+    }
+
     const newQuantity = Math.min(product.quantity, newOption.availableQuantity)
     cart.updateItem(newQuantity, newOption.id, product.id)
     const getItem = data.products.findIndex((item) => item.id === product.id)
@@ -108,9 +127,10 @@ export const Cart = ({}) => {
                             onClick={cart.debounce(() => {
                               updateItemQuantity(
                                 Math.max(product.quantity - 1, 1),
-                                product
+                                product.id,
+                                product.options.id
                               )
-                            }, 150)}
+                            }, debouncingInterval)}
                           >
                             –
                           </button>
@@ -126,8 +146,15 @@ export const Cart = ({}) => {
                                 product.options.availableQuantity,
                             })}
                             onClick={cart.debounce(() => {
-                              updateItemQuantity(product.quantity + 1, product)
-                            }, 150)}
+                              updateItemQuantity(
+                                Math.min(
+                                  product.quantity + 1,
+                                  product.options.availableQuantity
+                                ),
+                                product.id,
+                                product.options.id
+                              )
+                            }, debouncingInterval)}
                           >
                             +
                           </button>
@@ -138,25 +165,31 @@ export const Cart = ({}) => {
                         <aside>
                           <SizesDropdown
                             product={product}
-                            variants={product.variants
-                              .filter(
-                                (variant) =>
-                                  variant.id !== product.options.id &&
-                                  variant.options.availableQuantity > 0
-                              )
-                              .map((variant) => variant)}
-                            onChange={(currentProduct, newVariant) => {
-                              changeSelectedVariant(currentProduct, newVariant)
-                            }}
+                            variants={product.variants.filter(
+                              (variant) =>
+                                variant.id !== product.options.id &&
+                                variant.options.availableQuantity > 0
+                            )}
+                            onChange={cart.debounce(
+                              (currentProduct, newVariant) => {
+                                changeSelectedVariant(
+                                  currentProduct,
+                                  newVariant
+                                )
+                              },
+                              debouncingInterval
+                            )}
                           />
                         </aside>
                       </div>
                     </div>
                     <button
-                      className={s.remove}
-                      onClick={() => {
+                      className={cn(s.remove, {
+                        [s['button-disabled']]: isDebouncing,
+                      })}
+                      onClick={cart.debounce(() => {
                         removeItem(product.id)
-                      }}
+                      }, debouncingInterval)}
                     >
                       REMOVE
                     </button>
@@ -166,14 +199,19 @@ export const Cart = ({}) => {
             ))}
           </div>
           <div className={s['cart-details']}>
-            <Button
+            <a
               className={cn(s['check-out'], {
-                [s['button-disabled']]: isValidating || !data.products[0],
+                [s['button-disabled']]: isDebouncing || !data.products[0],
               })}
+              onClick={async () => {
+                await mutate()
+              }}
               href={data.products[0] ? data?.checkoutUrl : null}
+              target="_blank"
+              rel="noopener noreferrer"
             >
               <p>Checkout</p>
-            </Button>
+            </a>
             <div className={s['total-price']}>
               <p>total</p>
               <p>{data.totalPrice}</p>

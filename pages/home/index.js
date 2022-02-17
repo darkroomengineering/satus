@@ -118,7 +118,7 @@ export default function Home() {
         <div
           ref={(node) => {
             rectRef.current = node
-            ref.current = node
+            ref(node)
           }}
           style={{
             width: '250px',

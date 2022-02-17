@@ -27,9 +27,10 @@ export const useRect = (scroll = true) => {
   const rect = useRef({})
   const windowSize = useRef({})
 
+  const locomotive = useStore((state) => state.locomotive)
+
   const compute = () => {
-    const scrollY =
-      useStore.getState().locomotive?.scroll?.instance.scroll.y || 0
+    const scrollY = locomotive?.scroll.instance.scroll.y || 0
 
     const { top, left, width, height } = rect.current
     const { width: windowWidth, height: windowHeight } = windowSize.current
@@ -68,15 +69,16 @@ export const useRect = (scroll = true) => {
   }
 
   const resize = () => {
-    setOffsets({
-      top: offsetTop(ref.current),
-      left: offsetLeft(ref.current),
-    })
+    if (ref.current) {
+      setOffsets({
+        top: offsetTop(ref.current),
+        left: offsetLeft(ref.current),
+      })
+    }
   }
 
   useEffect(() => {
     bodyRef(document.body)
-    refMeasure(ref.current)
   }, [])
 
   useDebounce(
@@ -99,5 +101,10 @@ export const useRect = (scroll = true) => {
     [windowWidth, windowHeight]
   )
 
-  return [ref, compute]
+  const setRef = (node) => {
+    ref.current = node
+    refMeasure(node)
+  }
+
+  return [setRef, compute]
 }

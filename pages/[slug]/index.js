@@ -135,7 +135,6 @@ export const getStaticPaths = async () => {
 
 export const getStaticProps = async ({ params }) => {
   const store = new Shopify()
-  const products = await store.getAllProducts()
   const product = await store.getProductByHandle(params.slug)
 
   // console.log(product.variants.map((item) => item))

@@ -3,7 +3,7 @@ import useClickOutsideEvent from 'hooks/use-click-outside'
 import { useStore } from 'lib/store'
 import useCart from 'lib/use-cart'
 import Image from 'next/image'
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import useSWR from 'swr'
 import s from './cart.module.scss'
 import { SizesDropdown } from './variant-size-dropdown'
@@ -33,9 +33,9 @@ export const Cart = ({}) => {
     { fallbackData: { products: [] } }
   )
 
-  useEffect(() => {
-    console.log({ data })
-  }, [data])
+  // useEffect(() => {
+  //   console.log({ data })
+  // }, [data])
 
   const updateCartPrice = () => {
     return data.products.reduce(

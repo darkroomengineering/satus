@@ -13,7 +13,7 @@ useEffect(() => {
 
     // use scrollY = 0 to get the rect position relative to the page
     // use scrollY = window.scrollY to get the rect position relative to the screen
-    const { width, height, left, top, right, bottom } = compute(scrollY)
+    const { width, height, left, right, top, bottom, inView } = compute(scrollY)
   }
 
   window.addEventListener(onScroll, true)

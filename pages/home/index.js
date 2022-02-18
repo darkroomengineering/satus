@@ -39,17 +39,16 @@ export default function Home() {
   useFrame(() => {
     const scrollY = locomotive?.scroll.instance.scroll.y || 0
 
-    const rect = compute()
-    if (rect) {
-      const string = `inView: ${rect.inView}<br>left:${Math.round(
-        rect.left
-      )}px<br>top:${Math.round(rect.top)}px<br>width:${
-        rect.width
-      }px<br>height:${rect.height}px<br>right:${Math.round(
-        rect.right
-      )}px<br>bottom:${Math.round(rect.bottom)}px`
-      rectRef.current.innerHTML = string
-    }
+    const rect = compute(scrollY)
+
+    const string = `inView: ${rect.inView}<br>left:${Math.round(
+      rect.left
+    )}px<br>top:${Math.round(rect.top)}px<br>width:${rect.width}px<br>height:${
+      rect.height
+    }px<br>right:${Math.round(rect.right)}px<br>bottom:${Math.round(
+      rect.bottom
+    )}px`
+    rectRef.current.innerHTML = string
   }, 0)
 
   console.log('update')
@@ -115,18 +114,20 @@ export default function Home() {
           }}
         </Slider>
 
-        <div
-          ref={(node) => {
-            rectRef.current = node
-            ref(node)
-          }}
-          style={{
-            width: '250px',
-            height: '250px',
-            backgroundColor: 'cyan',
-            margin: '0 auto',
-          }}
-        ></div>
+        <div style={{ height: '100vh' }}>
+          <div
+            ref={(node) => {
+              rectRef.current = node
+              ref(node)
+            }}
+            style={{
+              width: '250px',
+              height: '250px',
+              backgroundColor: 'cyan',
+              margin: '0 auto',
+            }}
+          ></div>
+        </div>
       </div>
     </Layout>
   )

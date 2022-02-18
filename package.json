@@ -18,6 +18,7 @@
     "@studio-freight/locomotive-scroll": "^0.0.8",
     "clsx": "^1.1.1",
     "cross-env": "^7.0.3",
+    "debounce": "^1.2.1",
     "embla-carousel-autoplay": "^6.1.1",
     "embla-carousel-react": "^6.1.1",
     "husky": "^7.0.4",

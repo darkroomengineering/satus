@@ -7,7 +7,7 @@ import s from './home.module.scss'
 export default function Home({ productsArray }) {
   return (
     <Layout>
-      <div className={s.pageHome} data-scroll-section>
+      <div className={s.pageHome}>
         <h1 className={s.title}>Shopify Starter</h1>
         <div className={cn('grid', s['product-grid'])}>
           {productsArray.map((product, key) => (

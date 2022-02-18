@@ -7,235 +7,6 @@
 
 .cart-overlay {
   position: fixed;
-  @import 'styles/_functions';
-
-  .flex-between {
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .cart-overlay {
-    position: fixed;
-    height: 100vh;
-    width: 100vw;
-    z-index: 1;
-    transform: translateX(100%);
-
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 1;
-      height: 100vh;
-      width: 100vw;
-      opacity: 0;
-      background-color: black;
-      transition: 500ms opacity var(--ease-out-circ);
-    }
-  }
-
-  .set-overlay {
-    transform: translateX(0%);
-    &::before {
-      opacity: 0.3;
-    }
-  }
-
-  .show-cart {
-    opacity: 1;
-  }
-
-  .hide-cart {
-    opacity: 0;
-  }
-
-  .cart {
-    position: absolute;
-    left: 50%;
-    z-index: 2;
-    height: 100vh;
-    width: 100vw;
-    background-color: black;
-    color: white;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    transition: 500ms opacity var(--ease-out-circ);
-
-    .inner {
-      grid-column: span 1;
-      margin: 0 desktop-vw(40px);
-
-      .cart-header {
-        @extend .flex-between;
-        align-items: center;
-        height: 12%;
-        border-bottom: 1px solid white;
-      }
-
-      .cart-products-wrapper {
-        height: 59%;
-        overflow-y: auto;
-
-        .cart-products {
-          width: desktop-vw(640px);
-
-          > p {
-            font-size: desktop-vw(18px);
-            margin-bottom: desktop-vw(50px);
-          }
-
-          &:nth-child(n) {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-            border-bottom: 1px solid white;
-            margin: desktop-vw(25px) 0;
-            height: desktop-vw(125px);
-
-            .product-image {
-              width: desktop-vw(100px);
-              height: desktop-vw(100px);
-              position: relative;
-
-              img {
-                object-fit: contain;
-              }
-            }
-
-            .product-details {
-              .product-name-price {
-                @extend .flex-between;
-                width: desktop-vw(525px);
-                height: desktop-vw(22px);
-                margin-bottom: desktop-vw(18px);
-              }
-
-              .product-editables {
-                @extend .flex-between;
-                height: desktop-vw(30px);
-
-                .options {
-                  width: desktop-vw(389px);
-                  display: flex;
-                  flex-direction: row;
-
-                  .button-option {
-                    display: flex;
-                    flex-direction: row;
-                    border: 2px solid #fffddf;
-                    border-radius: 4px;
-                    height: desktop-vw(40px);
-                    font-size: desktop-vw(16px);
-
-                    > p {
-                      width: desktop-vw(73px);
-                      padding: desktop-vw(10px);
-                      border-right: 2px solid white;
-                    }
-                  }
-
-                  .quantity {
-                    @extend .button-option;
-                    width: desktop-vw(186px);
-                    margin-right: desktop-vw(15px);
-
-                    aside {
-                      display: flex;
-                      padding: desktop-vw(10px) desktop-vw(13px);
-                      width: desktop-vw(113px);
-
-                      button {
-                        width: desktop-vw(14px);
-                      }
-
-                      p {
-                        text-align: center;
-                      }
-
-                      > *:not(:last-child) {
-                        margin-right: desktop-vw(20px);
-                      }
-                    }
-                  }
-
-                  .size {
-                    @extend .button-option;
-                    width: desktop-vw(158px);
-
-                    aside {
-                      width: desktop-vw(84px);
-
-                      > div {
-                        height: 100%;
-                        width: 100%;
-                        button {
-                          padding: desktop-vw(10px) desktop-vw(20px);
-                        }
-                      }
-                    }
-                  }
-                }
-
-                .remove {
-                  width: desktop-vw(107px);
-                  border: 2px solid #ff65be;
-                  border-radius: 4px;
-                  height: desktop-vw(40px);
-                  padding: desktop-vw(10px);
-                  color: #ff65be;
-                }
-              }
-            }
-          }
-        }
-      }
-
-      .cart-details {
-        height: 24%;
-
-        .check-out {
-          p {
-            width: desktop-vw(639px);
-            height: desktop-vw(80px);
-            padding: desktop-vw(20px);
-            background-color: #ff65be;
-            color: black;
-            font-weight: 900;
-            font-size: desktop-vw(39px);
-            text-transform: uppercase;
-            border-radius: 5px;
-            transition: 300ms border-radius var(--ease-out-circ);
-
-            &:hover {
-              border-radius: 20px;
-            }
-          }
-        }
-
-        .total-price {
-          margin-top: desktop-vw(30px);
-          padding: desktop-vw(20px);
-          border-bottom: 1px solid white;
-          border-top: 1px solid white;
-          @extend .flex-between;
-          align-items: center;
-        }
-      }
-
-      .card-footer {
-        height: desktop-vw(100px);
-      }
-    }
-  }
-
-  .button-disabled {
-    pointer-events: none;
-    opacity: 0.3;
-
-    transition: 300ms opacity var(--ease-out-circ);
-  }
-
   height: 100vh;
   width: 100vw;
   z-index: 1;
@@ -289,12 +60,12 @@
     .cart-header {
       @extend .flex-between;
       align-items: center;
-      height: desktop-vw(100px);
+      height: 12%;
       border-bottom: 1px solid white;
     }
 
     .cart-products-wrapper {
-      height: desktop-vw(500px);
+      height: 59%;
       overflow-y: auto;
 
       .cart-products {
@@ -412,7 +183,7 @@
     }
 
     .cart-details {
-      height: desktop-vw(200px);
+      height: 24%;
 
       .check-out {
         p {

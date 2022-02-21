@@ -1,7 +1,6 @@
+import { useFrame, useIsTouchDevice } from '@studio-freight/hamo'
 import LocomotiveScroll from '@studio-freight/locomotive-scroll'
 import { debounce as _debounce } from 'debounce'
-import { useFrame } from 'hooks/use-frame'
-import { useIsTouchDevice } from 'hooks/use-is-touch-device'
 import { useStore } from 'lib/store'
 import { useLayoutEffect, useRef } from 'react'
 

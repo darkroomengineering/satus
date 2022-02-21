@@ -1,6 +1,6 @@
 ```javascript
 import { useStore } from 'lib/store'
-import { useFrame } from 'hooks/use-frame'
+import { useFrame } from '@studio-freight/hamo'
 
 const locomotive = useStore((state) => state.locomotive)
 

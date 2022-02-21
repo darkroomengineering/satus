@@ -1,5 +1,5 @@
+import { useMediaQuery } from '@studio-freight/hamo'
 import cn from 'clsx'
-import { useMediaQuery } from 'hooks/use-media-query'
 import { useMemo, useState } from 'react'
 import s from './grid-debugger.module.scss'
 

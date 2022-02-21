@@ -1,6 +1,5 @@
+import { useDebug, useIsTouchDevice } from '@studio-freight/hamo'
 import { RealViewport } from 'components/real-viewport'
-import { useDebug } from 'hooks/use-debug'
-import { useIsTouchDevice } from 'hooks/use-is-touch-device'
 import dynamic from 'next/dynamic'
 import 'resize-observer-polyfill'
 import 'styles/global.scss'

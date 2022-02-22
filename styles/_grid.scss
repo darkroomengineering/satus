@@ -2,10 +2,11 @@
   --grid-columns: 4;
   --grid-gap: #{mobile-vw(15px)};
   --max-width: 89.3334vw;
+
   @include desktop {
-    --max-width: 88.889vw;
     --grid-columns: 12;
     --grid-gap: #{desktop-vw(40px)};
+    --max-width: 88.889vw;
   }
 
   --column-width: calc(

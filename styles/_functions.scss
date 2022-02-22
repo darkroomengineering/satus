@@ -27,3 +27,9 @@
     (#{$columns} * var(--column-width)) + ((#{$columns} - 1) * var(--grid-gap))
   );
 }
+
+@mixin hover {
+  @media (hover: hover) {
+    @content;
+  }
+}

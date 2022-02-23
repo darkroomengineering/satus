@@ -1,0 +1,66 @@
+@use 'sass:map';
+
+// config
+// $variable: mobile, desktop
+$layout: (
+  'column-count': (
+    4,
+    12,
+  ),
+  'columns-gap': (
+    10px,
+    25px,
+  ),
+  'width': (
+    89vw,
+    93vw,
+  ),
+);
+
+//internal process
+:root {
+  --layout-columns-count: #{nth(map.get($layout, 'column-count'), 1)};
+  --layout-columns-gap: #{mobile-vw(nth(map.get($layout, 'columns-gap'), 1))};
+  --layout-width: #{nth(map.get($layout, 'width'), 1)};
+
+  @include desktop {
+    --layout-columns-count: #{nth(map.get($layout, 'column-count'), 2)};
+    --layout-columns-gap: #{desktop-vw(nth(map.get($layout, 'columns-gap'), 2))};
+    --layout-width: #{nth(map.get($layout, 'width'), 2)};
+  }
+
+  --layout-margin: calc((100vw - var(--layout-width)) / 2);
+  --layout-column-width: calc(
+    (
+        var(--layout-width) -
+          ((var(--layout-columns-count) - 1) * var(--layout-columns-gap))
+      ) / var(--layout-columns-count)
+  );
+}
+
+.layout-block {
+  max-width: var(--layout-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.layout-block-inner {
+  padding-left: var(--layout-margin);
+  padding-right: var(--layout-margin);
+}
+
+.layout-grid {
+  @extend .layout-block;
+
+  display: grid;
+  grid-template-columns: repeat(var(--layout-columns-count), minmax(0, 1fr));
+  grid-gap: var(--layout-columns-gap);
+}
+
+.layout-grid-inner {
+  @extend .layout-block-inner;
+
+  display: grid;
+  grid-template-columns: repeat(var(--layout-columns-count), minmax(0, 1fr));
+  grid-gap: var(--layout-columns-gap);
+}

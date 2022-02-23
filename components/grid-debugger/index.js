@@ -8,7 +8,11 @@ export const GridDebugger = () => {
   const isMobile = useMediaQuery('(max-width: 800px)')
 
   const columns = useMemo(() => {
-    return isMobile ? 4 : 12
+    return parseInt(
+      getComputedStyle(document.documentElement).getPropertyValue(
+        '--layout-columns-count'
+      )
+    )
   }, [isMobile])
 
   return (
@@ -21,7 +25,7 @@ export const GridDebugger = () => {
         🌐
       </button>
       {visible && (
-        <div className={cn('grid', s.debugger)}>
+        <div className={cn('layout-grid', s.debugger)}>
           {new Array(columns).fill(0).map((_, key) => (
             <span key={key}></span>
           ))}

@@ -14,7 +14,7 @@ export const Header = () => {
   return (
     <header className={s.header}>
       <Navigation />
-      <div className={cn('block', s.header__head)}>
+      <div className={cn('layout-block', s.header__head)}>
         <button
           onClick={() => {
             setNavIsOpen(!navIsOpen)

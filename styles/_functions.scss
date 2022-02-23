@@ -14,17 +14,18 @@
   }
 }
 
-@function desktop-vw($px-vw, $base-vw: $desktop-viewport) {
-  @return math.div($px-vw * 100vw, $base-vw);
+@function desktop-vw($pixels, $base-vw: $desktop-viewport) {
+  @return math.div($pixels * 100vw, $base-vw);
 }
 
-@function mobile-vw($px-vw, $base-vw: $mobile-viewport) {
-  @return math.div($px-vw * 100vw, $base-vw);
+@function mobile-vw($pixels, $base-vw: $mobile-viewport) {
+  @return math.div($pixels * 100vw, $base-vw);
 }
 
 @function columns($columns) {
   @return calc(
-    (#{$columns} * var(--column-width)) + ((#{$columns} - 1) * var(--grid-gap))
+    (#{$columns} * var(--layout-column-width)) +
+      ((#{$columns} - 1) * var(--layout-columns-gap))
   );
 }
 

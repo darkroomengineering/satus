@@ -1,9 +1,24 @@
+// inspiration: https://material.io/design/layout/responsive-layout-grid.html#columns-gutters-and-margins
+
+// css variables exposed globally:
+// --layout-columns-count: columns count in the layout
+// --layout-columns-gap: gap size between columns
+// --layout-margin: layout margin size (left or right)
+// --layout-width: 100vw minus 2 * --layout-margin
+// --layout-column-width: size of a single column
+
+// css classes exposed globally:
+// .layout-block: element takes the whole layout width
+// .layout-block-inner: same as .layout-block but using padding instead of margin
+// .layout-grid: extends .layout-block with grid behaviour using layout settings
+// .layout-grid-inner: same as .layout-grid but using padding instead of margin
+
 @use 'sass:map';
 
 // config
 // 'variable': (mobile, desktop)
 $layout: (
-  'column-count': (
+  'columns-count': (
     4,
     12,
   ),
@@ -17,14 +32,14 @@ $layout: (
   ),
 );
 
-//internal process
+//internal process, do not touch
 :root {
-  --layout-columns-count: #{nth(map.get($layout, 'column-count'), 1)};
+  --layout-columns-count: #{nth(map.get($layout, 'columns-count'), 1)};
   --layout-columns-gap: #{mobile-vw(nth(map.get($layout, 'columns-gap'), 1))};
   --layout-margin: #{mobile-vw(nth(map.get($layout, 'margin'), 1))};
 
   @include desktop {
-    --layout-columns-count: #{nth(map.get($layout, 'column-count'), 2)};
+    --layout-columns-count: #{nth(map.get($layout, 'columns-count'), 2)};
     --layout-columns-gap: #{desktop-vw(nth(map.get($layout, 'columns-gap'), 2))};
     --layout-margin: #{desktop-vw(nth(map.get($layout, 'margin'), 2))};
   }

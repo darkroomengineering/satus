@@ -1,122 +1,50 @@
 @import 'styles/_functions';
 
-.accordion {
-  overflow: hidden;
-  &:first-child {
-    border-top: 1px solid var(--black);
-  }
-
-  border-bottom: 1px solid var(--black);
-  padding: mobile-vw(10px) 0;
-
-  @include desktop {
-    padding: desktop-vw(10px) 0;
-  }
-
-  &__content {
-    // height: 0;
-
-    > :first-child {
-      padding-top: mobile-vw(10px);
-
-      @include desktop {
-        padding-top: desktop-vw(10px);
-      }
-    }
-
-    @keyframes open {
-      from {
-        height: 0;
-      }
-      to {
-        height: var(--radix-collapsible-content-height);
-      }
-    }
-
-    @keyframes close {
-      from {
-        height: var(--radix-collapsible-content-height);
-      }
-      to {
-        height: 0;
-      }
-    }
-
-    &:global([data-state='open']) {
-      animation: open 600ms var(--ease-out-expo);
-    }
-
-    &:global([data-state='closed']) {
-      animation: close 600ms var(--ease-out-expo);
-    }
-  }
-}
-
 .pageHome {
   // height: 300vh;
 
-  &__marquee {
-    font-size: 6vw;
+  .title {
+    font-size: 60px;
   }
 
-  .slider {
-    overflow: hidden;
-  }
+  .product-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: a b;
+    pointer-events: all;
 
-  .slider-header {
-    padding-top: desktop-vw(50px);
-    text-transform: uppercase;
-    font-size: 34px;
-
-    p:first-child {
-      font-size: 14px;
+    > &:nth-child(odd) {
+      grid-area: a;
     }
-  }
 
-  .slide-buttons {
-    text-transform: uppercase;
-    font-weight: 700;
-    padding-right: desktop-vw(10px);
-    user-select: none;
-    cursor: pointer;
-  }
+    > &:nth-child(even) {
+      grid-area: b;
+    }
 
-  .slide {
-    min-width: 33vw;
-    display: flex;
-    flex-direction: column;
-
-    .slide-inner {
+    .image {
+      width: 536px;
+      height: 536px;
       position: relative;
-      overflow: hidden;
-      height: desktop-vw(600px);
-      cursor: none;
+      border: 2px solid #ff65be;
+      box-sizing: border-box;
+      border-radius: 40px;
 
-      .slide-title {
-        font-size: desktop-vw(25px);
-        font-weight: 900;
-        text-transform: uppercase;
-        padding-bottom: desktop-vw(25px);
+      img {
+        object-fit: contain;
       }
+    }
 
-      .slide-text {
-        font-size: desktop-vw(16px);
-        font-weight: 400;
-        padding-bottom: desktop-vw(25px);
-      }
+    .slide-img {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      height: 50%;
+      min-width: 50%;
+      transform: translate(-50%, -50%);
+      object-fit: cover;
 
-      .slide-img {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        height: 50%;
-        min-width: 50%;
-        transform: translate(-50%, -50%);
-        object-fit: cover;
-
-        > div {
-          height: 100%;
-        }
+      > div {
+        height: 100%;
       }
     }
   }

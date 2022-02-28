@@ -14,10 +14,7 @@ module.exports = withPlugins([withTM(), [withBundleAnalyzer]], {
   },
   swcMinify: true,
   images: {
-    // ADD in case you need to import SVGs in next/image component
-    // dangerouslyAllowSVG: true,
-    // contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    domains: ['images.ctfassets.net'],
+    domains: ['cdn.shopify.com'],
     formats: ['image/avif', 'image/webp'],
   },
   webpack: (config, options) => {

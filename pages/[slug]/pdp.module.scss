@@ -1,0 +1,126 @@
+@import 'styles/_functions';
+
+.buttons-hover {
+  background: #ff65be;
+  border: 2px solid #ff65be;
+  border-radius: 40px;
+}
+
+.button-disabled {
+  border: 2px solid #828282;
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+.product {
+  .image {
+    width: desktop-vw(508px);
+    height: desktop-vw(508px);
+    position: relative;
+    grid-column: 1/7;
+    border: 2px solid black;
+    border-radius: 40px;
+
+    img {
+      object-fit: contain;
+    }
+  }
+
+  .properties {
+    grid-column: 7/-1;
+    height: desktop-vw(508px);
+
+    .name {
+      font-size: desktop-vw(60px);
+      text-align: start;
+      border-bottom: 1px solid black;
+      margin-bottom: desktop-vw(40px);
+    }
+
+    .details {
+      display: flex;
+      justify-content: space-between;
+
+      .price {
+        width: desktop-vw(159px);
+        text-align: start;
+      }
+
+      .variants {
+        width: desktop-vw(359px);
+        text-align: start;
+        margin-bottom: desktop-vw(50px);
+
+        .options {
+          margin-top: 15px;
+          display: flex;
+          flex-wrap: wrap;
+
+          > button {
+            border-radius: 5px;
+            border: 2px solid black;
+            padding: desktop-vw(10px) desktop-vw(15px);
+            margin-bottom: desktop-vw(10px);
+            transition: 300ms border-radius var(--ease-out-expo);
+
+            &:not(:last-child) {
+              margin-right: desktop-vw(10px);
+            }
+
+            &:hover {
+              @extend .buttons-hover;
+            }
+          }
+
+          .selected-option {
+            @extend .buttons-hover;
+          }
+        }
+      }
+    }
+
+    .editable {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: desktop-vw(50px);
+
+      .quantity {
+        display: flex;
+        width: desktop-vw(159px);
+        height: desktop-vw(60px);
+        padding: desktop-vw(3px) desktop-vw(35px);
+        border: 1px solid black;
+        border-radius: 5px;
+
+        button {
+          width: desktop-vw(14px);
+        }
+
+        p {
+          width: desktop-vw(50px);
+          text-align: center;
+          margin: auto 0;
+        }
+
+        > *:not(:last-child) {
+          margin-right: desktop-vw(5px);
+        }
+      }
+
+      .add-cart {
+        border: 1px solid black;
+        border-radius: 5px;
+        width: desktop-vw(359px);
+        transition: 300ms border-radius var(--ease-out-expo);
+
+        &:hover {
+          @extend .buttons-hover;
+        }
+      }
+    }
+
+    .description {
+      text-align: start;
+    }
+  }
+}

@@ -1,0 +1,10 @@
+fragment images on Media {
+  mediaContentType
+  alt
+  ... on MediaImage {
+    image {
+      originalSrc
+      altText
+    }
+  }
+}

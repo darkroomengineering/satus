@@ -1,0 +1,61 @@
+#import "../fragments/product.graphql"
+#import "../fragments/images.graphql"
+
+query allProducts {
+  products(first: 10) {
+    edges {
+      node {
+        ...product
+      }
+    }
+  }
+}
+
+query byId($id: ID) {
+  product(id: $id) {
+    ...product
+  }
+}
+
+query byHandle($handle: String!) {
+  productByHandle(handle: $handle) {
+    ...product
+  }
+}
+
+query getSchema {
+  __schema {
+    mutationType {
+      fields {
+        name
+      }
+    }
+  }
+}
+
+query cartFetch($cartId: ID!) {
+  cart(id: $cartId) {
+    id
+    createdAt
+    updatedAt
+    checkoutUrl
+    estimatedCost {
+      subtotalAmount {
+        amount
+      }
+    }
+    lines(first: 100) {
+      edges {
+        node {
+          id
+          quantity
+          merchandise {
+            ... on ProductVariant {
+              ...variants
+            }
+          }
+        }
+      }
+    }
+  }
+}

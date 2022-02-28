@@ -1,3 +1,5 @@
-import Home from './home'
+import home, { getStaticProps as homeGetStaticProps } from './home'
 
-export default Home
+export const getStaticProps = homeGetStaticProps
+
+export default home

@@ -1,0 +1,68 @@
+fragment variants on ProductVariant {
+  id
+  title
+  availableForSale
+  priceV2 {
+    amount
+    currencyCode
+  }
+  quantityAvailable
+  selectedOptions {
+    name
+    value
+  }
+  image {
+    originalSrc
+  }
+  product {
+    id
+    handle
+    title
+  }
+  weight
+}
+
+fragment product on Product {
+  id
+  title
+  description
+  descriptionHtml
+  availableForSale
+  tags
+  handle
+
+  options {
+    name
+    values
+  }
+  productType
+
+  priceRange {
+    maxVariantPrice {
+      amount
+      currencyCode
+    }
+    minVariantPrice {
+      amount
+      currencyCode
+    }
+  }
+
+  media(first: 10) {
+    edges {
+      node {
+        ...images
+      }
+    }
+  }
+
+  ... on Product {
+    variants(first: 25) {
+      edges {
+        node {
+          ...variants
+        }
+      }
+    }
+  }
+}

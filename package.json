@@ -24,6 +24,9 @@
     "debounce": "^1.2.1",
     "embla-carousel-autoplay": "^6.2.0",
     "embla-carousel-react": "^6.2.0",
+    "graphql": "^15.6.1",
+    "graphql-request": "^3.6.1",
+    "graphql-tag": "^2.12.5",
     "husky": "^7.0.4",
     "lint-staged": "^12.3.4",
     "next": "12.1.0",
@@ -33,6 +36,7 @@
     "resize-observer-polyfill": "^1.5.1",
     "sass": "^1.49.8",
     "stats.js": "^0.17.0",
+    "swr": "^1.2.1",
     "use-dark-mode": "^2.3.1",
     "uuid": "^8.3.2",
     "zustand": "^3.7.0"

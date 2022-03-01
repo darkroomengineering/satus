@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^0.1.5",
+    "@radix-ui/react-select": "^0.1.1",
     "@react-spring/rafz": "^9.4.3",
     "@studio-freight/hamo": "^0.1.5",
     "@studio-freight/locomotive-scroll": "^0.0.8",

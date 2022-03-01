@@ -1,6 +1,7 @@
 import * as Accordion from '@radix-ui/react-accordion'
 import { useFrame, useRect } from '@studio-freight/hamo'
 import { Marquee } from 'components/marquee'
+import * as Select from 'components/select'
 import { Slider } from 'components/slider'
 import { Layout } from 'layouts/default'
 import { useStore } from 'lib/store'
@@ -112,6 +113,13 @@ export default function Home() {
             )
           }}
         </Slider>
+        <div style={{ height: '100vh', padding: '50vw 0' }}>
+          <Select.Root defaultValue="2">
+            <Select.Item value="1">Item 1</Select.Item>
+            <Select.Item value="2">Item 2</Select.Item>
+            <Select.Item value="3">Item 3</Select.Item>
+          </Select.Root>
+        </div>
 
         <div style={{ height: '100vh' }}>
           <div

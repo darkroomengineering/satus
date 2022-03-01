@@ -4,9 +4,10 @@
 @import './_easings.scss';
 @import './_scroll.scss';
 @import './_functions.scss';
-@import './_grid.scss';
+@import './_layout.scss';
 @import './_utils.scss';
 @import './_font-style.scss';
+@import './_themes.scss';
 
 :root {
   --header-height: #{mobile-vw(58px)};
@@ -44,6 +45,16 @@ body {
 //     }
 //   }
 // }
+
+a,
+button,
+input,
+label,
+textarea,
+select {
+  color: inherit;
+  cursor: pointer;
+}
 
 *::selection {
   background-color: var(--black);

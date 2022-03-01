@@ -1,9 +1,9 @@
-import s from './header.module.scss'
-import Link from 'next/link'
+import cn from 'clsx'
 import { Navigation } from 'components/navigation'
 import { useStore } from 'lib/store'
-import cn from 'clsx'
+import Link from 'next/link'
 import shallow from 'zustand/shallow'
+import s from './header.module.scss'
 
 export const Header = () => {
   const [navIsOpen, setNavIsOpen] = useStore(
@@ -12,9 +12,9 @@ export const Header = () => {
   )
 
   return (
-    <header className={s.appHeader}>
+    <header className={s.header}>
       <Navigation />
-      <div className={cn('block', s.appHeader__head)}>
+      <div className={cn('layout-block', s.header__head)}>
         <button
           onClick={() => {
             setNavIsOpen(!navIsOpen)

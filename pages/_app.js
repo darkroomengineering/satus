@@ -1,7 +1,5 @@
+import { useDebug, useIsTouchDevice } from '@studio-freight/hamo'
 import { RealViewport } from 'components/real-viewport'
-import { useDebug } from 'hooks/use-debug'
-import { useIsTouchDevice } from 'hooks/use-is-touch-device'
-import { useStore } from 'lib/store'
 import dynamic from 'next/dynamic'
 import 'resize-observer-polyfill'
 import 'styles/global.scss'
@@ -21,7 +19,6 @@ const GridDebugger = dynamic(
 function MyApp({ Component, pageProps }) {
   const isTouchDevice = useIsTouchDevice()
   const darkMode = useDarkMode()
-  const setTheme = useStore((state) => state.setTheme)
 
   const debug = useDebug()
 

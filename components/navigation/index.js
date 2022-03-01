@@ -1,10 +1,10 @@
-import s from './navigation.module.scss'
 import cn from 'clsx'
 import { useStore } from 'lib/store'
-import { useLayoutEffect } from 'react'
-import { useRouter } from 'next/router'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
+import { useLayoutEffect } from 'react'
 import shallow from 'zustand/shallow'
+import s from './navigation.module.scss'
 
 export const Navigation = () => {
   const [navIsOpen, setNavIsOpen] = useStore(
@@ -27,9 +27,7 @@ export const Navigation = () => {
   }, [])
 
   return (
-    <div
-      className={cn(s.appNavigation, !navIsOpen && s['appNavigation--closed'])}
-    >
+    <div className={cn(s.navigation, !navIsOpen && s['navigation--closed'])}>
       <Link href="/">
         <a>home</a>
       </Link>

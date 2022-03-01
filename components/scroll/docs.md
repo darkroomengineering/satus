@@ -1,39 +1,10 @@
-## 2 ways to get scroll position
-
 ```javascript
-//using store
-import { raf } from '@react-spring/rafz'
 import { useStore } from 'lib/store'
+import { useFrame } from '@studio-freight/hamo'
 
-function update() {
-  const scrollY = useStore.getState().scroll?.scroll?.y || 0
-  return true
-}
+const locomotive = useStore((state) => state.locomotive)
 
-useEffect(() => {
-  raf.onFrame(update)
-
-  return () => {
-    raf.cancel(update)
-  }
-}, [])
-```
-
-```javascript
-//using context
-const { scroll, isReady } = useContext(ScrollContext)
-
-useEffect(() => {
-  if (!scroll) return
-
-  const onScroll = (e) => {
-    const scrollY = e.scroll.y
-  }
-
-  scroll.on('scroll', onScroll)
-
-  return () => {
-    scroll.off('scroll', onScroll)
-  }
-}, [scroll, isReady])
+useFrame(() => {
+  const scrollY = locomotive?.scroll.instance.scroll.y || 0
+}, 0)
 ```

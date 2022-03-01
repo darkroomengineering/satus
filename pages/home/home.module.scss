@@ -53,10 +53,14 @@
 }
 
 .pageHome {
-  height: 300vh;
+  // height: 300vh;
 
   &__marquee {
     font-size: 6vw;
+  }
+
+  .slider {
+    overflow: hidden;
   }
 
   .slider-header {

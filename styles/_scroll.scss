@@ -1,3 +1,5 @@
+@import 'styles/_functions';
+
 html:not(.has-scroll-init) {
   overflow: hidden;
 }
@@ -8,6 +10,11 @@ html.has-scroll-smooth {
   right: 0;
   top: 0;
   bottom: 0;
+}
+html:not(.has-scroll-smooth) {
+  [data-scroll-section] {
+    transform: unset !important;
+  }
 }
 html.has-scroll-dragging {
   -webkit-user-select: none;
@@ -52,17 +59,44 @@ html.has-scroll-dragging {
   position: absolute;
   top: 0;
   right: 0;
-  background-color: red;
+  background: red;
   cursor: grab;
-  width: 10px;
+  width: 9px;
   border: 2px solid transparent;
   background-clip: padding-box;
   border-radius: 16px;
 }
+
 .has-scroll-dragging .c-scrollbar_thumb {
   cursor: grabbing;
 }
 [data-scroll-direction='horizontal'] .c-scrollbar_thumb {
   right: auto;
   bottom: 0;
+}
+[data-scroll-section] {
+  position: relative;
+}
+
+// custom scrollbar even on native scroll
+@include desktop {
+  html {
+    overflow: overlay;
+    &::-webkit-scrollbar {
+      /* This is more usable for users trying to click it. */
+      background-color: rgba(0, 0, 0, 0);
+      -webkit-border-radius: 100px;
+      width: 10px; /* 1px wider than Lion. */
+    }
+
+    &::-webkit-scrollbar-thumb:vertical {
+      /* This is the EXACT color of Mac OS scrollbars.
+       Yes, I pulled out digital color meter */
+      background: red;
+      background-clip: padding-box;
+      border: 2px solid rgba(0, 0, 0, 0);
+      -webkit-border-radius: 100px;
+      min-height: 10px; /* Prevent it from getting too small */
+    }
+  }
 }

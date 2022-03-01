@@ -1,88 +1,73 @@
-import { raf } from '@react-spring/rafz'
-import { useIsTouchDevice } from 'hooks/use-is-touch-device'
+import { useFrame, useIsTouchDevice } from '@studio-freight/hamo'
+import LocomotiveScroll from '@studio-freight/locomotive-scroll'
+import { debounce as _debounce } from 'debounce'
 import { useStore } from 'lib/store'
-import { createContext, useLayoutEffect, useRef, useState } from 'react'
-import { useDebounce, useMeasure } from 'react-use'
+import { useLayoutEffect, useRef } from 'react'
 
-export const ScrollContext = createContext(null)
-
-export const Scroll = ({ children, className }) => {
-  const setScroll = useStore((state) => state.setScroll)
+export const Scroll = ({
+  children,
+  className,
+  id,
+  debounce = 1000,
+  tag = 'div',
+  smooth = true,
+}) => {
+  const locomotive = useStore((state) => state.locomotive)
   const setLocomotive = useStore((state) => state.setLocomotive)
 
   const el = useRef()
-  const [ref, { width, height }] = useMeasure()
 
-  const scroll = useRef()
-  const [isReady, setIsReady] = useState(false)
-
-  const isTouchDevice = useIsTouchDevice()
-
-  const [id] = useState(Math.random())
-
+  // update locomotive if container height changes
   useLayoutEffect(() => {
-    let runFrame = true
-    function update() {
-      if (!runFrame) return
-      scroll.current?.raf()
-      return true
-    }
-
-    async function initScroll() {
-      setIsReady(false)
-      setLocomotive(undefined)
-      const LocomotiveScroll = (
-        await import('@studio-freight/locomotive-scroll')
-      ).default
-
-      scroll.current = new LocomotiveScroll({
-        el: el.current,
-        scrollFromAnywhere: true,
-        smooth: !isTouchDevice,
-        tablet: {
-          smooth: !isTouchDevice,
-        },
-        smartphone: {
-          smooth: !isTouchDevice,
-        },
-        autoRaf: false,
-      })
-
-      setLocomotive(scroll.current)
-      setIsReady(true)
-    }
-
-    if (isTouchDevice !== undefined) {
-      initScroll()
-      //https://github.com/pmndrs/react-spring/tree/master/packages/rafz#readme
-      raf.onFrame(update)
-    }
+    const callback = _debounce(() => {
+      locomotive?.update()
+    }, debounce)
+    const resizeObserver = new ResizeObserver(callback)
+    resizeObserver.observe(el.current)
 
     return () => {
-      runFrame = false
+      resizeObserver.disconnect()
+      callback.flush()
     }
-  }, [isTouchDevice])
+  }, [debounce, locomotive])
 
-  useDebounce(
-    () => {
-      scroll.current?.update()
-    },
-    1000,
-    [width, height]
-  )
+  // smooth scroll is disabled on touch devices
+  const isTouchDevice = useIsTouchDevice()
+
+  useFrame(() => {
+    locomotive?.raf()
+  }, 0)
+
+  useLayoutEffect(() => {
+    if (isTouchDevice === undefined) return
+
+    const scroll = new LocomotiveScroll({
+      el: el.current,
+      scrollFromAnywhere: true,
+      smooth: !isTouchDevice && smooth,
+      autoRaf: false,
+    })
+    setLocomotive(scroll)
+
+    return () => {
+      setLocomotive(undefined)
+      scroll?.destroy()
+    }
+  }, [isTouchDevice, smooth])
+
+  // useDebounce(
+  //   () => {
+  //     locomotive?.update()
+  //   },
+  //   debounce,
+  //   [height, debounce, locomotive]
+  // )
+
+  const Tag = tag
 
   return (
-    <ScrollContext.Provider value={{ scroll: scroll.current, isReady }}>
-      <main
-        ref={(node) => {
-          el.current = node
-          ref(node)
-        }}
-        className={className}
-        data-scroll-container
-      >
-        {children}
-      </main>
-    </ScrollContext.Provider>
+    <Tag ref={el} className={className} id={id} data-scroll-container>
+      {children}
+    </Tag>
   )
 }

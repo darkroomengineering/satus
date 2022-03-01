@@ -6,7 +6,9 @@ import s from './slider.module.scss'
 
 const Slides = forwardRef(({ children, className }, ref) => (
   <div className={cn(s.slider, className)} ref={ref}>
-    <div className={s.container}>{children.map((child, idx) => child)}</div>
+    <div className={s.container}>
+      {[children].flat().map((child, idx) => child)}
+    </div>
   </div>
 ))
 Slides.displayName = 'Slides'
@@ -59,14 +61,16 @@ const Slider = ({
     }
   }, [embla, enabled])
 
-  return children({
-    emblaRef,
-    currentIndex,
-    setCurrentIndex,
-    scrollPrev,
-    scrollNext,
-    scrollTo,
-  })
+  return children
+    ? children({
+        emblaRef,
+        currentIndex,
+        setCurrentIndex,
+        scrollPrev,
+        scrollNext,
+        scrollTo,
+      })
+    : null
 }
 
 Slider.Slides = Slides

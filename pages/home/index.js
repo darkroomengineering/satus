@@ -1,64 +1,57 @@
 import * as Accordion from '@radix-ui/react-accordion'
-import { raf } from '@react-spring/rafz'
+import { useFrame, useRect } from '@studio-freight/hamo'
 import { Marquee } from 'components/marquee'
+import * as Select from 'components/select'
 import { Slider } from 'components/slider'
 import { CmsMethods, fetchCmsQuery } from 'contentful/api'
 import { homeQuery } from 'contentful/queries/homepage.graphql'
-import { useRect } from 'hooks/use-rect'
 import { Layout } from 'layouts/default'
-import { useEffect, useRef } from 'react'
+import { useStore } from 'lib/store'
+import { useRef } from 'react'
 import s from './home.module.scss'
 
 const devs = [
   {
     name: 'Franco',
     position: 'Lords of Lords',
-    image: '/devs/franco.png',
+    image: 'https://assets.studiofreight.com/devs/franco.png',
   },
   {
     name: 'Clement',
     position: 'Expert on Dark Magic',
-    image: '/devs/clement.png',
+    image: 'https://assets.studiofreight.com/devs/clement.png',
   },
   {
     name: 'Leandro',
     position: 'He didnt fucked it up',
-    image: '/devs/leandro.png',
+    image: 'https://assets.studiofreight.com/devs/leandro.png',
   },
   {
     name: 'Guido',
     position: 'Avoids owning projects',
-    image: '/devs/guido.png',
+    image: 'https://assets.studiofreight.com/devs/guido.png',
   },
 ]
 
 export default function Home({ homePageData }) {
   const rectRef = useRef()
   const [ref, compute] = useRect()
+  const locomotive = useStore((state) => state.locomotive)
 
-  function update() {
-    const rect = compute()
-    if (rect) {
-      const string = `inView: ${rect.inView}<br>left:${Math.round(
-        rect.left
-      )}px<br>top:${Math.round(rect.top)}px<br>width:${
-        rect.width
-      }px<br>height:${rect.height}px<br>right:${Math.round(
-        rect.right
-      )}px<br>bottom:${Math.round(rect.bottom)}px`
-      rectRef.current.innerHTML = string
-    }
+  useFrame(() => {
+    const scrollY = locomotive?.scroll.instance.scroll.y || 0
 
-    return true
-  }
+    const rect = compute(scrollY)
 
-  useEffect(() => {
-    raf.onFrame(update)
-
-    return () => {
-      raf.cancel(update)
-    }
-  }, [])
+    const string = `inView: ${rect.inView}<br>left:${Math.round(
+      rect.left
+    )}px<br>top:${Math.round(rect.top)}px<br>width:${rect.width}px<br>height:${
+      rect.height
+    }px<br>right:${Math.round(rect.right)}px<br>bottom:${Math.round(
+      rect.bottom
+    )}px`
+    rectRef.current.innerHTML = string
+  }, 0)
 
   console.log('update')
 
@@ -98,7 +91,7 @@ export default function Home({ homePageData }) {
                   <p>Slider Hader</p>
                   <p>Slider Title</p>
                 </div>
-                <Slider.Slides ref={emblaRef}>
+                <Slider.Slides ref={emblaRef} className={s.slider}>
                   {devs.map((item, idx) => (
                     <div className={s['slide']} key={`slide-item-${idx}`}>
                       <div className={s['slide-inner']}>
@@ -123,19 +116,28 @@ export default function Home({ homePageData }) {
             )
           }}
         </Slider>
+        <div style={{ height: '100vh', padding: '50vw 0' }}>
+          <Select.Root defaultValue="2">
+            <Select.Item value="1">Item 1</Select.Item>
+            <Select.Item value="2">Item 2</Select.Item>
+            <Select.Item value="3">Item 3</Select.Item>
+          </Select.Root>
+        </div>
 
-        <div
-          ref={(node) => {
-            rectRef.current = node
-            ref.current = node
-          }}
-          style={{
-            width: '250px',
-            height: '250px',
-            backgroundColor: 'cyan',
-            margin: '0 auto',
-          }}
-        ></div>
+        <div style={{ height: '100vh' }}>
+          <div
+            ref={(node) => {
+              rectRef.current = node
+              ref(node)
+            }}
+            style={{
+              width: '250px',
+              height: '250px',
+              backgroundColor: 'cyan',
+              margin: '0 auto',
+            }}
+          ></div>
+        </div>
       </div>
     </Layout>
   )

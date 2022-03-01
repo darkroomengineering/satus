@@ -2,6 +2,7 @@
   position: relative;
   padding-bottom: calc(100% / var(--aspect-ratio));
   width: 100%;
+  height: 0;
 
   > :first-child {
     position: absolute;
@@ -27,4 +28,16 @@
 
 .relative {
   position: relative;
+}
+
+.hide-on-desktop {
+  @include desktop {
+    display: none;
+  }
+}
+
+.hide-on-mobile {
+  @include mobile {
+    display: none;
+  }
 }

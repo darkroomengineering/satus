@@ -1,5 +1,3 @@
-
-
 query homeQuery($pageId: String!, $preview: Boolean!) {
   home(id: $pageId, preview: $preview) {
     title

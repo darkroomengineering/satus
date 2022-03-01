@@ -1,0 +1,11 @@
+query headerQuery($pageId: String!) {
+  header(id: $pageId) {
+    title
+  }
+}
+
+query footerQuery($pageId: String!) {
+  footer(id: $pageId) {
+    title
+  }
+}

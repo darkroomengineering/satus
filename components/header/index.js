@@ -11,6 +11,8 @@ export const Header = () => {
     shallow
   )
 
+  const data = useStore((state) => state.headerData)
+
   return (
     <header className={s.header}>
       <Navigation />
@@ -22,6 +24,7 @@ export const Header = () => {
         >
           menu
         </button>
+        <h1>{data.title}</h1>
         <div>
           <Link href="/">
             <a>home</a>

@@ -61,6 +61,14 @@ This starter kit is composed of:
 
 <br/>
 
+## Flavors
+
+- [Light](https://github.com/studio-freight/satus)
+- [With-Shopify](https://github.com/studio-freight/satus/tree/with-shopify)
+- [With-Contentful](https://github.com/studio-freight/satus/tree/with-contentful)
+
+<br/>
+
 ## Authors
 
 This toolkit is curated and maintained by the Studio Freight Things team:

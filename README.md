@@ -63,6 +63,8 @@ This starter kit is composed of:
 
 ## With-Shopify
 
+[Preview Link](https://shopify.satus.studiofreight.com/)
+
 This branch adds integration to Shopify through the [GraphQL storefront API](https://shopify.dev/api/storefront#top).
 
 - Set Up:

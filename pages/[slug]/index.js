@@ -1,5 +1,6 @@
 import cn from 'clsx'
 import { Button } from 'components/button'
+import { Slider } from 'components/slider'
 import { Layout } from 'layouts/default'
 import Shopify from 'lib/shopify'
 import { useStore } from 'lib/store'
@@ -9,7 +10,7 @@ import { useCallback, useState } from 'react'
 import useSWR from 'swr'
 import s from './pdp.module.scss'
 
-export default function Pdp({ product }) {
+export default function Pdp({ product, relatedProducts }) {
   const locomotive = useStore((state) => state.locomotive)
   const setToggleCart = useStore((state) => state.setToggleCart)
   const cart = useCart()
@@ -34,7 +35,7 @@ export default function Pdp({ product }) {
 
   return (
     <Layout>
-      <div className={cn('grid', s.product)}>
+      <section data-scroll-section className={cn('layout-grid', s.product)}>
         <div className={s.image}>
           <Image src={product.images[0]} alt="" layout="fill" />
         </div>
@@ -114,7 +115,51 @@ export default function Pdp({ product }) {
           </div>
           <p className={s.description}>{product.description}</p>
         </div>
-      </div>
+      </section>
+      <section data-scroll-section className={s['related-products']}>
+        <Slider
+          emblaApi={{
+            skipSnaps: false,
+            slidesToScroll: 1,
+            loop: true,
+            startIndex: 1,
+          }}
+        >
+          {({ currentIndex, emblaRef, SliderNavigation }) => {
+            return (
+              <>
+                <div className={s['slider-header']}>
+                  <p className="h5">More Products</p>
+                  <SliderNavigation counterColor={'var(--theme-contrast'}>
+                    {currentIndex}/{relatedProducts.length - 1}
+                  </SliderNavigation>
+                </div>
+                <Slider.Slides ref={emblaRef} className={s.slider}>
+                  {relatedProducts.map((product, idx) => (
+                    <a
+                      className={s['slide']}
+                      key={`slide-item-${idx}`}
+                      href={product.slug}
+                    >
+                      <div className={s['slide-inner']}>
+                        <div className={s['image-height']}>
+                          <Image
+                            src={product.images[0].src}
+                            alt=""
+                            layout="fill"
+                            priority
+                          />
+                        </div>
+                        <p className={s['product-name']}>{product.name}</p>
+                      </div>
+                    </a>
+                  ))}
+                </Slider.Slides>
+              </>
+            )
+          }}
+        </Slider>
+      </section>
     </Layout>
   )
 }
@@ -137,11 +182,10 @@ export const getStaticProps = async ({ params }) => {
   const store = new Shopify()
   const product = await store.getProductByHandle(params.slug)
 
-  // console.log(product.variants.map((item) => item))
-
   return {
     props: {
       product: product,
+      relatedProducts: [product, product, product, product, product],
     },
     revalidate: 1,
   }

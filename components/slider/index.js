@@ -61,8 +61,21 @@ const Slider = ({
     }
   }, [embla, enabled])
 
+  const SliderNavigation = ({ children, counterColor }) => {
+    return (
+      <div className={s.navigation}>
+        <button type="button" onClick={scrollPrev}>
+          previous
+        </button>
+        <p>{children}</p>
+        <button onClick={scrollNext}>next</button>
+      </div>
+    )
+  }
+
   return children
     ? children({
+        SliderNavigation,
         emblaRef,
         currentIndex,
         setCurrentIndex,

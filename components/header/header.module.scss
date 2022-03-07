@@ -1,23 +1,13 @@
 @import 'styles/_functions';
 
-.header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 100;
-  // color: var(--white);
-  color: var(--black);
-  padding: mobile-vw(20px) 0;
+.head {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+  padding: mobile-vw(20px);
 
   @include desktop {
-    padding: desktop-vw(40px) 0;
-  }
-
-  &__head {
-    display: flex;
-    justify-content: space-between;
-    position: relative;
-    z-index: 2;
+    padding: desktop-vw(40px);
   }
 }

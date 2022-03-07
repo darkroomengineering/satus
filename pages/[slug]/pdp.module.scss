@@ -1,8 +1,8 @@
 @import 'styles/_functions';
 
 .buttons-hover {
-  background: #ff65be;
-  border: 2px solid #ff65be;
+  background: var(--theme-contrast);
+  border: 2px solid var(--theme-contrast);
   border-radius: 40px;
 }
 
@@ -12,6 +12,8 @@
 }
 
 .product {
+  margin-bottom: desktop-vw(200px);
+
   .image {
     width: desktop-vw(508px);
     height: desktop-vw(508px);
@@ -120,6 +122,32 @@
 
     .description {
       text-align: start;
+    }
+  }
+}
+
+.related-products {
+  padding-bottom: desktop-vw(150px);
+
+  .slider-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: desktop-vw(50px);
+  }
+
+  .slide {
+    min-width: desktop-vw(446.64px);
+    margin-right: desktop-vw(10px);
+
+    .slide-inner {
+      .image-height {
+        position: relative;
+        height: desktop-vw(400px);
+
+        img {
+          object-fit: contain;
+        }
+      }
     }
   }
 }

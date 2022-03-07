@@ -1,5 +1,53 @@
 @import 'styles/_functions';
 
+.container {
+  position: relative;
+  margin: 0;
+  height: 100%;
+}
+
+.header-wrapper {
+  height: desktop-vw(50px);
+  position: relative;
+  z-index: 3;
+
+  .header {
+    background: var(--theme-secondary);
+    color: var(--theme-primary);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 3;
+    text-transform: uppercase;
+  }
+}
+
 .main {
-  padding-top: var(--header-height);
+  position: relative;
+  z-index: 2;
+  color: var(--theme-secondary);
+  pointer-events: none;
+
+  > * {
+    &:first-child {
+      padding-top: desktop-vw(100px);
+    }
+    padding: 0 desktop-vw(40px);
+    pointer-events: all;
+    background-color: var(--theme-primary);
+    margin-top: desktop-vw(-1px);
+
+    &:last-child {
+      border-radius: 0 0 40px 40px;
+    }
+  }
+}
+
+.footer-wrapper {
+  position: relative;
+  width: 100%;
+  height: desktop-vw(200px);
+  color: var(--theme-primary);
+  background-color: var(--theme-secondary);
 }

@@ -6,7 +6,7 @@ import shallow from 'zustand/shallow'
 import { Cart } from './cart'
 import s from './header.module.scss'
 
-export const Header = () => {
+export const Header = ({ className }) => {
   const locomotive = useStore((state) => state.locomotive)
   const [navIsOpen, setNavIsOpen] = useStore(
     (state) => [state.navIsOpen, state.setNavIsOpen],
@@ -16,9 +16,9 @@ export const Header = () => {
 
   return (
     <>
-      <header className={s.header}>
+      <header className={className}>
         <Navigation />
-        <div className={cn('block', s.header__head)}>
+        <div className={cn('block', s.head)}>
           <button
             onClick={() => {
               setNavIsOpen(!navIsOpen)

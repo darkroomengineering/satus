@@ -6,6 +6,9 @@
   padding: mobile-vw(20px) 0;
 
   @include desktop {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     padding: desktop-vw(40px) 0;
   }
 }

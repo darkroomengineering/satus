@@ -15,3 +15,28 @@
 .container {
   display: flex;
 }
+
+.navigation {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: center;
+  width: desktop-vw(160px);
+  outline: 0;
+  user-select: none;
+
+  @include mobile {
+    width: mobile-vw(91.53px);
+  }
+
+  p {
+    font-size: desktop-vw(25px);
+    text-align: center;
+    font-weight: 500;
+
+    @include mobile {
+      font-size: mobile(18px);
+      text-align: center;
+      width: mobile(40px);
+    }
+  }
+}

@@ -1,11 +1,10 @@
+import cn from 'clsx'
 import s from './footer.module.scss'
 
-export const Footer = () => {
+export const Footer = ({ className }) => {
   return (
-    <footer className={s.footer}>
-      <div className="layout-block">
-        <h2>Footer</h2>
-      </div>
+    <footer className={cn(s.footer, className)} data-scroll-section>
+      <h2>Footer</h2>
     </footer>
   )
 }

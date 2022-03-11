@@ -20,6 +20,15 @@ module.exports = withPlugins([withTM(), [withBundleAnalyzer]], {
     domains: ['images.ctfassets.net'],
     formats: ['image/avif', 'image/webp'],
   },
+  async redirects() {
+    return [
+      {
+        source: '/home',
+        destination: '/',
+        permanent: true,
+      },
+    ]
+  },
   webpack: (config, options) => {
     const { dir } = options
 

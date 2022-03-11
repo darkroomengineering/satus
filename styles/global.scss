@@ -29,8 +29,12 @@ html {
   }
 }
 
+html,
 body {
   overscroll-behavior: none;
+}
+
+body {
   min-height: 100vh;
 }
 

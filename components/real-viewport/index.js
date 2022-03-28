@@ -1,4 +1,4 @@
-import { useLayoutEffect } from 'hooks/use-isomorphic-layout-effect'
+import { useLayoutEffect } from '@studio-freight/hamo'
 import { useWindowSize } from 'react-use'
 
 export const RealViewport = () => {

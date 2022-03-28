@@ -1,6 +1,5 @@
 import { useSpring } from '@react-spring/web'
-import { useIsTouchDevice } from '@studio-freight/hamo'
-import useLayoutEffect from 'hooks/use-isomorphic-layout-effect'
+import { useIsTouchDevice, useLayoutEffect } from '@studio-freight/hamo'
 import { useRef } from 'react'
 import { useWindowSize } from 'react-use'
 

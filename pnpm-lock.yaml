@@ -6,7 +6,7 @@ specifiers:
   '@radix-ui/react-select': ^0.1.1
   '@react-spring/rafz': ^9.4.3
   '@react-spring/web': ^9.4.3
-  '@studio-freight/hamo': ^0.1.8
+  '@studio-freight/hamo': ^0.1.11
   '@studio-freight/locomotive-scroll': ^0.0.8
   '@svgr/webpack': ^6.2.1
   clsx: ^1.1.1
@@ -40,7 +40,7 @@ dependencies:
   '@radix-ui/react-select': 0.1.1_react-dom@17.0.2+react@17.0.2
   '@react-spring/rafz': 9.4.3
   '@react-spring/web': 9.4.3_react-dom@17.0.2+react@17.0.2
-  '@studio-freight/hamo': 0.1.8_react-dom@17.0.2+react@17.0.2
+  '@studio-freight/hamo': 0.1.11_react-dom@17.0.2+react@17.0.2
   '@studio-freight/locomotive-scroll': 0.0.8
   clsx: 1.1.1
   cross-env: 7.0.3
@@ -2735,8 +2735,8 @@ packages:
     resolution: {integrity: sha512-JLo+Y592QzIE+q7Dl2pMUtt4q8SKYI5jDrZxrozEQxnGVOyYE+GWK9eLkwTaeN9DDctlaRAQ3TBmzZ1qdLE30A==}
     dev: true
 
-  /@studio-freight/hamo/0.1.8_react-dom@17.0.2+react@17.0.2:
-    resolution: {integrity: sha512-9uCSmF3AMuHve/K+1q5hasEPfXh0e265W/qptXcdY22/Oyb6DA0SpxJWYM0pGwNLKqtn6yCqBoGdm/ZIiCsoKg==}
+  /@studio-freight/hamo/0.1.11_react-dom@17.0.2+react@17.0.2:
+    resolution: {integrity: sha512-DcKwe6ynkWJZWWO/600uQLP5Nm+jsc7CJY2yz3gvzbl3RvD8wwLUuRP4r27EsuQwq65g/N94VQp2jBbrw9IoDg==}
     peerDependencies:
       react: '>= 16.8.0'
       react-dom: '>= 16.8.0'

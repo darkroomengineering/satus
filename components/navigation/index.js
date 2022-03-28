@@ -1,5 +1,5 @@
+import { useLayoutEffect } from '@studio-freight/hamo'
 import cn from 'clsx'
-import { useLayoutEffect } from 'hooks/use-isomorphic-layout-effect'
 import { useStore } from 'lib/store'
 import Link from 'next/link'
 import { useRouter } from 'next/router'

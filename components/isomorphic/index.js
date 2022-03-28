@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 
-// will render only on client side
 export const ClientOnly = ({ children }) => {
   const [isMounted, setIsMounted] = useState(false)
 
@@ -10,10 +9,9 @@ export const ClientOnly = ({ children }) => {
     return null
   }
 
-  return children
+  return children || null
 }
 
-// will render only on server side
 export const ServerOnly = ({ children }) => {
   const [isMounted, setIsMounted] = useState(false)
 
@@ -23,5 +21,5 @@ export const ServerOnly = ({ children }) => {
     return null
   }
 
-  return children
+  return children || null
 }

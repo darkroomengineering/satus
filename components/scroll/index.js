@@ -1,8 +1,10 @@
 import { useFrame, useIsTouchDevice } from '@studio-freight/hamo'
 import LocomotiveScroll from '@studio-freight/locomotive-scroll'
 import { debounce as _debounce } from 'debounce'
+import { useLayoutEffect } from 'hooks/use-isomorphic-layout-effect'
 import { useStore } from 'lib/store'
-import { useLayoutEffect, useRef } from 'react'
+import { useRouter } from 'next/router'
+import { useRef } from 'react'
 
 export const Scroll = ({
   children,
@@ -16,6 +18,19 @@ export const Scroll = ({
   const setLocomotive = useStore((state) => state.setLocomotive)
 
   const el = useRef()
+
+  const router = useRouter()
+
+  // scroll to hash
+  useLayoutEffect(() => {
+    if (locomotive?.smooth) {
+      const hash = window.location.hash
+
+      if (hash) {
+        locomotive?.scrollTo(hash)
+      }
+    }
+  }, [router, locomotive])
 
   // update locomotive if container height changes
   useLayoutEffect(() => {
@@ -44,7 +59,8 @@ export const Scroll = ({
     const scroll = new LocomotiveScroll({
       el: el.current,
       scrollFromAnywhere: true,
-      smooth: !isTouchDevice && smooth,
+      smooth:
+        !isTouchDevice && smooth && window.location.hash !== '#native-scroll',
       autoRaf: false,
     })
     setLocomotive(scroll)
@@ -54,14 +70,6 @@ export const Scroll = ({
       scroll?.destroy()
     }
   }, [isTouchDevice, smooth])
-
-  // useDebounce(
-  //   () => {
-  //     locomotive?.update()
-  //   },
-  //   debounce,
-  //   [height, debounce, locomotive]
-  // )
 
   const Tag = tag
 

@@ -1,5 +1,5 @@
 import { raf } from '@react-spring/rafz'
-import { useLayoutEffect } from 'react'
+import { useLayoutEffect } from 'hooks/use-isomorphic-layout-effect'
 import _Stats from 'stats.js'
 
 export const Stats = () => {

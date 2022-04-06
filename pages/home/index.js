@@ -58,7 +58,7 @@ export default function Home() {
 
   return (
     <Layout>
-      <div className={s.pageHome}>
+      <section data-scroll-section className={s.home}>
         <Marquee className={s.marquee} repeat={3}>
           <span className={s.item}>marquee stuff that scroll continuously</span>
         </Marquee>
@@ -145,7 +145,7 @@ export default function Home() {
             }}
           ></div>
         </div>
-      </div>
+      </section>
     </Layout>
   )
 }

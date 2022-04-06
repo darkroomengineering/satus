@@ -4,16 +4,20 @@ import { forwardRef } from 'react'
 export const Link = forwardRef(
   (
     {
-      href = '',
+      href = '/',
       onClick = () => {},
       onMouseEnter = () => {},
-      externalIcon = false,
+      onMouseLeave = () => {},
       children,
       className,
       style,
     },
     ref
   ) => {
+    if (typeof href !== 'string') {
+      href = '/'
+    }
+
     const isProtocol = href?.startsWith('mailto:') || href?.startsWith('tel:')
 
     if (isProtocol) {
@@ -33,23 +37,22 @@ export const Link = forwardRef(
 
     const isAnchor = href?.startsWith('#')
     const isExternal = href?.startsWith('http')
-    const sanitizedHref = isAnchor
-      ? `${href}`
-      : href?.[0] !== '/' && !isExternal
-      ? `/${href}`
-      : href
+    if (!isExternal && !href?.startsWith('/')) {
+      href = `/${href}`
+    }
 
     return (
-      <NextLink href={sanitizedHref} passHref={isExternal || isAnchor}>
+      <NextLink href={href} passHref={isExternal || isAnchor}>
         <a
           ref={ref}
           onClick={onClick}
           onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
           {...(isExternal && { target: '_blank', rel: 'noopener noreferrer' })}
           className={className}
           style={style}
         >
-          {children} {externalIcon && isExternal && '↗'}
+          {children}
         </a>
       </NextLink>
     )

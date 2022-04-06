@@ -8,20 +8,15 @@ import s from './layout.module.scss'
 export function Layout({ children }) {
   const isTouchDevice = useIsTouchDevice()
   return (
-    <>
+    <div>
       {isTouchDevice === false && <Cursor />}
       <Header />
-      {typeof window !== undefined ? (
-        <Scroll className={s.main} tag="main" debounce={1000}>
-          {children}
+      <Scroll className={s.main} tag="main" debounce={1000}>
+        {children}
+        <section data-scroll-section>
           <Footer />
-        </Scroll>
-      ) : (
-        <>
-          <main>{children}</main>
-          <Footer />
-        </>
-      )}
-    </>
+        </section>
+      </Scroll>
+    </div>
   )
 }

@@ -1,7 +1,7 @@
 import { useLayoutEffect } from '@studio-freight/hamo'
 import cn from 'clsx'
+import { Link } from 'components/link'
 import { useStore } from 'lib/store'
-import Link from 'next/link'
 import { useRouter } from 'next/router'
 import shallow from 'zustand/shallow'
 import s from './navigation.module.scss'
@@ -27,13 +27,9 @@ export const Navigation = () => {
   }, [])
 
   return (
-    <div className={cn(s.navigation, !navIsOpen && s['navigation--closed'])}>
-      <Link href="/">
-        <a>home</a>
-      </Link>
-      <Link href="/contact">
-        <a>contact</a>
-      </Link>
+    <div className={cn(s.navigation, !navIsOpen && s.closed)}>
+      <Link href="/">home</Link>
+      <Link href="/contact">contact</Link>
     </div>
   )
 }

@@ -5,10 +5,10 @@ import { Header } from 'components/header'
 import { Scroll } from 'components/scroll'
 import s from './layout.module.scss'
 
-export function Layout({ children }) {
+export function Layout({ children, theme = 'light' }) {
   const isTouchDevice = useIsTouchDevice()
   return (
-    <div>
+    <div className={`theme-${theme}`}>
       {isTouchDevice === false && <Cursor />}
       <Header />
       <Scroll className={s.main} tag="main" debounce={1000}>

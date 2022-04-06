@@ -1,8 +1,8 @@
 @import 'styles/_functions';
 
 .footer {
-  color: var(--white);
-  background-color: var(--black);
+  color: var(--theme-primary);
+  background-color: var(--theme-secondary);
   padding: mobile-vw(20px) 0;
 
   @include desktop {

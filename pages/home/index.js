@@ -57,7 +57,7 @@ export default function Home() {
   console.log('update')
 
   return (
-    <Layout>
+    <Layout theme="light">
       <section data-scroll-section className={s.home}>
         <Marquee className={s.marquee} repeat={3}>
           <span className={s.item}>marquee stuff that scroll continuously</span>

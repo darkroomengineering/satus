@@ -26,6 +26,7 @@ export const Stats = () => {
     return () => {
       raf.cancel(onStart)
       raf.cancel(onFinish)
+      stats.dom.remove()
     }
   }, [])
 

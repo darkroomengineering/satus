@@ -4,7 +4,10 @@ import Document, { Head, Html, Main, NextScript } from 'next/document'
 class _Document extends Document {
   render() {
     return (
-      <Html lang="en">
+      <Html
+        lang="en"
+        className={process.env.NODE_ENV === 'development' && 'dev'}
+      >
         <Head>
           <meta charSet="UTF-8" />
           {/* <link

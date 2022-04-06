@@ -37,7 +37,7 @@ export function MarqueeScroll({ children, className, repeat = 2 }) {
     >
       <div className={s.marquee}>
         {new Array(repeat).fill(children).map((_, i) => (
-          <div key={i} className={s.marquee__inner}>
+          <div key={i} className={s.inner}>
             {children}
           </div>
         ))}

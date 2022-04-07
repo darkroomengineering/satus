@@ -119,10 +119,8 @@ export default function Pdp({ product, relatedProducts }) {
       <section data-scroll-section className={s['related-products']}>
         <Slider
           emblaApi={{
-            skipSnaps: false,
-            slidesToScroll: 1,
-            loop: true,
-            startIndex: 1,
+            containScroll: 'keepSnaps',
+            startIndex: 0,
           }}
         >
           {({ currentIndex, emblaRef, SliderNavigation }) => {
@@ -131,7 +129,7 @@ export default function Pdp({ product, relatedProducts }) {
                 <div className={s['slider-header']}>
                   <p className="h5">More Products</p>
                   <SliderNavigation counterColor={'var(--theme-contrast'}>
-                    {currentIndex}/{relatedProducts.length - 1}
+                    {currentIndex + 1}/{relatedProducts.length}
                   </SliderNavigation>
                 </div>
                 <Slider.Slides ref={emblaRef} className={s.slider}>

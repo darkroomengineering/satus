@@ -22,6 +22,7 @@ specifiers:
   lint-staged: ^12.3.7
   next: 12.1.4
   next-compose-plugins: ^2.2.1
+  next-seo: ^5.4.0
   next-sitemap: ^2.5.19
   next-transpile-modules: ^9.0.0
   prettier: ^2.6.1
@@ -51,6 +52,7 @@ dependencies:
   husky: 7.0.4
   lint-staged: 12.3.7
   next: 12.1.4_1d117d1b6790c5e23a772164b3a3d4fc
+  next-seo: 5.4.0_f3299b186fe279e9e6c95022815bb28f
   next-sitemap: 2.5.19_next@12.1.4
   react: 17.0.2
   react-dom: 17.0.2_react@17.0.2
@@ -4923,6 +4925,18 @@ packages:
   /next-compose-plugins/2.2.1:
     resolution: {integrity: sha512-OjJ+fV15FXO2uQXQagLD4C0abYErBjyjE0I0FHpOEIB8upw0hg1ldFP6cqHTJBH1cZqy96OeR3u1dJ+Ez2D4Bg==}
     dev: true
+
+  /next-seo/5.4.0_f3299b186fe279e9e6c95022815bb28f:
+    resolution: {integrity: sha512-R9DhajPwJnR/lsF2hZ8cN8uqr5CVITsRrCG1AF5+ufcaybKYOvnH8sH9MaH4/hpkps3PQ9H71S7J7SPYixAYzQ==}
+    peerDependencies:
+      next: ^8.1.1-canary.54 || >=9.0.0
+      react: '>=16.0.0'
+      react-dom: '>=16.0.0'
+    dependencies:
+      next: 12.1.4_1d117d1b6790c5e23a772164b3a3d4fc
+      react: 17.0.2
+      react-dom: 17.0.2_react@17.0.2
+    dev: false
 
   /next-sitemap/2.5.19_next@12.1.4:
     resolution: {integrity: sha512-skcjmCO9ZEDxUmfaSz9FGWt/TRhXvfwvJzuMj8NRCd46vhMNzsLu+2lq2T4KJp5kNYEp3ISajtVNxJ+iegcDDg==}

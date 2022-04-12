@@ -11,7 +11,7 @@
           {
             "name": "react",
             "importNames": ["useLayoutEffect"],
-            "message": "Please import from use-isomorphic-layout-effect instead."
+            "message": "Please import from @studio-freight/hamo instead."
           }
         ]
       }

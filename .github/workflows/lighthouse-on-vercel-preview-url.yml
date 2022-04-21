@@ -28,6 +28,8 @@ jobs:
         with:
           vercel_team_id: 'studio-freight'
           vercel_project_id: 'prj_bNXWDgXlHyhE6AVp6QURAPnZV4aw'
+      - name: Get URL
+        run: echo "https://${{ steps.vercel_preview_url.outputs.preview_url }}"
       - uses: actions/checkout@v3.0.2
       - name: Audit preview URL with Lighthouse
         id: lighthouse_audit

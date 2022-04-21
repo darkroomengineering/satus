@@ -36,7 +36,7 @@ jobs:
         uses: treosh/lighthouse-ci-action@v9
         with:
           urls: |
-            ${{ steps.vercel_preview_url.outputs.vercel_preview_url }}
+            "https://${{ steps.vercel_preview_url.outputs.preview_url }}"
           uploadArtifacts: true
           temporaryPublicStorage: true
       # - name: Format lighthouse score

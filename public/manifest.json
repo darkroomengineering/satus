@@ -1,0 +1,9 @@
+{
+  "name": "Satus",
+  "short_name": "satus",
+  "theme_color": "#2f80ed",
+  "background_color": "#ffffff",
+  "display": "browser",
+  "scope": "/",
+  "start_url": "/"
+}

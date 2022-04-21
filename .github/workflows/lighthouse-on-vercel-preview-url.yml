@@ -23,8 +23,8 @@ jobs:
       - name: Capture Vercel preview URL
         id: vercel_preview_url
         uses: zentered/vercel-preview-url@v1.0.6
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        # env:
+        #   VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         with:
           vercel_team_id: 'studio-freight'
           vercel_project_id: 'satus'

@@ -21,9 +21,12 @@ jobs:
             Running Lighthouse audit...
       - name: Capture Vercel preview URL
         id: vercel_preview_url
-        uses: aaron-binary/vercel-preview-url-action@v0.0.3
+        uses: zentered/vercel-preview-url@v1.0.6
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          vercel_team_id: 'studio-freight'
+          vercel_project_id: 'satus'
       - uses: actions/checkout@v2
       - name: Audit preview URL with Lighthouse
         id: lighthouse_audit

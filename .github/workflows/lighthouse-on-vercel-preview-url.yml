@@ -19,7 +19,7 @@ jobs:
       #     header: lighthouse
       #     message: |
       #       Running Lighthouse audit...
-      - run: sleep 60
+      - run: sleep 40
       - name: Capture Vercel preview URL
         id: vercel_preview_url
         uses: zentered/vercel-preview-url@v1.0.6
@@ -27,7 +27,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         with:
           vercel_team_id: 'studio-freight'
-          vercel_project_id: 'satus'
+          vercel_project_id: 'prj_bNXWDgXlHyhE6AVp6QURAPnZV4aw'
       - uses: actions/checkout@v3.0.2
       - name: Audit preview URL with Lighthouse
         id: lighthouse_audit

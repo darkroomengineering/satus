@@ -31,7 +31,7 @@ jobs:
           temporaryPublicStorage: true
       - name: Format lighthouse score
         id: format_lighthouse_score
-        uses: actions/github-script@v3
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |

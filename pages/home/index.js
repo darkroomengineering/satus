@@ -5,6 +5,7 @@ import { Marquee } from 'components/marquee'
 import { MarqueeScroll } from 'components/marquee-scroll'
 import * as Select from 'components/select'
 import { Slider } from 'components/slider'
+import { WebGLDemo } from 'components/webgl-demo'
 import { useScroll } from 'hooks/use-scroll'
 import { Layout } from 'layouts/default'
 import { useStore } from 'lib/store'
@@ -58,6 +59,9 @@ export default function Home() {
 
   return (
     <Layout theme="light">
+      <section data-scroll-section className={s.hero}>
+        <WebGLDemo />
+      </section>
       <section data-scroll-section className={s.home}>
         <Marquee className={s.marquee} repeat={3}>
           <span className={s.item}>marquee stuff that scroll continuously</span>

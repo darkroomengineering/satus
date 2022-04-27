@@ -1,5 +1,9 @@
 @import 'styles/_functions';
 
+.hero {
+  height: 100vh;
+}
+
 .accordion {
   overflow: hidden;
   &:first-child {

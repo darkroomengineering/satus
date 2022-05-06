@@ -52,15 +52,36 @@
   }
 }
 
-.pageHome {
+.home {
   // height: 300vh;
 
-  &__marquee {
+  .marquee {
     font-size: 6vw;
+
+    .item {
+      margin-right: mobile-vw(24px);
+
+      @include desktop {
+        margin-right: desktop-vw(24px);
+      }
+    }
+  }
+
+  .kinesis {
+    > * {
+      width: 250px;
+      height: 250px;
+      background-color: red;
+      margin: 0 auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
   }
 
   .slider {
     overflow: hidden;
+    margin-bottom: 250px;
   }
 
   .slider-header {

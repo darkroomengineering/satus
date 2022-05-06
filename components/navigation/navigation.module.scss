@@ -11,7 +11,7 @@
   flex-direction: column;
   justify-content: center;
 
-  &--closed {
+  &.closed {
     pointer-events: none;
     height: 0;
 

@@ -1,17 +1,16 @@
 .marquee {
-  $self: &;
-
   display: flex;
   overflow: hidden;
+  will-change: transform;
 
-  &__inner {
+  .inner {
     display: flex;
     white-space: nowrap;
     animation: marquee var(--duration) linear infinite;
+  }
 
-    #{$self}--inverted & {
-      animation: marquee-inverted var(--duration) linear infinite;
-    }
+  &.inverted {
+    animation: marquee-inverted var(--duration) linear infinite;
   }
 
   @keyframes marquee {

@@ -1,7 +1,7 @@
 import cn from 'clsx'
+import { Link } from 'components/link'
 import { Navigation } from 'components/navigation'
 import { useStore } from 'lib/store'
-import Link from 'next/link'
 import shallow from 'zustand/shallow'
 import s from './header.module.scss'
 
@@ -16,7 +16,7 @@ export const Header = () => {
   return (
     <header className={s.header}>
       <Navigation />
-      <div className={cn('layout-block', s.header__head)}>
+      <div className={cn('layout-block', s.head)}>
         <button
           onClick={() => {
             setNavIsOpen(!navIsOpen)
@@ -26,13 +26,7 @@ export const Header = () => {
         </button>
         <h1>{data.title}</h1>
         <div>
-          <Link href="/">
-            <a>home</a>
-          </Link>
-          /
-          <Link href="/contact">
-            <a>contact</a>
-          </Link>
+          <Link href="/">home</Link>/<Link href="/contact">contact</Link>
         </div>
       </div>
     </header>

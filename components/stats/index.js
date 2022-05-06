@@ -1,5 +1,5 @@
 import { raf } from '@react-spring/rafz'
-import { useLayoutEffect } from 'react'
+import { useLayoutEffect } from '@studio-freight/hamo'
 import _Stats from 'stats.js'
 
 export const Stats = () => {
@@ -26,6 +26,7 @@ export const Stats = () => {
     return () => {
       raf.cancel(onStart)
       raf.cancel(onFinish)
+      stats.dom.remove()
     }
   }, [])
 

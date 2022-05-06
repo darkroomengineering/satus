@@ -1,10 +1,11 @@
 import * as Accordion from '@radix-ui/react-accordion'
-import { useFrame, useRect } from '@studio-freight/hamo'
+import { useRect } from '@studio-freight/hamo'
+import { Kinesis } from 'components/kinesis'
 import { Marquee } from 'components/marquee'
+import { MarqueeScroll } from 'components/marquee-scroll'
 import * as Select from 'components/select'
 import { Slider } from 'components/slider'
-import { CmsMethods, fetchCmsQuery } from 'contentful/api'
-import { homeQuery } from 'contentful/queries/homepage.graphql'
+import { useScroll } from 'hooks/use-scroll'
 import { Layout } from 'layouts/default'
 import { useStore } from 'lib/store'
 import { useRef } from 'react'
@@ -38,8 +39,8 @@ export default function Home({ homePageData }) {
   const [ref, compute] = useRect()
   const locomotive = useStore((state) => state.locomotive)
 
-  useFrame(() => {
-    const scrollY = locomotive?.scroll.instance.scroll.y || 0
+  useScroll(({ scroll }) => {
+    const scrollY = scroll.y
 
     const rect = compute(scrollY)
 
@@ -56,15 +57,14 @@ export default function Home({ homePageData }) {
   console.log('update')
 
   return (
-    <Layout>
-      <div className={s.pageHome}>
-        <h2>{homePageData.title}</h2>
-        <Marquee className={s.pageHome__marquee} offset={50} repeat={3}>
-          marquee stuff that scroll continuously
+    <Layout theme="light">
+      <section data-scroll-section className={s.home}>
+        <Marquee className={s.marquee} repeat={3}>
+          <span className={s.item}>marquee stuff that scroll continuously</span>
         </Marquee>
-        <Marquee className={s.pageHome__marquee} inverted repeat={3}>
-          HOLA JORDAN
-        </Marquee>
+        <MarqueeScroll className={s.marquee} inverted repeat={4}>
+          <span className={s.item}>HOLA JORDAN</span>
+        </MarqueeScroll>
         <Accordion.Root type="single" collapsible>
           {Array(2)
             .fill({ header: 'this is header', body: 'this is body' })
@@ -86,12 +86,12 @@ export default function Home({ homePageData }) {
         <Slider emblaApi={{ align: 'center', skipSnaps: false }}>
           {({ scrollPrev, scrollNext, emblaRef }) => {
             return (
-              <>
+              <div className={s.slider}>
                 <div className={s['slider-header']}>
                   <p>Slider Hader</p>
                   <p>Slider Title</p>
                 </div>
-                <Slider.Slides ref={emblaRef} className={s.slider}>
+                <Slider.Slides ref={emblaRef}>
                   {devs.map((item, idx) => (
                     <div className={s['slide']} key={`slide-item-${idx}`}>
                       <div className={s['slide-inner']}>
@@ -112,10 +112,17 @@ export default function Home({ homePageData }) {
                 <button onClick={scrollPrev} className={s['slide-buttons']}>
                   next
                 </button>
-              </>
+              </div>
             )
           }}
         </Slider>
+
+        <div>
+          <Kinesis className={s.kinesis}>
+            <div className={s.item}>kinesis</div>
+          </Kinesis>
+        </div>
+
         <div style={{ height: '100vh', padding: '50vw 0' }}>
           <Select.Root defaultValue="2">
             <Select.Item value="1">Item 1</Select.Item>
@@ -138,7 +145,7 @@ export default function Home({ homePageData }) {
             }}
           ></div>
         </div>
-      </div>
+      </section>
     </Layout>
   )
 }

@@ -6,6 +6,7 @@ import { GA_ID, GTM_ID } from 'lib/analytics'
 import { useStore } from 'lib/store'
 import dynamic from 'next/dynamic'
 import Script from 'next/script'
+import { useState } from 'react'
 import 'resize-observer-polyfill'
 import 'styles/global.scss'
 import useDarkMode from 'use-dark-mode'
@@ -27,8 +28,14 @@ function MyApp({ Component, pageProps, headerData, footerData }) {
 
   const setHeaderData = useStore((state) => state.setHeaderData)
   const setFooterData = useStore((state) => state.setFooterData)
-  setHeaderData(headerData)
-  setFooterData(footerData)
+
+  const [isFetched, setIsFetched] = useState(false)
+
+  if (!isFetched) {
+    setHeaderData(headerData)
+    setFooterData(footerData)
+    setIsFetched(true)
+  }
 
   const debug = useDebug()
 
@@ -77,17 +84,21 @@ function MyApp({ Component, pageProps, headerData, footerData }) {
   )
 }
 
-MyApp.getInitialProps = async (appContext) => {
-  const fetchHeader = await fetchCmsQuery(headerQuery, {
-    pageId: '1undiznMddxARgAUBrTbIA',
-  })
-  const fetchFooter = await fetchCmsQuery(footerQuery, {
-    pageId: '2vt71bLcJnbAeuLTdos1LU',
-  })
+MyApp.getInitialProps = async ({ ctx, preview = false }) => {
+  const [fetchHeader, fetchFooter] = await Promise.all([
+    fetchCmsQuery(headerQuery, {
+      pageId: '1undiznMddxARgAUBrTbIA',
+      preview,
+    }),
+    fetchCmsQuery(footerQuery, {
+      pageId: '2vt71bLcJnbAeuLTdos1LU',
+      preview,
+    }),
+  ])
 
-  const headerData = fetchHeader.header
-  const footerData = fetchFooter.footer
-  console.log({ headerData }, { footerData })
+  const headerData = fetchHeader?.header
+  const footerData = fetchFooter?.footer
+
   return { headerData, footerData }
 }
 

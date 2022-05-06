@@ -46,6 +46,19 @@ class CmsMethods {
     return link
   }
 
+  ctaLenght(item) {
+    const cta = item.length > 0 ? {} : false
+
+    if (item.length >= 2) {
+      cta.primary = this.toLink(item[0])
+      cta.secondary = this.toLink(item[1])
+    } else {
+      cta.primary = this.toLink(item[0])
+    }
+
+    return cta
+  }
+
   imageLighter(input, ...quality) {
     const imgQuality = 0 < quality[0] && quality[0] <= 100 ? quality[0] : 95
     const image = input?.url || null

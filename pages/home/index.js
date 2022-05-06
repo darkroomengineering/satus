@@ -40,7 +40,7 @@ export default function Home() {
   const locomotive = useStore((state) => state.locomotive)
 
   useScroll(({ scroll }) => {
-    const scrollY = scroll.y
+    const scrollY = scroll
 
     const rect = compute(scrollY)
 

@@ -18,6 +18,7 @@ specifiers:
   eslint: 8.13.0
   eslint-config-next: 12.1.4
   eslint-config-prettier: ^8.5.0
+  events: ^3.3.0
   husky: ^7.0.4
   lint-staged: ^12.3.7
   next: 12.1.4
@@ -35,6 +36,7 @@ specifiers:
   stats.js: ^0.17.0
   use-dark-mode: ^2.3.1
   uuid: ^8.3.2
+  virtual-scroll: ^2.2.1
   zustand: ^3.7.2
 
 dependencies:
@@ -49,6 +51,7 @@ dependencies:
   debounce: 1.2.1
   embla-carousel-autoplay: 6.2.0
   embla-carousel-react: 6.2.0_react@18.0.0
+  events: 3.3.0
   husky: 7.0.4
   lint-staged: 12.3.7
   next: 12.1.4_20f5adf4273c744e534d6f852e08cd1e
@@ -62,6 +65,7 @@ dependencies:
   stats.js: 0.17.0
   use-dark-mode: 2.3.1_react@18.0.0
   uuid: 8.3.2
+  virtual-scroll: 2.2.1
   zustand: 3.7.2_react@18.0.0
 
 devDependencies:
@@ -4203,6 +4207,11 @@ packages:
   /esutils/2.0.3:
     resolution: {integrity: sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==}
     engines: {node: '>=0.10.0'}
+
+  /events/3.3.0:
+    resolution: {integrity: sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==}
+    engines: {node: '>=0.8.x'}
+    dev: false
 
   /execa/5.1.1:
     resolution: {integrity: sha512-8uSpZZocAZRBAPIEINJj3Lo9HyGitllczc27Eh5YYojjMFMn8yHMDMaUHE2Jqfq05D/wucwI4JGURyXt1vchyg==}

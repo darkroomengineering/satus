@@ -3,11 +3,11 @@ import {
   useIsTouchDevice,
   useLayoutEffect,
 } from '@studio-freight/hamo'
+import Lenis from '@studio-freight/lenis/src'
 import { Cursor } from 'components/cursor'
 import { CustomHead } from 'components/custom-head'
 import { Footer } from 'components/footer'
 import { Header } from 'components/header'
-import Lenis from 'lib/lenis'
 import { useStore } from 'lib/store'
 
 export function Layout({

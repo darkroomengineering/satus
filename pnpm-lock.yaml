@@ -7,7 +7,7 @@ specifiers:
   '@react-spring/rafz': ^9.4.4
   '@react-spring/web': ^9.4.4
   '@studio-freight/hamo': ^0.1.11
-  '@studio-freight/locomotive-scroll': ^0.0.8
+  '@studio-freight/lenis': ^0.0.3
   '@svgr/webpack': ^6.2.1
   clsx: ^1.1.1
   critters: ^0.0.16
@@ -45,7 +45,7 @@ dependencies:
   '@react-spring/rafz': 9.4.4
   '@react-spring/web': 9.4.4_react-dom@18.0.0+react@18.0.0
   '@studio-freight/hamo': 0.1.11_react-dom@18.0.0+react@18.0.0
-  '@studio-freight/locomotive-scroll': 0.0.8
+  '@studio-freight/lenis': 0.0.3
   clsx: 1.1.1
   cross-env: 7.0.3
   debounce: 1.2.1
@@ -2735,11 +2735,11 @@ packages:
       - supports-color
     dev: false
 
-  /@studio-freight/locomotive-scroll/0.0.8:
-    resolution: {integrity: sha512-Bzz6r40VBfBu4lCg/aTKRz3viZK7R9pelIySnBAThZ0nHldTrvqorFlv03xciCLtdg6OUHrkdXZl4VGCt3EtFg==}
+  /@studio-freight/lenis/0.0.3:
+    resolution: {integrity: sha512-i/myFJxtiCQ0tWa2ymDOZ7vl6OclAo9bVjwmXFsKqIIctOjZw1iCFekowWQJ4Jf83UO30bbIuunY17l+U8ldag==}
     dependencies:
-      bezier-easing: 2.1.0
-      smoothscroll-polyfill: 0.4.4
+      events: 3.3.0
+      sass: 1.50.0
       virtual-scroll: 2.2.1
     dev: false
 
@@ -3338,10 +3338,6 @@ packages:
   /balanced-match/1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
     dev: true
-
-  /bezier-easing/2.1.0:
-    resolution: {integrity: sha1-wE3+i5JtbsrKGBPWn/F5t8ICXYY=}
-    dev: false
 
   /binary-extensions/2.2.0:
     resolution: {integrity: sha512-jDctJ/IVQbZoJykoeHbhXpOlNBqGNcwXJKJog42E5HDPUwQTSdjCHdihjj0DlnheQ7blbT6dHOafNAiS8ooQKA==}
@@ -5618,10 +5614,6 @@ packages:
     dependencies:
       ansi-styles: 6.1.0
       is-fullwidth-code-point: 4.0.0
-    dev: false
-
-  /smoothscroll-polyfill/0.4.4:
-    resolution: {integrity: sha512-TK5ZA9U5RqCwMpfoMq/l1mrH0JAR7y7KRvOBx0n2869aLxch+gT9GhN3yUfjiw+d/DiF1mKo14+hd62JyMmoBg==}
     dev: false
 
   /source-map-js/1.0.2:

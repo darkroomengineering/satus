@@ -7,7 +7,7 @@ specifiers:
   '@react-spring/rafz': ^9.4.4
   '@react-spring/web': ^9.4.4
   '@studio-freight/hamo': ^0.1.11
-  '@studio-freight/lenis': ^0.0.3
+  '@studio-freight/lenis': ^0.0.4
   '@svgr/webpack': ^6.2.1
   clsx: ^1.1.1
   critters: ^0.0.16
@@ -45,7 +45,7 @@ dependencies:
   '@react-spring/rafz': 9.4.4
   '@react-spring/web': 9.4.4_react-dom@18.0.0+react@18.0.0
   '@studio-freight/hamo': 0.1.11_react-dom@18.0.0+react@18.0.0
-  '@studio-freight/lenis': 0.0.3
+  '@studio-freight/lenis': 0.0.4
   clsx: 1.1.1
   cross-env: 7.0.3
   debounce: 1.2.1
@@ -2735,11 +2735,12 @@ packages:
       - supports-color
     dev: false
 
-  /@studio-freight/lenis/0.0.3:
-    resolution: {integrity: sha512-i/myFJxtiCQ0tWa2ymDOZ7vl6OclAo9bVjwmXFsKqIIctOjZw1iCFekowWQJ4Jf83UO30bbIuunY17l+U8ldag==}
+  /@studio-freight/lenis/0.0.4:
+    resolution: {integrity: sha512-m/5Ax1/9rZnJrg6jYmjw/Pca0wm81Xq+2jlZs4BV3u/bOyr3qGIfy0j2FcWs7Ii2Ylm4XlweL7Tcro6CJ9zlJQ==}
     dependencies:
-      events: 3.3.0
+      path: 0.12.7
       sass: 1.50.0
+      tiny-emitter: 2.1.0
       virtual-scroll: 2.2.1
     dev: false
 
@@ -4500,6 +4501,10 @@ packages:
       wrappy: 1.0.2
     dev: true
 
+  /inherits/2.0.3:
+    resolution: {integrity: sha1-Yzwsg+PaQqUC9SRmAiSA9CCCYd4=}
+    dev: false
+
   /inherits/2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
     dev: true
@@ -5177,6 +5182,13 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
+  /path/0.12.7:
+    resolution: {integrity: sha1-1NwqUGxM4hl+tIHr/NWzbAFAsQ8=}
+    dependencies:
+      process: 0.11.10
+      util: 0.10.4
+    dev: false
+
   /picocolors/1.0.0:
     resolution: {integrity: sha512-1fygroTLlHu66zi26VoTDv8yRgm0Fccecssto+MhsZ0D/DGW2sm8E8AjW7NU5VVTRt5GxbeZ5qBuJr+HyLYkjQ==}
 
@@ -5250,6 +5262,11 @@ packages:
       ansi-regex: 3.0.1
       ansi-styles: 3.2.1
     dev: true
+
+  /process/0.11.10:
+    resolution: {integrity: sha1-czIwDoQBYb2j5podHZGn1LwW8YI=}
+    engines: {node: '>= 0.6.0'}
+    dev: false
 
   /progress/2.0.3:
     resolution: {integrity: sha512-7PiHtLll5LdnKIMw100I+8xJXR5gW2QwWYkT6iJva0bXitZKa/XMrSbdmg3r2Xnaidz9Qumd0VPaMrZlF9V9sA==}
@@ -6012,6 +6029,12 @@ packages:
       detect-node-es: 1.1.0
       react: 18.0.0
       tslib: 1.14.1
+    dev: false
+
+  /util/0.10.4:
+    resolution: {integrity: sha512-0Pm9hTQ3se5ll1XihRic3FDIku70C+iHUdT/W926rSgHV5QgXsYbKZN8MSC3tJtSkhuROzvsQjAaFENRXr+19A==}
+    dependencies:
+      inherits: 2.0.3
     dev: false
 
   /uuid/8.3.2:

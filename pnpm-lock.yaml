@@ -22,6 +22,7 @@ specifiers:
   eslint: 8.15.0
   eslint-config-next: 12.1.6
   eslint-config-prettier: ^8.5.0
+  gsap: ^3.10.4
   husky: ^8.0.1
   lint-staged: ^12.4.1
   next: 12.1.6
@@ -55,6 +56,7 @@ dependencies:
   debounce: 1.2.1
   embla-carousel-autoplay: 6.2.0_embla-carousel@6.2.0
   embla-carousel-react: 6.2.0_react@18.1.0
+  gsap: 3.10.4
   husky: 8.0.1
   lint-staged: 12.4.1
   next: 12.1.6_072244da9c0b8fe90bb94b235bad5813
@@ -3475,6 +3477,10 @@ packages:
   /graceful-fs/4.2.10:
     resolution: {integrity: sha512-9ByhssR2fPVsNZj478qUUbKfmL0+t5BDVyjShtyZZLiK7ZDAArFFfopyOTj0M05wE2tJPisA4iTnnXl2YoPvOA==}
     dev: true
+
+  /gsap/3.10.4:
+    resolution: {integrity: sha512-6QatdkKxXCMfvCW4rM++0RqyLQAzFX5nwl3yHS0XPgkZBkiSEY3VZVbMltrdtsbER/xZonLtyHt684wRp4erlQ==}
+    dev: false
 
   /gzip-size/6.0.0:
     resolution: {integrity: sha512-ax7ZYomf6jqPTQ4+XCpUGyXKHk5WweS+e05MBO4/y3WJ5RkmPXNKvX+bx1behVILVwr6JSQvZAku021CHPXG3Q==}

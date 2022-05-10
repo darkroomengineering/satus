@@ -1,11 +1,16 @@
 import { useDebug, useIsTouchDevice } from '@studio-freight/hamo'
 import { RealViewport } from 'components/real-viewport'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/dist/ScrollTrigger'
 import { GA_ID, GTM_ID } from 'lib/analytics'
 import dynamic from 'next/dynamic'
 import Script from 'next/script'
+import { useEffect } from 'react'
 import 'resize-observer-polyfill'
 import 'styles/global.scss'
 import useDarkMode from 'use-dark-mode'
+
+gsap.registerPlugin(ScrollTrigger)
 
 const Stats = dynamic(
   () => import('components/stats').then(({ Stats }) => Stats),
@@ -23,6 +28,10 @@ function MyApp({ Component, pageProps }) {
   const darkMode = useDarkMode()
 
   const debug = useDebug()
+
+  useEffect(() => {
+    ScrollTrigger.defaults({ markers: debug })
+  }, [debug])
 
   return (
     <>

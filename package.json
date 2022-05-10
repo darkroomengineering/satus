@@ -25,6 +25,7 @@
     "debounce": "^1.2.1",
     "embla-carousel-autoplay": "^6.2.0",
     "embla-carousel-react": "^6.2.0",
+    "gsap": "^3.10.4",
     "husky": "^8.0.1",
     "lint-staged": "^12.4.1",
     "next": "12.1.6",

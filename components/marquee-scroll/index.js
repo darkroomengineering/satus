@@ -15,8 +15,7 @@ export function MarqueeScroll({ children, className, repeat = 2 }) {
   const [ref, compute] = useRect()
 
   useScroll(({ scroll }) => {
-    if (!locomotive.smooth) return
-    const scrollY = scroll.y
+    const scrollY = scroll
 
     const progress = -truncate((scrollY * 0.1) % 100, 3)
 

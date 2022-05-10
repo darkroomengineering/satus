@@ -1,10 +1,14 @@
-import { useIsTouchDevice } from '@studio-freight/hamo'
+import {
+  useFrame,
+  useIsTouchDevice,
+  useLayoutEffect,
+} from '@studio-freight/hamo'
+import Lenis from '@studio-freight/lenis/src'
 import { Cursor } from 'components/cursor'
 import { CustomHead } from 'components/custom-head'
 import { Footer } from 'components/footer'
 import { Header } from 'components/header'
-import { Scroll } from 'components/scroll'
-import s from './layout.module.scss'
+import { useStore } from 'lib/store'
 
 export function Layout({
   seo = { title: '', description: '', image: '', keywords: '' },
@@ -12,18 +16,33 @@ export function Layout({
   theme = 'light',
 }) {
   const isTouchDevice = useIsTouchDevice()
+
+  const setLenis = useStore(({ setLenis }) => setLenis)
+  const lenis = useStore(({ lenis }) => lenis)
+
+  useLayoutEffect(() => {
+    if (isTouchDevice === undefined) return
+    const lenis = new Lenis({ lerp: 0.1, smooth: !isTouchDevice })
+    setLenis(lenis)
+
+    return () => {
+      lenis.destroy()
+      setLenis(null)
+    }
+  }, [isTouchDevice])
+
+  useFrame(() => {
+    lenis?.raf()
+  }, [])
+
   return (
     <>
       <CustomHead {...seo} />
       <div className={`theme-${theme}`}>
         {isTouchDevice === false && <Cursor />}
         <Header />
-        <Scroll className={s.main} tag="main" debounce={1000}>
-          {children}
-          <section data-scroll-section>
-            <Footer />
-          </section>
-        </Scroll>
+        {children}
+        <Footer />
       </div>
     </>
   )

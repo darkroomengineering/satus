@@ -2,13 +2,15 @@ import { useStore } from 'lib/store'
 import { useEffect } from 'react'
 
 export function useScroll(callback) {
-  const locomotive = useStore((state) => state.locomotive)
+  const lenis = useStore(({ lenis }) => lenis)
 
   useEffect(() => {
-    locomotive?.on('scroll', callback)
+    if (!lenis) return
+    lenis.on('scroll', callback)
+    callback({ scroll: lenis.scroll })
 
     return () => {
-      locomotive?.off('scroll', callback)
+      lenis.off('scroll', callback)
     }
-  }, [locomotive, callback])
+  }, [lenis, callback])
 }

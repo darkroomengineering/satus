@@ -4,11 +4,13 @@ import {
   useLayoutEffect,
 } from '@studio-freight/hamo'
 import Lenis from '@studio-freight/lenis/src'
+import cn from 'clsx'
 import { Cursor } from 'components/cursor'
 import { CustomHead } from 'components/custom-head'
 import { Footer } from 'components/footer'
 import { Header } from 'components/header'
 import { useStore } from 'lib/store'
+import s from './layout.module.scss'
 
 export function Layout({
   seo = { title: '', description: '', image: '', keywords: '' },
@@ -38,10 +40,10 @@ export function Layout({
   return (
     <>
       <CustomHead {...seo} />
-      <div className={`theme-${theme}`}>
+      <div className={cn(`theme-${theme}`, s.layout)}>
         {isTouchDevice === false && <Cursor />}
         <Header />
-        {children}
+        <main className={s.main}>{children}</main>
         <Footer />
       </div>
     </>

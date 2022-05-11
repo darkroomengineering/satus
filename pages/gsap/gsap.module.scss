@@ -4,6 +4,9 @@
     width: 250px;
     background-color: red;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   :global(.line) {

@@ -7,44 +7,22 @@ import { useRef } from 'react'
 import s from './gsap.module.scss'
 
 export default function Page() {
-  const line1 = useRef()
-  const line2 = useRef()
-  const orange = useRef()
-  const purpleContainer = useRef()
-  const purple = useRef()
-
-  // const squareContainer = useRef()
-  // const square = useRef()
+  const line = useRef()
 
   useLayoutEffect(() => {
-    // const parallaxTimeline = gsap.timeline({
-    //   scrollTrigger: {
-    //     id: 'parallax',
-    //     trigger: squareContainer.current,
-    //     scrub: true,
-    //     start: 'top bottom',
-    //     end: 'bottom top',
-    //     onUpdate: (e) => {
-    //       gsap.set(square.current, {
-    //         y: -mapRange(0, 1, e.progress, -100, 100),
-    //       })
-    //     },
-    //   },
-    // })
-
     // --- RED PANEL ---
     const lineTimeline = gsap
       .timeline({
         scrollTrigger: {
           id: 'line',
-          trigger: line1.current,
+          trigger: line.current,
           scrub: true,
           start: 'top bottom',
           end: 'bottom top',
         },
       })
       .fromTo(
-        line1.current,
+        line.current,
         {
           scaleX: 0,
           transformOrigin: 'left center',
@@ -55,38 +33,8 @@ export default function Page() {
         }
       )
 
-    // // --- ORANGE PANEL ---
-    // gsap.from(line2.current, {
-    //   scrollTrigger: {
-    //     trigger: orange.current,
-    //     scrub: true,
-    //     pin: true,
-    //     start: 'top top',
-    //     end: '+=100%',
-    //   },
-    //   scaleX: 0,
-    //   transformOrigin: 'left center',
-    //   ease: 'none',
-    // })
-
-    // --- PURPLE/GREEN PANEL ---
-    // const purpleTimeline = gsap.timeline({
-    //   scrollTrigger: {
-    //     id: 'sticky',
-    //     pinSpacer: purpleContainer.current, // specify pinSpacer to not change the html
-    //     trigger: purple.current,
-    //     scrub: true,
-    //     pin: true,
-    //     start: 'top top',
-    //     end: '+=100%',
-    //   },
-    // })
-    console.log('timeline')
-
     return () => {
-      // parallaxTimeline.kill()
       lineTimeline.kill()
-      // purpleTimeline.kill()
     }
   }, [])
 
@@ -108,25 +56,16 @@ export default function Page() {
 
         <section className="panel red">
           <p>
-            <span className="line line-1" ref={line1}></span>This line's
+            <span className="line line-1" ref={line}></span>This line's
             animation will begin when it enters the viewport and finish when its
             top edge hits the top of the viewport, staying perfectly in sync
             with the scrollbar because it has <code>scrub:&nbsp;true</code>
           </p>
         </section>
 
-        <section className="panel orange" ref={orange}>
-          <p>
-            <span className="line line-2" ref={line2}></span>This orange panel
-            gets pinned when its top edge hits the top of the viewport, then the
-            line's animation is linked with the scroll position until it has
-            traveled 100% of the viewport's height (<code>end: "+=100%"</code>),
-            then the orange panel is unpinned and normal scrolling resumes.
-            Padding is added automatically to push the rest of the content down
-            so that it catches up with the scroll when it unpins.
-          </p>
+        <section className="panel orange">
           <Parallax speed={1}>
-            <div className="square"></div>
+            <div className="square">parallax</div>
           </Parallax>
         </section>
 

@@ -1,4 +1,6 @@
 import { useLayoutEffect } from '@studio-freight/hamo'
+import { Parallax } from 'components/parallax'
+import { Sticky } from 'components/sticky'
 import { gsap } from 'gsap'
 import { Layout } from 'layouts/default'
 import { useRef } from 'react'
@@ -11,7 +13,25 @@ export default function Page() {
   const purpleContainer = useRef()
   const purple = useRef()
 
+  // const squareContainer = useRef()
+  // const square = useRef()
+
   useLayoutEffect(() => {
+    // const parallaxTimeline = gsap.timeline({
+    //   scrollTrigger: {
+    //     id: 'parallax',
+    //     trigger: squareContainer.current,
+    //     scrub: true,
+    //     start: 'top bottom',
+    //     end: 'bottom top',
+    //     onUpdate: (e) => {
+    //       gsap.set(square.current, {
+    //         y: -mapRange(0, 1, e.progress, -100, 100),
+    //       })
+    //     },
+    //   },
+    // })
+
     // --- RED PANEL ---
     const lineTimeline = gsap
       .timeline({
@@ -21,9 +41,6 @@ export default function Page() {
           scrub: true,
           start: 'top bottom',
           end: 'bottom top',
-          onUpdate: (e) => {
-            console.log(e.progress)
-          },
         },
       })
       .fromTo(
@@ -53,22 +70,23 @@ export default function Page() {
     // })
 
     // --- PURPLE/GREEN PANEL ---
-    const purpleTimeline = gsap.timeline({
-      scrollTrigger: {
-        id: 'sticky',
-        pinSpacer: purpleContainer.current, // specify pinSpacer to not change the html
-        trigger: purple.current,
-        scrub: true,
-        pin: true,
-        start: 'top top',
-        end: '+=100%',
-      },
-    })
+    // const purpleTimeline = gsap.timeline({
+    //   scrollTrigger: {
+    //     id: 'sticky',
+    //     pinSpacer: purpleContainer.current, // specify pinSpacer to not change the html
+    //     trigger: purple.current,
+    //     scrub: true,
+    //     pin: true,
+    //     start: 'top top',
+    //     end: '+=100%',
+    //   },
+    // })
     console.log('timeline')
 
     return () => {
+      // parallaxTimeline.kill()
       lineTimeline.kill()
-      purpleTimeline.kill()
+      // purpleTimeline.kill()
     }
   }, [])
 
@@ -105,12 +123,14 @@ export default function Page() {
             traveled 100% of the viewport's height (<code>end: "+=100%"</code>),
             then the orange panel is unpinned and normal scrolling resumes.
             Padding is added automatically to push the rest of the content down
-            so that it catches up with the scroll when it unpins. You can set{' '}
-            <code>pinSpacing: false</code> to prevent that if you prefer.
+            so that it catches up with the scroll when it unpins.
           </p>
+          <Parallax speed={1}>
+            <div className="square"></div>
+          </Parallax>
         </section>
 
-        <section ref={purpleContainer}>
+        {/* <section ref={purpleContainer}>
           <div className="panel purple" ref={purple}>
             <p>
               <span className="line line-3"></span>This panel gets pinned in a
@@ -120,6 +140,14 @@ export default function Page() {
               scroll position perfectly.
             </p>
           </div>
+        </section> */}
+
+        <section>
+          <Sticky start="top top" end="+=200%">
+            <div className="panel purple">
+              <p>Sticky section</p>
+            </div>
+          </Sticky>
         </section>
 
         <section className="panel gray">DONE!</section>

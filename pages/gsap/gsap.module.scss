@@ -1,4 +1,11 @@
 .page {
+  :global(.square) {
+    height: 250px;
+    width: 250px;
+    background-color: red;
+    flex-shrink: 0;
+  }
+
   :global(.line) {
     width: 100%;
     max-width: 800px;

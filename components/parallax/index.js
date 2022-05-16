@@ -4,7 +4,13 @@ import { mapRange } from 'lib/maths'
 import { useRef } from 'react'
 import { useWindowSize } from 'react-use'
 
-export function Parallax({ className, children, speed = 1, id = 'parallax' }) {
+export function Parallax({
+  className,
+  children,
+  speed = 1,
+  id = 'parallax',
+  position,
+}) {
   const trigger = useRef()
   const target = useRef()
 
@@ -21,9 +27,15 @@ export function Parallax({ className, children, speed = 1, id = 'parallax' }) {
         start: 'top bottom',
         end: 'bottom top',
         onUpdate: (e) => {
-          gsap.set(target.current, {
-            y: -mapRange(0, 1, e.progress, -y, y),
-          })
+          if (position === 'top') {
+            gsap.set(target.current, {
+              y: -e.progress * y,
+            })
+          } else {
+            gsap.set(target.current, {
+              y: -mapRange(0, 1, e.progress, -y, y),
+            })
+          }
         },
       },
     })
@@ -31,7 +43,7 @@ export function Parallax({ className, children, speed = 1, id = 'parallax' }) {
     return () => {
       timeline.kill()
     }
-  }, [id, speed, windowWidth])
+  }, [id, speed, position, windowWidth])
 
   return (
     <div ref={trigger}>

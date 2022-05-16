@@ -82,10 +82,13 @@ export default function Page() {
         </section> */}
 
         <section>
-          <Sticky start="top top" end="+=200%">
-            <div className="panel purple">
-              <p>Sticky section</p>
-            </div>
+          <Sticky
+            start="0"
+            end="0"
+            wrapperClass={s.sticky}
+            className="panel purple"
+          >
+            <p>Sticky section</p>
           </Sticky>
         </section>
 

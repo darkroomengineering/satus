@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # wait arbitrary 120s for the build to finish, changes it if your builds are longer. Potential fix: https://github.com/marketplace/actions/await-for-vercel-deployment
-      - run: sleep 120 
+      - run: sleep 120
       - name: Capture Vercel preview URL
         id: vercel_preview_url
         uses: zentered/vercel-preview-url@v1.0.7
@@ -43,13 +43,11 @@ jobs:
             const score = res => res >= 90 ? '🟢' : res >= 50 ? '🟠' : '🔴'
             const comment = [
                 `⚡️ [Lighthouse report](${Object.values(links)[0]}) for the changes in this PR:`,
-                '| Category | Score |',
-                '| --- | --- |',
-                `| ${score(result.performance)} Performance | ${result.performance} |`,
-                `| ${score(result.accessibility)} Accessibility | ${result.accessibility} |`,
-                `| ${score(result['best-practices'])} Best practices | ${result['best-practices']} |`,
-                `| ${score(result.seo)} SEO | ${result.seo} |`,
-                `| ${score(result.pwa)} PWA | ${result.pwa} |`,
+                `${score(result.performance)} Performance: ${result.performance}`,
+                `${score(result.accessibility)} Accessibility: ${result.accessibility}`,
+                `${score(result['best-practices'])} Best practices: ${result['best-practices']}`,
+                `${score(result.seo)} SEO: ${result.seo}`,
+                `${score(result.pwa)} PWA: ${result.pwa}`,
                 ' ',
                 `*Lighthouse ran on [${Object.keys(links)[0]}](${Object.keys(links)[0]})*`
             ].join('\n')

@@ -42,7 +42,8 @@ jobs:
             Object.keys(result).forEach(key => result[key] = formatResult(result[key]))
             const score = res => res >= 90 ? '🟢' : res >= 50 ? '🟠' : '🔴'
             const comment = [
-                `⚡️ [Lighthouse report](${Object.values(links)[0]}) for the changes in this PR:`,
+                `⚡️ [Lighthouse report](${Object.values(links)[0]}) for the changes in this commit:`,
+                '',
                 `${score(result.performance)} Performance: ${result.performance}`,
                 `${score(result.accessibility)} Accessibility: ${result.accessibility}`,
                 `${score(result['best-practices'])} Best practices: ${result['best-practices']}`,

@@ -10,7 +10,7 @@ import { GA_ID, GTM_ID } from 'lib/analytics'
 import { useStore } from 'lib/store'
 import dynamic from 'next/dynamic'
 import Script from 'next/script'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import 'resize-observer-polyfill'
 import 'styles/global.scss'
 import useDarkMode from 'use-dark-mode'
@@ -34,7 +34,23 @@ function MyApp({ Component, pageProps }) {
 
   const debug = useDebug()
 
-  const lenis = useStore((state) => state.lenis)
+  const lenis = useStore(({ lenis }) => lenis)
+  const overflow = useStore(({ overflow }) => overflow)
+
+  useEffect(() => {
+    if (overflow) {
+      lenis?.start()
+      console.log('visible')
+      document.documentElement.style.removeProperty('overflow')
+    } else {
+      lenis?.stop()
+      console.log('hidden')
+      document.documentElement.style.setProperty('overflow', 'hidden')
+    }
+
+    console.log({ overflow })
+  }, [lenis, overflow])
+
   // no way to destory scrollerProxy, so use a ref
   const lenisRef = useRef()
 

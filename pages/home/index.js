@@ -7,7 +7,6 @@ import * as Select from 'components/select'
 import { Slider } from 'components/slider'
 import { useScroll } from 'hooks/use-scroll'
 import { Layout } from 'layouts/default'
-import { useStore } from 'lib/store'
 import { useRef } from 'react'
 import s from './home.module.scss'
 
@@ -37,7 +36,6 @@ const devs = [
 export default function Home() {
   const rectRef = useRef()
   const [ref, compute] = useRect()
-  const locomotive = useStore((state) => state.locomotive)
 
   useScroll(({ scroll }) => {
     const scrollY = scroll

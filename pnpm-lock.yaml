@@ -10,7 +10,7 @@ specifiers:
   '@react-spring/rafz': ^9.4.4
   '@react-spring/web': ^9.4.4
   '@studio-freight/hamo': ^0.2.4
-  '@studio-freight/lenis': ^0.0.9
+  '@studio-freight/lenis': ^0.0.11
   '@svgr/webpack': ^6.2.1
   clsx: ^1.1.1
   critters: ^0.0.16
@@ -50,7 +50,7 @@ dependencies:
   '@react-spring/rafz': 9.4.4
   '@react-spring/web': 9.4.4_react-dom@18.1.0+react@18.1.0
   '@studio-freight/hamo': 0.2.4_8722f81be861f30cc0471e43cd175bbb
-  '@studio-freight/lenis': 0.0.9
+  '@studio-freight/lenis': 0.0.11
   clsx: 1.1.1
   cross-env: 7.0.3
   debounce: 1.2.1
@@ -1903,8 +1903,8 @@ packages:
       webpack: 5.72.1
     dev: false
 
-  /@studio-freight/lenis/0.0.9:
-    resolution: {integrity: sha512-qsSIvj9y7TlBak2PdFCZ2mCUJZj7YJYqcNIvfYKgFq9ycOnv6hr+Fbvm5Rlb1BWd854XW2GqXs+D/xH1N1rbTg==}
+  /@studio-freight/lenis/0.0.11:
+    resolution: {integrity: sha512-mJawav8f5YST14GIAxVgcSXXhmiJBle11ECyfe9YlkbEje387lcujKvOb4uYGdJ2EYnFSZ559561xWdpfa2Wrw==}
     dependencies:
       path: 0.12.7
       sass: 1.51.0

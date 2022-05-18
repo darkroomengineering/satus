@@ -14,7 +14,6 @@ import { useEffect, useRef } from 'react'
 import 'resize-observer-polyfill'
 import 'styles/global.scss'
 import useDarkMode from 'use-dark-mode'
-
 gsap.registerPlugin(ScrollTrigger)
 
 const Stats = dynamic(

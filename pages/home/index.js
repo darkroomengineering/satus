@@ -1,6 +1,7 @@
 import * as Accordion from '@radix-ui/react-accordion'
 import { useRect } from '@studio-freight/hamo'
 import { Kinesis } from 'components/kinesis'
+import { Link } from 'components/link'
 import { Marquee } from 'components/marquee'
 import { MarqueeScroll } from 'components/marquee-scroll'
 import * as Select from 'components/select'
@@ -63,6 +64,7 @@ export default function Home() {
         <MarqueeScroll className={s.marquee} inverted repeat={4}>
           <span className={s.item}>HOLA JORDAN</span>
         </MarqueeScroll>
+        <Link href={'/#kinesis'}>scroll to kinesis</Link>
         <Accordion.Root type="single" collapsible>
           {Array(2)
             .fill({ header: 'this is header', body: 'this is body' })
@@ -115,7 +117,7 @@ export default function Home() {
           }}
         </Slider>
 
-        <div>
+        <div id="kinesis">
           <Kinesis className={s.kinesis}>
             <div className={s.item}>kinesis</div>
           </Kinesis>

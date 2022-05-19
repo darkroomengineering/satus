@@ -1,4 +1,5 @@
 import { useLayoutEffect } from '@studio-freight/hamo'
+import { Link } from 'components/link'
 import { Parallax } from 'components/parallax'
 import { Sticky } from 'components/sticky'
 import { gsap } from 'gsap'
@@ -94,6 +95,7 @@ export default function Page() {
 
         <section className="panel gray">DONE!</section>
       </div>
+      <Link href={'/#kinesis'}>scroll to kinesis</Link>
     </Layout>
   )
 }

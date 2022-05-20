@@ -1,6 +1,7 @@
 import * as Accordion from '@radix-ui/react-accordion'
 import { useRect } from '@studio-freight/hamo'
 import { Kinesis } from 'components/kinesis'
+import { Link } from 'components/link'
 import { Marquee } from 'components/marquee'
 import { MarqueeScroll } from 'components/marquee-scroll'
 import * as Select from 'components/select'
@@ -9,7 +10,6 @@ import { CmsMethods, fetchCmsQuery } from 'contentful/api'
 import homeQuery from 'contentful/queries/homepage.graphql'
 import { useScroll } from 'hooks/use-scroll'
 import { Layout } from 'layouts/default'
-import { useStore } from 'lib/store'
 import { useRef } from 'react'
 import s from './home.module.scss'
 
@@ -39,10 +39,9 @@ const devs = [
 export default function Home({ homePageData }) {
   const rectRef = useRef()
   const [ref, compute] = useRect()
-  const locomotive = useStore((state) => state.locomotive)
 
   useScroll(({ scroll }) => {
-    const scrollY = scroll.y
+    const scrollY = scroll
 
     const rect = compute(scrollY)
 
@@ -67,6 +66,7 @@ export default function Home({ homePageData }) {
         <MarqueeScroll className={s.marquee} inverted repeat={4}>
           <span className={s.item}>HOLA JORDAN</span>
         </MarqueeScroll>
+        <Link href={'/#kinesis'}>scroll to kinesis</Link>
         <Accordion.Root type="single" collapsible>
           {Array(2)
             .fill({ header: 'this is header', body: 'this is body' })
@@ -119,7 +119,7 @@ export default function Home({ homePageData }) {
           }}
         </Slider>
 
-        <div>
+        <div id="kinesis">
           <Kinesis className={s.kinesis}>
             <div className={s.item}>kinesis</div>
           </Kinesis>

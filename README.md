@@ -31,6 +31,7 @@ This starter kit is composed of:
 - [React Spring](https://github.com/pmndrs/react-spring)
 - [Embla](https://embla-carousel.com)
 - [Lenis](https://github.com/studio-freight/lenis)
+- [Hamo](https://github.com/studio-freight/hamo)
 - [Clsx](https://www.npmjs.com/package/clsx)
 - From [Radix UI](https://www.radix-ui.com/):
   - [Accordion](https://www.radix-ui.com/docs/primitives/components/accordion)
@@ -46,14 +47,6 @@ This starter kit is composed of:
   - To VW Functions
   - Reset
   - Easings
-- Hooks:
-  - useDebug
-  - useFrame
-  - useInterval
-  - useIsTouchDevice
-  - useMediaQuery
-  - useRect
-  - useSlots
 - Custom Cursor support
 - Real Viewport component
 - Grid Debugger

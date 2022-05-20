@@ -3,7 +3,7 @@ docs: https://greensock.com/docs/v3/Plugins/ScrollTrigger
 
 start: pixel distance to viewport top.
 end: pixel distance to parent element bottom.
-target: element to be sticky.
+target: element to be sticky, direct parent by default.
 pinType: 'fixed' or 'transform'. 'fixed' by default.
 
 ```javascript

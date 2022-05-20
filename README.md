@@ -31,7 +31,9 @@ This starter kit is composed of:
 - [React Spring](https://github.com/pmndrs/react-spring)
 - [Embla](https://embla-carousel.com)
 - [Lenis](https://github.com/studio-freight/lenis)
+- [Hamo](https://github.com/studio-freight/hamo)
 - [Clsx](https://www.npmjs.com/package/clsx)
+- [OGL](https://www.npmjs.com/package/ogl)
 - From [Radix UI](https://www.radix-ui.com/):
   - [Accordion](https://www.radix-ui.com/docs/primitives/components/accordion)
 
@@ -46,14 +48,6 @@ This starter kit is composed of:
   - To VW Functions
   - Reset
   - Easings
-- Hooks:
-  - useDebug
-  - useFrame
-  - useInterval
-  - useIsTouchDevice
-  - useMediaQuery
-  - useRect
-  - useSlots
 - Custom Cursor support
 - Real Viewport component
 - Grid Debugger
@@ -63,10 +57,11 @@ This starter kit is composed of:
 
 ## Flavors
 
-- [Light](https://github.com/studio-freight/satus) (you're here)
+- [Light](https://github.com/studio-freight/satus)
 - [With Shopify](https://github.com/studio-freight/satus/tree/with-shopify)
 - [With Contentful](https://github.com/studio-freight/satus/tree/with-contentful)
 - [With react-three-fiber](https://github.com/studio-freight/satus/tree/with-r3f)
+- [With OGL](https://github.com/studio-freight/satus/tree/with-ogl) (you're here)
 
 <br/>
 

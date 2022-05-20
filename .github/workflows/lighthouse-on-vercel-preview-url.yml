@@ -10,14 +10,15 @@ jobs:
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
-      # wait 120s for the build to finish, potential fix: https://github.com/marketplace/actions/await-for-vercel-deployment
+      # wait arbitrary 120s for the build to finish, changes it if your builds are longer. Potential fix: https://github.com/marketplace/actions/await-for-vercel-deployment
       - run: sleep 120
       - name: Capture Vercel preview URL
         id: vercel_preview_url
-        uses: zentered/vercel-preview-url@v1.0.6
+        uses: zentered/vercel-preview-url@v1.0.7
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         with:
+          # find project id here: https://vercel.com/studio-freight/satus/settings
           vercel_team_id: 'studio-freight'
           vercel_project_id: 'prj_bNXWDgXlHyhE6AVp6QURAPnZV4aw'
       - uses: actions/checkout@v3.0.2
@@ -31,7 +32,7 @@ jobs:
           temporaryPublicStorage: true
       - name: Format lighthouse score
         id: format_lighthouse_score
-        uses: actions/github-script@v3
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
@@ -41,14 +42,13 @@ jobs:
             Object.keys(result).forEach(key => result[key] = formatResult(result[key]))
             const score = res => res >= 90 ? '🟢' : res >= 50 ? '🟠' : '🔴'
             const comment = [
-                `⚡️ [Lighthouse report](${Object.values(links)[0]}) for the changes in this PR:`,
-                '| Category | Score |',
-                '| --- | --- |',
-                `| ${score(result.performance)} Performance | ${result.performance} |`,
-                `| ${score(result.accessibility)} Accessibility | ${result.accessibility} |`,
-                `| ${score(result['best-practices'])} Best practices | ${result['best-practices']} |`,
-                `| ${score(result.seo)} SEO | ${result.seo} |`,
-                `| ${score(result.pwa)} PWA | ${result.pwa} |`,
+                `⚡️ [Lighthouse report](${Object.values(links)[0]}) for the changes in this commit:`,
+                '',
+                `${score(result.performance)} Performance: ${result.performance}`,
+                `${score(result.accessibility)} Accessibility: ${result.accessibility}`,
+                `${score(result['best-practices'])} Best practices: ${result['best-practices']}`,
+                `${score(result.seo)} SEO: ${result.seo}`,
+                `${score(result.pwa)} PWA: ${result.pwa}`,
                 ' ',
                 `*Lighthouse ran on [${Object.keys(links)[0]}](${Object.keys(links)[0]})*`
             ].join('\n')

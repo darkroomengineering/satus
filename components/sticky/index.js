@@ -1,6 +1,6 @@
 import { useLayoutEffect } from '@studio-freight/hamo'
 import { gsap } from 'gsap'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 
 export function Sticky({
   children,
@@ -8,32 +8,35 @@ export function Sticky({
   className,
   start = 0,
   end = 0,
-  // offset = '0 0',
+  target,
   id = 'sticky',
   enabled = true,
+  pinType = 'fixed',
 }) {
   const pinSpacer = useRef()
   const trigger = useRef()
+  const targetRef = useRef()
 
   useLayoutEffect(() => {
     if (!enabled) return
-    // const offsets = offset.split(' ').map((v) => parseFloat(v))
-    // console.log(offsets)
+
     const timeline = gsap.timeline({
       scrollTrigger: {
         id: id,
-        // pinType: 'transform',
+        pinType,
         pinSpacing: false,
-        pinSpacer: pinSpacer.current, // specify pinSpacer to not change the html
+        pinSpacer: pinSpacer.current,
         trigger: trigger.current,
         scrub: true,
         pin: true,
         start: `top top+=${parseFloat(start)}px`,
         end: () => {
-          const pinHeight = pinSpacer.current.offsetHeight
-          const triggerHeight = trigger.current.offsetHeight
+          const targetRefRect = targetRef.current.getBoundingClientRect()
+          const triggerRect = trigger.current.getBoundingClientRect()
 
-          return `+=${pinHeight - triggerHeight + parseFloat(end)}px`
+          return `+=${
+            targetRefRect.bottom - triggerRect.bottom + parseFloat(end)
+          }`
         },
         invalidateOnRefresh: true,
       },
@@ -42,7 +45,15 @@ export function Sticky({
     return () => {
       timeline.kill()
     }
-  }, [id, start, enabled])
+  }, [id, start, enabled, end, pinType])
+
+  useEffect(() => {
+    if (target) {
+      targetRef.current = document.querySelector(target)
+    } else {
+      targetRef.current = pinSpacer.current.parentNode
+    }
+  }, [target])
 
   return (
     <div

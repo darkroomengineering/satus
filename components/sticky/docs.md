@@ -1,8 +1,10 @@
 Sticky uses GSAP ScrollTrigger under the hood.
 docs: https://greensock.com/docs/v3/Plugins/ScrollTrigger
 
-start: pixel distance to parent element top.
+start: pixel distance to viewport top.
 end: pixel distance to parent element bottom.
+target: element to be sticky.
+pinType: 'fixed' or 'transform'. 'fixed' by default.
 
 ```javascript
 import { Sticky } from 'components/sticky'

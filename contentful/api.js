@@ -74,12 +74,12 @@ class CmsMethods {
       ? input
       : { title: null, description: null, og: null, keywords: null }
     return {
-      title: preInput?.title || 'Stord',
-      description: preInput.description || 'Stord Description',
+      title: preInput?.title || 'TITLE',
+      description: preInput.description || 'DESCRIPTION',
       og: preInput?.openGraphImage
         ? this.imageLighter(preInput.openGraphImage)
         : '/og.jpg',
-      keywords: preInput?.keywords || ['Stord'],
+      keywords: preInput?.keywords || ['KEYWORD'],
     }
   }
 

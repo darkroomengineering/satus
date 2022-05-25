@@ -1,22 +1,18 @@
 import { useRect } from '@studio-freight/hamo'
 import { useScroll } from 'hooks/use-scroll'
 import { truncate } from 'lib/maths'
-import { useStore } from 'lib/store'
 import { useRef } from 'react'
 import s from './marquee-scroll.module.scss'
 
 export function MarqueeScroll({ children, className, repeat = 2 }) {
   const el = useRef()
 
-  const locomotive = useStore((state) => state.locomotive)
-
   const lastProgress = useRef(0)
 
   const [ref, compute] = useRect()
 
   useScroll(({ scroll }) => {
-    if (!locomotive.smooth) return
-    const scrollY = scroll.y
+    const scrollY = scroll
 
     const progress = -truncate((scrollY * 0.1) % 100, 3)
 

@@ -66,6 +66,8 @@ This starter kit is composed of:
 - [Light](https://github.com/studio-freight/satus) (you're here)
 - [With Shopify](https://github.com/studio-freight/satus/tree/with-shopify)
 - [With Contentful](https://github.com/studio-freight/satus/tree/with-contentful)
+- [With react-three-fiber](https://github.com/studio-freight/satus/tree/with-r3f)
+- [With OGL](https://github.com/studio-freight/satus/tree/with-ogl)
 
 <br/>
 

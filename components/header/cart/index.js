@@ -9,7 +9,6 @@ import s from './cart.module.scss'
 import { SizesDropdown } from './variant-size-dropdown'
 
 export const Cart = ({}) => {
-  const locomotive = useStore((state) => state.locomotive)
   const isDebouncing = useStore((state) => state.isDebouncing)
   const [toggleCart, setToggleCart] = useStore((state) => [
     state.toggleCart,
@@ -21,7 +20,6 @@ export const Cart = ({}) => {
   useClickOutsideEvent(menuRef, () => {
     if (!isDebouncing) {
       setToggleCart(false)
-      locomotive.start()
     }
   })
 

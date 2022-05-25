@@ -34,6 +34,47 @@
       object-fit: contain;
     }
   }
+}
+
+.home {
+  .marquee {
+    font-size: 6vw;
+
+    .item {
+      margin-right: mobile-vw(24px);
+
+      @include desktop {
+        margin-right: desktop-vw(24px);
+      }
+    }
+  }
+
+  .kinesis {
+    > * {
+      width: 250px;
+      height: 250px;
+      background-color: red;
+      margin: 0 auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+
+  .slider {
+    overflow: hidden;
+    margin-bottom: 250px;
+  }
+
+  .slider-header {
+    padding-top: desktop-vw(50px);
+    text-transform: uppercase;
+    font-size: 34px;
+
+    p:first-child {
+      font-size: 14px;
+    }
+  }
 
   .slide-img {
     position: absolute;

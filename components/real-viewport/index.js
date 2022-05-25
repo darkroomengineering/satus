@@ -1,4 +1,4 @@
-import { useLayoutEffect } from 'react'
+import { useLayoutEffect } from '@studio-freight/hamo'
 import { useWindowSize } from 'react-use'
 
 export const RealViewport = () => {

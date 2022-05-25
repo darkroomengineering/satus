@@ -1,23 +1,89 @@
-import { useIsTouchDevice } from '@studio-freight/hamo'
+import {
+  useFrame,
+  useIsTouchDevice,
+  useLayoutEffect,
+} from '@studio-freight/hamo'
+import Lenis from '@studio-freight/lenis'
 import cn from 'clsx'
 import { Cursor } from 'components/cursor'
+import { CustomHead } from 'components/custom-head'
 import { Footer } from 'components/footer'
 import { Header } from 'components/header'
-import { Scroll } from 'components/scroll'
+import { useStore } from 'lib/store'
+import { useRouter } from 'next/router'
+import { useMeasure } from 'react-use'
 import s from './layout.module.scss'
 
-export function Layout({ children }) {
+export function Layout({
+  seo = { title: '', description: '', image: '', keywords: '' },
+  children,
+  theme = 'light',
+  className,
+}) {
   const isTouchDevice = useIsTouchDevice()
+  const [lenis, setLenis] = useStore((state) => [state.lenis, state.setLenis])
+  const router = useRouter()
+  const [ref, { height }] = useMeasure()
+
+  useLayoutEffect(() => {
+    if (isTouchDevice === undefined) return
+    window.scrollTo(0, 0)
+    const lenis = new Lenis({ lerp: 0.1, smooth: !isTouchDevice })
+    setLenis(lenis)
+
+    function scrollTo(e) {
+      e.preventDefault()
+
+      const node = e.currentTarget
+      const hash = node.href.split('#').pop()
+      const selector = '#' + hash
+      const target = document.querySelector(selector)
+      if (!target) return
+      lenis.scrollTo(target, { offset: -1.1 * height })
+
+      window.location.hash = hash
+    }
+
+    const internalLinks = [...document.querySelectorAll('[href]')].filter(
+      (node) => node.href.includes(router.pathname + '#')
+    )
+
+    internalLinks.forEach((node) => {
+      node.addEventListener('click', scrollTo, false)
+    })
+
+    return () => {
+      internalLinks.forEach((node) => {
+        node.removeEventListener('click', scrollTo, false)
+      })
+
+      lenis.destroy()
+      setLenis(null)
+    }
+  }, [isTouchDevice, height])
+
+  useLayoutEffect(() => {
+    if (router.asPath.includes('#') && lenis) {
+      const hash = router.asPath.split('#').pop()
+      const selector = '#' + hash
+      const target = document.querySelector(selector)
+      lenis.scrollTo(target, { offset: -1.05 * height })
+    }
+  }, [router, lenis, height])
+
+  useFrame(() => {
+    lenis?.raf()
+  }, [])
+
   return (
-    <div className={cn('theme-store', s.container, 'theme-light')}>
-      {isTouchDevice === false && <Cursor />}
-      <div className={s['header-wrapper']}>
-        <Header className={s.header} />
+    <>
+      <CustomHead {...seo} />
+      <div className={cn(`theme-${theme}`, s.layout, className)}>
+        {isTouchDevice === false && <Cursor />}
+        <Header headerRef={ref} />
+        <main className={s.main}>{children}</main>
+        <Footer />
       </div>
-      <Scroll className={s.main} tag="main" debounce={1000}>
-        {children}
-        <Footer className={s['footer-wrapper']} />
-      </Scroll>
-    </div>
+    </>
   )
 }

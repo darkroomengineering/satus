@@ -2,7 +2,6 @@
 @import './_fonts.scss';
 @import './_colors.scss';
 @import './_easings.scss';
-@import './_scroll.scss';
 @import './_functions.scss';
 @import './_layout.scss';
 @import './_utils.scss';
@@ -29,8 +28,12 @@ html {
   }
 }
 
+html,
 body {
   overscroll-behavior: none;
+}
+
+body {
   min-height: 100vh;
 }
 
@@ -59,4 +62,18 @@ select {
 *::selection {
   background-color: var(--black);
   color: var(--white);
+}
+
+svg.icon {
+  path[fill],
+  rect[fill],
+  circle[fill] {
+    fill: currentColor;
+  }
+
+  path[stroke],
+  rect[stroke],
+  circle[stroke] {
+    stroke: currentColor;
+  }
 }

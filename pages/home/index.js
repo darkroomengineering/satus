@@ -1,24 +1,35 @@
 import cn from 'clsx'
 import { Layout } from 'layouts/default'
 import Shopify from 'lib/shopify'
-import { useStore } from 'lib/store'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import s from './home.module.scss'
 
-export default function Home({ productsArray, categories }) {
-  const locomotive = useStore((state) => state.locomotive)
-  const [categoryFilter, setCategoryFilter] = useState('shop all')
+const devs = [
+  {
+    name: 'Franco',
+    position: 'Lords of Lords',
+    image: 'https://assets.studiofreight.com/devs/franco.png',
+  },
+  {
+    name: 'Clement',
+    position: 'Expert on Dark Magic',
+    image: 'https://assets.studiofreight.com/devs/clement.png',
+  },
+  {
+    name: 'Leandro',
+    position: 'He didnt fucked it up',
+    image: 'https://assets.studiofreight.com/devs/leandro.png',
+  },
+  {
+    name: 'Guido',
+    position: 'Avoids owning projects',
+    image: 'https://assets.studiofreight.com/devs/guido.png',
+  },
+]
 
-  useEffect(() => {
-    if (locomotive) {
-      try {
-        locomotive.update()
-      } catch (err) {
-        console.log('update method of scroll not found', err)
-      }
-    }
-  }, [categoryFilter, locomotive])
+export default function Home({ productsArray, categories }) {
+  const [categoryFilter, setCategoryFilter] = useState('shop all')
 
   return (
     <Layout>

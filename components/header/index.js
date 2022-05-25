@@ -1,13 +1,12 @@
 import cn from 'clsx'
+import { Link } from 'components/link'
 import { Navigation } from 'components/navigation'
 import { useStore } from 'lib/store'
-import Link from 'next/link'
 import shallow from 'zustand/shallow'
 import { Cart } from './cart'
 import s from './header.module.scss'
 
-export const Header = ({ className }) => {
-  const locomotive = useStore((state) => state.locomotive)
+export const Header = ({ headerRef, className }) => {
   const [navIsOpen, setNavIsOpen] = useStore(
     (state) => [state.navIsOpen, state.setNavIsOpen],
     shallow
@@ -16,9 +15,9 @@ export const Header = ({ className }) => {
 
   return (
     <>
-      <header className={className}>
+      <header className={s.header} ref={headerRef}>
         <Navigation />
-        <div className={cn('block', s.head)}>
+        <div className={cn('layout-block', s.head)}>
           <button
             onClick={() => {
               setNavIsOpen(!navIsOpen)
@@ -26,20 +25,7 @@ export const Header = ({ className }) => {
           >
             menu
           </button>
-          <div>
-            <Link href="/">
-              <a>home</a>
-            </Link>
-            /
-            <button
-              onClick={() => {
-                setToggleCart(true)
-                locomotive.stop()
-              }}
-            >
-              Cart
-            </button>
-          </div>
+          <Link href="/">home</Link>/<Link href="/contact">contact</Link>
         </div>
       </header>
       <Cart />

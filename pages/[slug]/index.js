@@ -11,7 +11,6 @@ import useSWR from 'swr'
 import s from './pdp.module.scss'
 
 export default function Pdp({ product, relatedProducts }) {
-  const locomotive = useStore((state) => state.locomotive)
   const setToggleCart = useStore((state) => state.setToggleCart)
   const cart = useCart()
   const checkoutId = cart.checkoutId
@@ -107,7 +106,6 @@ export default function Pdp({ product, relatedProducts }) {
                 await cart.addItem(purchaseQuantity, selectedVariant.id)
                 await mutate()
                 setToggleCart(true)
-                locomotive.stop()
               }}
             >
               Add To Cart

@@ -3,8 +3,8 @@ import s from './contact.module.scss'
 
 export default function Contact() {
   return (
-    <Layout>
-      <div className={s.pageContact}></div>
+    <Layout theme="dark">
+      <section data-scroll-section className={s.hero}></section>
     </Layout>
   )
 }

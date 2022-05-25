@@ -17,6 +17,15 @@ module.exports = withPlugins([withTM(), [withBundleAnalyzer]], {
     domains: ['cdn.shopify.com'],
     formats: ['image/avif', 'image/webp'],
   },
+  async redirects() {
+    return [
+      {
+        source: '/home',
+        destination: '/',
+        permanent: true,
+      },
+    ]
+  },
   webpack: (config, options) => {
     const { dir } = options
 

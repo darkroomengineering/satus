@@ -31,6 +31,7 @@ This starter kit is composed of:
 - [React Spring](https://github.com/pmndrs/react-spring)
 - [Embla](https://embla-carousel.com)
 - [Lenis](https://github.com/studio-freight/lenis)
+- [Hamo](https://github.com/studio-freight/hamo)
 - [Clsx](https://www.npmjs.com/package/clsx)
 - From [Radix UI](https://www.radix-ui.com/):
   - [Accordion](https://www.radix-ui.com/docs/primitives/components/accordion)
@@ -46,14 +47,6 @@ This starter kit is composed of:
   - To VW Functions
   - Reset
   - Easings
-- Hooks:
-  - useDebug
-  - useFrame
-  - useInterval
-  - useIsTouchDevice
-  - useMediaQuery
-  - useRect
-  - useSlots
 - Custom Cursor support
 - Real Viewport component
 - Grid Debugger
@@ -61,47 +54,13 @@ This starter kit is composed of:
 
 <br/>
 
-## With-Shopify
-
-[Preview Link](https://shopify.satus.studiofreight.com/)
-
-This branch adds integration to Shopify through the [GraphQL storefront API](https://shopify.dev/api/storefront#top).
-
-- Set Up:
-
-  1. Create a [private app](https://shopify.dev/api/storefront/getting-started#accessing-the-storefront-graphql-endpoint):
-
-     - For local development, create a [.env.local file](https://nextjs.org/docs/basic-features/environment-variables) and add following keys:
-
-       - NEXT_SHOPIFY_STOREFRONT_ACCESS_TOKEN=
-       - NEXT_PUBLIC_SHOPIFY_DOMAIN=
-       - NEXT_PUBLIC_LOCAL_STORAGE_CHECKOUT_ID= 'Add your ID of choice for local storage'
-
-       Same envs must be added to production environment if needed.
-
-  2. Add testing products to your store and don't forget to set Product status to active for each product 😅.
-
-  3. Run localhost server and you are integrated to Shopify 🚀🚀🚀
-
-- Current Features on this branch:
-
-  - Custom GraphQL queries for cart and products. On lib folder you can customize your queries to fulfill your needs, [docs](https://shopify.dev/api/storefront#development_frameworks_and_sdks).
-  - Basic Product Page:
-    - Products Routes set up with GetStaticPaths using shopify handles.
-    - Add to cart functionality.
-    - Disabled out of stock variants.
-  - Cart with optimistic UI built with [SWR hooks](https://swr.vercel.app/):
-    - Modify quantity of products.
-    - Change Variant of selected products.
-    - Remove products from cart.
-
-<br/>
-
 ## Flavors
 
 - [Light](https://github.com/studio-freight/satus)
-- [With-Shopify](https://github.com/studio-freight/satus/tree/with-shopify)
-- [With-Contentful](https://github.com/studio-freight/satus/tree/with-contentful)
+- [With Shopify](https://github.com/studio-freight/satus/tree/with-shopify) (you're here)
+- [With Contentful](https://github.com/studio-freight/satus/tree/with-contentful)
+- [With react-three-fiber](https://github.com/studio-freight/satus/tree/with-r3f)
+- [With OGL](https://github.com/studio-freight/satus/tree/with-ogl)
 
 <br/>
 

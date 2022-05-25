@@ -108,10 +108,7 @@ const Cursor = () => {
   }, [])
 
   return (
-    <div
-      style={{ opacity: hasMoved ? 1 : 0 }}
-      className={cn(s['cursor-container'])}
-    >
+    <div style={{ opacity: hasMoved ? 1 : 0 }} className={s.container}>
       <animated.div ref={cursor} style={styles}>
         <div
           className={cn(s.cursor, isGrab && s.grab, isPointer && s.pointer)}

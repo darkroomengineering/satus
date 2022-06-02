@@ -176,12 +176,19 @@ export const getStaticPaths = async () => {
 
 export const getStaticProps = async ({ params }) => {
   const store = new Shopify()
-  const product = await store.getProductByHandle(params.slug)
+  // If you need just the selected product:
+  // const product = await store.getProductByHandle(params.slug)
+
+  //If you need product & others products:
+  const products = await store.getAllProducts()
+  const getIndex = products.findIndex((product) => product.slug === params.slug)
+  const product = products[getIndex]
+  products.splice(getIndex, 1)
 
   return {
     props: {
       product: product,
-      relatedProducts: [product, product, product, product, product],
+      relatedProducts: products,
     },
     revalidate: 1,
   }

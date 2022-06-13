@@ -4,7 +4,7 @@ import { forwardRef } from 'react'
 export const Link = forwardRef(
   (
     {
-      href = '/',
+      href,
       onClick = () => {},
       onMouseEnter = () => {},
       onMouseLeave = () => {},
@@ -14,22 +14,24 @@ export const Link = forwardRef(
     },
     ref
   ) => {
+    const attributes = {
+      ref,
+      onClick,
+      onMouseEnter,
+      onMouseLeave,
+      className,
+      style,
+    }
+
     if (typeof href !== 'string') {
-      href = '/'
+      return <button {...attributes}>{children}</button>
     }
 
     const isProtocol = href?.startsWith('mailto:') || href?.startsWith('tel:')
 
     if (isProtocol) {
       return (
-        <a
-          href={href}
-          className={className}
-          style={style}
-          ref={ref}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <a {...attributes} target="_blank" rel="noopener noreferrer">
           {children}
         </a>
       )
@@ -44,13 +46,8 @@ export const Link = forwardRef(
     return (
       <NextLink href={href} passHref={isExternal || isAnchor}>
         <a
-          ref={ref}
-          onClick={onClick}
-          onMouseEnter={onMouseEnter}
-          onMouseLeave={onMouseLeave}
+          {...attributes}
           {...(isExternal && { target: '_blank', rel: 'noopener noreferrer' })}
-          className={className}
-          style={style}
         >
           {children}
         </a>

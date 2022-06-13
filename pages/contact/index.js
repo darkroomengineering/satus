@@ -4,7 +4,7 @@ import s from './contact.module.scss'
 export default function Contact() {
   return (
     <Layout theme="dark">
-      <section data-scroll-section className={s.hero}></section>
+      <section className={s.hero}></section>
     </Layout>
   )
 }

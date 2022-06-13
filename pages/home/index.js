@@ -1,14 +1,13 @@
 import * as Accordion from '@radix-ui/react-accordion'
-import { useRect } from '@studio-freight/hamo'
 import { Kinesis } from 'components/kinesis'
 import { Link } from 'components/link'
 import { Marquee } from 'components/marquee'
 import { MarqueeScroll } from 'components/marquee-scroll'
 import * as Select from 'components/select'
 import { Slider } from 'components/slider'
-import { useScroll } from 'hooks/use-scroll'
 import { Layout } from 'layouts/default'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
+import useMeasure from 'react-use-measure'
 import s from './home.module.scss'
 
 const devs = [
@@ -36,28 +35,24 @@ const devs = [
 
 export default function Home() {
   const rectRef = useRef()
-  const [ref, compute] = useRect()
+  const [ref, bounds] = useMeasure({ scroll: true, debounce: 0 })
 
-  useScroll(({ scroll }) => {
-    const scrollY = scroll
-
-    const rect = compute(scrollY)
-
-    const string = `inView: ${rect.inView}<br>left:${Math.round(
-      rect.left
-    )}px<br>top:${Math.round(rect.top)}px<br>width:${rect.width}px<br>height:${
-      rect.height
-    }px<br>right:${Math.round(rect.right)}px<br>bottom:${Math.round(
-      rect.bottom
+  useEffect(() => {
+    const string = `left:${Math.round(bounds.left)}px<br>top:${Math.round(
+      bounds.top
+    )}px<br>width:${bounds.width}px<br>height:${
+      bounds.height
+    }px<br>right:${Math.round(bounds.right)}px<br>bottom:${Math.round(
+      bounds.bottom
     )}px`
     rectRef.current.innerHTML = string
-  }, 0)
+  }, [bounds])
 
   console.log('update')
 
   return (
     <Layout theme="light">
-      <section data-scroll-section className={s.home}>
+      <section className={s.home}>
         <Marquee className={s.marquee} repeat={3}>
           <span className={s.item}>marquee stuff that scroll continuously</span>
         </Marquee>
@@ -134,8 +129,8 @@ export default function Home() {
         <div style={{ height: '100vh' }}>
           <div
             ref={(node) => {
-              rectRef.current = node
               ref(node)
+              rectRef.current = node
             }}
             style={{
               width: '250px',

@@ -33,6 +33,7 @@
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "react-use": "^17.4.0",
+    "react-use-measure": "^2.1.1",
     "resize-observer-polyfill": "^1.5.1",
     "sass": "^1.52.0",
     "stats.js": "^0.17.0",

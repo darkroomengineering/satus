@@ -31,7 +31,12 @@ export const Link = forwardRef(
 
     if (isProtocol) {
       return (
-        <a {...attributes} target="_blank" rel="noopener noreferrer">
+        <a
+          {...attributes}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           {children}
         </a>
       )

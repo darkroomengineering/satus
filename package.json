@@ -17,7 +17,6 @@
     "@radix-ui/react-accordion": "^0.1.6",
     "@radix-ui/react-select": "^0.1.1",
     "@react-spring/rafz": "^9.4.5",
-    "@react-spring/web": "^9.4.5",
     "@studio-freight/hamo": "^0.4.2",
     "@studio-freight/lenis": "^0.0.12",
     "clsx": "^1.1.1",

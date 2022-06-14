@@ -22,6 +22,7 @@ html {
   text-align: center;
   background-color: var(--white);
   color: var(--black);
+  scrollbar-width: thin;
 
   &.nav {
     overflow: hidden;

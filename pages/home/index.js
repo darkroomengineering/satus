@@ -35,7 +35,7 @@ const devs = [
 
 export default function Home() {
   const rectRef = useRef()
-  const [ref, bounds] = useMeasure({ scroll: true, debounce: 0 })
+  const [ref, bounds] = useMeasure({ scroll: false, debounce: 0 })
 
   useEffect(() => {
     const string = `left:${Math.round(bounds.left)}px<br>top:${Math.round(
@@ -59,7 +59,7 @@ export default function Home() {
         <MarqueeScroll className={s.marquee} inverted repeat={4}>
           <span className={s.item}>HOLA JORDAN</span>
         </MarqueeScroll>
-        <Link href={'/#kinesis'}>scroll to kinesis</Link>
+        <Link href="#kinesis">scroll to kinesis</Link>
         <Accordion.Root type="single" collapsible>
           {Array(2)
             .fill({ header: 'this is header', body: 'this is body' })
@@ -126,7 +126,7 @@ export default function Home() {
           </Select.Root>
         </div>
 
-        <div style={{ height: '100vh' }}>
+        <div style={{ height: '100vh' }} id="rect">
           <div
             ref={(node) => {
               ref(node)

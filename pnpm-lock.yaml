@@ -9,7 +9,7 @@ specifiers:
   '@radix-ui/react-select': ^0.1.1
   '@react-spring/rafz': ^9.4.5
   '@studio-freight/hamo': ^0.4.2
-  '@studio-freight/lenis': ^0.0.12
+  '@studio-freight/lenis': ^0.1.9
   '@svgr/webpack': ^6.2.1
   clsx: ^1.1.1
   critters: ^0.0.16
@@ -35,7 +35,7 @@ specifiers:
   react-dom: 17.0.2
   react-use: ^17.4.0
   react-use-measure: ^2.1.1
-  sass: ^1.52.0
+  sass: ^1.52.3
   stats.js: ^0.17.0
   use-dark-mode: ^2.3.1
   uuid: ^8.3.2
@@ -46,23 +46,22 @@ dependencies:
   '@radix-ui/react-select': 0.1.1_sfoxds7t5ydpegc3knd667wn6m
   '@react-spring/rafz': 9.4.5
   '@studio-freight/hamo': 0.4.2_react-dom@17.0.2
-  '@studio-freight/lenis': 0.0.12
+  '@studio-freight/lenis': 0.1.9
   clsx: 1.1.1
   cross-env: 7.0.3
   debounce: 1.2.1
   embla-carousel-autoplay: 6.2.0_embla-carousel@6.2.0
   embla-carousel-react: 6.2.0_react@17.0.2
   gsap: 3.10.4
-  husky: 8.0.1
   lint-staged: 12.4.1
-  next: 12.1.6_lgucepacfj5uahicevpsmshgku
+  next: 12.1.6_vyn3p2joqhrskp5cknsqqw3ya4
   next-seo: 5.4.0_zhtyyhxvjc4vmyivr6fwl32yja
   next-sitemap: 2.5.21_next@12.1.6
   react: 17.0.2
   react-dom: 17.0.2_react@17.0.2
   react-use: 17.4.0_sfoxds7t5ydpegc3knd667wn6m
   react-use-measure: 2.1.1_sfoxds7t5ydpegc3knd667wn6m
-  sass: 1.52.0
+  sass: 1.52.3
   stats.js: 0.17.0
   use-dark-mode: 2.3.1_react@17.0.2
   uuid: 8.3.2
@@ -79,6 +78,7 @@ devDependencies:
   eslint: 8.15.0
   eslint-config-next: 12.1.6_eslint@8.15.0+next@12.1.6
   eslint-config-prettier: 8.5.0_eslint@8.15.0
+  husky: 8.0.1
   next-compose-plugins: 2.2.1
   next-transpile-modules: 9.0.0
   prettier: 2.6.2
@@ -1836,11 +1836,11 @@ packages:
       - react-dom
     dev: false
 
-  /@studio-freight/lenis/0.0.12:
-    resolution: {integrity: sha512-KxZ4iZtxrN9zBOY9bfVTDEBsuVcd3ErJMGu73lQZH34EP28J1XoPUfIKy7r2xJc4YY1wlvJcQEY7CWh+eH2RLQ==}
+  /@studio-freight/lenis/0.1.9:
+    resolution: {integrity: sha512-dueZiZBs+H8SilE7J+1qiejmKvFvSrJ36IxjKHH9cmJvCUeUa8g83s7ylbQz4dmrNe/fbOuKZKVQqZ+MWV4CQw==}
     dependencies:
       path: 0.12.7
-      sass: 1.52.0
+      stats.js: 0.17.0
       tiny-emitter: 2.1.0
       virtual-scroll: 2.2.1
     dev: false
@@ -2898,7 +2898,7 @@ packages:
       eslint-plugin-jsx-a11y: 6.5.1_eslint@8.15.0
       eslint-plugin-react: 7.30.0_eslint@8.15.0
       eslint-plugin-react-hooks: 4.5.0_eslint@8.15.0
-      next: 12.1.6_lgucepacfj5uahicevpsmshgku
+      next: 12.1.6_vyn3p2joqhrskp5cknsqqw3ya4
     transitivePeerDependencies:
       - eslint-import-resolver-webpack
       - supports-color
@@ -3429,7 +3429,7 @@ packages:
     resolution: {integrity: sha512-xs7/chUH/CKdOCs7Zy0Aev9e/dKOMZf3K1Az1nar3tzlv0jfqnYtu235bstsWTmXOR0EfINrPa97yy4Lz6RiKw==}
     engines: {node: '>=14'}
     hasBin: true
-    dev: false
+    dev: true
 
   /hyphenate-style-name/1.0.4:
     resolution: {integrity: sha512-ygGZLjmXfPHj+ZWh6LwbC37l43MhfztxetbFCoYTM2VjkIUpeHgSNn7QIyVFj7YQ1Wl9Cbw5sholVJPzWvC2MQ==}
@@ -3539,7 +3539,7 @@ packages:
     dev: true
 
   /is-extglob/2.1.1:
-    resolution: {integrity: sha1-qIwCU1eR8C7TfHahueqXc8gz+MI=}
+    resolution: {integrity: sha512-SbKbANkN603Vi4jEZv49LeVJMn4yGwsbzZworEoyEiutsN3nJYdbO36zfhGJ6QEDpOZIFkDtnq5JRxmvl3jsoQ==}
     engines: {node: '>=0.10.0'}
 
   /is-fullwidth-code-point/3.0.0:
@@ -3888,7 +3888,7 @@ packages:
       react: '>=16.0.0'
       react-dom: '>=16.0.0'
     dependencies:
-      next: 12.1.6_lgucepacfj5uahicevpsmshgku
+      next: 12.1.6_vyn3p2joqhrskp5cknsqqw3ya4
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
     dev: false
@@ -3902,7 +3902,7 @@ packages:
     dependencies:
       '@corex/deepmerge': 2.6.148
       minimist: 1.2.6
-      next: 12.1.6_lgucepacfj5uahicevpsmshgku
+      next: 12.1.6_vyn3p2joqhrskp5cknsqqw3ya4
     dev: false
 
   /next-transpile-modules/9.0.0:
@@ -3912,7 +3912,7 @@ packages:
       escalade: 3.1.1
     dev: true
 
-  /next/12.1.6_lgucepacfj5uahicevpsmshgku:
+  /next/12.1.6_vyn3p2joqhrskp5cknsqqw3ya4:
     resolution: {integrity: sha512-cebwKxL3/DhNKfg9tPZDQmbRKjueqykHHbgaoG4VBRH3AHQJ2HO0dbKFiS1hPhe1/qgc2d/hFeadsbPicmLD+A==}
     engines: {node: '>=12.22.0'}
     hasBin: true
@@ -3935,7 +3935,7 @@ packages:
       postcss: 8.4.5
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
-      sass: 1.52.0
+      sass: 1.52.3
       styled-jsx: 5.0.2_rh2m6lvjnki7ibqdl6dj7at7hm
     optionalDependencies:
       '@next/swc-android-arm-eabi': 12.1.6
@@ -4137,7 +4137,7 @@ packages:
     dev: true
 
   /path/0.12.7:
-    resolution: {integrity: sha1-1NwqUGxM4hl+tIHr/NWzbAFAsQ8=}
+    resolution: {integrity: sha512-aXXC6s+1w7otVF9UletFkFcDsJeO7lSZBPUQhtb5O0xJe8LtYhj/GxldoL09bBj9+ZmE2hNoHqQSFMN5fikh4Q==}
     dependencies:
       process: 0.11.10
       util: 0.10.4
@@ -4219,7 +4219,7 @@ packages:
     dev: true
 
   /process/0.11.10:
-    resolution: {integrity: sha1-czIwDoQBYb2j5podHZGn1LwW8YI=}
+    resolution: {integrity: sha512-cdGef/drWFoydD1JsMzuFf8100nZl+GT+yacc2bEced5f9Rjk4z+WtFUTBu9PhOi9j/jfmBPu0mMEY4wIdAF8A==}
     engines: {node: '>= 0.6.0'}
     dev: false
 
@@ -4492,8 +4492,8 @@ packages:
   /safe-buffer/5.1.2:
     resolution: {integrity: sha512-Gd2UZBJDkXlY7GbJxfsE8/nvKkUEU1G38c1siN6QP6a9PT9MmHB8GnpscSmMJSoF8LOIrt8ud/wPtojys4G6+g==}
 
-  /sass/1.52.0:
-    resolution: {integrity: sha512-6EnTglag2oVD8sNJCxUi2Jd3ICH9tJ5Mqudt/gIZNBR2uKJUBZuTpW9O1t04SkDLP7VFa76FCWTV2rwchqM8Kw==}
+  /sass/1.52.3:
+    resolution: {integrity: sha512-LNNPJ9lafx+j1ArtA7GyEJm9eawXN8KlA1+5dF6IZyoONg1Tyo/g+muOsENWJH/2Q1FHbbV4UwliU0cXMa/VIA==}
     engines: {node: '>=12.0.0'}
     hasBin: true
     dependencies:

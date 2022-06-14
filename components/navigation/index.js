@@ -29,6 +29,7 @@ export const Navigation = () => {
   return (
     <div className={cn(s.navigation, !navIsOpen && s.closed)}>
       <Link href="/">home</Link>
+      <Link href="/gsap">gsap</Link>
       <Link href="/contact">contact</Link>
     </div>
   )

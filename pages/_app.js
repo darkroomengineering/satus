@@ -10,7 +10,7 @@ import { GA_ID, GTM_ID } from 'lib/analytics'
 import { useStore } from 'lib/store'
 import dynamic from 'next/dynamic'
 import Script from 'next/script'
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import 'styles/global.scss'
 import useDarkMode from 'use-dark-mode'
 gsap.registerPlugin(ScrollTrigger)
@@ -47,41 +47,15 @@ function MyApp({ Component, pageProps }) {
     console.log({ overflow })
   }, [lenis, overflow])
 
-  // no way to destory scrollerProxy, so use a ref
-  const lenisRef = useRef()
-
   useLayoutEffect(() => {
-    // update ScrollTrigger position
-    if (!lenis) return
-    lenisRef.current = lenis
-    lenis.on('scroll', () => ScrollTrigger.update())
-    ScrollTrigger.refresh()
+    if (lenis) ScrollTrigger.refresh()
   }, [lenis])
 
   useLayoutEffect(() => {
-    // reset scroll position on page refresh
     window.history.scrollRestoration = 'manual'
-
-    if (!lenisRef.current) return
-    // set scroller proxy
-    ScrollTrigger.scrollerProxy(document.body, {
-      scrollTop(value) {
-        return lenisRef.current.scroll
-      },
-      getBoundingClientRect() {
-        return {
-          top: 0,
-          left: 0,
-          width: window.innerWidth,
-          height: window.innerHeight,
-        }
-      },
-    })
   }, [])
 
-  useLayoutEffect(() => {
-    ScrollTrigger.defaults({ markers: debug })
-  }, [debug])
+  ScrollTrigger.defaults({ markers: process.env.NODE_ENV === 'development' })
 
   return (
     <>

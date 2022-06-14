@@ -1,7 +1,6 @@
 import { useLayoutEffect } from '@studio-freight/hamo'
 import { gsap } from 'gsap'
 import { useEffect, useRef } from 'react'
-
 export function Sticky({
   children,
   wrapperClass,
@@ -18,7 +17,8 @@ export function Sticky({
   const targetRef = useRef()
 
   useLayoutEffect(() => {
-    if (!enabled) return
+    if (!enabled || !pinSpacer.current || !trigger.current) return
+    gsap.set(trigger.current, { clearProps: 'all' })
 
     const timeline = gsap.timeline({
       scrollTrigger: {
@@ -33,7 +33,6 @@ export function Sticky({
         end: () => {
           const targetRefRect = targetRef.current.getBoundingClientRect()
           const triggerRect = trigger.current.getBoundingClientRect()
-
           return `+=${
             targetRefRect.bottom - triggerRect.bottom + parseFloat(end)
           }`

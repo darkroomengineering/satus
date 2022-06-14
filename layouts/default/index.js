@@ -12,7 +12,7 @@ import { Header } from 'components/header'
 import { useStore } from 'lib/store'
 import { useRouter } from 'next/router'
 import { useState } from 'react'
-import { useMeasure } from 'react-use'
+import useMeasure from 'react-use-measure'
 import s from './layout.module.scss'
 
 export function Layout({
@@ -24,7 +24,7 @@ export function Layout({
   const isTouchDevice = useIsTouchDevice()
   const [lenis, setLenis] = useStore((state) => [state.lenis, state.setLenis])
   const router = useRouter()
-  const [ref, { height }] = useMeasure()
+  const [ref, { height }] = useMeasure({ debounce: 100 })
 
   useLayoutEffect(() => {
     if (isTouchDevice === undefined) return

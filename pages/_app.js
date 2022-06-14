@@ -29,11 +29,21 @@ const GridDebugger = dynamic(
 function MyApp({ Component, pageProps }) {
   const isTouchDevice = useIsTouchDevice()
   const darkMode = useDarkMode()
-
   const debug = useDebug()
-
   const lenis = useStore(({ lenis }) => lenis)
   const overflow = useStore(({ overflow }) => overflow)
+
+  // const setHeaderData = useStore((state) => state.setHeaderData)
+  // const setFooterData = useStore((state) => state.setFooterData)
+
+  // const [isFetched, setIsFetched] = useState(false)
+
+  // avoid infinite loop
+  // if (!isFetched) {
+  //   setHeaderData(headerData)
+  //   setFooterData(footerData)
+  //   setIsFetched(true)
+  // }
 
   useEffect(() => {
     if (overflow) {

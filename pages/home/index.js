@@ -13,7 +13,7 @@ import s from './home.module.scss'
 const devs = [
   {
     name: 'Franco',
-    position: 'Lords of Lords',
+    position: 'Pizza of Pizza',
     image: 'https://assets.studiofreight.com/devs/franco.png',
   },
   {

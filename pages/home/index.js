@@ -1,16 +1,22 @@
 import * as Accordion from '@radix-ui/react-accordion'
 import { useRect } from '@studio-freight/hamo'
+import { ClientOnly } from 'components/isomorphic'
 import { Kinesis } from 'components/kinesis'
 import { Link } from 'components/link'
 import { Marquee } from 'components/marquee'
 import { MarqueeScroll } from 'components/marquee-scroll'
 import * as Select from 'components/select'
 import { Slider } from 'components/slider'
-import { WebGLDemo } from 'components/webgl-demo'
 import { useScroll } from 'hooks/use-scroll'
 import { Layout } from 'layouts/default'
+import dynamic from 'next/dynamic'
 import { useRef } from 'react'
 import s from './home.module.scss'
+
+const WebGLDemo = dynamic(
+  () => import('components/webgl-demo').then(({ WebGLDemo }) => WebGLDemo),
+  { ssr: false }
+)
 
 const devs = [
   {
@@ -59,7 +65,9 @@ export default function Home() {
   return (
     <Layout theme="light">
       <section data-scroll-section className={s.hero}>
-        <WebGLDemo />
+        <ClientOnly>
+          <WebGLDemo />
+        </ClientOnly>
       </section>
       <section data-scroll-section className={s.home}>
         <Marquee className={s.marquee} repeat={3}>

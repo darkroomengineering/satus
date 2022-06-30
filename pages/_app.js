@@ -16,8 +16,12 @@ import 'styles/global.scss'
 import useDarkMode from 'use-dark-mode'
 
 gsap.registerPlugin(ScrollTrigger)
+
+// merge rafs
 gsap.ticker.remove(gsap.updateRoot)
-raf.add(gsap.updateRoot, 0)
+raf.add((time) => {
+  gsap.updateRoot(time / 1000)
+}, 0)
 
 const Stats = dynamic(
   () => import('components/stats').then(({ Stats }) => Stats),

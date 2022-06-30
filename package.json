@@ -21,7 +21,6 @@
     "@react-three/drei": "^9.14.3",
     "@react-three/fiber": "^8.0.19",
     "@react-three/postprocessing": "^2.3.3",
-    "@studio-freight/locomotive-scroll": "^0.0.8",
     "@studio-freight/hamo": "^0.4.8",
     "@studio-freight/lenis": "^0.1.12",
     "clsx": "^1.1.1",

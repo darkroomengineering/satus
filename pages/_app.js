@@ -7,13 +7,17 @@ import { RealViewport } from 'components/real-viewport'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger'
 import { GA_ID, GTM_ID } from 'lib/analytics'
+import { raf } from 'lib/raf'
 import { useStore } from 'lib/store'
 import dynamic from 'next/dynamic'
 import Script from 'next/script'
 import { useEffect } from 'react'
 import 'styles/global.scss'
 import useDarkMode from 'use-dark-mode'
+
 gsap.registerPlugin(ScrollTrigger)
+gsap.ticker.remove(gsap.updateRoot)
+raf.add(gsap.updateRoot, 0)
 
 const Stats = dynamic(
   () => import('components/stats').then(({ Stats }) => Stats),

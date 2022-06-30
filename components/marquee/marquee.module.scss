@@ -10,7 +10,9 @@
   }
 
   &.inverted {
-    animation: marquee-inverted var(--duration) linear infinite;
+    .inner {
+      animation: marquee-inverted var(--duration) linear infinite;
+    }
   }
 
   @keyframes marquee {

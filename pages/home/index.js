@@ -1,5 +1,4 @@
 import * as Accordion from '@radix-ui/react-accordion'
-import { useRect } from '@studio-freight/hamo'
 import { ClientOnly } from 'components/isomorphic'
 import { Kinesis } from 'components/kinesis'
 import { Link } from 'components/link'
@@ -7,10 +6,10 @@ import { Marquee } from 'components/marquee'
 import { MarqueeScroll } from 'components/marquee-scroll'
 import * as Select from 'components/select'
 import { Slider } from 'components/slider'
-import { useScroll } from 'hooks/use-scroll'
 import { Layout } from 'layouts/default'
 import dynamic from 'next/dynamic'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
+import useMeasure from 'react-use-measure'
 import s from './home.module.scss'
 
 const WebGLDemo = dynamic(
@@ -21,7 +20,7 @@ const WebGLDemo = dynamic(
 const devs = [
   {
     name: 'Franco',
-    position: 'Lords of Lords',
+    position: 'Pizza of Pizza',
     image: 'https://assets.studiofreight.com/devs/franco.png',
   },
   {
@@ -43,40 +42,36 @@ const devs = [
 
 export default function Home() {
   const rectRef = useRef()
-  const [ref, compute] = useRect()
+  const [ref, bounds] = useMeasure({ scroll: false, debounce: 0 })
 
-  useScroll(({ scroll }) => {
-    const scrollY = scroll
-
-    const rect = compute(scrollY)
-
-    const string = `inView: ${rect.inView}<br>left:${Math.round(
-      rect.left
-    )}px<br>top:${Math.round(rect.top)}px<br>width:${rect.width}px<br>height:${
-      rect.height
-    }px<br>right:${Math.round(rect.right)}px<br>bottom:${Math.round(
-      rect.bottom
+  useEffect(() => {
+    const string = `left:${Math.round(bounds.left)}px<br>top:${Math.round(
+      bounds.top
+    )}px<br>width:${bounds.width}px<br>height:${
+      bounds.height
+    }px<br>right:${Math.round(bounds.right)}px<br>bottom:${Math.round(
+      bounds.bottom
     )}px`
     rectRef.current.innerHTML = string
-  }, 0)
+  }, [bounds])
 
   console.log('update')
 
   return (
     <Layout theme="light">
-      <section data-scroll-section className={s.hero}>
+      <section className={s.hero}>
         <ClientOnly>
           <WebGLDemo />
         </ClientOnly>
       </section>
-      <section data-scroll-section className={s.home}>
+      <section className={s.home}>
         <Marquee className={s.marquee} repeat={3}>
           <span className={s.item}>marquee stuff that scroll continuously</span>
         </Marquee>
         <MarqueeScroll className={s.marquee} inverted repeat={4}>
           <span className={s.item}>HOLA JORDAN</span>
         </MarqueeScroll>
-        <Link href={'/#kinesis'}>scroll to kinesis</Link>
+        <Link href="#kinesis">scroll to kinesis</Link>
         <Accordion.Root type="single" collapsible>
           {Array(2)
             .fill({ header: 'this is header', body: 'this is body' })
@@ -143,11 +138,11 @@ export default function Home() {
           </Select.Root>
         </div>
 
-        <div style={{ height: '100vh' }}>
+        <div style={{ height: '100vh' }} id="rect">
           <div
             ref={(node) => {
-              rectRef.current = node
               ref(node)
+              rectRef.current = node
             }}
             style={{
               width: '250px',

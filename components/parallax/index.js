@@ -19,6 +19,9 @@ export function Parallax({
   useLayoutEffect(() => {
     const y = windowWidth * speed * 0.1
 
+    const setY = gsap.quickSetter(target.current, 'y', 'px')
+    const set3D = gsap.quickSetter(target.current, 'force3D')
+
     const timeline = gsap.timeline({
       scrollTrigger: {
         id: id,
@@ -28,14 +31,13 @@ export function Parallax({
         end: 'bottom top',
         onUpdate: (e) => {
           if (position === 'top') {
-            gsap.set(target.current, {
-              y: -e.progress * y,
-            })
+            const progress = e.scroll() / windowWidth
+            setY(e.progress * y)
           } else {
-            gsap.set(target.current, {
-              y: -mapRange(0, 1, e.progress, -y, y),
-            })
+            setY(-mapRange(0, 1, e.progress, -y, y))
           }
+
+          set3D(e.progress > 0 && e.progress < 1)
         },
       },
     })

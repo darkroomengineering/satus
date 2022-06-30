@@ -8,6 +8,8 @@ module.exports = withPlugins([withTM(), [withBundleAnalyzer]], {
   reactStrictMode: true,
   experimental: {
     optimizeCss: true,
+    browsersListForSwc: true,
+    legacyBrowsers: false,
   },
   compiler: {
     removeConsole: process.env.NODE_ENV !== 'development',

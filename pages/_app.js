@@ -10,8 +10,7 @@ import { GA_ID, GTM_ID } from 'lib/analytics'
 import { useStore } from 'lib/store'
 import dynamic from 'next/dynamic'
 import Script from 'next/script'
-import { useEffect, useRef } from 'react'
-import 'resize-observer-polyfill'
+import { useEffect } from 'react'
 import 'styles/global.scss'
 import useDarkMode from 'use-dark-mode'
 gsap.registerPlugin(ScrollTrigger)
@@ -30,61 +29,43 @@ const GridDebugger = dynamic(
 function MyApp({ Component, pageProps }) {
   const isTouchDevice = useIsTouchDevice()
   const darkMode = useDarkMode()
-
   const debug = useDebug()
-
   const lenis = useStore(({ lenis }) => lenis)
   const overflow = useStore(({ overflow }) => overflow)
+
+  // const setHeaderData = useStore((state) => state.setHeaderData)
+  // const setFooterData = useStore((state) => state.setFooterData)
+
+  // const [isFetched, setIsFetched] = useState(false)
+
+  // avoid infinite loop
+  // if (!isFetched) {
+  //   setHeaderData(headerData)
+  //   setFooterData(footerData)
+  //   setIsFetched(true)
+  // }
 
   useEffect(() => {
     if (overflow) {
       lenis?.start()
-      console.log('visible')
       document.documentElement.style.removeProperty('overflow')
     } else {
       lenis?.stop()
-      console.log('hidden')
       document.documentElement.style.setProperty('overflow', 'hidden')
     }
 
     console.log({ overflow })
   }, [lenis, overflow])
 
-  // no way to destory scrollerProxy, so use a ref
-  const lenisRef = useRef()
-
   useLayoutEffect(() => {
-    // update ScrollTrigger position
-    if (!lenis) return
-    lenisRef.current = lenis
-    lenis.on('scroll', () => ScrollTrigger.update())
-    ScrollTrigger.refresh()
+    if (lenis) ScrollTrigger.refresh()
   }, [lenis])
 
   useLayoutEffect(() => {
-    // reset scroll position on page refresh
     window.history.scrollRestoration = 'manual'
-
-    if (!lenisRef.current) return
-    // set scroller proxy
-    ScrollTrigger.scrollerProxy(document.body, {
-      scrollTop(value) {
-        return lenisRef.current.scroll
-      },
-      getBoundingClientRect() {
-        return {
-          top: 0,
-          left: 0,
-          width: window.innerWidth,
-          height: window.innerHeight,
-        }
-      },
-    })
   }, [])
 
-  useLayoutEffect(() => {
-    ScrollTrigger.defaults({ markers: debug })
-  }, [debug])
+  ScrollTrigger.defaults({ markers: process.env.NODE_ENV === 'development' })
 
   return (
     <>

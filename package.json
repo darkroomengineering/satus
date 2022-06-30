@@ -40,7 +40,7 @@
     "react-use-measure": "^2.1.1",
     "sass": "^1.53.0",
     "stats.js": "^0.17.0",
-    "three": "^0.140.2",
+    "three": "^0.142.0",
     "use-dark-mode": "^2.3.1",
     "zustand": "4.0.0-rc.1"
   },

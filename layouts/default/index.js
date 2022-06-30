@@ -1,14 +1,11 @@
-import {
-  useFrame,
-  useIsTouchDevice,
-  useLayoutEffect,
-} from '@studio-freight/hamo'
+import { useIsTouchDevice, useLayoutEffect } from '@studio-freight/hamo'
 import Lenis from '@studio-freight/lenis'
 import cn from 'clsx'
 import { Cursor } from 'components/cursor'
 import { CustomHead } from 'components/custom-head'
 import { Footer } from 'components/footer'
 import { Header } from 'components/header'
+import { useFrame } from 'hooks/use-frame'
 import { useStore } from 'lib/store'
 import { useRouter } from 'next/router'
 import { useState } from 'react'
@@ -81,7 +78,7 @@ export function Layout({
     }
   }, [])
 
-  useFrame(() => {
+  useFrame((time, deltaTime) => {
     lenis?.raf()
   }, [])
 

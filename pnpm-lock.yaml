@@ -7,7 +7,6 @@ specifiers:
   '@next/bundle-analyzer': ^12.2.0
   '@radix-ui/react-accordion': ^0.1.6
   '@radix-ui/react-select': ^0.1.1
-  '@react-spring/rafz': ^9.4.5
   '@studio-freight/hamo': ^0.4.8
   '@studio-freight/lenis': ^0.1.12
   '@svgr/webpack': ^6.2.1
@@ -24,6 +23,7 @@ specifiers:
   gsap: ^3.10.4
   husky: ^8.0.1
   lint-staged: ^13.0.3
+  nanoid: ^4.0.0
   next: 12.2.0
   next-compose-plugins: ^2.2.1
   next-seo: ^5.4.0
@@ -44,7 +44,6 @@ specifiers:
 dependencies:
   '@radix-ui/react-accordion': 0.1.6_react@18.2.0
   '@radix-ui/react-select': 0.1.1_biqbaboplfbrettd7655fr4n2y
-  '@react-spring/rafz': 9.4.5
   '@studio-freight/hamo': 0.4.8_biqbaboplfbrettd7655fr4n2y
   '@studio-freight/lenis': 0.1.12
   clsx: 1.1.1
@@ -54,6 +53,7 @@ dependencies:
   embla-carousel-react: 6.2.0_react@18.2.0
   gsap: 3.10.4
   lint-staged: 13.0.3
+  nanoid: 4.0.0
   next: 12.2.0_zazhvxb5wdpfvem7m5mnvhb45a
   next-seo: 5.4.0_24lkarzjpo3wcmj2o6qyrkug4y
   next-sitemap: 3.1.7_next@12.2.0
@@ -3901,6 +3901,12 @@ packages:
     resolution: {integrity: sha512-MqBkQh/OHTS2egovRtLk45wEyNXwF+cokD+1YPf9u5VfJiRdAiRwB2froX5Co9Rh20xs4siNPm8naNotSD6RBw==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
+
+  /nanoid/4.0.0:
+    resolution: {integrity: sha512-IgBP8piMxe/gf73RTQx7hmnhwz0aaEXYakvqZyE302IXW3HyVNhdNGC+O2MwMAVhLEnvXlvKtGbtJf6wvHihCg==}
+    engines: {node: ^14 || ^16 || >=18}
+    hasBin: true
+    dev: false
 
   /natural-compare/1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}

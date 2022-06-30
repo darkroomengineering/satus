@@ -1,34 +1,26 @@
-import { raf } from '@react-spring/rafz'
-import { useLayoutEffect } from '@studio-freight/hamo'
+import useFrame from 'hooks/use-frame'
+import { useEffect, useMemo } from 'react'
 import _Stats from 'stats.js'
 
 export const Stats = () => {
-  useLayoutEffect(() => {
-    var stats = new _Stats()
+  const stats = useMemo(() => new _Stats(), [])
+
+  useEffect(() => {
     stats.showPanel(0) // 0: fps, 1: ms, 2: mb, 3+: custom
     document.body.appendChild(stats.dom)
 
-    function onStart() {
-      stats.begin()
-
-      return true
-    }
-
-    function onFinish() {
-      stats.end()
-
-      return true
-    }
-
-    raf.onStart(onStart)
-    raf.onFinish(onFinish)
-
     return () => {
-      raf.cancel(onStart)
-      raf.cancel(onFinish)
       stats.dom.remove()
     }
-  }, [])
+  }, [stats])
+
+  useFrame(() => {
+    stats.begin()
+  }, -Infinity)
+
+  useFrame(() => {
+    stats.end()
+  }, Infinity)
 
   return null
 }

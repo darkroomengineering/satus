@@ -41,6 +41,7 @@ This starter kit is composed of:
 
 This starter kit is composed of:
 
+- react-three-fiber
 - SVG import through [@svgr/webpack](https://www.npmjs.com/package/@svgr/webpack)
 - Sass architecture and tooling:
   - To VW Functions

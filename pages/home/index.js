@@ -104,7 +104,7 @@ export default function Home() {
                 <button onClick={scrollPrev} className={s['slide-buttons']}>
                   previous
                 </button>
-                <button onClick={scrollPrev} className={s['slide-buttons']}>
+                <button onClick={scrollNext} className={s['slide-buttons']}>
                   next
                 </button>
               </div>

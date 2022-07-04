@@ -6,7 +6,9 @@ position: use 'top' if element is visible on first screen of your page.
 ```javascript
 import { Parallax } from 'components/parallax'
 
-<Parallax speed={1}>
+return (
+  <Parallax speed={1}>
     <div></div>
-</Parralax>
+  </Parallax>
+)
 ```

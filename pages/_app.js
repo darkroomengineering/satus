@@ -3,11 +3,11 @@ import {
   useIsTouchDevice,
   useLayoutEffect,
 } from '@studio-freight/hamo'
+import { raf } from '@studio-freight/tempus'
 import { RealViewport } from 'components/real-viewport'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger'
 import { GA_ID, GTM_ID } from 'lib/analytics'
-import { raf } from 'lib/raf'
 import { useStore } from 'lib/store'
 import dynamic from 'next/dynamic'
 import Script from 'next/script'

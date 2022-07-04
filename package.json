@@ -16,8 +16,9 @@
   "dependencies": {
     "@radix-ui/react-accordion": "^0.1.6",
     "@radix-ui/react-select": "^0.1.1",
-    "@studio-freight/hamo": "^0.4.8",
+    "@studio-freight/hamo": "^0.4.17",
     "@studio-freight/lenis": "^0.1.12",
+    "@studio-freight/tempus": "^0.0.9",
     "clsx": "^1.1.1",
     "cross-env": "^7.0.3",
     "debounce": "^1.2.1",

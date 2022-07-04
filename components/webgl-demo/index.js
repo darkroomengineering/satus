@@ -1,5 +1,6 @@
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useThree } from '@react-three/fiber'
 import { EffectComposer, SMAA } from '@react-three/postprocessing'
+import { useFrame } from '@studio-freight/hamo'
 import { Suspense, useRef } from 'react'
 
 // https://docs.pmnd.rs/
@@ -42,6 +43,14 @@ function Demo() {
   )
 }
 
+function Raf() {
+  const { advance } = useThree()
+
+  useFrame((time) => {
+    advance(time / 1000)
+  })
+}
+
 export function WebGLDemo({ onLoad = () => {} }) {
   // const { progress } = useProgress()
 
@@ -54,6 +63,7 @@ export function WebGLDemo({ onLoad = () => {} }) {
 
   return (
     <Canvas>
+      <Raf />
       <Suspense>
         <Demo />
       </Suspense>

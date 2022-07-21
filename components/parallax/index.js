@@ -31,7 +31,6 @@ export function Parallax({
         end: 'bottom top',
         onUpdate: (e) => {
           if (position === 'top') {
-            const progress = e.scroll() / windowWidth
             setY(e.progress * y)
           } else {
             setY(-mapRange(0, 1, e.progress, -y, y))

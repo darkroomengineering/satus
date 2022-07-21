@@ -63,7 +63,9 @@ export function Layout({
       const node = e.currentTarget
       const hash = node.href.split('#').pop()
       setHash('#' + hash)
-      window.location.hash = hash
+      setTimeout(() => {
+        window.location.hash = hash
+      }, 0)
     }
 
     const internalLinks = [...document.querySelectorAll('[href]')].filter(
@@ -81,7 +83,7 @@ export function Layout({
     }
   }, [])
 
-  useFrame((time, deltaTime) => {
+  useFrame(() => {
     lenis?.raf()
   }, [])
 

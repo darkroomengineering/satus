@@ -9,6 +9,7 @@ import { Cursor } from 'components/cursor'
 import { CustomHead } from 'components/custom-head'
 import { Footer } from 'components/footer'
 import { Header } from 'components/header'
+import { Scrollbar } from 'components/scrollbar'
 import { useStore } from 'lib/store'
 import { useRouter } from 'next/router'
 import { useState } from 'react'
@@ -92,6 +93,7 @@ export function Layout({
       <CustomHead {...seo} />
       <div className={cn(`theme-${theme}`, s.layout, className)}>
         {isTouchDevice === false && <Cursor />}
+        {isTouchDevice === false && <Scrollbar />}
         <Header ref={ref} />
         <main className={s.main}>{children}</main>
         <Footer />

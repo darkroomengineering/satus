@@ -1,5 +1,5 @@
 import { useScroll } from 'hooks/use-scroll'
-import { clamp } from 'lib/maths'
+import { clamp, mapRange } from 'lib/maths'
 import { useStore } from 'lib/store'
 import { useEffect, useRef, useState } from 'react'
 import { useWindowSize } from 'react-use'
@@ -28,7 +28,17 @@ export function Scrollbar({}) {
 
     function onPointerMove(e) {
       e.preventDefault()
-      const progress = clamp(0, e.clientY / windowHeight, 1)
+
+      const offset = (windowHeight - innerHeight) / 2
+      const y = mapRange(
+        0,
+        windowHeight,
+        e.clientY,
+        -offset,
+        innerHeight + offset
+      )
+
+      const progress = clamp(0, y / innerHeight, 1)
       const newPos = lenis.limit * progress
 
       lenis.direction === 'vertical'

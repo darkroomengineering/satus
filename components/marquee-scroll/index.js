@@ -2,32 +2,38 @@ import { useRect } from '@studio-freight/hamo'
 import { useScroll } from 'hooks/use-scroll'
 import { truncate } from 'lib/maths'
 import { useRef } from 'react'
+import { useWindowSize } from 'react-use'
 import s from './marquee-scroll.module.scss'
 
 export function MarqueeScroll({ children, className, repeat = 2 }) {
   const el = useRef()
 
-  const lastProgress = useRef(0)
+  const [setRef, rect] = useRect()
+  const { height: windowHeight } = useWindowSize()
 
-  const [ref, compute] = useRect()
+  useScroll(
+    ({ scroll }) => {
+      if (!rect.top) return
+      const scrollY = scroll
 
-  useScroll(({ scroll }) => {
-    const scrollY = scroll
+      const progress = -truncate((scrollY * 0.1) % 100, 3)
 
-    const progress = -truncate((scrollY * 0.1) % 100, 3)
+      const top = rect.top - scrollY
 
-    const { inView } = compute(scrollY)
+      const inView = top + rect.height > 0 && top < windowHeight
 
-    if (inView && progress !== lastProgress.current) {
-      el.current.style.setProperty('--marquee-progress', progress + '%')
-    }
-  })
+      if (inView) {
+        el.current.style.setProperty('--marquee-progress', progress + '%')
+      }
+    },
+    [rect, windowHeight]
+  )
 
   return (
     <div
       ref={(node) => {
         el.current = node
-        ref(node)
+        setRef(node)
       }}
       className={className}
     >

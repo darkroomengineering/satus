@@ -11,7 +11,7 @@ specifiers:
   '@next/bundle-analyzer': ^12.2.5
   '@radix-ui/react-accordion': ^1.0.0
   '@radix-ui/react-select': ^1.0.0
-  '@studio-freight/hamo': ^0.4.23
+  '@studio-freight/hamo': ^0.4.24
   '@studio-freight/lenis': ^0.1.14
   '@studio-freight/tempus': ^0.0.25
   '@svgr/webpack': ^6.3.1
@@ -50,7 +50,7 @@ specifiers:
 dependencies:
   '@radix-ui/react-accordion': 1.0.0_biqbaboplfbrettd7655fr4n2y
   '@radix-ui/react-select': 1.0.0_biqbaboplfbrettd7655fr4n2y
-  '@studio-freight/hamo': 0.4.23_twoewwu6sg7cdf3ao6njtbftne
+  '@studio-freight/hamo': 0.4.24_twoewwu6sg7cdf3ao6njtbftne
   '@studio-freight/lenis': 0.1.14
   '@studio-freight/tempus': 0.0.25
   clsx: 1.2.1
@@ -1872,8 +1872,8 @@ packages:
     resolution: {integrity: sha512-LwzQKA4vzIct1zNZzBmRKI9QuNpLgTQMEjsQLf3BXuGYb3QPTP4Yjf6mkdX+X1mYttZ808QpOwAzZjv28kq7DA==}
     dev: true
 
-  /@studio-freight/hamo/0.4.23_twoewwu6sg7cdf3ao6njtbftne:
-    resolution: {integrity: sha512-lDKVnSWM2NUq4RBhD/7ZNaSpTyEbyIYHBhf+sj25zB0eYd+KeabR68N9c8336pvdxHz+dWZ6tJtqgmuqC4fV2w==}
+  /@studio-freight/hamo/0.4.24_twoewwu6sg7cdf3ao6njtbftne:
+    resolution: {integrity: sha512-kYr1F5hA4oLGo0p6jWZed4giO67TUlkw0Y8mPoip/x6/3h42O8NcDrRaH9pv4WqWAvS1JyTXOjPNnatrB3rdRg==}
     peerDependencies:
       react: ^17.0.2
       react-dom: ^17.0.2

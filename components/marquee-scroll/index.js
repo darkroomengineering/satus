@@ -1,4 +1,4 @@
-import { useRect } from 'hooks/use-rect'
+import { useRect } from '@studio-freight/hamo'
 import { useScroll } from 'hooks/use-scroll'
 import { truncate } from 'lib/maths'
 import { useRef } from 'react'

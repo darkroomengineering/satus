@@ -5,9 +5,10 @@ import { Marquee } from 'components/marquee'
 import { MarqueeScroll } from 'components/marquee-scroll'
 import * as Select from 'components/select'
 import { Slider } from 'components/slider'
+import { useRect } from 'hooks/use-rect'
+import { useScroll } from 'hooks/use-scroll'
 import { Layout } from 'layouts/default'
-import { useEffect, useRef } from 'react'
-import useMeasure from 'react-use-measure'
+import { useRef } from 'react'
 import s from './home.module.scss'
 
 const devs = [
@@ -35,18 +36,25 @@ const devs = [
 
 export default function Home() {
   const rectRef = useRef()
-  const [ref, bounds] = useMeasure({ scroll: false, debounce: 0 })
+  const [setRef, rect] = useRect()
 
-  useEffect(() => {
-    const string = `left:${Math.round(bounds.left)}px<br>top:${Math.round(
-      bounds.top
-    )}px<br>width:${bounds.width}px<br>height:${
-      bounds.height
-    }px<br>right:${Math.round(bounds.right)}px<br>bottom:${Math.round(
-      bounds.bottom
-    )}px`
-    rectRef.current.innerHTML = string
-  }, [bounds])
+  useScroll(
+    ({ scroll }) => {
+      if (!rect.top) return
+      const top = rect.top - scroll
+      const left = rect.left
+      const width = rect.width
+      const height = rect.height
+
+      const string = `left:${Math.round(left)}px<br>top:${Math.round(
+        top
+      )}px<br>width:${width}px<br>height:${height}px<br>right:${Math.round(
+        left + width
+      )}px<br>bottom:${Math.round(top + height)}px`
+      rectRef.current.innerHTML = string
+    },
+    [rect]
+  )
 
   console.log('update')
 
@@ -129,7 +137,7 @@ export default function Home() {
         <div style={{ height: '100vh' }} id="rect">
           <div
             ref={(node) => {
-              ref(node)
+              setRef(node)
               rectRef.current = node
             }}
             style={{

@@ -12,7 +12,7 @@ specifiers:
   '@radix-ui/react-accordion': ^1.0.0
   '@radix-ui/react-select': ^1.0.0
   '@studio-freight/hamo': ^0.4.23
-  '@studio-freight/lenis': ^0.1.13
+  '@studio-freight/lenis': ^0.1.14
   '@studio-freight/tempus': ^0.0.25
   '@svgr/webpack': ^6.3.1
   clsx: ^1.2.1
@@ -51,7 +51,7 @@ dependencies:
   '@radix-ui/react-accordion': 1.0.0_biqbaboplfbrettd7655fr4n2y
   '@radix-ui/react-select': 1.0.0_biqbaboplfbrettd7655fr4n2y
   '@studio-freight/hamo': 0.4.23_twoewwu6sg7cdf3ao6njtbftne
-  '@studio-freight/lenis': 0.1.13
+  '@studio-freight/lenis': 0.1.14
   '@studio-freight/tempus': 0.0.25
   clsx: 1.2.1
   cross-env: 7.0.3
@@ -1891,8 +1891,8 @@ packages:
       - supports-color
     dev: false
 
-  /@studio-freight/lenis/0.1.13:
-    resolution: {integrity: sha512-2iaTpM4wLVFhFzYSge/B6IOmLFr9otnk/a1OtcmnAMztPXywL3cYInrXHZsOKVonBQXKzMjpRJxlcRliW6LVig==}
+  /@studio-freight/lenis/0.1.14:
+    resolution: {integrity: sha512-cEWtOg83CTy0RbwcKQQtDhe7Pyu2zKahSFDVkuhXOFQx1+EirANMSK+zOWGCb8OkMOWlFaZTky7qO32eJtwj1A==}
     dependencies:
       path: 0.12.7
       stats.js: 0.17.0

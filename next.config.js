@@ -16,9 +16,6 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 
 const nextConfig = {
   reactStrictMode: true,
-  optimization: {
-    mergeDuplicateChunks: true,
-  },
   experimental: {
     optimizeCss: true,
     browsersListForSwc: true,

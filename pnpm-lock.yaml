@@ -30,6 +30,7 @@ specifiers:
   gsap: ^3.11.0
   husky: ^8.0.1
   lint-staged: ^13.0.3
+  lottie-web: ^5.9.6
   nanoid: ^4.0.0
   next: 12.2.5
   next-pwa: 5.6.0
@@ -64,6 +65,7 @@ dependencies:
   globby: 13.1.2
   gsap: 3.11.0
   lint-staged: 13.0.3
+  lottie-web: 5.9.6
   nanoid: 4.0.0
   next: 12.2.5_gg4q7kzk767eyosohdrsyqkbt4
   next-pwa: 5.6.0_jrfcohzf53vj6sldj32ireweoy
@@ -4167,6 +4169,10 @@ packages:
     hasBin: true
     dependencies:
       js-tokens: 4.0.0
+
+  /lottie-web/5.9.6:
+    resolution: {integrity: sha512-JFs7KsHwflugH5qIXBpB4905yC1Sub2MZWtl/elvO/QC6qj1ApqbUZJyjzJseJUtVpgiDaXQLjBlIJGS7UUUXA==}
+    dev: false
 
   /lru-cache/6.0.0:
     resolution: {integrity: sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==}

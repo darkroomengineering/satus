@@ -16,7 +16,7 @@
   "dependencies": {
     "@radix-ui/react-accordion": "^1.0.0",
     "@radix-ui/react-select": "^1.0.0",
-    "@studio-freight/hamo": "^0.4.24",
+    "@studio-freight/hamo": "^0.4.30",
     "@studio-freight/lenis": "^0.1.14",
     "@studio-freight/tempus": "^0.0.25",
     "clsx": "^1.2.1",
@@ -44,15 +44,15 @@
     "@babel/plugin-syntax-flow": "^7.18.6",
     "@babel/plugin-transform-react-jsx": "^7.18.10",
     "@next/bundle-analyzer": "^12.2.5",
-    "duplicate-package-checker-webpack-plugin": "^3.0.0",
     "@svgr/webpack": "^6.3.1",
-    "lint-staged": "^13.0.3",
     "critters": "^0.0.16",
     "cross-env": "^7.0.3",
+    "duplicate-package-checker-webpack-plugin": "^3.0.0",
     "eslint": "8.22.0",
     "eslint-config-next": "12.2.5",
     "eslint-config-prettier": "^8.5.0",
     "husky": "^8.0.1",
+    "lint-staged": "^13.0.3",
     "next-transpile-modules": "^9.0.0",
     "prettier": "^2.7.1",
     "prettier-eslint": "^15.0.1"
@@ -61,15 +61,9 @@
     "*.js": "eslint --cache --fix",
     "*.{js,css,scss,md}": "prettier --write"
   },
-  "peerDependencies": {
-    "@babel/core": ">=7.0.0 <8.0.0",
-    "@babel/plugin-syntax-flow": "^7.14.5",
-    "@babel/plugin-transform-react-jsx": "^7.14.9",
-    "embla-carousel": "6.2.0",
-    "typescript": ">=3.3.1",
-    "webpack": ">=5.11.0 <6.0.0"
-  },
   "pnpm": {
-    "overrides": {}
+    "overrides": {
+      "throttle-debounce": "5.0.0"
+    }
   }
 }

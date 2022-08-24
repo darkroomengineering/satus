@@ -15,6 +15,9 @@ const nextConfig = {
     optimizeCss: true,
     browsersListForSwc: true,
     legacyBrowsers: false,
+    images: {
+      allowFutureImage: true,
+    },
   },
   compiler: {
     removeConsole: process.env.NODE_ENV !== 'development',
@@ -24,7 +27,7 @@ const nextConfig = {
     // ADD in case you need to import SVGs in next/image component
     // dangerouslyAllowSVG: true,
     // contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    domains: ['images.ctfassets.net'],
+    domains: ['images.ctfassets.net', 'assets.studiofreight.com'],
     formats: ['image/avif', 'image/webp'],
   },
   async redirects() {

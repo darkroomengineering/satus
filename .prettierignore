@@ -1,0 +1,8 @@
+node_modules
+**/.next/**
+**/dist/**
+**/public/**
+.github/**
+.vercel/**
+.husky/**
+pnpm-lock.yaml

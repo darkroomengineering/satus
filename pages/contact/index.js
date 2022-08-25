@@ -3,6 +3,8 @@ import { Layout } from 'layouts/default'
 import s from './contact.module.scss'
 
 export default function Contact() {
+  const test = ''
+
   return (
     <Layout theme="dark">
       <section className={s.hero}>

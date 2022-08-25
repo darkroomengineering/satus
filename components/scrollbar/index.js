@@ -46,7 +46,7 @@ export function Scrollbar({}) {
         : window.scrollTo(newPos, 0)
     }
 
-    function onPointerUp(e) {
+    function onPointerUp() {
       setClicked(false)
     }
 

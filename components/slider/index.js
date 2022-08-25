@@ -6,9 +6,7 @@ import s from './slider.module.scss'
 
 const Slides = forwardRef(({ children, className }, ref) => (
   <div className={cn(s.slider, className)} ref={ref}>
-    <div className={s.container}>
-      {[children].flat().map((child, idx) => child)}
-    </div>
+    <div className={s.container}>{[children].flat().map((child) => child)}</div>
   </div>
 ))
 Slides.displayName = 'Slides'
@@ -18,7 +16,8 @@ const Slider = ({
   emblaApi = { autoplay: false },
   enabled = true,
 }) => {
-  const [scrollSnaps, setScrollSnaps] = useState([])
+  // eslint-disable-next-line no-unused-vars
+  const [_, setScrollSnaps] = useState([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const autoplay = Autoplay(
     { delay: emblaApi?.autoplay?.delay || null },

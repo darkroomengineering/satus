@@ -57,5 +57,10 @@
   "lint-staged": {
     "*.js": "eslint --cache --fix",
     "*.{js,css,scss,md}": "prettier --write"
+  },
+  "pnpm": {
+    "overrides": {
+      "throttle-debounce": "5.0.0"
+    }
   }
 }

@@ -1,16 +1,13 @@
 import cn from 'clsx'
 import gsap from 'gsap'
-import { useRouter } from 'next/router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import s from './cursor.module.scss'
 
 const Cursor = () => {
   const cursor = useRef()
-  const [state, setState] = useState('default')
   const [isGrab, setIsGrab] = useState(false)
   const [isPointer, setIsPointer] = useState(false)
   const [hasMoved, setHasMoved] = useState(false)
-  const router = useRouter()
 
   const onMouseMove = useCallback(
     ({ clientX, clientY }) => {

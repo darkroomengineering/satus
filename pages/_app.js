@@ -1,8 +1,4 @@
-import {
-  useDebug,
-  useIsTouchDevice,
-  useLayoutEffect,
-} from '@studio-freight/hamo'
+import { useDebug, useLayoutEffect } from '@studio-freight/hamo'
 import { raf } from '@studio-freight/tempus'
 import { RealViewport } from 'components/real-viewport'
 import { gsap } from 'gsap'
@@ -13,7 +9,6 @@ import dynamic from 'next/dynamic'
 import Script from 'next/script'
 import { useEffect } from 'react'
 import 'styles/global.scss'
-import useDarkMode from 'use-dark-mode'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -35,8 +30,6 @@ const GridDebugger = dynamic(
 )
 
 function MyApp({ Component, pageProps }) {
-  const isTouchDevice = useIsTouchDevice()
-  const darkMode = useDarkMode()
   const debug = useDebug()
   const lenis = useStore(({ lenis }) => lenis)
   const overflow = useStore(({ overflow }) => overflow)

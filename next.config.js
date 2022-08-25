@@ -136,7 +136,7 @@ const nextConfig = {
   },
 }
 
-module.exports = (_phase) => {
+module.exports = () => {
   const plugins = [withPWA, withTM, withBundleAnalyzer]
   return plugins.reduce((acc, plugin) => plugin(acc), {
     ...nextConfig,

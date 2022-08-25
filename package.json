@@ -11,7 +11,8 @@
     "analyze": "cross-env ANALYZE=true next build",
     "analyze:server": "cross-env BUNDLE_ANALYZE=server next build",
     "analyze:browser": "cross-env BUNDLE_ANALYZE=browser next build",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "size": "npm run build && size-limit"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.0.0",
@@ -41,6 +42,7 @@
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^12.2.5",
+    "@size-limit/preset-app": "^8.0.1",
     "@svgr/webpack": "^6.3.1",
     "critters": "^0.0.16",
     "cross-env": "^7.0.3",
@@ -52,6 +54,7 @@
     "lint-staged": "^13.0.3",
     "prettier": "^2.7.1",
     "prettier-eslint": "^15.0.1",
+    "size-limit": "^8.0.1",
     "stats.js": "^0.17.0"
   },
   "lint-staged": {
@@ -62,5 +65,10 @@
     "overrides": {
       "throttle-debounce": "5.0.0"
     }
-  }
+  },
+  "size-limit": [
+    {
+      "path": ".next/static/chunks/**/*.js"
+    }
+  ]
 }

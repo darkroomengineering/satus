@@ -1,6 +1,6 @@
 {
   "name": "satus",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -30,19 +30,16 @@
     "next-pwa": "5.6.0",
     "next-seo": "^5.5.0",
     "next-sitemap": "^3.1.21",
+    "next-transpile-modules": "^9.0.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-use": "^17.4.0",
     "react-use-measure": "^2.1.1",
     "sass": "^1.54.5",
-    "stats.js": "^0.17.0",
     "use-dark-mode": "^2.3.1",
     "zustand": "4.1.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.18.13",
-    "@babel/plugin-syntax-flow": "^7.18.6",
-    "@babel/plugin-transform-react-jsx": "^7.18.10",
     "@next/bundle-analyzer": "^12.2.5",
     "@svgr/webpack": "^6.3.1",
     "critters": "^0.0.16",
@@ -53,17 +50,12 @@
     "eslint-config-prettier": "^8.5.0",
     "husky": "^8.0.1",
     "lint-staged": "^13.0.3",
-    "next-transpile-modules": "^9.0.0",
     "prettier": "^2.7.1",
-    "prettier-eslint": "^15.0.1"
+    "prettier-eslint": "^15.0.1",
+    "stats.js": "^0.17.0"
   },
   "lint-staged": {
     "*.js": "eslint --cache --fix",
     "*.{js,css,scss,md}": "prettier --write"
-  },
-  "pnpm": {
-    "overrides": {
-      "throttle-debounce": "5.0.0"
-    }
   }
 }

@@ -20,6 +20,7 @@ const nextConfig = {
     optimizeCss: true,
     browsersListForSwc: true,
     legacyBrowsers: false,
+    nextScriptWorkers: true,
     images: {
       allowFutureImage: true,
     },

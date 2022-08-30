@@ -81,12 +81,12 @@ function MyApp({ Component, pageProps }) {
         <>
           <Script
             async
-            strategy="afterInteractive"
+            strategy="worker"
             src={`https://www.googletagmanager.com/gtag/js?id=${GTM_ID}`}
           />
           <Script
             id="gtm-base"
-            strategy="afterInteractive"
+            strategy="worker"
             dangerouslySetInnerHTML={{
               __html: `window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}

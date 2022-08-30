@@ -41,6 +41,7 @@
     "zustand": "4.1.1"
   },
   "devDependencies": {
+    "@builder.io/partytown": "^0.7.0",
     "@next/bundle-analyzer": "^12.2.5",
     "@size-limit/preset-app": "^8.0.1",
     "@svgr/webpack": "^6.3.1",

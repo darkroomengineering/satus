@@ -57,8 +57,6 @@ export default function Home() {
     [rect]
   )
 
-  console.log('update')
-
   return (
     <Layout theme="light">
       <section className={s.home}>
@@ -155,4 +153,12 @@ export default function Home() {
       </section>
     </Layout>
   )
+}
+
+export async function getStaticProps() {
+  return {
+    props: {
+      id: 'home',
+    }, // will be passed to the page component as props
+  }
 }

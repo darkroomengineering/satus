@@ -99,3 +99,11 @@ export default function Page() {
     </Layout>
   )
 }
+
+export async function getStaticProps() {
+  return {
+    props: {
+      id: 'gsap',
+    }, // will be passed to the page component as props
+  }
+}

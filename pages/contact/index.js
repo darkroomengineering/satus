@@ -11,3 +11,11 @@ export default function Contact() {
     </Layout>
   )
 }
+
+export async function getStaticProps() {
+  return {
+    props: {
+      id: 'contact',
+    }, // will be passed to the page component as props
+  }
+}

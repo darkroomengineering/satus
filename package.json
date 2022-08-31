@@ -25,6 +25,7 @@
     "embla-carousel-autoplay": "7.0.1",
     "embla-carousel-react": "7.0.1",
     "gsap": "^3.11.0",
+    "lint-staged": "^13.0.3",
     "lottie-web": "^5.9.6",
     "nanoid": "^4.0.0",
     "next": "12.2.5",

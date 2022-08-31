@@ -1,3 +1,4 @@
+import { useStore } from 'lib/store'
 import NextLink from 'next/link'
 import { forwardRef } from 'react'
 
@@ -22,6 +23,10 @@ export const Link = forwardRef(
       className,
       style,
     }
+
+    const setTriggerTransition = useStore(
+      ({ setTriggerTransition }) => setTriggerTransition
+    )
 
     if (typeof href !== 'string') {
       return <button {...attributes}>{children}</button>
@@ -52,6 +57,11 @@ export const Link = forwardRef(
       <NextLink href={href} passHref={isExternal || isAnchor}>
         <a
           {...attributes}
+          onClick={(e) => {
+            e.preventDefault()
+            setTriggerTransition(href)
+            onClick()
+          }}
           {...(isExternal && { target: '_blank', rel: 'noopener noreferrer' })}
         >
           {children}

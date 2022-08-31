@@ -7,6 +7,7 @@
 @import './_utils.scss';
 @import './_font-style.scss';
 @import './_themes.scss';
+@import './_scroll.scss';
 
 :root {
   --header-height: #{mobile-vw(58px)};
@@ -14,17 +15,6 @@
   @include desktop {
     --header-height: #{desktop-vw(98px)};
   }
-}
-
-html {
-  scrollbar-width: none !important;
-}
-body {
-  -ms-overflow-style: none;
-}
-body::-webkit-scrollbar {
-  width: 0 !important;
-  height: 0 !important;
 }
 
 html {

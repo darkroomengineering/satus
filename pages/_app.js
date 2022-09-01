@@ -55,8 +55,6 @@ function MyApp({ Component, pageProps }) {
       lenis?.stop()
       document.documentElement.style.setProperty('overflow', 'hidden')
     }
-
-    console.log({ overflow })
   }, [lenis, overflow])
 
   useLayoutEffect(() => {

@@ -9,6 +9,7 @@ export const PageTransition = () => {
   const curtainRef = useRef()
   const router = useRouter()
   const [pageLoaded, setPageloaded] = useState(false)
+  const [curtainInComplete, setCurtainInComplete] = useState(false)
   const triggerTransition = useStore(
     ({ triggerTransition }) => triggerTransition
   )
@@ -18,16 +19,16 @@ export const PageTransition = () => {
   const timeline = useRef(gsap.timeline())
 
   useEffect(() => {
+    if (!curtainInComplete) return
     const changeRouteComplete = () => {
       setPageloaded(true)
     }
 
     router.events.on('routeChangeComplete', changeRouteComplete)
-
     return () => {
       router.events.off('routeChangeComplete', changeRouteComplete)
     }
-  }, [])
+  }, [curtainInComplete])
 
   useLayoutEffect(() => {
     if (triggerTransition === '') return
@@ -37,6 +38,7 @@ export const PageTransition = () => {
       startAt: { x: '-100%' },
       onComplete: () => {
         router.push(triggerTransition)
+        setCurtainInComplete(true)
       },
       ease: 'circ.out',
     })
@@ -51,6 +53,7 @@ export const PageTransition = () => {
       startAt: { x: 0 },
       onComplete: () => {
         setTriggerTransition('')
+        setCurtainInComplete(false)
         setPageloaded(false)
       },
       ease: 'circ.out',

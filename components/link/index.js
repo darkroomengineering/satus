@@ -53,13 +53,31 @@ export const Link = forwardRef(
       href = `/${href}`
     }
 
+    const needsShallow = (href) => {
+      // Add hrefs that don't need rerunnnig like modals
+      const urlsShallow = ['?demo=true']
+      return !!urlsShallow.find((url) => href.includes(url))
+    }
+
+    const needsTransition = (href) => {
+      // Add hrefs that use page transition
+      const urlsTransition = ['gsap', 'contact']
+      return !!urlsTransition.find((url) => href.includes(url))
+    }
+
     return (
-      <NextLink href={href} passHref={isExternal || isAnchor}>
+      <NextLink
+        href={href}
+        passHref={isExternal || isAnchor}
+        shallow={needsShallow(href)}
+      >
         <a
           {...attributes}
           onClick={(e) => {
-            e.preventDefault()
-            setTriggerTransition(href)
+            if (needsTransition(href)) {
+              e.preventDefault()
+              setTriggerTransition(href)
+            }
             onClick()
           }}
           {...(isExternal && { target: '_blank', rel: 'noopener noreferrer' })}

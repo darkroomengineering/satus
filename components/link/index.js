@@ -59,9 +59,9 @@ export const Link = forwardRef(
       return !!urlsShallow.find((url) => href.includes(url))
     }
 
-    const needsTransition = (href) => {
+    const noTransition = (href) => {
       // Add hrefs that use page transition
-      const urlsTransition = ['gsap', 'contact']
+      const urlsTransition = ['gsap']
       return !!urlsTransition.find((url) => href.includes(url))
     }
 
@@ -74,7 +74,7 @@ export const Link = forwardRef(
         <a
           {...attributes}
           onClick={(e) => {
-            if (needsTransition(href)) {
+            if (!noTransition(href)) {
               e.preventDefault()
               setTriggerTransition(href)
             }

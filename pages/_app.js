@@ -1,5 +1,6 @@
 import { useDebug, useLayoutEffect } from '@studio-freight/hamo'
 import { raf } from '@studio-freight/tempus'
+import { PageTransition } from 'components/page-transition'
 import { RealViewport } from 'components/real-viewport'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger'
@@ -54,8 +55,6 @@ function MyApp({ Component, pageProps }) {
       lenis?.stop()
       document.documentElement.style.setProperty('overflow', 'hidden')
     }
-
-    console.log({ overflow })
   }, [lenis, overflow])
 
   useLayoutEffect(() => {
@@ -96,6 +95,7 @@ function MyApp({ Component, pageProps }) {
           />
         </>
       )}
+      <PageTransition />
       <RealViewport />
       <Component {...pageProps} />
     </>

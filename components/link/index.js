@@ -1,3 +1,4 @@
+import { useStore } from 'lib/store'
 import NextLink from 'next/link'
 import { forwardRef } from 'react'
 
@@ -22,6 +23,10 @@ export const Link = forwardRef(
       className,
       style,
     }
+
+    const setTriggerTransition = useStore(
+      ({ setTriggerTransition }) => setTriggerTransition
+    )
 
     if (typeof href !== 'string') {
       return <button {...attributes}>{children}</button>
@@ -48,10 +53,33 @@ export const Link = forwardRef(
       href = `/${href}`
     }
 
+    const needsShallow = (href) => {
+      // Add hrefs that don't need rerunnnig like modals
+      const urlsShallow = ['?demo=true']
+      return !!urlsShallow.find((url) => href.includes(url))
+    }
+
+    const noTransition = (href) => {
+      // Add hrefs that don't use page transition
+      const urlsTransition = ['gsap']
+      return !!urlsTransition.find((url) => href.includes(url))
+    }
+
     return (
-      <NextLink href={href} passHref={isExternal || isAnchor}>
+      <NextLink
+        href={href}
+        passHref={isExternal || isAnchor}
+        shallow={needsShallow(href)}
+      >
         <a
           {...attributes}
+          onClick={(e) => {
+            if (!noTransition(href)) {
+              e.preventDefault()
+              setTriggerTransition(href)
+            }
+            onClick()
+          }}
           {...(isExternal && { target: '_blank', rel: 'noopener noreferrer' })}
         >
           {children}

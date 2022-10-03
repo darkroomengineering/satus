@@ -1,3 +1,19 @@
 .hero {
   height: 100vh;
 }
+
+.content {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 600ms var(--ease-out-expo);
+  opacity: 0;
+
+  &.show {
+    opacity: 1;
+  }
+}

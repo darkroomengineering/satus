@@ -47,13 +47,8 @@ This starter kit is composed of:
   - Reset
   - Easings
 - Hooks:
-  - useDebug
-  - useFrame
-  - useInterval
-  - useIsTouchDevice
-  - useMediaQuery
-  - useRect
-  - useSlots
+  - provided by @studio-freight/hamo
+  - - useScroll
 - Custom Cursor support
 - Real Viewport component
 - Grid Debugger

@@ -22,9 +22,9 @@ const nextConfig = {
     browsersListForSwc: true,
     legacyBrowsers: false,
     nextScriptWorkers: true,
-    images: {
-      allowFutureImage: true,
-    },
+  },
+  images: {
+    allowFutureImage: true,
   },
   compiler: {
     removeConsole: process.env.NODE_ENV !== 'development',

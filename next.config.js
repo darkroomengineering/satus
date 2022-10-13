@@ -13,6 +13,7 @@ const DuplicatePackageCheckerPlugin = require('duplicate-package-checker-webpack
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 })
+const path = require('path')
 
 const nextConfig = {
   reactStrictMode: true,
@@ -35,6 +36,11 @@ const nextConfig = {
     // contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     domains: ['images.ctfassets.net', 'assets.studiofreight.com'],
     formats: ['image/avif', 'image/webp'],
+  },
+  // add @import 'styles/_functions'; to all scss files.
+  sassOptions: {
+    includePaths: [path.join(__dirname, 'styles')],
+    prependData: `@import 'styles/_functions';`,
   },
   async redirects() {
     return [

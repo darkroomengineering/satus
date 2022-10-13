@@ -14,6 +14,7 @@ import 'styles/global.scss'
 gsap.registerPlugin(ScrollTrigger)
 
 // merge rafs
+gsap.ticker.lagSmoothing(0)
 gsap.ticker.remove(gsap.updateRoot)
 raf.add((time) => {
   gsap.updateRoot(time / 1000)

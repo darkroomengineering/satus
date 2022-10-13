@@ -3,7 +3,7 @@ import cn from 'clsx'
 import { useMemo, useState } from 'react'
 import s from './grid-debugger.module.scss'
 
-export const GridDebugger = () => {
+export function GridDebugger() {
   const [visible, setVisible] = useState(false)
   const isMobile = useMediaQuery('(max-width: 800px)')
 

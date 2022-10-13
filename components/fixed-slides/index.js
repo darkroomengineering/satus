@@ -40,7 +40,7 @@ export function FixedSlides({ length, children }) {
   )
 }
 
-const ProgressBar = ({ progress }) => {
+function ProgressBar({ progress }) {
   return (
     <div
       className={s['progress-bar']}

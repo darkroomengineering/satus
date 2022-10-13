@@ -6,7 +6,7 @@ import { useRouter } from 'next/router'
 import shallow from 'zustand/shallow'
 import s from './navigation.module.scss'
 
-export const Navigation = () => {
+export function Navigation() {
   const [navIsOpen, setNavIsOpen] = useStore(
     (state) => [state.navIsOpen, state.setNavIsOpen],
     shallow

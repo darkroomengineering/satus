@@ -11,11 +11,7 @@ const Slides = forwardRef(({ children, className }, ref) => (
 ))
 Slides.displayName = 'Slides'
 
-const Slider = ({
-  children,
-  emblaApi = { autoplay: false },
-  enabled = true,
-}) => {
+function Slider({ children, emblaApi = { autoplay: false }, enabled = true }) {
   // eslint-disable-next-line no-unused-vars
   const [_, setScrollSnaps] = useState([])
   const [currentIndex, setCurrentIndex] = useState(0)

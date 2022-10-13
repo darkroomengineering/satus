@@ -3,7 +3,7 @@ import gsap from 'gsap'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import s from './cursor.module.scss'
 
-const Cursor = () => {
+function Cursor() {
   const cursor = useRef()
   const [isGrab, setIsGrab] = useState(false)
   const [isPointer, setIsPointer] = useState(false)

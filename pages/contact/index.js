@@ -21,7 +21,7 @@ export default function Contact({ fixedSlides }) {
   )
 }
 
-const Slide = ({ item, index, id }) => {
+function Slide({ item, index, id }) {
   return (
     <div className={cn(s.content, id === index && s.show)}>
       <h4 className={cn('h4', s.title)}>{item.title}</h4>

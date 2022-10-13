@@ -2,7 +2,7 @@ import { useFrame } from '@studio-freight/hamo'
 import { useEffect, useMemo } from 'react'
 import _Stats from 'stats.js'
 
-export const Stats = () => {
+export function Stats() {
   const stats = useMemo(() => new _Stats(), [])
 
   useEffect(() => {

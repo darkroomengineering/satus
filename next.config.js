@@ -23,9 +23,6 @@ const nextConfig = {
     legacyBrowsers: false,
     nextScriptWorkers: true,
   },
-  images: {
-    allowFutureImage: true,
-  },
   compiler: {
     removeConsole: process.env.NODE_ENV !== 'development',
   },
@@ -36,6 +33,7 @@ const nextConfig = {
     // contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     domains: ['images.ctfassets.net', 'assets.studiofreight.com'],
     formats: ['image/avif', 'image/webp'],
+    allowFutureImage: true,
   },
   // add @import 'styles/_functions'; to all scss files.
   sassOptions: {

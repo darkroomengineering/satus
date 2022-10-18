@@ -1,7 +1,7 @@
 import { useProgress } from '@react-three/drei'
 import { Canvas, useThree } from '@react-three/fiber'
 import { useFrame } from '@studio-freight/hamo'
-import { Suspense, useRef } from 'react'
+import { Suspense, useEffect, useRef } from 'react'
 
 // https://docs.pmnd.rs/
 

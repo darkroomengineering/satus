@@ -1,7 +1,9 @@
 import { useProgress } from '@react-three/drei'
-import { Canvas, useThree } from '@react-three/fiber'
+import { Canvas } from '@react-three/fiber'
 import { useFrame } from '@studio-freight/hamo'
 import { Suspense, useEffect, useRef } from 'react'
+import { PostProcessing } from './post-processing'
+import { Raf } from './raf'
 
 // https://docs.pmnd.rs/
 
@@ -43,15 +45,7 @@ function Demo() {
   )
 }
 
-function Raf() {
-  const { advance } = useThree()
-
-  useFrame((time) => {
-    advance(time / 1000)
-  })
-}
-
-export function WebGLDemo({ onLoad = () => {} }) {
+export function WebGL({ onLoad = () => {} }) {
   const { progress } = useProgress()
 
   useEffect(() => {
@@ -61,10 +55,19 @@ export function WebGLDemo({ onLoad = () => {} }) {
   }, [progress])
 
   return (
-    <Canvas>
-      <Raf />
+    <Canvas
+      gl={{
+        powerPreference: 'high-performance',
+        antialias: false,
+        alpha: true,
+      }}
+      dpr={[1, 2]}
+    >
+      <Raf render={true} />
       <Suspense>
-        <Demo />
+        <PostProcessing>
+          <Demo />
+        </PostProcessing>
       </Suspense>
     </Canvas>
   )

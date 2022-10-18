@@ -13,8 +13,8 @@ import dynamic from 'next/dynamic'
 import { useRef } from 'react'
 import s from './home.module.scss'
 
-const WebGLDemo = dynamic(
-  () => import('components/webgl-demo').then(({ WebGLDemo }) => WebGLDemo),
+const WebGL = dynamic(
+  () => import('components/webgl').then(({ WebGL }) => WebGL),
   { ssr: false }
 )
 
@@ -66,7 +66,7 @@ export default function Home() {
   return (
     <Layout theme="light">
       <section className={s.hero}>
-        <WebGLDemo />
+        <WebGL />
       </section>
       <section className={s.home}>
         <Marquee className={s.marquee} repeat={3}>

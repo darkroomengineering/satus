@@ -1,16 +1,14 @@
 import { useProgress } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import { useFrame } from '@studio-freight/hamo'
-import { getProject } from '@theatre/core'
 import { editable as e, SheetProvider } from '@theatre/r3f'
-import state from 'config/webgl.json'
+import { project } from 'pages/_app'
 import { Suspense, useEffect, useRef } from 'react'
 import { PostProcessing } from './post-processing'
 import { Raf } from './raf'
 
 // https://docs.pmnd.rs/
 
-const project = getProject('Satus', { state })
 const sheet = project.sheet('WebGL')
 
 function Demo() {

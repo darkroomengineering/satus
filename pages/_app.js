@@ -1,9 +1,11 @@
 import { useDebug, useLayoutEffect } from '@studio-freight/hamo'
 import { raf } from '@studio-freight/tempus'
+import { getProject } from '@theatre/core'
 import extension from '@theatre/r3f/dist/extension'
 import studio from '@theatre/studio'
 import { PageTransition } from 'components/page-transition'
 import { RealViewport } from 'components/real-viewport'
+import state from 'config/state.json'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger'
 import { GTM_ID } from 'lib/analytics'
@@ -12,6 +14,8 @@ import dynamic from 'next/dynamic'
 import Script from 'next/script'
 import { useEffect } from 'react'
 import 'styles/global.scss'
+
+export const project = getProject('Satus', { state })
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -37,8 +41,6 @@ const GridDebugger = dynamic(
 // const demoSheet = getProject('Demo Project').sheet('Demo Sheet')
 
 if (typeof window !== 'undefined') {
-  studio.initialize()
-  studio.extend(extension)
 }
 
 function MyApp({ Component, pageProps }) {
@@ -79,11 +81,25 @@ function MyApp({ Component, pageProps }) {
   ScrollTrigger.defaults({ markers: process.env.NODE_ENV === 'development' })
 
   useEffect(() => {
-    const theatreDOM = document.querySelector('#theatrejs-studio-root')
-    theatreDOM.addEventListener('wheel', (e) => {
-      e.stopPropagation()
-    })
-  }, [])
+    //TODO: tree shake studio -> import only on debug mode
+    if (debug && !studio.__initialized) {
+      studio.initialize()
+      studio.extend(extension)
+      studio.__initialized = true
+
+      setTimeout(() => {
+        // lenis compatibility
+        const theatreDOM = document.querySelector('#theatrejs-studio-root')
+        if (theatreDOM) {
+          theatreDOM.addEventListener('wheel', (e) => {
+            e.stopPropagation()
+          })
+        }
+      }, 1000)
+
+      console.log(studio)
+    }
+  }, [debug])
 
   return (
     <>

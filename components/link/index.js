@@ -17,7 +17,7 @@ export const Link = forwardRef(
     )
 
     const needsShallow = useMemo(
-      () => !!SHALLOW_URLS.find((url) => href.includes(url)),
+      () => !!SHALLOW_URLS.find((url) => href?.includes(url)),
       [href]
     )
 

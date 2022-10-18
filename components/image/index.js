@@ -4,6 +4,7 @@ import s from './image.module.scss'
 
 export function Image({
   className,
+  style,
   loading = 'eager',
   objectFit = 'cover',
   quality = 90,
@@ -14,7 +15,7 @@ export function Image({
     <NextImage
       {...props}
       className={cn(s.image, className)}
-      style={{ objectFit }}
+      style={{ objectFit, ...style }}
       loading={loading}
       quality={quality}
       alt={alt}

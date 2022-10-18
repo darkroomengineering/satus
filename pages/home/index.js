@@ -1,6 +1,6 @@
 import * as Accordion from '@radix-ui/react-accordion'
 import { useRect } from '@studio-freight/hamo'
-import { ClientOnly } from 'components/isomorphic'
+import { Image } from 'components/image'
 import { Kinesis } from 'components/kinesis'
 import { Link } from 'components/link'
 import { Marquee } from 'components/marquee'
@@ -63,14 +63,10 @@ export default function Home() {
     [rect]
   )
 
-  console.log('update')
-
   return (
     <Layout theme="light">
       <section className={s.hero}>
-        <ClientOnly>
-          <WebGLDemo />
-        </ClientOnly>
+        <WebGLDemo />
       </section>
       <section className={s.home}>
         <Marquee className={s.marquee} repeat={3}>
@@ -107,16 +103,19 @@ export default function Home() {
                   <p>Slider Title</p>
                 </div>
                 <Slider.Slides ref={emblaRef}>
-                  {devs.map((item, idx) => (
+                  {devs.map(({ image, name, position }, idx) => (
                     <div className={s['slide']} key={`slide-item-${idx}`}>
                       <div className={s['slide-inner']}>
-                        <img
-                          src={item.image}
+                        <Image
+                          src={image}
                           alt=""
+                          width="300"
+                          height="300"
                           className={s['slide-img']}
+                          size="20vw"
                         />
-                        <p className={s['slide-title']}>{item.name}</p>
-                        <p className={s['slide-text']}>{item.position}</p>
+                        <p className={s['slide-title']}>{name}</p>
+                        <p className={s['slide-text']}>{position}</p>
                       </div>
                     </div>
                   ))}
@@ -163,4 +162,12 @@ export default function Home() {
       </section>
     </Layout>
   )
+}
+
+export async function getStaticProps() {
+  return {
+    props: {
+      id: 'home',
+    }, // will be passed to the page component as props
+  }
 }

@@ -1,7 +1,7 @@
 import { Link } from 'components/link'
 import s from './footer.module.scss'
 
-export const Footer = () => {
+export function Footer() {
   return (
     <footer className={s.footer}>
       <div className="layout-block">

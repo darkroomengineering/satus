@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-export const ClientOnly = ({ children }) => {
+export function ClientOnly({ children }) {
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => setIsMounted(true), [])
@@ -12,7 +12,7 @@ export const ClientOnly = ({ children }) => {
   return children || null
 }
 
-export const ServerOnly = ({ children }) => {
+export function ServerOnly({ children }) {
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => setIsMounted(true), [])

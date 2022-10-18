@@ -1,9 +1,6 @@
-import {
-  useDebug,
-  useIsTouchDevice,
-  useLayoutEffect,
-} from '@studio-freight/hamo'
+import { useDebug, useLayoutEffect } from '@studio-freight/hamo'
 import { raf } from '@studio-freight/tempus'
+import { PageTransition } from 'components/page-transition'
 import { RealViewport } from 'components/real-viewport'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger'
@@ -13,11 +10,11 @@ import dynamic from 'next/dynamic'
 import Script from 'next/script'
 import { useEffect } from 'react'
 import 'styles/global.scss'
-import useDarkMode from 'use-dark-mode'
 
 gsap.registerPlugin(ScrollTrigger)
 
 // merge rafs
+gsap.ticker.lagSmoothing(0)
 gsap.ticker.remove(gsap.updateRoot)
 raf.add((time) => {
   gsap.updateRoot(time / 1000)
@@ -35,8 +32,6 @@ const GridDebugger = dynamic(
 )
 
 function MyApp({ Component, pageProps }) {
-  const isTouchDevice = useIsTouchDevice()
-  const darkMode = useDarkMode()
   const debug = useDebug()
   const lenis = useStore(({ lenis }) => lenis)
   const overflow = useStore(({ overflow }) => overflow)
@@ -61,8 +56,6 @@ function MyApp({ Component, pageProps }) {
       lenis?.stop()
       document.documentElement.style.setProperty('overflow', 'hidden')
     }
-
-    console.log({ overflow })
   }, [lenis, overflow])
 
   useLayoutEffect(() => {
@@ -88,12 +81,12 @@ function MyApp({ Component, pageProps }) {
         <>
           <Script
             async
-            strategy="afterInteractive"
+            strategy="worker"
             src={`https://www.googletagmanager.com/gtag/js?id=${GTM_ID}`}
           />
           <Script
             id="gtm-base"
-            strategy="afterInteractive"
+            strategy="worker"
             dangerouslySetInnerHTML={{
               __html: `window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
@@ -103,6 +96,7 @@ function MyApp({ Component, pageProps }) {
           />
         </>
       )}
+      <PageTransition />
       <RealViewport />
       <Component {...pageProps} />
     </>

@@ -1,14 +1,14 @@
 import cn from 'clsx'
 import s from './marquee.module.scss'
 
-const Marquee = ({
+export function Marquee({
   children,
   repeat = 2,
   duration = 5,
   offset = 0,
   inverted = false,
   className,
-}) => {
+}) {
   return (
     <div
       className={cn(className, s.marquee, inverted && s.inverted)}
@@ -25,5 +25,3 @@ const Marquee = ({
     </div>
   )
 }
-
-export { Marquee }

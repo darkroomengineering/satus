@@ -1,35 +1,34 @@
 import NextLink from 'next/link'
-import { forwardRef } from 'react'
+import { forwardRef, useMemo } from 'react'
+
+const SHALLOW_URLS = ['?demo=true']
 
 export const Link = forwardRef(
-  (
-    {
-      href,
-      onClick = () => {},
-      onMouseEnter = () => {},
-      onMouseLeave = () => {},
-      children,
-      className,
-      style,
-    },
-    ref
-  ) => {
+  ({ href, children, className, scroll, shallow, ...props }, ref) => {
     const attributes = {
       ref,
-      onClick,
-      onMouseEnter,
-      onMouseLeave,
       className,
-      style,
+      ...props,
     }
+
+    const isProtocol = useMemo(
+      () => href?.startsWith('mailto:') || href?.startsWith('tel:'),
+      [href]
+    )
+
+    const needsShallow = useMemo(
+      () => !!SHALLOW_URLS.find((url) => href?.includes(url)),
+      [href]
+    )
+
+    const isAnchor = useMemo(() => href?.startsWith('#'), [href])
+    const isExternal = useMemo(() => href?.startsWith('http'), [href])
 
     if (typeof href !== 'string') {
       return <button {...attributes}>{children}</button>
     }
 
-    const isProtocol = href?.startsWith('mailto:') || href?.startsWith('tel:')
-
-    if (isProtocol) {
+    if (isProtocol || isExternal) {
       return (
         <a
           {...attributes}
@@ -42,14 +41,13 @@ export const Link = forwardRef(
       )
     }
 
-    const isAnchor = href?.startsWith('#')
-    const isExternal = href?.startsWith('http')
-    if (!isExternal && !href?.startsWith('/')) {
-      href = `/${href}`
-    }
-
     return (
-      <NextLink href={href} passHref={isExternal || isAnchor}>
+      <NextLink
+        href={href}
+        passHref={isAnchor}
+        shallow={needsShallow || shallow}
+        scroll={scroll}
+      >
         <a
           {...attributes}
           {...(isExternal && { target: '_blank', rel: 'noopener noreferrer' })}

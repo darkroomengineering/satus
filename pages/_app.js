@@ -1,5 +1,7 @@
 import { useDebug, useLayoutEffect } from '@studio-freight/hamo'
 import { raf } from '@studio-freight/tempus'
+import extension from '@theatre/r3f/dist/extension'
+import studio from '@theatre/studio'
 import { PageTransition } from 'components/page-transition'
 import { RealViewport } from 'components/real-viewport'
 import { gsap } from 'gsap'
@@ -30,6 +32,14 @@ const GridDebugger = dynamic(
     import('components/grid-debugger').then(({ GridDebugger }) => GridDebugger),
   { ssr: false }
 )
+
+// our Theatre.js project sheet, we'll use this later
+// const demoSheet = getProject('Demo Project').sheet('Demo Sheet')
+
+if (typeof window !== 'undefined') {
+  studio.initialize()
+  studio.extend(extension)
+}
 
 function MyApp({ Component, pageProps }) {
   const debug = useDebug()
@@ -67,6 +77,13 @@ function MyApp({ Component, pageProps }) {
   }, [])
 
   ScrollTrigger.defaults({ markers: process.env.NODE_ENV === 'development' })
+
+  useEffect(() => {
+    const theatreDOM = document.querySelector('#theatrejs-studio-root')
+    theatreDOM.addEventListener('wheel', (e) => {
+      e.stopPropagation()
+    })
+  }, [])
 
   return (
     <>

@@ -27,7 +27,7 @@ function Demo() {
           onPointerOver={() => console.log('hover')}
           onPointerOut={() => console.log('unhover')}
         >
-          <boxBufferGeometry attach="geometry" args={[1, 1, 1]} />
+          <boxGeometry attach="geometry" args={[1, 1, 1]} />
           <meshNormalMaterial attach="material" />
         </mesh>
       </e.group>

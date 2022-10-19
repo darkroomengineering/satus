@@ -40,9 +40,6 @@ const GridDebugger = dynamic(
 // our Theatre.js project sheet, we'll use this later
 // const demoSheet = getProject('Demo Project').sheet('Demo Sheet')
 
-if (typeof window !== 'undefined') {
-}
-
 function MyApp({ Component, pageProps }) {
   const debug = useDebug()
   const lenis = useStore(({ lenis }) => lenis)
@@ -96,8 +93,6 @@ function MyApp({ Component, pageProps }) {
           })
         }
       }, 1000)
-
-      console.log(studio)
     }
   }, [debug])
 

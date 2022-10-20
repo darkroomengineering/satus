@@ -18,7 +18,7 @@
     "@radix-ui/react-accordion": "^1.0.0",
     "@radix-ui/react-select": "^1.0.0",
     "@studio-freight/hamo": "^0.4.43",
-    "@studio-freight/lenis": "^0.2.12",
+    "@studio-freight/lenis": "^0.2.13",
     "@studio-freight/tempus": "^0.0.30",
     "clsx": "^1.2.1",
     "embla-carousel": "7.0.3",

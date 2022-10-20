@@ -10,7 +10,7 @@ specifiers:
   '@radix-ui/react-select': ^1.0.0
   '@size-limit/preset-app': ^8.1.0
   '@studio-freight/hamo': ^0.4.43
-  '@studio-freight/lenis': ^0.2.12
+  '@studio-freight/lenis': ^0.2.13
   '@studio-freight/tempus': ^0.0.30
   '@svgr/webpack': ^6.4.0
   clsx: ^1.2.1
@@ -47,7 +47,7 @@ dependencies:
   '@radix-ui/react-accordion': 1.0.0_biqbaboplfbrettd7655fr4n2y
   '@radix-ui/react-select': 1.0.0_biqbaboplfbrettd7655fr4n2y
   '@studio-freight/hamo': 0.4.43_biqbaboplfbrettd7655fr4n2y
-  '@studio-freight/lenis': 0.2.12
+  '@studio-freight/lenis': 0.2.13
   '@studio-freight/tempus': 0.0.30
   clsx: 1.2.1
   embla-carousel: 7.0.3
@@ -1930,8 +1930,8 @@ packages:
       throttle-debounce: 5.0.0
     dev: false
 
-  /@studio-freight/lenis/0.2.12:
-    resolution: {integrity: sha512-9FWpv0jDmFkP7PZ/15fI9UpMVlCsH6GvDJhE2xQbS4eqygW/rLKuejmpkwsmbvCAvMQjlF5pBD+2vATw+Y/kqg==}
+  /@studio-freight/lenis/0.2.13:
+    resolution: {integrity: sha512-o2vG0JD8Tfx44cx8BrmRsGREf/UxAdiyKGNfpnOyMoWEW/MX8UJ84ldq/lQ39PVCPzDkHw6yLIjCGEkVEhyluw==}
     dependencies:
       tiny-emitter: 2.1.0
       virtual-scroll: 2.2.1

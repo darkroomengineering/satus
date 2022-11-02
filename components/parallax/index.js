@@ -17,6 +17,7 @@ export function Parallax({
 
   useLayoutEffect(() => {
     const y = windowWidth * speed * 0.1
+    const mm = gsap.matchMedia()
 
     const timeline = gsap
       .timeline({
@@ -33,6 +34,19 @@ export function Parallax({
         { y: position === 'top' ? 0 : -y },
         { y: y, ease: 'none' }
       )
+
+    mm.add(
+      {
+        reduceMotion: '(prefers-reduced-motion: reduce)',
+      },
+      (context) => {
+        const { reduceMotion } = context.conditions
+
+        if (reduceMotion) {
+          timeline.kill()
+        }
+      }
+    )
 
     return () => {
       timeline.kill()

@@ -8,6 +8,7 @@ export function Marquee({
   offset = 0,
   inverted = false,
   className,
+  animationStart = true,
 }) {
   return (
     <div
@@ -15,6 +16,7 @@ export function Marquee({
       style={{
         '--duration': duration + 's',
         '--offset': (offset % 100) + '%',
+        '--animation-status': animationStart ? 'running' : 'paused',
       }}
     >
       {new Array(repeat).fill(children).map((_, i) => (

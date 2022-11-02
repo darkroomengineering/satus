@@ -3,15 +3,21 @@
   overflow: hidden;
   will-change: transform;
 
+  @include reduced-motion {
+    --duration: 50s !important;
+  }
+
   .inner {
     display: flex;
     white-space: nowrap;
     animation: marquee var(--duration) linear infinite;
+    animation-play-state: var(--animation-status);
   }
 
   &.inverted {
     .inner {
       animation: marquee-inverted var(--duration) linear infinite;
+      animation-play-state: var(--animation-status);
     }
   }
 

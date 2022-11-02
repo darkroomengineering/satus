@@ -12,14 +12,14 @@ export function Parallax({
 }) {
   const trigger = useRef()
   const target = useRef()
-
+  const timeline = useRef()
   const { width: windowWidth } = useWindowSize()
 
   useLayoutEffect(() => {
     const y = windowWidth * speed * 0.1
     const mm = gsap.matchMedia()
 
-    const timeline = gsap
+    timeline.current = gsap
       .timeline({
         scrollTrigger: {
           id: id,
@@ -43,13 +43,14 @@ export function Parallax({
         const { reduceMotion } = context.conditions
 
         if (reduceMotion) {
-          timeline.kill()
+          timeline?.current?.from(target.current, { y: 0 })
+          timeline?.current?.kill()
         }
       }
     )
 
     return () => {
-      timeline.kill()
+      timeline?.current?.kill()
     }
   }, [id, speed, position, windowWidth])
 

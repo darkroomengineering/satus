@@ -1,5 +1,5 @@
 import cn from 'clsx'
-import NextImage from 'next/future/image'
+import NextImage from 'next/image'
 import s from './image.module.scss'
 
 export function Image({

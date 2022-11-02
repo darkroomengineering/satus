@@ -47,13 +47,10 @@ export const Link = forwardRef(
         passHref={isAnchor}
         shallow={needsShallow || shallow}
         scroll={scroll}
+        {...attributes}
+        {...(isExternal && { target: '_blank', rel: 'noopener noreferrer' })}
       >
-        <a
-          {...attributes}
-          {...(isExternal && { target: '_blank', rel: 'noopener noreferrer' })}
-        >
-          {children}
-        </a>
+        {children}
       </NextLink>
     )
   }

@@ -93,7 +93,7 @@ export function Layout({
 
   useFrame((time) => {
     lenis?.raf(time)
-  }, [])
+  })
 
   return (
     <>

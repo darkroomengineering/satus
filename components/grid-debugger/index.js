@@ -27,7 +27,7 @@ export function GridDebugger() {
       {visible && (
         <div className={cn('layout-grid', s.debugger)}>
           {new Array(columns).fill(0).map((_, key) => (
-            <span key={key}></span>
+            <span key={key} />
           ))}
         </div>
       )}

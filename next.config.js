@@ -139,7 +139,7 @@ const nextConfig = {
 }
 
 module.exports = () => {
-  const plugins = [withPWA, withTM, withBundleAnalyzer]
+  const plugins = [withPWA, withBundleAnalyzer]
   return plugins.reduce((acc, plugin) => plugin(acc), {
     ...nextConfig,
   })

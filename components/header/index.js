@@ -3,7 +3,7 @@ import { Link } from 'components/link'
 import { Navigation } from 'components/navigation'
 import { useStore } from 'lib/store'
 import { forwardRef } from 'react'
-import shallow from 'zustand/shallow'
+import { shallow } from 'zustand/shallow'
 import s from './header.module.scss'
 
 export const Header = forwardRef((_, ref) => {

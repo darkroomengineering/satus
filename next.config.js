@@ -21,6 +21,7 @@ const nextConfig = {
     optimizeCss: true,
     legacyBrowsers: false,
     nextScriptWorkers: true,
+    urlImports: ['https://cdn.skypack.dev', 'https://unpkg.com'],
   },
   compiler: {
     removeConsole: process.env.NODE_ENV !== 'development',

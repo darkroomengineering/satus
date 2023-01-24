@@ -17,7 +17,7 @@
   "dependencies": {
     "@radix-ui/react-accordion": "^1.1.0",
     "@radix-ui/react-select": "^1.2.0",
-    "@studio-freight/hamo": "^0.6.0",
+    "@studio-freight/hamo": "^0.6.2",
     "@studio-freight/lenis": "^0.2.28",
     "@studio-freight/tempus": "^0.0.30",
     "clsx": "^1.2.1",

@@ -1,8 +1,4 @@
-import {
-  useFrame,
-  useIsTouchDevice,
-  useLayoutEffect,
-} from '@studio-freight/hamo'
+import { useFrame, useLayoutEffect } from '@studio-freight/hamo'
 import Lenis from '@studio-freight/lenis'
 import cn from 'clsx'
 import { Cursor } from 'components/cursor'
@@ -22,7 +18,6 @@ export function Layout({
   theme = 'light',
   className,
 }) {
-  const isTouchDevice = useIsTouchDevice()
   const [lenis, setLenis] = useStore((state) => [state.lenis, state.setLenis])
   const router = useRouter()
   const [ref, { height }] = useMeasure({ debounce: 100 })
@@ -99,8 +94,8 @@ export function Layout({
     <>
       <CustomHead {...seo} />
       <div className={cn(`theme-${theme}`, s.layout, className)}>
-        {isTouchDevice === false && <Cursor />}
-        {isTouchDevice === false && <Scrollbar />}
+        <Cursor />
+        <Scrollbar />
         <Header ref={ref} />
         <main className={s.main}>{children}</main>
         <Footer />

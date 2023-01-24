@@ -9,7 +9,7 @@ specifiers:
   '@radix-ui/react-accordion': ^1.1.0
   '@radix-ui/react-select': ^1.2.0
   '@size-limit/preset-app': ^8.1.2
-  '@studio-freight/hamo': ^0.5.2
+  '@studio-freight/hamo': ^0.6.0
   '@studio-freight/lenis': ^0.2.28
   '@studio-freight/tempus': ^0.0.30
   '@svgr/webpack': ^6.5.1
@@ -45,7 +45,7 @@ specifiers:
 dependencies:
   '@radix-ui/react-accordion': 1.1.0_biqbaboplfbrettd7655fr4n2y
   '@radix-ui/react-select': 1.2.0_biqbaboplfbrettd7655fr4n2y
-  '@studio-freight/hamo': 0.5.2_biqbaboplfbrettd7655fr4n2y
+  '@studio-freight/hamo': 0.6.0_biqbaboplfbrettd7655fr4n2y
   '@studio-freight/lenis': 0.2.28
   '@studio-freight/tempus': 0.0.30
   clsx: 1.2.1
@@ -2021,14 +2021,13 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@studio-freight/hamo/0.5.2_biqbaboplfbrettd7655fr4n2y:
-    resolution: {integrity: sha512-3VUWDfv0WBljF3No3Wq8UmkRFmIinFUQVuZ6wxKAt2ItV5NDpheNpt5ZPN37GAHcRKx9WTKC2t0CgNPPQLMPbA==}
+  /@studio-freight/hamo/0.6.0_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-iYrTnkzrrFQJKYZ/A1/daxSOneRs0Rpa+KKHLpEw1Zz1VIj7r8+GN+1ppfGU/w0DneKec2Qg9zmrNauvMa2y+w==}
     peerDependencies:
       react: ^18.2.0
       react-dom: ^18.2.0
     dependencies:
       '@studio-freight/tempus': 0.0.30
-      nanoid: 4.0.0
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
       throttle-debounce: 5.0.0

@@ -1,5 +1,8 @@
-import { useDocumentReadyState, useLayoutEffect } from '@studio-freight/hamo'
-import { useIsVisible } from 'hooks/use-is-visible'
+import {
+  useDocumentReadyState,
+  useIsVisible,
+  useLayoutEffect,
+} from '@studio-freight/hamo'
 import { useEffect, useRef, useState } from 'react'
 
 export function Lottie({

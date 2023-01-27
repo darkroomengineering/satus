@@ -1,4 +1,4 @@
-import { useLayoutEffect } from '@studio-freight/hamo'
+import { useDebug, useLayoutEffect } from '@studio-freight/hamo'
 import { raf } from '@studio-freight/tempus'
 import { PageTransition } from 'components/page-transition'
 import { RealViewport } from 'components/real-viewport'
@@ -10,11 +10,6 @@ import dynamic from 'next/dynamic'
 import Script from 'next/script'
 import { useEffect } from 'react'
 import 'styles/global.scss'
-
-const useDebug = dynamic(
-  () => import('@studio-freight/hamo').then((m) => m.useDebug),
-  { ssr: false }
-)
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -72,6 +67,8 @@ function MyApp({ Component, pageProps }) {
   }, [])
 
   ScrollTrigger.defaults({ markers: process.env.NODE_ENV === 'development' })
+
+  console.log(debug)
 
   return (
     <>

@@ -1,6 +1,6 @@
-import { useIsTouchDevice, useLayoutEffect } from '@studio-freight/hamo'
+import { useIsTouchDevice } from '@studio-freight/hamo'
 import gsap from 'gsap'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useWindowSize } from 'react-use'
 
 export function Kinesis({ children, className, speed = 100 }) {
@@ -9,7 +9,7 @@ export function Kinesis({ children, className, speed = 100 }) {
 
   const childRef = useRef()
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const onMouseMove = (e) => {
       if (isTouchDevice) return
       const x = (e.clientX / width - 0.5) * 2 * speed

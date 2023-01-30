@@ -1,8 +1,4 @@
-import {
-  useDocumentReadyState,
-  useIsVisible,
-  useLayoutEffect,
-} from '@studio-freight/hamo'
+import { useDocumentReadyState, useIsVisible } from '@studio-freight/hamo'
 import { useEffect, useRef, useState } from 'react'
 
 export function Lottie({
@@ -46,7 +42,7 @@ export function Lottie({
     return () => animator.current?.destroy()
   }, [lottie])
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (animator.current && inView) {
       animator.current?.play()
     } else {

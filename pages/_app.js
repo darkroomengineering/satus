@@ -1,4 +1,4 @@
-import { useDebug, useLayoutEffect } from '@studio-freight/hamo'
+import { useDebug } from '@studio-freight/hamo'
 import { raf } from '@studio-freight/tempus'
 import { PageTransition } from 'components/page-transition'
 import { RealViewport } from 'components/real-viewport'
@@ -58,17 +58,15 @@ function MyApp({ Component, pageProps }) {
     }
   }, [lenis, overflow])
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (lenis) ScrollTrigger.refresh()
   }, [lenis])
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     window.history.scrollRestoration = 'manual'
   }, [])
 
   ScrollTrigger.defaults({ markers: process.env.NODE_ENV === 'development' })
-
-  console.log(debug)
 
   return (
     <>

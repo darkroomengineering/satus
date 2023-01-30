@@ -1,6 +1,5 @@
-import { useLayoutEffect } from '@studio-freight/hamo'
 import { gsap } from 'gsap'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useWindowSize } from 'react-use'
 
 export function Parallax({
@@ -15,7 +14,7 @@ export function Parallax({
   const timeline = useRef()
   const { width: windowWidth } = useWindowSize()
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const y = windowWidth * speed * 0.1
     const mm = gsap.matchMedia()
 

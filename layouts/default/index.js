@@ -1,4 +1,4 @@
-import { useFrame, useLayoutEffect } from '@studio-freight/hamo'
+import { useFrame } from '@studio-freight/hamo'
 import Lenis from '@studio-freight/lenis'
 import cn from 'clsx'
 import { Cursor } from 'components/cursor'
@@ -8,7 +8,7 @@ import { Header } from 'components/header'
 import { Scrollbar } from 'components/scrollbar'
 import { useStore } from 'lib/store'
 import { useRouter } from 'next/router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import useMeasure from 'react-use-measure'
 import s from './layout.module.scss'
 
@@ -22,7 +22,7 @@ export function Layout({
   const router = useRouter()
   const [ref, { height }] = useMeasure({ debounce: 100 })
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     window.scrollTo(0, 0)
     const lenis = new Lenis({
       duration: 1.2,
@@ -43,7 +43,7 @@ export function Layout({
 
   const [hash, setHash] = useState()
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (lenis && hash) {
       // scroll to on hash change
       const target = document.querySelector(hash)
@@ -51,7 +51,7 @@ export function Layout({
     }
   }, [lenis, hash, height])
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     // update scroll position on page refresh based on hash
     if (router.asPath.includes('#')) {
       const hash = router.asPath.split('#').pop()
@@ -59,7 +59,7 @@ export function Layout({
     }
   }, [router])
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     // catch anchor links clicks
     function onClick(e) {
       e.preventDefault()

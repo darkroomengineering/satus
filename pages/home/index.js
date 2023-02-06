@@ -7,8 +7,8 @@ import { Marquee } from 'components/marquee'
 import { MarqueeScroll } from 'components/marquee-scroll'
 import * as Select from 'components/select'
 import { Slider } from 'components/slider'
-import { useScroll } from 'hooks/use-scroll'
 import { Layout } from 'layouts/default'
+import { useLenis } from 'lib/react-lenis'
 import { useRef } from 'react'
 import s from './home.module.scss'
 
@@ -39,9 +39,8 @@ export default function Home() {
   const rectRef = useRef()
   const [setRef, rect] = useRect()
 
-  useScroll(
+  useLenis(
     ({ scroll }) => {
-      if (!rect.top) return
       const top = rect.top - scroll
       const left = rect.left
       const width = rect.width
@@ -54,12 +53,13 @@ export default function Home() {
       )}px<br>bottom:${Math.round(top + height)}px`
       rectRef.current.innerHTML = string
     },
-    [rect]
+    [rect],
+    1
   )
 
   return (
     <Layout theme="light">
-      <section className={s.home}>
+      <section className={s.home} id="top">
         <Marquee className={s.marquee} repeat={3}>
           <span className={s.item}>marquee stuff that scroll continuously</span>
         </Marquee>
@@ -122,11 +122,11 @@ export default function Home() {
           }}
         </Slider>
 
-        <div id="kinesis">
+        <Link id="kinesis" href="#top">
           <Kinesis className={s.kinesis}>
             <div className={s.item}>kinesis</div>
           </Kinesis>
-        </div>
+        </Link>
 
         <div style={{ height: '100vh', padding: '50vw 0' }}>
           <Select.Root defaultValue="2">

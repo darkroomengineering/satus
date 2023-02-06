@@ -1,39 +1,33 @@
-import { useRect } from '@studio-freight/hamo'
-import { useScroll } from 'hooks/use-scroll'
-import { truncate } from 'lib/maths'
+import { useIntersection } from 'hooks/use-intersection'
+import { useLenis } from 'lib/react-lenis'
 import { useRef } from 'react'
-import { useWindowSize } from 'react-use'
 import s from './marquee-scroll.module.scss'
 
-export function MarqueeScroll({ children, className, repeat = 2 }) {
+export function MarqueeScroll({
+  children,
+  className,
+  repeat = 2,
+  speed = 0.1,
+}) {
   const el = useRef()
 
-  const [setRef, rect] = useRect()
-  const { height: windowHeight } = useWindowSize()
+  const [isIntersecting, setIntersectionRef] = useIntersection()
 
-  useScroll(
+  useLenis(
     ({ scroll }) => {
-      if (!rect.top) return
-      const scrollY = scroll
-
-      const progress = -truncate((scrollY * 0.1) % 100, 3)
-
-      const top = rect.top - scrollY
-
-      const inView = top + rect.height > 0 && top < windowHeight
-
-      if (inView) {
+      if (isIntersecting) {
+        const progress = -(scroll * speed) % 100
         el.current.style.setProperty('--marquee-progress', progress + '%')
       }
     },
-    [rect, windowHeight]
+    [isIntersecting]
   )
 
   return (
     <div
       ref={(node) => {
         el.current = node
-        setRef(node)
+        setIntersectionRef(node)
       }}
       className={className}
     >

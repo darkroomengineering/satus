@@ -1,5 +1,6 @@
-import { useIsVisible, useRect } from '@studio-freight/hamo'
-import { useScroll } from 'hooks/use-scroll'
+import { useRect } from '@studio-freight/hamo'
+import { useIntersection } from 'hooks/use-intersection'
+import { useLenis } from 'lib/react-lenis'
 import { cloneElement, useState } from 'react'
 import { useWindowSize } from 'react-use'
 import s from './fixed-slides.module.scss'
@@ -7,10 +8,12 @@ import s from './fixed-slides.module.scss'
 export function FixedSlides({ length, children }) {
   const [contentIndex, setContentIndex] = useState()
   const [setRef, rect] = useRect()
-  const { setRef: viewRef, inView } = useIsVisible({ threshold: 0.2 })
+  const [isIntersecting, setIntersectionRef] = useIntersection({
+    threshold: 0.2,
+  })
   const { height: windowHeight } = useWindowSize()
 
-  useScroll(({ scroll }) => {
+  useLenis(({ scroll }) => {
     if (!rect) return
     if (scroll > rect.top) {
       setContentIndex(Math.floor((scroll - rect.top) / windowHeight))
@@ -21,7 +24,7 @@ export function FixedSlides({ length, children }) {
     <div
       className={s['fixed-slides']}
       ref={(node) => {
-        viewRef(node)
+        setIntersectionRef(node)
         setRef(node)
       }}
       style={{ '--length': `${(length + 1) * 100}vh` }}
@@ -33,7 +36,7 @@ export function FixedSlides({ length, children }) {
           })}
         </div>
       </div>
-      {inView && (
+      {isIntersecting && (
         <ProgressBar progress={`${((contentIndex + 1) * 100) / length}%`} />
       )}
     </div>

@@ -1,15 +1,12 @@
-import { useFrame } from '@studio-freight/hamo'
-import Lenis from '@studio-freight/lenis'
 import cn from 'clsx'
 import { Cursor } from 'components/cursor'
 import { CustomHead } from 'components/custom-head'
 import { Footer } from 'components/footer'
 import { Header } from 'components/header'
 import { Scrollbar } from 'components/scrollbar'
-import { useStore } from 'lib/store'
-import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
-import useMeasure from 'react-use-measure'
+import { Lenis, useLenis } from 'lib/react-lenis'
+import Router from 'next/router'
+import { useEffect } from 'react'
 import s from './layout.module.scss'
 
 export function Layout({
@@ -18,88 +15,34 @@ export function Layout({
   theme = 'light',
   className,
 }) {
-  const [lenis, setLenis] = useStore((state) => [state.lenis, state.setLenis])
-  const router = useRouter()
-  const [ref, { height }] = useMeasure({ debounce: 100 })
+  const lenis = useLenis()
 
   useEffect(() => {
-    window.scrollTo(0, 0)
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // https://www.desmos.com/calculator/brs54l4xou
-      direction: 'vertical',
-      gestureDirection: 'vertical',
-      smooth: true,
-      smoothTouch: false,
-      touchMultiplier: 2,
-    })
-    setLenis(lenis)
+    window.lenis = lenis
+    function onHashChangeStart(url) {
+      url = '#' + url.split('#').pop()
+      lenis.scrollTo(url)
+    }
+
+    Router.events.on('hashChangeStart', onHashChangeStart)
 
     return () => {
-      lenis.destroy()
-      setLenis(null)
+      Router.events.off('hashChangeStart', onHashChangeStart)
     }
-  }, [])
-
-  const [hash, setHash] = useState()
-
-  useEffect(() => {
-    if (lenis && hash) {
-      // scroll to on hash change
-      const target = document.querySelector(hash)
-      lenis.scrollTo(target, { offset: -1.1 * height })
-    }
-  }, [lenis, hash, height])
-
-  useEffect(() => {
-    // update scroll position on page refresh based on hash
-    if (router.asPath.includes('#')) {
-      const hash = router.asPath.split('#').pop()
-      setHash('#' + hash)
-    }
-  }, [router])
-
-  useEffect(() => {
-    // catch anchor links clicks
-    function onClick(e) {
-      e.preventDefault()
-      const node = e.currentTarget
-      const hash = node.href.split('#').pop()
-      setHash('#' + hash)
-      setTimeout(() => {
-        window.location.hash = hash
-      }, 0)
-    }
-
-    const internalLinks = [...document.querySelectorAll('[href]')].filter(
-      (node) => node.href.includes(router.pathname + '#')
-    )
-
-    internalLinks.forEach((node) => {
-      node.addEventListener('click', onClick, false)
-    })
-
-    return () => {
-      internalLinks.forEach((node) => {
-        node.removeEventListener('click', onClick, false)
-      })
-    }
-  }, [])
-
-  useFrame((time) => {
-    lenis?.raf(time)
-  })
+  }, [lenis])
 
   return (
     <>
       <CustomHead {...seo} />
-      <div className={cn(`theme-${theme}`, s.layout, className)}>
-        <Cursor />
-        <Scrollbar />
-        <Header ref={ref} />
-        <main className={s.main}>{children}</main>
-        <Footer />
-      </div>
+      <Lenis root>
+        <div className={cn(`theme-${theme}`, s.layout, className)}>
+          <Cursor />
+          <Scrollbar />
+          <Header />
+          <main className={s.main}>{children}</main>
+          <Footer />
+        </div>
+      </Lenis>
     </>
   )
 }

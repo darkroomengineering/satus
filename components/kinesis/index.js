@@ -1,17 +1,14 @@
-import { useIsTouchDevice } from '@studio-freight/hamo'
 import gsap from 'gsap'
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useWindowSize } from 'react-use'
 
 export function Kinesis({ children, className, speed = 100 }) {
   const { width, height } = useWindowSize()
-  const isTouchDevice = useIsTouchDevice()
 
   const childRef = useRef()
 
-  useEffect(() => {
-    const onMouseMove = (e) => {
-      if (isTouchDevice) return
+  const onPointerMove = useCallback(
+    (e) => {
       const x = (e.clientX / width - 0.5) * 2 * speed
       const y = (e.clientY / height - 0.5) * 2 * speed
 
@@ -21,14 +18,17 @@ export function Kinesis({ children, className, speed = 100 }) {
         duration: 1,
         ease: 'expo.out',
       })
-    }
+    },
+    [speed, width, height]
+  )
 
-    window.addEventListener('mousemove', onMouseMove, false)
+  useEffect(() => {
+    window.addEventListener('pointermove', onPointerMove, false)
 
     return () => {
-      window.removeEventListener('mousemove', onMouseMove, false)
+      window.removeEventListener('pointermove', onPointerMove, false)
     }
-  }, [speed])
+  }, [onPointerMove])
 
   return (
     <div className={className}>

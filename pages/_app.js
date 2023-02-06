@@ -1,10 +1,10 @@
 import { useDebug } from '@studio-freight/hamo'
 import { raf } from '@studio-freight/tempus'
-import { PageTransition } from 'components/page-transition'
 import { RealViewport } from 'components/real-viewport'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger'
 import { GTM_ID } from 'lib/analytics'
+import { useLenis } from 'lib/react-lenis'
 import { useStore } from 'lib/store'
 import dynamic from 'next/dynamic'
 import Script from 'next/script'
@@ -33,7 +33,7 @@ const GridDebugger = dynamic(
 
 function MyApp({ Component, pageProps }) {
   const debug = useDebug()
-  const lenis = useStore(({ lenis }) => lenis)
+  const lenis = useLenis()
   const overflow = useStore(({ overflow }) => overflow)
 
   // const setHeaderData = useStore((state) => state.setHeaderData)
@@ -96,7 +96,7 @@ function MyApp({ Component, pageProps }) {
           />
         </>
       )}
-      <PageTransition />
+      {/* <PageTransition /> */}
       <RealViewport />
       <Component {...pageProps} />
     </>

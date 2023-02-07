@@ -20,31 +20,6 @@ export const Link = forwardRef(
       return <button {...attributes}>{children}</button>
     }
 
-    // if (isProtocol || isExternal) {
-    //   return (
-    //     <a
-    //       {...attributes}
-    //       href={href}
-    //       target="_blank"
-    //       rel="noopener noreferrer"
-    //     >
-    //       {children}
-    //     </a>
-    //   )
-    // }
-
-    // return (
-    //   <NextLink
-    //     href={href}
-    //     passHref={isAnchor}
-    //     shallow={needsShallow || shallow}
-    //     {...attributes}
-    //     {...(isExternal && { target: '_blank', rel: 'noopener noreferrer' })}
-    //   >
-    //     {children}
-    //   </NextLink>
-    // )
-
     return (
       <NextLink
         href={href}

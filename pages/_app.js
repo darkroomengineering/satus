@@ -1,24 +1,15 @@
 import { useDebug } from '@studio-freight/hamo'
+import { useLenis } from '@studio-freight/react-lenis'
 import { raf } from '@studio-freight/tempus'
 import { RealViewport } from 'components/real-viewport'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger'
 import { GTM_ID } from 'lib/analytics'
-import { useLenis } from 'lib/react-lenis'
 import { useStore } from 'lib/store'
 import dynamic from 'next/dynamic'
 import Script from 'next/script'
 import { useEffect } from 'react'
 import 'styles/global.scss'
-
-gsap.registerPlugin(ScrollTrigger)
-
-// merge rafs
-gsap.ticker.lagSmoothing(0)
-gsap.ticker.remove(gsap.updateRoot)
-raf.add((time) => {
-  gsap.updateRoot(time / 1000)
-}, 0)
 
 const Stats = dynamic(
   () => import('components/stats').then(({ Stats }) => Stats),
@@ -30,6 +21,17 @@ const GridDebugger = dynamic(
     import('components/grid-debugger').then(({ GridDebugger }) => GridDebugger),
   { ssr: false }
 )
+
+gsap.registerPlugin(ScrollTrigger)
+
+// merge rafs
+if (typeof window !== 'undefined') {
+  gsap.ticker.lagSmoothing(0)
+  gsap.ticker.remove(gsap.updateRoot)
+  raf.add((time) => {
+    gsap.updateRoot(time / 1000)
+  }, 0)
+}
 
 function MyApp({ Component, pageProps }) {
   const debug = useDebug()

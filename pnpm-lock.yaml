@@ -2,6 +2,7 @@ lockfileVersion: 5.4
 
 overrides:
   throttle-debounce: 5.0.0
+  '@studio-freight/tempus': 0.0.36
 
 specifiers:
   '@builder.io/partytown': ^0.7.5
@@ -9,10 +10,9 @@ specifiers:
   '@radix-ui/react-accordion': ^1.1.0
   '@radix-ui/react-select': ^1.2.0
   '@size-limit/preset-app': ^8.1.2
-  '@studio-freight/hamo': ^0.6.10
-  '@studio-freight/lenis': 1.0.0-dev.6
-  '@studio-freight/react-lenis': ^0.0.6
-  '@studio-freight/tempus': ^0.0.34
+  '@studio-freight/hamo': ^0.6.12
+  '@studio-freight/react-lenis': 0.0.9
+  '@studio-freight/tempus': 0.0.36
   '@svgr/webpack': ^6.5.1
   clsx: ^1.2.1
   critters: ^0.0.16
@@ -45,10 +45,9 @@ specifiers:
 dependencies:
   '@radix-ui/react-accordion': 1.1.0_biqbaboplfbrettd7655fr4n2y
   '@radix-ui/react-select': 1.2.0_biqbaboplfbrettd7655fr4n2y
-  '@studio-freight/hamo': 0.6.10_biqbaboplfbrettd7655fr4n2y
-  '@studio-freight/lenis': 1.0.0-dev.6
-  '@studio-freight/react-lenis': 0.0.6_q6dtuknx24utw6odniaudior6a
-  '@studio-freight/tempus': 0.0.34
+  '@studio-freight/hamo': 0.6.12_biqbaboplfbrettd7655fr4n2y
+  '@studio-freight/react-lenis': 0.0.9_biqbaboplfbrettd7655fr4n2y
+  '@studio-freight/tempus': 0.0.36
   clsx: 1.2.1
   embla-carousel: 7.0.9
   embla-carousel-autoplay: 7.0.9_embla-carousel@7.0.9
@@ -1992,20 +1991,21 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@studio-freight/hamo/0.6.10_biqbaboplfbrettd7655fr4n2y:
-    resolution: {integrity: sha512-x6oo7rdmPpGe8HbmjX+4SbSry29UC4XlAjGYDpfXX8jF36WFYYboAVImSHr4QJiSnKHq8X48yw1QmIWXQzdriQ==}
+  /@studio-freight/hamo/0.6.12_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-qItWJyFazvKeMTRa6RYbG+qVbB7pZKDmybTHT2ftlP9SI3i6C7JdIABSgBW+3GKZq73gZXpXvE2CHnAlWA8bDw==}
     peerDependencies:
       react: ^18.2.0
       react-dom: ^18.2.0
     dependencies:
-      '@studio-freight/tempus': 0.0.34
+      '@studio-freight/tempus': 0.0.36
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
+      rimraf: 4.1.2
       throttle-debounce: 5.0.0
     dev: false
 
-  /@studio-freight/lenis/1.0.0-dev.6:
-    resolution: {integrity: sha512-8hkyHMlOtlGW9yuD+NFjWGVMBjQSX3ktdGeBY1R0wsX/B8Y+H1Zfe+EbTBkVVkKSNlpPfeI7NuVdlTM7SBTiag==}
+  /@studio-freight/lenis/1.0.0-dev.7:
+    resolution: {integrity: sha512-+zxEsfU9GqFPb37mVvaRrMHC56DZwKqYGqBZmfXGc+oBv3gTfAMyxERNaLhh6UzEtuUZbBGL9r/NfvMRKBJYKg==}
     dependencies:
       nanoevents: 7.0.1
       npm-run-all: 4.1.5
@@ -2013,24 +2013,27 @@ packages:
       virtual-scroll: 2.2.1
     dev: false
 
-  /@studio-freight/react-lenis/0.0.6_q6dtuknx24utw6odniaudior6a:
-    resolution: {integrity: sha512-PH0kZ8f34JvxmXOkKKOtC/mwj2xSlaKUwfut2jFgdJvBi1A6osVU6Fht/PBalDVCIbLeHBLjfU0LftfBDph93A==}
+  /@studio-freight/react-lenis/0.0.9_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-IlHU5iVnw/1LkuPcDqhHekie39jvv3+m/JN3EscCbu7XWkZHgWO+4ZNJrpyuuyFKEYZqP79gAfnr90cByw+i9g==}
     peerDependencies:
-      '@studio-freight/hamo': ^0.6.10
-      '@studio-freight/lenis': ^1.0.0-dev.5
       react: ^18.2.0
       react-dom: ^18.2.0
     dependencies:
-      '@studio-freight/hamo': 0.6.10_biqbaboplfbrettd7655fr4n2y
-      '@studio-freight/lenis': 1.0.0-dev.6
+      '@studio-freight/hamo': 0.6.12_biqbaboplfbrettd7655fr4n2y
+      '@studio-freight/lenis': 1.0.0-dev.7
+      prop-types: 15.8.1
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
+      zustand: 4.3.2_react@18.2.0
+    transitivePeerDependencies:
+      - immer
     dev: false
 
-  /@studio-freight/tempus/0.0.34:
-    resolution: {integrity: sha512-wf5oflAg3uJ0CFY9ryeO6k8e8HTTwv7Ld6BusRnveL/GdQ9YjxI/H/USN7Vh2G2UQXjx+SGIlimqnI9QH2j2uA==}
+  /@studio-freight/tempus/0.0.36:
+    resolution: {integrity: sha512-4GosDqlHENcLIswCkMg/TxjPtrSxEWtZQUJebOnOKLUFaD3V+mshVrCyVs4gDGC/OAf6Em3sg0eQ2f7FRbNzyg==}
     dependencies:
       nanoid: 4.0.0
+      rimraf: 4.1.2
     dev: false
 
   /@surma/rollup-plugin-off-main-thread/2.2.3:
@@ -5222,7 +5225,6 @@ packages:
       loose-envify: 1.4.0
       object-assign: 4.1.1
       react-is: 16.13.1
-    dev: true
 
   /proxy-from-env/1.1.0:
     resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
@@ -5283,7 +5285,6 @@ packages:
 
   /react-is/16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
-    dev: true
 
   /react-remove-scroll-bar/2.3.4_react@18.2.0:
     resolution: {integrity: sha512-63C4YQBUt0m6ALadE9XV56hV8BgJWDmmTPY758iIJjfQKt2nYwoUrPk0LXRXcB/yIj82T1/Ixfdpdk68LwIB0A==}
@@ -5521,6 +5522,12 @@ packages:
     dependencies:
       glob: 7.2.3
     dev: true
+
+  /rimraf/4.1.2:
+    resolution: {integrity: sha512-BlIbgFryTbw3Dz6hyoWFhKk+unCcHMSkZGrTFVAx2WmttdBSonsdtRlwiuTbDqTKr+UlXIUqJVS4QT5tUzGENQ==}
+    engines: {node: '>=14'}
+    hasBin: true
+    dev: false
 
   /rollup-plugin-terser/7.0.2_rollup@2.79.1:
     resolution: {integrity: sha512-w3iIaU4OxcF52UUXiZNsNeuXIMDvFrr+ZXK6bFZ0Q60qyVfq4uLptoS4bbq3paG3x216eQllFZX7zt6TIImguQ==}

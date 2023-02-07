@@ -1,6 +1,6 @@
 import { useRect } from '@studio-freight/hamo'
+import { useLenis } from '@studio-freight/react-lenis'
 import { clamp } from 'lib/maths'
-import { useLenis } from 'lib/react-lenis'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useWindowSize } from 'react-use'
 import s from './scrollbar.module.scss'

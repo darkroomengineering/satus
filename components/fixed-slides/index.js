@@ -1,6 +1,6 @@
 import { useRect } from '@studio-freight/hamo'
+import { useLenis } from '@studio-freight/react-lenis'
 import { useIntersection } from 'hooks/use-intersection'
-import { useLenis } from 'lib/react-lenis'
 import { cloneElement, useState } from 'react'
 import { useWindowSize } from 'react-use'
 import s from './fixed-slides.module.scss'

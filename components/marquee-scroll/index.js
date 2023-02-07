@@ -1,5 +1,5 @@
+import { useLenis } from '@studio-freight/react-lenis'
 import { useIntersection } from 'hooks/use-intersection'
-import { useLenis } from 'lib/react-lenis'
 import { useRef } from 'react'
 import s from './marquee-scroll.module.scss'
 

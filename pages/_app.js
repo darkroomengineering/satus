@@ -1,3 +1,4 @@
+import { useScrollbar } from '@14islands/r3f-scroll-rig'
 import { useDebug, useLayoutEffect } from '@studio-freight/hamo'
 import { raf } from '@studio-freight/tempus'
 import { getProject } from '@theatre/core'
@@ -9,7 +10,6 @@ import state from 'config/state.json'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger'
 import { GTM_ID } from 'lib/analytics'
-import { useStore } from 'lib/store'
 import dynamic from 'next/dynamic'
 import Script from 'next/script'
 import { useEffect } from 'react'
@@ -37,13 +37,17 @@ const GridDebugger = dynamic(
   { ssr: false }
 )
 
+const GlobalCanvas = dynamic(
+  () => import('components/webgl').then(({ GlobalCanvas }) => GlobalCanvas),
+  { ssr: false }
+)
+
 // our Theatre.js project sheet, we'll use this later
 // const demoSheet = getProject('Demo Project').sheet('Demo Sheet')
 
 function MyApp({ Component, pageProps }) {
   const debug = useDebug()
-  const lenis = useStore(({ lenis }) => lenis)
-  const overflow = useStore(({ overflow }) => overflow)
+  const lenis = useScrollbar()
 
   // const setHeaderData = useStore((state) => state.setHeaderData)
   // const setFooterData = useStore((state) => state.setFooterData)
@@ -57,23 +61,9 @@ function MyApp({ Component, pageProps }) {
   //   setIsFetched(true)
   // }
 
-  useEffect(() => {
-    if (overflow) {
-      lenis?.start()
-      document.documentElement.style.removeProperty('overflow')
-    } else {
-      lenis?.stop()
-      document.documentElement.style.setProperty('overflow', 'hidden')
-    }
-  }, [lenis, overflow])
-
   useLayoutEffect(() => {
     if (lenis) ScrollTrigger.refresh()
   }, [lenis])
-
-  useLayoutEffect(() => {
-    window.history.scrollRestoration = 'manual'
-  }, [])
 
   ScrollTrigger.defaults({ markers: process.env.NODE_ENV === 'development' })
 
@@ -126,6 +116,7 @@ function MyApp({ Component, pageProps }) {
       )}
       <PageTransition />
       <RealViewport />
+      <GlobalCanvas />
       <Component {...pageProps} />
     </>
   )

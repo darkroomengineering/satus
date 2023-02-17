@@ -1,9 +1,5 @@
-import {
-  useFrame,
-  useIsTouchDevice,
-  useLayoutEffect,
-} from '@studio-freight/hamo'
-import Lenis from '@studio-freight/lenis'
+import { SmoothScrollbar, useScrollbar } from '@14islands/r3f-scroll-rig'
+import { useIsTouchDevice, useLayoutEffect } from '@studio-freight/hamo'
 import cn from 'clsx'
 import { Cursor } from 'components/cursor'
 import { CustomHead } from 'components/custom-head'
@@ -12,7 +8,7 @@ import { Header } from 'components/header'
 import { Scrollbar } from 'components/scrollbar'
 import { useStore } from 'lib/store'
 import { useRouter } from 'next/router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import useMeasure from 'react-use-measure'
 import s from './layout.module.scss'
 
@@ -22,39 +18,31 @@ export function Layout({
   theme = 'light',
   className,
 }) {
+  const overflow = useStore(({ overflow }) => overflow)
   const isTouchDevice = useIsTouchDevice()
-  const [lenis, setLenis] = useStore((state) => [state.lenis, state.setLenis])
   const router = useRouter()
   const [ref, { height }] = useMeasure({ debounce: 100 })
+  const { scrollTo } = useScrollbar()
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0)
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t)),
-      direction: 'vertical',
-      gestureDirection: 'vertical',
-      smooth: true,
-      smoothTouch: false,
-      touchMultiplier: 2,
-    })
-    setLenis(lenis)
-
-    return () => {
-      lenis.destroy()
-      setLenis(null)
-    }
   }, [])
 
   const [hash, setHash] = useState()
 
   useLayoutEffect(() => {
-    if (lenis && hash) {
+    if (scrollTo && hash) {
       // scroll to on hash change
-      const target = document.querySelector(hash)
-      lenis.scrollTo(target, { offset: -1.1 * height })
+      // const target = document.querySelector(hash)
+      // TODO: scrollTo from scrollbar is not working yet
+      // scrollTo(target, {
+      //   offset: -1.1 * height,
+      //   duration: 10,
+      //   easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      //   immediate: true,
+      // })
     }
-  }, [lenis, hash, height])
+  }, [scrollTo, hash, height])
 
   useLayoutEffect(() => {
     // update scroll position on page refresh based on hash
@@ -91,20 +79,28 @@ export function Layout({
     }
   }, [])
 
-  useFrame((time) => {
-    lenis?.raf(time)
-  }, [])
+  useEffect(() => {
+    if (overflow) {
+      document.documentElement.style.removeProperty('overflow')
+    } else {
+      document.documentElement.style.setProperty('overflow', 'hidden')
+    }
+  }, [overflow])
 
   return (
     <>
       <CustomHead {...seo} />
-      <div className={cn(`theme-${theme}`, s.layout, className)}>
-        {isTouchDevice === false && <Cursor />}
-        {isTouchDevice === false && <Scrollbar />}
-        <Header ref={ref} />
-        <main className={s.main}>{children}</main>
-        <Footer />
-      </div>
+      <SmoothScrollbar locked={!overflow} scrollRestoration="manual">
+        {(bind) => (
+          <div {...bind} className={cn(`theme-${theme}`, s.layout, className)}>
+            {isTouchDevice === false && <Cursor />}
+            {isTouchDevice === false && <Scrollbar />}
+            <Header ref={ref} />
+            <main className={s.main}>{children}</main>
+            <Footer />
+          </div>
+        )}
+      </SmoothScrollbar>
     </>
   )
 }

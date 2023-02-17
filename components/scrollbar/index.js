@@ -1,6 +1,6 @@
+import { useScrollbar } from '@14islands/r3f-scroll-rig'
 import { useScroll } from 'hooks/use-scroll'
 import { clamp, mapRange } from 'lib/maths'
-import { useStore } from 'lib/store'
 import { useEffect, useRef, useState } from 'react'
 import { useWindowSize } from 'react-use'
 import useMeasure from 'react-use-measure'
@@ -9,12 +9,12 @@ import s from './scrollbar.module.scss'
 export function Scrollbar({}) {
   const thumb = useRef()
   const { width: windowWidth, height: windowHeight } = useWindowSize()
-  const lenis = useStore(({ lenis }) => lenis)
   const [innerMeasureRef, { height: innerHeight }] = useMeasure()
   const [thumbMeasureRef, { height: thumbHeight }] = useMeasure()
+  const lenis = useScrollbar()
 
-  useScroll(({ scroll, limit }) => {
-    const progress = scroll / limit
+  useScroll(({ y, limit }) => {
+    const progress = y / limit
 
     thumb.current.style.transform = `translate3d(0,${
       progress * (innerHeight - thumbHeight)

@@ -12,13 +12,12 @@ export function MarqueeScroll({ children, className, repeat = 2 }) {
   const { height: windowHeight } = useWindowSize()
 
   useScroll(
-    ({ scroll }) => {
+    ({ y }) => {
       if (!rect.top) return
-      const scrollY = scroll
 
-      const progress = -truncate((scrollY * 0.1) % 100, 3)
+      const progress = -truncate((y * 0.1) % 100, 3)
 
-      const top = rect.top - scrollY
+      const top = rect.top - y
 
       const inView = top + rect.height > 0 && top < windowHeight
 

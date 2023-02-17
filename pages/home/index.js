@@ -1,5 +1,6 @@
+import { useScrollbar, useTracker } from '@14islands/r3f-scroll-rig'
 import * as Accordion from '@radix-ui/react-accordion'
-import { useRect } from '@studio-freight/hamo'
+import { Hero } from 'components/hero'
 import { Image } from 'components/image'
 import { Kinesis } from 'components/kinesis'
 import { Link } from 'components/link'
@@ -7,16 +8,9 @@ import { Marquee } from 'components/marquee'
 import { MarqueeScroll } from 'components/marquee-scroll'
 import * as Select from 'components/select'
 import { Slider } from 'components/slider'
-import { useScroll } from 'hooks/use-scroll'
 import { Layout } from 'layouts/default'
-import dynamic from 'next/dynamic'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import s from './home.module.scss'
-
-const WebGL = dynamic(
-  () => import('components/webgl').then(({ WebGL }) => WebGL),
-  { ssr: false }
-)
 
 const devs = [
   {
@@ -42,32 +36,9 @@ const devs = [
 ]
 
 export default function Home() {
-  const rectRef = useRef()
-  const [setRef, rect] = useRect()
-
-  useScroll(
-    ({ scroll }) => {
-      if (!rect.top) return
-      const top = rect.top - scroll
-      const left = rect.left
-      const width = rect.width
-      const height = rect.height
-
-      const string = `left:${Math.round(left)}px<br>top:${Math.round(
-        top
-      )}px<br>width:${width}px<br>height:${height}px<br>right:${Math.round(
-        left + width
-      )}px<br>bottom:${Math.round(top + height)}px`
-      rectRef.current.innerHTML = string
-    },
-    [rect]
-  )
-
   return (
     <Layout theme="light">
-      <section className={s.hero}>
-        <WebGL />
-      </section>
+      <Hero />
       <section className={s.home}>
         <Marquee className={s.marquee} repeat={3}>
           <span className={s.item}>marquee stuff that scroll continuously</span>
@@ -145,22 +116,47 @@ export default function Home() {
           </Select.Root>
         </div>
 
-        <div style={{ height: '100vh' }} id="rect">
-          <div
-            ref={(node) => {
-              setRef(node)
-              rectRef.current = node
-            }}
-            style={{
-              width: '250px',
-              height: '250px',
-              backgroundColor: 'cyan',
-              margin: '0 auto',
-            }}
-          ></div>
-        </div>
+        <TrackedBox />
       </section>
     </Layout>
+  )
+}
+
+function TrackedBox() {
+  const rectRef = useRef()
+  const { scroll, onScroll } = useScrollbar()
+  const { rect } = useTracker(rectRef)
+
+  useEffect(() => {
+    // update progress on scroll
+    return onScroll(() => {
+      if (!rect.top) return
+      const top = rect.top - scroll.y
+      const left = rect.left
+      const width = rect.width
+      const height = rect.height
+
+      const string = `left:${Math.round(left)}px<br>top:${Math.round(
+        top
+      )}px<br>width:${width}px<br>height:${height}px<br>right:${Math.round(
+        left + width
+      )}px<br>bottom:${Math.round(top + height)}px`
+      rectRef.current.innerHTML = string
+    })
+  }, [rect, scroll])
+
+  return (
+    <div style={{ height: '100vh' }} id="rect">
+      <div
+        ref={rectRef}
+        style={{
+          width: '250px',
+          height: '250px',
+          backgroundColor: 'cyan',
+          margin: '0 auto',
+        }}
+      ></div>
+    </div>
   )
 }
 

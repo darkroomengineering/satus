@@ -1,16 +1,14 @@
-import { useStore } from 'lib/store'
+import { useScrollbar } from '@14islands/r3f-scroll-rig'
 import { useEffect } from 'react'
 
 export function useScroll(callback, deps = []) {
-  const lenis = useStore(({ lenis }) => lenis)
+  const { scroll, onScroll } = useScrollbar()
 
   useEffect(() => {
-    if (!lenis) return
-    lenis.on('scroll', callback)
-    lenis.notify()
+    if (!scroll) return
 
-    return () => {
-      lenis.off('scroll', callback)
-    }
-  }, [lenis, callback, [...deps]])
+    return onScroll(() => {
+      callback(scroll)
+    })
+  }, [scroll, callback, [...deps]])
 }

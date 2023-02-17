@@ -1,0 +1,13 @@
+.hero {
+  height: 100vh;
+  display: grid;
+  place-items: center;
+  background-color: black;
+  padding: 2rem;
+
+  .hero__content {
+    width: 100%;
+    aspect-ratio: 21/9;
+    outline: 1px dashed rgba(255, 255, 255, 0.33);
+  }
+}

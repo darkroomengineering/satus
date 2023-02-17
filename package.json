@@ -15,9 +15,10 @@
     "size": "npm run build && size-limit"
   },
   "dependencies": {
+    "@14islands/r3f-scroll-rig": "^8.9.1",
     "@radix-ui/react-accordion": "^1.0.0",
     "@radix-ui/react-select": "^1.0.0",
-    "@react-three/drei": "^9.36.0",
+    "@react-three/drei": "9.54.0",
     "@react-three/fiber": "^8.8.10",
     "@studio-freight/hamo": "^0.4.43",
     "@studio-freight/lenis": "^0.2.12",
@@ -47,7 +48,7 @@
     "react-use-measure": "^2.1.1",
     "sass": "^1.55.0",
     "stats.js": "^0.17.0",
-    "three": "^0.145.0",
+    "three": "0.146.0",
     "uuid": "^8.3.2",
     "zustand": "4.1.2"
   },

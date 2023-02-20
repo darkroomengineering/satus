@@ -1,3 +1,4 @@
+import { Lenis } from '@studio-freight/react-lenis'
 import cn from 'clsx'
 import { Link } from 'components/link'
 import { useStore } from 'lib/store'
@@ -7,16 +8,16 @@ import { shallow } from 'zustand/shallow'
 import s from './navigation.module.scss'
 
 export function Navigation() {
-  const [navIsOpen, setNavIsOpen] = useStore(
-    (state) => [state.navIsOpen, state.setNavIsOpen],
+  const [navIsOpened, setNavIsOpened] = useStore(
+    ({ navIsOpened, setNavIsOpened }) => [navIsOpened, setNavIsOpened],
     shallow
   )
 
   const router = useRouter()
 
   useEffect(() => {
-    const onRouteChange = () => {
-      setNavIsOpen(false)
+    function onRouteChange() {
+      setNavIsOpened(false)
     }
 
     router.events.on('routeChangeStart', onRouteChange)
@@ -27,10 +28,12 @@ export function Navigation() {
   }, [])
 
   return (
-    <div className={cn(s.navigation, !navIsOpen && s.closed)}>
-      <Link href="/">home</Link>
-      <Link href="/gsap">gsap</Link>
-      <Link href="/contact">contact</Link>
-    </div>
+    <Lenis className={cn(s.navigation, !navIsOpened && s.closed)}>
+      <div className={s.content}>
+        <Link href="/">home</Link>
+        <Link href="/gsap">gsap</Link>
+        <Link href="/contact">contact</Link>
+      </div>
+    </Lenis>
   )
 }

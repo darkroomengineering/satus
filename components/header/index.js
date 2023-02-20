@@ -7,8 +7,8 @@ import { shallow } from 'zustand/shallow'
 import s from './header.module.scss'
 
 export const Header = forwardRef((_, ref) => {
-  const [navIsOpen, setNavIsOpen] = useStore(
-    (state) => [state.navIsOpen, state.setNavIsOpen],
+  const [navIsOpened, setNavIsOpened] = useStore(
+    ({ navIsOpened, setNavIsOpened }) => [navIsOpened, setNavIsOpened],
     shallow
   )
 
@@ -18,7 +18,7 @@ export const Header = forwardRef((_, ref) => {
       <div className={cn('layout-block', s.head)}>
         <button
           onClick={() => {
-            setNavIsOpen(!navIsOpen)
+            setNavIsOpened(!navIsOpened)
           }}
         >
           menu

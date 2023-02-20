@@ -22,10 +22,11 @@ const GridDebugger = dynamic(
   { ssr: false }
 )
 
-gsap.registerPlugin(ScrollTrigger)
-
-// merge rafs
 if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger)
+  ScrollTrigger.defaults({ markers: process.env.NODE_ENV === 'development' })
+
+  // merge rafs
   gsap.ticker.lagSmoothing(0)
   gsap.ticker.remove(gsap.updateRoot)
   raf.add((time) => {
@@ -36,39 +37,23 @@ if (typeof window !== 'undefined') {
 function MyApp({ Component, pageProps }) {
   const debug = useDebug()
   const lenis = useLenis()
-  const overflow = useStore(({ overflow }) => overflow)
-
-  // const setHeaderData = useStore((state) => state.setHeaderData)
-  // const setFooterData = useStore((state) => state.setFooterData)
-
-  // const [isFetched, setIsFetched] = useState(false)
-
-  // avoid infinite loop
-  // if (!isFetched) {
-  //   setHeaderData(headerData)
-  //   setFooterData(footerData)
-  //   setIsFetched(true)
-  // }
+  const navIsOpened = useStore(({ navIsOpened }) => navIsOpened)
 
   useEffect(() => {
-    if (overflow) {
-      lenis?.start()
-      document.documentElement.style.removeProperty('overflow')
-    } else {
+    if (navIsOpened) {
       lenis?.stop()
-      document.documentElement.style.setProperty('overflow', 'hidden')
+    } else {
+      lenis?.start()
     }
-  }, [lenis, overflow])
+  }, [lenis, navIsOpened])
 
   useEffect(() => {
-    if (lenis) ScrollTrigger.refresh()
+    ScrollTrigger.refresh()
   }, [lenis])
 
   useEffect(() => {
     window.history.scrollRestoration = 'manual'
   }, [])
-
-  ScrollTrigger.defaults({ markers: process.env.NODE_ENV === 'development' })
 
   return (
     <>

@@ -28,7 +28,7 @@ function Cursor() {
     return () => {
       window.removeEventListener('mousemove', onMouseMove, false)
     }
-  }, [hasMoved])
+  }, [onMouseMove])
 
   useEffect(() => {
     document.documentElement.classList.add('has-custom-cursor')
@@ -41,16 +41,16 @@ function Cursor() {
   useEffect(() => {
     let elements = []
 
-    const onMouseEnter = () => {
+    function onMouseEnter() {
       setIsPointer(true)
     }
-    const onMouseLeave = () => {
+    function onMouseLeave() {
       setIsPointer(false)
     }
 
     elements = [
       ...document.querySelectorAll(
-        "button,a,input,label,[data-cursor='pointer']"
+        "button,a,input,label,*[data-cursor='pointer']"
       ),
     ]
 
@@ -70,18 +70,14 @@ function Cursor() {
   useEffect(() => {
     let elements = []
 
-    const onMouseEnter = () => {
+    function onMouseEnter() {
       setIsGrab(true)
     }
-    const onMouseLeave = () => {
+    function onMouseLeave() {
       setIsGrab(false)
     }
 
-    elements = [
-      ...document.querySelectorAll(
-        "button,a,input,label,[data-cursor='pointer']"
-      ),
-    ]
+    elements = [...document.querySelectorAll("*[data-cursor='grab']")]
 
     elements.forEach((element) => {
       element.addEventListener('mouseenter', onMouseEnter, false)

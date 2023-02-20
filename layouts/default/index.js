@@ -18,7 +18,6 @@ export function Layout({
   const lenis = useLenis()
 
   useEffect(() => {
-    window.lenis = lenis
     function onHashChangeStart(url) {
       url = '#' + url.split('#').pop()
       lenis.scrollTo(url)

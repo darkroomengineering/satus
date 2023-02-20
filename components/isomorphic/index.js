@@ -9,7 +9,7 @@ export function ClientOnly({ children }) {
     return null
   }
 
-  return children || null
+  return children
 }
 
 export function ServerOnly({ children }) {
@@ -21,5 +21,5 @@ export function ServerOnly({ children }) {
     return null
   }
 
-  return children || null
+  return children
 }

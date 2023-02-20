@@ -1,5 +1,5 @@
 import * as Accordion from '@radix-ui/react-accordion'
-import { useRect } from '@studio-freight/hamo'
+import { useMediaQuery, useRect } from '@studio-freight/hamo'
 import { useLenis } from '@studio-freight/react-lenis'
 import { Image } from 'components/image'
 import { Kinesis } from 'components/kinesis'
@@ -38,6 +38,7 @@ const devs = [
 export default function Home() {
   const rectRef = useRef()
   const [setRef, rect] = useRect()
+  const isDesktop = useMediaQuery('(min-width: 800px)')
 
   useLenis(
     ({ scroll }) => {
@@ -60,6 +61,11 @@ export default function Home() {
   return (
     <Layout theme="light">
       <section className={s.home} id="top">
+        {isDesktop === true ? (
+          <span>only desktop and no SSR</span>
+        ) : (
+          <span>only mobile and SSR</span>
+        )}
         <Marquee className={s.marquee} repeat={3}>
           <span className={s.item}>marquee stuff that scroll continuously</span>
         </Marquee>

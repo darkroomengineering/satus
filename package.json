@@ -15,44 +15,39 @@
     "size": "npm run build && size-limit"
   },
   "dependencies": {
-    "@radix-ui/react-accordion": "^1.1.0",
-    "@radix-ui/react-select": "^1.2.0",
+    "@radix-ui/react-accordion": "^1.1.1",
+    "@studio-freight/compono": "file:../compono/studio-freight-compono-0.0.6.tgz",
     "@studio-freight/hamo": "^0.6.12",
-    "@studio-freight/react-lenis": "0.0.11",
+    "@studio-freight/react-lenis": "0.0.12",
     "@studio-freight/tempus": "0.0.36",
     "clsx": "^1.2.1",
-    "embla-carousel": "7.0.9",
-    "embla-carousel-autoplay": "7.0.9",
-    "embla-carousel-react": "7.0.9",
     "gsap": "^3.11.4",
-    "lint-staged": "^13.1.0",
-    "lottie-web": "^5.10.2",
-    "next": "13.1.6",
+    "lint-staged": "^13.1.2",
+    "next": "13.2.3",
     "next-pwa": "5.6.0",
-    "next-seo": "^5.15.0",
-    "next-sitemap": "^3.1.48",
+    "next-sitemap": "^4.0.5",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-use": "^17.4.0",
-    "sass": "^1.57.1",
-    "zustand": "4.3.2"
+    "sass": "^1.58.3",
+    "zustand": "4.3.6"
   },
   "devDependencies": {
     "@builder.io/partytown": "^0.7.5",
-    "@next/bundle-analyzer": "^13.1.6",
-    "@size-limit/preset-app": "^8.1.2",
+    "@next/bundle-analyzer": "^13.2.3",
+    "@size-limit/preset-app": "^8.2.4",
     "@svgr/webpack": "^6.5.1",
     "critters": "^0.0.16",
     "cross-env": "^7.0.3",
     "duplicate-package-checker-webpack-plugin": "^3.0.0",
-    "eslint": "8.33.0",
-    "eslint-config-next": "13.1.6",
-    "eslint-config-prettier": "^8.6.0",
+    "eslint": "8.35.0",
+    "eslint-config-next": "13.2.3",
+    "eslint-config-prettier": "^8.7.0",
     "husky": "^8.0.3",
     "lint-staged": "^13.0.3",
-    "prettier": "^2.8.3",
+    "prettier": "^2.8.4",
     "prettier-eslint": "^15.0.1",
-    "size-limit": "^8.1.2",
+    "size-limit": "^8.2.4",
     "stats.js": "^0.17.0"
   },
   "lint-staged": {
@@ -61,8 +56,8 @@
   },
   "pnpm": {
     "overrides": {
-      "throttle-debounce": "5.0.0",
-      "@studio-freight/tempus": "0.0.36"
+      "react-is": "18.2.0",
+      "throttle-debounce": "5.0.0"
     }
   },
   "size-limit": [

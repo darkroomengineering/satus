@@ -1,6 +1,6 @@
+import { Link } from '@studio-freight/compono'
 import { Lenis } from '@studio-freight/react-lenis'
 import cn from 'clsx'
-import { Link } from 'components/link'
 import { useStore } from 'lib/store'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'

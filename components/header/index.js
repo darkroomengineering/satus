@@ -1,5 +1,5 @@
+import { Link } from '@studio-freight/compono'
 import cn from 'clsx'
-import { Link } from 'components/link'
 import { Navigation } from 'components/navigation'
 import { useStore } from 'lib/store'
 import { forwardRef } from 'react'

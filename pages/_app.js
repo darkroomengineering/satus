@@ -1,7 +1,7 @@
+import { RealViewport } from '@studio-freight/compono'
 import { useDebug } from '@studio-freight/hamo'
 import { useLenis } from '@studio-freight/react-lenis'
 import { raf } from '@studio-freight/tempus'
-import { RealViewport } from 'components/real-viewport'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger'
 import { GTM_ID } from 'lib/analytics'
@@ -12,13 +12,13 @@ import { useEffect } from 'react'
 import 'styles/global.scss'
 
 const Stats = dynamic(
-  () => import('components/stats').then(({ Stats }) => Stats),
+  () => import('@studio-freight/compono').then(({ Stats }) => Stats),
   { ssr: false }
 )
 
 const GridDebugger = dynamic(
   () =>
-    import('components/grid-debugger').then(({ GridDebugger }) => GridDebugger),
+    import('@studio-freight/compono').then(({ GridDebugger }) => GridDebugger),
   { ssr: false }
 )
 

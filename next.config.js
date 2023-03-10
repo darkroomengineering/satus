@@ -16,7 +16,7 @@ const path = require('path')
 
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: [],
+  transpilePackages: ['@studio-freight/compono'],
   experimental: {
     optimizeCss: true,
     legacyBrowsers: false,

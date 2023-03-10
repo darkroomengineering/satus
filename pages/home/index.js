@@ -1,13 +1,14 @@
 import * as Accordion from '@radix-ui/react-accordion'
+import {
+  Image,
+  Kinesis,
+  Link,
+  Marquee,
+  MarqueeScroll,
+  Slider,
+} from '@studio-freight/compono'
 import { useMediaQuery, useRect } from '@studio-freight/hamo'
 import { useLenis } from '@studio-freight/react-lenis'
-import { Image } from 'components/image'
-import { Kinesis } from 'components/kinesis'
-import { Link } from 'components/link'
-import { Marquee } from 'components/marquee'
-import { MarqueeScroll } from 'components/marquee-scroll'
-import * as Select from 'components/select'
-import { Slider } from 'components/slider'
 import { Layout } from 'layouts/default'
 import { useRef } from 'react'
 import s from './home.module.scss'
@@ -133,14 +134,6 @@ export default function Home() {
             <div className={s.item}>kinesis</div>
           </Kinesis>
         </Link>
-
-        <div style={{ height: '100vh', padding: '50vw 0' }}>
-          <Select.Root defaultValue="2">
-            <Select.Item value="1">Item 1</Select.Item>
-            <Select.Item value="2">Item 2</Select.Item>
-            <Select.Item value="3">Item 3</Select.Item>
-          </Select.Root>
-        </div>
 
         <div style={{ height: '100vh' }} id="rect">
           <div

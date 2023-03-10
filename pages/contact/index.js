@@ -1,6 +1,5 @@
+import { FixedSlides, Link } from '@studio-freight/compono'
 import cn from 'clsx'
-import { FixedSlides } from 'components/fixed-slides'
-import { Link } from 'components/link'
 import { Layout } from 'layouts/default'
 import s from './contact.module.scss'
 

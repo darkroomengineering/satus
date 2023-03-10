@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.1.1",
-    "@studio-freight/compono": "^0.0.7",
+    "@studio-freight/compono": "^0.0.8",
     "@studio-freight/hamo": "^0.6.12",
     "@studio-freight/react-lenis": "0.0.12",
     "@studio-freight/tempus": "0.0.36",

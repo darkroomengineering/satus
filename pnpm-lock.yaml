@@ -9,7 +9,7 @@ specifiers:
   '@next/bundle-analyzer': ^13.2.3
   '@radix-ui/react-accordion': ^1.1.1
   '@size-limit/preset-app': ^8.2.4
-  '@studio-freight/compono': ^0.0.7
+  '@studio-freight/compono': ^0.0.8
   '@studio-freight/hamo': ^0.6.12
   '@studio-freight/react-lenis': 0.0.12
   '@studio-freight/tempus': 0.0.36
@@ -39,7 +39,7 @@ specifiers:
 
 dependencies:
   '@radix-ui/react-accordion': 1.1.1_biqbaboplfbrettd7655fr4n2y
-  '@studio-freight/compono': 0.0.7_eaor6tnxkz34gd23gw6f5laod4
+  '@studio-freight/compono': 0.0.8_eaor6tnxkz34gd23gw6f5laod4
   '@studio-freight/hamo': 0.6.12_biqbaboplfbrettd7655fr4n2y
   '@studio-freight/react-lenis': 0.0.12_biqbaboplfbrettd7655fr4n2y
   '@studio-freight/tempus': 0.0.36
@@ -1990,8 +1990,8 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@studio-freight/compono/0.0.7_eaor6tnxkz34gd23gw6f5laod4:
-    resolution: {integrity: sha512-bkBAjjofnTXo+j/SrIFNZs+eZZwN2AOuWP+17snC3PLr2Qhcy+pev4ucNOTmOijMpokSztpKuT0qVzpThD64jw==}
+  /@studio-freight/compono/0.0.8_eaor6tnxkz34gd23gw6f5laod4:
+    resolution: {integrity: sha512-PSecbBUU4HAUk43/bweQvobBhJPVWjrZouraOH5IZ8/ExfKsWRK28eXBOgzxlm0+N4PP/jdKHv4F86g+vHbz0Q==}
     peerDependencies:
       next: ^13.2.3
       react: ^18.2.0

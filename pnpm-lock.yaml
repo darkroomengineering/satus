@@ -9,7 +9,7 @@ specifiers:
   '@next/bundle-analyzer': ^13.2.3
   '@radix-ui/react-accordion': ^1.1.1
   '@size-limit/preset-app': ^8.2.4
-  '@studio-freight/compono': file:../compono/studio-freight-compono-0.0.6.tgz
+  '@studio-freight/compono': ^0.0.7
   '@studio-freight/hamo': ^0.6.12
   '@studio-freight/react-lenis': 0.0.12
   '@studio-freight/tempus': 0.0.36
@@ -39,7 +39,7 @@ specifiers:
 
 dependencies:
   '@radix-ui/react-accordion': 1.1.1_biqbaboplfbrettd7655fr4n2y
-  '@studio-freight/compono': file:../compono/studio-freight-compono-0.0.6.tgz_eaor6tnxkz34gd23gw6f5laod4
+  '@studio-freight/compono': 0.0.7_eaor6tnxkz34gd23gw6f5laod4
   '@studio-freight/hamo': 0.6.12_biqbaboplfbrettd7655fr4n2y
   '@studio-freight/react-lenis': 0.0.12_biqbaboplfbrettd7655fr4n2y
   '@studio-freight/tempus': 0.0.36
@@ -1989,6 +1989,36 @@ packages:
       - supports-color
       - utf-8-validate
     dev: true
+
+  /@studio-freight/compono/0.0.7_eaor6tnxkz34gd23gw6f5laod4:
+    resolution: {integrity: sha512-bkBAjjofnTXo+j/SrIFNZs+eZZwN2AOuWP+17snC3PLr2Qhcy+pev4ucNOTmOijMpokSztpKuT0qVzpThD64jw==}
+    peerDependencies:
+      next: ^13.2.3
+      react: ^18.2.0
+      react-dom: ^18.2.0
+      sass: ^1.58.0
+    dependencies:
+      '@radix-ui/react-select': 1.2.1_biqbaboplfbrettd7655fr4n2y
+      '@studio-freight/hamo': 0.6.12_biqbaboplfbrettd7655fr4n2y
+      '@studio-freight/react-lenis': 0.0.12_biqbaboplfbrettd7655fr4n2y
+      clsx: 1.2.1
+      embla-carousel-autoplay: 7.1.0
+      embla-carousel-react: 7.1.0_react@18.2.0
+      gsap: 3.11.4
+      lottie-web: 5.10.2
+      next: 13.2.3_wiv434v7erz4aedd5whhdwmpv4
+      next-seo: 5.15.0_nvzgbose6yf6w7ijjprgspqefi
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+      react-use: 17.4.0_biqbaboplfbrettd7655fr4n2y
+      react-use-measure: 2.1.1_biqbaboplfbrettd7655fr4n2y
+      sass: 1.58.3
+      stats.js: 0.17.0
+    transitivePeerDependencies:
+      - '@types/react'
+      - embla-carousel
+      - immer
+    dev: false
 
   /@studio-freight/hamo/0.6.12_biqbaboplfbrettd7655fr4n2y:
     resolution: {integrity: sha512-qItWJyFazvKeMTRa6RYbG+qVbB7pZKDmybTHT2ftlP9SI3i6C7JdIABSgBW+3GKZq73gZXpXvE2CHnAlWA8bDw==}
@@ -6781,37 +6811,4 @@ packages:
     dependencies:
       react: 18.2.0
       use-sync-external-store: 1.2.0_react@18.2.0
-    dev: false
-
-  file:../compono/studio-freight-compono-0.0.6.tgz_eaor6tnxkz34gd23gw6f5laod4:
-    resolution: {integrity: sha512-PbjmFGDKiB0MJApu1k9GGB+r6/GZwmjWlGAviL+5NZT3dq2g914Sr/4oF8Nv3AE+A8FQqz/UOZGpM5XG7I5SDA==, tarball: file:../compono/studio-freight-compono-0.0.6.tgz}
-    id: file:../compono/studio-freight-compono-0.0.6.tgz
-    name: '@studio-freight/compono'
-    version: 0.0.6
-    peerDependencies:
-      next: ^13.2.3
-      react: ^18.2.0
-      react-dom: ^18.2.0
-      sass: ^1.58.0
-    dependencies:
-      '@radix-ui/react-select': 1.2.1_biqbaboplfbrettd7655fr4n2y
-      '@studio-freight/hamo': 0.6.12_biqbaboplfbrettd7655fr4n2y
-      '@studio-freight/react-lenis': 0.0.12_biqbaboplfbrettd7655fr4n2y
-      clsx: 1.2.1
-      embla-carousel-autoplay: 7.1.0
-      embla-carousel-react: 7.1.0_react@18.2.0
-      gsap: 3.11.4
-      lottie-web: 5.10.2
-      next: 13.2.3_wiv434v7erz4aedd5whhdwmpv4
-      next-seo: 5.15.0_nvzgbose6yf6w7ijjprgspqefi
-      react: 18.2.0
-      react-dom: 18.2.0_react@18.2.0
-      react-use: 17.4.0_biqbaboplfbrettd7655fr4n2y
-      react-use-measure: 2.1.1_biqbaboplfbrettd7655fr4n2y
-      sass: 1.58.3
-      stats.js: 0.17.0
-    transitivePeerDependencies:
-      - '@types/react'
-      - embla-carousel
-      - immer
     dev: false

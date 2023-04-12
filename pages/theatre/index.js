@@ -41,7 +41,7 @@ export default function Theatre() {
   const debug = useDebug()
 
   useEffect(() => {
-    if (debug) {
+    if (!debug) {
       Router.replace('/')
     }
   }, [debug])

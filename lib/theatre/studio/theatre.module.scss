@@ -6,22 +6,23 @@
   height: 100vh;
   pointer-events: none;
   z-index: 10000;
+  background-color: black;
 
-  .toggle {
-    pointer-events: all;
-    font-size: 50px;
-    left: 150px;
-    position: absolute;
-    bottom: 0;
-  }
+  // .toggle {
+  //   pointer-events: all;
+  //   font-size: 50px;
+  //   left: 150px;
+  //   position: absolute;
+  //   bottom: 0;
+  // }
 
-  .ui {
-    pointer-events: all;
-    font-size: 50px;
-    left: 225px;
-    position: absolute;
-    bottom: 0;
-  }
+  // .ui {
+  //   pointer-events: all;
+  //   font-size: 50px;
+  //   left: 225px;
+  //   position: absolute;
+  //   bottom: 0;
+  // }
 
   .save {
     pointer-events: all;
@@ -31,9 +32,9 @@
     top: 0;
   }
 
-  &:not(.visible) {
-    .save {
-      display: none;
-    }
-  }
+  // &:not(.visible) {
+  //   .save {
+  //     display: none;
+  //   }
+  // }
 }

@@ -3,7 +3,6 @@ import { types } from '@theatre/core'
 import { useSheet } from 'lib/theatre'
 import { useOrchestra, useTheatre } from 'lib/theatre/hooks/use-theatre'
 import { Studio } from 'lib/theatre/studio'
-import Router from 'next/router'
 import { useEffect } from 'react'
 
 const channel = typeof window !== 'undefined' && new BroadcastChannel('theatre')
@@ -42,7 +41,7 @@ export default function Theatre() {
 
   useEffect(() => {
     if (!debug) {
-      Router.replace('/')
+      // Router.replace('/')
     }
   }, [debug])
 

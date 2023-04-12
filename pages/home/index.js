@@ -7,12 +7,13 @@ import {
   MarqueeScroll,
   Slider,
 } from '@studio-freight/compono'
-import { useMediaQuery, useRect } from '@studio-freight/hamo'
+import { useDebug, useMediaQuery, useRect } from '@studio-freight/hamo'
 import { useLenis } from '@studio-freight/react-lenis'
+import { types } from '@theatre/core'
 import { Layout } from 'layouts/default'
 import { useSheet } from 'lib/theatre'
 import { useTheatre } from 'lib/theatre/hooks/use-theatre'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import s from './home.module.scss'
 
 const devs = [
@@ -42,6 +43,7 @@ export default function Home() {
   const rectRef = useRef()
   const [setRef, rect] = useRect()
   const isDesktop = useMediaQuery('(min-width: 800px)')
+  const debug = useDebug()
 
   useLenis(
     ({ scroll }) => {
@@ -61,6 +63,8 @@ export default function Home() {
     1
   )
 
+  const theatreRectRef = useRef()
+
   const sheet = useSheet('Home')
 
   useTheatre(
@@ -68,15 +72,33 @@ export default function Home() {
     'hero',
     {
       visible: true,
+      x: types.number(0, { range: [-100, 100] }),
+      y: types.number(0, { range: [-100, 100] }),
     },
-    ({ visible }) => {
-      console.log(visible)
+    {
+      onValuesChange: ({ x, y, visible }) => {
+        theatreRectRef.current.style.transform = `translate3d(${x}%,${y}%,0)`
+        theatreRectRef.current.style.opacity = visible ? 1 : 0
+      },
     }
   )
+
+  useEffect(() => {
+    if (debug) {
+      window.addEventListener(
+        'click',
+        () => {
+          window.open('/theatre#debug', null, {})
+        },
+        { once: true }
+      )
+    }
+  }, [debug])
 
   return (
     <Layout theme="light">
       <section className={s.home} id="top">
+        <div className={s.theatreRect} ref={theatreRectRef} />
         {isDesktop === true ? (
           <span>only desktop and no SSR</span>
         ) : (

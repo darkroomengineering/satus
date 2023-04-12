@@ -6,6 +6,8 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger'
 import { GTM_ID } from 'lib/analytics'
 import { useStore } from 'lib/store'
+import { ProjectProvider, RafDriverProvider } from 'lib/theatre'
+import { Studio } from 'lib/theatre/studio'
 import dynamic from 'next/dynamic'
 import Script from 'next/script'
 import { useEffect } from 'react'
@@ -36,7 +38,9 @@ if (typeof window !== 'undefined') {
 
 function MyApp({ Component, pageProps }) {
   const debug = useDebug()
-  const lenis = useLenis()
+  const lenis = useLenis(() => {
+    ScrollTrigger.update()
+  })
   const navIsOpened = useStore(({ navIsOpened }) => navIsOpened)
 
   useEffect(() => {
@@ -85,7 +89,15 @@ function MyApp({ Component, pageProps }) {
       )}
       {/* <PageTransition /> */}
       <RealViewport />
-      <Component {...pageProps} />
+      <ProjectProvider
+        id="Satus"
+        config="config/Satus-2023-04-12T13_11_45.json"
+      >
+        <RafDriverProvider id="default">
+          <Studio />
+          <Component {...pageProps} />
+        </RafDriverProvider>
+      </ProjectProvider>
     </>
   )
 }

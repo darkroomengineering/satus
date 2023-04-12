@@ -14,6 +14,8 @@ specifiers:
   '@studio-freight/react-lenis': 0.0.12
   '@studio-freight/tempus': 0.0.36
   '@svgr/webpack': ^6.5.1
+  '@theatre/core': ^0.6.0
+  '@theatre/studio': ^0.6.0
   clsx: ^1.2.1
   critters: ^0.0.16
   cross-env: ^7.0.3
@@ -23,6 +25,7 @@ specifiers:
   eslint-config-prettier: ^8.7.0
   gsap: ^3.11.4
   husky: ^8.0.3
+  jsonminify: ^0.4.2
   lint-staged: ^13.2.0
   next: 13.2.4
   next-pwa: 5.6.0
@@ -43,8 +46,11 @@ dependencies:
   '@studio-freight/hamo': 0.6.12_biqbaboplfbrettd7655fr4n2y
   '@studio-freight/react-lenis': 0.0.12_biqbaboplfbrettd7655fr4n2y
   '@studio-freight/tempus': 0.0.36
+  '@theatre/core': 0.6.0
+  '@theatre/studio': 0.6.0_@theatre+core@0.6.0
   clsx: 1.2.1
   gsap: 3.11.4
+  jsonminify: 0.4.2
   lint-staged: 13.2.0
   next: 13.2.4_wiv434v7erz4aedd5whhdwmpv4
   next-pwa: 5.6.0_next@13.2.4
@@ -2231,6 +2237,27 @@ packages:
     resolution: {integrity: sha512-4C7nX/dvpzB7za4Ql9K81xK3HPxCpHMgwTZVyf+9JQ6VUbn9jjZVN7/Nkdz/Ugzs2CSjqnL/UPXroiVBVHUWUw==}
     dependencies:
       tslib: 2.5.0
+    dev: false
+
+  /@theatre/core/0.6.0:
+    resolution: {integrity: sha512-HyOoEQapeVbgKBBVfv1rjklN8oAY1/6RZuzntdL9Nfqb5UVzyVR0Im9q4WBPHx6d1dB1BKpAwIw6PzqlKoyehA==}
+    dependencies:
+      '@theatre/dataverse': 0.6.0
+    dev: false
+
+  /@theatre/dataverse/0.6.0:
+    resolution: {integrity: sha512-1W7b8bQTZeRmmrY64HTQzEtjLJWBmdOkfK/liR+LSSjgAylY3CjZ4/vaDUMmRQr4zCeQjyNVmrvwaIZ/33s+tQ==}
+    dependencies:
+      lodash-es: 4.17.21
+    dev: false
+
+  /@theatre/studio/0.6.0_@theatre+core@0.6.0:
+    resolution: {integrity: sha512-DH53wWSkIDevbYJUybLH5nIx+rFgiWlykYOmDKC9WK9QUQFYRpnaBu4UNIo+RmGZ+I2ZMSHx1RfrfnBJCr1j6A==}
+    peerDependencies:
+      '@theatre/core': '*'
+    dependencies:
+      '@theatre/core': 0.6.0
+      '@theatre/dataverse': 0.6.0
     dev: false
 
   /@trysound/sax/0.2.0:
@@ -4468,6 +4495,11 @@ packages:
       graceful-fs: 4.2.10
     dev: false
 
+  /jsonminify/0.4.2:
+    resolution: {integrity: sha512-mEtP5ECD0293D+s45JhDutqF5mFCkWY8ClrPFxjSFR2KUoantofky7noSzyKnAnD9Gd8pXHZSUd5bgzLDUBbfA==}
+    engines: {node: '>=0.8.0', npm: '>=1.1.0'}
+    dev: false
+
   /jsonpointer/5.0.1:
     resolution: {integrity: sha512-p/nXbhSEcu3pZRdkW1OfJhpsVtW1gd4Wa1fnQc9YLiTfAjn0312eMKimbdIQzuZl9aa9xUGaRlP9T/CJE/ditQ==}
     engines: {node: '>=0.10.0'}
@@ -4533,6 +4565,7 @@ packages:
     transitivePeerDependencies:
       - enquirer
       - supports-color
+    dev: false
 
   /listr2/5.0.7:
     resolution: {integrity: sha512-MD+qXHPmtivrHIDRwPYdfNkrzqDiuaKU/rfBcec3WMyMF3xylQj3jMq344OtvQxz7zaCFViRAeqlr2AFhPvXHw==}
@@ -4584,6 +4617,10 @@ packages:
     dependencies:
       p-locate: 5.0.0
     dev: true
+
+  /lodash-es/4.17.21:
+    resolution: {integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==}
+    dev: false
 
   /lodash.debounce/4.0.8:
     resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}

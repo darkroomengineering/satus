@@ -10,6 +10,8 @@ import {
 import { useMediaQuery, useRect } from '@studio-freight/hamo'
 import { useLenis } from '@studio-freight/react-lenis'
 import { Layout } from 'layouts/default'
+import { useSheet } from 'lib/theatre'
+import { useTheatre } from 'lib/theatre/hooks/use-theatre'
 import { useRef } from 'react'
 import s from './home.module.scss'
 
@@ -57,6 +59,19 @@ export default function Home() {
     },
     [rect],
     1
+  )
+
+  const sheet = useSheet('Home')
+
+  useTheatre(
+    sheet,
+    'hero',
+    {
+      visible: true,
+    },
+    ({ visible }) => {
+      console.log(visible)
+    }
   )
 
   return (

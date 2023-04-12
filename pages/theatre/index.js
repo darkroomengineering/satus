@@ -4,6 +4,7 @@ import { useSheet } from 'lib/theatre'
 import { useOrchestra, useTheatre } from 'lib/theatre/hooks/use-theatre'
 import { Studio } from 'lib/theatre/studio'
 import { useEffect } from 'react'
+import s from './theatre.module.scss'
 
 const channel = typeof window !== 'undefined' && new BroadcastChannel('theatre')
 
@@ -54,12 +55,12 @@ export default function Theatre() {
 
   return (
     debug === true && (
-      <>
+      <div className={s.theatre}>
         <Studio />
         {list.map(({ address, config }) => (
           <TheatreObject key={address} address={address} config={config} />
         ))}
-      </>
+      </div>
     )
   )
 }

@@ -7,13 +7,13 @@ import {
   MarqueeScroll,
   Slider,
 } from '@studio-freight/compono'
-import { useDebug, useMediaQuery, useRect } from '@studio-freight/hamo'
+import { useMediaQuery, useRect } from '@studio-freight/hamo'
 import { useLenis } from '@studio-freight/react-lenis'
 import { types } from '@theatre/core'
 import { Layout } from 'layouts/default'
 import { useSheet } from 'lib/theatre'
 import { useTheatre } from 'lib/theatre/hooks/use-theatre'
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import s from './home.module.scss'
 
 const devs = [
@@ -43,7 +43,6 @@ export default function Home() {
   const rectRef = useRef()
   const [setRef, rect] = useRect()
   const isDesktop = useMediaQuery('(min-width: 800px)')
-  const debug = useDebug()
 
   useLenis(
     ({ scroll }) => {
@@ -82,18 +81,6 @@ export default function Home() {
       },
     }
   )
-
-  useEffect(() => {
-    if (debug) {
-      window.addEventListener(
-        'click',
-        () => {
-          window.open('/theatre#debug', null, {})
-        },
-        { once: true }
-      )
-    }
-  }, [debug])
 
   return (
     <Layout theme="light">

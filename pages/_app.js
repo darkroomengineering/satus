@@ -21,17 +21,14 @@ if (typeof window !== 'undefined') {
     gsap.updateRoot(time / 1000)
   }, 0)
 
+  // reset scroll position
   window.scrollTo(0, 0)
   window.history.scrollRestoration = 'manual'
 }
 
 function MyApp({ Component, pageProps }) {
-  const lenis = useLenis(() => {
-    ScrollTrigger.update()
-  })
-  useEffect(() => {
-    ScrollTrigger.refresh()
-  }, [lenis])
+  const lenis = useLenis(ScrollTrigger.update)
+  useEffect(ScrollTrigger.refresh, [lenis])
 
   const navIsOpened = useStore(({ navIsOpened }) => navIsOpened)
 

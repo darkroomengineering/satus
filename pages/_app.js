@@ -1,5 +1,4 @@
 import { RealViewport } from '@studio-freight/compono'
-import { useDebug } from '@studio-freight/hamo'
 import { useLenis } from '@studio-freight/react-lenis'
 import { raf } from '@studio-freight/tempus'
 import { gsap } from 'gsap'
@@ -7,21 +6,9 @@ import { ScrollTrigger } from 'gsap/dist/ScrollTrigger'
 import { GTM_ID } from 'lib/analytics'
 import { useStore } from 'lib/store'
 import { ProjectProvider, RafDriverProvider } from 'lib/theatre'
-import dynamic from 'next/dynamic'
 import Script from 'next/script'
 import { useEffect } from 'react'
 import 'styles/global.scss'
-
-const Stats = dynamic(
-  () => import('@studio-freight/compono').then(({ Stats }) => Stats),
-  { ssr: false }
-)
-
-const GridDebugger = dynamic(
-  () =>
-    import('@studio-freight/compono').then(({ GridDebugger }) => GridDebugger),
-  { ssr: false }
-)
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger)
@@ -36,7 +23,6 @@ if (typeof window !== 'undefined') {
 }
 
 function MyApp({ Component, pageProps }) {
-  const debug = useDebug()
   const lenis = useLenis(() => {
     ScrollTrigger.update()
   })
@@ -60,12 +46,6 @@ function MyApp({ Component, pageProps }) {
 
   return (
     <>
-      {debug && (
-        <>
-          <GridDebugger />
-          <Stats />
-        </>
-      )}
       {/* Google Tag Manager - Global base code */}
       {process.env.NODE_ENV !== 'development' && (
         <>
@@ -90,7 +70,7 @@ function MyApp({ Component, pageProps }) {
       <RealViewport />
       <ProjectProvider
         id="Satus"
-        config="config/Satus-2023-04-12T13_11_45.json"
+        config="/config/Satus-2023-04-12T13_11_45.json"
       >
         <RafDriverProvider id="default">
           <Component {...pageProps} />

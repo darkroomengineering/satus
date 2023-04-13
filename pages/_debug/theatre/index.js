@@ -1,9 +1,8 @@
-import { useDebug } from '@studio-freight/hamo'
 import { types } from '@theatre/core'
+import { useOrchestra } from 'lib/orchestra'
 import { useSheet } from 'lib/theatre'
-import { useOrchestra, useTheatre } from 'lib/theatre/hooks/use-theatre'
+import { useTheatre } from 'lib/theatre/hooks/use-theatre'
 import { Studio } from 'lib/theatre/studio'
-import { useEffect } from 'react'
 import s from './theatre.module.scss'
 
 const channel = typeof window !== 'undefined' && new BroadcastChannel('theatre')
@@ -38,13 +37,13 @@ function TheatreObject({ address, config }) {
 }
 
 export default function Theatre() {
-  const debug = useDebug()
+  // const debug = useDebug()
 
-  useEffect(() => {
-    if (!debug) {
-      // Router.replace('/')
-    }
-  }, [debug])
+  // useEffect(() => {
+  //   if (!debug) {
+  //     // Router.replace('/')
+  //   }
+  // }, [debug])
 
   const list = useOrchestra(({ theatreList }) =>
     Object.entries(theatreList).map(([address, config]) => ({
@@ -54,13 +53,13 @@ export default function Theatre() {
   )
 
   return (
-    debug === true && (
-      <div className={s.theatre}>
-        <Studio />
-        {list.map(({ address, config }) => (
-          <TheatreObject key={address} address={address} config={config} />
-        ))}
-      </div>
-    )
+    // debug === true && (
+    <div className={s.theatre}>
+      <Studio />
+      {list.map(({ address, config }) => (
+        <TheatreObject key={address} address={address} config={config} />
+      ))}
+    </div>
+    // )
   )
 }

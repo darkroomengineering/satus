@@ -1,0 +1,25 @@
+.grid {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 10000;
+}
+
+.debugger {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.1) 50%,
+    rgba(247, 181, 68, 0.1) 50%
+  );
+  background-size: 8px 8px;
+
+  span {
+    background: pink;
+    opacity: 0.33;
+  }
+}

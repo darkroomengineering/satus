@@ -1,5 +1,5 @@
-import { Orchestra } from 'lib/orchestra'
+import { OrchestraToggle } from 'lib/orchestra'
 
-export default function Page() {
-  return <Orchestra />
+export default function Orchestra() {
+  return <OrchestraToggle />
 }

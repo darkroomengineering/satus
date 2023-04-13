@@ -9,16 +9,8 @@ import Router from 'next/router'
 import { useEffect } from 'react'
 import s from './layout.module.scss'
 
-const Stats = dynamic(
-  () => import('components/orchestra/stats').then(({ Stats }) => Stats),
-  { ssr: false }
-)
-
-const GridDebugger = dynamic(
-  () =>
-    import('components/orchestra/grid').then(
-      ({ GridDebugger }) => GridDebugger
-    ),
+const Orchestra = dynamic(
+  () => import('lib/orchestra').then(({ Orchestra }) => Orchestra),
   { ssr: false }
 )
 
@@ -59,8 +51,7 @@ export function Layout({
       </Lenis>
       {debug && (
         <>
-          <Stats />
-          <GridDebugger />
+          <Orchestra />
         </>
       )}
     </>

@@ -20,12 +20,19 @@ if (typeof window !== 'undefined') {
   raf.add((time) => {
     gsap.updateRoot(time / 1000)
   }, 0)
+
+  window.scrollTo(0, 0)
+  window.history.scrollRestoration = 'manual'
 }
 
 function MyApp({ Component, pageProps }) {
   const lenis = useLenis(() => {
     ScrollTrigger.update()
   })
+  useEffect(() => {
+    ScrollTrigger.refresh()
+  }, [lenis])
+
   const navIsOpened = useStore(({ navIsOpened }) => navIsOpened)
 
   useEffect(() => {
@@ -35,14 +42,6 @@ function MyApp({ Component, pageProps }) {
       lenis?.start()
     }
   }, [lenis, navIsOpened])
-
-  useEffect(() => {
-    ScrollTrigger.refresh()
-  }, [lenis])
-
-  useEffect(() => {
-    window.history.scrollRestoration = 'manual'
-  }, [])
 
   return (
     <>

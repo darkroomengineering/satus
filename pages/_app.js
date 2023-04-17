@@ -66,7 +66,7 @@ function MyApp({ Component, pageProps }) {
       <RealViewport />
       <ProjectProvider
         id="Satus"
-        config="/config/Satus-2023-04-12T13_11_45.json"
+        config="/config/Satus-2023-04-17T12_55_21.json"
       >
         <RafDriverProvider id="default">
           <Component {...pageProps} />

@@ -1,39 +1,45 @@
 import { types } from '@theatre/core'
+import { useBroadcastChannel } from 'hooks/use-broadcast'
 import { useOrchestra } from 'lib/orchestra'
 import { useSheet } from 'lib/theatre'
 import { useTheatre } from 'lib/theatre/hooks/use-theatre'
 import { Studio } from 'lib/theatre/studio'
 import s from './theatre.module.scss'
 
-const channel = typeof window !== 'undefined' && new BroadcastChannel('theatre')
+function sanitizeConfig(config = {}) {
+  return Object.fromEntries(
+    Object.entries(config).map(([key, value]) => {
+      const { type } = value
+
+      if (type) {
+        return [
+          key,
+          types[type](
+            type === 'compound' ? sanitizeConfig(value.props) : value.default,
+            type === 'stringLiteral' ? value.valuesAndLabels : value
+          ),
+        ]
+      }
+      return [key, value]
+    })
+  )
+}
 
 function TheatreObject({ address, config }) {
-  const parsedAddress = JSON.parse(address)
-  const parsedConfig = JSON.parse(config)
+  const { sheetId, sheetInstanceId, objectKey } = JSON.parse(address)
 
-  const { sheetId, sheetInstanceId, objectKey } = parsedAddress
+  const channel = useBroadcastChannel('theatre' + address)
 
   const sheet = useSheet(sheetId, sheetInstanceId)
-  useTheatre(
-    sheet,
-    objectKey,
-    Object.fromEntries(
-      Object.entries(parsedConfig).map(([key, value]) => [
-        key,
-        value.type ? types[value.type](value.default, { ...value }) : value,
-      ])
-    ),
-    {
-      onValuesChange: (values) => {
-        channel.postMessage({
-          address,
-          values,
-        })
-      },
-      deps: [],
-      external: true,
-    }
-  )
+  useTheatre(sheet, objectKey, sanitizeConfig(config), {
+    onValuesChange: (values) => {
+      channel.emit('studio:change', {
+        values,
+      })
+    },
+    deps: [channel],
+    external: true,
+  })
 }
 
 export default function Theatre() {
@@ -53,13 +59,11 @@ export default function Theatre() {
   )
 
   return (
-    // debug === true && (
     <div className={s.theatre}>
       <Studio />
       {list.map(({ address, config }) => (
         <TheatreObject key={address} address={address} config={config} />
       ))}
     </div>
-    // )
   )
 }

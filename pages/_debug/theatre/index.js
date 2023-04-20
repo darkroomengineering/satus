@@ -1,5 +1,5 @@
 import { types } from '@theatre/core'
-import { useBroadcastChannel } from 'hooks/use-broadcast'
+import { useBroadcastChannel } from 'hooks/use-broadcast-channel'
 import { useOrchestra } from 'lib/orchestra'
 import { useSheet } from 'lib/theatre'
 import { useTheatre } from 'lib/theatre/hooks/use-theatre'

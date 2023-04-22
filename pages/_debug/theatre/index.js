@@ -1,5 +1,4 @@
 import { types } from '@theatre/core'
-import { useBroadcastChannel } from 'hooks/use-broadcast-channel'
 import { useOrchestra } from 'lib/orchestra'
 import { useSheet } from 'lib/theatre'
 import { useTheatre } from 'lib/theatre/hooks/use-theatre'
@@ -25,21 +24,11 @@ function sanitizeConfig(config = {}) {
   )
 }
 
-function TheatreObject({ address, config }) {
-  const { sheetId, sheetInstanceId, objectKey } = JSON.parse(address)
-
-  const channel = useBroadcastChannel('theatre' + address)
+function TheatreObject({ objectAddress, config }) {
+  const { sheetId, sheetInstanceId, objectKey } = JSON.parse(objectAddress)
 
   const sheet = useSheet(sheetId, sheetInstanceId)
-  useTheatre(sheet, objectKey, sanitizeConfig(config), {
-    onValuesChange: (values) => {
-      channel.emit('studio:change', {
-        values,
-      })
-    },
-    deps: [channel],
-    external: true,
-  })
+  useTheatre(sheet, objectKey, sanitizeConfig(config))
 }
 
 export default function Theatre() {
@@ -52,18 +41,23 @@ export default function Theatre() {
   // }, [debug])
 
   const list = useOrchestra(({ theatreList }) =>
-    Object.entries(theatreList).map(([address, config]) => ({
-      address,
+    Object.entries(theatreList).map(([objectAddress, config]) => ({
+      objectAddress,
       config,
     }))
   )
 
   return (
     <div className={s.theatre}>
-      <Studio />
-      {list.map(({ address, config }) => (
-        <TheatreObject key={address} address={address} config={config} />
-      ))}
+      <Studio>
+        {list.map(({ objectAddress, config }) => (
+          <TheatreObject
+            key={objectAddress}
+            objectAddress={objectAddress}
+            config={config}
+          />
+        ))}
+      </Studio>
     </div>
   )
 }

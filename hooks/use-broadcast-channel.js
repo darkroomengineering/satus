@@ -1,5 +1,5 @@
 import EventEmitter from 'events'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 export function useBroadcastChannel(id = 'default') {
   const [channel, setChannel] = useState()
@@ -50,5 +50,14 @@ export function useBroadcastChannel(id = 'default') {
     [channel]
   )
 
-  return { on, off, emit }
+  const toReturn = useMemo(
+    () => ({
+      on,
+      off,
+      emit,
+    }),
+    [on, off, emit]
+  )
+
+  return toReturn
 }

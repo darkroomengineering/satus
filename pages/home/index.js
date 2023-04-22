@@ -66,7 +66,9 @@ export default function Home() {
 
   const sheet = useSheet('Home')
 
-  useTheatre(
+  const {
+    values: { visible, x, y },
+  } = useTheatre(
     sheet,
     'hero',
     {
@@ -79,8 +81,11 @@ export default function Home() {
         theatreRectRef.current.style.transform = `translate3d(${x}%,${y}%,0)`
         theatreRectRef.current.style.opacity = visible ? 1 : 0
       },
+      lazy: false,
     }
   )
+
+  console.log({ visible, x, y })
 
   return (
     <Layout theme="light">

@@ -41,7 +41,7 @@ const devs = [
 
 export default function Home() {
   const rectRef = useRef()
-  const [setRef, rect] = useRect()
+  const [setRectRef, rect] = useRect()
   const isDesktop = useMediaQuery('(min-width: 800px)')
 
   useLenis(
@@ -167,7 +167,7 @@ export default function Home() {
         <div style={{ height: '100vh' }} id="rect">
           <div
             ref={(node) => {
-              setRef(node)
+              setRectRef(node)
               rectRef.current = node
             }}
             style={{

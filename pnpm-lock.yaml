@@ -10,7 +10,7 @@ specifiers:
   '@radix-ui/react-accordion': ^1.1.1
   '@size-limit/preset-app': ^8.2.4
   '@studio-freight/compono': ^0.0.18
-  '@studio-freight/hamo': ^0.6.13
+  '@studio-freight/hamo': ^0.6.15
   '@studio-freight/react-lenis': 0.0.20
   '@studio-freight/tempus': 0.0.37
   '@svgr/webpack': ^6.5.1
@@ -46,7 +46,7 @@ specifiers:
 dependencies:
   '@radix-ui/react-accordion': 1.1.1_biqbaboplfbrettd7655fr4n2y
   '@studio-freight/compono': 0.0.18_7v4oazbhu7yicnc5ppovvohioa
-  '@studio-freight/hamo': 0.6.13_biqbaboplfbrettd7655fr4n2y
+  '@studio-freight/hamo': 0.6.15_biqbaboplfbrettd7655fr4n2y
   '@studio-freight/react-lenis': 0.0.20_biqbaboplfbrettd7655fr4n2y
   '@studio-freight/tempus': 0.0.37
   '@theatre/core': 0.6.0

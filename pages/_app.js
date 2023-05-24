@@ -17,7 +17,7 @@ if (typeof window !== 'undefined') {
   // merge rafs
   gsap.ticker.lagSmoothing(0)
   gsap.ticker.remove(gsap.updateRoot)
-  Tempus.add((time) => {
+  Tempus?.add((time) => {
     gsap.updateRoot(time / 1000)
   }, 0)
 

@@ -57,11 +57,13 @@ $layout: (
   max-width: var(--layout-width);
   margin-left: auto;
   margin-right: auto;
+  width: 100%;
 }
 
 .layout-block-inner {
   padding-left: var(--layout-margin);
   padding-right: var(--layout-margin);
+  width: 100%;
 }
 
 .layout-grid {
@@ -70,6 +72,7 @@ $layout: (
   display: grid;
   grid-template-columns: repeat(var(--layout-columns-count), minmax(0, 1fr));
   grid-gap: var(--layout-columns-gap);
+  width: 100%;
 }
 
 .layout-grid-inner {
@@ -78,4 +81,5 @@ $layout: (
   display: grid;
   grid-template-columns: repeat(var(--layout-columns-count), minmax(0, 1fr));
   grid-gap: var(--layout-columns-gap);
+  width: 100%;
 }

@@ -6,7 +6,6 @@ overrides:
 specifiers:
   '@builder.io/partytown': ^0.8.0
   '@next/bundle-analyzer': ^13.4.7
-  '@radix-ui/react-accordion': ^1.1.2
   '@size-limit/preset-app': ^8.2.6
   '@studio-freight/compono': ^0.0.20
   '@studio-freight/hamo': ^0.6.18
@@ -40,7 +39,6 @@ specifiers:
   zustand: 4.3.8
 
 dependencies:
-  '@radix-ui/react-accordion': 1.1.2_biqbaboplfbrettd7655fr4n2y
   '@studio-freight/compono': 0.0.20_gp2gwurlnn7nbn63kn2qr563ly
   '@studio-freight/hamo': 0.6.18_biqbaboplfbrettd7655fr4n2y
   '@studio-freight/react-lenis': 0.0.21_biqbaboplfbrettd7655fr4n2y

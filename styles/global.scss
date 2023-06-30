@@ -36,18 +36,6 @@ body {
   min-height: 100vh;
 }
 
-// custom cursor
-// html.has-custom-cursor {
-//   &,
-//   * {
-//     &,
-//     &::before,
-//     &::after {
-//       cursor: none !important;
-//     }
-//   }
-// }
-
 a,
 button,
 input,
@@ -59,10 +47,9 @@ select {
 }
 
 *::selection {
-  background-color: var(--black);
-  color: var(--white);
+  background-color: var(--theme-secondary);
+  color: var(--theme-primary);
 }
-
 svg.icon {
   path[fill],
   rect[fill],

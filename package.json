@@ -58,8 +58,7 @@
   },
   "pnpm": {
     "overrides": {
-      "react-is": "18.2.0",
-      "throttle-debounce": "5.0.0"
+      "react-is": "18.2.0"
     }
   },
   "size-limit": [

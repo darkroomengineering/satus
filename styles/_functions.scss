@@ -1,9 +1,18 @@
 @use 'sass:math';
-@import './_variables.scss';
+
+/* Breakpoints */
+$mobile-breakpoint: get('breakpoints.mobile');
+
+// Viewport Sizes
+$desktop-width: get('viewports.desktop.width');
+$desktop-height: get('viewports.desktop.height');
+
+$mobile-width: get('viewports.mobile.width');
+$mobile-height: get('viewports.mobile.height');
 
 // Breakpoint
 @mixin mobile {
-  @media (max-width: #{$mobile-breakpoint}) {
+  @media (max-width: #{$mobile-breakpoint - 1px}) {
     @content;
   }
 }

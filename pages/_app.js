@@ -2,6 +2,7 @@ import { RealViewport } from '@studio-freight/compono'
 import { useDebug } from '@studio-freight/hamo'
 import { useLenis } from '@studio-freight/react-lenis'
 import Tempus from '@studio-freight/tempus'
+import { DeviceDetectionProvider } from 'components/device-detection'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger'
 import { GTM_ID } from 'libs/analytics'
@@ -72,21 +73,22 @@ function MyApp({ Component, pageProps }) {
           />
         </>
       )}
-      {/* <PageTransition /> */}
       <RealViewport />
-      <ProjectProvider
-        id="Satus"
-        config="/config/Satus-2023-04-17T12_55_21.json"
-      >
-        <RafDriverProvider id="default">
-          <Component {...pageProps} />
-          {debug && (
-            <>
-              <Orchestra />
-            </>
-          )}
-        </RafDriverProvider>
-      </ProjectProvider>
+      <DeviceDetectionProvider>
+        <ProjectProvider
+          id="Satus"
+          config="/config/Satus-2023-04-17T12_55_21.json"
+        >
+          <RafDriverProvider id="default">
+            <Component {...pageProps} />
+            {debug && (
+              <>
+                <Orchestra />
+              </>
+            )}
+          </RafDriverProvider>
+        </ProjectProvider>
+      </DeviceDetectionProvider>
     </>
   )
 }

@@ -2,7 +2,6 @@ lockfileVersion: 5.4
 
 overrides:
   react-is: 18.2.0
-  throttle-debounce: 5.0.0
 
 specifiers:
   '@builder.io/partytown': ^0.8.0

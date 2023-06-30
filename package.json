@@ -15,7 +15,6 @@
     "size": "npm run build && size-limit"
   },
   "dependencies": {
-    "@radix-ui/react-accordion": "^1.1.2",
     "@studio-freight/compono": "^0.0.20",
     "@studio-freight/hamo": "^0.6.18",
     "@studio-freight/react-lenis": "0.0.21",

@@ -81,7 +81,7 @@ const nextConfig = {
                   'removeStyleElement',
                   'removeScriptElement',
                   'prefixIds',
-                  'cleanupIDs',
+                  'cleanupIds',
                   {
                     name: 'cleanupNumericValues',
                     params: {

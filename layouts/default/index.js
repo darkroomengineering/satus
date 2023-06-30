@@ -10,7 +10,7 @@ import { useEffect } from 'react'
 import s from './layout.module.scss'
 
 const Orchestra = dynamic(
-  () => import('lib/orchestra').then(({ Orchestra }) => Orchestra),
+  () => import('libs/orchestra').then(({ Orchestra }) => Orchestra),
   { ssr: false }
 )
 

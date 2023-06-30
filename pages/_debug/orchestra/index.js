@@ -1,4 +1,4 @@
-import { OrchestraToggle } from 'lib/orchestra'
+import { OrchestraToggle } from 'libs/orchestra'
 
 export default function Orchestra() {
   return <OrchestraToggle />

@@ -1,7 +1,7 @@
 import { Link } from '@studio-freight/compono'
 import cn from 'clsx'
 import { Navigation } from 'components/navigation'
-import { useStore } from 'lib/store'
+import { useStore } from 'libs/store'
 import { forwardRef } from 'react'
 import { shallow } from 'zustand/shallow'
 import s from './header.module.scss'

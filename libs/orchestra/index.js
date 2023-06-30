@@ -1,5 +1,6 @@
 import { del, get, set } from 'idb-keyval'
-import { broadcast } from 'lib/zustand-broadcast'
+import { Studio } from 'libs/theatre/studio'
+import { broadcast } from 'libs/zustand-broadcast'
 import { useEffect } from 'react'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
@@ -27,7 +28,7 @@ const storage = {
 export const useOrchestra = create(
   persist(
     () => ({
-      theatreList: {},
+      studio: false,
       stats: false,
       grid: false,
     }),
@@ -40,45 +41,44 @@ export const useOrchestra = create(
 
 broadcast(useOrchestra, 'orchestra')
 
+const useStore = create((set) => ({
+  visible: true,
+  setVisible: (visible) => set({ visible }),
+}))
+
 // to be added to main pages
 export function Orchestra() {
-  const { stats, grid } = useOrchestra(
-    ({ stats, grid }) => ({ stats, grid }),
+  const visible = useStore(({ visible }) => visible)
+
+  const { studio, stats, grid } = useOrchestra(
+    ({ studio, stats, grid }) => ({ studio, stats, grid }),
     shallow
   )
 
-  useEffect(() => {
-    // clear()
-    useOrchestra.setState({
-      theatreList: {},
-    })
-  }, [])
-
-  // useEffect(() => {
-  //   window.addEventListener(
-  //     'click',
-  //     () => {
-  //       window.open('/_debug/orchestra', '_blank')
-  //     },
-  //     { once: true }
-  //   )
-  // }, [])
-
   return (
-    <>
-      {stats && <Stats />}
-      {grid && <GridDebugger />}
-    </>
+    visible && (
+      <>
+        {studio && <Studio />}
+        {stats && <Stats />}
+        {grid && <GridDebugger />}
+      </>
+    )
   )
 }
 
 // to be added to debug pages
 export function OrchestraToggle() {
+  const setVisible = useStore(({ setVisible }) => setVisible)
+
+  useEffect(() => {
+    setVisible(false)
+  }, [])
+
   return (
     <div className={s.orchestra}>
       <button
         onClick={() => {
-          window.open('/_debug/theatre', null, {})
+          useOrchestra.setState(({ studio }) => ({ studio: !studio }))
         }}
       >
         ⚙️

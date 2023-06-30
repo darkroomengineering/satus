@@ -1,8 +1,8 @@
 import { types } from '@theatre/core'
-import { useOrchestra } from 'lib/orchestra'
-import { useSheet } from 'lib/theatre'
-import { useTheatre } from 'lib/theatre/hooks/use-theatre'
-import { Studio } from 'lib/theatre/studio'
+import { useOrchestra } from 'libs/orchestra'
+import { useSheet } from 'libs/theatre'
+import { useTheatre } from 'libs/theatre/hooks/use-theatre'
+import { Studio } from 'libs/theatre/studio'
 import s from './theatre.module.scss'
 
 function sanitizeConfig(config = {}) {

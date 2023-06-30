@@ -1,13 +1,12 @@
 import studio from '@theatre/studio'
 import jsonminify from 'jsonminify'
-import { useCurrentProject, useCurrentRafDriver } from 'lib/theatre'
+import { useCurrentProject, useCurrentRafDriver } from 'libs/theatre'
 import { useEffect } from 'react'
-import { StudioContext } from './context'
 import s from './studio.module.scss'
 
 let initialized = false
 
-export function Studio({ children }) {
+export function Studio() {
   const project = useCurrentProject()
 
   const rafDriver = useCurrentRafDriver()
@@ -17,16 +16,24 @@ export function Studio({ children }) {
 
     if (rafDriver && !initialized) {
       studio.initialize({ __experimental_rafDriver: rafDriver }).then(() => {
-        studio.ui.restore()
+        console.log('Studio initialized')
       })
 
       initialized = true
     }
   }, [studio, rafDriver])
 
+  useEffect(() => {
+    studio.ui.restore()
+
+    return () => {
+      studio.ui.hide()
+    }
+  }, [])
+
   return (
     <>
-      <div className={s.theatre}>
+      <div className={s.studio}>
         <button
           onClick={() => {
             // setVisible(!visible)
@@ -52,7 +59,6 @@ export function Studio({ children }) {
           💾
         </button>
       </div>
-      <StudioContext.Provider value={true}>{children}</StudioContext.Provider>
     </>
   )
 }

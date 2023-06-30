@@ -1,6 +1,5 @@
 import { useFrame } from '@studio-freight/hamo'
 import { createRafDriver, getProject } from '@theatre/core'
-import { useImmutableState } from 'hooks/use-immutable-state'
 import {
   createContext,
   forwardRef,
@@ -15,7 +14,7 @@ import {
 const RafDriverContext = createContext()
 
 export function RafDriverProvider({ children, id = 'default' }) {
-  const theatreRaf = useImmutableState(createRafDriver({ name: id }))
+  const [theatreRaf] = useState(() => createRafDriver({ name: id }))
 
   useFrame((time) => {
     theatreRaf.tick(time)
@@ -51,11 +50,6 @@ export function ProjectProvider({ children, id, config }) {
               console.log('project ready')
               setproject(project)
             })
-
-            // project.ready.then(() => {
-            //   console.log('project ready')
-            //   setproject(project)
-            // })
           })
       }
     } else {

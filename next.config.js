@@ -1,14 +1,17 @@
-const runtimeCaching = require('next-pwa/cache')
-const withPWA = require('next-pwa')({
+const withPWA = require('@ducanh2912/next-pwa').default({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  runtimeCaching,
   disable: process.env.NODE_ENV === 'development',
   buildExcludes: [/middleware-manifest.json$/],
   maximumFileSizeToCacheInBytes: 4000000,
+  workboxOptions: {
+    mode: 'production',
+  },
 })
-const DuplicatePackageCheckerPlugin = require('duplicate-package-checker-webpack-plugin')
+// const { DuplicatesPlugin } = require('inspectpack/plugin')
+const DuplicatePackageCheckerPlugin = require('@cerner/duplicate-package-checker-webpack-plugin')
+
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 })
@@ -22,7 +25,7 @@ const nextConfig = {
   experimental: {
     optimizeCss: true,
     legacyBrowsers: false,
-    // storyblok prewiew
+    // storyblok preview
     nextScriptWorkers: process.env.NODE_ENV !== 'development',
     urlImports: ['https://cdn.skypack.dev', 'https://unpkg.com'],
   },
@@ -121,10 +124,35 @@ const nextConfig = {
             loader: 'graphql-tag/loader',
           },
         ],
-      }
+      },
     )
 
-    config.plugins.push(new DuplicatePackageCheckerPlugin())
+    config.plugins.push(
+      new DuplicatePackageCheckerPlugin({
+        // Also show module that is requiring each duplicate package (default: false)
+        verbose: true,
+        // Emit errors instead of warnings (default: false)
+        emitError: true,
+        // Show help message if duplicate packages are found (default: true)
+        showHelp: true,
+        // Warn also if major versions differ (default: true)
+        strict: false,
+        /**
+         * Exclude instances of packages from the results.
+         * If all instances of a package are excluded, or all instances except one,
+         * then the package is no longer considered duplicated and won't be emitted as a warning/error.
+         * @param {Object} instance
+         * @param {string} instance.name The name of the package
+         * @param {string} instance.version The version of the package
+         * @param {string} instance.path Absolute path to the package
+         * @param {?string} instance.issuer Absolute path to the module that requested the package
+         * @returns {boolean} true to exclude the instance, false otherwise
+         */
+        exclude: (instance) => instance.name === 'fbjs',
+        // Emit errors (regardless of emitError value) when the specified packages are duplicated (default: [])
+        alwaysEmitErrorsFor: ['react', 'react-router'],
+      }),
+    )
 
     return config
   },

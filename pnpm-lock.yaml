@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@ducanh2912/next-pwa':
-    specifier: ^9.1.4
-    version: 9.1.4(next@13.4.9)
+    specifier: ^9.2.0
+    version: 9.2.0(next@13.4.9)
   '@studio-freight/compono':
     specifier: ^0.0.21
     version: 0.0.21(next@13.4.9)(react-dom@18.2.0)(react@18.2.0)(sass@1.63.6)
@@ -1367,11 +1367,10 @@ packages:
     resolution: {integrity: sha512-N8uEMrMPL0cu/bdboEWpQYb/0i2K5Qn8eCsxzOmxSggJbbQte7ljMRoXm917AbntqTGOzdTu+vP3KOOzoC70HQ==}
     dev: false
 
-  /@ducanh2912/next-pwa@9.1.4(next@13.4.9):
-    resolution: {integrity: sha512-SXrgLAhcHLmInuwv+xzBYo1KutlCws/8SDwNn2QsKwoLQAgvFIpeRNP/k86u7wLNZ2BJLUmG2uU5YvnWdWNnCA==}
+  /@ducanh2912/next-pwa@9.2.0(next@13.4.9):
+    resolution: {integrity: sha512-59j04ZKMzevuoRVxTpyQ0UH7u2ayEsiHmw4EDvBJ4LDUo9qOE6Qqbn4ItuIC6QWRNm+6BJmPY55489esSCtPYA==}
     peerDependencies:
       next: '>=11.0.0'
-      webpack: '>=5.9.0'
     dependencies:
       clean-webpack-plugin: 4.0.0
       fast-glob: 3.2.12
@@ -1388,6 +1387,7 @@ packages:
       - esbuild
       - supports-color
       - uglify-js
+      - webpack
     dev: false
 
   /@eslint-community/eslint-utils@4.4.0(eslint@8.44.0):
@@ -1760,19 +1760,10 @@ packages:
       '@babel/runtime': 7.22.6
       '@radix-ui/react-compose-refs': 1.0.1(react@18.2.0)
       '@radix-ui/react-context': 1.0.1(react@18.2.0)
-      '@radix-ui/react-primitive': 0.1.4(react@18.2.0)
+      '@radix-ui/react-primitive': 1.0.3(react-dom@18.2.0)(react@18.2.0)
       '@radix-ui/react-slot': 1.0.2(react@18.2.0)
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-    dev: false
-
-  /@radix-ui/react-compose-refs@0.1.0(react@18.2.0):
-    resolution: {integrity: sha512-eyclbh+b77k+69Dk72q3694OHrn9B3QsoIRx7ywX341U9RK1ThgQjMFZoPtmZNQTksXHLNEiefR8hGVeFyInGg==}
-    peerDependencies:
-      react: ^16.8 || ^17.0
-    dependencies:
-      '@babel/runtime': 7.22.6
-      react: 18.2.0
     dev: false
 
   /@radix-ui/react-compose-refs@1.0.1(react@18.2.0):
@@ -1952,16 +1943,6 @@ packages:
       react-dom: 18.2.0(react@18.2.0)
     dev: false
 
-  /@radix-ui/react-primitive@0.1.4(react@18.2.0):
-    resolution: {integrity: sha512-6gSl2IidySupIMJFjYnDIkIWRyQdbu/AHK7rbICPani+LW4b0XdxBXc46og/iZvuwW8pjCS8I2SadIerv84xYA==}
-    peerDependencies:
-      react: ^16.8 || ^17.0
-    dependencies:
-      '@babel/runtime': 7.22.6
-      '@radix-ui/react-slot': 0.1.2(react@18.2.0)
-      react: 18.2.0
-    dev: false
-
   /@radix-ui/react-primitive@1.0.3(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-yi58uVyoAcK/Nq1inRY56ZSjKypBNKTa/1mcL8qdl6oJeEaDbOldlzrGn7P6Q3Id5d+SYNGc5AJgc4vGhjs5+g==}
     peerDependencies:
@@ -2018,16 +1999,6 @@ packages:
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
       react-remove-scroll: 2.5.5(react@18.2.0)
-    dev: false
-
-  /@radix-ui/react-slot@0.1.2(react@18.2.0):
-    resolution: {integrity: sha512-ADkqfL+agEzEguU3yS26jfB50hRrwf7U4VTwAOZEmi/g+ITcBWe12yM46ueS/UCIMI9Py+gFUaAdxgxafFvY2Q==}
-    peerDependencies:
-      react: ^16.8 || ^17.0
-    dependencies:
-      '@babel/runtime': 7.22.6
-      '@radix-ui/react-compose-refs': 0.1.0(react@18.2.0)
-      react: 18.2.0
     dev: false
 
   /@radix-ui/react-slot@1.0.2(react@18.2.0):

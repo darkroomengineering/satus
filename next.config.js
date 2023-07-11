@@ -1,17 +1,16 @@
-const withPWA = require('@ducanh2912/next-pwa').default({
-  dest: 'public',
-  register: true,
-  skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
-  buildExcludes: [/middleware-manifest.json$/],
-  maximumFileSizeToCacheInBytes: 4000000,
-  workboxOptions: {
-    mode: 'production',
-  },
-})
-// const { DuplicatesPlugin } = require('inspectpack/plugin')
-const DuplicatePackageCheckerPlugin = require('@cerner/duplicate-package-checker-webpack-plugin')
+// const withPWA = require('@ducanh2912/next-pwa').default({
+//   dest: 'public',
+//   register: true,
+//   skipWaiting: true,
+//   disable: process.env.NODE_ENV === 'development',
+//   buildExcludes: [/middleware-manifest.json$/],
+//   maximumFileSizeToCacheInBytes: 4000000,
+//   workboxOptions: {
+//     mode: 'production',
+//   },
+// })
 
+const DuplicatePackageCheckerPlugin = require('@cerner/duplicate-package-checker-webpack-plugin')
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 })
@@ -189,7 +188,7 @@ const nextConfig = {
 }
 
 module.exports = () => {
-  const plugins = [withPWA, withBundleAnalyzer]
+  const plugins = [withBundleAnalyzer]
   return plugins.reduce((acc, plugin) => plugin(acc), {
     ...nextConfig,
   })

@@ -13,7 +13,7 @@
     "size": "npm run build && size-limit"
   },
   "dependencies": {
-    "@ducanh2912/next-pwa": "^9.1.4",
+    "@ducanh2912/next-pwa": "^9.2.0",
     "@studio-freight/compono": "^0.0.21",
     "@studio-freight/hamo": "^0.6.19",
     "@studio-freight/react-lenis": "^0.0.23",

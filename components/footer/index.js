@@ -1,4 +1,4 @@
-import { Link } from '@studio-freight/compono'
+import { Link } from '../link'
 import s from './footer.module.scss'
 
 export function Footer() {

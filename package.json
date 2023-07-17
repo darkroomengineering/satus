@@ -1,59 +1,41 @@
 {
-  "name": "satus",
-  "version": "1.1.0",
+  "name": "satus-app",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "next-sitemap",
     "start": "next start",
     "lint": "next lint",
-    "postbuild": "next-sitemap",
-    "analyze": "cross-env ANALYZE=true next build",
-    "prepare": "husky install",
-    "size": "npm run build && size-limit"
+    "prepare": "husky install"
   },
   "dependencies": {
-    "@ducanh2912/next-pwa": "^9.2.0",
-    "@studio-freight/compono": "^0.0.21",
-    "@studio-freight/hamo": "^0.6.19",
+    "@cerner/duplicate-package-checker-webpack-plugin": "^2.3.0",
+    "@studio-freight/compono": "^0.0.30",
     "@studio-freight/react-lenis": "^0.0.23",
-    "@studio-freight/tempus": "^0.0.38",
+    "@svgr/webpack": "^8.0.1",
     "@theatre/core": "^0.6.1",
     "@theatre/studio": "^0.6.1",
-    "clsx": "^1.2.1",
-    "gsap": "3.12.2",
+    "gsap": "^3.12.2",
     "idb-keyval": "^6.2.1",
     "jsonminify": "^0.4.2",
-    "next": "13.4.9",
-    "next-sitemap": "^4.1.8",
+    "next": "13.4.10-canary.8",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "sass": "^1.63.6",
-    "stats.js": "^0.17.0",
-    "zustand": "4.3.9"
+    "sass": "^1.63.6"
   },
   "devDependencies": {
     "@builder.io/partytown": "^0.8.0",
-    "@cerner/duplicate-package-checker-webpack-plugin": "^2.3.0",
-    "@next/bundle-analyzer": "^13.4.9",
-    "@size-limit/preset-app": "^8.2.6",
-    "@svgr/webpack": "^8.0.1",
+    "@ducanh2912/next-pwa": "^9.2.1",
+    "@next/bundle-analyzer": "^13.4.10",
     "critters": "^0.0.19",
-    "cross-env": "^7.0.3",
     "eslint": "8.44.0",
-    "eslint-config-next": "^13.4.9",
+    "eslint-config-next": "13.4.10",
     "eslint-config-prettier": "^8.8.0",
     "husky": "^8.0.3",
-    "prettier": "^3.0.0",
-    "prettier-eslint": "^15.0.1"
-  },
-  "lint-staged": {
-    "*.js": "eslint --cache --fix",
-    "*.{js,css,scss,md}": "prettier --write"
-  },
-  "size-limit": [
-    {
-      "path": ".next/static/chunks/**/*.js"
-    }
-  ]
+    "lint-staged": "^13.2.3",
+    "next-sitemap": "^4.1.8",
+    "prettier": "^3.0.0"
+  }
 }

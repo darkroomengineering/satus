@@ -1,3 +1,5 @@
+'use client'
+
 import { useMediaQuery } from '@studio-freight/hamo'
 import variables from 'config/variables'
 import { createContext, useContext } from 'react'

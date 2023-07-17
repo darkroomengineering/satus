@@ -1,3 +1,5 @@
+'use client'
+
 import { Link } from '@studio-freight/compono'
 import cn from 'clsx'
 import { Navigation } from 'components/navigation'
@@ -9,7 +11,7 @@ import s from './header.module.scss'
 export const Header = forwardRef((_, ref) => {
   const [navIsOpened, setNavIsOpened] = useStore(
     ({ navIsOpened, setNavIsOpened }) => [navIsOpened, setNavIsOpened],
-    shallow
+    shallow,
   )
 
   return (

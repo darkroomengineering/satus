@@ -9,7 +9,6 @@
 //     mode: 'production',
 //   },
 // })
-
 const DuplicatePackageCheckerPlugin = require('@cerner/duplicate-package-checker-webpack-plugin')
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
@@ -19,14 +18,14 @@ const sassUtils = require(__dirname + '/libs/sass-utils')
 const sassVars = require(__dirname + '/config/variables.js')
 
 const nextConfig = {
-  reactStrictMode: true,
   transpilePackages: ['@studio-freight/compono'],
   experimental: {
     optimizeCss: true,
     legacyBrowsers: false,
     // storyblok preview
-    nextScriptWorkers: process.env.NODE_ENV !== 'development',
+    // nextScriptWorkers: process.env.NODE_ENV !== 'development',
     urlImports: ['https://cdn.skypack.dev', 'https://unpkg.com'],
+    webVitalsAttribution: ['CLS', 'LCP'],
   },
   compiler: {
     removeConsole: process.env.NODE_ENV !== 'development',
@@ -171,6 +170,15 @@ const nextConfig = {
           {
             key: 'X-XSS-Protection',
             value: '1; mode=block',
+          },
+        ],
+      },
+      {
+        source: '/_next/static/css/(.*)',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'text/css',
           },
         ],
       },

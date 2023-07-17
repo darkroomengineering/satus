@@ -1,45 +1,44 @@
-import { Cursor, CustomHead, Scrollbar } from '@studio-freight/compono'
-import { Lenis, useLenis } from '@studio-freight/react-lenis'
+'use client'
+import { Lenis } from '@studio-freight/react-lenis'
+import Tempus from '@studio-freight/tempus'
 import cn from 'clsx'
+import { Cursor } from 'components/cursor'
 import { Footer } from 'components/footer'
 import { Header } from 'components/header'
-import Router from 'next/router'
-import { useEffect } from 'react'
+import { Scrollbar } from 'components/scrollbar'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/dist/ScrollTrigger'
 import s from './layout.module.scss'
 
-export function Layout({
-  seo = { title: '', description: '', image: '', keywords: '' },
-  children,
-  theme = 'light',
-  className,
-}) {
-  const lenis = useLenis()
+if (typeof window !== 'undefined') {
+  gsap.defaults({ ease: 'none' })
+  gsap.registerPlugin(ScrollTrigger)
+  ScrollTrigger.defaults({ markers: true }) //process.env.NODE_ENV === 'development' })
 
-  useEffect(() => {
-    function onHashChangeStart(url) {
-      url = '#' + url.split('#').pop()
-      lenis.scrollTo(url)
-    }
+  // merge rafs
+  gsap.ticker.lagSmoothing(0)
+  gsap.ticker.remove(gsap.updateRoot)
+  Tempus?.add((time) => {
+    gsap.updateRoot(time / 1000)
+  }, 0)
 
-    Router.events.on('hashChangeStart', onHashChangeStart)
+  // reset scroll position
+  window.scrollTo(0, 0)
+  window.history.scrollRestoration = 'manual'
 
-    return () => {
-      Router.events.off('hashChangeStart', onHashChangeStart)
-    }
-  }, [lenis])
+  console.log('👋 Hello! 👀')
+}
 
+export function Layout({ children, theme = 'light', className }) {
   return (
-    <>
-      <CustomHead {...seo} />
-      <Lenis root>
-        <div className={cn(`theme-${theme}`, s.layout, className)}>
-          <Cursor />
-          <Scrollbar />
-          <Header />
-          <main className={s.main}>{children}</main>
-          <Footer />
-        </div>
-      </Lenis>
-    </>
+    <Lenis root>
+      <div className={cn(`theme-${theme}`, s.layout, className)}>
+        <Cursor />
+        <Scrollbar />
+        <Header />
+        <main className={s.main}>{children}</main>
+        <Footer />
+      </div>
+    </Lenis>
   )
 }

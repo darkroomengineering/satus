@@ -1,0 +1,10 @@
+.title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+
+  .title {
+    flex-grow: 1;
+  }
+}

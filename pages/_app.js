@@ -13,8 +13,13 @@ import { useEffect } from 'react'
 import 'styles/global.scss'
 
 if (typeof window !== 'undefined') {
+  // reset scroll position
+  window.scrollTo(0, 0)
+  window.history.scrollRestoration = 'manual'
+
   gsap.defaults({ ease: 'none' })
   gsap.registerPlugin(ScrollTrigger)
+  ScrollTrigger.clearScrollMemory('manual')
   ScrollTrigger.defaults({ markers: process.env.NODE_ENV === 'development' })
 
   // merge rafs
@@ -23,10 +28,6 @@ if (typeof window !== 'undefined') {
   Tempus?.add((time) => {
     gsap.updateRoot(time / 1000)
   }, 0)
-
-  // reset scroll position
-  window.scrollTo(0, 0)
-  window.history.scrollRestoration = 'manual'
 }
 
 function MyApp({ Component, pageProps }) {

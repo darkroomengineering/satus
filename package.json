@@ -16,7 +16,7 @@
     "@ducanh2912/next-pwa": "^9.2.0",
     "@studio-freight/compono": "^0.0.21",
     "@studio-freight/hamo": "^0.6.19",
-    "@studio-freight/react-lenis": "^0.0.23",
+    "@studio-freight/react-lenis": "^0.0.25",
     "@studio-freight/tempus": "^0.0.38",
     "@theatre/core": "^0.6.1",
     "@theatre/studio": "^0.6.1",
@@ -46,6 +46,11 @@
     "husky": "^8.0.3",
     "prettier": "^3.0.0",
     "prettier-eslint": "^15.0.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "@studio-freight/react-lenis": "0.0.25"
+    }
   },
   "lint-staged": {
     "*.js": "eslint --cache --fix",

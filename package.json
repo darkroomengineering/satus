@@ -13,44 +13,39 @@
     "size": "npm run build && size-limit"
   },
   "dependencies": {
-    "@ducanh2912/next-pwa": "^9.2.0",
-    "@studio-freight/compono": "^0.0.34",
+    "@ducanh2912/next-pwa": "^9.5.0",
+    "@studio-freight/compono": "^0.0.37",
     "@studio-freight/hamo": "^0.6.19",
-    "@studio-freight/react-lenis": "^0.0.25",
+    "@studio-freight/react-lenis": "0.0.26",
     "@studio-freight/tempus": "^0.0.38",
-    "@theatre/core": "^0.6.1",
-    "@theatre/studio": "^0.6.1",
-    "clsx": "^1.2.1",
+    "@theatre/core": "^0.7.0",
+    "@theatre/studio": "^0.7.0",
+    "clsx": "^2.0.0",
     "gsap": "3.12.2",
     "idb-keyval": "^6.2.1",
     "jsonminify": "^0.4.2",
-    "next": "13.4.9",
-    "next-sitemap": "^4.1.8",
+    "next": "13.4.19",
+    "next-sitemap": "^4.2.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "sass": "^1.63.6",
+    "sass": "^1.66.1",
     "stats.js": "^0.17.0",
-    "zustand": "4.3.9"
+    "zustand": "4.4.1"
   },
   "devDependencies": {
     "@builder.io/partytown": "^0.8.0",
     "@cerner/duplicate-package-checker-webpack-plugin": "^2.3.0",
-    "@next/bundle-analyzer": "^13.4.9",
+    "@next/bundle-analyzer": "^13.4.19",
     "@size-limit/preset-app": "^8.2.6",
-    "@svgr/webpack": "^8.0.1",
-    "critters": "^0.0.19",
+    "@svgr/webpack": "^8.1.0",
+    "critters": "^0.0.20",
     "cross-env": "^7.0.3",
-    "eslint": "8.44.0",
-    "eslint-config-next": "^13.4.9",
-    "eslint-config-prettier": "^8.8.0",
+    "eslint": "8.47.0",
+    "eslint-config-next": "^13.4.19",
+    "eslint-config-prettier": "^9.0.0",
     "husky": "^8.0.3",
-    "prettier": "^3.0.0",
+    "prettier": "^3.0.2",
     "prettier-eslint": "^15.0.1"
-  },
-  "pnpm": {
-    "overrides": {
-      "@studio-freight/react-lenis": "0.0.25"
-    }
   },
   "lint-staged": {
     "*.js": "eslint --cache --fix",

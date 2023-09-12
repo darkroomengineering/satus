@@ -3,13 +3,11 @@ import cn from 'clsx'
 import { Navigation } from 'components/navigation'
 import { useStore } from 'libs/store'
 import { forwardRef } from 'react'
-import { shallow } from 'zustand/shallow'
 import s from './header.module.scss'
 
 export const Header = forwardRef((_, ref) => {
   const [navIsOpened, setNavIsOpened] = useStore(
     ({ navIsOpened, setNavIsOpened }) => [navIsOpened, setNavIsOpened],
-    shallow
   )
 
   return (

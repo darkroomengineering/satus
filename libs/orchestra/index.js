@@ -3,14 +3,14 @@ import { del, get, set } from 'idb-keyval'
 import { broadcast } from 'libs/zustand-broadcast'
 import dynamic from 'next/dynamic'
 import { useEffect } from 'react'
-import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { shallow } from 'zustand/shallow'
+import { createWithEqualityFn } from 'zustand/traditional'
 import s from './orchestra.module.scss'
 
 const Studio = dynamic(
   () => import('libs/theatre/studio').then(({ Studio }) => Studio),
-  { ssr: false }
+  { ssr: false },
 )
 const Stats = dynamic(() => import('./stats').then(({ Stats }) => Stats), {
   ssr: false,
@@ -19,14 +19,17 @@ const GridDebugger = dynamic(
   () => import('./grid').then(({ GridDebugger }) => GridDebugger),
   {
     ssr: false,
-  }
+  },
 )
 
 // avoid to display debug tools on orchestra page
-const useInternalStore = create((set) => ({
-  isVisible: true,
-  setIsVisible: (isVisible) => set({ isVisible }),
-}))
+const useInternalStore = createWithEqualityFn(
+  (set) => ({
+    isVisible: true,
+    setIsVisible: (isVisible) => set({ isVisible }),
+  }),
+  shallow,
+)
 
 // https://github.com/pmndrs/zustand/blob/main/docs/integrations/persisting-store-data.md
 const INDEXEDDB_STORAGE = {
@@ -44,7 +47,7 @@ const INDEXEDDB_STORAGE = {
   },
 }
 
-export const useOrchestraStore = create(
+export const useOrchestraStore = createWithEqualityFn(
   persist(
     () => ({
       studio: false,
@@ -54,8 +57,9 @@ export const useOrchestraStore = create(
     {
       name: 'orchestra',
       storage: createJSONStorage(() => INDEXEDDB_STORAGE),
-    }
-  )
+    },
+  ),
+  shallow,
 )
 
 broadcast(useOrchestraStore, 'orchestra')
@@ -65,7 +69,7 @@ export function Orchestra() {
 
   const { studio, stats, grid } = useOrchestraStore(
     ({ studio, stats, grid }) => ({ studio, stats, grid }),
-    shallow
+    shallow,
   )
 
   return (

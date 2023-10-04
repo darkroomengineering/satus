@@ -39,13 +39,6 @@ $mobile-height: get('viewports.mobile.height');
   @return math.div($pixels * 100vh, $base-vh);
 }
 
-@function columns($columns) {
-  @return calc(
-    (#{$columns} * var(--layout-column-width)) +
-      ((#{$columns} - 1) * var(--layout-columns-gap))
-  );
-}
-
 @mixin hover {
   @media (hover: hover) {
     @content;

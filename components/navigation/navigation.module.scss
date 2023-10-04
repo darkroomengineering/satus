@@ -1,6 +1,6 @@
 .navigation {
   height: 0;
-  background-color: green;
+  background-color: var(--black);
   position: absolute;
   top: 0;
   left: 0;
@@ -19,5 +19,9 @@
 
   .content {
     height: 500vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 50vh;
   }
 }

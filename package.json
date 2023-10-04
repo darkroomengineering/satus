@@ -14,9 +14,9 @@
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^9.5.0",
-    "@studio-freight/compono": "^0.0.40",
+    "@studio-freight/compono": "^0.0.42",
     "@studio-freight/hamo": "^0.6.19",
-    "@studio-freight/react-lenis": "0.0.28",
+    "@studio-freight/react-lenis": "0.0.36",
     "@studio-freight/tempus": "^0.0.38",
     "@theatre/core": "^0.7.0",
     "@theatre/studio": "^0.7.0",
@@ -46,6 +46,13 @@
     "husky": "^8.0.3",
     "prettier": "^3.0.3",
     "prettier-eslint": "^15.0.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "react": "18.2.0",
+      "react-dom": "18.2.0",
+      "scheduler": "0.23.0"
+    }
   },
   "lint-staged": {
     "*.js": "eslint --cache --fix",

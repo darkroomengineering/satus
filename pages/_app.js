@@ -8,9 +8,27 @@ import { GTM_ID } from 'libs/analytics'
 import { Orchestra } from 'libs/orchestra'
 import { useStore } from 'libs/store'
 import { ProjectProvider, RafDriverProvider } from 'libs/theatre'
+import dynamic from 'next/dynamic'
 import Script from 'next/script'
 import { useEffect } from 'react'
 import 'styles/global.scss'
+
+const Studio = dynamic(
+  () => import('libs/theatre/studio').then(({ Studio }) => Studio),
+  { ssr: false },
+)
+const Stats = dynamic(
+  () => import('libs/orchestra/stats').then(({ Stats }) => Stats),
+  {
+    ssr: false,
+  },
+)
+const GridDebugger = dynamic(
+  () => import('libs/orchestra/grid').then(({ GridDebugger }) => GridDebugger),
+  {
+    ssr: false,
+  },
+)
 
 if (typeof window !== 'undefined') {
   // reset scroll position
@@ -68,15 +86,25 @@ function MyApp({ Component, pageProps }) {
       )}
       <RealViewport />
       <DeviceDetectionProvider>
-        <ProjectProvider
-          id="Satus"
-          config="/config/Satus-2023-04-17T12_55_21.json"
-        >
-          <RafDriverProvider id="default">
-            <Component {...pageProps} />
-            <Orchestra />
-          </RafDriverProvider>
-        </ProjectProvider>
+        <Orchestra>
+          {(
+            { studio, grid, stats, dev }, // check _debug/orchestra page to match ids
+          ) => (
+            <ProjectProvider
+              id="Satus"
+              config="/config/Satus-2023-04-17T12_55_21.json"
+            >
+              <RafDriverProvider id="default">
+                <Component {...pageProps} />
+                {studio && <Studio />}
+                {stats && <Stats />}
+                {grid && <GridDebugger />}
+                {typeof document !== 'undefined' &&
+                  document.documentElement.classList.toggle('dev', dev)}
+              </RafDriverProvider>
+            </ProjectProvider>
+          )}
+        </Orchestra>
       </DeviceDetectionProvider>
     </>
   )

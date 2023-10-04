@@ -29,7 +29,6 @@ export function Navigation() {
     <Lenis className={cn(s.navigation, !navIsOpened && s.closed)}>
       <div className={s.content}>
         <Link href="/">home</Link>
-        <Link href="/gsap">gsap</Link>
         <Link href="/contact">contact</Link>
       </div>
     </Lenis>

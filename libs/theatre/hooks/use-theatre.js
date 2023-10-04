@@ -1,31 +1,32 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useCurrentRafDriver } from '..'
+import { useStudio } from './use-studio'
 // @refresh reset
 
 export function useTheatreObject(sheet, theatreKey, config, deps = []) {
-  useEffect(() => {
-    if (process.env.NODE_ENV !== 'development') {
-      return () => {
-        if (sheet?.__objects[theatreKey]) {
-          sheet?.detachObject(theatreKey)
-          delete sheet.__objects[theatreKey]
-        }
-      }
-    }
-  }, [sheet])
+  // useEffect(() => {
+  //   // if (process.env.NODE_ENV !== 'development') {
+  //   return () => {
+  //     if (sheet?.__objects[theatreKey]) {
+  //       sheet?.detachObject(theatreKey)
+  //       delete sheet.__objects[theatreKey]
+  //     }
+  //   }
+  //   // }
+  // }, [sheet])
 
   const object = useMemo(() => {
     if (!sheet) return
 
-    if (process.env.NODE_ENV !== 'development') {
-      sheet.__objects = sheet.__objects || {}
-      if (sheet.__objects[theatreKey]) {
-        sheet.detachObject(theatreKey)
-        delete sheet.__objects[theatreKey]
-      }
-
-      sheet.__objects[theatreKey] = true
+    // if (process.env.NODE_ENV !== 'development') {
+    sheet.__objects = sheet.__objects || {}
+    if (sheet.__objects[theatreKey]) {
+      sheet.detachObject(theatreKey)
+      delete sheet.__objects[theatreKey]
     }
+
+    sheet.__objects[theatreKey] = true
+    // }
 
     return sheet?.object(theatreKey, config, { reconfigure: true })
   }, [sheet, theatreKey, ...deps])
@@ -37,7 +38,7 @@ export function useTheatre(
   sheet,
   theatreKey,
   config,
-  { onValuesChange, lazy = true, deps = [] } = {}
+  { onValuesChange, lazy = true, deps = [] } = {},
 ) {
   const object = useTheatreObject(sheet, theatreKey, config, deps)
   const rafDriver = useCurrentRafDriver()
@@ -60,5 +61,21 @@ export function useTheatre(
     }
   }, [object, rafDriver, lazy, ...deps])
 
-  return [lazy ? getLazyState : values, object]
+  const studio = useStudio()
+
+  const set = useCallback(
+    (values) => {
+      if (studio) {
+        studio.transaction(({ set }) => {
+          set(object.props, {
+            ...object.value,
+            ...values,
+          })
+        })
+      }
+    },
+    [studio, object],
+  )
+
+  return { get: getLazyState, values, set }
 }

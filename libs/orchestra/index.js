@@ -1,26 +1,11 @@
 import { del, get, set } from 'idb-keyval'
 // import { Studio } from 'libs/theatre/studio'
 import { broadcast } from 'libs/zustand-broadcast'
-import dynamic from 'next/dynamic'
-import { useEffect } from 'react'
+import { createContext, useContext, useEffect } from 'react'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { shallow } from 'zustand/shallow'
 import { createWithEqualityFn } from 'zustand/traditional'
 import s from './orchestra.module.scss'
-
-const Studio = dynamic(
-  () => import('libs/theatre/studio').then(({ Studio }) => Studio),
-  { ssr: false },
-)
-const Stats = dynamic(() => import('./stats').then(({ Stats }) => Stats), {
-  ssr: false,
-})
-const GridDebugger = dynamic(
-  () => import('./grid').then(({ GridDebugger }) => GridDebugger),
-  {
-    ssr: false,
-  },
-)
 
 // avoid to display debug tools on orchestra page
 const useInternalStore = createWithEqualityFn(
@@ -64,56 +49,59 @@ export const useOrchestraStore = createWithEqualityFn(
 
 broadcast(useOrchestraStore, 'orchestra')
 
-export function Orchestra() {
+export const OrchestraContext = createContext({})
+
+export function useOrchestra() {
+  return useContext(OrchestraContext)
+}
+
+// add around the app
+export function Orchestra({ children }) {
   const isVisible = useInternalStore(({ isVisible }) => isVisible)
 
-  const { studio, stats, grid } = useOrchestraStore(
-    ({ studio, stats, grid }) => ({ studio, stats, grid }),
-    shallow,
-  )
+  const value = useOrchestraStore((value) => value, shallow)
 
   return (
-    isVisible && (
-      <>
-        {studio && <Studio />}
-        {stats && <Stats />}
-        {grid && <GridDebugger />}
-      </>
-    )
+    <>
+      <OrchestraContext.Provider value={value}>
+        {children(isVisible ? value : {})}
+      </OrchestraContext.Provider>
+    </>
+  )
+}
+
+export function OrchestraToggle({ icon, title, id, defaultValue = false }) {
+  useEffect(() => {
+    useOrchestraStore.setState((state) => {
+      const clone = { ...state }
+      clone[id] = defaultValue
+      return clone
+    })
+  }, [defaultValue])
+
+  return (
+    <button
+      onClick={() => {
+        useOrchestraStore.setState((state) => {
+          const clone = { ...state }
+          clone[id] = !clone[id]
+          return clone
+        })
+      }}
+      title={title}
+    >
+      {icon}
+    </button>
   )
 }
 
 // to be added to debug pages
-export function OrchestraToggle() {
+export function OrchestraPage({ children }) {
   useEffect(() => {
     useInternalStore.setState(() => ({
       isVisible: false,
     }))
   }, [])
 
-  return (
-    <div className={s.orchestra}>
-      <button
-        onClick={() => {
-          useOrchestraStore.setState(({ studio }) => ({ studio: !studio }))
-        }}
-      >
-        ⚙️
-      </button>
-      <button
-        onClick={() => {
-          useOrchestraStore.setState(({ stats }) => ({ stats: !stats }))
-        }}
-      >
-        📈
-      </button>
-      <button
-        onClick={() => {
-          useOrchestraStore.setState(({ grid }) => ({ grid: !grid }))
-        }}
-      >
-        🌐
-      </button>
-    </div>
-  )
+  return <div className={s.orchestra}>{children}</div>
 }

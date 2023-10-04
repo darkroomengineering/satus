@@ -3,7 +3,7 @@ import s from './home.module.scss'
 
 export default function Home() {
   return (
-    <Layout theme="light">
+    <Layout theme="dark" className={s.home}>
       <section className={s.content}>
         <h1 className={s.title}>satus</h1>
       </section>

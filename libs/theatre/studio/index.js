@@ -44,7 +44,7 @@ export function Studio() {
               'config.json',
               {
                 type: 'application/json',
-              }
+              },
             )
             const url = URL.createObjectURL(file)
             const a = document.createElement('a')

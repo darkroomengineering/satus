@@ -1,24 +1,25 @@
-import { useContext, useEffect, useState } from 'react'
-import { StudioContext } from '../studio/context'
+import { useOrchestra } from 'libs/orchestra'
+import { useEffect, useState } from 'react'
 
 let studioPackage
 
-export function useIsStudio() {
-  return useContext(StudioContext)
+export function useHasStudio() {
+  const { studio } = useOrchestra()
+  return studio
 }
 
 export function useStudio() {
   const [studio, setStudio] = useState(studioPackage)
-  const isStudio = useIsStudio()
+  const hasStudio = useHasStudio()
 
   useEffect(() => {
-    if (isStudio && !studioPackage) {
+    if (hasStudio && !studioPackage) {
       import('@theatre/studio').then((pkg) => {
         studioPackage = pkg.default
         setStudio(pkg.default)
       })
     }
-  }, [isStudio])
+  }, [hasStudio])
 
   return studio
 }
@@ -32,7 +33,7 @@ export function useStudioCurrentObject() {
     if (studio) {
       const unsubscribe = studio.onSelectionChange((v) => {
         const object = v.filter(
-          ({ type }) => type === 'Theatre_SheetObject_PublicAPI'
+          ({ type }) => type === 'Theatre_SheetObject_PublicAPI',
         )[0]
 
         setCurrentObjectAddress(object.address)

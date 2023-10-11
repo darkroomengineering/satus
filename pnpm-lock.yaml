@@ -4,6 +4,8 @@ overrides:
   react: 18.2.0
   react-dom: 18.2.0
   scheduler: 0.23.0
+  gsap: npm:@gsap/business@^3.12.2
+  '@studio-freight/hamo': 0.6.21
 
 specifiers:
   '@builder.io/partytown': ^0.8.1
@@ -12,7 +14,7 @@ specifiers:
   '@next/bundle-analyzer': ^13.4.19
   '@size-limit/preset-app': ^9.0.0
   '@studio-freight/compono': ^0.0.42
-  '@studio-freight/hamo': ^0.6.19
+  '@studio-freight/hamo': 0.6.21
   '@studio-freight/react-lenis': 0.0.36
   '@studio-freight/tempus': ^0.0.38
   '@svgr/webpack': ^8.1.0
@@ -24,7 +26,7 @@ specifiers:
   eslint: 8.49.0
   eslint-config-next: ^13.4.19
   eslint-config-prettier: ^9.0.0
-  gsap: 3.12.2
+  gsap: npm:@gsap/business@^3.12.2
   husky: ^8.0.3
   idb-keyval: ^6.2.1
   jsonminify: ^0.4.2
@@ -41,13 +43,13 @@ specifiers:
 dependencies:
   '@ducanh2912/next-pwa': 9.7.1_next@13.4.19
   '@studio-freight/compono': 0.0.42_m2l4knchnqa6bzxbbtfxlzoxdy
-  '@studio-freight/hamo': 0.6.19_biqbaboplfbrettd7655fr4n2y
+  '@studio-freight/hamo': 0.6.21_biqbaboplfbrettd7655fr4n2y
   '@studio-freight/react-lenis': 0.0.36_biqbaboplfbrettd7655fr4n2y
   '@studio-freight/tempus': 0.0.38
   '@theatre/core': 0.7.0
   '@theatre/studio': 0.7.0_@theatre+core@0.7.0
   clsx: 2.0.0
-  gsap: 3.12.2
+  gsap: /@gsap/business/3.12.2
   idb-keyval: 6.2.1
   jsonminify: 0.4.2
   next: 13.4.19_n3jpywigpp4xeheqca3tgmycpy
@@ -1386,6 +1388,10 @@ packages:
     resolution: {integrity: sha512-ZSlli/beGZdvoqT3/Y9oOW79XSEpBfxt8UY6vjyWJW0B8d/M+MKlkQ3kBzLKDXaSsB84IVj6QntQfHLzesB4mA==}
     dev: false
 
+  /@gsap/business/3.12.2:
+    resolution: {integrity: sha512-AkkhzjaOOJ5Jk9Qyo5PB4C0sL+uUj3SsAN+F+HvM71QVs/jISXgwAyrap2CjK8CzTXrC3T74sHkoOVlqU0Fbfg==}
+    dev: false
+
   /@humanwhocodes/config-array/0.11.11:
     resolution: {integrity: sha512-N2brEuAadi0CcdeMXUkhbZB84eskAc8MEX1By6qEchoVywSgXPIjou4rYsl0V3Hj0ZnuGycGCjdNgockbzeWNA==}
     engines: {node: '>=10.10.0'}
@@ -2191,18 +2197,18 @@ packages:
     dependencies:
       '@radix-ui/react-accordion': 1.1.2_biqbaboplfbrettd7655fr4n2y
       '@radix-ui/react-select': 1.2.2_biqbaboplfbrettd7655fr4n2y
-      '@studio-freight/hamo': 0.6.19_biqbaboplfbrettd7655fr4n2y
+      '@studio-freight/hamo': 0.6.21_biqbaboplfbrettd7655fr4n2y
       '@studio-freight/react-lenis': 0.0.36_biqbaboplfbrettd7655fr4n2y
       clsx: 2.0.0
       embla-carousel-autoplay: 7.1.0
       embla-carousel-react: 7.1.0_react@18.2.0
-      gsap: 3.12.2
+      gsap: /@gsap/business/3.12.2
       lottie-web: 5.12.2
       next: 13.4.19_n3jpywigpp4xeheqca3tgmycpy
       next-seo: 6.1.0_m2l4knchnqa6bzxbbtfxlzoxdy
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
-      sass: 1.68.0
+      sass: 1.69.2
       stats.js: 0.17.0
     transitivePeerDependencies:
       - '@types/react'
@@ -2211,17 +2217,17 @@ packages:
       - immer
     dev: false
 
-  /@studio-freight/hamo/0.6.19_biqbaboplfbrettd7655fr4n2y:
-    resolution: {integrity: sha512-tU8QLbYEuo7AFhne90JhGY2DH1zfmyxDiB30QqIwoRt+Po/w8TbiLdigcWb946W0Vhyfm2rjI7eDRyQN1Oh3HQ==}
+  /@studio-freight/hamo/0.6.21_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-ynHRopW3mKK2ulNCy0rjHqKyEaJqOGvH946BPTmQFyUaXg0k+TrKl9nD/NewXUjZY4qQ0EdF+E8R4PcakEXc6w==}
     peerDependencies:
       react: ^18.2.0
       react-dom: ^18.2.0
     dependencies:
       '@studio-freight/tempus': 0.0.38
+      just-debounce-it: 3.2.0
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
       rimraf: 5.0.1
-      throttle-debounce: 5.0.0
     dev: false
 
   /@studio-freight/lenis/1.0.26:
@@ -2234,7 +2240,7 @@ packages:
       react: ^18.2.0
       react-dom: ^18.2.0
     dependencies:
-      '@studio-freight/hamo': 0.6.19_biqbaboplfbrettd7655fr4n2y
+      '@studio-freight/hamo': 0.6.21_biqbaboplfbrettd7655fr4n2y
       '@studio-freight/lenis': 1.0.26
       clsx: 2.0.0
       prop-types: 15.8.1
@@ -4196,10 +4202,6 @@ packages:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
     dev: true
 
-  /gsap/3.12.2:
-    resolution: {integrity: sha512-EkYnpG8qHgYBFAwsgsGEqvT1WUidX0tt/ijepx7z8EUJHElykg91RvW1XbkT59T0gZzzszOpjQv7SE41XuIXyQ==}
-    dev: false
-
   /gzip-size/6.0.0:
     resolution: {integrity: sha512-ax7ZYomf6jqPTQ4+XCpUGyXKHk5WweS+e05MBO4/y3WJ5RkmPXNKvX+bx1behVILVwr6JSQvZAku021CHPXG3Q==}
     engines: {node: '>=10'}
@@ -4693,6 +4695,10 @@ packages:
       array-includes: 3.1.6
       object.assign: 4.1.4
     dev: true
+
+  /just-debounce-it/3.2.0:
+    resolution: {integrity: sha512-WXzwLL0745uNuedrCsCs3rpmfD6DBaf7uuVwaq98/8dafURfgQaBsSpjiPp5+CW6Vjltwy9cOGI6qE71b3T8iQ==}
+    dev: false
 
   /language-subtag-registry/0.3.22:
     resolution: {integrity: sha512-tN0MCzyWnoz/4nHS6uxdlFWoUZT7ABptwKPQ52Ea7URk6vll88bWBVhodtnlfEuCcKWNGoc+uGbw1cwa9IKh/w==}
@@ -5607,6 +5613,16 @@ packages:
       source-map-js: 1.0.2
     dev: false
 
+  /sass/1.69.2:
+    resolution: {integrity: sha512-48lDtG/9OuSQZ9oNmJMUXI2QdCakAWrAGjpX/Fy6j4Og8dEAyE598x5GqCqnHkwV7+I5w8DJpqjm581q5HNh3w==}
+    engines: {node: '>=14.0.0'}
+    hasBin: true
+    dependencies:
+      chokidar: 3.5.3
+      immutable: 4.3.0
+      source-map-js: 1.0.2
+    dev: false
+
   /scheduler/0.23.0:
     resolution: {integrity: sha512-CtuThmgHNg7zIZWAXi3AsyIzA3n4xx7aNyjwC2VJldO2LMVDhFK+63xGqq6CsJH4rTAt6/M+N4GhZiDYPx9eUw==}
     dependencies:
@@ -6029,11 +6045,6 @@ packages:
   /text-table/0.2.0:
     resolution: {integrity: sha512-N+8UisAXDGk8PFXP4HAzVR9nbfmVJ3zYLAWiTIoqC5v5isinhr+r5uaO8+7r3BMfuNIufIsA7RdpVgacC2cSpw==}
     dev: true
-
-  /throttle-debounce/5.0.0:
-    resolution: {integrity: sha512-2iQTSgkkc1Zyk0MeVrt/3BvuOXYPl/R8Z0U2xxo9rjwNciaHDG3R+Lm6dh4EeUci49DanvBnuqI6jshoQQRGEg==}
-    engines: {node: '>=12.22'}
-    dev: false
 
   /through/2.3.8:
     resolution: {integrity: sha512-w89qg7PI8wAdvX60bMDP+bFoD5Dvhm9oLheFp5O4a2QF0cSBGsBX4qZmadPMvVqlLJBBci+WqGGOAPvcDeNSVg==}

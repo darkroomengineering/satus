@@ -51,7 +51,9 @@
     "overrides": {
       "react": "18.2.0",
       "react-dom": "18.2.0",
-      "scheduler": "0.23.0"
+      "scheduler": "0.23.0",
+      "gsap": "npm:@gsap/business@^3.12.2",
+      "@studio-freight/hamo": "0.6.21"
     }
   },
   "lint-staged": {

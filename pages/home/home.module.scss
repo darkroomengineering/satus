@@ -8,9 +8,9 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-
-    .title {
-      flex-grow: 1;
-    }
+    text-align: justify;
+    font-size: desktop-vw(16px);
+    max-width: desktop-vw(500px);
+    margin: auto;
   }
 }

@@ -70,14 +70,14 @@ export function Orchestra({ children }) {
   )
 }
 
-export function OrchestraToggle({ icon, title, id, defaultValue = false }) {
-  useEffect(() => {
-    useOrchestraStore.setState((state) => {
-      const clone = { ...state }
-      clone[id] = defaultValue
-      return clone
-    })
-  }, [defaultValue])
+export function OrchestraToggle({ icon, title, id }) {
+  // useEffect(() => {
+  //   useOrchestraStore.setState((state) => {
+  //     const clone = { ...state }
+  //     clone[id] = defaultValue
+  //     return clone
+  //   })
+  // }, [defaultValue])
 
   return (
     <button

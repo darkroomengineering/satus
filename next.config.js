@@ -23,10 +23,7 @@ const nextConfig = {
   transpilePackages: ['@studio-freight/compono'],
   experimental: {
     optimizeCss: true,
-    legacyBrowsers: false,
-    // storyblok preview
-    nextScriptWorkers: process.env.NODE_ENV !== 'development',
-    urlImports: ['https://cdn.skypack.dev', 'https://unpkg.com'],
+    nextScriptWorkers: true,
   },
   compiler: {
     removeConsole: process.env.NODE_ENV !== 'development',

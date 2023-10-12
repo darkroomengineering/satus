@@ -7,15 +7,15 @@ import { useEffect } from 'react'
 import s from './navigation.module.scss'
 
 export function Navigation() {
-  const [navIsOpened, setNavIsOpened] = useStore(
-    ({ navIsOpened, setNavIsOpened }) => [navIsOpened, setNavIsOpened],
+  const [isNavOpened, setIsNavOpened] = useStore(
+    ({ isNavOpened, setIsNavOpened }) => [isNavOpened, setIsNavOpened],
   )
 
   const router = useRouter()
 
   useEffect(() => {
     function onRouteChange() {
-      setNavIsOpened(false)
+      setIsNavOpened(false)
     }
 
     router.events.on('routeChangeStart', onRouteChange)
@@ -26,7 +26,7 @@ export function Navigation() {
   }, [])
 
   return (
-    <Lenis className={cn(s.navigation, !navIsOpened && s.closed)}>
+    <Lenis className={cn(s.navigation, !isNavOpened && s.closed)}>
       <div className={s.content}>
         <Link href="/">home</Link>
         <Link href="/contact">contact</Link>

@@ -6,8 +6,8 @@ import { forwardRef } from 'react'
 import s from './header.module.scss'
 
 export const Header = forwardRef((_, ref) => {
-  const [navIsOpened, setNavIsOpened] = useStore(
-    ({ navIsOpened, setNavIsOpened }) => [navIsOpened, setNavIsOpened],
+  const [isNavOpened, setIsNavOpened] = useStore(
+    ({ isNavOpened, setIsNavOpened }) => [isNavOpened, setIsNavOpened],
   )
 
   return (
@@ -16,7 +16,7 @@ export const Header = forwardRef((_, ref) => {
       <div className={cn('layout-block', s.head)}>
         <button
           onClick={() => {
-            setNavIsOpened(!navIsOpened)
+            setIsNavOpened(!isNavOpened)
           }}
         >
           menu

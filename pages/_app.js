@@ -52,15 +52,15 @@ function MyApp({ Component, pageProps }) {
   const lenis = useLenis(ScrollTrigger.update)
   useEffect(ScrollTrigger.refresh, [lenis])
 
-  const navIsOpened = useStore(({ navIsOpened }) => navIsOpened)
+  const isNavOpened = useStore(({ isNavOpened }) => isNavOpened)
 
   useEffect(() => {
-    if (navIsOpened) {
+    if (isNavOpened) {
       lenis?.stop()
     } else {
       lenis?.start()
     }
-  }, [lenis, navIsOpened])
+  }, [lenis, isNavOpened])
 
   return (
     <>

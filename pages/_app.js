@@ -100,7 +100,10 @@ function MyApp({ Component, pageProps }) {
                 {stats && <Stats />}
                 {grid && <GridDebugger />}
                 {typeof document !== 'undefined' &&
-                  document.documentElement.classList.toggle('dev', dev)}
+                  document.documentElement.classList.toggle(
+                    'dev',
+                    Boolean(dev),
+                  )}
               </RafDriverProvider>
             </ProjectProvider>
           )}

@@ -33,17 +33,10 @@ const INDEXEDDB_STORAGE = {
 }
 
 export const useOrchestraStore = createWithEqualityFn(
-  persist(
-    () => ({
-      studio: false,
-      stats: false,
-      grid: false,
-    }),
-    {
-      name: 'orchestra',
-      storage: createJSONStorage(() => INDEXEDDB_STORAGE),
-    },
-  ),
+  persist(() => ({}), {
+    name: 'orchestra',
+    storage: createJSONStorage(() => INDEXEDDB_STORAGE),
+  }),
   shallow,
 )
 

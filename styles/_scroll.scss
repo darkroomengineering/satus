@@ -1,19 +1,9 @@
 html {
   &:not(.dev) {
-    scrollbar-width: none !important;
-
-    body {
-      -ms-overflow-style: none;
-
-      &::-webkit-scrollbar {
-        width: 0 !important;
-        height: 0 !important;
-      }
-    }
-
-    .lenis {
+    &,
+    * {
       scrollbar-width: none !important;
-      -ms-overflow-style: none;
+      -ms-overflow-style: none !important;
 
       &::-webkit-scrollbar {
         width: 0 !important;

@@ -1,18 +1,3 @@
-.aspect-ratio {
-  position: relative;
-  padding-bottom: calc(100% / var(--aspect-ratio));
-  width: 100%;
-  height: 0;
-
-  > :first-child {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
-}
-
 .full-width {
   width: 100vw;
   position: relative;
@@ -22,7 +7,7 @@
   margin-right: -50vw;
 }
 
-.hidden-overflow {
+.overflow-hidden {
   overflow: hidden;
 }
 
@@ -30,13 +15,13 @@
   position: relative;
 }
 
-.hide-on-desktop {
+.mobile-only {
   @include desktop {
     display: none;
   }
 }
 
-.hide-on-mobile {
+.desktop-only {
   @include mobile {
     display: none;
   }

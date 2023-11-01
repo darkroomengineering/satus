@@ -4,6 +4,7 @@
 /node_modules
 /.pnp
 .pnp.js
+.turbo
 
 # testing
 /coverage
@@ -35,3 +36,5 @@ yarn-error.log*
 .vercel
 
 .eslintcache
+
+.npmrc

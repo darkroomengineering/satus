@@ -1,15 +1,13 @@
 import { Link } from '@studio-freight/compono'
 import cn from 'clsx'
 import { Navigation } from 'components/navigation'
-import { useStore } from 'lib/store'
+import { useStore } from 'libs/store'
 import { forwardRef } from 'react'
-import { shallow } from 'zustand/shallow'
 import s from './header.module.scss'
 
 export const Header = forwardRef((_, ref) => {
-  const [navIsOpened, setNavIsOpened] = useStore(
-    ({ navIsOpened, setNavIsOpened }) => [navIsOpened, setNavIsOpened],
-    shallow
+  const [isNavOpened, setIsNavOpened] = useStore(
+    ({ isNavOpened, setIsNavOpened }) => [isNavOpened, setIsNavOpened],
   )
 
   return (
@@ -18,14 +16,15 @@ export const Header = forwardRef((_, ref) => {
       <div className={cn('layout-block', s.head)}>
         <button
           onClick={() => {
-            setNavIsOpened(!navIsOpened)
+            setIsNavOpened(!isNavOpened)
           }}
         >
           menu
         </button>
         <div>
-          <Link href="/">home</Link>/<Link href="/gsap">gsap</Link>/
-          <Link href="/contact">contact</Link>
+          <Link href="/_debug/orchestra" target="_blank" className="link">
+            debug
+          </Link>
         </div>
       </div>
     </header>

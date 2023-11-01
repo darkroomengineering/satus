@@ -1,21 +1,5 @@
 [![SATUS](https://assets.studiofreight.com/satus/header.png)](https://github.com/studio-freight/satus)
 
-<!-- <p align="center">
-  <a aria-label="Vercel logo" href="https://vercel.com">
-    <img src="https://badgen.net/badge/icon/Next?icon=zeit&label&color=black&labelColor=black">
-  </a>
-  <br/>
-  <a aria-label="NPM version" href="https://www.npmjs.com/package/swr">
-    <img alt="" src="https://badgen.net/npm/v/swr?color=black&labelColor=black">
-  </a>
-  <a aria-label="Package size" href="https://bundlephobia.com/result?p=swr">
-    <img alt="" src="https://badgen.net/bundlephobia/minzip/swr?color=black&labelColor=black">
-  </a>
-  <a aria-label="License" href="https://github.com/vercel/swr/blob/main/LICENSE">
-    <img alt="" src="https://badgen.net/npm/license/swr?color=black&labelColor=black">
-  </a>
-</p> -->
-
 ## Introduction
 
 Satūs means start, beginning, planting, it's a set of tools we use as a template when starting a new project.
@@ -27,13 +11,11 @@ Satūs means start, beginning, planting, it's a set of tools we use as a templat
 This starter kit is composed of:
 
 - [Next.js](https://nextjs.org)
-- [Zustand](https://github.com/pmndrs/zustand)
-- [React Spring](https://github.com/pmndrs/react-spring)
-- [Embla](https://embla-carousel.com)
 - [Lenis](https://github.com/studio-freight/lenis)
-- [Clsx](https://www.npmjs.com/package/clsx)
-- From [Radix UI](https://www.radix-ui.com/):
-  - [Accordion](https://www.radix-ui.com/docs/primitives/components/accordion)
+- [Theatre.js](https://www.theatrejs.com/)
+- [GSAP](https://greensock.com/gsap/)
+- [Hamo](https://github.com/studio-freight/hamo)
+- [Compono](https://github.com/studio-freight/compono)
 
 <br/>
 
@@ -43,25 +25,32 @@ This starter kit is composed of:
 
 - SVG import through [@svgr/webpack](https://www.npmjs.com/package/@svgr/webpack)
 - Sass architecture and tooling:
-  - To VW Functions
+  - Config file
+  - Viewport based sizes
   - Reset
   - Easings
-- Hooks:
-  - provided by @studio-freight/hamo
-  - - useScroll
-- Custom Cursor support
-- Real Viewport component
-- Grid Debugger
-- Github workflow to render lighthouse on slack:
+  - Themes
+- Debug tools:
+  - Theatre.js Studio
+  - FPS Meter
+  - Grid Debugger
+- Github workflow to display lighthouse report on slack:
   make sure you update the `vercel_project_id` in `.github/workflows/lighthouse-on-vercel-preview-url.yml` to your Vercel project id.
 
 <br/>
+
+## Debug
+
+To toggle debug modes you need to access the page `/_debug/orchestra`.
+
+example: `https://satus.studiofreight.com/_debug/orchestra`
 
 ## Flavors
 
 - [Light](https://github.com/studio-freight/satus) (you're here)
 - [With Shopify](https://github.com/studio-freight/satus/tree/with-shopify)
-- [With Contentful](https://github.com/studio-freight/satus/tree/with-contentful)
+- [With Tina-cms](https://github.com/studio-freight/satus/tree/with-tina-cms)
+- [With Storyblok](https://github.com/studio-freight/satus/tree/with-storyblok)
 - [With react-three-fiber](https://github.com/studio-freight/satus/tree/with-r3f)
 - [With OGL](https://github.com/studio-freight/satus/tree/with-ogl)
 

@@ -7,7 +7,7 @@ on:
 
 jobs:
   generate_lighthouse_audit:
-    timeout-minutes: 30
+    timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
       # wait arbitrary 120s for the build to finish, changes it if your builds are longer. Potential fix: https://github.com/marketplace/actions/await-for-vercel-deployment

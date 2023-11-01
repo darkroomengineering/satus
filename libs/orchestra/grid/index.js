@@ -9,8 +9,8 @@ export function GridDebugger() {
   const columns = useMemo(() => {
     return parseInt(
       getComputedStyle(document.documentElement).getPropertyValue(
-        '--layout-columns-count'
-      )
+        '--layout-columns-count',
+      ),
     )
   }, [isMobile])
 

@@ -1,16 +1,19 @@
 import { Link } from '@studio-freight/compono'
+import cn from 'clsx'
 import s from './footer.module.scss'
 
 export function Footer() {
   return (
-    <footer className={s.footer}>
-      <div className="layout-block">
-        <h2>
-          <Link href="mailto:contact@studiofreight.com">mail</Link>
-          <Link href="/contact">contact</Link>
-          <Link>twitter</Link>
-        </h2>
-      </div>
+    <footer className={cn(s.footer, 'layout-block')}>
+      <Link href="mailto:contact@studiofreight.com" className="link">
+        mail
+      </Link>
+      <Link href="/contact" className="link">
+        contact
+      </Link>
+      <Link href="https://twitter.com/studiofreight" className="link">
+        twitter
+      </Link>
     </footer>
   )
 }

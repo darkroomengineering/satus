@@ -1,6 +1,5 @@
 import { useFrame } from '@studio-freight/hamo'
-import { createRafDriver, getProject } from '@theatre/core'
-import { useImmutableState } from 'hooks/use-immutable-state'
+import { createRafDriver, getProject, onChange } from '@theatre/core'
 import {
   createContext,
   forwardRef,
@@ -15,7 +14,7 @@ import {
 const RafDriverContext = createContext()
 
 export function RafDriverProvider({ children, id = 'default' }) {
-  const theatreRaf = useImmutableState(createRafDriver({ name: id }))
+  const [theatreRaf] = useState(() => createRafDriver({ name: id }))
 
   useFrame((time) => {
     theatreRaf.tick(time)
@@ -51,11 +50,6 @@ export function ProjectProvider({ children, id, config }) {
               console.log('project ready')
               setproject(project)
             })
-
-            // project.ready.then(() => {
-            //   console.log('project ready')
-            //   setproject(project)
-            // })
           })
       }
     } else {
@@ -78,22 +72,38 @@ export function useCurrentProject() {
   return useContext(ProjectContext)
 }
 
-const SheetContext = createContext()
+export const SheetContext = createContext()
 
 export function useSheet(id, instance) {
   const project = useCurrentProject()
 
   const sheet = useMemo(
     () => project?.sheet(id, instance),
-    [project, id, instance]
+    [project, id, instance],
   )
 
   return sheet
 }
 
+export function useSheetDuration(sheet) {
+  const [duration, setDuration] = useState(0)
+
+  useEffect(() => {
+    if (!sheet) return
+
+    const unsubscribe = onChange(sheet.sequence.pointer.length, (duration) => {
+      setDuration(duration)
+    })
+
+    return () => unsubscribe
+  }, [sheet])
+
+  return duration
+}
+
 export const SheetProvider = forwardRef(function SheetProvider(
   { children, id, instance },
-  ref
+  ref,
 ) {
   const sheet = useSheet(id, instance)
 

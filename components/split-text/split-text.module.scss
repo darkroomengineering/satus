@@ -1,0 +1,9 @@
+.wrapper {
+  display: inline-block;
+  position: relative;
+
+  .splitText {
+    position: absolute;
+    inset: 0;
+  }
+}

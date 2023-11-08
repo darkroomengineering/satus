@@ -50,7 +50,7 @@ if (typeof window !== 'undefined') {
 
 function MyApp({ Component, pageProps }) {
   const lenis = useLenis(ScrollTrigger.update)
-  useEffect(ScrollTrigger.refresh, [lenis])
+  useEffect(() => ScrollTrigger.refresh(), [lenis])
 
   const isNavOpened = useStore(({ isNavOpened }) => isNavOpened)
 

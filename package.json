@@ -15,7 +15,7 @@
   "dependencies": {
     "@ducanh2912/next-pwa": "^9.5.0",
     "@studio-freight/compono": "^0.0.42",
-    "@studio-freight/hamo": "^0.6.19",
+    "@studio-freight/hamo": "^0.6.22",
     "@studio-freight/react-lenis": "0.0.36",
     "@studio-freight/tempus": "^0.0.38",
     "@theatre/core": "^0.7.0",

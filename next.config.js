@@ -178,7 +178,7 @@ const nextConfig = {
       },
     ]
   },
-  redirects: async () => {
+  async redirects() {
     return [
       {
         source: '/home',

@@ -22,7 +22,6 @@
     "@theatre/studio": "^0.7.0",
     "clsx": "^2.0.0",
     "gsap": "^3.12.2",
-    "idb-keyval": "^6.2.1",
     "jsonminify": "^0.4.2",
     "next": "14.0.3",
     "next-sitemap": "^4.2.3",
@@ -51,7 +50,8 @@
     "overrides": {
       "react": "18.2.0",
       "react-dom": "18.2.0",
-      "scheduler": "0.23.0"
+      "scheduler": "0.23.0",
+      "gsap": "npm:@gsap/business@^3.12.2"
     }
   },
   "lint-staged": {

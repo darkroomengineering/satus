@@ -41,7 +41,7 @@ export function useStudioCurrentObject() {
 
       return unsubscribe
     }
-  }, [studio, channel])
+  }, [studio])
 
   return currentObjectAddress
 }

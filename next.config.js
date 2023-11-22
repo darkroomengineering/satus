@@ -30,7 +30,7 @@ const nextConfig = {
   },
   images: {
     // ADD in case you need to import SVGs in next/image component
-    // dangerouslyAllowSVG: true,
+    dangerouslyAllowSVG: true,
     // contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     remotePatterns: [
       {

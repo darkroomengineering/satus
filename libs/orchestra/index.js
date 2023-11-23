@@ -1,49 +1,84 @@
-import { broadcast } from 'libs/zustand-broadcast'
-import { useEffect, useState } from 'react'
-import { create } from 'zustand'
+import { shared } from 'libs/zustand-shared'
+// import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
+import { createStore } from 'zustand/vanilla'
 
-// avoid to display debug tools on orchestra page
-let isOrchestraPage = false
-
-const useOrchestraStore = create(
+const ID = 'orchestra'
+let store = createStore(
   persist(() => ({}), {
-    name: 'orchestra',
+    name: ID,
     storage: createJSONStorage(() => localStorage),
   }),
 )
 
-broadcast(useOrchestraStore, 'orchestra')
+store = shared(store, ID)
 
-export function useOrchestra() {
-  const values = useOrchestraStore()
+class Toggle {
+  constructor(id, content) {
+    this.id = id
+    this.content = content
+    this.domElement = document.createElement('button')
+    this.domElement.innerText = content
+    this.domElement.title = id
+    this.domElement.style.fontSize = '64px'
+    this.domElement.addEventListener('click', this.onToggle, false)
+  }
 
-  const [isVisible, setIsVisible] = useState(false)
+  onToggle = () => {
+    store.setState((state) => ({ ...state, [this.id]: !state[this.id] }))
+  }
 
-  useEffect(() => {
-    setIsVisible(!isOrchestraPage)
-  }, [])
-
-  return isVisible && values
+  destroy() {
+    this.domElement.removeEventListener('click', this.onToggle, false)
+    this.domElement.remove()
+  }
 }
 
-// to be added to debug pages
-export function OrchestraToggle({ children, title, id }) {
-  isOrchestraPage = true
+class Orchestra {
+  constructor() {
+    this.domElement = document.createElement('div')
 
-  return (
-    <button
-      onClick={() => {
-        useOrchestraStore.setState((state) => {
-          const clone = { ...state }
-          clone[id] = !clone[id]
-          return clone
-        })
-      }}
-      title={title}
-      style={{ fontSize: '64px' }}
-    >
-      {children}
-    </button>
-  )
+    this.isDebug = false
+    this.toggles = []
+  }
+
+  get state() {
+    return !this.isDebug && store.getState()
+  }
+
+  subscribe(callback) {
+    if (!this.isDebug) store.subscribe(callback)
+  }
+
+  add(id, content) {
+    // check if already exists
+    if (this.toggles.find((toggle) => toggle.id === id)) return this
+
+    const toggle = new Toggle(id, content)
+    this.toggles.push(toggle)
+    this.domElement.appendChild(toggle.domElement)
+
+    return this
+  }
+
+  remove(id) {
+    const toggle = this.toggles.find((toggle) => toggle.id === id)
+    // this.domElement.removeChild(toggle.domElement)
+    toggle.destroy()
+    this.toggles = this.toggles.filter((toggle) => toggle.id !== id)
+
+    return this
+  }
 }
+
+const isClient = typeof window !== 'undefined'
+
+export default isClient && new Orchestra()
+
+// To be added to debug page
+// Orchestra.isDebug = true
+// Orchestra.add('studio', '⚙️')
+// Orchestra.add('stats', '📈')
+// Orchestra.add('grid', '🌐')
+// Orchestra.add('dev', '🚧')
+// document.body.appendChild(Orchestra.domElement)

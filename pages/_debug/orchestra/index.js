@@ -1,23 +1,15 @@
-import { OrchestraToggle } from 'libs/orchestra'
+import { OrchestraToggle } from 'libs/orchestra/react'
 import { forwardRef } from 'react'
 
-const Orchestra = forwardRef(function Orchestra({}) {
+const OrchestraPage = forwardRef(function OrchestraPage({}) {
   return (
     <>
-      <OrchestraToggle title="studio" id="studio">
-        ⚙️
-      </OrchestraToggle>
-      <OrchestraToggle title="performance" id="stats">
-        📈
-      </OrchestraToggle>
-      <OrchestraToggle title="grid" id="grid">
-        🌐
-      </OrchestraToggle>
-      <OrchestraToggle title="dev" id="dev">
-        🚧
-      </OrchestraToggle>
+      <OrchestraToggle id="studio">⚙️</OrchestraToggle>
+      <OrchestraToggle id="stats">📈</OrchestraToggle>
+      <OrchestraToggle id="grid">🌐</OrchestraToggle>
+      <OrchestraToggle id="dev">🚧</OrchestraToggle>
     </>
   )
 })
 
-export default Orchestra
+export default OrchestraPage

@@ -2,7 +2,6 @@ import { broadcast } from 'libs/zustand-broadcast'
 import { useEffect, useState } from 'react'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import s from './orchestra.module.scss'
 
 // avoid to display debug tools on orchestra page
 let isOrchestraPage = false
@@ -28,7 +27,10 @@ export function useOrchestra() {
   return isVisible && values
 }
 
-export function OrchestraToggle({ icon, title, id }) {
+// to be added to debug pages
+export function OrchestraToggle({ children, title, id }) {
+  isOrchestraPage = true
+
   return (
     <button
       onClick={() => {
@@ -39,15 +41,9 @@ export function OrchestraToggle({ icon, title, id }) {
         })
       }}
       title={title}
+      style={{ fontSize: '64px' }}
     >
-      {icon}
+      {children}
     </button>
   )
-}
-
-// to be added to debug pages
-export function OrchestraPage({ children }) {
-  isOrchestraPage = true
-
-  return <div className={s.orchestra}>{children}</div>
 }

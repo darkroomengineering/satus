@@ -50,3 +50,10 @@ $mobile-height: get('viewports.mobile.height');
     @content;
   }
 }
+
+@function columns($columns) {
+  @return calc(
+    (#{$columns} * var(--layout-column-width)) +
+      ((#{$columns} - 1) * var(--layout-columns-gap))
+  );
+}

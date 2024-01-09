@@ -14,9 +14,9 @@
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^9.7.2",
-    "@studio-freight/compono": "^0.0.43",
+    "@studio-freight/compono": "0.0.50",
     "@studio-freight/hamo": "0.6.22",
-    "@studio-freight/react-lenis": "0.0.38",
+    "@studio-freight/react-lenis": "0.0.43",
     "@studio-freight/tempus": "^0.0.38",
     "@theatre/core": "^0.7.0",
     "@theatre/studio": "^0.7.0",
@@ -51,7 +51,11 @@
       "react": "18.2.0",
       "react-dom": "18.2.0",
       "scheduler": "0.23.0",
-      "gsap": "npm:@gsap/business@^3.12.2"
+      "gsap": "npm:@gsap/business@^3.12.2",
+      "@studio-freight/lenis": "1.0.33",
+      "@studio-freight/hamo": "0.6.24",
+      "@studio-freight/react-lenis": "0.0.43",
+      "zustand": "4.4.7"
     }
   },
   "lint-staged": {

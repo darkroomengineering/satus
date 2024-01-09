@@ -5,6 +5,10 @@ overrides:
   react-dom: 18.2.0
   scheduler: 0.23.0
   gsap: npm:@gsap/business@^3.12.2
+  '@studio-freight/lenis': 1.0.33
+  '@studio-freight/hamo': 0.6.24
+  '@studio-freight/react-lenis': 0.0.43
+  zustand: 4.4.7
 
 specifiers:
   '@builder.io/partytown': ^0.8.1
@@ -12,9 +16,9 @@ specifiers:
   '@ducanh2912/next-pwa': ^9.7.2
   '@next/bundle-analyzer': ^14.0.3
   '@size-limit/preset-app': ^11.0.0
-  '@studio-freight/compono': ^0.0.43
-  '@studio-freight/hamo': 0.6.22
-  '@studio-freight/react-lenis': 0.0.38
+  '@studio-freight/compono': 0.0.50
+  '@studio-freight/hamo': 0.6.24
+  '@studio-freight/react-lenis': 0.0.43
   '@studio-freight/tempus': ^0.0.38
   '@svgr/webpack': ^8.1.0
   '@theatre/core': ^0.7.0
@@ -36,13 +40,13 @@ specifiers:
   react-dom: 18.2.0
   sass: ^1.69.5
   stats.js: ^0.17.0
-  zustand: 4.4.6
+  zustand: 4.4.7
 
 dependencies:
   '@ducanh2912/next-pwa': 9.7.2_next@14.0.3
-  '@studio-freight/compono': 0.0.43_pvgaconotzu4vdk37yty4okb7y
-  '@studio-freight/hamo': 0.6.22_biqbaboplfbrettd7655fr4n2y
-  '@studio-freight/react-lenis': 0.0.38_biqbaboplfbrettd7655fr4n2y
+  '@studio-freight/compono': 0.0.50_pvgaconotzu4vdk37yty4okb7y
+  '@studio-freight/hamo': 0.6.24_biqbaboplfbrettd7655fr4n2y
+  '@studio-freight/react-lenis': 0.0.43_biqbaboplfbrettd7655fr4n2y
   '@studio-freight/tempus': 0.0.38
   '@theatre/core': 0.7.0
   '@theatre/studio': 0.7.0_@theatre+core@0.7.0
@@ -55,7 +59,7 @@ dependencies:
   react-dom: 18.2.0_react@18.2.0
   sass: 1.69.5
   stats.js: 0.17.0
-  zustand: 4.4.6_react@18.2.0
+  zustand: 4.4.7_react@18.2.0
 
 devDependencies:
   '@builder.io/partytown': 0.8.1
@@ -2169,17 +2173,17 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@studio-freight/compono/0.0.43_pvgaconotzu4vdk37yty4okb7y:
-    resolution: {integrity: sha512-S2oNyLB+hTJXVH2YzE787g+A+pqq56xBasIv/Ocna3rX8/udYegIjo0AbYq+bihjC17q3iwDHCFqBIzc1i6mbA==}
+  /@studio-freight/compono/0.0.50_pvgaconotzu4vdk37yty4okb7y:
+    resolution: {integrity: sha512-Vrh7VJOuA6VcQNY0PxQ+Qw9QI45XtlreMayFaDcXW8szzFmBT9Bq1Jex6ptiUNpwgQU1KKi+I3zHnkIgBW2gZw==}
     peerDependencies:
-      next: latest
+      next: ^14.0.4
       react: ^18.2.0
       react-dom: ^18.2.0
     dependencies:
       '@radix-ui/react-accordion': 1.1.2_biqbaboplfbrettd7655fr4n2y
       '@radix-ui/react-select': 2.0.0_biqbaboplfbrettd7655fr4n2y
-      '@studio-freight/hamo': 0.6.22_biqbaboplfbrettd7655fr4n2y
-      '@studio-freight/react-lenis': 0.0.38_biqbaboplfbrettd7655fr4n2y
+      '@studio-freight/hamo': 0.6.24_biqbaboplfbrettd7655fr4n2y
+      '@studio-freight/react-lenis': 0.0.43_biqbaboplfbrettd7655fr4n2y
       clsx: 2.0.0
       embla-carousel-autoplay: 7.1.0
       embla-carousel-react: 7.1.0_react@18.2.0
@@ -2198,8 +2202,8 @@ packages:
       - immer
     dev: false
 
-  /@studio-freight/hamo/0.6.22_biqbaboplfbrettd7655fr4n2y:
-    resolution: {integrity: sha512-bomWlxaT7OmhBJmduDw1mjMj8ZKew/hwXriNmCmcZXLpTQZwbj0c3VQVALmsotXNXqyEfkzD8f871ks4HPMqEQ==}
+  /@studio-freight/hamo/0.6.24_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-mdQuvDVwq17DH8aNf5Os9dxu5vWnPyg/BBKjgaXovUlBLdjRkhLYMgZidb2hrY2ChsQH2Kt8xJL6YPeL/a2MaA==}
     peerDependencies:
       react: ^18.2.0
       react-dom: ^18.2.0
@@ -2209,25 +2213,29 @@ packages:
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
       rimraf: 5.0.5
+      zustand: 4.4.7_react@18.2.0
+    transitivePeerDependencies:
+      - '@types/react'
+      - immer
     dev: false
 
-  /@studio-freight/lenis/1.0.28:
-    resolution: {integrity: sha512-+t2rKphnNCpaCuoSZjR3/c21wuuALlgb9ldwwKaGDsk9f6le7KXNYJisp5uJJC9Gz6FG37y+IH20OMNGGJqBXA==}
+  /@studio-freight/lenis/1.0.33:
+    resolution: {integrity: sha512-Pfoimwwsf8oVuneQg3KoigUDlo1S+rE+m2Tz7b+zMNAEi0UAhox+PG/ksLHa8ktQhlsuWODeQFCl8VHBxqOtfw==}
     dev: false
 
-  /@studio-freight/react-lenis/0.0.38_biqbaboplfbrettd7655fr4n2y:
-    resolution: {integrity: sha512-Jyc4d/RfP9WFliQc01eT7V+L0hD+JoYvalyu2MAa0X/p47fYFiwKmT6N5szZArvrJIGOYj5G8rvDYeaD/vz6IA==}
+  /@studio-freight/react-lenis/0.0.43_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-kgRif4MGcmPWuyIWLBc9ghOIQ/ql7lO2YTIZMv2UCohz37G4fCR8+PLCzJl9/q5iP7481pWdAuFJVYf3xJ/rpg==}
     peerDependencies:
-      react: ^18.2.0
-      react-dom: ^18.2.0
+      react: ^18.0.0
+      react-dom: ^18.0.0
     dependencies:
-      '@studio-freight/hamo': 0.6.22_biqbaboplfbrettd7655fr4n2y
-      '@studio-freight/lenis': 1.0.28
+      '@studio-freight/hamo': 0.6.24_biqbaboplfbrettd7655fr4n2y
+      '@studio-freight/lenis': 1.0.33
       clsx: 2.0.0
       prop-types: 15.8.1
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
-      zustand: 4.4.6_react@18.2.0
+      zustand: 4.4.7_react@18.2.0
     transitivePeerDependencies:
       - '@types/react'
       - immer
@@ -6415,8 +6423,8 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  /zustand/4.4.6_react@18.2.0:
-    resolution: {integrity: sha512-Rb16eW55gqL4W2XZpJh0fnrATxYEG3Apl2gfHTyDSE965x/zxslTikpNch0JgNjJA9zK6gEFW8Fl6d1rTZaqgg==}
+  /zustand/4.4.7_react@18.2.0:
+    resolution: {integrity: sha512-QFJWJMdlETcI69paJwhSMJz7PPWjVP8Sjhclxmxmxv/RYI7ZOvR5BHX+ktH0we9gTWQMxcne8q1OY8xxz604gw==}
     engines: {node: '>=12.7.0'}
     peerDependencies:
       '@types/react': '>=16.8'

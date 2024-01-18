@@ -1,5 +1,6 @@
 import { useRect } from '@studio-freight/hamo'
 import { gsap } from 'gsap'
+// import { SplitText as GSAPSplitText } from 'gsap/dist/SplitText'
 import { SplitText as GSAPSplitText } from 'gsap/dist/SplitText'
 import {
   forwardRef,

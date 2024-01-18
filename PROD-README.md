@@ -52,7 +52,6 @@ The usual process for Next.js based apps/websites:
 
 ## Third Party
 
-- [Contentful Headless CMS (GraphQL API)](https://contentful.com/)
 - [Mailchimp CRM](https://mailchimp.com/)
 - [Hubspot CRM](https://hubspot.com/)
 - [Vercel (Hosting & Continuous Deployment)](https://vercel.com/home)
@@ -64,7 +63,6 @@ Alongside the usual Next.js folder structure (`/public`, `/pages`, etc.) We've a
 
 - **/assets:** General Images/Videos and SVGs
 - **/components:** Reusable components with their respective Sass file
-- **/contentful:** Fragments/Queries/Renderers
 - **/config:** General settings (mostly Leva for now)
 - **/hooks:** Reusable Custom Hooks
 - **/layouts:** High level layout component

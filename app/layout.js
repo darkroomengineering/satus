@@ -25,32 +25,12 @@ export default function RootLayout({ children }) {
         {/* END FAVICON */}
 
       </head>
-      <body suppressHydrationWarning>
+      <body>
         <RealViewport />
         <DeviceDetectionProvider>
           {children}
         </DeviceDetectionProvider>
       </body>
-      {/* Google Tag Manager - Global base code */}
-      {/* {process.env.NODE_ENV !== 'development' && (
-        <>
-          <Script
-            async
-            strategy="lazyOnload"
-            src={`https://www.googletagmanager.com/gtag/js?id=${GTM_ID}`}
-          />
-          <Script
-            id="gtm-base"
-            strategy="lazyOnload"
-            dangerouslySetInnerHTML={{
-              __html: `window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', '${GTM_ID}');`,
-            }}
-          />
-        </>
-      )} */}
     </html>
   )
 }

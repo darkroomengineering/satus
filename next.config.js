@@ -1,14 +1,3 @@
-// const withPWA = require('@ducanh2912/next-pwa').default({
-//   dest: 'public',
-//   register: true,
-//   skipWaiting: true,
-//   disable: process.env.NODE_ENV === 'development',
-//   buildExcludes: [/middleware-manifest.json$/],
-//   maximumFileSizeToCacheInBytes: 4000000,
-//   workboxOptions: {
-//     mode: 'production',
-//   },
-// })
 const DuplicatePackageCheckerPlugin = require('@cerner/duplicate-package-checker-webpack-plugin')
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
@@ -21,7 +10,6 @@ const nextConfig = {
   transpilePackages: ['@studio-freight/compono'],
   experimental: {
     optimizeCss: true,
-    legacyBrowsers: false,
     // storyblok preview
     // nextScriptWorkers: process.env.NODE_ENV !== 'development',
     urlImports: ['https://cdn.skypack.dev', 'https://unpkg.com'],

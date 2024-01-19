@@ -1,8 +1,9 @@
 // import { Link } from '@studio-freight/compono'
 import { Lenis } from '@studio-freight/react-lenis'
 import cn from 'clsx'
+import { Link } from 'components/link'
 import { useStore } from 'libs/store'
-import Link from 'next/link'
+
 import { shallow } from 'zustand/shallow'
 import s from './navigation.module.scss'
 
@@ -15,7 +16,7 @@ export function Navigation() {
   return (
     <Lenis className={cn(s.navigation, !navIsOpened && s.closed)}>
       <div className={s.content}>
-        <Link href="/">home</Link>
+      <Link href="/">home</Link>
         <Link href="/_debug/orchestra">debug</Link>
       </div>
     </Lenis>

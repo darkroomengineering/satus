@@ -1,7 +1,17 @@
 'use client'
 
-import { Link as ComponoLink } from '@studio-freight/compono'
+import NextLink from 'next/link'
+import { forwardRef } from 'react'
 
-export function Link({ children, ...props }) {
-  return <ComponoLink {...props}>{children}</ComponoLink>
-}
+export const Link = forwardRef(function Link(
+  { href, fallback = 'div', ...props },
+  ref,
+) {
+  if (typeof href !== 'string') {
+    const Tag = fallback
+
+    return <Tag ref={ref} {...props} href={href} />
+  }
+
+  return <NextLink ref={ref} {...props} href={href} />
+})

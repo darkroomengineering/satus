@@ -1,6 +1,7 @@
-import { create } from 'zustand'
+import { shallow } from 'zustand/shallow'
+import { createWithEqualityFn } from 'zustand/traditional'
 
-export const useStore = create((set) => ({
+export const useStore = createWithEqualityFn((set) => ({
   headerData: undefined,
   setHeaderData: (headerData) => set({ headerData }),
   footerData: undefined,
@@ -9,4 +10,6 @@ export const useStore = create((set) => ({
   setNavIsOpened: (value) => set({ navIsOpened: value }),
   triggerTransition: false,
   setTriggerTransition: (triggerTransition) => set({ triggerTransition }),
-}))
+  toggleCart: undefined,
+  setToggleCart: (toggleCart) => set({ toggleCart }),
+}), shallow)

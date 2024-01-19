@@ -1,119 +1,84 @@
-'use client'
-
-import { del, get, set } from 'idb-keyval'
-import { broadcast } from 'libs/zustand-broadcast'
-import dynamic from 'next/dynamic'
-import { useEffect } from 'react'
-import { create } from 'zustand'
+import { shared } from 'libs/zustand-shared'
+// import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import { shallow } from 'zustand/shallow'
-import s from './orchestra.module.scss'
+import { createStore } from 'zustand/vanilla'
 
-const Studio = dynamic(
-  () => import('libs/theatre/studio').then(({ Studio }) => Studio),
-  { ssr: false },
-)
-const Stats = dynamic(() => import('./stats').then(({ Stats }) => Stats), {
-  ssr: false,
-})
-const GridDebugger = dynamic(
-  () => import('./grid').then(({ GridDebugger }) => GridDebugger),
-  {
-    ssr: false,
-  },
+const ID = 'orchestra'
+let store = createStore(
+  persist(() => ({}), {
+    name: ID,
+    storage: createJSONStorage(() => localStorage),
+  }),
 )
 
-// avoid to display debug tools on orchestra page
-const useInternalStore = create((set) => ({
-  isVisible: true,
-  setIsVisible: (isVisible) => set({ isVisible }),
-}))
+store = shared(store, ID)
 
-// https://github.com/pmndrs/zustand/blob/main/docs/integrations/persisting-store-data.md
-const INDEXEDDB_STORAGE = {
-  getItem: async (name) => {
-    // console.log(name, 'has been retrieved')
-    return (await get(name)) || null
-  },
-  setItem: async (name, value) => {
-    // console.log(name, 'with value', value, 'has been saved')
-    await set(name, value)
-  },
-  removeItem: async (name) => {
-    // console.log(name, 'has been deleted')
-    await del(name)
-  },
+class Toggle {
+  constructor(id, content) {
+    this.id = id
+    this.content = content
+    this.domElement = document.createElement('button')
+    this.domElement.innerText = content
+    this.domElement.title = id
+    this.domElement.style.fontSize = '64px'
+    this.domElement.addEventListener('click', this.onToggle, false)
+  }
+
+  onToggle = () => {
+    store.setState((state) => ({ ...state, [this.id]: !state[this.id] }))
+  }
+
+  destroy() {
+    this.domElement.removeEventListener('click', this.onToggle, false)
+    this.domElement.remove()
+  }
 }
 
-export const useOrchestraStore = create(
-  persist(
-    () => ({
-      studio: false,
-      stats: false,
-      grid: false,
-    }),
-    {
-      name: 'orchestra',
-      storage: createJSONStorage(() => INDEXEDDB_STORAGE),
-    },
-  ),
-)
+class Orchestra {
+  constructor() {
+    this.domElement = document.createElement('div')
 
-broadcast(useOrchestraStore, 'orchestra')
+    this.isDebug = false
+    this.toggles = []
+  }
 
-export function Orchestra() {
-  const isVisible = useInternalStore(({ isVisible }) => isVisible)
+  get state() {
+    return !this.isDebug && store.getState()
+  }
 
-  const { studio, stats, grid } = useOrchestraStore(
-    ({ studio, stats, grid }) => ({ studio, stats, grid }),
-    shallow,
-  )
+  subscribe(callback) {
+    if (!this.isDebug) store.subscribe(callback)
+  }
 
-  return (
-    isVisible && (
-      <>
-        {studio && <Studio />}
-        {stats && <Stats />}
-        {grid && <GridDebugger />}
-      </>
-    )
-  )
+  add(id, content) {
+    // check if already exists
+    if (this.toggles.find((toggle) => toggle.id === id)) return this
+
+    const toggle = new Toggle(id, content)
+    this.toggles.push(toggle)
+    this.domElement.appendChild(toggle.domElement)
+
+    return this
+  }
+
+  remove(id) {
+    const toggle = this.toggles.find((toggle) => toggle.id === id)
+    // this.domElement.removeChild(toggle.domElement)
+    toggle.destroy()
+    this.toggles = this.toggles.filter((toggle) => toggle.id !== id)
+
+    return this
+  }
 }
 
-// to be added to debug pages
-export function OrchestraToggle() {
-  useEffect(() => {
-    useInternalStore.setState(() => ({
-      isVisible: false,
-    }))
-  }, [])
+const isClient = typeof window !== 'undefined'
 
-  return (
-    <div className={s.orchestra}>
-      <button
-        className={s.button}
-        onClick={() => {
-          useOrchestraStore.setState(({ studio }) => ({ studio: !studio }))
-        }}
-      >
-        ⚙️
-      </button>
-      <button
-        className={s.button}
-        onClick={() => {
-          useOrchestraStore.setState(({ stats }) => ({ stats: !stats }))
-        }}
-      >
-        📈
-      </button>
-      <button
-        className={s.button}
-        onClick={() => {
-          useOrchestraStore.setState(({ grid }) => ({ grid: !grid }))
-        }}
-      >
-        🌐
-      </button>
-    </div>
-  )
-}
+export default isClient && new Orchestra()
+
+// To be added to debug page
+// Orchestra.isDebug = true
+// Orchestra.add('studio', '⚙️')
+// Orchestra.add('stats', '📈')
+// Orchestra.add('grid', '🌐')
+// Orchestra.add('dev', '🚧')
+// document.body.appendChild(Orchestra.domElement)

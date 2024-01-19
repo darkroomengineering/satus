@@ -1,9 +1,5 @@
 import { RealViewport } from 'components/real-viewport'
 import { DeviceDetectionProvider } from 'context/device-detection.context'
-import { TheatreProvider } from 'context/theatre.context'
-import { GTM_ID } from 'libs/analytics'
-import { Orchestra } from 'libs/orchestra'
-import Script from 'next/script'
 
 import 'styles/global.scss'
 
@@ -47,14 +43,11 @@ export default function RootLayout({ children }) {
       <body suppressHydrationWarning>
         <RealViewport />
         <DeviceDetectionProvider>
-          <TheatreProvider>
-            {children}
-            <Orchestra />
-          </TheatreProvider>
+          {children}
         </DeviceDetectionProvider>
       </body>
       {/* Google Tag Manager - Global base code */}
-      {process.env.NODE_ENV !== 'development' && (
+      {/* {process.env.NODE_ENV !== 'development' && (
         <>
           <Script
             async
@@ -72,7 +65,7 @@ export default function RootLayout({ children }) {
             }}
           />
         </>
-      )}
+      )} */}
     </html>
   )
 }

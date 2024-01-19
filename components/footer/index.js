@@ -1,4 +1,5 @@
-import { Link } from '../link'
+
+import { Link } from 'components/link'
 import s from './footer.module.scss'
 
 export function Footer() {
@@ -6,7 +7,7 @@ export function Footer() {
     <footer className={s.footer}>
       <div className="layout-block">
         <h2>
-          <Link href="mailto:contact@studiofreight.com">mail</Link>
+        <Link href="mailto:contact@studiofreight.com">mail</Link>
           <Link href="/contact">contact</Link>
           <Link>twitter</Link>
         </h2>

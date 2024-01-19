@@ -1,10 +1,14 @@
-import { OrchestraToggle } from 'libs/orchestra'
+import { OrchestraToggle } from 'libs/orchestra/react'
 
-export const metadata = {
-  title: 'Orchestra Title',
-  description: 'Orchestra Description',
+function OrchestraPage({}) {
+  return (
+    <>
+      <OrchestraToggle id="studio">⚙️</OrchestraToggle>
+      <OrchestraToggle id="stats">📈</OrchestraToggle>
+      <OrchestraToggle id="grid">🌐</OrchestraToggle>
+      <OrchestraToggle id="dev">🚧</OrchestraToggle>
+    </>
+  )
 }
 
-export default function Orchestra() {
-  return <OrchestraToggle />
-}
+export default OrchestraPage

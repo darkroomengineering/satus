@@ -1,4 +1,5 @@
 'use client'
+
 import { Lenis } from '@studio-freight/react-lenis'
 import Tempus from '@studio-freight/tempus'
 import cn from 'clsx'
@@ -13,6 +14,7 @@ import s from './layout.module.scss'
 if (typeof window !== 'undefined') {
   gsap.defaults({ ease: 'none' })
   gsap.registerPlugin(ScrollTrigger)
+  ScrollTrigger.clearScrollMemory(window.history.scrollRestoration)
   ScrollTrigger.defaults({ markers: true }) //process.env.NODE_ENV === 'development' })
 
   // merge rafs

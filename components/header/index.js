@@ -1,7 +1,7 @@
 'use client'
 
-import { Link } from '@studio-freight/compono'
 import cn from 'clsx'
+import { Link } from 'components/link'
 import { Navigation } from 'components/navigation'
 import { useStore } from 'libs/store'
 import { forwardRef } from 'react'
@@ -26,7 +26,7 @@ export const Header = forwardRef((_, ref) => {
           menu
         </button>
         <div>
-          <Link href="/">home</Link>/<Link href="/gsap">gsap</Link>/
+        <Link href="/">home</Link>/<Link href="/gsap">gsap</Link>/
           <Link href="/contact">contact</Link>
         </div>
       </div>

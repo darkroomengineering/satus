@@ -1,10 +1,22 @@
-.title {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
+.home {
+  font-family: sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
 
   .title {
-    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: justify;
+    min-height: 90vh;
+    margin: auto;
+    font-size: mobile-vw(12px);
+    max-width: mobile-vw(330px);
+
+    @include desktop {
+      min-height: 100vh;
+      font-size: desktop-vw(16px);
+      max-width: desktop-vw(500px);
+    }
   }
 }

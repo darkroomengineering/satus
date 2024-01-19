@@ -1,9 +1,23 @@
 .footer {
-  color: var(--theme-primary);
-  background-color: var(--theme-secondary);
-  padding: mobile-vw(20px) 0;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: currentColor;
+  }
+
+  padding-top: mobile-vw(20px);
+  padding-bottom: mobile-vw(20px);
 
   @include desktop {
-    padding: desktop-vw(40px) 0;
+    padding-top: desktop-vw(40px);
+    padding-bottom: desktop-vw(40px);
   }
 }

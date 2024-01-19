@@ -1,9 +1,9 @@
 'use client'
 
+import { Cursor } from '@studio-freight/compono'
 import { Lenis } from '@studio-freight/react-lenis'
 import Tempus from '@studio-freight/tempus'
 import cn from 'clsx'
-import { Cursor } from 'components/cursor'
 import { Footer } from 'components/footer'
 import { Header } from 'components/header'
 import { Scrollbar } from 'components/scrollbar'

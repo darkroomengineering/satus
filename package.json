@@ -17,13 +17,17 @@
     "@svgr/webpack": "^8.1.0",
     "@theatre/core": "^0.7.0",
     "@theatre/studio": "^0.7.0",
-    "gsap": "^3.12.5",
+    "gsap": "npm:@gsap/business@^3.12.5",
     "idb-keyval": "^6.2.1",
     "jsonminify": "^0.4.2",
     "next": "14.1.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "sass": "^1.70.0"
+    "sass": "^1.70.0",
+    "stats.js": "^0.17.0",
+    "@studio-freight/hamo": "0.6.28",
+    "@studio-freight/tempus": "^0.0.42",
+    "zustand": "4.4.7"
   },
   "devDependencies": {
     "@builder.io/partytown": "^0.8.2",
@@ -33,10 +37,14 @@
     "eslint": "8.56.0",
     "eslint-config-next": "14.1.0",
     "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.2.4",
+    "prettier-eslint": "^16.2.0",
     "husky": "^8.0.3",
     "lint-staged": "^15.2.0",
     "next-sitemap": "^4.2.3",
-    "prettier": "^3.2.4"
+    "clsx": "^2.1.0",
+    "@size-limit/preset-app": "^11.0.2",
+    "cross-env": "^7.0.3"
   },
   "pnpm": {
     "overrides": {

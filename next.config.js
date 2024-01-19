@@ -14,15 +14,21 @@ const nextConfig = {
     // nextScriptWorkers: process.env.NODE_ENV !== 'development',
     urlImports: ['https://cdn.skypack.dev', 'https://unpkg.com'],
     webVitalsAttribution: ['CLS', 'LCP'],
+    nextScriptWorkers: true,
   },
   compiler: {
     removeConsole: process.env.NODE_ENV !== 'development',
   },
   images: {
     // ADD in case you need to import SVGs in next/image component
-    // dangerouslyAllowSVG: true,
+    dangerouslyAllowSVG: true,
     // contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    domains: ['assets.studiofreight.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'assets.studiofreight.com',
+      },
+    ],
     formats: ['image/avif', 'image/webp'],
   },
   sassOptions: {
@@ -172,7 +178,7 @@ const nextConfig = {
       },
     ]
   },
-  redirects: async () => {
+  async redirects() {
     return [
       {
         source: '/home',

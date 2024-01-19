@@ -1,17 +1,14 @@
 html {
-  &.dev {
-    overflow: overlay;
-  }
-
   &:not(.dev) {
-    scrollbar-width: none !important;
+    &,
+    * {
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
 
-    body {
-      -ms-overflow-style: none;
-    }
-    body::-webkit-scrollbar {
-      width: 0 !important;
-      height: 0 !important;
+      &::-webkit-scrollbar {
+        width: 0 !important;
+        height: 0 !important;
+      }
     }
   }
 }

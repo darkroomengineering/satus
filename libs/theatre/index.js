@@ -1,3 +1,5 @@
+'use client'
+
 import { useFrame } from '@studio-freight/hamo'
 import { createRafDriver, getProject, onChange } from '@theatre/core'
 import {
@@ -6,6 +8,7 @@ import {
   useContext,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -37,7 +40,7 @@ export function ProjectProvider({ children, id, config }) {
   const [project, setproject] = useState()
   const isLoadingRef = useRef(false)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (config) {
       if (!isLoadingRef.current) {
         isLoadingRef.current = true
@@ -63,7 +66,7 @@ export function ProjectProvider({ children, id, config }) {
 
   return (
     <ProjectContext.Provider value={project}>
-      {children}
+      <RafDriverProvider id="default">{children}</RafDriverProvider>
     </ProjectContext.Provider>
   )
 }

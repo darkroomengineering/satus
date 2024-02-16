@@ -1,6 +1,5 @@
 import studio from '@theatre/studio'
-import jsonminify from 'jsonminify'
-import { useCurrentProject, useCurrentRafDriver } from 'libs/theatre'
+import { useCurrentProject } from 'libs/theatre'
 import { useEffect } from 'react'
 import s from './studio.module.scss'
 
@@ -9,19 +8,15 @@ let initialized = false
 export function Studio() {
   const project = useCurrentProject()
 
-  const rafDriver = useCurrentRafDriver()
-
   useEffect(() => {
     if (initialized) return
 
-    if (rafDriver && !initialized) {
-      studio.initialize({ __experimental_rafDriver: rafDriver }).then(() => {
-        console.log('Studio initialized')
-      })
+    studio.initialize().then(() => {
+      console.log('Studio initialized')
+    })
 
-      initialized = true
-    }
-  }, [rafDriver])
+    initialized = true
+  }, [])
 
   useEffect(() => {
     studio.ui.restore()
@@ -36,15 +31,14 @@ export function Studio() {
       <button
         onClick={() => {
           // setVisible(!visible)
+
+          console.log(project)
           const id = project.address.projectId
           const json = studio.createContentOfSaveFile(id)
-          const file = new File(
-            [jsonminify(JSON.stringify(json, null, 2))],
-            'config.json',
-            {
-              type: 'application/json',
-            },
-          )
+
+          const file = new File([JSON.stringify(json)], 'config.json', {
+            type: 'application/json',
+          })
           const url = URL.createObjectURL(file)
           const a = document.createElement('a')
           a.href = url

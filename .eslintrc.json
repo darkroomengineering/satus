@@ -4,7 +4,41 @@
   "rules": {
     "no-unused-vars": "error",
     "react/no-unescaped-entities": "off",
-    "@next/next/no-img-element": "off",
-    "react-hooks/exhaustive-deps": "warn"
+    "@next/next/no-img-element": "warn",
+    "react-hooks/exhaustive-deps": [
+      "warn",
+      {
+        "additionalHooks": "(useLenis|useTransform)"
+      }
+    ],
+    "jsx-a11y/control-has-associated-label": [
+      "warn",
+      {
+        "labelAttributes": ["label"],
+        "controlComponents": ["Link, Button"],
+        "ignoreElements": [
+          "audio",
+          "canvas",
+          "embed",
+          "input",
+          "textarea",
+          "tr",
+          "video"
+        ],
+        "ignoreRoles": [
+          "grid",
+          "listbox",
+          "menu",
+          "menubar",
+          "radiogroup",
+          "row",
+          "tablist",
+          "toolbar",
+          "tree",
+          "treegrid"
+        ],
+        "depth": 3
+      }
+    ]
   }
 }

@@ -3,17 +3,17 @@
 import cn from 'clsx'
 import localFont from 'next/font/local'
 
-const inter = localFont({
+const ibm = localFont({
   src: [
     {
-      path: './fonts/inter/InterVariable.woff2',
-      weight: '100 900',
+      path: './fonts/IBMPlexMono/IBMPlexMono-Regular.woff2',
+      weight: '400',
       style: 'normal',
     },
   ],
-  variable: '--font-inter',
+  variable: '--font-ibm',
   display: 'swap',
   preload: true,
 })
 
-export const fonts = { className: cn(inter.variable) }
+export const fonts = { className: cn(ibm.variable) }

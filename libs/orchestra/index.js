@@ -1,4 +1,3 @@
-import { shared } from 'libs/zustand-shared'
 // import { create } from 'zustand'
 import {
   createJSONStorage,
@@ -7,18 +6,24 @@ import {
 } from 'zustand/middleware'
 import { createStore } from 'zustand/vanilla'
 
-const ID = 'orchestra'
+const storageKey = 'orchestra'
 let store = createStore(
   persist(
     subscribeWithSelector(() => ({})),
     {
-      name: ID,
+      name: storageKey,
       storage: createJSONStorage(() => localStorage),
     },
   ),
 )
 
-store = shared(store, ID)
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key === storageKey) {
+      store.persist.rehydrate()
+    }
+  })
+}
 
 class Toggle {
   constructor(id, content) {
@@ -32,7 +37,6 @@ class Toggle {
     this.unsubscribeStore = store.subscribe(
       ({ [this.id]: value }) => value,
       (value) => {
-        console.log(this.id, value)
         this.domElement.dataset.active = value
       },
       {
@@ -56,19 +60,14 @@ class Orchestra {
   constructor() {
     this.domElement = document.createElement('div')
 
-    // this.isDebug = false
     this.toggles = []
   }
 
   subscribe(callback) {
-    // if (!this.isDebug) {
     return store.subscribe(callback, { fireImmediately: true })
-    // }
   }
 
   add(id, content) {
-    // this.isDebug = true
-    // check if already exists
     if (this.toggles.find((toggle) => toggle.id === id)) return this
 
     const toggle = new Toggle(id, content)

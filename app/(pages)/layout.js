@@ -1,5 +1,7 @@
 import { Debug } from 'components/debug'
+import { GSAP } from 'components/gsap'
 import { RealViewport } from 'components/real-viewport'
+import { ThirdPartyScripts } from 'components/third-party-scripts'
 import 'styles/global.scss'
 import { fonts } from '../fonts'
 
@@ -16,6 +18,8 @@ export default async function Layout({ children }) {
         <RealViewport />
         {children}
         <Debug />
+        <GSAP />
+        <ThirdPartyScripts />
       </body>
     </html>
   )

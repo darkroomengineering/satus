@@ -19,7 +19,7 @@ export function GridDebugger({ gridClassName = 'layout-grid' }) {
   return (
     <div className={s.grid}>
       <div className={cn(gridClassName, s.debugger)}>
-        {new Array(columns).fill(0).map((_, key) => (
+        {Array.from({ length: columns }).map((_, key) => (
           <span key={key} />
         ))}
       </div>

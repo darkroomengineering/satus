@@ -1,13 +1,10 @@
 import studio from '@theatre/studio'
-import { useCurrentProject } from 'libs/theatre'
 import { useEffect } from 'react'
 import s from './studio.module.scss'
 
 let initialized = false
 
 export function Studio() {
-  const project = useCurrentProject()
-
   useEffect(() => {
     if (initialized) return
 
@@ -30,9 +27,7 @@ export function Studio() {
     <div className={s.studio}>
       <button
         onClick={() => {
-          // setVisible(!visible)
-
-          console.log(project)
+          const project = studio.getStudioProject()
           const id = project.address.projectId
           const json = studio.createContentOfSaveFile(id)
 

@@ -2,18 +2,24 @@ const colors = {
   black: '#000000',
   white: '#ffffff',
   green: '#00ff6a',
+  red: '#e30613',
 }
 
 const themes = {
   light: {
     primary: colors.white,
     secondary: colors.black,
-    contrast: colors.green,
+    contrast: colors.red,
   },
   dark: {
     primary: colors.black,
     secondary: colors.white,
-    contrast: colors.green,
+    contrast: colors.red,
+  },
+  red: {
+    primary: colors.red,
+    secondary: colors.black,
+    contrast: colors.white,
   },
 }
 

@@ -1,7 +1,6 @@
 'use client'
 
-import { useFrame } from '@studio-freight/hamo'
-import { createRafDriver, getProject, onChange } from '@theatre/core'
+import { getProject, onChange } from '@theatre/core'
 import {
   createContext,
   forwardRef,
@@ -14,45 +13,35 @@ import {
   useState,
 } from 'react'
 
-const RafDriverContext = createContext()
+const TheatreProjectContext = createContext()
 
-export function RafDriverProvider({ children, id = 'default' }) {
-  const [theatreRaf] = useState(() => createRafDriver({ name: id }))
-
-  useFrame((time) => {
-    theatreRaf.tick(time)
-  })
-
-  return (
-    <RafDriverContext.Provider value={theatreRaf}>
-      {children}
-    </RafDriverContext.Provider>
-  )
-}
-
-export function useCurrentRafDriver() {
-  return useContext(RafDriverContext)
-}
-
-const ProjectContext = createContext()
-
-export function ProjectProvider({ children, id, config }) {
+export function TheatreProjectProvider({ children, id, config }) {
   const [project, setproject] = useState()
   const isLoadingRef = useRef(false)
+
+  useEffect(() => {
+    if (project) {
+      console.log(`theatre project ${id} loaded`)
+    }
+  }, [project, id])
 
   useLayoutEffect(() => {
     if (config) {
       if (!isLoadingRef.current) {
+        console.log(`theatre project ${id} loading...`)
         isLoadingRef.current = true
         fetch(config)
           .then((response) => response.json())
           .then((state) => {
             const project = getProject(id, { state })
 
-            project.ready.then(() => {
-              console.log('project ready')
+            if (project.isReady) {
               setproject(project)
-            })
+            } else {
+              project.ready.then(() => {
+                setproject(project)
+              })
+            }
           })
       }
     } else {
@@ -65,14 +54,14 @@ export function ProjectProvider({ children, id, config }) {
   }, [config, id])
 
   return (
-    <ProjectContext.Provider value={project}>
-      <RafDriverProvider id="default">{children}</RafDriverProvider>
-    </ProjectContext.Provider>
+    <TheatreProjectContext.Provider value={project}>
+      {children}
+    </TheatreProjectContext.Provider>
   )
 }
 
 export function useCurrentProject() {
-  return useContext(ProjectContext)
+  return useContext(TheatreProjectContext)
 }
 
 export const SheetContext = createContext()

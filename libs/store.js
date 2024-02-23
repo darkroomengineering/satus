@@ -1,14 +1,6 @@
-import { shallow } from 'zustand/shallow'
-import { createWithEqualityFn } from 'zustand/traditional'
+import { create } from 'zustand'
 
-export const useStore = createWithEqualityFn(
-  (set) => ({
-    isNavOpened: false,
-    setIsNavOpened: (value) => set({ isNavOpened: value }),
-    hasPastPrefooter: false,
-    setHasPastPrefooter: (value) => set({ hasPastPrefooter: value }),
-    footerHeight: 0,
-    setFooterHeight: (value) => set({ footerHeight: value }),
-  }),
-  shallow,
-)
+export const useStore = create((set) => ({
+  isNavOpened: false,
+  setIsNavOpened: (value) => set({ isNavOpened: value }),
+}))

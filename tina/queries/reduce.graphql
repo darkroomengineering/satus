@@ -1,0 +1,47 @@
+query getHomeMetadata($relativePath: String!) {
+  home(relativePath: $relativePath) {
+    __typename
+    global {
+      __typename
+      ... on HomeGlobalMetadata {
+        title
+        description
+        keywords
+        openGraph: image
+        twitterHandle
+        theme {
+          __typename
+          mask
+          tile
+          color
+        }
+      }
+    }
+  }
+}
+
+query getTemplatesMetadata($filter: TemplatesFilter) {
+  templatesConnection(filter: $filter) {
+    edges {
+      cursor
+      node {
+        global {
+          __typename
+          ... on TemplatesGlobalMetadata {
+            title
+            description
+            keywords
+            openGraph: image
+            twitterHandle
+            theme {
+              __typename
+              mask
+              tile
+              color
+            }
+          }
+        }
+      }
+    }
+  }
+}

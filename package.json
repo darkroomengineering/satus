@@ -5,8 +5,11 @@
   "license": "MIT",
   "scripts": {
     "dev": "next dev",
+    "with-tina-dev": "tinacms dev -c \"next dev\"",
     "build": "next build",
+    "with-tina-build": "tinacms build && next build",
     "start": "next start",
+    "with-tina-devstart": "tinacms build && next start",
     "lint": "next lint",
     "postbuild": "next-sitemap",
     "analyze": "cross-env ANALYZE=true next build",
@@ -14,6 +17,7 @@
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.2",
+    "@radix-ui/react-select": "^2.0.0",
     "@react-three/drei": "^9.97.6",
     "@react-three/fiber": "^8.15.16",
     "@studio-freight/hamo": "0.6.28",
@@ -21,6 +25,8 @@
     "@studio-freight/tempus": "^0.0.42",
     "@theatre/core": "^0.7.0",
     "@theatre/studio": "^0.7.0",
+    "@tinacms/auth": "^1.0.4",
+    "@tinacms/cli": "^1.5.39",
     "clsx": "^2.1.0",
     "gsap": "npm:@gsap/business@^3.12.4",
     "next": "14.1.0",
@@ -28,9 +34,11 @@
     "postprocessing": "^6.34.3",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-use": "^17.5.0",
     "sass": "^1.70.0",
     "stats.js": "^0.17.0",
     "three": "^0.161.0",
+    "tinacms": "^1.5.28",
     "zustand": "4.5.0"
   },
   "devDependencies": {

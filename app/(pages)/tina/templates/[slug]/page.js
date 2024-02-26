@@ -7,6 +7,7 @@ import { client } from 'tina/__generated__/client'
 import { TinaProvider } from 'tina/tina-provider'
 import { Hero } from '../../(components)/hero'
 import { Section } from '../../(components)/section'
+import s from '../../tina.module.scss'
 
 const pageId = 'templatesConnection'
 const indexable = false //TODO: change when going live
@@ -21,7 +22,7 @@ export default async function Templates({ params }) {
   if (isEmptyArray(pageData.data[pageId].edges)) return notFound()
 
   return (
-    <Wrapper theme="light">
+    <Wrapper theme="red" className={s.page}>
       <TinaProvider serverData={pageData} pageId={pageId}>
         <Hero />
         <Section />

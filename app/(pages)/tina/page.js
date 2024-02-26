@@ -3,6 +3,7 @@ import { TinaProvider } from 'tina/tina-provider'
 import { Wrapper } from '../wrapper'
 import { Hero } from './(components)/hero'
 import { Section } from './(components)/section'
+import s from './tina.module.scss'
 
 const pageId = 'home'
 const indexable = false //TODO: change when going live
@@ -15,7 +16,7 @@ export default async function TinaHome() {
   ])
 
   return (
-    <Wrapper theme="light">
+    <Wrapper theme="red" className={s.page}>
       <TinaProvider serverData={pageData} pageId={pageId}>
         <Hero />
         <Section />

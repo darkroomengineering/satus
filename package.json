@@ -21,7 +21,7 @@
     "@theatre/core": "^0.7.0",
     "@theatre/studio": "^0.7.0",
     "clsx": "^2.1.0",
-    "gsap": "npm:@gsap/business@^3.12.4",
+    "gsap": "^3.12.5",
     "jsonminify": "^0.4.2",
     "next": "14.0.4",
     "next-sitemap": "^4.2.3",

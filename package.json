@@ -25,7 +25,7 @@
     "@tinacms/auth": "^1.0.4",
     "@tinacms/cli": "^1.5.39",
     "clsx": "^2.1.0",
-    "gsap": "npm:@gsap/business@^3.12.4",
+    "gsap": "^3.12.5",
     "next": "14.1.0",
     "next-sitemap": "^4.2.3",
     "postprocessing": "^6.34.3",

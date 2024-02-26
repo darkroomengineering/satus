@@ -36,5 +36,3 @@ yarn-error.log*
 .vercel
 
 .eslintcache
-
-.npmrc

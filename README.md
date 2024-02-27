@@ -1,4 +1,4 @@
-[![SATUS](https://assets.studiofreight.com/satus/header.png)](https://github.com/studio-freight/satus)
+[![SATUS](https://assets.studiofreight.com/satus/header.png)](https://github.com/darkroomengineering/satus)
 
 ## Introduction
 
@@ -11,11 +11,11 @@ Satūs means start, beginning, planting, it's a set of tools we use as a templat
 This starter kit is composed of:
 
 - [Next.js](https://nextjs.org)
-- [Lenis](https://github.com/studio-freight/lenis)
+- [Lenis](https://github.com/darkroomengineering/lenis)
 - [Theatre.js](https://www.theatrejs.com/)
 - [GSAP](https://greensock.com/gsap/)
-- [Hamo](https://github.com/studio-freight/hamo)
-- [Compono](https://github.com/studio-freight/compono)
+- [Hamo](https://github.com/darkroomengineering/hamo)
+- [Compono](https://github.com/darkroomengineering/compono)
 
 <br/>
 
@@ -47,12 +47,12 @@ example: `https://satus.studiofreight.com/_debug/orchestra`
 
 ## Flavors
 
-- [Light](https://github.com/studio-freight/satus) (you're here)
-- [With Shopify](https://github.com/studio-freight/satus/tree/with-shopify)
-- [With Tina-cms](https://github.com/studio-freight/satus/tree/with-tina-cms)
-- [With Storyblok](https://github.com/studio-freight/satus/tree/with-storyblok)
-- [With react-three-fiber](https://github.com/studio-freight/satus/tree/with-r3f)
-- [With OGL](https://github.com/studio-freight/satus/tree/with-ogl)
+- [Light](https://github.com/darkroomengineering/satus) (you're here)
+- [With Shopify](https://github.com/darkroomengineering/satus/tree/with-shopify)
+- [With Tina-cms](https://github.com/darkroomengineering/satus/tree/with-tina-cms)
+- [With Storyblok](https://github.com/darkroomengineering/satus/tree/with-storyblok)
+- [With react-three-fiber](https://github.com/darkroomengineering/satus/tree/with-r3f)
+- [With OGL](https://github.com/darkroomengineering/satus/tree/with-ogl)
 
 <br/>
 

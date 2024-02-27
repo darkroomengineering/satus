@@ -20,9 +20,9 @@ The usual process for Next.js based apps/websites:
 
 ## Stack
 
-- [Lenis](https://github.com/studio-freight/lenis)
-- [Tempus](https://github.com/studio-freight/tempus)
-- [Hamo](https://github.com/studio-freight/hamo)
+- [Lenis](https://github.com/darkroomengineering/lenis)
+- [Tempus](https://github.com/darkroomengineering/tempus)
+- [Hamo](https://github.com/darkroomengineering/hamo)
 - [PNPM](https://pnpm.io/)
 - [Next.js](https://nextjs.org/)
 - [Three.js](https://threejs.org/)

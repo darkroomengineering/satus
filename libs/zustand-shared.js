@@ -1,4 +1,4 @@
-export function broadcast(store, id = 'zustand-broadcast') {
+export function shared(store, id = 'zustand-broadcast') {
   if ('BroadcastChannel' in globalThis) {
     let justReceived = false
     const channel = new BroadcastChannel(id)
@@ -15,4 +15,6 @@ export function broadcast(store, id = 'zustand-broadcast') {
       }
     })
   }
+
+  return store
 }

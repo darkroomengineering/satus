@@ -21,7 +21,7 @@ export function Studio() {
 
       initialized = true
     }
-  }, [studio, rafDriver])
+  }, [rafDriver])
 
   useEffect(() => {
     studio.ui.restore()
@@ -32,33 +32,31 @@ export function Studio() {
   }, [])
 
   return (
-    <>
-      <div className={s.studio}>
-        <button
-          onClick={() => {
-            // setVisible(!visible)
-            const id = project.address.projectId
-            const json = studio.createContentOfSaveFile(id)
-            const file = new File(
-              [jsonminify(JSON.stringify(json, null, 2))],
-              'config.json',
-              {
-                type: 'application/json',
-              },
-            )
-            const url = URL.createObjectURL(file)
-            const a = document.createElement('a')
-            a.href = url
-            // create title using id and date up to seconds
-            const title = `${id}-${new Date().toISOString().slice(0, 19)}`
-            a.download = title
-            a.click()
-          }}
-          className={s.save}
-        >
-          💾
-        </button>
-      </div>
-    </>
+    <div className={s.studio}>
+      <button
+        onClick={() => {
+          // setVisible(!visible)
+          const id = project.address.projectId
+          const json = studio.createContentOfSaveFile(id)
+          const file = new File(
+            [jsonminify(JSON.stringify(json, null, 2))],
+            'config.json',
+            {
+              type: 'application/json',
+            },
+          )
+          const url = URL.createObjectURL(file)
+          const a = document.createElement('a')
+          a.href = url
+          // create title using id and date up to seconds
+          const title = `${id}-${new Date().toISOString().slice(0, 19)}`
+          a.download = title
+          a.click()
+        }}
+        className={s.save}
+      >
+        💾
+      </button>
+    </div>
   )
 }

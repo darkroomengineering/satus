@@ -1,4 +1,4 @@
-import { useOrchestra } from 'libs/orchestra'
+import { useOrchestra } from 'libs/orchestra/react'
 import { useEffect, useState } from 'react'
 
 let studioPackage
@@ -41,7 +41,7 @@ export function useStudioCurrentObject() {
 
       return unsubscribe
     }
-  }, [studio, channel])
+  }, [studio])
 
   return currentObjectAddress
 }

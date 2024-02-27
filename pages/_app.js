@@ -5,7 +5,7 @@ import { DeviceDetectionProvider } from 'components/device-detection'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger'
 import { GTM_ID } from 'libs/analytics'
-import { Orchestra } from 'libs/orchestra'
+import { useOrchestra } from 'libs/orchestra/react'
 import { useStore } from 'libs/store'
 import { ProjectProvider, RafDriverProvider } from 'libs/theatre'
 import dynamic from 'next/dynamic'
@@ -37,7 +37,7 @@ if (typeof window !== 'undefined') {
 
   gsap.defaults({ ease: 'none' })
   gsap.registerPlugin(ScrollTrigger)
-  ScrollTrigger.clearScrollMemory('manual')
+  ScrollTrigger.clearScrollMemory(window.history.scrollRestoration)
   ScrollTrigger.defaults({ markers: process.env.NODE_ENV === 'development' })
 
   // merge rafs
@@ -50,7 +50,7 @@ if (typeof window !== 'undefined') {
 
 function MyApp({ Component, pageProps }) {
   const lenis = useLenis(ScrollTrigger.update)
-  useEffect(ScrollTrigger.refresh, [lenis])
+  useEffect(() => ScrollTrigger.refresh(), [lenis])
 
   const isNavOpened = useStore(({ isNavOpened }) => isNavOpened)
 
@@ -61,6 +61,8 @@ function MyApp({ Component, pageProps }) {
       lenis?.start()
     }
   }, [lenis, isNavOpened])
+
+  const { stats, grid, studio, dev } = useOrchestra()
 
   return (
     <>
@@ -86,28 +88,19 @@ function MyApp({ Component, pageProps }) {
       )}
       <RealViewport />
       <DeviceDetectionProvider>
-        <Orchestra>
-          {(
-            { studio, grid, stats, dev }, // check _debug/orchestra page to match ids
-          ) => (
-            <ProjectProvider
-              id="Satus"
-              config="/config/Satus-2023-04-17T12_55_21.json"
-            >
-              <RafDriverProvider id="default">
-                <Component {...pageProps} />
-                {studio && <Studio />}
-                {stats && <Stats />}
-                {grid && <GridDebugger />}
-                {typeof document !== 'undefined' &&
-                  document.documentElement.classList.toggle(
-                    'dev',
-                    Boolean(dev),
-                  )}
-              </RafDriverProvider>
-            </ProjectProvider>
-          )}
-        </Orchestra>
+        <ProjectProvider
+          id="Satus"
+          config="/config/Satus-2023-04-17T12_55_21.json"
+        >
+          <RafDriverProvider id="default">
+            <Component {...pageProps} />
+            {studio && <Studio />}
+            {stats && <Stats />}
+            {grid && <GridDebugger />}
+            {typeof document !== 'undefined' &&
+              document.documentElement.classList.toggle('dev', Boolean(dev))}
+          </RafDriverProvider>
+        </ProjectProvider>
       </DeviceDetectionProvider>
     </>
   )

@@ -1,5 +1,5 @@
-import { Image as NextImage } from '@studio-freight/compono'
 import { useRect } from '@studio-freight/hamo'
+import { Image as NextImage } from 'components/image'
 import { useDeviceDetection } from 'hooks/use-device-detection'
 import dynamic from 'next/dynamic'
 import { useState } from 'react'

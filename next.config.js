@@ -43,7 +43,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'assets.studiofreight.com',
+        hostname: 'assets.darkroom.engineering',
       },
     ],
     formats: ['image/avif', 'image/webp'],

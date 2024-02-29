@@ -5,7 +5,7 @@ import gsap from 'gsap'
 import { useLayoutEffect } from 'react'
 import { ScrollTriggerConfig } from './scroll-trigger'
 
-export function GSAP() {
+export function GSAP({ scrollTrigger = false }) {
   useLayoutEffect(() => {
     gsap.defaults({ ease: 'none' })
 
@@ -17,5 +17,5 @@ export function GSAP() {
     }, 0)
   }, [])
 
-  return <ScrollTriggerConfig />
+  return scrollTrigger && <ScrollTriggerConfig />
 }

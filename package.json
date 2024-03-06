@@ -57,10 +57,10 @@
       "react": "18.2.0",
       "react-dom": "18.2.0",
       "scheduler": "0.23.0",
-      "@studio-freight/lenis": "1.0.35",
+      "@studio-freight/lenis": "1.0.39",
       "@studio-freight/tempus": "0.0.44",
       "@studio-freight/hamo": "0.6.28",
-      "@studio-freight/react-lenis": "0.0.44"
+      "@studio-freight/react-lenis": "0.0.46-dev.1"
     }
   },
   "lint-staged": {

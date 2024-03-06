@@ -4,10 +4,10 @@ overrides:
   react: 18.2.0
   react-dom: 18.2.0
   scheduler: 0.23.0
-  '@studio-freight/lenis': 1.0.35
+  '@studio-freight/lenis': 1.0.39
   '@studio-freight/tempus': 0.0.44
   '@studio-freight/hamo': 0.6.28
-  '@studio-freight/react-lenis': 0.0.44
+  '@studio-freight/react-lenis': 0.0.46-dev.1
 
 specifiers:
   '@builder.io/partytown': ^0.9.2
@@ -18,7 +18,7 @@ specifiers:
   '@react-three/drei': ^9.97.6
   '@react-three/fiber': ^8.15.16
   '@studio-freight/hamo': 0.6.28
-  '@studio-freight/react-lenis': 0.0.44
+  '@studio-freight/react-lenis': 0.0.46-dev.1
   '@studio-freight/tempus': 0.0.44
   '@svgr/webpack': ^8.1.0
   '@theatre/core': ^0.7.0
@@ -53,7 +53,7 @@ dependencies:
   '@react-three/drei': 9.99.4_jtv7ceuwvz4rmcrw6tyuagb7xu
   '@react-three/fiber': 8.15.16_bdqwexnqc4b34ge3xqqvazaqhu
   '@studio-freight/hamo': 0.6.28_biqbaboplfbrettd7655fr4n2y
-  '@studio-freight/react-lenis': 0.0.44_biqbaboplfbrettd7655fr4n2y
+  '@studio-freight/react-lenis': 0.0.46-dev.1_biqbaboplfbrettd7655fr4n2y
   '@studio-freight/tempus': 0.0.44
   '@theatre/core': 0.7.0
   '@theatre/studio': 0.7.0_@theatre+core@0.7.0
@@ -2087,7 +2087,7 @@ packages:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
     dependencies:
       graphql: 15.8.0
-      tslib: 2.4.1
+      tslib: 2.6.2
     dev: false
 
   /@graphql-tools/optimize/2.0.0_graphql@15.8.0:
@@ -2108,7 +2108,7 @@ packages:
       '@ardatan/relay-compiler': 12.0.0_graphql@15.8.0
       '@graphql-tools/utils': 9.2.1_graphql@15.8.0
       graphql: 15.8.0
-      tslib: 2.4.1
+      tslib: 2.6.2
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -2160,7 +2160,7 @@ packages:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
     dependencies:
       graphql: 15.8.0
-      tslib: 2.4.1
+      tslib: 2.6.2
     dev: false
 
   /@graphql-tools/utils/9.2.1_graphql@15.8.0:
@@ -3506,18 +3506,18 @@ packages:
       - immer
     dev: false
 
-  /@studio-freight/lenis/1.0.35:
-    resolution: {integrity: sha512-dduQqZERC5EaJSVGBoCt2WdPFQlr39zFewkQxvJcYZrMl1aVTPPIQCnZMqIjl4KZBQIL3kIXes+HP22T9XVh4w==}
+  /@studio-freight/lenis/1.0.39:
+    resolution: {integrity: sha512-63LPZD087kFSiNS3lF6Uve8fFeshQwNCXrl7DUocoeUYiElVTzr9a+dLodNBa0Yn5NZ4umAoQQ6LOosB5I6AAQ==}
     dev: false
 
-  /@studio-freight/react-lenis/0.0.44_biqbaboplfbrettd7655fr4n2y:
-    resolution: {integrity: sha512-SUEgsRGXUWftXkW8Zzw83TiJVrKk5gEdF/Wj5H7H09MIhczV0M9CyY8efK1UoHaSo0QjhqrjgUscddwooMGC9g==}
+  /@studio-freight/react-lenis/0.0.46-dev.1_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-RwJv1ZOrWCvuSgjbowvMaI1fDOeO9xrqqmKfOGcURQ9aG7KzUYSLLRZlZVgnozW2aQj0vV0OMTCD9pHDagd1Mw==}
     peerDependencies:
       react: ^18.0.0
       react-dom: ^18.0.0
     dependencies:
       '@studio-freight/hamo': 0.6.28_biqbaboplfbrettd7655fr4n2y
-      '@studio-freight/lenis': 1.0.35
+      '@studio-freight/lenis': 1.0.39
       clsx: 2.1.0
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0

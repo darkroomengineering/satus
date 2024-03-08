@@ -21,10 +21,10 @@ jobs:
           # find project id here: https://vercel.com/studio-freight/satus/settings
           vercel_team_id: 'studio-freight'
           vercel_project_id: ${{ secrets.VERCEL_PROJECT_ID }}
-      - uses: actions/checkout@v3.5.2
+      - uses: actions/checkout@v4.1.1
       - name: Audit preview URL with Lighthouse
         id: lighthouse_audit
-        uses: treosh/lighthouse-ci-action@v9
+        uses: treosh/lighthouse-ci-action@v11
         with:
           urls: |
             "https://${{ steps.vercel_preview_url.outputs.preview_url }}"
@@ -54,7 +54,7 @@ jobs:
             ].join('\n')
              core.setOutput("comment", comment);
       - name: Create commit comment
-        uses: peter-evans/commit-comment@v2
+        uses: peter-evans/commit-comment@v3
         with:
           body: |
             "${{ steps.format_lighthouse_score.outputs.comment }}"

@@ -11,6 +11,7 @@ export function useWebGLRect(rect, onUpdate) {
     position: new Vector3(0, 0, 0),
     rotation: new Euler(0, 0, 0),
     scale: new Vector3(1, 1, 1),
+    isVisible: true,
   })
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -21,14 +22,17 @@ export function useWebGLRect(rect, onUpdate) {
   const update = useCallback(() => {
     const { translate, scale } = getTransform()
 
+    const scroll = Math.floor(lenis?.scroll || 0)
+
     const transform = transformRef.current
+
+    transform.isVisible =
+      scroll > rect.top - size.height + translate.y &&
+      scroll < rect.top + translate.y + rect.height
 
     transform.position.x = -size.width / 2 + (rect.left + rect.width / 2)
     transform.position.y =
-      size.height / 2 -
-      (rect.top + rect.height / 2) +
-      Math.floor(lenis.scroll) -
-      translate.y
+      size.height / 2 - (rect.top + rect.height / 2) + scroll - translate.y
     transform.scale.x = rect.width * scale.x
     transform.scale.y = rect.height * scale.y
 

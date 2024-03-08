@@ -7,16 +7,16 @@ import s from './wrapper.module.scss'
 export function Wrapper({
   children,
   theme = 'light',
+  lenis = true,
   lenisOptions = {},
   webgl = false,
   className,
 }) {
   return (
     <>
-      <Lenis root options={lenisOptions} />
+      {lenis && <Lenis root options={lenisOptions} />}
       {webgl && <Canvas root />}
       <div className={cn(s.wrapper, `theme-${theme}`, className)}>
-        {/* <Header /> */}
         <main role="main" className={s.main}>
           {children}
         </main>

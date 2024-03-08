@@ -13,7 +13,10 @@ export function useTexture(src, callback) {
   const textureRefs = useRef([])
 
   useEffect(() => {
-    if (!src) return
+    if (!src) {
+      setTexture(undefined)
+      return
+    }
 
     const srcs = [src].flat()
 

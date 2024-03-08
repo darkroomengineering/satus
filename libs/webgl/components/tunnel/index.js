@@ -1,3 +1,5 @@
+'use client'
+
 import { useContextBridge } from '@react-three/drei'
 import { TransformContext } from 'hooks/use-transform'
 import { useCanvas } from 'libs/webgl/components/canvas'
@@ -9,6 +11,8 @@ export function WebGLTunnel({ children }) {
   const ContextBridge = useContextBridge(TransformContext)
 
   const uuid = useId()
+
+  if (!WebGLTunnel) return
 
   return (
     <WebGLTunnel.In>

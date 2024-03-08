@@ -11,18 +11,13 @@ Satūs means start, beginning, planting, it's a set of tools we use as a templat
 This starter kit is composed of:
 
 - [Next.js](https://nextjs.org)
+- [react-three-fiber](https://github.com/pmndrs/react-three-fiber)
 - [Lenis](https://github.com/darkroomengineering/lenis)
 - [Theatre.js](https://www.theatrejs.com/)
 - [GSAP](https://greensock.com/gsap/)
 - [Hamo](https://github.com/darkroomengineering/hamo)
-- [Compono](https://github.com/darkroomengineering/compono)
-
-<br/>
-
-## Features
-
-This starter kit is composed of:
-
+- [Tina CMS](https://tina.io/)
+- Shopify
 - SVG import through [@svgr/webpack](https://www.npmjs.com/package/@svgr/webpack)
 - Sass architecture and tooling:
   - Config file

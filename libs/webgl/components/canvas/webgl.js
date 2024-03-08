@@ -1,18 +1,18 @@
 import { OrthographicCamera } from '@react-three/drei'
-import { Canvas, useThree } from '@react-three/fiber'
+import { Canvas } from '@react-three/fiber'
 import { SheetProvider } from 'libs/theatre'
 import { Preload } from '../preload'
 import { RAF } from '../raf'
 import { useCanvas } from './'
 import s from './webgl.module.scss'
 
-function StateListener({ onChange }) {
-  const state = useThree()
+// function StateListener({ onChange }) {
+//   const state = useThree()
 
-  onChange?.(state)
-}
+//   onChange?.(state)
+// }
 
-export function WebGLCanvas({ render = true, onChange, _ref }) {
+export function WebGLCanvas({ render = true, _ref }) {
   const { WebGLTunnel, DOMTunnel } = useCanvas()
 
   return (
@@ -35,8 +35,9 @@ export function WebGLCanvas({ render = true, onChange, _ref }) {
         eventSource={document.documentElement}
         eventPrefix="client"
         ref={_ref}
+        // onCreated={onCreated}
       >
-        <StateListener onChange={onChange} />
+        {/* <StateListener onChange={onChange} /> */}
         <SheetProvider id="webgl">
           <OrthographicCamera
             makeDefault

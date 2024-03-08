@@ -41,18 +41,9 @@ This starter kit is composed of:
 
 ## Debug
 
-To toggle debug modes you need to access the page `/_debug/orchestra`.
+To toggle debug modes you need to access the page `/debug/orchestra`.
 
-example: `https://satus.studiofreight.com/_debug/orchestra`
-
-## Flavors
-
-- [Light](https://github.com/darkroomengineering/satus) (you're here)
-- [With Shopify](https://github.com/darkroomengineering/satus/tree/with-shopify)
-- [With Tina-cms](https://github.com/darkroomengineering/satus/tree/with-tina-cms)
-- [With Storyblok](https://github.com/darkroomengineering/satus/tree/with-storyblok)
-- [With react-three-fiber](https://github.com/darkroomengineering/satus/tree/with-r3f)
-- [With OGL](https://github.com/darkroomengineering/satus/tree/with-ogl)
+example: `https://satus.darkroom.engineering/debug/orchestra`
 
 <br/>
 

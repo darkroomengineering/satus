@@ -1,5 +1,5 @@
-import { Link } from '@studio-freight/compono'
 import cn from 'clsx'
+import { Link } from 'components/link'
 import s from './footer.module.scss'
 
 export function Footer() {

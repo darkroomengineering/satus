@@ -1,0 +1,12 @@
+.webgl {
+  position: fixed;
+  inset: 0;
+  max-height: 100vh;
+  max-width: 100vw;
+  pointer-events: none;
+
+  canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+}

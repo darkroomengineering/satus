@@ -5,18 +5,15 @@ export function useOrchestra() {
   const [state, setState] = useState({})
 
   useEffect(() => {
-    setState(Orchestra.state)
-    Orchestra.subscribe((state) => {
-      setState(state)
-    })
+    const usubscribe = Orchestra.subscribe(setState)
+
+    return usubscribe
   }, [])
 
   return state
 }
 
-export function OrchestraToggle({ id, children }) {
-  if (Orchestra) Orchestra.isDebug = true
-
+export function OrchestraToggle({ id, children, ...props }) {
   const elementRef = useRef()
 
   useEffect(() => {
@@ -30,5 +27,5 @@ export function OrchestraToggle({ id, children }) {
     }
   }, [id, children])
 
-  return <span ref={elementRef} />
+  return <div ref={elementRef} {...props} />
 }

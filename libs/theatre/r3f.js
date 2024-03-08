@@ -45,7 +45,7 @@ export function Group({
       groupRef.current.scale.set(scale.x, scale.y, scale.z)
 
       groupRef.current.updateMatrix()
-    }
+    },
   )
 
   return (

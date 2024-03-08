@@ -1,17 +1,29 @@
-import { shared } from 'libs/zustand-shared'
 // import { create } from 'zustand'
-import { createJSONStorage, persist } from 'zustand/middleware'
+import {
+  createJSONStorage,
+  persist,
+  subscribeWithSelector,
+} from 'zustand/middleware'
 import { createStore } from 'zustand/vanilla'
 
-const ID = 'orchestra'
+const storageKey = 'orchestra'
 let store = createStore(
-  persist(() => ({}), {
-    name: ID,
-    storage: createJSONStorage(() => localStorage),
-  }),
+  persist(
+    subscribeWithSelector(() => ({})),
+    {
+      name: storageKey,
+      storage: createJSONStorage(() => localStorage),
+    },
+  ),
 )
 
-store = shared(store, ID)
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key === storageKey) {
+      store.persist.rehydrate()
+    }
+  })
+}
 
 class Toggle {
   constructor(id, content) {
@@ -22,14 +34,24 @@ class Toggle {
     this.domElement.title = id
     this.domElement.style.fontSize = '64px'
     this.domElement.addEventListener('click', this.onToggle, false)
+    this.unsubscribeStore = store.subscribe(
+      ({ [this.id]: value }) => value,
+      (value) => {
+        this.domElement.dataset.active = value
+      },
+      {
+        fireImmediately: true,
+      },
+    )
   }
 
   onToggle = () => {
-    store.setState((state) => ({ ...state, [this.id]: !state[this.id] }))
+    store.setState((state) => ({ [this.id]: !state[this.id] }))
   }
 
   destroy() {
     this.domElement.removeEventListener('click', this.onToggle, false)
+    this.unsubscribeStore()
     this.domElement.remove()
   }
 }
@@ -38,20 +60,14 @@ class Orchestra {
   constructor() {
     this.domElement = document.createElement('div')
 
-    this.isDebug = false
     this.toggles = []
   }
 
-  get state() {
-    return !this.isDebug && store.getState()
-  }
-
   subscribe(callback) {
-    if (!this.isDebug) store.subscribe(callback)
+    return store.subscribe(callback, { fireImmediately: true })
   }
 
   add(id, content) {
-    // check if already exists
     if (this.toggles.find((toggle) => toggle.id === id)) return this
 
     const toggle = new Toggle(id, content)
@@ -76,8 +92,7 @@ const isClient = typeof window !== 'undefined'
 export default isClient && new Orchestra()
 
 // To be added to debug page
-// Orchestra.isDebug = true
-// Orchestra.add('studio', '⚙️')
+// Orchestra.add('studio', '⚙️').add('stats', '📈').add('grid', '🌐').add('dev', '🚧')
 // Orchestra.add('stats', '📈')
 // Orchestra.add('grid', '🌐')
 // Orchestra.add('dev', '🚧')

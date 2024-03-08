@@ -16,5 +16,5 @@ function truncate(value, decimals) {
 
 const Maths = { lerp, clamp, mapRange, truncate }
 
-export { lerp, clamp, mapRange, truncate }
+export { clamp, lerp, mapRange, truncate }
 export default Maths

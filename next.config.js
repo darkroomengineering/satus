@@ -16,7 +16,7 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 })
 const path = require('path')
 const sassUtils = require(__dirname + '/libs/sass-utils')
-const sassVars = require(__dirname + '/config/variables.js')
+const sassVars = require(__dirname + '/styles/config.js')
 
 const nextConfig = {
   reactStrictMode: true,
@@ -35,7 +35,15 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'assets.studiofreight.com',
+        hostname: 'cdn.shopify.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'assets.tina.io',
+      },
+      {
+        protocol: 'https',
+        hostname: 'assets.darkroom.engineering',
       },
     ],
     formats: ['image/avif', 'image/webp'],

@@ -26,15 +26,3 @@
     display: none;
   }
 }
-
-html:not(.has-scroll-smooth) {
-  .hide-on-native-scroll {
-    display: none;
-  }
-}
-
-html.has-scroll-smooth {
-  .hide-on-smooth-scroll {
-    display: none;
-  }
-}

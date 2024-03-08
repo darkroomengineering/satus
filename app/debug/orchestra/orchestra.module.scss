@@ -1,0 +1,30 @@
+.buttons {
+  display: flex;
+  position: fixed;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.button {
+  margin-right: 16px;
+  display: inline-block;
+
+  button {
+    border: 1px solid #000;
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 0;
+    width: 96px;
+    height: 96px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &[data-active='true'] {
+      border-color: transparent;
+      box-shadow: 0px 0px 5px green;
+      border: 1px solid green;
+    }
+  }
+}

@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://satus.darkroom.engineering
+
+# Sitemaps
+Sitemap: https://satus.darkroom.engineering/sitemap.xml

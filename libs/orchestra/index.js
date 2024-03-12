@@ -7,7 +7,7 @@ import {
 import { createStore } from 'zustand/vanilla'
 
 const storageKey = 'orchestra'
-let store = createStore(
+const store = createStore(
   persist(
     subscribeWithSelector(() => ({})),
     {

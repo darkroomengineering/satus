@@ -12,7 +12,7 @@ export const metadata = {
 
 export default async function Layout({ children }) {
   return (
-    <html lang="en" className={fonts.className}>
+    <html lang="en" className={fonts?.className}>
       <head></head>
       <body>
         <RealViewport />

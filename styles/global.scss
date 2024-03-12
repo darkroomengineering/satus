@@ -9,6 +9,11 @@
 @import './_scroll.scss';
 
 :root {
+  --font-replica: 'Replica-Bold';
+  --font-replica-mono: 'Replica-Mono';
+}
+
+:root {
   --header-height: #{mobile-vw(58px)};
 
   @include desktop {

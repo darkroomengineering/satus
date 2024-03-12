@@ -8,6 +8,7 @@ overrides:
   react: 18.2.0
   react-dom: 18.2.0
   scheduler: 0.23.0
+  '@studio-freight/tempus': 0.0.44
   '@studio-freight/react-lenis': 0.0.46-dev.1
 
 dependencies:
@@ -30,7 +31,7 @@ dependencies:
     specifier: 0.0.46-dev.1
     version: 0.0.46-dev.1(react-dom@18.2.0)(react@18.2.0)
   '@studio-freight/tempus':
-    specifier: ^0.0.44
+    specifier: 0.0.44
     version: 0.0.44
   '@theatre/core':
     specifier: ^0.7.0
@@ -3547,7 +3548,7 @@ packages:
       react: 18.2.0
       react-dom: 18.2.0
     dependencies:
-      '@studio-freight/tempus': 0.0.38
+      '@studio-freight/tempus': 0.0.44
       just-debounce-it: 3.2.0
       nanoevents: 9.0.0
       react: 18.2.0
@@ -3577,10 +3578,6 @@ packages:
     transitivePeerDependencies:
       - '@types/react'
       - immer
-    dev: false
-
-  /@studio-freight/tempus@0.0.38:
-    resolution: {integrity: sha512-AO1O2fEmfUqWGjEofmPNMQRlwgZ96eB5OFsVJjeH8/RKd1/Yf4zbPnXO+r2TD4aueA6X9JRCJU2GUprI9+m8uQ==}
     dev: false
 
   /@studio-freight/tempus@0.0.44:

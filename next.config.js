@@ -186,12 +186,11 @@ const nextConfig = {
       },
     ]
   },
-  async redirects() {
+  async rewrites() {
     return [
       {
-        source: '/home',
-        destination: '/',
-        permanent: true,
+        source: '/',
+        destination: '/home',
       },
     ]
   },

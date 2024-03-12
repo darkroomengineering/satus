@@ -1,0 +1,24 @@
+.nav {
+  display: flex;
+  flex-direction: column;
+
+  .title {
+    display: inline-flex;
+  }
+
+  .list {
+    padding-left: 24px;
+
+    .link {
+      position: relative;
+    }
+
+    .active {
+      &::before {
+        content: '■';
+        position: absolute;
+        left: -16px;
+      }
+    }
+  }
+}

@@ -7,7 +7,6 @@ export default function Home() {
   return (
     <TheatreProjectProvider id="Satus-Home" config="/config/Satus-Home.json">
       <Wrapper theme="red" className={s.page} webgl={true}>
-        <h1>satus/r3f</h1>
         <Box />
       </Wrapper>
     </TheatreProjectProvider>

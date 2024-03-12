@@ -1,29 +1,19 @@
 // https://nextjs.org/docs/pages/building-your-application/optimizing/fonts#local-fonts
 
-// const replica = localFont({
-//   src: [
-//     {
-//       path: './fonts/Replica/ReplicaLLWeb-Bold.woff2',
-//       weight: '700',
-//       style: 'normal',
-//     },
-//   ],
-//   display: 'swap',
-//   variable: '--font-replica',
-//   preload: true,
-// })
+import cn from 'clsx'
+import localFont from 'next/font/local'
 
-// const replicaMono = localFont({
-//   src: [
-//     {
-//       path: './fonts/Replica/ReplicaMonoLLWeb-Regular.woff2',
-//       weight: '400',
-//       style: 'normal',
-//     },
-//   ],
-//   display: 'swap',
-//   variable: '--font-replica-mono',
-//   preload: true,
-// })
+const ibmPlexMono = localFont({
+  src: [
+    {
+      path: './fonts/IBM_Plex_Mono/IBMPlexMono-Medium.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+  ],
+  display: 'swap',
+  variable: '--font-ibm-plex-mono',
+  preload: true,
+})
 
-// export const fonts = { className: cn(replica.variable, replicaMono.variable) }
+export const fonts = { className: cn(ibmPlexMono.variable) }

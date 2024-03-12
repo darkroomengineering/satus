@@ -36,9 +36,6 @@ yarn-error.log*
 .vercel
 
 .eslintcache
-<<<<<<< HEAD
-=======
 
+.env*.local
 .npmrc
-
->>>>>>> 14900413fe56a13c12dee37790c5acc49880e9f4

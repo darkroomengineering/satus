@@ -38,27 +38,4 @@ const viewports = {
   },
 }
 
-// function getCSSColors() {
-//   return Object.entries(colors).reduce(
-//     (acc, [key, value]) => acc + `--${key}: ${value};`,
-//     '',
-//   )
-// }
-
-// function getCSSThemes() {
-//   return Object.entries(themes).reduce(
-//     (acc, [key, colors]) =>
-//       acc +
-//       `.theme-${key}:{${Object.entries(colors).reduce(
-//         (acc, [key, value]) => acc + `--${key}: ${value};`,
-//         '',
-//       )}}`,
-//     '',
-//   )
-// }
-
-// export function getStyle() {
-//   return `:root{${getCSSColors()}}${getCSSThemes()}`
-// }
-
 module.exports = { breakpoints, colors, themes, viewports }

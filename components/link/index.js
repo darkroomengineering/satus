@@ -1,10 +1,11 @@
 'use client'
 
+import { useLenis } from 'components/lenis'
 import NextLink from 'next/link'
 import { forwardRef } from 'react'
 
 export const Link = forwardRef(function Link(
-  { href, fallback = 'div', ...props },
+  { href, fallback = 'div', onClick, ...props },
   ref,
 ) {
   if (typeof href !== 'string') {
@@ -13,10 +14,29 @@ export const Link = forwardRef(function Link(
     return <Tag ref={ref} {...props} href={href} />
   }
 
-  if (href.startsWith('http')) {
+  const isExternal = href.startsWith('http')
+
+  if (isExternal) {
     props.target = '_blank'
     props.rel = 'noopener noreferrer'
   }
 
-  return <NextLink ref={ref} {...props} href={href} />
+  const isAnchor = href.startsWith('#')
+
+  const lenis = useLenis() // eslint-disable-line
+
+  return (
+    <NextLink
+      ref={ref}
+      onClick={(e) => {
+        if (isAnchor) {
+          e.preventDefault()
+          lenis?.scrollTo(href)
+        }
+        onClick?.(e)
+      }}
+      {...props}
+      href={href}
+    />
+  )
 })

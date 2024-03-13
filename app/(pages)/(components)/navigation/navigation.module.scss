@@ -1,6 +1,8 @@
 .nav {
   display: flex;
   flex-direction: column;
+  position: fixed;
+  z-index: 2;
 
   .title {
     display: inline-flex;

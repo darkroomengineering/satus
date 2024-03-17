@@ -8,6 +8,8 @@ export const Link = forwardRef(function Link(
   { href, fallback = 'div', onClick, ...props },
   ref,
 ) {
+  const lenis = useLenis() // eslint-disable-line
+
   if (typeof href !== 'string') {
     const Tag = fallback
 
@@ -22,8 +24,6 @@ export const Link = forwardRef(function Link(
   }
 
   const isAnchor = href.startsWith('#')
-
-  const lenis = useLenis() // eslint-disable-line
 
   return (
     <NextLink

@@ -19,6 +19,7 @@
     "@radix-ui/react-select": "^2.0.0",
     "@react-three/drei": "^9.97.6",
     "@react-three/fiber": "^8.15.19",
+    "@storyblok/react": "^3.0.9",
     "@studio-freight/hamo": "0.6.28",
     "@studio-freight/react-lenis": "0.0.45",
     "@studio-freight/tempus": "^0.0.44",

@@ -1,5 +1,6 @@
 'use client'
 
+import { storyblokEditable } from '@storyblok/react'
 import { useStoryblokContext } from 'libs/storyblok/context'
 import s from './tutorial.module.scss'
 
@@ -7,7 +8,7 @@ export function Tutorial() {
   const { story } = useStoryblokContext()
 
   return (
-    <div className={s.tutorial}>
+    <div className={s.tutorial} {...storyblokEditable(story.content)}>
       <h2 className={s.title}>{story.content?.title}</h2>
 
       <div className={s.codes}>

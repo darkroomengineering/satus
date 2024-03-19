@@ -15,6 +15,7 @@ specifiers:
   '@radix-ui/react-select': ^2.0.0
   '@react-three/drei': ^9.97.6
   '@react-three/fiber': ^8.15.19
+  '@storyblok/react': ^3.0.9
   '@studio-freight/hamo': 0.6.28
   '@studio-freight/react-lenis': 0.0.46
   '@studio-freight/tempus': 0.0.44
@@ -53,6 +54,7 @@ dependencies:
   '@radix-ui/react-select': 2.0.0_biqbaboplfbrettd7655fr4n2y
   '@react-three/drei': 9.102.6_wchqdtozklxlsy227nuuvqaiyq
   '@react-three/fiber': 8.15.19_bdqwexnqc4b34ge3xqqvazaqhu
+  '@storyblok/react': 3.0.9_biqbaboplfbrettd7655fr4n2y
   '@studio-freight/hamo': 0.6.28_biqbaboplfbrettd7655fr4n2y
   '@studio-freight/react-lenis': 0.0.46_biqbaboplfbrettd7655fr4n2y
   '@studio-freight/tempus': 0.0.44
@@ -3492,6 +3494,23 @@ packages:
   /@sinclair/typebox/0.27.8:
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
     dev: true
+
+  /@storyblok/js/3.0.7:
+    resolution: {integrity: sha512-m6MpUhjEpDWMKftyjJhTkthd/I6LZ9xhuT/Wxa1e99Cf4niVC5jgMVPQ5tOsUgn3D8BKNL+6PI3hEj5dGKB9xw==}
+    dependencies:
+      storyblok-js-client: 6.7.1
+    dev: false
+
+  /@storyblok/react/3.0.9_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-N362hE+sBH3QebCrJtqgzGI2l+Dre8hfNJmAJvEtx1bEtfvu6hcA5ch5eQjjILxgDMwtseA0BnCXP7zoqJ2KCg==}
+    peerDependencies:
+      react: ^17.0.0 || ^18.0.0
+      react-dom: ^17.0.0 || ^18.0.0
+    dependencies:
+      '@storyblok/js': 3.0.7
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+    dev: false
 
   /@studio-freight/hamo/0.6.28_biqbaboplfbrettd7655fr4n2y:
     resolution: {integrity: sha512-LVXYJwPToVa4ZVIbFnicg8bmZF8xWebbdtx10/1HAQAjN8xGsTWAdc3BmUUOHtLWFvNJNLSuwdX24njrp7LF7g==}

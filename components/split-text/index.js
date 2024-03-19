@@ -1,6 +1,7 @@
+'use client'
+
 import { useRect } from '@studio-freight/hamo'
 import { gsap } from 'gsap'
-// import { SplitText as GSAPSplitText } from 'gsap/dist/SplitText'
 import { SplitText as GSAPSplitText } from 'gsap/dist/SplitText'
 import {
   forwardRef,
@@ -12,7 +13,9 @@ import {
 } from 'react'
 import s from './split-text.module.scss'
 
-gsap.registerPlugin(GSAPSplitText)
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(GSAPSplitText)
+}
 
 export const SplitText = forwardRef(function SplitText(
   { children, className, type },
@@ -29,6 +32,9 @@ export const SplitText = forwardRef(function SplitText(
     const splitted = new GSAPSplitText(elementRef.current, {
       tag: 'span',
       type,
+      linesClass: 'line',
+      wordsClass: 'word',
+      charsClass: 'char',
     })
     setSplitted(splitted)
 
@@ -40,17 +46,15 @@ export const SplitText = forwardRef(function SplitText(
 
   const render = useMemo(
     () => (
-      <span className={className}>
-        <span className={s.wrapper}>
-          <span
-            style={{ visibility: 'hidden', display: 'inline-block' }}
-            ref={setRectRef}
-          >
-            {children}
-          </span>
-          <span ref={elementRef} className={s.splitText}>
-            {children}
-          </span>
+      <span className={s.wrapper}>
+        <span ref={elementRef} className={s.splitText} aria-hidden>
+          {children}
+        </span>
+        <span
+          style={{ opacity: 0, pointerEvents: 'none', display: 'inline-block' }}
+          ref={setRectRef}
+        >
+          {children}
         </span>
       </span>
     ),

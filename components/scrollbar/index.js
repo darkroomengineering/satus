@@ -1,3 +1,5 @@
+'use client'
+
 import { useRect } from '@studio-freight/hamo'
 import { useLenis } from '@studio-freight/react-lenis'
 import { mapRange } from 'libs/maths'

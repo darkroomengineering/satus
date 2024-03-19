@@ -4,9 +4,11 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "dev": "tinacms dev -c \"next dev\"",
-    "build": "tinacms build && next build",
-    "start": "tinacms build && next start",
+    "dev": "next dev",
+    "dev:storyblok": "npm-run-all -p dev https",
+    "build": "next build",
+    "start": "next start",
+    "https": "local-ssl-proxy --source 3010 --target 3000 --cert localhost.pem --key localhost-key.pem",
     "lint": "next lint",
     "postbuild": "next-sitemap",
     "analyze": "cross-env ANALYZE=true next build",
@@ -25,7 +27,7 @@
     "@tinacms/auth": "^1.0.4",
     "@tinacms/cli": "^1.5.42",
     "clsx": "^2.1.0",
-    "gsap": "npm:@gsap/business@^3.12.5",
+    "gsap": "npm:@gsap/business@^3.12.4",
     "next": "14.1.3",
     "next-sitemap": "^4.2.3",
     "postprocessing": "^6.35.2",
@@ -34,6 +36,7 @@
     "react-use": "^17.5.0",
     "sass": "^1.71.1",
     "stats.js": "^0.17.0",
+    "storyblok-js-client": "^6.7.1",
     "three": "^0.161.0",
     "tinacms": "^1.6.0",
     "zustand": "4.5.2"
@@ -49,6 +52,8 @@
     "eslint-config-next": "^14.1.3",
     "eslint-config-prettier": "^9.1.0",
     "husky": "^9.0.11",
+    "local-ssl-proxy": "^2.0.5",
+    "npm-run-all": "^4.1.5",
     "prettier": "^3.2.5",
     "prettier-eslint": "^16.3.0"
   },
@@ -58,7 +63,7 @@
       "react-dom": "18.2.0",
       "scheduler": "0.23.0",
       "@studio-freight/tempus": "0.0.44",
-      "@studio-freight/react-lenis": "0.0.46-dev.1"
+      "@studio-freight/react-lenis": "0.0.46"
     }
   },
   "lint-staged": {

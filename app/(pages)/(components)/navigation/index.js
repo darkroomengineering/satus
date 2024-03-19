@@ -8,6 +8,7 @@ import s from './navigation.module.scss'
 const LINKS = [
   { href: '/', label: 'home' },
   { href: '/r3f', label: 'r3f' },
+  { href: '/storyblok', label: 'storyblok' },
 ]
 
 export function Navigation() {

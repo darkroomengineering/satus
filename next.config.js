@@ -38,7 +38,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'assets.tina.io',
+        hostname: 'a-us.storyblok.com',
       },
       {
         protocol: 'https',
@@ -174,6 +174,10 @@ const nextConfig = {
             value: 'nosniff',
           },
           {
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors 'self' https://app.storyblok.com/",
+          },
+          {
             key: 'X-Frame-Options',
             value: 'SAMEORIGIN',
           },
@@ -182,6 +186,15 @@ const nextConfig = {
             value: '1; mode=block',
           },
         ],
+      },
+    ]
+  },
+  async redirects() {
+    return [
+      {
+        source: '/home',
+        destination: '/',
+        permanent: true,
       },
     ]
   },

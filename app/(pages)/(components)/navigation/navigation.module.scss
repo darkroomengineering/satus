@@ -3,6 +3,8 @@
   flex-direction: column;
   position: fixed;
   z-index: 2;
+  top: var(--layout-margin);
+  left: var(--layout-margin);
 
   .title {
     display: inline-flex;

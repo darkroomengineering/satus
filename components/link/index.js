@@ -29,9 +29,9 @@ export const Link = forwardRef(function Link(
     <NextLink
       ref={ref}
       onClick={(e) => {
-        if (isAnchor) {
+        if (isAnchor && lenis) {
           e.preventDefault()
-          lenis?.scrollTo(href)
+          lenis.scrollTo(href)
         }
         onClick?.(e)
       }}

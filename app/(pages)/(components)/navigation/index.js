@@ -14,11 +14,13 @@ const LINKS = [
 export function Navigation() {
   const pathname = usePathname()
 
+  console.log('pathname', pathname)
+
   return (
     <nav className={s.nav}>
       <div className={s.title}>
         <h1>satus</h1>
-        <span>/</span>
+        <span>{pathname}</span>
       </div>
 
       <ul className={s.list}>

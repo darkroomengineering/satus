@@ -14,8 +14,6 @@ const LINKS = [
 export function Navigation() {
   const pathname = usePathname()
 
-  console.log('pathname', pathname)
-
   return (
     <nav className={s.nav}>
       <div className={s.title}>

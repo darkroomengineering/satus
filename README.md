@@ -1,4 +1,4 @@
-[![SATUS](https://assets.studiofreight.com/satus/header.png)](https://github.com/darkroomengineering/satus)
+[![SATUS](https://assets.darkroom.engineering/satus/header.png)](https://github.com/darkroomengineering/satus)
 
 ## Introduction
 
@@ -10,13 +10,13 @@ Satūs means start, beginning, planting, it's a set of tools we use as a templat
 
 This starter kit is composed of:
 
-- [Next.js](https://nextjs.org)
+- [Next.js](https://nextjs.org) App router
 - [react-three-fiber](https://github.com/pmndrs/react-three-fiber)
 - [Lenis](https://github.com/darkroomengineering/lenis)
 - [Theatre.js](https://www.theatrejs.com/)
 - [GSAP](https://greensock.com/gsap/)
 - [Hamo](https://github.com/darkroomengineering/hamo)
-- [Tina CMS](https://tina.io/)
+- [Storyblok](https://www.storyblok.com/)
 - Shopify
 - SVG import through [@svgr/webpack](https://www.npmjs.com/package/@svgr/webpack)
 - Sass architecture and tooling:

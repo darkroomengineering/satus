@@ -1,5 +1,5 @@
 'use client'
 
-export default function Console({ log }) {
+export function Console({ log }) {
   console.log(log)
 }

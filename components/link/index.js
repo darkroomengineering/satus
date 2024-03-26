@@ -10,7 +10,7 @@ export const Link = forwardRef(function Link(
 ) {
   const lenis = useLenis() // eslint-disable-line
 
-  if (typeof href !== 'string') {
+  if (!href || typeof href !== 'string') {
     const Tag = fallback
 
     return <Tag ref={ref} {...props} href={href} />

@@ -46,15 +46,14 @@ export function StoryblokContextProvider({ story, options, children }) {
   const onLoad = useCallback(() => {
     const bridge = new window.StoryblokBridge({ options })
 
-    bridge.on(['input'], ({ action, storyId, story }) => {
-      if (action === 'input' && story.id === id) {
+    bridge.on(['input'], ({ story }) => {
+      if (story.id === id) {
         setLiveStory(story)
-      } else if (
-        (action === 'change' || action === 'published') &&
-        storyId === id
-      ) {
-        router.refresh()
       }
+    })
+
+    bridge.on(['published', 'change'], () => {
+      router.refresh()
     })
   }, [router, id, options])
 

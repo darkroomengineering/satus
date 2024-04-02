@@ -1,0 +1,10 @@
+.page {
+  text-transform: uppercase;
+  font-family: var(--font-ibm-plex-mono);
+}
+
+.cart {
+  position: fixed;
+  top: var(--layout-margin);
+  right: var(--layout-margin);
+}

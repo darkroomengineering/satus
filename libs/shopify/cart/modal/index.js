@@ -1,9 +1,8 @@
 'use client'
 
 import cn from 'clsx'
-import { Button } from 'components/button'
 import { Image } from 'components/image'
-import { useBeforeUnload } from 'hooks/use-before-unload'
+import { useBeforeUnload } from 'libs/shopify/hooks'
 import { createContext, useContext, useOptimistic, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { removeItem, updateItemQuantity } from '../actions'
@@ -22,7 +21,7 @@ export function CartModal({ children, cart }) {
       <div className={cn(s.modal, isOpen && s.open)}>
         <div className={s['catch-click']} onClick={closeCart} />
         <div className={s.inner}>
-          <button className={cn('p-xs', s.close)} onClick={closeCart}>
+          <button className={cn('link', s.close)} onClick={closeCart}>
             close
           </button>
           {!cart || cart.lines.length === 0 ? (
@@ -41,6 +40,8 @@ function EmptyCart() {
 }
 
 function InnerCart({ cart }) {
+  console.log(cart)
+
   return (
     <>
       <p className={cn('p-l', s.heading)}>your cart</p>
@@ -83,9 +84,9 @@ function InnerCart({ cart }) {
           <p>sub total</p>
           <p>$ {cart?.cost?.subtotalAmount?.amount}</p>
         </div>
-        <Button className={s.action} href={cart?.checkoutUrl}>
-          checkout
-        </Button>
+        <a className={s.action} href={cart?.checkoutUrl}>
+          <span> checkout</span>
+        </a>
       </div>
     </>
   )
@@ -131,12 +132,12 @@ function RemoveButton({ id, className }) {
 
   return (
     <form action={formAction} className={className}>
-      <ActionButton>remove</ActionButton>
+      <ActionButton className="link">remove</ActionButton>
     </form>
   )
 }
 
-function ActionButton({ children }) {
+function ActionButton({ children, className }) {
   const { pending } = useFormStatus()
   useBeforeUnload(pending)
 
@@ -148,7 +149,7 @@ function ActionButton({ children }) {
           e.preventDefault()
         }
       }}
-      className={cn('p-s', pending && s.disable)}
+      className={cn('p-s', pending && s.disable, className)}
     >
       {children}
     </button>

@@ -1,7 +1,6 @@
 'use client'
 
 import cn from 'clsx'
-import { Button } from 'components/button'
 import { addItem } from 'libs/shopify/cart/actions'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef } from 'react'
@@ -9,7 +8,7 @@ import { useFormState, useFormStatus } from 'react-dom'
 import { useCartModal } from '../modal'
 import s from './add-to-cart.module.scss'
 
-export function AddToCart({ variants }) {
+export function AddToCart({ variants, className }) {
   // eslint-disable-next-line no-unused-vars
   const [_, formAction] = useFormState(addItem, null)
   const searchParams = useSearchParams()
@@ -24,7 +23,7 @@ export function AddToCart({ variants }) {
   const actionWithVariant = formAction.bind(null, selectedVariantId)
 
   return (
-    <form action={actionWithVariant}>
+    <form action={actionWithVariant} className={className}>
       <ActionButton
         aria-label="Add to cart"
         defaultState=" 1440.00$ — ADD TO CART"
@@ -51,7 +50,7 @@ function ActionButton({ defaultState, pendingState, ...props }) {
   }, [pending, openCart])
 
   return (
-    <Button
+    <button
       type="submit"
       onClick={(e) => {
         if (pending) {
@@ -64,6 +63,6 @@ function ActionButton({ defaultState, pendingState, ...props }) {
       icon
     >
       {pending ? pendingState : defaultState}
-    </Button>
+    </button>
   )
 }

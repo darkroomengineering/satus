@@ -9,6 +9,7 @@ const LINKS = [
   { href: '/', label: 'home' },
   { href: '/r3f', label: 'r3f' },
   { href: '/storyblok', label: 'storyblok' },
+  { href: '/shopify', label: 'shopify' },
 ]
 
 export function Navigation() {

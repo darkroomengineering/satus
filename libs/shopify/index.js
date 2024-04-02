@@ -26,8 +26,7 @@ import {
   getProductsQuery,
 } from './queries/product'
 
-const domain = process.env.SHOPIFY_STORE_DOMAIN || ''
-const endpoint = `${domain}${SHOPIFY_GRAPHQL_API_ENDPOINT}`
+const endpoint = process.env.SHOPIFY_STORE_DOMAIN + SHOPIFY_GRAPHQL_API_ENDPOINT
 const key = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN
 
 export async function shopifyFetch({

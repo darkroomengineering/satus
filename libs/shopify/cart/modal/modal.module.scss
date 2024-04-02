@@ -33,7 +33,8 @@
   left: 50%;
   width: 50%;
   height: 100%;
-  background-color: var(--light-gray);
+  background-color: var(--black);
+  color: var(--red);
   display: flex;
   flex-direction: column;
   text-transform: uppercase;
@@ -41,7 +42,7 @@
 
   .heading {
     padding-bottom: desktop-vw(16px);
-    border-bottom: 1px solid var(--dark-gray);
+    border-bottom: 1px solid var(--red);
   }
 
   @include desktop {
@@ -54,8 +55,6 @@
   position: absolute;
   right: desktop-vw(8px);
   top: desktop-vw(8px);
-  background: rgba(0, 0, 0, 0.52);
-  color: var(--white);
   padding: mobile-vw(7px) mobile-vw(8px);
   border-radius: mobile-vw(2px);
 
@@ -65,7 +64,7 @@
   }
 
   &.active {
-    background: var(--black);
+    background: var(--white);
   }
 }
 
@@ -83,13 +82,14 @@
     grid-template-columns: repeat(6, minmax(0, 1fr));
     grid-gap: var(--layout-columns-gap);
     padding: desktop-vw(16px) 0;
-    border-bottom: 1px solid var(--dark-gray);
+    border-bottom: 1px solid var(--red);
 
     .media {
       position: relative;
       grid-column: 1/2;
       width: 100%;
-      height: desktop-vw(133px);
+      height: desktop-vw(250px);
+      aspect-ratio: 341/1404;
     }
 
     .info {
@@ -108,7 +108,6 @@
 
         .description {
           width: desktop-vw(308px);
-          color: rgba(0, 0, 0, 0.52);
           @extend .ellipsis;
         }
       }
@@ -121,7 +120,8 @@
       width: fit-content;
       height: fit-content;
       border-radius: desktop-vw(100px);
-      background-color: var(--white);
+      background-color: var(--red);
+      color: var(--black);
       padding: desktop-vw(7px) desktop-vw(16px);
 
       button {
@@ -162,8 +162,40 @@
   }
 
   .action {
+    position: relative;
+    display: block;
     width: 100%;
     padding: desktop-vw(25px) 0;
+    text-align: center;
+    border: 2px solid red;
+    border-radius: desktop-vw(8px);
+
+    span {
+      position: relative;
+    }
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      height: 100%;
+      background-color: var(--red);
+      clip-path: circle(0%);
+    }
+
+    @include hover {
+      &:hover {
+        color: var(--black);
+
+        &::before {
+          transition: 1000ms clip-path var(--gleasing);
+          clip-path: circle(100%);
+        }
+      }
+    }
   }
 }
 

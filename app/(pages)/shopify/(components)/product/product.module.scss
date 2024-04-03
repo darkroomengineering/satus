@@ -2,13 +2,10 @@
   margin: auto;
   align-items: center;
   justify-items: center;
+  margin-top: mobile-vw(150px);
 
   @include desktop {
-    height: 50vh;
-  }
-
-  @include mobile {
-    margin-top: mobile-vw(150px);
+    margin-top: desktop-vw(150px);
   }
 
   .details {
@@ -43,14 +40,13 @@
     grid-column: 1/-1;
     display: flex;
     border: 2px solid var(--black);
-    padding: mobile-vw(16px);
     border-radius: mobile-vw(8px);
     overflow: hidden;
     cursor: pointer;
 
     @include desktop {
       grid-column: 4/-4;
-      padding: desktop-vw(16px);
+
       border-radius: desktop-vw(8px);
     }
 
@@ -68,6 +64,11 @@
 
     button {
       position: relative;
+      padding: mobile-vw(16px);
+
+      @include desktop {
+        padding: desktop-vw(16px);
+      }
     }
 
     @include hover {

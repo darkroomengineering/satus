@@ -35,7 +35,7 @@ export function AddToCart({ variants, className }) {
 
 function ActionButton({ defaultState, pendingState, ...props }) {
   const pendingStartRef = useRef(false)
-  const { pending } = useFormStatus()
+  const { pending = false } = useFormStatus()
   const openCart = useCartModal()
 
   useEffect(() => {

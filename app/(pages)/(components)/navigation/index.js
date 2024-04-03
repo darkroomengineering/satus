@@ -10,6 +10,7 @@ const LINKS = [
   { href: '/r3f', label: 'r3f' },
   { href: '/storyblok', label: 'storyblok' },
   { href: '/shopify', label: 'shopify' },
+  { href: '/hubspot', label: 'hubspot' },
 ]
 
 export function Navigation() {

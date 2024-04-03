@@ -63,6 +63,7 @@ function InnerCart({ cart }) {
               </div>
               <p className={s.price}>$ {cost?.totalAmount?.amount}</p>
             </div>
+            <RemoveButton id={id} className={s.remove} />
             <Quantity
               className={s.quantity}
               payload={{
@@ -71,7 +72,6 @@ function InnerCart({ cart }) {
                 quantity,
               }}
             />
-            <RemoveButton id={id} className={s.remove} />
           </div>
         ))}
       </div>
@@ -134,7 +134,7 @@ function RemoveButton({ id, className }) {
 }
 
 function ActionButton({ children, className }) {
-  const { pending } = useFormStatus()
+  const { pending = false } = useFormStatus()
   useBeforeUnload(pending)
 
   return (

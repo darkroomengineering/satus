@@ -1,0 +1,111 @@
+.field {
+  position: relative;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--light-gray);
+  padding: mobile-vw(15px) mobile-vw(8px);
+
+  @include desktop {
+    padding: desktop-vw(15px) desktop-vw(8px);
+  }
+
+  input {
+    width: 100%;
+  }
+
+  &:not(.active) {
+    &::after {
+      background-color: rgba(0, 0, 0, 0.52);
+    }
+
+    input {
+      color: rgba(255, 255, 255, 0.52);
+    }
+  }
+
+  &.error {
+    &::after {
+      background-color: red;
+    }
+  }
+}
+
+.single {
+  &::after {
+    content: '';
+    position: absolute;
+    aspect-ratio: 1/1;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: var(--green);
+    border-radius: 100%;
+    transition: 500ms var(--gleasing) background-color;
+    width: mobile-vw(8px);
+    right: mobile-vw(8px);
+
+    @include desktop {
+      width: desktop-vw(8px);
+      right: desktop-vw(8px);
+    }
+  }
+}
+
+.multiple {
+  display: flex;
+  flex-wrap: wrap;
+  gap: mobile-vw(4px);
+
+  @include desktop {
+    gap: desktop-vw(4px);
+  }
+
+  .header {
+    width: 100%;
+    margin-bottom: mobile-vw(20px);
+
+    @include desktop {
+      margin-bottom: desktop-vw(20px);
+    }
+  }
+
+  .option {
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: mobile-vw(6px) mobile-vw(8px);
+    border-radius: mobile-vw(100px);
+
+    @include desktop {
+      padding: desktop-vw(6px) desktop-vw(8px);
+      border-radius: desktop-vw(100px);
+    }
+
+    span {
+      position: relative;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: var(--white);
+      border-radius: mobile-vw(100px);
+      clip-path: inset(100% 0 0 0);
+      transition: clip-path 400ms var(--gleasing);
+
+      @include desktop {
+        border-radius: desktop-vw(100px);
+      }
+    }
+
+    &.selected,
+    &:hover {
+      color: var(--black);
+
+      &::before {
+        clip-path: inset(0);
+      }
+    }
+  }
+}

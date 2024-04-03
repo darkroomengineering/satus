@@ -4,7 +4,7 @@ import { Product } from './(components)/product'
 import { ShowCart } from './(components)/show-cart'
 import s from './shopify.module.scss'
 
-export default async function Storyblok() {
+export default async function Shopify() {
   return (
     <Wrapper theme="red" className={s.page}>
       <Cart>

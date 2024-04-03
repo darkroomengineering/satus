@@ -6,7 +6,6 @@ import s from './product.module.scss'
 
 export async function Product() {
   const data = await getCollectionProducts({ collection: 'frontpage' })
-
   const product = data?.find((product) => product.handle === 'darkroom-board')
 
   return (

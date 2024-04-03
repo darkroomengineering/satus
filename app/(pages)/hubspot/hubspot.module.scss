@@ -1,0 +1,35 @@
+.page {
+  text-transform: uppercase;
+  font-family: var(--font-ibm-plex-mono);
+
+  .inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    flex-grow: 1;
+
+    @include mobile {
+      padding: 0 mobile-vw(16px);
+    }
+  }
+
+  .title {
+    margin-bottom: mobile-vw(19px);
+
+    @include desktop {
+      margin-bottom: desktop-vw(15px);
+    }
+  }
+
+  .subscribe {
+    margin-bottom: mobile-vw(31px);
+    width: mobile-vw(303px);
+
+    @include desktop {
+      margin-bottom: desktop-vw(32px);
+      width: desktop-vw(362px);
+      padding: 0 desktop-vw(15px);
+    }
+  }
+}

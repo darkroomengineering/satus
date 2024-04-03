@@ -30,9 +30,10 @@
 
 .inner {
   position: relative;
-  left: 50%;
-  width: 50%;
+  left: 25%;
+  width: 75%;
   height: 100%;
+  padding: mobile-vw(12px);
   background-color: var(--black);
   color: var(--red);
   display: flex;
@@ -40,27 +41,32 @@
   text-transform: uppercase;
   transition: 800ms transform var(--gleasing);
 
-  .heading {
-    padding-bottom: desktop-vw(16px);
-    border-bottom: 1px solid var(--red);
-  }
-
   @include desktop {
+    width: 50%;
+    left: 50%;
     padding: desktop-vw(8px);
     padding-top: desktop-vw(56px);
+  }
+
+  .heading {
+    border-bottom: 1px solid var(--red);
+    padding-bottom: mobile-vw(16px);
+
+    @include desktop {
+      padding-bottom: desktop-vw(16px);
+    }
   }
 }
 
 .close {
   position: absolute;
-  right: desktop-vw(8px);
-  top: desktop-vw(8px);
-  padding: mobile-vw(7px) mobile-vw(8px);
-  border-radius: mobile-vw(2px);
+  right: mobile-vw(12px);
+  top: mobile-vw(12px);
 
   @include desktop {
-    padding: desktop-vw(7px) desktop-vw(8px);
-    border-radius: desktop-vw(2px);
+    position: absolute;
+    right: desktop-vw(8px);
+    top: desktop-vw(8px);
   }
 
   &.active {
@@ -72,57 +78,103 @@
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  max-height: desktop-vw(600px);
   overflow: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
+
+  @include desktop {
+    max-height: desktop-vw(600px);
+  }
 
   .line {
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
     grid-gap: var(--layout-columns-gap);
-    padding: desktop-vw(16px) 0;
+    padding: mobile-vw(16px) 0;
     border-bottom: 1px solid var(--red);
+
+    @include desktop {
+      padding: desktop-vw(16px) 0;
+    }
 
     .media {
       position: relative;
-      grid-column: 1/2;
+      grid-column: 1/4;
       width: 100%;
-      height: desktop-vw(250px);
-      aspect-ratio: 341/1404;
+      height: mobile-vw(150px);
+
+      img {
+        height: 100%;
+        object-fit: contain !important;
+      }
+
+      @include desktop {
+        grid-column: 1/2;
+        height: desktop-vw(250px);
+      }
     }
 
     .info {
-      grid-column: 2/5;
+      grid-column: 4/-1;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding-left: desktop-vw(8px);
+
+      @include desktop {
+        grid-column: 2/5;
+        padding-left: desktop-vw(8px);
+      }
 
       .details {
         display: flex;
         flex-direction: column;
+
+        @include mobile {
+          font-size: mobile-vw(10px);
+        }
+
         .title {
           margin-bottom: desktop-vw(8px);
         }
 
         .description {
-          width: desktop-vw(308px);
           @extend .ellipsis;
+
+          @include desktop {
+            width: desktop-vw(308px);
+          }
+        }
+      }
+
+      .price {
+        @include mobile {
+          align-self: flex-end;
         }
       }
     }
 
     .quantity {
-      grid-column: 5/6;
+      grid-column: 4/-1;
       display: flex;
       align-items: center;
       width: fit-content;
       height: fit-content;
-      border-radius: desktop-vw(100px);
+      border-radius: mobile-vw(100px);
       background-color: var(--red);
       color: var(--black);
-      padding: desktop-vw(7px) desktop-vw(16px);
+      padding: mobile-vw(8px) mobile-vw(16px);
+
+      @include mobile {
+        grid-row: 2;
+        justify-self: flex-end;
+        font-size: mobile-vw(12px);
+      }
+
+      @include desktop {
+        grid-column: 5/6;
+        border-radius: desktop-vw(100px);
+        padding: desktop-vw(7px) desktop-vw(16px);
+      }
 
       button {
         &.disable {
@@ -132,14 +184,23 @@
       }
 
       span {
-        padding: 0 desktop-vw(16px);
+        padding: 0 mobile-vw(8px);
+
+        @include desktop {
+          padding: 0 desktop-vw(16px);
+        }
       }
     }
 
     .remove {
-      grid-column: 6/-1;
-      align-self: flex-start;
-      justify-self: flex-end;
+      grid-column: 1/4;
+      align-self: flex-end;
+
+      @include desktop {
+        grid-column: 6/-1;
+        justify-self: flex-end;
+        align-self: flex-start;
+      }
 
       button {
         &.disable {
@@ -152,10 +213,29 @@
 }
 
 .checkout {
+  position: relative;
   width: 100%;
   align-self: flex-end;
 
+  &::before {
+    content: '';
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: desktop-vw(-50px);
+    background: linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 1) 55%,
+      rgba(12, 0, 36, 0) 100%
+    );
+
+    @include mobile {
+      top: mobile-vw(-50px);
+    }
+  }
+
   .top {
+    position: relative;
     display: flex;
     justify-content: space-between;
     margin-bottom: desktop-vw(16px);
@@ -206,4 +286,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: normal;
+
+  @include mobile {
+    -webkit-line-clamp: 8;
+  }
 }

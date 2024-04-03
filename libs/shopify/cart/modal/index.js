@@ -36,15 +36,13 @@ export function CartModal({ children, cart }) {
 }
 
 function EmptyCart() {
-  return <p className={cn('p-l', s.heading)}>your cart is empty</p>
+  return <p className={s.heading}>your cart is empty</p>
 }
 
 function InnerCart({ cart }) {
-  console.log(cart)
-
   return (
     <>
-      <p className={cn('p-l', s.heading)}>your cart</p>
+      <p className={s.heading}>your cart</p>
       <div className={s.lines} data-lenis-prevent>
         {cart?.lines?.map(({ id, merchandise, cost, quantity }, idx) => (
           <div className={s.line} key={`${idx}-${id}`}>
@@ -58,14 +56,12 @@ function InnerCart({ cart }) {
             </div>
             <div className={s.info}>
               <div className={s.details}>
-                <p className={cn('p-s', s.title)}>
-                  {merchandise?.product?.title}
-                </p>
-                <p className={cn('p-xs', s.description)}>
+                <p className={s.title}>{merchandise?.product?.title}</p>
+                <p className={s.description}>
                   {merchandise?.product?.description}
                 </p>
               </div>
-              <p className="p-s">$ {cost?.totalAmount?.amount}</p>
+              <p className={s.price}>$ {cost?.totalAmount?.amount}</p>
             </div>
             <Quantity
               className={s.quantity}
@@ -80,7 +76,7 @@ function InnerCart({ cart }) {
         ))}
       </div>
       <div className={s.checkout}>
-        <div className={cn('p-s', s.top)}>
+        <div className={s.top}>
           <p>sub total</p>
           <p>$ {cart?.cost?.subtotalAmount?.amount}</p>
         </div>
@@ -111,7 +107,7 @@ function Quantity({ className, payload }) {
   return (
     <div className={className}>
       <QuantityButton formAction={() => formAction(-1)}>-</QuantityButton>
-      <span className="p-xs">{quantity}</span>
+      <span>{quantity}</span>
       <QuantityButton formAction={() => formAction(1)}>+</QuantityButton>
     </div>
   )
@@ -149,7 +145,7 @@ function ActionButton({ children, className }) {
           e.preventDefault()
         }
       }}
-      className={cn('p-s', pending && s.disable, className)}
+      className={cn(pending && s.disable, className)}
     >
       {children}
     </button>

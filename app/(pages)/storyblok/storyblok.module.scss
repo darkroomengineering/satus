@@ -7,5 +7,9 @@
     align-items: center;
     justify-content: center;
     flex-grow: 1;
+
+    @include mobile {
+      padding: 0 mobile-vw(16px);
+    }
   }
 }

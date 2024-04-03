@@ -54,10 +54,9 @@ $layout: (
 }
 
 .layout-block {
-  max-width: var(--layout-width);
   margin-left: auto;
   margin-right: auto;
-  width: 100%;
+  width: calc(100% - 2 * var(--layout-margin));
 }
 
 .layout-block-inner {
@@ -66,20 +65,18 @@ $layout: (
   width: 100%;
 }
 
-.layout-grid {
-  @extend .layout-block;
-
+.grid {
   display: grid;
   grid-template-columns: repeat(var(--layout-columns-count), minmax(0, 1fr));
-  grid-gap: var(--layout-columns-gap);
-  width: 100%;
+  gap: var(--layout-columns-gap);
+}
+
+.layout-grid {
+  @extend .layout-block;
+  @extend .grid;
 }
 
 .layout-grid-inner {
   @extend .layout-block-inner;
-
-  display: grid;
-  grid-template-columns: repeat(var(--layout-columns-count), minmax(0, 1fr));
-  grid-gap: var(--layout-columns-gap);
-  width: 100%;
+  @extend .grid;
 }

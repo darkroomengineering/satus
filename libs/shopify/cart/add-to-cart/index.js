@@ -60,7 +60,6 @@ function ActionButton({ defaultState, pendingState, ...props }) {
       aria-disabled={pending}
       {...props}
       className={cn(s.cta, pending && s.disable)}
-      icon
     >
       {pending ? pendingState : defaultState}
     </button>

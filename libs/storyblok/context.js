@@ -2,7 +2,7 @@
 
 // https://www.storyblok.com/docs/Guides/storyblok-latest-js?utm_source=github.com&utm_medium=readme&utm_campaign=storyblok-js
 
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Script from 'next/script'
 import {
   Suspense,
@@ -11,6 +11,7 @@ import {
   useContext,
   useState,
 } from 'react'
+import { useIsVisualEditor } from './use-is-visual-editor'
 
 export const StoryblokContext = createContext({})
 
@@ -21,11 +22,12 @@ export function useStoryblokContext() {
 const BRIDGE_URL = '//app.storyblok.com/f/storyblok-v2-latest.js'
 
 function StoryblokBridge({ onLoad }) {
-  const searchParams = useSearchParams()
-  const isLiveEditing = searchParams.has('_storyblok')
+  const isVisualEditor = useIsVisualEditor()
+
+  // console.log('isVisualEditor', isVisualEditor)
 
   return (
-    isLiveEditing && (
+    isVisualEditor && (
       <Script
         src={BRIDGE_URL}
         type="text/javascript"
@@ -44,16 +46,22 @@ export function StoryblokContextProvider({ story, options, children }) {
   const router = useRouter()
 
   const onLoad = useCallback(() => {
+    // console.log('StoryblokBridge loaded')
     const bridge = new window.StoryblokBridge({ options })
 
     bridge.on(['input'], ({ story }) => {
+      // console.log('input', story)
       if (story.id === id) {
         setLiveStory(story)
       }
     })
 
     bridge.on(['published', 'change'], () => {
-      router.refresh()
+      // console.log('published or change')
+      setTimeout(() => {
+        // be sure that webhook has been sent
+        router.refresh()
+      }, 1000)
     })
   }, [router, id, options])
 

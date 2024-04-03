@@ -2,6 +2,7 @@
 
 import { useLenis } from 'components/lenis'
 import NextLink from 'next/link'
+import { usePathname } from 'next/navigation'
 import { forwardRef } from 'react'
 
 export const Link = forwardRef(function Link(
@@ -9,6 +10,7 @@ export const Link = forwardRef(function Link(
   ref,
 ) {
   const lenis = useLenis() // eslint-disable-line
+  const pathname = usePathname()
 
   if (!href || typeof href !== 'string') {
     const Tag = fallback
@@ -23,7 +25,7 @@ export const Link = forwardRef(function Link(
     props.rel = 'noopener noreferrer'
   }
 
-  const isAnchor = href.startsWith('#')
+  const isAnchor = href.startsWith('#') || href.startsWith(`${pathname}#`)
 
   return (
     <NextLink

@@ -4,6 +4,11 @@ import { storyblokEditable } from '@storyblok/react'
 import { useStoryblokContext } from 'libs/storyblok/context'
 import s from './tutorial.module.scss'
 
+// TODO:
+// - Webhooks
+// - Visual Editor url
+// - Draft mode
+
 export function Tutorial() {
   const { story } = useStoryblokContext()
 

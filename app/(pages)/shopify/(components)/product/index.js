@@ -5,7 +5,7 @@ import { AddToCart } from 'libs/shopify/cart/add-to-cart'
 import s from './product.module.scss'
 
 export async function Product() {
-  const data = await getCollectionProducts({ collection: 'frontpage' })
+  const data = await getCollectionProducts({ collection: 'satus' })
   const product = data?.find((product) => product.handle === 'darkroom-board')
 
   return (

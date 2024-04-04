@@ -26,7 +26,7 @@ export function AddToCart({ variants, className }) {
     <form action={actionWithVariant} className={className}>
       <ActionButton
         aria-label="Add to cart"
-        defaultState=" 1440.00$ — ADD TO CART"
+        defaultState={`${variants[0]?.price?.amount}$ - ADD TO CART`}
         pendingState="ADDING TO CART"
       />
     </form>

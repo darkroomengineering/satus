@@ -2,7 +2,6 @@
 
 // https://www.storyblok.com/docs/Guides/storyblok-latest-js?utm_source=github.com&utm_medium=readme&utm_campaign=storyblok-js
 
-import { useRouter } from 'next/navigation'
 import Script from 'next/script'
 import {
   Suspense,
@@ -43,8 +42,6 @@ export function StoryblokContextProvider({ story, options, children }) {
 
   const [liveStory, setLiveStory] = useState(story)
 
-  const router = useRouter()
-
   const onLoad = useCallback(() => {
     // console.log('StoryblokBridge loaded')
     const bridge = new window.StoryblokBridge({ options })
@@ -55,15 +52,7 @@ export function StoryblokContextProvider({ story, options, children }) {
         setLiveStory(story)
       }
     })
-
-    bridge.on(['published', 'change'], () => {
-      // console.log('published or change')
-      setTimeout(() => {
-        // be sure that webhook has been sent
-        router.refresh()
-      }, 1000)
-    })
-  }, [router, id, options])
+  }, [id, options])
 
   return (
     <>

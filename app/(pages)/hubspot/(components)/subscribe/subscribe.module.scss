@@ -31,12 +31,12 @@
   border: 2px solid var(--black);
   border-radius: mobile-vw(8px);
   height: 100%;
-  width: mobile-vw(125px);
+  // width: mobile-vw(125px);
 
   @include desktop {
     border-radius: desktop-vw(8px);
     padding: 0 desktop-vw(24px);
-    width: desktop-vw(140px);
+    // width: desktop-vw(140px);
   }
 }
 

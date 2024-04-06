@@ -24,9 +24,9 @@ dependencies:
   '@react-three/fiber':
     specifier: ^8.15.19
     version: 8.15.19(react-dom@18.2.0)(react@18.2.0)(three@0.161.0)
-  '@storyblok/react':
-    specifier: ^3.0.9
-    version: 3.0.9(react-dom@18.2.0)(react@18.2.0)
+  '@storyblok/js':
+    specifier: ^3.0.7
+    version: 3.0.7
   '@studio-freight/hamo':
     specifier: 0.6.28
     version: 0.6.28(react-dom@18.2.0)(react@18.2.0)
@@ -2262,17 +2262,6 @@ packages:
     resolution: {integrity: sha512-m6MpUhjEpDWMKftyjJhTkthd/I6LZ9xhuT/Wxa1e99Cf4niVC5jgMVPQ5tOsUgn3D8BKNL+6PI3hEj5dGKB9xw==}
     dependencies:
       storyblok-js-client: 6.7.1
-    dev: false
-
-  /@storyblok/react@3.0.9(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-N362hE+sBH3QebCrJtqgzGI2l+Dre8hfNJmAJvEtx1bEtfvu6hcA5ch5eQjjILxgDMwtseA0BnCXP7zoqJ2KCg==}
-    peerDependencies:
-      react: 18.2.0
-      react-dom: 18.2.0
-    dependencies:
-      '@storyblok/js': 3.0.7
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
     dev: false
 
   /@studio-freight/hamo@0.6.28(react-dom@18.2.0)(react@18.2.0):

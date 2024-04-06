@@ -24,11 +24,12 @@
 
   .subscribe {
     margin-bottom: mobile-vw(31px);
-    width: mobile-vw(303px);
+    // width: mobile-vw(303px);
+    padding: 0 mobile-vw(15px);
 
     @include desktop {
       margin-bottom: desktop-vw(32px);
-      width: desktop-vw(362px);
+      // width: desktop-vw(362px);
       padding: 0 desktop-vw(15px);
     }
   }

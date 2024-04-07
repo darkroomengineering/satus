@@ -1,7 +1,7 @@
 import { Debug } from 'components/debug'
+import { GoogleTagManager } from 'components/google-tag-manager'
 import { GSAP } from 'components/gsap'
 import { RealViewport } from 'components/real-viewport'
-import { ThirdPartyScripts } from 'components/third-party-scripts'
 import 'styles/global.scss'
 import { fonts } from '../fonts'
 
@@ -19,7 +19,7 @@ export default async function Layout({ children }) {
         {children}
         <Debug />
         <GSAP />
-        <ThirdPartyScripts />
+        <GoogleTagManager />
       </body>
     </html>
   )

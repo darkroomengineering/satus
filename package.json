@@ -13,7 +13,7 @@
     "postbuild": "next-sitemap",
     "analyze": "cross-env ANALYZE=true next build",
     "prepare": "husky install",
-    "preinstall": "npmrc-replace-env -w"
+    "npmrc": "npx npmrc-replace-env -w"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.5",

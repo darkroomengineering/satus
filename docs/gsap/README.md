@@ -1,12 +1,6 @@
 # GSAP
 
-## Installation
-
-Satūs uses GSAP for animations. To install it, run:
-
-```bash
-pnpm install gsap
-```
+Satūs uses GSAP for animations
 
 ## Usage
 

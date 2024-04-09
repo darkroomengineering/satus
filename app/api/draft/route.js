@@ -1,6 +1,5 @@
 // https://nextjs.org/docs/app/building-your-application/configuring/draft-mode
 
-// route handler with secret and slug
 import { draftMode } from 'next/headers'
 import { redirect } from 'next/navigation'
 

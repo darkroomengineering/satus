@@ -6,7 +6,7 @@ import 'styles/global.scss'
 import { fonts } from '../fonts'
 
 export const metadata = {
-  title: 'Satus',
+  title: 'Satūs',
   description: 'Next.js starter',
 }
 

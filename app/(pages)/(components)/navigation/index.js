@@ -19,7 +19,7 @@ export function Navigation() {
   return (
     <nav className={s.nav}>
       <div className={s.title}>
-        <h1>satus</h1>
+        <h1>Satūs</h1>
         <span>{pathname}</span>
       </div>
 

@@ -10,7 +10,7 @@ export default async function Hubspot() {
   return (
     <Wrapper theme="red" className={s.page}>
       <div className={s.inner}>
-        <p className={s.title}>subscribe for more satus</p>
+        <p className={s.title}>subscribe for more Satūs</p>
         <Form
           className={s.subscribe}
           formId={form?.id}

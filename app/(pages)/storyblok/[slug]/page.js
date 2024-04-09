@@ -46,3 +46,36 @@ export default async function StoryblokSubPage({ params }) {
     </StoryblokContextProvider>
   )
 }
+
+// https://nextjs.org/docs/app/api-reference/functions/generate-metadata
+
+export async function generateMetadata({ params }) {
+  const isDraftMode =
+    draftMode().isEnabled || process.env.NODE_ENV === 'development'
+
+  const { data } = await new StoryblokApi({
+    draft: isDraftMode,
+  }).get(`cdn/stories/blog/${params.slug}`)
+
+  const content = data?.story?.content?.metadata?.[0]
+
+  if (!content) return
+
+  return {
+    title: content?.title,
+    description: content?.description,
+    images: content?.image?.filename,
+    keywords: content?.keywords?.value,
+    openGraph: {
+      title: content?.title,
+      description: content?.description,
+      images: content?.image?.filename,
+      url: process.env.NEXT_PUBLIC_BASE_URL,
+    },
+    twitter: {
+      title: content?.title,
+      description: content?.description,
+      images: content?.image?.filename,
+    },
+  }
+}

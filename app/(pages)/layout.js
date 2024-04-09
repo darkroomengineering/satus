@@ -7,7 +7,7 @@ import { fonts } from '../fonts'
 
 export const metadata = {
   title: 'Satus',
-  description: '',
+  description: 'Next.js starter',
 }
 
 export default async function Layout({ children }) {

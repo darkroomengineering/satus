@@ -17,7 +17,7 @@ This starter kit is composed of:
 - [GSAP](https://greensock.com/gsap/)
 - [Hamo](https://github.com/darkroomengineering/hamo)
 - [Storyblok](https://www.storyblok.com/)
-- [Shopify] (https://www.shopify.com/)
+- [Shopify](https://www.shopify.com/)
 - SVG import through [@svgr/webpack](https://www.npmjs.com/package/@svgr/webpack)
 - Sass architecture and tooling:
   - Config file

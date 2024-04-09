@@ -16,7 +16,7 @@ This starter kit is composed of:
 - [Theatre.js](https://www.theatrejs.com/)
 - [GSAP](https://greensock.com/gsap/) | [See Documentation](https://github.com/darkroomengineering/satus/blob/main/docs/gsap/README.md)
 - [Hamo](https://github.com/darkroomengineering/hamo)
-- [Storyblok](https://www.storyblok.com/)
+- [Storyblok](https://www.storyblok.com/) | [See Documentation](https://github.com/darkroomengineering/satus/blob/main/docs/storyblok/README.md)
 - [Shopify](https://www.shopify.com/)
 - SVG import through [@svgr/webpack](https://www.npmjs.com/package/@svgr/webpack)
 - Sass architecture and tooling:

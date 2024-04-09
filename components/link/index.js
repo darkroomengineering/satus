@@ -1,6 +1,6 @@
 'use client'
 
-import { useLenis } from 'components/lenis'
+import { useLenis } from 'libs/react-lenis'
 import NextLink from 'next/link'
 import { usePathname } from 'next/navigation'
 import { forwardRef } from 'react'

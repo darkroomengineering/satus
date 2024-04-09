@@ -22,7 +22,7 @@
     "@react-three/fiber": "^8.15.19",
     "@storyblok/js": "^3.0.7",
     "@studio-freight/hamo": "0.6.28",
-    "@studio-freight/react-lenis": "0.0.45",
+    "@studio-freight/react-lenis": "0.0.47",
     "@studio-freight/tempus": "^0.0.44",
     "@theatre/core": "^0.7.0",
     "@theatre/studio": "^0.7.0",
@@ -63,7 +63,7 @@
       "react-dom": "18.2.0",
       "scheduler": "0.23.0",
       "@studio-freight/tempus": "0.0.44",
-      "@studio-freight/react-lenis": "0.0.46"
+      "@studio-freight/react-lenis": "0.0.47"
     }
   },
   "lint-staged": {

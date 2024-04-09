@@ -14,7 +14,7 @@ This starter kit is composed of:
 - [react-three-fiber](https://github.com/pmndrs/react-three-fiber)
 - [Lenis](https://github.com/darkroomengineering/lenis)
 - [Theatre.js](https://www.theatrejs.com/)
-- [GSAP](https://greensock.com/gsap/)
+- [GSAP](https://greensock.com/gsap/) | [See Documentation](https://github.com/darkroomengineering/satus/blob/main/docs/gsap/README.md)
 - [Hamo](https://github.com/darkroomengineering/hamo)
 - [Storyblok](https://www.storyblok.com/)
 - [Shopify](https://www.shopify.com/)

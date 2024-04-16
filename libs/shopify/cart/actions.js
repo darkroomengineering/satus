@@ -32,7 +32,7 @@ export async function addItem(prevState, selectedVariantId) {
 
   // This is here beacuse cookie can only be set server side
   // and useFormState executes the addItem action in the server
-  if (!cartId || !cart) {
+  if (!cartId) {
     cart = await createCart()
     cartId = cart.id
     cookies().set('cartId', cartId)

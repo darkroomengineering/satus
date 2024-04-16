@@ -1,8 +1,11 @@
 'use client'
 
-import { useRect } from '@studio-freight/hamo'
+import { useResizeObserver } from '@studio-freight/hamo'
 import { gsap } from 'gsap'
+// import { SplitText as GSAPSplitText } from 'gsap/dist/SplitText'
+import cn from 'clsx'
 import { SplitText as GSAPSplitText } from 'gsap/dist/SplitText'
+import { useIsVisualEditor } from 'libs/storyblok/use-is-visual-editor'
 import {
   forwardRef,
   useEffect,
@@ -17,18 +20,36 @@ if (typeof window !== 'undefined') {
   gsap.registerPlugin(GSAPSplitText)
 }
 
+function replaceFromNode(node, string, replacement = string) {
+  node.innerHTML = node.innerHTML.replace(
+    new RegExp('(?!<[^>]+)' + string + '(?![^<]+>)', 'g'),
+    replacement,
+  )
+}
+
 export const SplitText = forwardRef(function SplitText(
   { children, className, type },
   ref,
 ) {
   const elementRef = useRef()
-  const [setRectRef, rect] = useRect()
+  const fallbackRef = useRef()
+  const [setRectRef, { contentRect: rect }] = useResizeObserver()
 
   const [splitted, setSplitted] = useState()
 
   useImperativeHandle(ref, () => splitted, [splitted])
 
   useEffect(() => {
+    if (!elementRef.current) return
+
+    replaceFromNode(fallbackRef.current, '-', '‑')
+
+    const ignoredElements = [
+      ...elementRef.current.querySelectorAll('[data-ignore-split-text]'),
+    ]
+    ignoredElements.map((item) => {
+      item.innerText = item.innerText.replaceAll(' ', '&nbsp;')
+    })
     const splitted = new GSAPSplitText(elementRef.current, {
       tag: 'span',
       type,
@@ -36,6 +57,7 @@ export const SplitText = forwardRef(function SplitText(
       wordsClass: 'word',
       charsClass: 'char',
     })
+
     setSplitted(splitted)
 
     return () => {
@@ -44,22 +66,27 @@ export const SplitText = forwardRef(function SplitText(
     }
   }, [rect, type])
 
+  const isVisualEditor = useIsVisualEditor()
+
   const render = useMemo(
     () => (
-      <span className={s.wrapper}>
+      <span className={cn(s.wrapper, className)}>
         <span ref={elementRef} className={s.splitText} aria-hidden>
           {children}
         </span>
         <span
-          style={{ opacity: 0, pointerEvents: 'none', display: 'inline-block' }}
-          ref={setRectRef}
+          className={s.fallback}
+          ref={(node) => {
+            setRectRef(node)
+            fallbackRef.current = node
+          }}
         >
           {children}
         </span>
       </span>
     ),
-    [children, className],
+    [children, className, setRectRef],
   )
 
-  return render
+  return isVisualEditor ? children : render
 })

@@ -5,5 +5,13 @@
   .splitText {
     position: absolute;
     inset: 0;
+    user-select: none;
+    pointer-events: none;
+  }
+
+  .fallback {
+    position: relative;
+    z-index: 1;
+    color: transparent;
   }
 }

@@ -15,12 +15,7 @@ export const contentType = 'image/png'
 
 const getFont = async () => {
   const res = await fetch(
-    new URL('fonts/IBM_Plex_Mono/IBMPlexMono-Regular.woff2', import.meta.url),
-    {
-      headers: {
-        'Content-Type': 'font/woff2',
-      },
-    },
+    new URL('fonts/IBM_Plex_Mono/IBMPlexMono-Regular.ttf', import.meta.url),
   )
   return await res.arrayBuffer()
 }

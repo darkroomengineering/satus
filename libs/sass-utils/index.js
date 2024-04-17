@@ -1,7 +1,7 @@
 // https://github.com/sass-eyeglass/node-sass-utils/blob/master/lib/coercion.js
 
-const sass = require('sass')
-const isSassType = require('./util').isSassType
+import * as sass from 'sass'
+import { isSassType } from './utils.js'
 
 function hexToRGB(hex) {
   if (!/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex))
@@ -15,7 +15,7 @@ function hexToRGB(hex) {
   return Number(c)
 }
 
-function castToSass(jsValue) {
+export function castToSass(jsValue) {
   if (jsValue && typeof jsValue.toSass === 'function') {
     // string -> unquoted string
     return jsValue.toSass()
@@ -73,8 +73,4 @@ function castToSass(jsValue) {
     // WTF
     throw new Error("Don't know how to coerce: " + jsValue.toString())
   }
-}
-
-module.exports = {
-  castToSass,
 }

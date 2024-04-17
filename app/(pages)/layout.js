@@ -2,6 +2,8 @@ import { Debug } from 'components/debug'
 import { GoogleTagManager } from 'components/google-tag-manager'
 import { GSAP } from 'components/gsap'
 import { RealViewport } from 'components/real-viewport'
+import { StyleVariables } from 'libs/style-variables'
+import { colors, themes } from 'styles/config'
 import 'styles/global.scss'
 import { fonts } from '../fonts'
 
@@ -13,7 +15,9 @@ export const metadata = {
 export default async function Layout({ children }) {
   return (
     <html lang="en" className={fonts?.className}>
-      <head></head>
+      <head>
+        <StyleVariables colors={colors} themes={themes} />
+      </head>
       <body>
         <RealViewport />
         {children}

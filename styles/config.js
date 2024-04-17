@@ -38,4 +38,7 @@ const viewports = {
   },
 }
 
-module.exports = { breakpoints, colors, themes, viewports }
+const config = { breakpoints, colors, themes, viewports }
+
+export default config
+export { breakpoints, colors, themes, viewports }

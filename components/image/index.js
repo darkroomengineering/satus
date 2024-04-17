@@ -1,7 +1,7 @@
 import cn from 'clsx'
 import NextImage from 'next/image'
 import { forwardRef } from 'react'
-import variables from 'styles/config'
+import variables from 'styles/config.js'
 import s from './image.module.scss'
 
 export const Image = forwardRef(function Image(

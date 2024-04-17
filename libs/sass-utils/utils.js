@@ -1,10 +1,8 @@
-'use strict'
-
-function isSassType(value) {
+export function isSassType(value) {
   return /^Sass|sass\.types\./.exec(value.constructor.name)
 }
 
-function getSassType(value) {
+export function getSassType(value) {
   if (value.typeOf) {
     return value.typeOf()
   }
@@ -21,7 +19,3 @@ function getSassType(value) {
 
   return constructor.utilSassType
 }
-
-module.exports = {}
-module.exports.isSassType = isSassType
-module.exports.getSassType = getSassType

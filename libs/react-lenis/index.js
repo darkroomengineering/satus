@@ -1,3 +1,3 @@
 'use client'
 
-export * from '@studio-freight/react-lenis'
+export { Lenis, useLenis } from '@studio-freight/react-lenis'

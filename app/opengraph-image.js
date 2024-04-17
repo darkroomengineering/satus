@@ -40,6 +40,7 @@ export default async function Image() {
           justifyContent: 'center',
           padding: '8px 32px',
           fontFamily: 'IBM_Plex_Mono',
+          textTransform: 'uppercase',
         }}
       >
         <div

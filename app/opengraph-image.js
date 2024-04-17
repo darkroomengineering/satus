@@ -38,7 +38,7 @@ export default async function Image() {
           color: themes.red.secondary,
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '8px 32px',
+          padding: '8px 48px',
           fontFamily: 'IBM_Plex_Mono',
           textTransform: 'uppercase',
         }}

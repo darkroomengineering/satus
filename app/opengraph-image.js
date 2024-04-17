@@ -2,6 +2,8 @@ import { ImageResponse } from 'next/og'
 import { themes } from 'styles/config.js'
 import AppData from '../package.json'
 
+export const runtime = 'edge'
+
 // Image metadata
 export const alt = AppData.name
 export const size = {
@@ -11,12 +13,17 @@ export const size = {
 
 export const contentType = 'image/png'
 
+const getFont = async () => {
+  const res = await fetch(
+    new URL('fonts/IBM_Plex_Mono/IBMPlexMono-Regular.woff2', import.meta.url),
+  )
+  return await res.arrayBuffer()
+}
+
 // Image generation
 export default async function Image() {
   // Font
-  const ibmPlexMono = fetch(
-    new URL('fonts/IBM_Plex_Mono/IBMPlexMono-Regular.woff2', import.meta.url),
-  ).then((res) => res.arrayBuffer())
+  const ibmPlexMono = getFont()
 
   return new ImageResponse(
     (

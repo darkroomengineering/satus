@@ -1,4 +1,4 @@
-import { useFrame } from '@studio-freight/hamo'
+import { useFrame } from '@darkroom.engineering/hamo'
 import { useCanvas } from 'libs/webgl/components/canvas'
 import { useEffect, useMemo } from 'react'
 import _Stats from 'stats-gl'

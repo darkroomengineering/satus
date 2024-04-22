@@ -8,11 +8,16 @@ overrides:
   react: 18.2.0
   react-dom: 18.2.0
   scheduler: 0.23.0
-  '@studio-freight/tempus': 0.0.44
-  '@studio-freight/react-lenis': 0.0.47
-  '@studio-freight/hamo': 0.6.32
+  '@darkroom.engineering/tempus': 0.0.46
+  '@darkroom.engineering/hamo': 0.6.35
 
 dependencies:
+  '@darkroom.engineering/hamo':
+    specifier: 0.6.35
+    version: 0.6.35(react-dom@18.2.0)(react@18.2.0)
+  '@darkroom.engineering/tempus':
+    specifier: 0.0.46
+    version: 0.0.46
   '@ducanh2912/next-pwa':
     specifier: ^10.2.5
     version: 10.2.6(next@14.2.1)(webpack@5.91.0)
@@ -28,18 +33,6 @@ dependencies:
   '@storyblok/js':
     specifier: ^3.0.7
     version: 3.0.8
-  '@studio-freight/hamo':
-    specifier: 0.6.32
-    version: 0.6.32(react-dom@18.2.0)(react@18.2.0)
-  '@studio-freight/lenis-test':
-    specifier: 0.0.6
-    version: 0.0.6(react-dom@18.2.0)(react@18.2.0)
-  '@studio-freight/react-lenis':
-    specifier: 0.0.47
-    version: 0.0.47(react-dom@18.2.0)(react@18.2.0)
-  '@studio-freight/tempus':
-    specifier: 0.0.44
-    version: 0.0.44
   '@theatre/core':
     specifier: ^0.7.0
     version: 0.7.1
@@ -52,6 +45,9 @@ dependencies:
   gsap:
     specifier: ^3.12.5
     version: 3.12.5
+  lenis:
+    specifier: ^1.0.44
+    version: 1.0.44(react-dom@18.2.0)(react@18.2.0)
   next:
     specifier: 14.2.1
     version: 14.2.1(@babel/core@7.24.4)(react-dom@18.2.0)(react@18.2.0)(sass@1.75.0)
@@ -93,7 +89,7 @@ dependencies:
     version: 0.1.2(react@18.2.0)
   zustand:
     specifier: 4.5.2
-    version: 4.5.2(@types/react@18.2.79)(react@18.2.0)
+    version: 4.5.2(react@18.2.0)
 
 devDependencies:
   '@builder.io/partytown':
@@ -1377,6 +1373,23 @@ packages:
     resolution: {integrity: sha512-N8uEMrMPL0cu/bdboEWpQYb/0i2K5Qn8eCsxzOmxSggJbbQte7ljMRoXm917AbntqTGOzdTu+vP3KOOzoC70HQ==}
     dev: false
 
+  /@darkroom.engineering/hamo@0.6.35(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-KE+tIfly4FLGkbPNeVvuiVbiMHhjcDqSy/gNLujG1vgzCfRhCpfCcHpqoBUCnuuv71F79Ky7CGivgHAmaJzGrA==}
+    peerDependencies:
+      react: 18.2.0
+      react-dom: 18.2.0
+    dependencies:
+      '@darkroom.engineering/tempus': 0.0.46
+      just-debounce-it: 3.2.0
+      nanoevents: 9.0.0
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    dev: false
+
+  /@darkroom.engineering/tempus@0.0.46:
+    resolution: {integrity: sha512-s5vav3KMHYezvUCl4ee5epg0oimF6M8C9gAaKxFnFaTvX2q3ywFDryIv6XLd0mRFUt3S1uHDJqKaiEcs2ZVSvw==}
+    dev: false
+
   /@discoveryjs/json-ext@0.5.7:
     resolution: {integrity: sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==}
     engines: {node: '>=10.0.0'}
@@ -2296,60 +2309,6 @@ packages:
     resolution: {integrity: sha512-JY+abbswBId84Ubr0yRwNpq5Klf9546Ia2Qs1pn6en5Trz8o6EcBJIwxvR6evjJ0Vp2cLKT7MV1yfGLAtnzycA==}
     dependencies:
       storyblok-js-client: 6.7.2
-    dev: false
-
-  /@studio-freight/hamo@0.6.32(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-sSEOH91R6p2PfsMyN2xeGFWOnPRGp+Yl1Uz6uU2kuPDD6auYIWFOChzFTR7aLS+TBWIi3hodBAZhs176t+6awA==}
-    peerDependencies:
-      react: 18.2.0
-      react-dom: 18.2.0
-    dependencies:
-      '@studio-freight/tempus': 0.0.44
-      just-debounce-it: 3.2.0
-      nanoevents: 9.0.0
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-    dev: false
-
-  /@studio-freight/lenis-test@0.0.6(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-RFXHkPTlRMBTaGbGbipKBpPPUYtSVQx7/UVjXxfIprrLwmYtEmr58ykm9NORMPfgh+u29ONAtbVEx4LaYU09pw==}
-    peerDependencies:
-      react: 18.2.0
-      react-dom: 18.2.0
-    dependencies:
-      '@studio-freight/hamo': 0.6.32(react-dom@18.2.0)(react@18.2.0)
-      clsx: 2.1.0
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-      zustand: 4.5.2(@types/react@18.2.79)(react@18.2.0)
-    transitivePeerDependencies:
-      - '@types/react'
-      - immer
-    dev: false
-
-  /@studio-freight/lenis@1.0.42:
-    resolution: {integrity: sha512-HJAGf2DeM+BTvKzHv752z6Z7zy6bA643nZM7W88Ft9tnw2GsJSp6iJ+3cekjyMIWH+cloL2U9X82dKXgdU8kPg==}
-    dev: false
-
-  /@studio-freight/react-lenis@0.0.47(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-h+IAqiyiNo8mRo/CA3/sHCqX2IV0tTLyzZRWsdRaLPtM2aBaRqK0+ISYWTUmktQfcf3qvp4hsn0Oeyt9uXwLTQ==}
-    peerDependencies:
-      react: 18.2.0
-      react-dom: 18.2.0
-    dependencies:
-      '@studio-freight/hamo': 0.6.32(react-dom@18.2.0)(react@18.2.0)
-      '@studio-freight/lenis': 1.0.42
-      '@types/react': 18.2.79
-      clsx: 2.1.0
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-      zustand: 4.5.2(@types/react@18.2.79)(react@18.2.0)
-    transitivePeerDependencies:
-      - immer
-    dev: false
-
-  /@studio-freight/tempus@0.0.44:
-    resolution: {integrity: sha512-ycSc+IY3PGtj7x1KwIJ1sacceQDA6ODzwlrm/1hODADVGS0l/rE5XH9NfyaHSYVECLBnJTdrU+AJiYtd39INXg==}
     dev: false
 
   /@surma/rollup-plugin-off-main-thread@2.2.3:
@@ -5036,6 +4995,22 @@ packages:
       language-subtag-registry: 0.3.22
     dev: true
 
+  /lenis@1.0.44(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-HlH0r9APjf8eveGrUsLX5JavOFui7wfeaZauf2d8Ovphim9L4M+owlJgjmd4XN0wnl8xoeydKIzIyKOrSFk13g==}
+    peerDependencies:
+      react: 18.2.0
+      react-dom: 18.2.0
+    dependencies:
+      '@darkroom.engineering/hamo': 0.6.35(react-dom@18.2.0)(react@18.2.0)
+      clsx: 2.1.0
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+      zustand: 4.5.2(react@18.2.0)
+    transitivePeerDependencies:
+      - '@types/react'
+      - immer
+    dev: false
+
   /leven@3.1.0:
     resolution: {integrity: sha512-qsda+H8jTaUaN/x5vzW2rzc+8Rw4TAQ/4KjB46IwK5VH+IlVeeeje/EoZRpiXvIqjFgK84QffqPztGI3VBLG1A==}
     engines: {node: '>=6'}
@@ -6685,7 +6660,7 @@ packages:
   /tunnel-rat@0.1.2(react@18.2.0):
     resolution: {integrity: sha512-lR5VHmkPhzdhrM092lI2nACsLO4QubF0/yoOhzX7c+wIpbN1GjHNzCc91QlpxBi+cnx8vVJ+Ur6vL5cEoQPFpQ==}
     dependencies:
-      zustand: 4.5.2(@types/react@18.2.79)(react@18.2.0)
+      zustand: 4.5.2(react@18.2.0)
     transitivePeerDependencies:
       - '@types/react'
       - immer
@@ -7293,7 +7268,7 @@ packages:
       react: 18.2.0
     dev: false
 
-  /zustand@4.5.2(@types/react@18.2.79)(react@18.2.0):
+  /zustand@4.5.2(react@18.2.0):
     resolution: {integrity: sha512-2cN1tPkDVkwCy5ickKrI7vijSjPksFRfqS6237NzT0vqSsztTNnQdHw9mmN7uBdk3gceVXU0a+21jFzFzAc9+g==}
     engines: {node: '>=12.7.0'}
     peerDependencies:
@@ -7308,7 +7283,6 @@ packages:
       react:
         optional: true
     dependencies:
-      '@types/react': 18.2.79
       react: 18.2.0
       use-sync-external-store: 1.2.0(react@18.2.0)
     dev: false

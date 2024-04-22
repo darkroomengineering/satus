@@ -22,14 +22,13 @@
     "@react-three/drei": "^9.97.6",
     "@react-three/fiber": "^8.15.19",
     "@storyblok/js": "^3.0.7",
-    "@studio-freight/hamo": "0.6.32",
-    "@studio-freight/lenis-test": "0.0.6",
-    "@studio-freight/react-lenis": "0.0.47",
-    "@studio-freight/tempus": "^0.0.44",
+    "@darkroom.engineering/hamo": "^0.6.35",
+    "@darkroom.engineering/tempus": "^0.0.46",
     "@theatre/core": "^0.7.0",
     "@theatre/studio": "^0.7.0",
     "clsx": "^2.1.0",
     "gsap": "^3.12.5",
+    "lenis": "^1.0.44",
     "next": "14.2.1",
     "next-sitemap": "^4.2.3",
     "postprocessing": "^6.35.3",
@@ -67,9 +66,8 @@
       "react": "18.2.0",
       "react-dom": "18.2.0",
       "scheduler": "0.23.0",
-      "@studio-freight/tempus": "0.0.44",
-      "@studio-freight/react-lenis": "0.0.47",
-      "@studio-freight/hamo": "0.6.32"
+      "@darkroom.engineering/tempus": "0.0.46",
+      "@darkroom.engineering/hamo": "0.6.35"
     }
   },
   "lint-staged": {

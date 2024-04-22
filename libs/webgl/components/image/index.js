@@ -1,4 +1,4 @@
-import { useRect } from '@studio-freight/hamo'
+import { useRect } from '@darkroom.engineering/hamo'
 import { Image as NextImage } from 'components/image'
 import { useDeviceDetection } from 'hooks/use-device-detection'
 import dynamic from 'next/dynamic'

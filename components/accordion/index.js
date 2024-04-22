@@ -1,6 +1,6 @@
 'use client'
 
-import { useResizeObserver } from '@studio-freight/hamo'
+import { useResizeObserver } from '@darkroom.engineering/hamo'
 import cn from 'clsx'
 import {
   createContext,

@@ -1,4 +1,4 @@
-import { useMediaQuery } from '@studio-freight/hamo'
+import { useMediaQuery } from '@darkroom.engineering/hamo'
 import variables from 'styles/config.js'
 
 export function useDeviceDetection() {

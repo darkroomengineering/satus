@@ -1,7 +1,7 @@
 'use client'
 
+import { useFrame } from '@darkroom.engineering/hamo'
 import { OrbitControls } from '@react-three/drei'
-import { useFrame } from '@studio-freight/hamo'
 import { WebGLTunnel } from 'libs/webgl/components/tunnel'
 import { useRef } from 'react'
 

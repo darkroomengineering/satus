@@ -1,5 +1,5 @@
+import { useFrame } from '@darkroom.engineering/hamo'
 import { useThree } from '@react-three/fiber'
-import { useFrame } from '@studio-freight/hamo'
 
 export function RAF({ render = true }) {
   const { advance } = useThree()

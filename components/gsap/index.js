@@ -1,6 +1,6 @@
 'use client'
 
-import Tempus from '@studio-freight/tempus'
+import Tempus from '@darkroom.engineering/tempus'
 import gsap from 'gsap'
 import { useLayoutEffect } from 'react'
 import { ScrollTriggerConfig } from './scroll-trigger'

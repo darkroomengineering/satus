@@ -1,6 +1,6 @@
 'use client'
 
-import { useRect } from '@studio-freight/hamo'
+import { useRect } from '@darkroom.engineering/hamo'
 import { types } from '@theatre/core'
 import { SheetProvider, useSheet } from 'libs/theatre'
 import { useTheatre } from 'libs/theatre/hooks/use-theatre'

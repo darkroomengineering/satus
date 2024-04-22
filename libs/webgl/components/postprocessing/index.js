@@ -1,5 +1,5 @@
+import { useWindowSize } from '@darkroom.engineering/hamo'
 import { useFrame, useThree } from '@react-three/fiber'
-import { useWindowSize } from '@studio-freight/hamo'
 import { EffectComposer, RenderPass } from 'postprocessing'
 import { useEffect, useMemo } from 'react'
 import { HalfFloatType } from 'three'

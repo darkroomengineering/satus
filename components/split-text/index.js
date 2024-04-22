@@ -1,6 +1,6 @@
 'use client'
 
-import { useResizeObserver } from '@studio-freight/hamo'
+import { useResizeObserver } from '@darkroom.engineering/hamo'
 import { gsap } from 'gsap'
 // import { SplitText as GSAPSplitText } from 'gsap/dist/SplitText'
 import cn from 'clsx'

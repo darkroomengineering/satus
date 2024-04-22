@@ -1,6 +1,6 @@
 import { useThree } from '@react-three/fiber'
-import { useLenis } from '@studio-freight/react-lenis'
 import { useTransform } from 'hooks/use-transform'
+import { useLenis } from 'libs/lenis'
 import { useCallback, useRef } from 'react'
 import { Euler, Vector3 } from 'three'
 

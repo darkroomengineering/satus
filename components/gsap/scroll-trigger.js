@@ -2,7 +2,7 @@
 
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/all'
-import { useLenis } from 'libs/react-lenis'
+import { useLenis } from 'libs/lenis'
 import { useEffect, useLayoutEffect } from 'react'
 
 export function ScrollTriggerConfig() {

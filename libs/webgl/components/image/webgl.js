@@ -1,4 +1,4 @@
-import { useLenis } from '@studio-freight/react-lenis'
+import { useLenis } from 'libs/lenis'
 import { useTexture } from 'libs/webgl/hooks/use-texture'
 import { useWebGLRect } from 'libs/webgl/hooks/use-webgl-rect'
 import { useRef, useState } from 'react'

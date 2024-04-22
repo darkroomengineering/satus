@@ -1,7 +1,7 @@
 'use client'
 
 import { useRect } from '@darkroom.engineering/hamo'
-import { useLenis } from '@studio-freight/react-lenis'
+import { useLenis } from 'libs/lenis'
 import { mapRange } from 'libs/maths'
 import { useEffect, useRef } from 'react'
 import s from './scrollbar.module.scss'

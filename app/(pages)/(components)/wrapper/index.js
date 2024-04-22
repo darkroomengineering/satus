@@ -1,5 +1,5 @@
 import cn from 'clsx'
-import { Lenis } from 'libs/react-lenis'
+import { Lenis } from 'libs/lenis'
 import { Canvas } from 'libs/webgl/components/canvas'
 import { Footer } from '../footer'
 import { Navigation } from '../navigation'

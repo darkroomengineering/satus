@@ -8,7 +8,7 @@ Navigate to /debug/orchestra page to see the debug panel.
 
 ### Use Lenis
 
-[See documentation](https://github.com/studio-freight/lenis/tree/main/packages/react-lenis)
+[See documentation](https://github.com/darkroomengineering/lenis/blob/main/packages/react/README.md)
 
 ### Add WebGL
 

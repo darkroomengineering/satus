@@ -4,7 +4,7 @@ Satūs uses GSAP for animations
 
 ## Usage
 
-To setup GSAP in your project, you can import it like with the `<GSAP>` component, it will merge automatically merge GSAP ticker with [Tempus](https://www.npmjs.com/package/@studio-freight/tempus). If `scrollTrigger` is passed as a prop, it will also setup ScrollTrigger so it's synced with [Lenis](https://www.npmjs.com/package/@studio-freight/lenis).
+To setup GSAP in your project, you can import it like with the `<GSAP>` component, it will merge automatically merge GSAP ticker with [Tempus](https://www.npmjs.com/package/@darkroom.engineering/tempus). If `scrollTrigger` is passed as a prop, it will also setup ScrollTrigger so it's synced with [Lenis](https://www.npmjs.com/package/@darkroom.engineering/lenis).
 
 ```jsx
 <GSAP scrollTrigger />

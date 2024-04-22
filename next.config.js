@@ -1,15 +1,20 @@
-// Import statements using ECMAScript module syntax
 import DuplicatePackageCheckerPlugin from '@cerner/duplicate-package-checker-webpack-plugin'
 import bundleAnalyzer from '@next/bundle-analyzer'
 import { castToSass } from './libs/sass-utils/index.js'
 import sassVars from './styles/config.js'
 
-// Exported configuration object
+import {
+  PHASE_DEVELOPMENT_SERVER,
+  PHASE_PRODUCTION_BUILD,
+} from 'next/constants.js'
+
+/** @type {(phase: string, defaultConfig: import("next").NextConfig) => Promise<import("next").NextConfig>} */
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
     optimizeCss: true,
     nextScriptWorkers: true,
+    webpackBuildWorker: true,
   },
   compiler: {
     removeConsole: process.env.NODE_ENV !== 'development',
@@ -35,8 +40,8 @@ const nextConfig = {
   sassOptions: {
     includePaths: ['styles'],
     prependData: `
-      @import 'styles/_functions';
-    `,
+    @import 'styles/_functions';
+  `,
     functions: {
       'get($keys)': function (keys) {
         keys = keys.getValue().split('.')
@@ -48,12 +53,6 @@ const nextConfig = {
 
         return result
       },
-      // 'getColors()': function () {
-      //   return castToSass(sassVars.colors)
-      // },
-      // 'getThemes()': function () {
-      //   return castToSass(sassVars.themes)
-      // },
     },
   },
   webpack: (config, options) => {
@@ -178,8 +177,27 @@ const nextConfig = {
   },
 }
 
-const withBundleAnalyzer = bundleAnalyzer({
-  enabled: process.env.ANALYZE === 'true',
-})
+const NextApp = async (phase) => {
+  /** @type {import('next').NextConfig} */
+  const withBundleAnalyzer = bundleAnalyzer({
+    enabled: process.env.ANALYZE === 'true',
+  })
 
-export default withBundleAnalyzer(nextConfig)
+  const plugins = [withBundleAnalyzer]
+
+  if (phase === PHASE_DEVELOPMENT_SERVER || phase === PHASE_PRODUCTION_BUILD) {
+    const withSerwist = (await import('@serwist/next')).default({
+      cacheOnNavigation: true,
+      swSrc: 'app/sw.js',
+      swDest: 'public/sw.js',
+    })
+
+    plugins.push(withSerwist)
+  }
+
+  return plugins.reduce((acc, plugin) => plugin(acc), {
+    ...nextConfig,
+  })
+}
+
+export default NextApp

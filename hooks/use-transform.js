@@ -45,9 +45,26 @@ export const TransformProvider = forwardRef(function TransformProvider(
   { children },
   ref,
 ) {
+  const parentTransformRef = useRef(structuredClone(DEFAULT_TRANSFORM))
   const transformRef = useRef(structuredClone(DEFAULT_TRANSFORM))
 
-  const getTransform = useCallback(() => transformRef.current, [])
+  const getTransform = useCallback(() => {
+    const transform = structuredClone(parentTransformRef.current)
+
+    transform.translate.x += transformRef.current.translate.x
+    transform.translate.y += transformRef.current.translate.y
+    transform.translate.z += transformRef.current.translate.z
+
+    transform.rotate.x += transformRef.current.rotate.x
+    transform.rotate.y += transformRef.current.rotate.y
+    transform.rotate.z += transformRef.current.rotate.z
+
+    transform.scale.x *= transformRef.current.scale.x
+    transform.scale.y *= transformRef.current.scale.y
+    transform.scale.z *= transformRef.current.scale.z
+
+    return transform
+  }, [])
 
   const callbacksRefs = useRef([])
 
@@ -62,8 +79,8 @@ export const TransformProvider = forwardRef(function TransformProvider(
   }, [])
 
   const update = useCallback(() => {
-    callbacksRefs.current.forEach((callback) => callback(transformRef.current))
-  }, [])
+    callbacksRefs.current.forEach((callback) => callback(getTransform()))
+  }, [getTransform])
 
   const setTranslate = useCallback(
     (x = 0, y = 0, z = 0) => {
@@ -106,6 +123,18 @@ export const TransformProvider = forwardRef(function TransformProvider(
       if (!isNaN(left)) transformRef.current.clip.left = parseFloat(left)
 
       update()
+    },
+    [update],
+  )
+
+  useTransform(
+    (transform) => {
+      parentTransformRef.current = structuredClone(transform)
+      update()
+
+      // if (debug) {
+      //   console.log(parentTransformRef.current.translate)
+      // }
     },
     [update],
   )

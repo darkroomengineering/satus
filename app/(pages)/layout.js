@@ -20,7 +20,7 @@ const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS || false
 
 export const metadata = {
   metadataBase:
-    process.env.NODE_ENV === 'dev'
+    process.env.NODE_ENV === 'development'
       ? new URL(`http://localhost:${process.env.PORT || 3000}`)
       : new URL(APP_BASE_URL),
   applicationName: APP_NAME,

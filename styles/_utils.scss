@@ -17,12 +17,16 @@
 
 .mobile-only {
   @include desktop {
-    display: none;
+    display: none !important;
   }
 }
 
 .desktop-only {
   @include mobile {
-    display: none;
+    display: none !important;
   }
+}
+
+.hidden {
+  display: none !important;
 }

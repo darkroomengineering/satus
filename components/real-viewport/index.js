@@ -7,6 +7,11 @@ import { useCallback, useLayoutEffect } from 'react'
 export function RealViewport() {
   const onWindowResize = useCallback(() => {
     document.documentElement.style.setProperty(
+      '--vw',
+      document.documentElement.clientWidth * 0.01 + 'px',
+    )
+
+    document.documentElement.style.setProperty(
       '--dvh',
       window.innerHeight * 0.01 + 'px',
     )

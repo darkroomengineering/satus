@@ -1,6 +1,6 @@
 import studio from '@theatre/studio'
 import { useEffect } from 'react'
-import s from './studio.default.module.scss'
+import s from './studio.module.scss'
 
 let initialized = false
 

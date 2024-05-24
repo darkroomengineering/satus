@@ -1,3 +1,4 @@
+import '@theatre/core'
 import studio from '@theatre/studio'
 import { useEffect } from 'react'
 import s from './studio.module.scss'

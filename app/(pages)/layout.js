@@ -1,6 +1,8 @@
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google'
 import { Debug } from 'components/debug'
 import { GSAP } from 'components/gsap'
+import { TransitionProvider } from 'components/page-transition/transition-context'
+
 import { RealViewport } from 'components/real-viewport'
 import { StyleVariables } from 'libs/style-variables'
 import { colors, themes } from 'styles/config'
@@ -70,7 +72,7 @@ export default async function Layout({ children }) {
       {GTM_ID && <GoogleTagManager gtmId={GTM_ID} />}
       <body>
         <RealViewport />
-        {children}
+        <TransitionProvider>{children}</TransitionProvider>
         <Debug />
         <GSAP />
       </body>

@@ -60,12 +60,12 @@ const curtainStyles = {
   left: 0,
   width: '100%',
   height: '100%',
-  backgroundColor: '#000', // or any color you want for the curtain
+  backgroundColor: '#000',
   zIndex: 9999,
   pointerEvents: 'none',
-  transform: 'translateY(-100%)', // Ensure the curtain starts off-screen
+  transform: 'translateY(-100%)',
 }
 
 const pageStyles = {
-  opacity: 1, // Ensure the page starts visible
+  opacity: 0,
 }

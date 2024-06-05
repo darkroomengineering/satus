@@ -35,16 +35,10 @@ export const Link = forwardRef(function Link(
   { href, fallback = 'div', onClick, replace, scroll, ...props },
   ref,
 ) {
-  // eslint-disable-next-line
   const lenis = useLenis()
   const pathname = usePathname()
   const router = useRouter()
   const finishViewTransition = useSetFinishViewTransition()
-
-  if (!href || typeof href !== 'string') {
-    const Tag = fallback
-    return <Tag ref={ref} {...props} href={href} />
-  }
 
   const isExternal = href.startsWith('http')
 
@@ -55,7 +49,6 @@ export const Link = forwardRef(function Link(
 
   const isAnchor = href.startsWith('#') || href.startsWith(`${pathname}#`)
 
-  // eslint-disable-next-line
   const handleClick = useCallback(
     (e) => {
       if (props.onClick) {
@@ -87,8 +80,22 @@ export const Link = forwardRef(function Link(
         }
       }
     },
-    [props.onClick, href, replace, scroll],
+    [
+      href,
+      replace,
+      scroll,
+      lenis,
+      finishViewTransition,
+      router,
+      isAnchor,
+      props,
+    ],
   )
+
+  if (!href || typeof href !== 'string') {
+    const Tag = fallback
+    return <Tag ref={ref} {...props} href={href} />
+  }
 
   return <NextLink ref={ref} onClick={handleClick} {...props} href={href} />
 })

@@ -1,6 +1,8 @@
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google'
 import { Debug } from 'components/debug'
 import { GSAP } from 'components/gsap'
+import { TransitionProvider } from 'components/page-transition/transition-context'
+
 import { RealViewport } from 'components/real-viewport'
 import { StyleVariables } from 'libs/style-variables'
 import { colors, themes } from 'styles/config'
@@ -63,18 +65,20 @@ export const viewport = {
 
 export default async function Layout({ children }) {
   return (
-    <html lang="en" dir="ltr" className={fonts?.className}>
-      <head>
-        <StyleVariables colors={colors} themes={themes} />
-      </head>
-      {GTM_ID && <GoogleTagManager gtmId={GTM_ID} />}
-      <body>
-        <RealViewport />
-        {children}
-        <Debug />
-        <GSAP />
-      </body>
-      {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
-    </html>
+    <TransitionProvider>
+      <html lang="en" dir="ltr" className={fonts?.className}>
+        <head>
+          <StyleVariables colors={colors} themes={themes} />
+        </head>
+        {GTM_ID && <GoogleTagManager gtmId={GTM_ID} />}
+        <body>
+          <RealViewport />
+          {children}
+          <Debug />
+          <GSAP />
+        </body>
+        {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
+      </html>
+    </TransitionProvider>
   )
 }

@@ -35,6 +35,7 @@ export const Link = forwardRef(function Link(
   { href, fallback = 'div', onClick, replace, scroll, ...props },
   ref,
 ) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const lenis = useLenis()
   const pathname = usePathname()
   const router = useRouter()

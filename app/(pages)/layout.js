@@ -8,6 +8,7 @@ import AppData from '../../package.json'
 
 import 'styles/global.scss'
 import { fonts } from '../fonts'
+import { TransitionProvider } from './(components)/page-transition/transition.context'
 
 const APP_NAME = AppData.name
 const APP_DEFAULT_TITLE = 'Satūs'
@@ -70,7 +71,7 @@ export default async function Layout({ children }) {
       {GTM_ID && <GoogleTagManager gtmId={GTM_ID} />}
       <body>
         <RealViewport />
-        {children}
+        <TransitionProvider>{children}</TransitionProvider>
         <Debug />
         <GSAP />
       </body>

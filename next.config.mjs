@@ -1,14 +1,14 @@
 import DuplicatePackageCheckerPlugin from '@cerner/duplicate-package-checker-webpack-plugin'
 import bundleAnalyzer from '@next/bundle-analyzer'
+import withSerwistInit from '@serwist/next'
 import { castToSass } from './libs/sass-utils/index.js'
 import sassVars from './styles/config.js'
 
-import {
-  PHASE_DEVELOPMENT_SERVER,
-  PHASE_PRODUCTION_BUILD,
-} from 'next/constants.js'
+const withSerwist = withSerwistInit({
+  swSrc: 'app/sw.js',
+  swDest: 'public/sw.js',
+})
 
-/** @type {(phase: string, defaultConfig: import("next").NextConfig) => Promise<import("next").NextConfig>} */
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
@@ -178,22 +178,11 @@ const nextConfig = {
 }
 
 const NextApp = async (phase) => {
-  /** @type {import('next').NextConfig} */
   const withBundleAnalyzer = bundleAnalyzer({
     enabled: process.env.ANALYZE === 'true',
   })
 
-  const plugins = [withBundleAnalyzer]
-
-  if (phase === PHASE_DEVELOPMENT_SERVER || phase === PHASE_PRODUCTION_BUILD) {
-    const withSerwist = (await import('@serwist/next')).default({
-      cacheOnNavigation: true,
-      swSrc: 'app/sw.js',
-      swDest: 'public/sw.js',
-    })
-
-    plugins.push(withSerwist)
-  }
+  const plugins = [withBundleAnalyzer, withSerwist]
 
   return plugins.reduce((acc, plugin) => plugin(acc), {
     ...nextConfig,

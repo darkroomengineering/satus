@@ -1,29 +1,37 @@
 import cn from 'clsx'
 import { Lenis } from 'libs/lenis'
 import { Canvas } from 'libs/webgl/components/canvas'
+import { forwardRef } from 'react'
 import { Footer } from '../footer'
 import { Navigation } from '../navigation'
 import s from './wrapper.module.scss'
 
-export function Wrapper({
-  children,
-  theme = 'light',
-  lenis = true,
-  lenisOptions = {},
-  webgl = false,
-  className,
-}) {
-  return (
-    <>
-      {lenis && <Lenis root options={lenisOptions} />}
-      {webgl && <Canvas root />}
-      <div className={cn(s.wrapper, `theme-${theme}`, className)}>
-        <Navigation />
-        <main role="main" className={s.main}>
-          {children}
-        </main>
-        <Footer />
-      </div>
-    </>
-  )
-}
+export const Wrapper = forwardRef(
+  (
+    {
+      children,
+      theme = 'light',
+      lenis = true,
+      lenisOptions = {},
+      webgl = false,
+      className,
+    },
+    ref,
+  ) => {
+    return (
+      <>
+        {lenis && <Lenis root options={lenisOptions} />}
+        <div className={cn(s.wrapper, `theme-${theme}`, className)}>
+          <Navigation />
+          <main ref={ref} role="main" className={s.main}>
+            {webgl && <Canvas root />}
+            {children}
+          </main>
+          <Footer />
+        </div>
+      </>
+    )
+  },
+)
+
+Wrapper.displayName = 'Wrapper'

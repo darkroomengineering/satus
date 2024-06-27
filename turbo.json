@@ -4,7 +4,19 @@
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
-      "cache": false
+      "cache": false,
+      "env": [
+        "STORYBLOK_PUBLIC_ACCESS_TOKEN",
+        "STORYBLOK_PREVIEW_ACCESS_TOKEN",
+        "SHOPIFY_STOREFRONT_ACCESS_TOKEN",
+        "SHOPIFY_STORE_DOMAIN",
+        "NEXT_PUBLIC_HUSBPOT_PORTAL_ID",
+        "NEXT_HUSBPOT_FORM_ID",
+        "HUBSPOT_ACCESS_TOKEN",
+        "NEXT_PUBLIC_BASE_URL",
+        "DRAFT_MODE_TOKEN",
+        "GSAP_AUTH_TOKEN"
+      ]
     },
     "lint": {},
     "dev": {

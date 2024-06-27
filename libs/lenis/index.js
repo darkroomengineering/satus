@@ -1,3 +1,3 @@
 'use client'
 
-export { Lenis, useLenis } from 'lenis/react'
+export { Lenis, ReactLenis, useLenis } from 'lenis/react'

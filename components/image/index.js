@@ -1,3 +1,5 @@
+'use client'
+
 import cn from 'clsx'
 import NextImage from 'next/image'
 import { forwardRef } from 'react'
@@ -19,6 +21,8 @@ export const Image = forwardRef(function Image(
     mobileSize = '100vw',
     desktopSize = '100vw',
     sizes = `(max-width: ${parseFloat(variables.breakpoints.mobile)}px) ${mobileSize}, ${desktopSize}`,
+    src,
+    unoptimized,
     ...props
   },
   ref,
@@ -38,6 +42,10 @@ export const Image = forwardRef(function Image(
       }}
       className={cn(className, block && s.block)}
       sizes={sizes}
+      src={src}
+      unoptimized={unoptimized ?? src?.includes('.svg')}
+      draggable="false"
+      onDragStart={(e) => e.preventDefault()}
       {...props}
     />
   )

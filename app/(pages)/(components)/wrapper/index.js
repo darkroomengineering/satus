@@ -1,7 +1,7 @@
 import cn from 'clsx'
-import { Lenis } from 'libs/lenis'
 import { Canvas } from 'libs/webgl/components/canvas'
 import { Footer } from '../footer'
+import { Lenis } from '../lenis'
 import { Navigation } from '../navigation'
 import s from './wrapper.module.scss'
 

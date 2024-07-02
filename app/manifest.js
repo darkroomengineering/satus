@@ -8,8 +8,8 @@ export default function manifest() {
     description: AppData.description,
     start_url: '/',
     display: 'standalone',
-    background_color: themes.red.primary,
-    theme_color: themes.red.contrast,
+    background_color: themes.light.primary,
+    theme_color: themes.light.contrast,
     icons: [
       {
         src: '/icon',

@@ -5,6 +5,7 @@
   "private": true,
   "license": "MIT",
   "type": "module",
+  "packageManager": "pnpm@9.4.0",
   "scripts": {
     "dev:storyblok": "npm-run-all -p dev https",
     "dev": "next dev",
@@ -29,7 +30,7 @@
     "@theatre/studio": "^0.7.2",
     "clsx": "^2.1.1",
     "gsap": "^3.12.5",
-    "lenis": "^1.1.3",
+    "lenis": "1.1.4",
     "next": "14.2.4",
     "next-sitemap": "^4.2.3",
     "postprocessing": "^6.35.5",

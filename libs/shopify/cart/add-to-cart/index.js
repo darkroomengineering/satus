@@ -2,38 +2,38 @@
 
 import cn from 'clsx'
 import { addItem } from 'libs/shopify/cart/actions'
-import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef } from 'react'
 import { useFormState, useFormStatus } from 'react-dom'
 import { useCartModal } from '../modal'
 import s from './add-to-cart.module.scss'
 
-export function AddToCart({ variants, className }) {
+export function AddToCart({ variant, className }) {
   // eslint-disable-next-line no-unused-vars
   const [_, formAction] = useFormState(addItem, null)
-  const searchParams = useSearchParams()
 
-  const defaultVariantId = variants.length === 1 ? variants[0]?.id : undefined
-  const variant = variants.find((variant) =>
-    variant.selectedOptions.every(
-      (option) => option.value === searchParams.get(option.name.toLowerCase()),
-    ),
-  )
-  const selectedVariantId = variant?.id || defaultVariantId
-  const actionWithVariant = formAction.bind(null, selectedVariantId)
+  const actionWithVariant = formAction.bind(null, variant?.id)
+  const buttonState = variant
+    ? `${variant?.price?.amount}$ - ADD TO CART`
+    : 'Select a size'
 
   return (
     <form action={actionWithVariant} className={className}>
       <ActionButton
         aria-label="Add to cart"
-        defaultState={`${variants[0]?.price?.amount}$ - ADD TO CART`}
+        defaultState={buttonState}
         pendingState="ADDING TO CART"
+        disabled={!variant}
       />
     </form>
   )
 }
 
-function ActionButton({ defaultState, pendingState, ...props }) {
+function ActionButton({
+  defaultState,
+  pendingState,
+  disabled = false,
+  ...props
+}) {
   const pendingStartRef = useRef(false)
   const { pending = false } = useFormStatus()
   const openCart = useCartModal()
@@ -59,7 +59,7 @@ function ActionButton({ defaultState, pendingState, ...props }) {
       }}
       aria-disabled={pending}
       {...props}
-      className={cn(s.cta, pending && s.disable)}
+      className={cn(s.cta, pending && s.disable, disabled && s.disable)}
     >
       {pending ? pendingState : defaultState}
     </button>

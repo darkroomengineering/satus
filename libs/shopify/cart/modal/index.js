@@ -2,6 +2,7 @@
 
 import cn from 'clsx'
 import { Image } from 'components/image'
+import { Link } from 'components/link'
 import { useBeforeUnload } from 'libs/shopify/hooks'
 import { createContext, useContext, useOptimistic, useState } from 'react'
 import { useFormStatus } from 'react-dom'
@@ -80,9 +81,9 @@ function InnerCart({ cart }) {
           <p>sub total</p>
           <p>$ {cart?.cost?.subtotalAmount?.amount}</p>
         </div>
-        <a className={s.action} href={cart?.checkoutUrl}>
+        <Link className={s.action} href={cart?.checkoutUrl}>
           <span> checkout</span>
-        </a>
+        </Link>
       </div>
     </>
   )

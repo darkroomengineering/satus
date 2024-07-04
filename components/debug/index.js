@@ -22,6 +22,13 @@ const GridDebugger = dynamic(
   },
 )
 
+const CMDKDebug = dynamic(
+  () => import('libs/orchestra/cmdk').then(({ CMDKDebug }) => CMDKDebug),
+  {
+    ssr: false,
+  },
+)
+
 export function Debug() {
   const { stats, grid, studio, dev } = useOrchestra()
 
@@ -34,6 +41,7 @@ export function Debug() {
       {studio && <Studio />}
       {stats && <Stats />}
       {grid && <GridDebugger />}
+      <CMDKDebug />
     </>
   )
 }

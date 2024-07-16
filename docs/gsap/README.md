@@ -12,7 +12,7 @@ To setup GSAP in your project, you can import it like with the `<GSAP>` componen
 
 ## Business
 
-[GSAP Business](https://gsap.com/pricing/) is a paid version of GSAP that includes extra plugins. To install it, you'll need an auth token from GSAP. Satūs provides you way to install it easily so it works on both server and development environment while keeping your token safe.
+[GSAP Business](https://gsap.com/pricing/) is a paid version of GSAP that includes extra plugins. To install it, you'll need an auth token from GSAP. Satūs provides you way to install it easily so it works on both production and development environment while keeping your token safe.
 
 You need to add your GSAP token to your `.env` file:
 `GSAP_AUTH_TOKEN=your-gsap-auth-token`

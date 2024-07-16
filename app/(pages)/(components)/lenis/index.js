@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactLenis } from 'libs/lenis'
+import { ReactLenis } from 'lenis/react'
 
 export function Lenis({ root, options }) {
   return (
@@ -9,7 +9,6 @@ export function Lenis({ root, options }) {
       options={{
         ...options,
         prevent: (node) => {
-          console.log(node.id)
           return (
             node.nodeName === 'VERCEL-LIVE-FEEDBACK' ||
             node.id === 'theatrejs-studio-root'

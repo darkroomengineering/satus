@@ -55,6 +55,9 @@ export const metadata = {
     },
     description: APP_DESCRIPTION,
   },
+  authors: [
+    { name: 'darkroom.engineering', url: 'https://darkroom.engineering' },
+  ],
 }
 
 export const viewport = {

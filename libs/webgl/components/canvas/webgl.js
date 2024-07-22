@@ -6,13 +6,7 @@ import { RAF } from '../raf'
 import { useCanvas } from './'
 import s from './webgl.module.scss'
 
-// function StateListener({ onChange }) {
-//   const state = useThree()
-
-//   onChange?.(state)
-// }
-
-export function WebGLCanvas({ render = true, _ref }) {
+export function WebGLCanvas({ render = true }) {
   const { WebGLTunnel, DOMTunnel } = useCanvas()
 
   return (
@@ -34,8 +28,6 @@ export function WebGLCanvas({ render = true, _ref }) {
         flat
         eventSource={document.documentElement}
         eventPrefix="client"
-        ref={_ref}
-        // onCreated={onCreated}
       >
         {/* <StateListener onChange={onChange} /> */}
         <SheetProvider id="webgl">

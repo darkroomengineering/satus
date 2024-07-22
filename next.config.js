@@ -177,6 +177,7 @@ const nextConfig = {
   },
 }
 
+// eslint-disable-next-line no-unused-vars
 const NextApp = async (phase) => {
   /** @type {import('next').NextConfig} */
   const withBundleAnalyzer = bundleAnalyzer({

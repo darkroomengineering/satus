@@ -22,8 +22,15 @@ const GridDebugger = dynamic(
   },
 )
 
+const Minimap = dynamic(
+  () => import('libs/orchestra/minimap').then(({ Minimap }) => Minimap),
+  {
+    ssr: false,
+  },
+)
+
 export function Debug() {
-  const { stats, grid, studio, dev } = useOrchestra()
+  const { stats, grid, studio, dev, minimap } = useOrchestra()
 
   useEffect(() => {
     document.documentElement.classList.toggle('dev', Boolean(dev))
@@ -34,6 +41,7 @@ export function Debug() {
       {studio && <Studio />}
       {stats && <Stats />}
       {grid && <GridDebugger />}
+      {minimap && <Minimap />}
     </>
   )
 }

@@ -20,7 +20,6 @@ export const CanvasContext = createContext({})
 export function Canvas({ children, root = false }) {
   const [WebGLTunnel] = useState(() => new tunnel())
   const [DOMTunnel] = useState(() => new tunnel())
-  // const [state, setState] = useState()
 
   const { isWebGL } = useDeviceDetection()
 
@@ -36,13 +35,7 @@ export function Canvas({ children, root = false }) {
 
   return (
     <CanvasContext.Provider value={isWebGL ? { WebGLTunnel, DOMTunnel } : {}}>
-      {isWebGL && (
-        <WebGLCanvas
-        // onChange={(state) => {
-        //   if (root) setState(state)
-        // }}
-        />
-      )}
+      {isWebGL && <WebGLCanvas />}
       {children}
     </CanvasContext.Provider>
   )

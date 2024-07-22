@@ -15,7 +15,9 @@
     "lint": "next lint",
     "analyze": "cross-env ANALYZE=true next build",
     "prepare": "husky",
-    "npmrc": "npx npmrc-replace-env -w"
+    "npmrc": "npx npmrc-replace-env -w",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@darkroom.engineering/hamo": "0.6.42",
@@ -29,6 +31,7 @@
     "@theatre/studio": "^0.7.2",
     "clsx": "^2.1.1",
     "gsap": "^3.12.5",
+    "just-modulo": "^2.2.0",
     "lenis": "1.1.4",
     "next": "14.2.4",
     "next-sitemap": "^4.2.3",
@@ -48,19 +51,30 @@
   "devDependencies": {
     "@builder.io/partytown": "^0.10.2",
     "@cerner/duplicate-package-checker-webpack-plugin": "^2.6.0",
+    "@chromatic-com/storybook": "1.6.1",
     "@next/bundle-analyzer": "^14.2.4",
     "@next/eslint-plugin-next": "^14.2.4",
+    "@storybook/addon-essentials": "^8.2.5",
+    "@storybook/addon-interactions": "^8.2.5",
+    "@storybook/addon-links": "^8.2.5",
+    "@storybook/addon-onboarding": "^8.2.5",
+    "@storybook/blocks": "^8.2.5",
+    "@storybook/nextjs": "^8.2.5",
+    "@storybook/react": "^8.2.5",
+    "@storybook/test": "^8.2.5",
     "@svgr/webpack": "^8.1.0",
     "critters": "^0.0.22",
     "cross-env": "^7.0.3",
     "eslint-config-next": "^14.2.4",
     "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-storybook": "^0.8.0",
     "husky": "^9.0.11",
     "local-ssl-proxy": "^2.0.5",
     "npm-run-all": "^4.1.5",
     "npmrc-replace-env": "^1.1.4",
     "prettier": "^3.3.2",
-    "serwist": "9.0.3"
+    "serwist": "9.0.3",
+    "storybook": "^8.2.5"
   },
   "pnpm": {
     "overrides": {

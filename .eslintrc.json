@@ -1,6 +1,12 @@
 {
-  "extends": ["next/core-web-vitals", "prettier"],
-  "ignorePatterns": ["**/public/*.js"],
+  "extends": [
+    "next/core-web-vitals",
+    "prettier",
+    "plugin:storybook/recommended"
+  ],
+  "ignorePatterns": [
+    "**/public/*.js"
+  ],
   "rules": {
     "no-unused-vars": "error",
     "react/no-unescaped-entities": "off",
@@ -14,8 +20,12 @@
     "jsx-a11y/control-has-associated-label": [
       "warn",
       {
-        "labelAttributes": ["label"],
-        "controlComponents": ["Link, Button"],
+        "labelAttributes": [
+          "label"
+        ],
+        "controlComponents": [
+          "Link, Button"
+        ],
         "ignoreElements": [
           "audio",
           "canvas",

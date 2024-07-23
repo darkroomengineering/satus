@@ -1,0 +1,48 @@
+.fold {
+  &:not(.isDisabled) {
+    position: relative;
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-color: var(--theme-primary);
+      opacity: 0;
+    }
+
+    .sticky {
+      min-height: 100svh;
+      position: sticky;
+    }
+
+    &.isBottom {
+      margin-bottom: -100svh;
+
+      &::before {
+        content: '';
+        display: block;
+        min-height: 100svh;
+        visibility: hidden;
+      }
+
+      .sticky {
+        bottom: 0;
+      }
+    }
+
+    &.isTop {
+      margin-top: -100svh;
+
+      &::after {
+        content: '';
+        display: block;
+        min-height: 100svh;
+        visibility: hidden;
+      }
+
+      .sticky {
+        top: 0;
+      }
+    }
+  }
+}

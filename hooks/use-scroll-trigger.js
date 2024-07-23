@@ -106,7 +106,7 @@ export function useScrollTrigger(
     end = 'top top', // top of the element meets the top of the viewport
     id = '',
     offset = 0,
-    enabled = true,
+    disabled = false,
     markers,
     onEnter,
     onLeave,
@@ -230,7 +230,7 @@ export function useScrollTrigger(
 
   const update = useCallback(
     () => {
-      if (!enabled) return
+      if (disabled) return
 
       const scroll = Math.floor(lenis?.scroll)
       const { translate } = getTransform()
@@ -248,7 +248,7 @@ export function useScrollTrigger(
       setProgress(progress)
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [lenis, rect, getTransform, startValue, endValue, enabled, steps, ...deps],
+    [lenis, rect, getTransform, startValue, endValue, disabled, steps, ...deps],
   )
 
   useLenis(update, [update])

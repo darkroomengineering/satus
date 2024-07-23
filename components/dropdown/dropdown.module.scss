@@ -7,72 +7,50 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 mobile-vw(18px);
-    padding: mobile-vw(7px) mobile-vw(12px);
+    padding: mobile-vw(8px) mobile-vw(12px);
     border-radius: mobile-vw(8px);
-    border: 2px solid var(--black);
+    border: 1px solid var(--theme-secondary);
+    background-color: var(--theme-primary);
 
     @include desktop {
-      padding: desktop-vw(7px) desktop-vw(12px);
+      padding: desktop-vw(8px) desktop-vw(12px);
       border-radius: desktop-vw(8px);
-    }
-
-    &::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 100%;
-      height: 100%;
-      background-color: var(--black);
-      clip-path: circle(0%);
     }
   }
 
   .options {
     position: absolute;
-    inset: 0;
     top: calc(100% + mobile-vw(4px));
     display: flex;
     flex-direction: column;
     align-items: center;
     z-index: 1;
+    min-width: 100%;
+    background-color: var(--theme-primary);
+    border: 1px solid var(--theme-secondary);
+    border-radius: mobile-vw(8px);
+    overflow: clip;
+    padding: mobile-vw(4px);
 
     @include desktop {
+      border-radius: desktop-vw(8px);
       top: calc(100% + desktop-vw(4px));
+      padding: desktop-vw(4px);
     }
 
     .option {
-      background-color: var(--theme-secondary);
-      color: var(--theme-primary);
-      width: 100%;
-      padding: mobile-vw(7px) mobile-vw(12px);
+      color: var(--theme-secondary);
+      padding: mobile-vw(8px) mobile-vw(12px);
       position: relative;
       text-align: center;
-
-      &:first-of-type {
-        border-top-left-radius: mobile-vw(8px);
-        border-top-right-radius: mobile-vw(8px);
-
-        @include desktop {
-          border-top-left-radius: desktop-vw(8px);
-          border-top-right-radius: desktop-vw(8px);
-        }
-      }
-
-      &:last-of-type {
-        border-bottom-left-radius: mobile-vw(8px);
-        border-bottom-right-radius: mobile-vw(8px);
-
-        @include desktop {
-          border-bottom-left-radius: desktop-vw(8px);
-          border-bottom-right-radius: desktop-vw(8px);
-        }
-      }
+      white-space: nowrap;
+      display: block;
+      width: 100%;
+      border-radius: mobile-vw(4px);
 
       @include desktop {
-        padding: desktop-vw(7px) desktop-vw(12px);
+        padding: desktop-vw(8px) desktop-vw(12px);
+        border-radius: desktop-vw(4px);
       }
 
       @include hover {

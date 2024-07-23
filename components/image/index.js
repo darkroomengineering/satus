@@ -2,6 +2,7 @@
 
 import cn from 'clsx'
 import NextImage from 'next/image'
+import PropTypes from 'prop-types'
 import { forwardRef } from 'react'
 import variables from 'styles/config.js'
 import s from './image.module.scss'
@@ -14,23 +15,28 @@ export const Image = forwardRef(function Image(
     objectFit = 'cover',
     quality = 90,
     alt = '',
-    block,
-    width = block && 1,
-    height = block && 1,
-    fill = typeof width === 'undefined' || typeof height === 'undefined',
+    block = true,
+    width = block ? 1 : undefined,
+    height = block ? 1 : undefined,
     mobileSize = '100vw',
     desktopSize = '100vw',
-    sizes = `(max-width: ${parseFloat(variables.breakpoints.mobile)}px) ${mobileSize}, ${desktopSize}`,
+    sizes,
     src,
     unoptimized,
     ...props
   },
   ref,
 ) {
+  console.log(mobileSize, sizes)
+
+  sizes =
+    sizes ||
+    `(max-width: ${parseFloat(variables.breakpoints.mobile)}px) ${mobileSize}, ${desktopSize}`
+
   return (
     <NextImage
       ref={ref}
-      fill={fill}
+      fill={!block}
       width={width}
       height={height}
       loading={loading}
@@ -50,3 +56,32 @@ export const Image = forwardRef(function Image(
     />
   )
 })
+
+Image.propTypes = {
+  src: PropTypes.string.isRequired,
+  alt: PropTypes.string,
+  width: PropTypes.number,
+  height: PropTypes.number,
+  quality: PropTypes.number,
+  objectFit: PropTypes.string,
+  loading: PropTypes.string,
+  unoptimized: PropTypes.bool,
+  block: PropTypes.bool,
+  mobileSize: PropTypes.string,
+  desktopSize: PropTypes.string,
+  sizes: PropTypes.string,
+}
+
+Image.defaultProps = {
+  alt: '',
+  width: undefined,
+  height: undefined,
+  quality: 90,
+  objectFit: 'cover',
+  loading: 'eager',
+  unoptimized: false,
+  block: true,
+  mobileSize: '100vw',
+  desktopSize: '100vw',
+  sizes: '',
+}

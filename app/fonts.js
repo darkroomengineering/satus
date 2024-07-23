@@ -6,7 +6,7 @@ import localFont from 'next/font/local'
 const ibmPlexMono = localFont({
   src: [
     {
-      path: './fonts/IBM_Plex_Mono/IBMPlexMono-Medium.woff2',
+      path: '../public/fonts/IBM_Plex_Mono/IBMPlexMono-Medium.woff2',
       weight: '400',
       style: 'normal',
     },

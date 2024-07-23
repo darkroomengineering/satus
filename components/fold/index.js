@@ -25,11 +25,9 @@ export function Fold({
   const foldRef = useRef()
   const { height: windowHeight } = useWindowSize()
   const [setRectRef, rect] = useRect({
-    ignoreTransform: true,
-    ignoreSticky: true,
+    // ignoreTransform: true,
+    // ignoreSticky: true,
   })
-
-  // const transformProviderRef = useRef()
 
   const overlayRef = useRef()
   const stickyRef = useRef()

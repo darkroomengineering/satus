@@ -20,7 +20,7 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@darkroom.engineering/hamo": "0.6.44",
+    "@darkroom.engineering/hamo": "0.6.45",
     "@darkroom.engineering/tempus": "0.0.46",
     "@next/third-parties": "^14.2.4",
     "@react-three/drei": "^9.107.0",

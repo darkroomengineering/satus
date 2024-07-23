@@ -2,17 +2,33 @@
   &:not(.isDisabled) {
     position: relative;
 
-    .overlay {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background-color: var(--theme-primary);
-      opacity: 0;
+    &.isOverlay {
+      .overlay {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background-color: var(--theme-primary);
+        opacity: var(--progress, 0);
+      }
     }
 
     .sticky {
       min-height: 100svh;
       position: sticky;
+    }
+
+    &.isParallax {
+      &.isBottom {
+        .sticky {
+          transform: translate3d(0, calc(-5svh * var(--progress, 0)), 0);
+        }
+      }
+
+      &.isTop {
+        .sticky {
+          transform: translate3d(0, calc(5svh * var(--progress, 0)), 0);
+        }
+      }
     }
 
     &.isBottom {

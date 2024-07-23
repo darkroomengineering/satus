@@ -19,35 +19,48 @@ export function Fold({
   disabled = false,
   type = 'bottom',
   overlay = true,
+  parallax = true,
   ...props
 }) {
   const foldRef = useRef()
   const { height: windowHeight } = useWindowSize()
   const [setRectRef, rect] = useRect({
-    ignoreTransform: false,
+    ignoreTransform: true,
     ignoreSticky: true,
   })
 
   // const transformProviderRef = useRef()
 
   const overlayRef = useRef()
+  const stickyRef = useRef()
 
   useScrollTrigger({
     start: `${rect.top} top`,
     end: `${rect.top + windowHeight} top`,
-    disabled: disabled || type === 'bottom' || !overlay,
+    disabled: disabled || type === 'bottom',
     onProgress: ({ progress }) => {
-      console.log(progress)
-      overlayRef.current.style.setProperty('opacity', 1 - progress)
+      if (overlayRef.current) {
+        overlayRef.current.style.setProperty('--progress', 1 - progress)
+      }
+
+      if (stickyRef.current) {
+        stickyRef.current.style.setProperty('--progress', 1 - progress)
+      }
     },
   })
 
   useScrollTrigger({
     start: `${rect.bottom - windowHeight} bottom`,
     end: `${rect.bottom} bottom`,
-    disabled: disabled || type === 'top' || !overlay,
+    disabled: disabled || type === 'top',
     onProgress: ({ progress }) => {
-      overlayRef.current.style.setProperty('opacity', progress)
+      if (overlayRef.current) {
+        overlayRef.current.style.setProperty('--progress', progress)
+      }
+
+      if (stickyRef.current) {
+        stickyRef.current.style.setProperty('--progress', progress)
+      }
     },
   })
 
@@ -64,12 +77,16 @@ export function Fold({
           disabled && s.isDisabled,
           type === 'bottom' && s.isBottom,
           type === 'top' && s.isTop,
+          overlay && s.isOverlay,
+          parallax && s.isParallax,
           className,
         )}
         {...props}
       >
-        <div className={cn(s.sticky)}>{children}</div>
-        {overlay && <div className={s.overlay} ref={overlayRef} />}
+        <div className={cn(s.sticky)} ref={stickyRef}>
+          {children}
+        </div>
+        <div className={s.overlay} ref={overlayRef} />
       </div>
     </FoldContext.Provider>
     // </TransformProvider>
@@ -81,10 +98,12 @@ Fold.propTypes = {
   disabled: PropTypes.bool,
   type: PropTypes.oneOf(['top', 'bottom']),
   overlay: PropTypes.bool,
+  parallax: PropTypes.bool,
 }
 
 Fold.defaultProps = {
   disabled: false,
   type: 'bottom',
   overlay: true,
+  parallax: true,
 }

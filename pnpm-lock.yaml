@@ -14,8 +14,8 @@ importers:
   .:
     dependencies:
       '@darkroom.engineering/hamo':
-        specifier: 0.6.42
-        version: 0.6.42(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: 0.6.44
+        version: 0.6.44(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@darkroom.engineering/tempus':
         specifier: 0.0.46
         version: 0.0.46
@@ -875,8 +875,8 @@ packages:
   '@corex/deepmerge@4.0.43':
     resolution: {integrity: sha512-N8uEMrMPL0cu/bdboEWpQYb/0i2K5Qn8eCsxzOmxSggJbbQte7ljMRoXm917AbntqTGOzdTu+vP3KOOzoC70HQ==}
 
-  '@darkroom.engineering/hamo@0.6.42':
-    resolution: {integrity: sha512-0gCcAF/3yUzmxNrafL7Gzho8obXTrYQBnxYMKdoXtM9PfHIPB0QvJQRIss2CG+8zVazT6JHmwPKQviykok+g0g==}
+  '@darkroom.engineering/hamo@0.6.44':
+    resolution: {integrity: sha512-Y7W8Cq5Mbovv3SkVgciUtcTrgL12G03LwK2+tDqHSPqn6rrobA7ZZPpUxkUJLh9df8vuZrcOHusM6qj+W5JdPA==}
     peerDependencies:
       react: '>=17.0.0'
       react-dom: '>=17.0.0'
@@ -6760,7 +6760,7 @@ snapshots:
 
   '@corex/deepmerge@4.0.43': {}
 
-  '@darkroom.engineering/hamo@0.6.42(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@darkroom.engineering/hamo@0.6.44(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@darkroom.engineering/tempus': 0.0.46
       just-debounce-it: 3.2.0

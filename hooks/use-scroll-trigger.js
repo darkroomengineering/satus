@@ -5,7 +5,7 @@ import { useTransform } from 'hooks/use-transform'
 import { useLenis } from 'lenis/react'
 import { clamp, mapRange } from 'libs/maths'
 import { useMinimap } from 'libs/orchestra/minimap'
-import { useCallback, useLayoutEffect, useRef } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { useLazyState } from './use-lazy-state'
 
 // @refresh reset
@@ -232,7 +232,14 @@ export function useScrollTrigger(
     () => {
       if (disabled) return
 
-      const scroll = Math.floor(lenis?.scroll)
+      let scroll
+
+      if (lenis) {
+        scroll = Math.floor(lenis?.scroll)
+      } else {
+        scroll = window.scrollY
+      }
+
       const { translate } = getTransform()
 
       if (viewportMarkerStart) viewportMarkerStart.top(viewportStart)
@@ -252,5 +259,17 @@ export function useScrollTrigger(
   )
 
   useLenis(update, [update])
+
+  useEffect(() => {
+    if (lenis) return
+
+    update()
+    window.addEventListener('scroll', update, false)
+
+    return () => {
+      window.removeEventListener('scroll', update, false)
+    }
+  }, [lenis, update])
+
   useTransform(update, [update])
 }

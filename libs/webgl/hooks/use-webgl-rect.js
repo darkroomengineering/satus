@@ -1,7 +1,7 @@
 import { useThree } from '@react-three/fiber'
 import { useTransform } from 'hooks/use-transform'
 import { useLenis } from 'libs/lenis'
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { Euler, Vector3 } from 'three'
 
 export function useWebGLRect(rect, onUpdate) {
@@ -22,7 +22,13 @@ export function useWebGLRect(rect, onUpdate) {
   const update = useCallback(() => {
     const { translate, scale } = getTransform()
 
-    const scroll = Math.floor(lenis?.scroll || 0)
+    let scroll
+
+    if (lenis) {
+      scroll = Math.floor(lenis?.scroll)
+    } else {
+      scroll = window.scrollY
+    }
 
     const transform = transformRef.current
 
@@ -41,6 +47,17 @@ export function useWebGLRect(rect, onUpdate) {
 
   useTransform(update, [update])
   useLenis(update, [update])
+
+  useEffect(() => {
+    if (lenis) return
+
+    update()
+    window.addEventListener('scroll', update, false)
+
+    return () => {
+      window.removeEventListener('scroll', update, false)
+    }
+  }, [lenis, update])
 
   const get = useCallback(() => transformRef.current, [])
 

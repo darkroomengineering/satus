@@ -6,11 +6,11 @@ import { RAF } from '../raf'
 import { useCanvas } from './'
 import s from './webgl.module.scss'
 
-export function WebGLCanvas({ render = true }) {
+export function WebGLCanvas({ render = true, ...props }) {
   const { WebGLTunnel, DOMTunnel } = useCanvas()
 
   return (
-    <div className={s.webgl}>
+    <div className={s.webgl} {...props}>
       <Canvas
         gl={{
           precision: 'highp',

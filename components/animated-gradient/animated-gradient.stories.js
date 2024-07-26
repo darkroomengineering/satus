@@ -31,7 +31,7 @@ export default {
     layout: 'fullscreen',
   },
   // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
-  tags: ['autodocs'],
+  // tags: ['autodocs'],
   // More on argTypes: https://storybook.js.org/docs/api/argtypes
   argTypes: {
     frequency: {
@@ -49,15 +49,19 @@ export default {
     speed: {
       control: { type: 'range', min: 0, max: 10, step: 0.01 },
     },
+    quantize: {
+      control: { type: 'range', min: 0, max: 100, step: 0.01 },
+    },
   },
   // Use `fn` to spy on the onClick arg, which will appear in the actions panel once invoked: https://storybook.js.org/docs/essentials/actions#action-args
   args: {
     colors: ['#feed7a', '#ff8400', '#df91f7'],
-    amplitude: 1,
-    frequency: 0.5,
+    amplitude: 2,
+    frequency: 0.33,
     colorAmplitude: 2,
-    colorFrequency: 0.5,
+    colorFrequency: 0.33,
     speed: 1,
+    quantize: 0,
   },
 }
 

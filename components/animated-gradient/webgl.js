@@ -1,6 +1,7 @@
 import { useWindowSize } from '@darkroom.engineering/hamo'
 import { useFrame } from '@react-three/fiber'
 import { useObjectFit } from 'hooks/use-object-fit'
+import { useFlowmap } from 'libs/webgl/components/flowmap'
 import { useWebGLRect } from 'libs/webgl/hooks/use-webgl-rect'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CanvasTexture, LinearFilter } from 'three'
@@ -11,9 +12,10 @@ import { AnimatedGradientMaterial } from './material'
 function useGradient(colors) {
   const [canvas] = useState(() => document.createElement('canvas'))
   const texture = useMemo(() => {
-    const texture = new CanvasTexture(canvas)
-    texture.minFilter = LinearFilter
-    texture.magFilter = LinearFilter
+    const texture = new CanvasTexture(canvas, {
+      minFilter: LinearFilter,
+      magFilter: LinearFilter,
+    })
 
     return texture
   }, [canvas])
@@ -41,10 +43,11 @@ function useGradient(colors) {
 
 export function WebGLAnimatedGradient({
   rect,
-  amplitude = 1,
-  frequency = 0.5,
+  amplitude = 2,
+  frequency = 0.33,
   colorAmplitude = 2,
-  colorFrequency = 0.5,
+  colorFrequency = 0.33,
+  quantize = 0,
   radial = false,
   colors = ['#ff0000', '#000000'],
   speed = 1,
@@ -56,11 +59,23 @@ export function WebGLAnimatedGradient({
         frequency,
         colorAmplitude,
         colorFrequency,
+        quantize,
         radial,
       }),
   )
 
+  const getFlowmap = useFlowmap()
+
+  useFrame(() => {
+    const flowmap = getFlowmap()
+    material.flowmap = flowmap
+  })
+
   const gradientTexture = useGradient(colors)
+
+  useEffect(() => {
+    material.quantize = quantize
+  }, [material, quantize])
 
   useEffect(() => {
     material.colorFrequency = colorFrequency
@@ -104,7 +119,7 @@ export function WebGLAnimatedGradient({
   })
 
   useFrame(({ clock }) => {
-    material.time = clock.getElapsedTime() * speed * 0.1
+    material.time = clock.getElapsedTime() * speed * 0.05
   })
 
   return (

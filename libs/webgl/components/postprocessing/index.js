@@ -1,6 +1,6 @@
 import { useWindowSize } from '@darkroom.engineering/hamo'
 import { useFrame, useThree } from '@react-three/fiber'
-import { EffectComposer, RenderPass } from 'postprocessing'
+import { CopyPass, EffectComposer, RenderPass } from 'postprocessing'
 import { useEffect, useMemo } from 'react'
 import { HalfFloatType } from 'three'
 
@@ -26,13 +26,17 @@ export function PostProcessing() {
     [scene, camera],
   )
 
+  const copyPass = useMemo(() => new CopyPass(), [])
+
   useEffect(() => {
     composer.addPass(renderPass)
+    composer.addPass(copyPass)
 
     return () => {
       composer.removePass(renderPass)
+      composer.removePass(copyPass)
     }
-  }, [composer, renderPass])
+  }, [composer, renderPass, copyPass])
 
   const { width: windowWidth, height: windowHeight } = useWindowSize()
 

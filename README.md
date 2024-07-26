@@ -38,6 +38,8 @@ This starter kit has an opinionated setting using the following:
 
 There is a `docs` folder with documentation on how to use tools such as GSAP and Storyblok at Darkroom. There is also a HOW-TO.md file serving as a catch-all file for any other tools or processes that are too straigthforward to warrant a full documentation file.
 
+[See Storybook](https://satus-storybook.vercel.app/)
+
 <br/>
 
 ## Going Live

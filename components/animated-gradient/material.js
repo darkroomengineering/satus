@@ -112,8 +112,6 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
       ...this.defines,
     }
 
-    console.log(shader.defines)
-
     shader.vertexShader = shader.vertexShader.replace(
       'void main() {',
       /* glsl */ `uniform vec2 uAspect;
@@ -189,7 +187,9 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
 
       if(uQuantize > 0.) {
         alpha = ceil(alpha * uQuantize) / uQuantize;
-      }      
+      }
+      
+      alpha = alpha - rand(gl_FragCoord.xy) * 0.04;
 
       vec4 diffuseColor = vec4( color, alpha );
 

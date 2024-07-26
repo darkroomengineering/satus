@@ -8,16 +8,20 @@ import {
 import cn from 'clsx'
 import modulo from 'just-modulo'
 import { useLenis } from 'libs/lenis'
+import PropTypes from 'prop-types'
 import { useRef } from 'react'
 import s from './marquee.module.scss'
 
 export function Marquee({
   children,
-  repeat = 2,
   className,
-  speed = 0.1,
-  reversed,
+  repeat = 2,
+  speed = 1,
+  scrollVelocity = true,
+  reversed = false,
   pauseOnHover = false,
+  onMouseEnter,
+  onMouseLeave,
   ...props
 }) {
   const [setRectRef, { contentRect: rect }] = useResizeObserver()
@@ -35,12 +39,18 @@ export function Marquee({
 
     if (!rect.width) return
 
-    const adjSpeed = speed * (1 + Math.abs(lenis.velocity / 5))
+    let velocity = lenis?.velocity ?? 0
+    if (!scrollVelocity) {
+      velocity = 0
+    }
+    velocity = 1 + Math.abs(velocity / 5)
+
+    const offset = deltaTime * (speed * 0.1 * velocity)
 
     if (reversed) {
-      transformRef.current -= deltaTime * adjSpeed
+      transformRef.current -= offset
     } else {
-      transformRef.current += deltaTime * adjSpeed
+      transformRef.current += offset
     }
 
     transformRef.current = modulo(transformRef.current, rect.width)
@@ -54,13 +64,15 @@ export function Marquee({
     <div
       ref={setIntersectionRef}
       className={cn(className, s.marquee)}
-      {...props}
-      onMouseEnter={() => {
+      onMouseEnter={(e) => {
         isHovered.current = true
+        onMouseEnter?.(e)
       }}
-      onMouseLeave={() => {
+      onMouseLeave={(e) => {
         isHovered.current = false
+        onMouseLeave?.(e)
       }}
+      {...props}
     >
       {new Array(repeat).fill(children).map((_, i) => (
         <div
@@ -79,4 +91,20 @@ export function Marquee({
       ))}
     </div>
   )
+}
+
+Marquee.propTypes = {
+  repeat: PropTypes.number,
+  speed: PropTypes.number,
+  scrollVelocity: PropTypes.bool,
+  reversed: PropTypes.bool,
+  pauseOnHover: PropTypes.bool,
+}
+
+Marquee.defaultProps = {
+  repeat: 2,
+  speed: 1,
+  scrollVelocity: true,
+  reversed: false,
+  pauseOnHover: false,
 }

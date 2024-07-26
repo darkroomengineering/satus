@@ -23,7 +23,6 @@ const config = {
     options: {},
   },
   staticDirs: [
-    '..\\public',
     {
       from: '../public/fonts',
       to: 'public/fonts',

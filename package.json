@@ -16,8 +16,8 @@
     "analyze": "cross-env ANALYZE=true next build",
     "prepare": "husky",
     "npmrc": "npx npmrc-replace-env -w",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "storybook:dev": "storybook dev -p 6006",
+    "storybook:build": "storybook build --quiet"
   },
   "dependencies": {
     "@darkroom.engineering/hamo": "0.6.45",

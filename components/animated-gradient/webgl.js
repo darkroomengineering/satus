@@ -49,6 +49,7 @@ export function WebGLAnimatedGradient({
   colorFrequency = 0.33,
   quantize = 0,
   radial = false,
+  flowmap = true,
   colors = ['#ff0000', '#000000'],
   speed = 1,
 }) {
@@ -61,6 +62,7 @@ export function WebGLAnimatedGradient({
         colorFrequency,
         quantize,
         radial,
+        flowmap,
       }),
   )
 

@@ -72,6 +72,7 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
     colorFrequency = 0.33,
     quantize = 0,
     radial = false,
+    flowmap = true,
   } = {}) {
     super({
       transparent: true,
@@ -92,6 +93,7 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
     }
     this.defines = {
       USE_RADIAL: radial ? true : false,
+      USE_FLOWMAP: flowmap ? true : false,
       USE_UV: true,
     }
 
@@ -131,7 +133,7 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
     shader.fragmentShader = shader.fragmentShader.replace(
       'void main() {',
       /* glsl */ `
-      ${NOISE.FBM_3D(1)}
+      ${NOISE.FBM_3D(2)}
 
       uniform vec2 uAspect;
       uniform float uColorAmplitude;
@@ -153,19 +155,26 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
       /* glsl */ `
       vec2 screenUV = gl_FragCoord.xy / uResolution.xy;
 
-      vec4 flow = texture2D(uFlowmap, screenUV);
-      flow *= 0.001;
+
 
       screenUV += (uAspect - 1.) * 0.5;
       screenUV /= uAspect;
 
-      float noiseColor = fbm(vec3((screenUV + flow.rg) * uColorFrequency, (uTime + uOffset + 1000.)));
+
+      # ifdef USE_FLOWMAP
+        vec4 flow = texture2D(uFlowmap, gl_FragCoord.xy / uResolution.xy);
+        flow *= 0.00025;
+
+        screenUV += flow.rg;
+      # endif
+
+      float noiseColor = fbm(vec3(screenUV * uColorFrequency, (uTime + uOffset + 1000.)));
       noiseColor *= uColorAmplitude;
       noiseColor = clamp(noiseColor, 0., 1.);
 
       vec3 color = texture2D(uColorsTexture, vec2(0.,noiseColor)).rgb;
 
-      float noiseAlpha = fbm(vec3((screenUV + flow.rg) * uFrequency, uTime + uOffset));
+      float noiseAlpha = fbm(vec3(screenUV * uFrequency, uTime + uOffset));
       noiseAlpha *= uAmplitude;
       noiseAlpha = clamp(noiseAlpha, 0., 1.);
 

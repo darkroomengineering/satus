@@ -62,6 +62,7 @@ export default {
     colorFrequency: 0.33,
     speed: 1,
     quantize: 0,
+    flowap: true,
   },
 }
 

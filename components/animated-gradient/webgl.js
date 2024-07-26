@@ -1,5 +1,5 @@
 import { useWindowSize } from '@darkroom.engineering/hamo'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useObjectFit } from 'hooks/use-object-fit'
 import { useFlowmap } from 'libs/webgl/components/flowmap'
 import { useWebGLRect } from 'libs/webgl/hooks/use-webgl-rect'
@@ -76,6 +76,10 @@ export function WebGLAnimatedGradient({
   const gradientTexture = useGradient(colors)
 
   useEffect(() => {
+    material.colorsTexture = gradientTexture
+  }, [material, gradientTexture])
+
+  useEffect(() => {
     material.quantize = quantize
   }, [material, quantize])
 
@@ -86,10 +90,6 @@ export function WebGLAnimatedGradient({
   useEffect(() => {
     material.colorAmplitude = colorAmplitude
   }, [material, colorAmplitude])
-
-  useEffect(() => {
-    material.colorsTexture = gradientTexture
-  }, [material, gradientTexture])
 
   useEffect(() => {
     material.amplitude = amplitude
@@ -110,6 +110,13 @@ export function WebGLAnimatedGradient({
   useEffect(() => {
     material.resolution.set(windowWidth, windowHeight)
   }, [material, windowWidth, windowHeight])
+
+  const viewport = useThree((state) => state.viewport)
+
+  useEffect(() => {
+    console.log(viewport.dpr)
+    material.dpr = viewport.dpr
+  }, [material, viewport])
 
   const meshRef = useRef()
 

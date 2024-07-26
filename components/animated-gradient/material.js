@@ -1,69 +1,6 @@
 import { NOISE } from 'libs/webgl/utils/noise'
 import { MeshBasicMaterial, Vector2 } from 'three'
 
-// const vertexShader = /* glsl */ `
-//     varying vec2 vUv;
-//     uniform vec2 uAspect;
-
-//     void main() {
-//       vUv = uv;
-//       vUv += (uAspect - 1.) * 0.5;
-//       vUv /= uAspect;
-
-//       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-//     }
-// `
-
-// const fragmentShader = /* glsl */ `
-//     ${NOISE.FBM_3D(2)}
-//     ${FUNCTIONS.MAP_RANGE}
-
-//     varying vec2 vUv;
-
-//     uniform vec2 uAspect;
-//     uniform float uColorAmplitude;
-//     uniform float uColorFrequency;
-//     uniform float uAmplitude;
-//     uniform float uFrequency;
-//     uniform vec2 uResolution;
-//     uniform float uTime;
-//     uniform vec3 uColor;
-//     uniform sampler2D uColorsTexture;
-//     uniform float uOffset;
-//     uniform float uQuantize;
-
-//     void main() {
-//       vec2 screenUV = gl_FragCoord.xy / uResolution.xy;
-//       screenUV += (uAspect - 1.) * 0.5;
-//       screenUV /= uAspect;
-
-//       float noiseColor = fbm(vec3(screenUV * uColorFrequency, (uTime + uOffset + 1000.)));
-//       noiseColor *= uColorAmplitude;
-//       noiseColor = clamp(noiseColor, 0., 1.);
-
-//       vec3 color = texture2D(uColorsTexture, vec2(0.,noiseColor)).rgb;
-
-//       float noiseAlpha = fbm(vec3(screenUV * uFrequency, uTime + uOffset));
-//       noiseAlpha *= uAmplitude;
-//       noiseAlpha = clamp(noiseAlpha, 0., 1.);
-
-//       #ifdef USE_RADIAL
-//         float radialGradient = 1. - distance(vUv, vec2(0.5)) * 2.;
-//         radialGradient = smoothstep(0., 1., radialGradient);
-//         radialGradient = clamp(radialGradient, 0., 1.);
-//         noiseAlpha *= radialGradient;
-//       #endif
-
-//       if(uQuantize > 0.) {
-//         noiseAlpha = ceil(noiseAlpha * uQuantize) / uQuantize;
-//       }
-
-//       gl_FragColor = vec4(color, noiseAlpha);
-
-//       gl_FragColor = vec4(vec3(1.,0.,0.), radialGradient);
-//     }
-// `
-
 export class AnimatedGradientMaterial extends MeshBasicMaterial {
   constructor({
     frequency = 0.33,
@@ -90,6 +27,7 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
       uOffset: { value: radial ? Math.random() * 1000 : 0 },
       uQuantize: { value: quantize },
       uFlowmap: { value: null },
+      uDpr: { value: 1 },
     }
     this.defines = {
       USE_RADIAL: radial ? true : false,
@@ -144,6 +82,7 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
       uniform float uOffset;
       uniform float uQuantize;
       uniform sampler2D uFlowmap;
+      uniform float uDpr;
       
       void main() {`,
     )
@@ -151,16 +90,14 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
     shader.fragmentShader = shader.fragmentShader.replace(
       'vec4 diffuseColor = vec4( diffuse, opacity );',
       /* glsl */ `
-      vec2 screenUV = gl_FragCoord.xy / uResolution.xy;
+      vec2 fragCoord = gl_FragCoord.xy;
 
-
-
+      vec2 screenUV = fragCoord / (uResolution.xy * uDpr);
       screenUV += (uAspect - 1.) * 0.5;
       screenUV /= uAspect;
 
-
       # ifdef USE_FLOWMAP
-        vec4 flow = texture2D(uFlowmap, gl_FragCoord.xy / uResolution.xy);
+        vec4 flow = texture2D(uFlowmap, fragCoord / (uResolution.xy * uDpr));
         flow *= 0.00025;
 
         screenUV += flow.rg;
@@ -189,13 +126,19 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
         alpha = ceil(alpha * uQuantize) / uQuantize;
       }
       
-      alpha = alpha - rand(gl_FragCoord.xy) * 0.04;
+      alpha = alpha - rand(fragCoord) * 0.05;
 
       vec4 diffuseColor = vec4( color, alpha );
-
-      
       `,
     )
+  }
+
+  get dpr() {
+    return this.uniforms.uDpr.value
+  }
+
+  set dpr(value) {
+    this.uniforms.uDpr.value = value
   }
 
   get time() {

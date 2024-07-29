@@ -8,7 +8,7 @@ export default {
   decorators: [
     (Story) => (
       <>
-        <Canvas root style={{ backgroundColor: '#151515' }} />
+        <Canvas root style={{ backgroundColor: '#151515' }} force />
         <div
           style={{
             minHeight: '400px',

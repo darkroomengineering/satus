@@ -17,7 +17,7 @@ const useRoot = create(() => ({}))
 
 export const CanvasContext = createContext({})
 
-export function Canvas({ children, root = false, ...props }) {
+export function Canvas({ children, root = false, force = false, ...props }) {
   const [WebGLTunnel] = useState(() => new tunnel())
   const [DOMTunnel] = useState(() => new tunnel())
 
@@ -35,7 +35,7 @@ export function Canvas({ children, root = false, ...props }) {
 
   return (
     <CanvasContext.Provider value={isWebGL ? { WebGLTunnel, DOMTunnel } : {}}>
-      {isWebGL && <WebGLCanvas {...props} />}
+      {(isWebGL || force) && <WebGLCanvas {...props} />}
       {children}
     </CanvasContext.Provider>
   )

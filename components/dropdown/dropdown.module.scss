@@ -8,13 +8,13 @@
     align-items: center;
     justify-content: space-between;
     padding: mobile-vw(8px) mobile-vw(12px);
-    border-radius: mobile-vw(8px);
+    border-radius: mobile-vw(2px);
     border: 1px solid var(--theme-secondary);
     background-color: var(--theme-primary);
 
     @include desktop {
       padding: desktop-vw(8px) desktop-vw(12px);
-      border-radius: desktop-vw(8px);
+      border-radius: desktop-vw(2px);
     }
   }
 
@@ -28,12 +28,12 @@
     min-width: 100%;
     background-color: var(--theme-primary);
     border: 1px solid var(--theme-secondary);
-    border-radius: mobile-vw(8px);
+    border-radius: mobile-vw(2px);
     overflow: clip;
     padding: mobile-vw(4px);
 
     @include desktop {
-      border-radius: desktop-vw(8px);
+      border-radius: desktop-vw(2px);
       top: calc(100% + desktop-vw(4px));
       padding: desktop-vw(4px);
     }
@@ -46,16 +46,17 @@
       white-space: nowrap;
       display: block;
       width: 100%;
-      border-radius: mobile-vw(4px);
+      border-radius: mobile-vw(2px);
 
       @include desktop {
         padding: desktop-vw(8px) desktop-vw(12px);
-        border-radius: desktop-vw(4px);
+        border-radius: desktop-vw(2px);
       }
 
       @include hover {
         &:hover {
           background-color: var(--theme-contrast);
+          color: var(--theme-primary);
         }
       }
     }

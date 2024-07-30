@@ -18,9 +18,10 @@ export default {
 
 // More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
 export const Default = {
+  // eslint-disable-next-line
   render: ({ children, ...props }) => <Image {...props}>{children}</Image>,
   args: {
-    ...Image.defaultProps,
+    ...Image.props,
     src: 'https://placehold.co/600x400',
   },
 }

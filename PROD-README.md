@@ -32,7 +32,6 @@ The usual process for Next.js based apps/websites:
 - Sass (Modules)
 - [Zustand](https://github.com/pmndrs/zustand)
 - GraphQL (CMS API)
-- [Next-Sitemap](https://github.com/iamvishnusankar/next-sitemap) (postbuild script)
 - [@svgr/webpack](https://github.com/gregberge/svgr/tree/main) (SVG Imports in `next.config.js`)
 
 ## Code Style & Linting:
@@ -46,7 +45,7 @@ The usual process for Next.js based apps/websites:
     "singleQuote": true
   }
   ```
-- [Husky + lint-staged precommit hooks](https://github.com/okonet/lint-staged)
+- [Lefthook](https://github.com/evilmartians/lefthook)
 
 ## Third Party (optional tools):
 

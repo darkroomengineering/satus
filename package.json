@@ -13,7 +13,6 @@
     "https": "local-ssl-proxy --source 3010 --target 3000 --cert localhost.pem --key localhost-key.pem",
     "lint": "next lint",
     "analyze": "cross-env ANALYZE=true next build",
-    "prepare": "husky",
     "npmrc": "npx npmrc-replace-env -w",
     "storybook:dev": "storybook dev -p 6006",
     "storybook:build": "storybook build --quiet"
@@ -33,7 +32,6 @@
     "just-modulo": "^2.2.0",
     "lenis": "1.1.9",
     "next": "14.2.5",
-    "next-sitemap": "^4.2.3",
     "postprocessing": "^6.36.0",
     "react": "18.3.1",
     "react-aria-components": "^1.3.1",
@@ -42,24 +40,25 @@
     "stats-gl": "^2.2.8",
     "storyblok-js-client": "^6.8.1",
     "storyblok-rich-text-react-renderer": "^2.9.2",
-    "three": "^0.167.0",
+    "three": "^0.167.1",
     "tunnel-rat": "^0.1.2",
     "zustand": "4.5.4"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.8.3",
     "@builder.io/partytown": "^0.10.2",
     "@cerner/duplicate-package-checker-webpack-plugin": "^2.6.0",
     "@chromatic-com/storybook": "1.6.1",
     "@next/bundle-analyzer": "^14.2.5",
     "@next/eslint-plugin-next": "^14.2.5",
-    "@storybook/addon-essentials": "^8.2.6",
-    "@storybook/addon-interactions": "^8.2.6",
-    "@storybook/addon-links": "^8.2.6",
-    "@storybook/addon-onboarding": "^8.2.6",
-    "@storybook/blocks": "^8.2.6",
-    "@storybook/nextjs": "^8.2.6",
-    "@storybook/react": "^8.2.6",
-    "@storybook/test": "^8.2.6",
+    "@storybook/addon-essentials": "^8.2.7",
+    "@storybook/addon-interactions": "^8.2.7",
+    "@storybook/addon-links": "^8.2.7",
+    "@storybook/addon-onboarding": "^8.2.7",
+    "@storybook/blocks": "^8.2.7",
+    "@storybook/nextjs": "^8.2.7",
+    "@storybook/react": "^8.2.7",
+    "@storybook/test": "^8.2.7",
     "@svgr/webpack": "^8.1.0",
     "critters": "^0.0.24",
     "cross-env": "^7.0.3",
@@ -67,22 +66,18 @@
     "eslint-config-next": "^14.2.5",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-storybook": "^0.8.0",
-    "husky": "^9.1.4",
+    "lefthook": "^1.7.11",
     "local-ssl-proxy": "^2.0.5",
     "npm-run-all": "^4.1.5",
     "npmrc-replace-env": "^1.1.4",
     "prettier": "^3.3.3",
     "serwist": "9.0.5",
-    "storybook": "^8.2.6"
+    "storybook": "^8.2.7"
   },
   "pnpm": {
     "overrides": {
-      "scheduler": "0.23.2",
-      "eslint": "8.57.0"
+      "eslint": "8.57.0",
+      "scheduler": "0.23.2"
     }
-  },
-  "lint-staged": {
-    "*.js": "eslint --cache --fix",
-    "*.{js,css,scss,md}": "prettier --write"
   }
 }

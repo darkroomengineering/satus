@@ -71,7 +71,11 @@ export const Bottom = {
       </div>
     </>
   ),
-  args: {},
+  args: {
+    disabled: false,
+    overlay: false,
+    parallax: false,
+  },
 }
 
 export const Top = {

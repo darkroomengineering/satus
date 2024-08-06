@@ -29,6 +29,10 @@ export const Default = {
   render: ({ children, ...props }) => <Marquee {...props}>{children}</Marquee>,
   args: {
     children: 'Ordo universi semper mutat, et omnia fluxa sunt perpetuo.',
-    ...Marquee.defaultProps,
+    repeat: 2,
+    speed: 1,
+    scrollVelocity: true,
+    reversed: false,
+    pauseOnHover: false,
   },
 }

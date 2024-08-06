@@ -27,8 +27,6 @@ export const Image = forwardRef(function Image(
   },
   ref,
 ) {
-  console.log(mobileSize, sizes)
-
   sizes =
     sizes ||
     `(max-width: ${parseFloat(variables.breakpoints.mobile)}px) ${mobileSize}, ${desktopSize}`
@@ -70,18 +68,4 @@ Image.propTypes = {
   mobileSize: PropTypes.string,
   desktopSize: PropTypes.string,
   sizes: PropTypes.string,
-}
-
-Image.defaultProps = {
-  alt: '',
-  width: undefined,
-  height: undefined,
-  quality: 90,
-  objectFit: 'cover',
-  loading: 'eager',
-  unoptimized: false,
-  block: true,
-  mobileSize: '100vw',
-  desktopSize: '100vw',
-  sizes: '',
 }

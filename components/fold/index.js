@@ -99,9 +99,9 @@ Fold.propTypes = {
   parallax: PropTypes.bool,
 }
 
-Fold.defaultProps = {
-  disabled: false,
-  type: 'bottom',
-  overlay: true,
-  parallax: true,
-}
+// Fold.defaultProps = {
+//   disabled: false,
+//   type: 'bottom',
+//   overlay: true,
+//   parallax: true,
+// }

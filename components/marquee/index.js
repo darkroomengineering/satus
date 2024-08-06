@@ -100,11 +100,3 @@ Marquee.propTypes = {
   reversed: PropTypes.bool,
   pauseOnHover: PropTypes.bool,
 }
-
-Marquee.defaultProps = {
-  repeat: 2,
-  speed: 1,
-  scrollVelocity: true,
-  reversed: false,
-  pauseOnHover: false,
-}

@@ -50,6 +50,8 @@ export const Default = {
   args: {
     children:
       'Ordo universi semper mutat, et omnia fluxa sunt perpetuo. Lorem ipsum dolor sit amet consectetur adipisicing elit. Illum saepe quae repellendus, blanditiis nam doloremque corporis dolore error laboriosam fugiat architecto inventore facilis deserunt at libero! Beatae consequatur amet exercitationem? Lorem ipsum dolor sit amet consectetur adipisicing elit. Illum saepe quae repellendus, blanditiis nam doloremque corporis dolore error laboriosam fugiat architecto inventore facilis deserunt at libero! Beatae consequatur amet exercitationem? Lorem ipsum dolor sit amet consectetur adipisicing elit. Illum saepe quae repellendus, blanditiis nam doloremque corporis dolore error laboriosam fugiat architecto inventore facilis deserunt at libero! Beatae consequatur amet exercitationem?',
-    ...ProgressText.defaultProps,
+    start: 'top top',
+    end: 'bottom bottom',
+    transition: '600ms opacity ease-out',
   },
 }

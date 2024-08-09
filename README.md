@@ -18,6 +18,7 @@ This starter kit has an opinionated setting using the following:
 - [Hamo](https://github.com/darkroomengineering/hamo)
 - [Storyblok](https://www.storyblok.com/) | [See Documentation](https://github.com/darkroomengineering/satus/blob/main/docs/storyblok/README.md)
 - [Shopify](https://www.shopify.com/)
+- [SERVER MONO](https://github.com/internet-development/www-server-mono) Open Source font
 - SVG import through [@svgr/webpack](https://www.npmjs.com/package/@svgr/webpack)
 - Sass architecture and tooling:
   - Config file
@@ -31,7 +32,6 @@ This starter kit has an opinionated setting using the following:
   - Grid Debugger
 - Github workflow to display lighthouse report on slack:
   make sure you update the `vercel_project_id` in `.github/workflows/lighthouse-on-vercel-preview-url.yml` to your Vercel project id.
-  - [SERVER MONO](https://github.com/internet-development/www-server-mono) Open Source font
 
 <br/>
 

@@ -14,7 +14,7 @@ const preview = {
         </head>
         <div
           className={cn(fonts?.className, 'theme-light')}
-          style={{ fontFamily: 'var(--font-ibm-plex-mono)' }}
+          style={{ fontFamily: 'var(--font-mono)' }}
         >
           <Story />
         </div>

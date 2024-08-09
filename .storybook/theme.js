@@ -4,7 +4,6 @@ export default create({
   brandTitle: 'Satūs',
   brandUrl: 'https://satus.darkroom.engineering/',
   brandImage: 'https://satus.darkroom.engineering/images/darkroom.svg',
-  // fontBase: '"IBM Plex Mono", monospace',
   brandTarget: '_self',
   base: 'light',
 

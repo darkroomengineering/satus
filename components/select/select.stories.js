@@ -21,7 +21,6 @@ export const Default = {
   render: ({ children, ...props }) => <Select {...props}>{children}</Select>,
   args: {
     ...Select.props,
-    label: 'Favorite Animal',
     options: [
       { value: '1', label: 'Aardvark' },
       { value: '2', label: 'Cat' },

@@ -16,7 +16,7 @@ export const contentType = 'image/png'
 const getFont = async () => {
   const res = await fetch(
     new URL(
-      'public/fonts/IBM_Plex_Mono/IBMPlexMono-Regular.ttf',
+      'public/fonts/V1_Server_Mono/V1-ServerMono-Regular.woff2',
       import.meta.url,
     ),
   )
@@ -26,7 +26,7 @@ const getFont = async () => {
 // Image generation
 export default async function Image() {
   // Font
-  const ibmPlexMono = getFont()
+  const mono = getFont()
 
   return new ImageResponse(
     (
@@ -42,7 +42,7 @@ export default async function Image() {
           alignItems: 'center',
           justifyContent: 'center',
           padding: '8px 48px',
-          fontFamily: 'IBM_Plex_Mono',
+          fontFamily: 'V1_Server_Mono',
           textTransform: 'uppercase',
         }}
       >
@@ -93,8 +93,8 @@ export default async function Image() {
       ...size,
       fonts: [
         {
-          name: 'IBM_Plex_Mono',
-          data: await ibmPlexMono,
+          name: 'V1_Server_Mono',
+          data: await mono,
           style: 'normal',
           weight: 400,
         },

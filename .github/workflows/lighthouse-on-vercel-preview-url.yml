@@ -48,7 +48,6 @@ jobs:
                 `${score(result.accessibility)} Accessibility: ${result.accessibility}`,
                 `${score(result['best-practices'])} Best practices: ${result['best-practices']}`,
                 `${score(result.seo)} SEO: ${result.seo}`,
-                `${score(result.pwa)} PWA: ${result.pwa}`,
                 ' ',
                 `*Lighthouse ran on [${Object.keys(links)[0]}](${Object.keys(links)[0]})*`
             ].join('\n')

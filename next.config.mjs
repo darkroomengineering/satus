@@ -1,14 +1,11 @@
-import DuplicatePackageCheckerPlugin from '@cerner/duplicate-package-checker-webpack-plugin'
-import bundleAnalyzer from '@next/bundle-analyzer'
-import withSerwistInit from '@serwist/next'
+import DuplicatePackageCheckerWebpackPlugin from '@cerner/duplicate-package-checker-webpack-plugin'
+import bundleAnalyzerPlugin from '@next/bundle-analyzer'
+import serwistPlugin from '@serwist/next'
+
 import { castToSass } from './libs/sass-utils/index.js'
 import sassVars from './styles/config.js'
 
-const withSerwist = withSerwistInit({
-  swSrc: 'app/sw.js',
-  swDest: 'public/sw.js',
-})
-
+/** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
@@ -55,9 +52,7 @@ const nextConfig = {
       },
     },
   },
-  webpack: (config, options) => {
-    const { dir } = options
-
+  webpack: (config, { dir }) => {
     config.module.rules.push(
       {
         test: /\.svg$/,
@@ -121,7 +116,7 @@ const nextConfig = {
     )
 
     config.plugins.push(
-      new DuplicatePackageCheckerPlugin({
+      new DuplicatePackageCheckerWebpackPlugin({
         verbose: true,
         emitError: true,
         showHelp: true,
@@ -133,62 +128,58 @@ const nextConfig = {
 
     return config
   },
-  headers: async () => {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'Content-Security-Policy',
-            value: "frame-ancestors 'self' https://app.storyblok.com/",
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN',
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
-          },
-        ],
-      },
-    ]
-  },
-  redirects: async () => {
-    return [
-      {
-        source: '/home',
-        destination: '/',
-        permanent: true,
-      },
-    ]
-  },
-  rewrites: async () => {
-    return [
-      {
-        source: '/',
-        destination: '/home',
-      },
-    ]
-  },
+  headers: async () => [
+    {
+      source: '/(.*)',
+      headers: [
+        {
+          key: 'X-Content-Type-Options',
+          value: 'nosniff',
+        },
+        {
+          key: 'Content-Security-Policy',
+          value: "frame-ancestors 'self' https://app.storyblok.com/",
+        },
+        {
+          key: 'X-Frame-Options',
+          value: 'SAMEORIGIN',
+        },
+        {
+          key: 'X-XSS-Protection',
+          value: '1; mode=block',
+        },
+      ],
+    },
+  ],
+  redirects: async () => [
+    {
+      source: '/home',
+      destination: '/',
+      permanent: true,
+    },
+  ],
+  rewrites: async () => [
+    {
+      source: '/',
+      destination: '/home',
+    },
+  ],
 }
 
-// eslint-disable-next-line no-unused-vars
-const NextApp = async (phase) => {
-  /** @type {import('next').NextConfig} */
-  const withBundleAnalyzer = bundleAnalyzer({
-    enabled: process.env.ANALYZE === 'true',
-  })
+const withSerwist = serwistPlugin({
+  swSrc: 'app/sw.js',
+  swDest: 'public/sw.js',
+})
 
+const withBundleAnalyzer = bundleAnalyzerPlugin({
+  enabled: process.env.ANALYZE === 'true',
+})
+
+/** @type {(phase: string, config: any): Promise<any>} */
+function NextApp() {
   const plugins = [withBundleAnalyzer, withSerwist]
 
-  return plugins.reduce((acc, plugin) => plugin(acc), {
-    ...nextConfig,
-  })
+  return plugins.reduce((config, plugin) => plugin(config), nextConfig)
 }
 
 export default NextApp

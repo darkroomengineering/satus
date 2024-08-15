@@ -6,14 +6,14 @@
   "type": "module",
   "packageManager": "pnpm@9.4.0",
   "scripts": {
-    "dev:storyblok": "npm-run-all -p dev https",
+    "dev:storyblok": "pnpm run --parallel /^dev.*/",
     "dev": "next dev",
+    "dev:https": "local-ssl-proxy --source 3010 --target 3000 --cert localhost.pem --key localhost-key.pem",
     "build": "next build",
     "start": "next start",
-    "https": "local-ssl-proxy --source 3010 --target 3000 --cert localhost.pem --key localhost-key.pem",
     "lint": "next lint",
     "analyze": "cross-env ANALYZE=true next build",
-    "npmrc": "npx npmrc-replace-env -w",
+    "npmrc": "pnpx npmrc-replace-env -w",
     "storybook:dev": "storybook dev -p 6006",
     "storybook:build": "storybook build --quiet"
   },
@@ -29,7 +29,6 @@
     "@theatre/studio": "^0.7.2",
     "clsx": "^2.1.1",
     "gsap": "^3.12.5",
-    "just-modulo": "^2.2.0",
     "lenis": "1.1.9",
     "next": "14.2.5",
     "postprocessing": "^6.36.0",
@@ -45,7 +44,6 @@
     "zustand": "4.5.4"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.8.3",
     "@builder.io/partytown": "^0.10.2",
     "@cerner/duplicate-package-checker-webpack-plugin": "^2.6.0",
     "@chromatic-com/storybook": "1.6.1",
@@ -60,6 +58,7 @@
     "@storybook/react": "^8.2.7",
     "@storybook/test": "^8.2.7",
     "@svgr/webpack": "^8.1.0",
+    "@types/react": "^18.3.3",
     "critters": "^0.0.24",
     "cross-env": "^7.0.3",
     "eslint": "8.57.0",
@@ -68,8 +67,6 @@
     "eslint-plugin-storybook": "^0.8.0",
     "lefthook": "^1.7.11",
     "local-ssl-proxy": "^2.0.5",
-    "npm-run-all": "^4.1.5",
-    "npmrc-replace-env": "^1.1.4",
     "prettier": "^3.3.3",
     "serwist": "9.0.5",
     "storybook": "^8.2.7"

@@ -14,7 +14,13 @@ function truncate(value, decimals) {
   return parseFloat(value.toFixed(decimals))
 }
 
-const Maths = { lerp, clamp, mapRange, truncate }
+function modulo(n, d) {
+  if (d === 0) return n
+  if (d < 0) return NaN
+  return ((n % d) + d) % d
+}
 
-export { clamp, lerp, mapRange, truncate }
+const Maths = { lerp, clamp, mapRange, truncate, modulo }
+
+export { clamp, lerp, mapRange, modulo, truncate }
 export default Maths

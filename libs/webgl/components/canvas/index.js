@@ -25,16 +25,18 @@ export function Canvas({ children, root = false, force = false, ...props }) {
 
   useEffect(() => {
     if (root) {
-      useRoot.setState(isWebGL ? { WebGLTunnel, DOMTunnel } : {})
+      useRoot.setState(isWebGL || force ? { WebGLTunnel, DOMTunnel } : {})
     }
 
     return () => {
       useRoot.setState({})
     }
-  }, [root, isWebGL, WebGLTunnel, DOMTunnel])
+  }, [root, isWebGL, force, WebGLTunnel, DOMTunnel])
 
   return (
-    <CanvasContext.Provider value={isWebGL ? { WebGLTunnel, DOMTunnel } : {}}>
+    <CanvasContext.Provider
+      value={isWebGL || force ? { WebGLTunnel, DOMTunnel } : {}}
+    >
       {(isWebGL || force) && <WebGLCanvas {...props} />}
       {children}
     </CanvasContext.Provider>

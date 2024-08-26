@@ -4,11 +4,3 @@
   cursor: not-allowed;
   transition: 300ms opacity var(--gleasing);
 }
-
-.cta {
-  > span:first-of-type {
-    > span {
-      padding-top: desktop-vw(1px);
-    }
-  }
-}

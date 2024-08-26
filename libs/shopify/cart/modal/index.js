@@ -3,21 +3,25 @@
 import cn from 'clsx'
 import { Image } from 'components/image'
 import { Link } from 'components/link'
-import { useBeforeUnload } from 'libs/shopify/hooks'
-import { createContext, useContext, useOptimistic, useState } from 'react'
-import { useFormStatus } from 'react-dom'
+import { createContext, useContext, useState } from 'react'
 import { removeItem, updateItemQuantity } from '../actions'
+import { useCartContext } from '../cart-context'
 import s from './modal.module.scss'
 
 const ModalContext = createContext()
 
-export function CartModal({ children, cart }) {
+export function useCartModal() {
+  return useContext(ModalContext)
+}
+
+export function CartModal({ children }) {
   const [isOpen, setIsOpen] = useState(false)
+  const { cart } = useCartContext()
   const openCart = () => setIsOpen(true)
   const closeCart = () => setIsOpen(false)
 
   return (
-    <ModalContext.Provider value={openCart}>
+    <ModalContext.Provider value={{ isOpen, openCart, closeCart }}>
       {children}
       <div className={cn(s.modal, isOpen && s.open)}>
         <div className={s['catch-click']} onClick={closeCart} />
@@ -25,11 +29,7 @@ export function CartModal({ children, cart }) {
           <button className={cn('link', s.close)} onClick={closeCart}>
             close
           </button>
-          {!cart || cart.lines.length === 0 ? (
-            <EmptyCart />
-          ) : (
-            <InnerCart cart={cart} />
-          )}
+          {!cart || cart.lines.length === 0 ? <EmptyCart /> : <InnerCart />}
         </div>
       </div>
     </ModalContext.Provider>
@@ -40,7 +40,9 @@ function EmptyCart() {
   return <p className={s.heading}>your cart is empty</p>
 }
 
-function InnerCart({ cart }) {
+function InnerCart() {
+  const { cart } = useCartContext()
+
   return (
     <>
       <p className={s.heading}>your cart</p>
@@ -55,31 +57,39 @@ function InnerCart({ cart }) {
                 height={merchandise?.product?.featuredImage?.height}
               />
             </div>
+
             <div className={s.info}>
               <div className={s.details}>
                 <p className={s.title}>{merchandise?.product?.title}</p>
-                <p className={s.description}>
-                  {merchandise?.product?.description}
+                <p className={s.size}>
+                  SIZE: {merchandise?.selectedOptions?.[0]?.value}
                 </p>
               </div>
-              <p className={s.price}>$ {cost?.totalAmount?.amount}</p>
             </div>
-            <RemoveButton id={id} className={s.remove} />
+
+            <RemoveButton
+              merchandiseId={merchandise?.id}
+              className={s.remove}
+            />
+
             <Quantity
               className={s.quantity}
               payload={{
-                lineId: id,
-                variantId: merchandise?.id,
+                merchandiseId: merchandise?.id,
                 quantity,
               }}
             />
+
+            <p className={s.price}>
+              $ {Number(cost?.totalAmount?.amount).toFixed(2)}
+            </p>
           </div>
         ))}
       </div>
       <div className={s.checkout}>
         <div className={s.top}>
           <p>sub total</p>
-          <p>$ {cart?.cost?.subtotalAmount?.amount}</p>
+          <p>$ {Number(cart?.cost?.subtotalAmount?.amount).toFixed(2)}</p>
         </div>
         <Link className={s.action} href={cart?.checkoutUrl}>
           <span> checkout</span>
@@ -89,27 +99,29 @@ function InnerCart({ cart }) {
   )
 }
 
+const quantityAction = {
+  minus: -1,
+  plus: 1,
+}
+
 function Quantity({ className, payload }) {
-  const [quantity, setQuantity] = useOptimistic(
-    payload.quantity,
-    (state, newState) => newState,
-  )
+  const { updateCartItem } = useCartContext()
 
-  async function formAction(value) {
-    const newQuantity = Math.max(1, quantity + value)
-
-    setQuantity(newQuantity)
-    await updateItemQuantity({
+  async function formAction(type) {
+    const updatePayload = {
       ...payload,
-      quantity: newQuantity,
-    })
+      quantity: Math.max(1, payload.quantity + quantityAction[type]),
+    }
+
+    updateCartItem(payload.merchandiseId, type)
+    await updateItemQuantity(null, updatePayload)
   }
 
   return (
     <div className={className}>
-      <QuantityButton formAction={() => formAction(-1)}>-</QuantityButton>
-      <span>{quantity}</span>
-      <QuantityButton formAction={() => formAction(1)}>+</QuantityButton>
+      <QuantityButton formAction={() => formAction('minus')}>-</QuantityButton>
+      <span>{payload.quantity}</span>
+      <QuantityButton formAction={() => formAction('plus')}>+</QuantityButton>
     </div>
   )
 }
@@ -117,42 +129,26 @@ function Quantity({ className, payload }) {
 function QuantityButton({ formAction, className, children }) {
   return (
     <form action={formAction} className={className}>
-      <ActionButton>{children}</ActionButton>
+      <button type="submit" className="p1" aria-label="Remove cart item">
+        {children}
+      </button>
     </form>
   )
 }
 
-function RemoveButton({ id, className }) {
+function RemoveButton({ merchandiseId, className }) {
+  const { updateCartItem } = useCartContext()
+
   async function formAction() {
-    await removeItem(id)
+    updateCartItem(merchandiseId, 'delete')
+    await removeItem(null, merchandiseId)
   }
 
   return (
     <form action={formAction} className={className}>
-      <ActionButton className="link">remove</ActionButton>
+      <button type="submit" className="p1" aria-label="Remove cart item">
+        remove
+      </button>
     </form>
   )
-}
-
-function ActionButton({ children, className }) {
-  const { pending = false } = useFormStatus()
-  useBeforeUnload(pending)
-
-  return (
-    <button
-      type="submit"
-      onClick={(e) => {
-        if (pending) {
-          e.preventDefault()
-        }
-      }}
-      className={cn(pending && s.disable, className)}
-    >
-      {children}
-    </button>
-  )
-}
-
-export function useCartModal() {
-  return useContext(ModalContext)
 }

@@ -55,8 +55,16 @@
     width: desktop-vw(67px);
   }
 
-  button {
-    justify-content: center !important;
-    flex: 1 0 100%;
+  > button {
+    border: 2px solid var(--black) !important;
+    border-radius: mobile-vw(8px) !important;
+
+    @include desktop {
+      border-radius: desktop-vw(8px) !important;
+    }
+  }
+
+  > div {
+    padding: 0 !important;
   }
 }

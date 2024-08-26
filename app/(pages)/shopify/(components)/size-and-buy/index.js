@@ -16,15 +16,22 @@ export const SizeAndBuy = ({ product }) => {
         options={
           product.options.find((option) => option.name === 'Size').values
         }
-        onClick={(value) => {
+        onChange={(value) => {
+          const selected = product.variants?.[value]?.title
           const variant = product?.variants.find((variant) =>
-            variant.selectedOptions.every((option) => option.value === value),
+            variant.selectedOptions.every(
+              (option) => option.value === selected,
+            ),
           )
 
           setSelectedVariant(variant)
         }}
       />
-      <AddToCart variant={selectedVariant} className={s.add} />
+      <AddToCart
+        product={product}
+        variant={selectedVariant}
+        className={s.add}
+      />
     </>
   )
 }

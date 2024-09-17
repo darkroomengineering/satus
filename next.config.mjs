@@ -1,9 +1,9 @@
-import DuplicatePackageCheckerWebpackPlugin from '@cerner/duplicate-package-checker-webpack-plugin'
-import bundleAnalyzerPlugin from '@next/bundle-analyzer'
-import serwistPlugin from '@serwist/next'
+import DuplicatePackageCheckerWebpackPlugin from "@cerner/duplicate-package-checker-webpack-plugin"
+import bundleAnalyzerPlugin from "@next/bundle-analyzer"
+import serwistPlugin from "@serwist/next"
 
-import { castToSass } from './libs/sass-utils/index.js'
-import sassVars from './styles/config.js'
+import { castToSass } from "./libs/sass-utils/index.js"
+import sassVars from "./styles/config.js"
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -14,34 +14,34 @@ const nextConfig = {
     webpackBuildWorker: true,
   },
   compiler: {
-    removeConsole: process.env.NODE_ENV !== 'development',
+    removeConsole: process.env.NODE_ENV !== "development",
   },
   images: {
     dangerouslyAllowSVG: true,
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'cdn.shopify.com',
+        protocol: "https",
+        hostname: "cdn.shopify.com",
       },
       {
-        protocol: 'https',
-        hostname: 'a-us.storyblok.com',
+        protocol: "https",
+        hostname: "a-us.storyblok.com",
       },
       {
-        protocol: 'https',
-        hostname: 'assets.darkroom.engineering',
+        protocol: "https",
+        hostname: "assets.darkroom.engineering",
       },
     ],
-    formats: ['image/avif', 'image/webp'],
+    formats: ["image/avif", "image/webp"],
   },
   sassOptions: {
-    includePaths: ['styles'],
+    includePaths: ["styles"],
     prependData: `
     @import 'styles/_functions';
   `,
     functions: {
-      'get($keys)': function (keys) {
-        keys = keys.getValue().split('.')
+      "get($keys)": function (keys) {
+        keys = keys.getValue().split(".")
         let result = sassVars
         for (let i = 0; i < keys.length; i++) {
           result = result[keys[i]]
@@ -58,41 +58,41 @@ const nextConfig = {
         test: /\.svg$/,
         use: [
           {
-            loader: '@svgr/webpack',
+            loader: "@svgr/webpack",
             options: {
               memo: true,
               dimensions: false,
               svgoConfig: {
                 multipass: true,
                 plugins: [
-                  'removeDimensions',
-                  'removeOffCanvasPaths',
-                  'reusePaths',
-                  'removeElementsByAttr',
-                  'removeStyleElement',
-                  'removeScriptElement',
-                  'prefixIds',
-                  'cleanupIds',
+                  "removeDimensions",
+                  "removeOffCanvasPaths",
+                  "reusePaths",
+                  "removeElementsByAttr",
+                  "removeStyleElement",
+                  "removeScriptElement",
+                  "prefixIds",
+                  "cleanupIds",
                   {
-                    name: 'cleanupNumericValues',
+                    name: "cleanupNumericValues",
                     params: {
                       floatPrecision: 1,
                     },
                   },
                   {
-                    name: 'convertPathData',
+                    name: "convertPathData",
                     params: {
                       floatPrecision: 1,
                     },
                   },
                   {
-                    name: 'convertTransform',
+                    name: "convertTransform",
                     params: {
                       floatPrecision: 1,
                     },
                   },
                   {
-                    name: 'cleanupListOfValues',
+                    name: "cleanupListOfValues",
                     params: {
                       floatPrecision: 1,
                     },
@@ -109,10 +109,10 @@ const nextConfig = {
         exclude: /node_modules/,
         use: [
           {
-            loader: 'graphql-tag/loader',
+            loader: "graphql-tag/loader",
           },
         ],
-      },
+      }
     )
 
     config.plugins.push(
@@ -121,58 +121,58 @@ const nextConfig = {
         emitError: true,
         showHelp: true,
         strict: false,
-        exclude: (instance) => instance.name === 'fbjs',
-        alwaysEmitErrorsFor: ['react', 'react-router'],
-      }),
+        exclude: (instance) => instance.name === "fbjs",
+        alwaysEmitErrorsFor: ["react", "react-router"],
+      })
     )
 
     return config
   },
   headers: async () => [
     {
-      source: '/(.*)',
+      source: "/(.*)",
       headers: [
         {
-          key: 'X-Content-Type-Options',
-          value: 'nosniff',
+          key: "X-Content-Type-Options",
+          value: "nosniff",
         },
         {
-          key: 'Content-Security-Policy',
+          key: "Content-Security-Policy",
           value: "frame-ancestors 'self' https://app.storyblok.com/",
         },
         {
-          key: 'X-Frame-Options',
-          value: 'SAMEORIGIN',
+          key: "X-Frame-Options",
+          value: "SAMEORIGIN",
         },
         {
-          key: 'X-XSS-Protection',
-          value: '1; mode=block',
+          key: "X-XSS-Protection",
+          value: "1; mode=block",
         },
       ],
     },
   ],
   redirects: async () => [
     {
-      source: '/home',
-      destination: '/',
+      source: "/home",
+      destination: "/",
       permanent: true,
     },
   ],
   rewrites: async () => [
     {
-      source: '/',
-      destination: '/home',
+      source: "/",
+      destination: "/home",
     },
   ],
 }
 
 const withSerwist = serwistPlugin({
-  swSrc: 'app/sw.js',
-  swDest: 'public/sw.js',
+  swSrc: "app/sw.js",
+  swDest: "public/sw.js",
 })
 
 const withBundleAnalyzer = bundleAnalyzerPlugin({
-  enabled: process.env.ANALYZE === 'true',
+  enabled: process.env.ANALYZE === "true",
 })
 
 /** @type {(phase: string, config: any): Promise<any>} */

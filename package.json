@@ -1,7 +1,7 @@
 {
   "name": "@darkroom.engineering/satus",
   "description": "Satūs is a next.js starter",
-  "version": "env",
+  "version": "0.0.1",
   "license": "MIT",
   "type": "module",
   "packageManager": "pnpm@9.4.0",

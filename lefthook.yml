@@ -47,4 +47,4 @@ pre-commit:
 post-merge:
   commands:
     update-env:
-      run: pnpx vc env pull
+      run: pnpx vercel env pull

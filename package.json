@@ -29,7 +29,7 @@
     "@theatre/studio": "^0.7.2",
     "clsx": "^2.1.1",
     "gsap": "^3.12.5",
-    "lenis": "1.1.13",
+    "lenis": "1.1.14-dev.0",
     "next": "14.2.13",
     "postprocessing": "^6.36.2",
     "react": "18.3.1",

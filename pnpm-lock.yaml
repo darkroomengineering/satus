@@ -46,8 +46,8 @@ importers:
         specifier: ^3.12.5
         version: 3.12.5
       lenis:
-        specifier: 1.1.13
-        version: 1.1.13(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: 1.1.14-dev.0
+        version: 1.1.14-dev.0(react@18.3.1)
       next:
         specifier: 14.2.13
         version: 14.2.13(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sass@1.79.3)
@@ -4311,15 +4311,15 @@ packages:
     resolution: {integrity: sha512-ApzyQnsa3t4YBdbI+nvGVXOuNTNP02Fh+haoDj4f/Sjjlo3S+19OmPdFtJAKcz1ziOL52iq1q3rTLIOtOXNDZg==}
     hasBin: true
 
-  lenis@1.1.13:
-    resolution: {integrity: sha512-iny+vWwUHcZGbJz+p2I75H1muLBRZqSG7t04jnhA+CWOQDFL1vt9bsZDwPPtYEmYVVvqAdo5MbXVFzNOlbgUkQ==}
+  lenis@1.1.14-dev.0:
+    resolution: {integrity: sha512-s0s68+Jr31eOV1FNLrlXRkZAELqhVfo3eR6RqpzGvCzoGg4MMvr646hfUpWiA1FQsSzgje5y6/GE2DhjnguiRA==}
     peerDependencies:
       react: '>=17.0.0'
-      react-dom: '>=17.0.0'
+      vue: '>=3.0.0'
     peerDependenciesMeta:
       react:
         optional: true
-      react-dom:
+      vue:
         optional: true
 
   levn@0.4.1:
@@ -11139,12 +11139,11 @@ snapshots:
       lefthook-windows-arm64: 1.7.16
       lefthook-windows-x64: 1.7.16
 
-  lenis@1.1.13(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  lenis@1.1.14-dev.0(react@18.3.1):
     dependencies:
       '@darkroom.engineering/tempus': 0.0.46
     optionalDependencies:
       react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
 
   levn@0.4.1:
     dependencies:

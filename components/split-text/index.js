@@ -38,6 +38,7 @@ export const SplitText = forwardRef(function SplitText(
 
   useImperativeHandle(ref, () => splitted, [splitted])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: rect dependency is needed to adjust on size changes
   useEffect(() => {
     if (!elementRef.current) return
 

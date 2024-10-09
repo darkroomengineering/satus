@@ -19,7 +19,7 @@
 
     .active {
       &::before {
-        content: '■';
+        content: "■";
         position: absolute;
         left: -16px;
       }

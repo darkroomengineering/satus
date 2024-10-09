@@ -1,18 +1,15 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
-    "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext", "webworker"],
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
     "skipLibCheck": true,
     "strict": true,
-    "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
@@ -21,8 +18,18 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "paths": {
+      "~/*": ["./*"]
+    }
   },
-  "exclude": ["node_modules", "dist", "public/sw.js"],
-  "include": ["**/*.js", "**/*.mjs"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "next.config.mjs",
+    "libs/webgl/utils/blend.js"
+  ],
+  "exclude": ["node_modules"]
 }

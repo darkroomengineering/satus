@@ -5,7 +5,7 @@ import { FlowmapProvider } from '../flowmap'
 import { Preload } from '../preload'
 import { RAF } from '../raf'
 import { useCanvas } from './'
-import s from './webgl.module.scss'
+import s from './webgl.module.css'
 
 export function WebGLCanvas({ render = true, ...props }) {
   const { WebGLTunnel, DOMTunnel } = useCanvas()

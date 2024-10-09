@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og'
-import { themes } from 'styles/config.js'
+import { themes } from 'styles/config'
 import AppData from '../package.json'
 
 export const runtime = 'edge'
@@ -17,8 +17,8 @@ const getFont = async () => {
   const res = await fetch(
     new URL(
       'public/fonts/V1_Server_Mono/V1-ServerMono-Regular.woff2',
-      import.meta.url,
-    ),
+      import.meta.url
+    )
   )
   return await res.arrayBuffer()
 }
@@ -29,65 +29,63 @@ export default async function Image() {
   const mono = getFont()
 
   return new ImageResponse(
-    (
-      // ImageResponse JSX element
+    // ImageResponse JSX element
+    <div
+      style={{
+        height: '100%',
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: themes.red.primary,
+        color: themes.red.secondary,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '8px 48px',
+        fontFamily: 'V1_Server_Mono',
+        textTransform: 'uppercase',
+      }}
+    >
       <div
         style={{
           height: '100%',
           width: '100%',
           display: 'flex',
           flexDirection: 'column',
-          backgroundColor: themes.red.primary,
-          color: themes.red.secondary,
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '8px 48px',
-          fontFamily: 'V1_Server_Mono',
-          textTransform: 'uppercase',
+          justifyContent: 'space-between',
+          fontSize: 14,
+          fontWeight: 400,
         }}
       >
         <div
           style={{
-            height: '100%',
-            width: '100%',
             display: 'flex',
-            flexDirection: 'column',
             justifyContent: 'space-between',
-            fontSize: 14,
+          }}
+        >
+          <div>darkroom.engineering</div>
+        </div>
+        <div
+          style={{
+            justifySelf: 'center',
+            alignSelf: 'center',
+            textAlign: 'center',
+            fontSize: 32,
             fontWeight: 400,
           }}
         >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-            }}
-          >
-            <div>darkroom.engineering</div>
-          </div>
-          <div
-            style={{
-              justifySelf: 'center',
-              alignSelf: 'center',
-              textAlign: 'center',
-              fontSize: 32,
-              fontWeight: 400,
-            }}
-          >
-            {AppData.name}
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-            }}
-          >
-            <div>where things get developed</div>
-            <div>hi@darkroom.engineering</div>
-          </div>
+          {AppData.name}
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>where things get developed</div>
+          <div>hi@darkroom.engineering</div>
         </div>
       </div>
-    ),
+    </div>,
     // ImageResponse options
     {
       ...size,
@@ -99,6 +97,6 @@ export default async function Image() {
           weight: 400,
         },
       ],
-    },
+    }
   )
 }

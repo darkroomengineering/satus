@@ -1,9 +1,8 @@
 'use client'
 
 import { useResizeObserver } from '@darkroom.engineering/hamo'
-import { gsap } from 'gsap'
-// import { SplitText as GSAPSplitText } from 'gsap/dist/SplitText'
 import cn from 'clsx'
+import { gsap } from 'gsap'
 import { SplitText as GSAPSplitText } from 'gsap/dist/SplitText'
 import { useIsVisualEditor } from 'libs/storyblok/use-is-visual-editor'
 import {
@@ -22,14 +21,14 @@ if (typeof window !== 'undefined') {
 
 function replaceFromNode(node, string, replacement = string) {
   node.innerHTML = node.innerHTML.replace(
-    new RegExp('(?!<[^>]+)' + string + '(?![^<]+>)', 'g'),
-    replacement,
+    new RegExp(`(?!<[^>]+)${string}(?![^<]+>)`, 'g'),
+    replacement
   )
 }
 
 export const SplitText = forwardRef(function SplitText(
   { children, className, type },
-  ref,
+  ref
 ) {
   const elementRef = useRef()
   const fallbackRef = useRef()
@@ -85,7 +84,7 @@ export const SplitText = forwardRef(function SplitText(
         </span>
       </span>
     ),
-    [children, className, setRectRef],
+    [children, className, setRectRef]
   )
 
   return isVisualEditor ? children : render

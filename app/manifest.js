@@ -1,4 +1,4 @@
-import { themes } from 'styles/config.js'
+import { themes } from 'styles/config'
 import AppData from '../package.json'
 
 export default function manifest() {

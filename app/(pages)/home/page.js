@@ -1,5 +1,5 @@
 import { Wrapper } from '../(components)/wrapper'
-import s from './home.module.scss'
+import s from './home.module.css'
 
 export default function Home() {
   return (

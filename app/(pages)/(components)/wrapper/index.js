@@ -3,7 +3,7 @@ import { Canvas } from 'libs/webgl/components/canvas'
 import { Footer } from '../footer'
 import { Lenis } from '../lenis'
 import { Navigation } from '../navigation'
-import s from './wrapper.module.scss'
+import s from './wrapper.module.css'
 
 export function Wrapper({
   children,
@@ -20,9 +20,7 @@ export function Wrapper({
       {webgl && <Canvas root />}
       <div className={cn(s.wrapper, `theme-${theme}`, className)}>
         <Navigation />
-        <main role="main" className={s.main}>
-          {children}
-        </main>
+        <main className={s.main}>{children}</main>
         <Footer />
       </div>
     </>

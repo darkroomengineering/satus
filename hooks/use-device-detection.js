@@ -1,5 +1,5 @@
 import { useMediaQuery } from '@darkroom.engineering/hamo'
-import variables from 'styles/config.js'
+import variables from 'styles/config'
 
 export function useDeviceDetection() {
   const breakpoint = variables.breakpoints.mobile.replace('px', '')

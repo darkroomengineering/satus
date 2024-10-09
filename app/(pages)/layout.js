@@ -6,7 +6,7 @@ import { StyleVariables } from 'libs/style-variables'
 import { colors, themes } from 'styles/config'
 import AppData from '../../package.json'
 
-import 'styles/global.scss'
+import 'styles/global.css'
 import { fonts } from '../fonts'
 
 const APP_NAME = AppData.name

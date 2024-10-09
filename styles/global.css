@@ -1,16 +1,13 @@
-@import './_reset.scss';
-@import './_easings.scss';
-@import './_functions.scss';
-@import './_layout.scss';
-@import './_utils.scss';
-@import './_font-style.scss';
-@import './_scroll.scss';
+@import url("./_reset.css");
+@import url("./_easings.css");
+@import url("./_utils.css");
+@import url("./_font-style.css");
 
 :root {
-  --header-height: #{mobile-vw(58px)};
+  --header-height: mobile-vw(58px);
 
-  @include desktop {
-    --header-height: #{desktop-vw(98px)};
+  @include-media ('desktop') {
+    --header-height: desktop-vw(98px);
   }
 }
 
@@ -55,7 +52,7 @@ svg.icon {
 }
 
 .link {
-  @include hover {
+  @include-media ('hover') {
     &:hover {
       text-decoration: underline;
     }
@@ -63,6 +60,7 @@ svg.icon {
 }
 
 img {
+  /* biome-ignore lint/correctness/noUnknownProperty: it exists, biome is drunk */
   user-drag: none;
   -webkit-user-drag: none;
   user-select: none;

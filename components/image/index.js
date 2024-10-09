@@ -4,7 +4,7 @@ import cn from 'clsx'
 import NextImage from 'next/image'
 import PropTypes from 'prop-types'
 import { forwardRef } from 'react'
-import variables from 'styles/config.js'
+import variables from 'styles/config'
 import s from './image.module.scss'
 
 export const Image = forwardRef(function Image(
@@ -25,11 +25,11 @@ export const Image = forwardRef(function Image(
     unoptimized,
     ...props
   },
-  ref,
+  ref
 ) {
   sizes =
     sizes ||
-    `(max-width: ${parseFloat(variables.breakpoints.mobile)}px) ${mobileSize}, ${desktopSize}`
+    `(max-width: ${Number.parseFloat(variables.breakpoints.mobile)}px) ${mobileSize}, ${desktopSize}`
 
   return (
     <NextImage

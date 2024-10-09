@@ -16,13 +16,13 @@
 }
 
 .mobile-only {
-  @include desktop {
+  @include-media ('desktop') {
     display: none !important;
   }
 }
 
 .desktop-only {
-  @include mobile {
+  @include-media ('mobile') {
     display: none !important;
   }
 }

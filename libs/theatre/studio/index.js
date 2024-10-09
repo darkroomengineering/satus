@@ -1,7 +1,7 @@
 import '@theatre/core'
 import studio from '@theatre/studio'
 import { useEffect } from 'react'
-import s from './studio.module.scss'
+import s from './studio.module.css'
 
 let initialized = false
 
@@ -9,28 +9,27 @@ export function Studio() {
   useEffect(() => {
     if (initialized) return
 
-    studio.default.initialize().then(() => {
-      console.log('Studio initialized')
-    })
+    studio.initialize()
 
     initialized = true
   }, [])
 
   useEffect(() => {
-    studio.default.ui.restore()
+    studio.ui.restore()
 
     return () => {
-      studio.default.ui.hide()
+      studio.ui.hide()
     }
   }, [])
 
   return (
     <div className={s.studio}>
       <button
+        type="button"
         onClick={() => {
-          const project = studio.default.getStudioProject()
+          const project = studio.getStudioProject()
           const id = project.address.projectId
-          const json = studio.default.createContentOfSaveFile(id)
+          const json = studio.createContentOfSaveFile(id)
 
           const file = new File([JSON.stringify(json)], 'config.json', {
             type: 'application/json',

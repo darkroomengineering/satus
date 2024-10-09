@@ -1,4 +1,4 @@
-export function slugify(text) {
+export function slugify(text: { toString: () => string }) {
   return text
     .toString() // Cast to string (optional)
     .normalize('NFKD') // The normalize() using NFKD method returns the Unicode Normalization Form of a given string.

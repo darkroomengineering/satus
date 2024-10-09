@@ -1,7 +1,6 @@
 const colors = {
   black: '#000000',
   white: '#ffffff',
-  green: '#00ff6a',
   red: '#e30613',
 }
 
@@ -24,21 +23,30 @@ const themes = {
 }
 
 const breakpoints = {
-  mobile: '800px',
+  dt: 800,
 }
 
-const viewports = {
-  mobile: {
-    width: '375px',
-    height: '650px',
+const screens = {
+  mobile: { width: 375, height: 650 },
+  desktop: { width: 1440, height: 816 },
+}
+
+const themeNames = Object.keys(themes)
+
+const config = {
+  themes,
+  columns: {
+    mobile: 4,
+    desktop: 8,
   },
-  desktop: {
-    width: '1440px',
-    height: '816px',
+  gaps: {
+    mobile: 4,
+    desktop: 4,
+  },
+  margins: {
+    mobile: 4,
+    desktop: 4,
   },
 }
 
-const config = { breakpoints, colors, themes, viewports }
-
-export default config
-export { breakpoints, colors, themes, viewports }
+export { breakpoints, config, screens, themeNames, themes }

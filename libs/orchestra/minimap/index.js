@@ -3,7 +3,7 @@
 import { useFrame, useWindowSize } from '@darkroom.engineering/hamo'
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { create } from 'zustand'
-import s from './minimap.module.scss'
+import s from './minimap.module.css'
 
 const useMinimapStore = create(() => ({
   list: {},
@@ -85,7 +85,7 @@ export function Minimap() {
       }}
       className={s.minimap}
     >
-      <div className={s.body}></div>
+      <div className={s.body} />
       <div className={s.markers}>
         {Object.entries(list).map(([key, { element, color }]) => (
           <Marker key={key} element={element} color={color} />

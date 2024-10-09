@@ -21,8 +21,7 @@
     align-items: center;
     justify-content: center;
 
-    &[data-active='true'] {
-      border-color: transparent;
+    &[data-active="true"] {
       box-shadow: 0px 0px 5px green;
       border: 1px solid green;
     }

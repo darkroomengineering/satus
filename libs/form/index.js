@@ -8,7 +8,7 @@ import {
   LogoutCustomerAction,
 } from 'libs/shopify/customer/actions'
 import { createContext, useContext, useEffect, useState } from 'react'
-import s from './form.module.scss'
+import s from './form.module.css'
 import { useForm } from './hook'
 
 export const Form = ({ children, ...props }) => {
@@ -47,7 +47,7 @@ export const FormProvider = ({
         setKey(crypto.randomUUID())
       }, 2000)
     }
-  }, [helpers, setKey])
+  }, [helpers?.formState?.status, setKey])
 
   return (
     <formContext.Provider value={helpers}>
@@ -96,7 +96,7 @@ export function SubmitButton({ className, defaultText = 'submit' }) {
         !isReady && s.disabled,
         isPending && s.pending,
         submitted && s.submitted,
-        error && s.error,
+        error && s.error
       )}
     >
       <span>{buttonText}</span>
@@ -109,8 +109,8 @@ export const Messages = ({ className }) => {
 
   return (
     <div className={cn(s.messages, className)}>
-      {errors.map((error, idx) => (
-        <p className={cn('p-xs', s.error)} key={idx}>
+      {errors.map((error) => (
+        <p className={cn('p-xs', s.error)} key={error.message}>
           {error.message}
         </p>
       ))}

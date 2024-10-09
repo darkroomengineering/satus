@@ -1,8 +1,8 @@
 import { useMediaQuery } from '@darkroom.engineering/hamo'
-import variables from 'styles/config'
+import { breakpoints } from 'styles/config'
 
 export function useDeviceDetection() {
-  const breakpoint = variables.breakpoints.mobile.replace('px', '')
+  const breakpoint = breakpoints.dt
 
   const isMobile = useMediaQuery(`(max-width: ${breakpoint - 1}px)`)
   const isDesktop = useMediaQuery(`(min-width: ${breakpoint}px)`)

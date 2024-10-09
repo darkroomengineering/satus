@@ -6,7 +6,7 @@
   height: calc(100vh - mobile-vw(74px));
   row-gap: mobile-vw(24px);
 
-  @include desktop {
+  @include-media ('desktop') {
     height: calc(100vh - desktop-vw(52px));
     row-gap: desktop-vw(24px);
   }
@@ -17,7 +17,7 @@
     gap: mobile-vw(16px);
     text-align: center;
 
-    @include desktop {
+    @include-media ('desktop') {
       width: columns(6);
       gap: desktop-vw(16px);
     }
@@ -25,12 +25,12 @@
 
   .media {
     position: relative;
-    grid-column: 1/-1;
-    aspect-ratio: 320/357;
+    grid-column: 1 / -1;
+    aspect-ratio: 320 / 357;
     height: 40vh;
 
-    @include desktop {
-      grid-column: 3/-3;
+    @include-media ('desktop') {
+      grid-column: 3 / -3;
       height: 40vh;
     }
   }

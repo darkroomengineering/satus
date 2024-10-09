@@ -1,26 +1,27 @@
 import { useWindowSize } from '@darkroom.engineering/hamo'
 import cn from 'clsx'
 import { useMemo } from 'react'
-import s from './grid.module.scss'
+import s from './grid.module.css'
 
 export function GridDebugger({ gridClassName = 'layout-grid' }) {
   const { width: windowWidth, height: windowHeight } = useWindowSize()
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: columns dependency is needed to adjust on size changes
   const columns = useMemo(
     () =>
-      parseInt(
+      Number.parseInt(
         getComputedStyle(document.documentElement).getPropertyValue(
-          '--layout-columns-count',
-        ),
+          '--layout-columns-count'
+        )
       ),
-    [windowWidth, windowHeight],
+    [windowWidth, windowHeight]
   )
 
   return (
     <div className={s.grid}>
       <div className={cn(gridClassName, s.debugger)}>
-        {Array.from({ length: columns }).map((_, key) => (
-          <span key={key} />
+        {Array.from({ length: columns }).map((_, index) => (
+          <span key={`column-${columns.indexOf(index)}`} />
         ))}
       </div>
     </div>

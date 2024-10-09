@@ -2,7 +2,7 @@
 
 import cn from 'clsx'
 import Script from 'next/script'
-import s from './form.module.scss'
+import s from './form.module.css'
 
 export function EmbedHubspotForm({
   strategy = 'afterInteractive',
@@ -21,7 +21,7 @@ export function EmbedHubspotForm({
           window.hbspt.forms.create({
             portalId: process.env.NEXT_PUBLIC_HUSBPOT_PORTAL_ID,
             formId,
-            target: '#' + target,
+            target: `#${target}`,
             submitButtonClass: s.submit,
             errorMessageClass: s.error,
             cssClass: s['custom-form'],

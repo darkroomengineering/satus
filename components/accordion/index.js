@@ -11,7 +11,7 @@ import {
   useImperativeHandle,
   useState,
 } from 'react'
-import s from './accordion.module.scss'
+import s from './accordion.module.css'
 
 const AccordionsGroupContext = createContext({})
 const AccordionContext = createContext({})
@@ -83,7 +83,7 @@ function Body({ children, className }) {
       className={cn(s.body, isOpen && s.isOpen)}
       aria-hidden={!isOpen}
       style={{
-        height: (isOpen ? rect?.height : 0) + 'px',
+        height: `${isOpen ? rect?.height : 0}px`,
       }}
     >
       <div ref={setRectRef}>

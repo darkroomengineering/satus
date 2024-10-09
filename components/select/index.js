@@ -8,7 +8,7 @@ import {
   Popover,
   SelectValue,
 } from 'react-aria-components'
-import s from './select.module.scss'
+import s from './select.module.css'
 
 export function Select({
   className,

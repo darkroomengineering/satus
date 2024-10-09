@@ -1,9 +1,9 @@
 'use client'
 
 import { OrchestraToggle } from 'libs/orchestra/react'
-import s from './orchestra.module.scss'
+import s from './orchestra.module.css'
 
-function OrchestraPage({}) {
+function OrchestraPage() {
   return (
     <div className={s.buttons}>
       <OrchestraToggle id="studio" className={s.button}>

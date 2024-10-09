@@ -1,7 +1,7 @@
 import { Image } from 'components/image'
 import { getCollectionProducts } from 'libs/shopify'
 import { SizeAndBuy } from '../size-and-buy'
-import s from './product.module.scss'
+import s from './product.module.css'
 
 export async function Product() {
   const data = await getCollectionProducts({ collection: 'satus' })

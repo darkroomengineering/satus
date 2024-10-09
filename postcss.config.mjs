@@ -2,6 +2,7 @@ import { breakpoints as _breakpoints, screens } from './styles/config.mjs'
 
 const postcss = {
   plugins: {
+    'postcss-extend': {},
     'postcss-flexbugs-fixes': {},
     'postcss-preset-env': {
       stage: 0,

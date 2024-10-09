@@ -3,7 +3,7 @@
 import { Dropdown } from 'components/dropdown'
 import { AddToCart } from 'libs/shopify/cart/add-to-cart'
 import { useState } from 'react'
-import s from './size-and-buy.module.scss'
+import s from './size-and-buy.module.css'
 
 export const SizeAndBuy = ({ product }) => {
   const [selectedVariant, setSelectedVariant] = useState(null)
@@ -19,9 +19,7 @@ export const SizeAndBuy = ({ product }) => {
         onChange={(value) => {
           const selected = product.variants?.[value]?.title
           const variant = product?.variants.find((variant) =>
-            variant.selectedOptions.every(
-              (option) => option.value === selected,
-            ),
+            variant.selectedOptions.every((option) => option.value === selected)
           )
 
           setSelectedVariant(variant)

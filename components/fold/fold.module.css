@@ -35,7 +35,7 @@
       margin-bottom: -100svh;
 
       &::before {
-        content: '';
+        content: "";
         display: block;
         min-height: 100svh;
         visibility: hidden;
@@ -50,7 +50,7 @@
       margin-top: -100svh;
 
       &::after {
-        content: '';
+        content: "";
         display: block;
         min-height: 100svh;
         visibility: hidden;

@@ -13,7 +13,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import s from './split-text.module.scss'
+import s from './split-text.module.css'
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(GSAPSplitText)

@@ -1,7 +1,7 @@
 import { TheatreProjectProvider } from 'libs/theatre'
 import { Wrapper } from '../(components)/wrapper'
 import { Box } from './(components)/box'
-import s from './r3f.module.scss'
+import s from './r3f.module.css'
 
 export default function Home() {
   return (

@@ -2,7 +2,7 @@
 
 import { storyblokEditable } from '@storyblok/js'
 import { useStoryblokContext } from 'libs/storyblok/context'
-import s from './article.module.scss'
+import s from './article.module.css'
 
 export function Article() {
   const { story } = useStoryblokContext()

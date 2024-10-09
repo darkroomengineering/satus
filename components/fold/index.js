@@ -3,9 +3,8 @@
 import { useRect, useWindowSize } from '@darkroom.engineering/hamo'
 import cn from 'clsx'
 import { useScrollTrigger } from 'hooks/use-scroll-trigger'
-import PropTypes from 'prop-types'
 import { createContext, useContext, useRef } from 'react'
-import s from './fold.module.scss'
+import s from './fold.module.css'
 
 const FoldContext = createContext(false)
 
@@ -77,7 +76,7 @@ export function Fold({
           type === 'top' && s.isTop,
           overlay && s.isOverlay,
           parallax && s.isParallax,
-          className,
+          className
         )}
         {...props}
       >
@@ -90,18 +89,3 @@ export function Fold({
     // </TransformProvider>
   )
 }
-
-Fold.propTypes = {
-  children: PropTypes.node.isRequired,
-  disabled: PropTypes.bool,
-  type: PropTypes.oneOf(['top', 'bottom']),
-  overlay: PropTypes.bool,
-  parallax: PropTypes.bool,
-}
-
-// Fold.defaultProps = {
-//   disabled: false,
-//   type: 'bottom',
-//   overlay: true,
-//   parallax: true,
-// }

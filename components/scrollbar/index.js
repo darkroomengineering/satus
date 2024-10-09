@@ -4,7 +4,7 @@ import { useRect } from '@darkroom.engineering/hamo'
 import { useLenis } from 'libs/lenis'
 import { mapRange } from 'libs/maths'
 import { useEffect, useRef } from 'react'
-import s from './scrollbar.module.scss'
+import s from './scrollbar.module.css'
 
 export function Scrollbar() {
   const thumbRef = useRef()
@@ -21,7 +21,7 @@ export function Scrollbar() {
         progress * (innerHeight - thumbHeight)
       }px,0)`
     },
-    [innerHeight, thumbHeight],
+    [innerHeight, thumbHeight]
   )
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export function Scrollbar() {
         innerHeight - (thumbHeight - start),
         e.clientY,
         0,
-        lenis.limit,
+        lenis.limit
       )
       lenis.scrollTo(scroll, { immediate: true })
     }

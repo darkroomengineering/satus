@@ -8,11 +8,10 @@
   right: 50px;
   width: var(--width);
   height: var(--height);
-  //   border: 1px solid #000;
   transform: translateY(-50%);
 
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     inset: -6px;
     border: 2px solid rgba(0, 0, 0, 0.5);
@@ -20,7 +19,7 @@
   }
 
   &::before {
-    content: '';
+    content: "";
     width: 100%;
     aspect-ratio: var(--body-ratio);
     transform: translateY(

@@ -9,7 +9,7 @@
     flex-direction: column;
     flex-grow: 1;
 
-    @include mobile {
+    @include-media ('mobile') {
       padding: 0 mobile-vw(16px);
     }
   }
@@ -17,19 +17,17 @@
   .title {
     margin-bottom: mobile-vw(19px);
 
-    @include desktop {
+    @include-media ('desktop') {
       margin-bottom: desktop-vw(15px);
     }
   }
 
   .subscribe {
     margin-bottom: mobile-vw(31px);
-    // width: mobile-vw(303px);
     padding: 0 mobile-vw(15px);
 
-    @include desktop {
+    @include-media ('desktop') {
       margin-bottom: desktop-vw(32px);
-      // width: desktop-vw(362px);
       padding: 0 desktop-vw(15px);
     }
   }

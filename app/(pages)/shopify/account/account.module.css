@@ -11,7 +11,7 @@
   flex-direction: column;
   flex-grow: 1;
 
-  @include mobile {
+  @include-media ('mobile') {
     padding: 0 mobile-vw(16px);
   }
 }

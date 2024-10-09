@@ -43,7 +43,7 @@ export const TransformContext = createContext({
 
 export const TransformProvider = forwardRef(function TransformProvider(
   { children },
-  ref,
+  ref
 ) {
   const parentTransformRef = useRef(structuredClone(DEFAULT_TRANSFORM))
   const transformRef = useRef(structuredClone(DEFAULT_TRANSFORM))
@@ -74,69 +74,74 @@ export const TransformProvider = forwardRef(function TransformProvider(
 
   const removeCallback = useCallback((callback) => {
     callbacksRefs.current = callbacksRefs.current.filter(
-      (ref) => ref !== callback,
+      (ref) => ref !== callback
     )
   }, [])
 
   const update = useCallback(() => {
-    callbacksRefs.current.forEach((callback) => callback(getTransform()))
+    for (const callback of callbacksRefs.current) {
+      callback(getTransform())
+    }
   }, [getTransform])
 
   const setTranslate = useCallback(
     (x = 0, y = 0, z = 0) => {
-      if (!isNaN(x)) transformRef.current.translate.x = parseFloat(x)
-      if (!isNaN(y)) transformRef.current.translate.y = parseFloat(y)
-      if (!isNaN(z)) transformRef.current.translate.z = parseFloat(z)
+      if (!Number.isNaN(x))
+        transformRef.current.translate.x = Number.parseFloat(x)
+      if (!Number.isNaN(y))
+        transformRef.current.translate.y = Number.parseFloat(y)
+      if (!Number.isNaN(z))
+        transformRef.current.translate.z = Number.parseFloat(z)
 
       update()
     },
-    [update],
+    [update]
   )
 
   const setRotate = useCallback(
     (x = 0, y = 0, z = 0) => {
-      if (!isNaN(x)) transformRef.current.rotate.x = parseFloat(x)
-      if (!isNaN(y)) transformRef.current.rotate.y = parseFloat(y)
-      if (!isNaN(z)) transformRef.current.rotate.z = parseFloat(z)
+      if (!Number.isNaN(x)) transformRef.current.rotate.x = Number.parseFloat(x)
+      if (!Number.isNaN(y)) transformRef.current.rotate.y = Number.parseFloat(y)
+      if (!Number.isNaN(z)) transformRef.current.rotate.z = Number.parseFloat(z)
 
       update()
     },
-    [update],
+    [update]
   )
 
   const setScale = useCallback(
     (x = 1, y = 1, z = 1) => {
-      if (!isNaN(x)) transformRef.current.scale.x = parseFloat(x)
-      if (!isNaN(y)) transformRef.current.scale.y = parseFloat(y)
-      if (!isNaN(z)) transformRef.current.scale.z = parseFloat(z)
+      if (!Number.isNaN(x)) transformRef.current.scale.x = Number.parseFloat(x)
+      if (!Number.isNaN(y)) transformRef.current.scale.y = Number.parseFloat(y)
+      if (!Number.isNaN(z)) transformRef.current.scale.z = Number.parseFloat(z)
 
       update()
     },
-    [update],
+    [update]
   )
 
   const setClip = useCallback(
     ({ top = 0, right = 0, bottom = 0, left = 0 } = {}) => {
-      if (!isNaN(top)) transformRef.current.clip.top = parseFloat(top)
-      if (!isNaN(right)) transformRef.current.clip.right = parseFloat(right)
-      if (!isNaN(bottom)) transformRef.current.clip.bottom = parseFloat(bottom)
-      if (!isNaN(left)) transformRef.current.clip.left = parseFloat(left)
+      if (!Number.isNaN(top))
+        transformRef.current.clip.top = Number.parseFloat(top)
+      if (!Number.isNaN(right))
+        transformRef.current.clip.right = Number.parseFloat(right)
+      if (!Number.isNaN(bottom))
+        transformRef.current.clip.bottom = Number.parseFloat(bottom)
+      if (!Number.isNaN(left))
+        transformRef.current.clip.left = Number.parseFloat(left)
 
       update()
     },
-    [update],
+    [update]
   )
 
   useTransform(
     (transform) => {
       parentTransformRef.current = structuredClone(transform)
       update()
-
-      // if (debug) {
-      //   console.log(parentTransformRef.current.translate)
-      // }
     },
-    [update],
+    [update]
   )
 
   useImperativeHandle(ref, () => ({
@@ -166,7 +171,7 @@ export function useTransform(callback, deps = []) {
     return () => {
       removeCallback(callback)
     }
-  }, [addCallback, removeCallback, ...deps])
+  }, [callback, addCallback, removeCallback, ...deps])
 
   return getTransform
 }

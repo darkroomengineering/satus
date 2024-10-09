@@ -8,9 +8,8 @@ import {
 import cn from 'clsx'
 import { useLenis } from 'libs/lenis'
 import { modulo } from 'libs/maths'
-import PropTypes from 'prop-types'
 import { useRef } from 'react'
-import s from './marquee.module.scss'
+import s from './marquee.module.css'
 
 export function Marquee({
   children,
@@ -55,9 +54,9 @@ export function Marquee({
 
     transformRef.current = modulo(transformRef.current, rect.width)
 
-    elementsRef.current.forEach((node) => {
+    for (const node of elementsRef.current) {
       node.style.transform = `translate3d(${-transformRef.current}px,0,0)`
-    })
+    }
   })
 
   return (
@@ -76,7 +75,10 @@ export function Marquee({
     >
       {new Array(repeat).fill(children).map((_, i) => (
         <div
-          key={i}
+          key={`marquee-item-${
+            // biome-ignore lint/suspicious/noArrayIndexKey: i can't come up with anything better tbh
+            i
+          }`}
           className={s.inner}
           aria-hidden={i !== 0 ?? undefined}
           data-nosnippet={i !== 0 ? '' : undefined}
@@ -91,12 +93,4 @@ export function Marquee({
       ))}
     </div>
   )
-}
-
-Marquee.propTypes = {
-  repeat: PropTypes.number,
-  speed: PropTypes.number,
-  scrollVelocity: PropTypes.bool,
-  reversed: PropTypes.bool,
-  pauseOnHover: PropTypes.bool,
 }

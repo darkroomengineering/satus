@@ -1,6 +1,6 @@
 .dropdown {
   position: relative;
-  grid-column: 1/-1;
+  grid-column: 1 / -1;
 
   .trigger {
     position: relative;
@@ -12,7 +12,7 @@
     border: 1px solid var(--theme-secondary);
     background-color: var(--theme-primary);
 
-    @include desktop {
+    @include-media ('desktop') {
       padding: desktop-vw(8px) desktop-vw(12px);
       border-radius: desktop-vw(2px);
     }
@@ -32,7 +32,7 @@
     overflow: clip;
     padding: mobile-vw(4px);
 
-    @include desktop {
+    @include-media ('desktop') {
       border-radius: desktop-vw(2px);
       top: calc(100% + desktop-vw(4px));
       padding: desktop-vw(4px);
@@ -48,7 +48,7 @@
       width: 100%;
       border-radius: mobile-vw(2px);
 
-      @include desktop {
+      @include-media ('desktop') {
         padding: desktop-vw(8px) desktop-vw(12px);
         border-radius: desktop-vw(2px);
       }

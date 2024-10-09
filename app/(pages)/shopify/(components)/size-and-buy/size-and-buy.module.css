@@ -1,19 +1,19 @@
 .add {
   position: relative;
-  grid-column: 1/-1;
+  grid-column: 1 / -1;
   display: flex;
   border: 2px solid var(--black);
   border-radius: mobile-vw(8px);
   overflow: hidden;
   cursor: pointer;
 
-  @include desktop {
-    grid-column: 4/-4;
+  @include-media ('desktop') {
+    grid-column: 4 / -4;
     border-radius: desktop-vw(8px);
   }
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
@@ -28,7 +28,7 @@
     position: relative;
     padding: mobile-vw(16px);
 
-    @include desktop {
+    @include-media ('desktop') {
       padding: desktop-vw(16px);
     }
   }
@@ -51,7 +51,7 @@
   justify-content: center;
   width: mobile-vw(64px);
 
-  @include desktop {
+  @include-media ('desktop') {
     width: desktop-vw(67px);
   }
 
@@ -59,7 +59,7 @@
     border: 2px solid var(--black) !important;
     border-radius: mobile-vw(8px) !important;
 
-    @include desktop {
+    @include-media ('desktop') {
       border-radius: desktop-vw(8px) !important;
     }
   }

@@ -5,7 +5,7 @@ export function useLazyState(initialValue, callback) {
 
   useEffect(() => {
     callback(initialValue, initialValue)
-  }, [initialValue])
+  }, [callback, initialValue])
 
   function set(value) {
     if (typeof value === 'function') {

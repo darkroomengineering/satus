@@ -6,14 +6,16 @@ export function useFoucFix() {
   useEffect(() => {
     // Gather all server-side rendered stylesheet entries.
     let stylesheets = Array.from(
-      document.querySelectorAll('link[rel="stylesheet"][data-n-p]'),
+      document.querySelectorAll('link[rel="stylesheet"][data-n-p]')
     ).map((element) => ({
       element,
       href: element.getAttribute('href'),
     }))
 
     // Remove the `data-n-p` attribute to prevent Next.js from removing it early.
-    stylesheets.forEach(({ element }) => element.removeAttribute('data-n-p'))
+    for (const { element } of stylesheets) {
+      element.removeAttribute('data-n-p')
+    }
 
     const hrefs = []
 
@@ -22,7 +24,7 @@ export function useFoucFix() {
       const entries = mutations
         .filter(
           ({ target }) =>
-            target.nodeName === 'STYLE' && target.hasAttribute('data-n-href'),
+            target.nodeName === 'STYLE' && target.hasAttribute('data-n-href')
         )
         .map(({ target }) => ({
           element: target,
@@ -32,7 +34,7 @@ export function useFoucFix() {
       // Cycle through them and either:
       // - Remove the `data-n-href` attribute to prevent Next.js from removing it early.
       // - Remove the element if it's already present.
-      entries.forEach(({ element, href }) => {
+      for (const { element, href } of entries) {
         const exists = hrefs.includes(href)
 
         if (exists) {
@@ -42,7 +44,7 @@ export function useFoucFix() {
           element.removeAttribute('data-n-href')
           hrefs.push(href)
         }
-      })
+      }
 
       // Cycle through the server-side rendered stylesheets and remove the ones that
       // are already present as inline <style> tags added by Next.js, so that we don't have duplicate styles.

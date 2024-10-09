@@ -15,10 +15,7 @@ export const contentType = 'image/png'
 
 const getFont = async () => {
   const res = await fetch(
-    new URL(
-      'public/fonts/V1_Server_Mono/V1-ServerMono-Regular.woff2',
-      import.meta.url
-    )
+    new URL('public/fonts/ServerMono/ServerMono-Regular.woff2', import.meta.url)
   )
   return await res.arrayBuffer()
 }
@@ -41,7 +38,7 @@ export default async function Image() {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '8px 48px',
-        fontFamily: 'V1_Server_Mono',
+        fontFamily: 'ServerMono',
         textTransform: 'uppercase',
       }}
     >
@@ -91,7 +88,7 @@ export default async function Image() {
       ...size,
       fonts: [
         {
-          name: 'V1_Server_Mono',
+          name: 'ServerMono',
           data: await mono,
           style: 'normal',
           weight: 400,

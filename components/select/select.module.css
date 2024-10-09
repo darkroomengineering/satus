@@ -35,7 +35,7 @@
   }
 }
 
-.popover[data-trigger='Select'] {
+.popover[data-trigger="Select"] {
   cursor: pointer;
   min-width: var(--trigger-width);
 
@@ -65,9 +65,9 @@
       color: var(--text-color);
 
       &::before {
-        content: '✓';
-        content: '✓' / '';
-        alt: ' ';
+        content: "✓";
+        content: "✓" / "";
+        alt: " ";
         position: absolute;
         top: 4px;
         left: 4px;

@@ -1,7 +1,7 @@
 import cn from 'clsx'
 import { useCallback, useRef, useState } from 'react'
 import { useFormContext } from '..'
-import s from './fields.module.scss'
+import s from './fields.module.css'
 
 export const InputSelector = {
   inputType: function inputType({ props, className, idx }) {
@@ -31,7 +31,7 @@ export function InputField({
         s.single,
         isActive[idx] && s.active,
         errors[idx]?.state && s.error,
-        className,
+        className
       )}
     >
       <input
@@ -81,9 +81,9 @@ export function CheckboxesField({ className, options, idx }) {
           optionsRef.current = node
         }}
       />
-      {options.map(({ label, value }, idx) => (
+      {options.map(({ label, value }) => (
         <button
-          key={idx}
+          key={value}
           className={cn(s.option, 'label', value === 'all' && s.selected)}
           type="button"
           onClick={({ target }) => {

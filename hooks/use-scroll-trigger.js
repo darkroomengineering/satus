@@ -55,7 +55,7 @@ function useMarker({
     `
     element.appendChild(innerElement)
 
-    innerElement.innerText = (fixed ? 'viewport ' : id + ' ') + text
+    innerElement.innerText = (fixed ? 'viewport ' : `${id} `) + text
 
     // setElementRef?.(element)
     elementRef.current = element
@@ -89,14 +89,14 @@ function useMarker({
         elementRef.current.children[0].style.bottom = 0
       }
     },
-    [color, fixed],
+    [color, fixed]
   )
 
   return { top }
 }
 
 function isNumber(value) {
-  return typeof value === 'number' || !isNaN(value)
+  return typeof value === 'number' || !Number.isNaN(value)
 }
 
 export function useScrollTrigger(
@@ -113,7 +113,7 @@ export function useScrollTrigger(
     onProgress,
     steps = 1,
   },
-  deps = [],
+  deps = []
 ) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const getTransform = useTransform()
@@ -158,21 +158,21 @@ export function useScrollTrigger(
   const [elementEndKeyword, viewportEndKeyword] = end.split(' ')
 
   let viewportStart = isNumber(viewportStartKeyword)
-    ? parseFloat(viewportStartKeyword)
+    ? Number.parseFloat(viewportStartKeyword)
     : windowHeight
   if (viewportStartKeyword === 'top') viewportStart = 0
   if (viewportStartKeyword === 'center') viewportStart = windowHeight * 0.5
   if (viewportStartKeyword === 'bottom') viewportStart = windowHeight
 
   let viewportEnd = isNumber(viewportEndKeyword)
-    ? parseFloat(viewportEndKeyword)
+    ? Number.parseFloat(viewportEndKeyword)
     : 0
   if (viewportEndKeyword === 'top') viewportEnd = 0
   if (viewportEndKeyword === 'center') viewportEnd = windowHeight * 0.5
   if (viewportEndKeyword === 'bottom') viewportEnd = windowHeight
 
   let elementStart = isNumber(elementStartKeyword)
-    ? parseFloat(elementStartKeyword)
+    ? Number.parseFloat(elementStartKeyword)
     : rect?.bottom
   if (elementStartKeyword === 'top') elementStart = rect?.top
   if (elementStartKeyword === 'center')
@@ -182,7 +182,7 @@ export function useScrollTrigger(
   elementStart += offset
 
   let elementEnd = isNumber(elementEndKeyword)
-    ? parseFloat(elementEndKeyword)
+    ? Number.parseFloat(elementEndKeyword)
     : rect?.top
   if (elementEndKeyword === 'top') elementEnd = rect?.top
   if (elementEndKeyword === 'center')
@@ -198,7 +198,7 @@ export function useScrollTrigger(
   const [getProgress, setProgress] = useLazyState(
     undefined,
     (progress, lastProgress) => {
-      if (isNaN(progress)) return
+      if (Number.isNaN(progress)) return
 
       if (
         (progress >= 0 && lastProgress < 0) ||
@@ -221,11 +221,11 @@ export function useScrollTrigger(
         isActive: progress >= 0 && progress <= 1,
         progress: clamp(0, progress, 1),
         steps: Array.from({ length: steps }).map((_, i) =>
-          clamp(0, mapRange(i / steps, (i + 1) / steps, progress, 0, 1), 1),
+          clamp(0, mapRange(i / steps, (i + 1) / steps, progress, 0, 1), 1)
         ),
       })
     },
-    [steps, startValue, endValue],
+    [steps, startValue, endValue]
   )
 
   const update = useCallback(
@@ -250,12 +250,18 @@ export function useScrollTrigger(
 
       if (elementMarkerEnd) elementMarkerEnd.top(elementEnd - translate.y)
 
-      let progress = mapRange(startValue, endValue, scroll - translate.y, 0, 1)
+      const progress = mapRange(
+        startValue,
+        endValue,
+        scroll - translate.y,
+        0,
+        1
+      )
 
       setProgress(progress)
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [lenis, rect, getTransform, startValue, endValue, disabled, steps, ...deps],
+    [lenis, rect, getTransform, startValue, endValue, disabled, steps, ...deps]
   )
 
   useLenis(update, [update])

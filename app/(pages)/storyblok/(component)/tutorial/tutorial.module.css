@@ -19,7 +19,7 @@
     border-radius: mobile-vw(8px);
     display: inline-block;
 
-    @include desktop {
+    @include-media ('desktop') {
       padding: desktop-vw(8px);
       border-radius: desktop-vw(8px);
     }

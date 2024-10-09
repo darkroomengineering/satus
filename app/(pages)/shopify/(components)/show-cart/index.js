@@ -7,7 +7,7 @@ export const ShowCart = ({ className }) => {
   const { openCart } = useCartModal()
 
   return (
-    <button onClick={openCart} className={cn(className, 'link')}>
+    <button type="button" onClick={openCart} className={cn(className, 'link')}>
       Cart
     </button>
   )

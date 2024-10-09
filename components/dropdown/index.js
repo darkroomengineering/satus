@@ -1,9 +1,8 @@
 'use client'
 
 import cn from 'clsx'
-import PropTypes from 'prop-types'
 import { useEffect, useState } from 'react'
-import s from './dropdown.module.scss'
+import s from './dropdown.module.css'
 
 export function Dropdown({
   className,
@@ -33,8 +32,14 @@ export function Dropdown({
       onClick={(e) => {
         e.stopPropagation()
       }}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          setIsOpened(false)
+        }
+      }}
     >
       <button
+        type="button"
         className={s.trigger}
         onClick={() => {
           setIsOpened(!isOpened)
@@ -46,13 +51,14 @@ export function Dropdown({
         <div className={s.options} aria-hidden={isOpened ? undefined : true}>
           {options.map((value, i) => (
             <button
+              type="button"
               className={s.option}
               onClick={() => {
                 setSelected(i)
                 setIsOpened(false)
                 onChange?.(i)
               }}
-              key={i}
+              key={`option-${value}`}
             >
               {value}
             </button>
@@ -61,18 +67,4 @@ export function Dropdown({
       )}
     </div>
   )
-}
-
-Dropdown.propTypes = {
-  placeholder: PropTypes.string,
-  defaultValue: PropTypes.string,
-  options: PropTypes.array,
-  onChange: PropTypes.func,
-}
-
-Dropdown.defaultProps = {
-  placeholder: 'Select Option',
-  defaultValue: null,
-  options: [],
-  onChange: null,
 }

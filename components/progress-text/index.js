@@ -3,9 +3,9 @@
 import { useRect } from '@darkroom.engineering/hamo'
 import cn from 'clsx'
 import { useScrollTrigger } from 'hooks/use-scroll-trigger'
-import PropTypes from 'prop-types'
+import { slugify } from 'libs/slugify'
 import { Fragment, useRef } from 'react'
-import s from './progress-text.module.scss'
+import s from './progress-text.module.css'
 
 // TODO: add support for children as an array of strings and objects
 
@@ -49,13 +49,12 @@ export function ProgressText({
         ...style,
       }}
     >
-      {children.split(' ').map((word, i) => (
-        <Fragment key={i}>
+      {children.split(' ').map((word, index) => (
+        <Fragment key={slugify(word)}>
           <span
             className={s.word}
-            key={i}
             ref={(node) => {
-              wordsRefs.current[i] = node
+              wordsRefs.current[index] = node
             }}
             style={{ opacity: 0.33 }}
           >
@@ -65,11 +64,4 @@ export function ProgressText({
       ))}
     </span>
   )
-}
-
-ProgressText.propTypes = {
-  start: PropTypes.string,
-  end: PropTypes.string,
-  transition: PropTypes.string,
-  onChange: PropTypes.func,
 }

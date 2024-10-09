@@ -2,7 +2,7 @@
 
 import { storyblokEditable } from '@storyblok/js'
 import { useStoryblokContext } from 'libs/storyblok/context'
-import s from './tutorial.module.scss'
+import s from './tutorial.module.css'
 
 // TODO:
 // - Webhooks

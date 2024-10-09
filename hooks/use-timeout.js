@@ -7,5 +7,5 @@ export function useTimeout(callback, delay) {
     return () => {
       clearTimeout(timeout)
     }
-  }, [delay])
+  }, [callback, delay])
 }

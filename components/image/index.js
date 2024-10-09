@@ -2,10 +2,9 @@
 
 import cn from 'clsx'
 import NextImage from 'next/image'
-import PropTypes from 'prop-types'
 import { forwardRef } from 'react'
-import variables from 'styles/config'
-import s from './image.module.scss'
+import { breakpoints } from 'styles/config'
+import s from './image.module.css'
 
 export const Image = forwardRef(function Image(
   {
@@ -29,7 +28,7 @@ export const Image = forwardRef(function Image(
 ) {
   sizes =
     sizes ||
-    `(max-width: ${Number.parseFloat(variables.breakpoints.mobile)}px) ${mobileSize}, ${desktopSize}`
+    `(max-width: ${Number.parseFloat(breakpoints.dt)}px) ${mobileSize}, ${desktopSize}`
 
   return (
     <NextImage
@@ -54,18 +53,3 @@ export const Image = forwardRef(function Image(
     />
   )
 })
-
-Image.propTypes = {
-  src: PropTypes.string.isRequired,
-  alt: PropTypes.string,
-  width: PropTypes.number,
-  height: PropTypes.number,
-  quality: PropTypes.number,
-  objectFit: PropTypes.string,
-  loading: PropTypes.string,
-  unoptimized: PropTypes.bool,
-  block: PropTypes.bool,
-  mobileSize: PropTypes.string,
-  desktopSize: PropTypes.string,
-  sizes: PropTypes.string,
-}

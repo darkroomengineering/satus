@@ -18,9 +18,7 @@ export const useForm = ({
     if (!inputsRefs.current) return
 
     setIsActive(inputsRefs.current.map(() => false))
-    setIsValid(
-      inputsRefs.current.map(({ id }) => (id === 'hidden' ? true : false)),
-    )
+    setIsValid(inputsRefs.current.map(({ id }) => id === 'hidden'))
     setErrors(inputsRefs.current.map(() => ({ state: false, message: '' })))
   }, [])
 
@@ -37,7 +35,7 @@ export const useForm = ({
   const setToActiveInput = useCallback((value, index) => {
     if (value.length === 0) {
       setIsActive((prev) =>
-        prev.map((state, i) => (i === index ? false : state)),
+        prev.map((state, i) => (i === index ? false : state))
       )
 
       return
@@ -57,7 +55,7 @@ export const useForm = ({
 
     if (validation) {
       setIsValid((prev) =>
-        prev.map((state, i) => (i === index ? validation : state)),
+        prev.map((state, i) => (i === index ? validation : state))
       )
     }
 
@@ -68,8 +66,8 @@ export const useForm = ({
               state: !validation,
               message: validation ? '' : `Invalid ${element.id}`,
             }
-          : state,
-      ),
+          : state
+      )
     )
   }, [])
 

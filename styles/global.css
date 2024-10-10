@@ -2,6 +2,7 @@
 @import url("./_easings.css");
 @import url("./_utils.css");
 @import url("./_font-style.css");
+@import url("./_layout.css");
 
 :root {
   --header-height: mobile-vw(58px);

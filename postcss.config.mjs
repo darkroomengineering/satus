@@ -1,19 +1,18 @@
-import { breakpoints as _breakpoints, screens } from './styles/config.mjs'
+import { breakpoints as _breakpoints, screens } from 'styles/config.mjs'
 
 const postcss = {
   plugins: {
     'postcss-extend': {},
     'postcss-flexbugs-fixes': {},
     'postcss-preset-env': {
-      stage: 0,
       autoprefixer: {
-        grid: true,
+        flexbox: 'no-2009',
       },
+      stage: 3,
       features: {
         'custom-properties': false,
       },
     },
-    // PostCSS Nesting is a peer dep of include-media
     'postcss-nesting': {},
     'postcss-include-media': {
       breakpoints: {
@@ -28,13 +27,41 @@ const postcss = {
     },
     'postcss-functions': {
       functions: {
-        'mobile-vw': (pixels) => `${(pixels * 100) / screens.mobile.width}vw`,
-        'mobile-vh': (pixels) => `${(pixels * 100) / screens.mobile.height}svh`,
-        'desktop-vw': (pixels) => `${(pixels * 100) / screens.desktop.width}vw`,
-        'desktop-vh': (pixels) =>
-          `${(pixels * 100) / screens.desktop.height}svh`,
-        columns: (columns) =>
-          `calc((${columns} * var(--layout-column-width)) + ((${columns} - 1) * var(--layout-columns-gap)))`,
+        'mobile-vw': (pixels) => {
+          const numPixels = Number.parseFloat(pixels)
+          if (Number.isNaN(numPixels)) {
+            throw new Error(`Invalid pixel value: ${pixels}`)
+          }
+          return `${(numPixels * 100) / screens.mobile.width}vw`
+        },
+        'mobile-vh': (pixels) => {
+          const numPixels = Number.parseFloat(pixels)
+          if (Number.isNaN(numPixels)) {
+            throw new Error(`Invalid pixel value: ${pixels}`)
+          }
+          return `${(numPixels * 100) / screens.mobile.height}svh`
+        },
+        'desktop-vw': (pixels) => {
+          const numPixels = Number.parseFloat(pixels)
+          if (Number.isNaN(numPixels)) {
+            throw new Error(`Invalid pixel value: ${pixels}`)
+          }
+          return `${(numPixels * 100) / screens.desktop.width}vw`
+        },
+        'desktop-vh': (pixels) => {
+          const numPixels = Number.parseFloat(pixels)
+          if (Number.isNaN(numPixels)) {
+            throw new Error(`Invalid pixel value: ${pixels}`)
+          }
+          return `${(numPixels * 100) / screens.desktop.height}svh`
+        },
+        columns: (columns) => {
+          const numColumns = Number.parseFloat(columns)
+          if (Number.isNaN(numColumns)) {
+            throw new Error(`Invalid column value: ${columns}`)
+          }
+          return `calc((${numColumns} * var(--layout-column-width)) + ((${numColumns} - 1) * var(--layout-columns-gap)))`
+        },
       },
     },
   },

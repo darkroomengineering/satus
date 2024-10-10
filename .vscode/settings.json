@@ -15,6 +15,6 @@
     "*.json": "jsonc",
     "*.css": "css"
   },
-  "css.lint.validProperties": ["composes"],
+  "css.lint.validProperties": ["composes", "user-drag"],
   "css.lint.unknownAtRules": "ignore"
 }

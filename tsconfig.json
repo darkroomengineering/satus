@@ -29,7 +29,8 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "next.config.mjs",
-    "libs/webgl/utils/blend.js"
+    "libs/webgl/utils/blend.js",
+    "libs/orchestra/minimap/index.js"
   ],
   "exclude": ["node_modules"]
 }

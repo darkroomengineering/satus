@@ -17,49 +17,59 @@ export function useFoucFix() {
       element.removeAttribute('data-n-p')
     }
 
-    const hrefs = []
+    const hrefs: string[] = []
 
-    const mutationHandler = (mutations) => {
+    const mutationHandler = (mutations: MutationRecord[]) => {
       // Gather all <style data-n-href="/..."> elements.
       const entries = mutations
         .filter(
           ({ target }) =>
-            target.nodeName === 'STYLE' && target.hasAttribute('data-n-href')
+            target.nodeName === 'STYLE' &&
+            (target as Element).hasAttribute('data-n-href')
         )
         .map(({ target }) => ({
           element: target,
-          href: target.getAttribute('data-n-href'),
+          href: (target as Element).getAttribute('data-n-href'),
         }))
 
       // Cycle through them and either:
       // - Remove the `data-n-href` attribute to prevent Next.js from removing it early.
       // - Remove the element if it's already present.
       for (const { element, href } of entries) {
+        if (href === null) continue
+
         const exists = hrefs.includes(href)
 
         if (exists) {
-          element.remove()
+          element.parentNode?.removeChild(element)
         } else {
-          element.setAttribute('data-fouc-fix-n-href', href)
-          element.removeAttribute('data-n-href')
+          if (element instanceof Element) {
+            element.setAttribute('data-fouc-fix-n-href', href)
+            element.removeAttribute('data-n-href')
+          }
           hrefs.push(href)
         }
       }
 
       // Cycle through the server-side rendered stylesheets and remove the ones that
       // are already present as inline <style> tags added by Next.js, so that we don't have duplicate styles.
-      stylesheets = stylesheets.reduce((entries, entry) => {
-        const { element, href } = entry
-        const exists = hrefs.includes(href)
+      stylesheets = stylesheets.reduce(
+        (entries, entry) => {
+          const { element, href } = entry
+          if (href === null) return entries
 
-        if (exists) {
-          element.remove()
-        } else {
-          entries.push(entry)
-        }
+          const exists = hrefs.includes(href)
 
-        return entries
-      }, [])
+          if (exists) {
+            element.remove()
+          } else {
+            entries.push(entry as { element: Element; href: string | null })
+          }
+
+          return entries
+        },
+        [] as { element: Element; href: string | null }[]
+      )
     }
 
     const observer = new MutationObserver(mutationHandler)

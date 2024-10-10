@@ -6,14 +6,14 @@ export function useObjectFit(
   childWidth = 1,
   childHeight = 1,
   objectFit = 'cover',
-  deps = [],
+  deps = []
 ) {
   const [width, height] = useMemo(() => {
     if (!parentWidth || !parentHeight || !childWidth || !childHeight)
       return [1, 1]
     const parentRatio = parentWidth / parentHeight
     const childRatio = childWidth / childHeight
-    let width
+    let width: number
     if (objectFit === 'contain') {
       width = parentRatio > childRatio ? parentHeight * childRatio : parentWidth
     } else if (objectFit === 'cover') {

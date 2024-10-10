@@ -3,7 +3,7 @@
   "description": "Satūs is a next.js starter",
   "version": "0.0.2",
   "license": "MIT",
-  "packageManager": "pnpm@9.4.0",
+  "packageManager": "bun@1.1.30",
   "scripts": {
     "dev:storyblok": "pnpm run --parallel /^dev.*/",
     "dev": "next dev --turbo",

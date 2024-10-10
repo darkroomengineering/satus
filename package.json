@@ -5,13 +5,12 @@
   "license": "MIT",
   "packageManager": "bun@1.1.30",
   "scripts": {
-    "dev:storyblok": "pnpm run --parallel /^dev.*/",
     "dev": "next dev --turbo",
     "dev:https": "next dev --turbo --experimental-https",
     "build": "next build",
     "start": "next start",
     "analyze": "cross-env ANALYZE=true next build",
-    "npmrc": "pnpx npmrc-replace-env -w",
+    "npmrc": "bunx npmrc-replace-env -w",
     "storybook:dev": "storybook dev -p 6006",
     "storybook:build": "storybook build --quiet"
   },

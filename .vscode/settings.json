@@ -1,15 +1,20 @@
 {
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
-    "source.organizeImports": "explicit",
+    "source.organizeImports": "explicit"
   },
   "editor.defaultFormatter": "biomejs.biome",
   "typescript.suggest.autoImports": true,
   "javascript.suggest.autoImports": true,
-  "css.lint.unknownAtRules": "ignore",
   "workbench.editor.customLabels.patterns": {
     "**/app/**/page.js": "${dirname(1)}/${dirname} <page>",
     "**/app/**/layout.js": "${dirname(1)}/${dirname} <layout>",
     "**/app/api/**/route.js": "${dirname(1)}/${dirname} <route>"
   },
+  "files.associations": {
+    "*.json": "jsonc",
+    "*.css": "css"
+  },
+  "css.lint.validProperties": ["composes"],
+  "css.lint.unknownAtRules": "ignore"
 }

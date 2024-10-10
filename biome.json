@@ -47,8 +47,13 @@
     }
   },
   "css": {
-    "formatter": {
+    "linter": {
       "enabled": true
+    },
+    "formatter": {
+      "enabled": true,
+      "indentStyle": "space",
+      "indentWidth": 2
     },
     "parser": {
       "cssModules": true

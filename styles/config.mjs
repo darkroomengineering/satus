@@ -49,4 +49,4 @@ const config = {
   },
 }
 
-export { breakpoints, config, screens, themeNames, themes }
+export { breakpoints, colors, config, screens, themeNames, themes }

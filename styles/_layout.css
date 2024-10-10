@@ -20,8 +20,9 @@
   --layout-column-width: calc(
     (
       var(--layout-width) -
-        ((var(--layout-columns-count) - 1) * var(--layout-columns-gap))
-    ) / var(--layout-columns-count)
+      ((var(--layout-columns-count) - 1) * var(--layout-columns-gap))
+    ) /
+    var(--layout-columns-count)
   );
 
   @include-media ('desktop') {

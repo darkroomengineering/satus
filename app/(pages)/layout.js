@@ -3,7 +3,7 @@ import { Debug } from 'components/debug'
 import { GSAP } from 'components/gsap'
 import { RealViewport } from 'components/real-viewport'
 import { StyleVariables } from 'libs/style-variables'
-import { colors, themes } from 'styles/config'
+import { colors, themes } from 'styles/config.mjs'
 import AppData from '../../package.json'
 
 import 'styles/global.css'

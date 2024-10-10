@@ -1,7 +1,7 @@
 import { fonts } from 'app/fonts'
 import cn from 'clsx'
 import { StyleVariables } from 'libs/style-variables'
-import { colors, themes } from 'styles/config'
+import { colors, themes } from 'styles/config.mjs'
 import 'styles/global.css'
 
 /** @type { import('@storybook/react').Preview } */

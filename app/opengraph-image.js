@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og'
-import { themes } from 'styles/config'
+import { themes } from 'styles/config.mjs'
 import AppData from '../package.json'
 
 export const runtime = 'edge'

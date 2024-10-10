@@ -9,25 +9,6 @@ const useMinimapStore = create(() => ({
   list: {},
 }))
 
-// Define the type for the minimap item
-interface MinimapItem {
-  element: React.ReactNode
-  color: string
-}
-
-// Define the type for the minimap store state
-interface MinimapStoreState {
-  list: Record<string, MinimapItem>
-}
-
-// Define the props for the useMinimap hook
-interface UseMinimapProps {
-  color?: string
-}
-
-// Define the return type of the useMinimap hook
-type SetElementFunction = (node: React.ReactNode | null) => void
-
 export function useMinimap({ color = 'blue' } = {}) {
   const [element, setElement] = useState()
   const id = useId()

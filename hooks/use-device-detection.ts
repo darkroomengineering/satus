@@ -1,5 +1,6 @@
 import { useMediaQuery } from '@darkroom.engineering/hamo'
-import { breakpoints } from 'styles/config'
+//@ts-ignore-next-line
+import { breakpoints } from 'styles/config.mjs'
 
 export function useDeviceDetection() {
   const breakpoint = breakpoints.dt

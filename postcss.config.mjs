@@ -1,4 +1,4 @@
-import { breakpoints as _breakpoints, screens } from './styles/config'
+import { breakpoints as _breakpoints, screens } from './styles/config.mjs'
 
 const postcss = {
   plugins: {

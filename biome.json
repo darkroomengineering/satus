@@ -17,6 +17,8 @@
       ".husky/**",
       "pnpm-lock.yaml",
       "bun.lockb",
+      "**/*.md",
+      "**/*.mdx",
       "**/public/*.js"
     ]
   },

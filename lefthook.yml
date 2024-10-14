@@ -2,7 +2,7 @@ pre-commit:
   parallel: true
   commands:
     biome:
-      glob: '*.{js,ts,jsx,tsx,css,scss,md}'
+      glob: '*.{js,ts,jsx,tsx,css,scss}'
       run: bun biome check --write "{staged_files}"
 
 post-merge:

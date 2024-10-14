@@ -1,15 +1,14 @@
-import cn from 'clsx'
 import { Image } from 'components/image'
 import { getCollectionProducts } from 'libs/shopify'
-import { AddToCart } from 'libs/shopify/cart/add-to-cart'
+import { SizeAndBuy } from '../size-and-buy'
 import s from './product.module.scss'
 
 export async function Product() {
   const data = await getCollectionProducts({ collection: 'satus' })
-  const product = data?.find((product) => product.handle === 'darkroom-board')
+  const product = data?.find((product) => product.handle === 'boxy-hoodie')
 
   return (
-    <div className={cn('layout-grid-inner', s.product)}>
+    <div className={s.product}>
       <div className={s.media}>
         <Image src={product?.images[0].url} alt={product?.altText} />
       </div>
@@ -17,7 +16,7 @@ export async function Product() {
         <h1>{product?.title}</h1>
         <p>{product?.description}</p>
       </aside>
-      <AddToCart variants={product?.variants} className={s.add} />
+      <SizeAndBuy product={product} />
     </div>
   )
 }

@@ -27,7 +27,7 @@ export const useForm = ({
   function onSubmit(event) {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
-    formData.append('formId', formId)
+    formId && formData.append('formId', formId)
 
     startTransition(async () => {
       await formAction(formData)

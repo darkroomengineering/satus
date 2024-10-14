@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useCurrentRafDriver } from '..'
 import { useStudio } from './use-studio'
 
 export function useTheatreObject(sheet, theatreKey, config, deps = []) {
@@ -25,7 +24,6 @@ export function useTheatre(
   { onValuesChange, lazy = true, deps = [] } = {},
 ) {
   const object = useTheatreObject(sheet, theatreKey, config, deps)
-  const rafDriver = useCurrentRafDriver()
 
   const [values, setValues] = useState({})
   const lazyValues = useRef({})
@@ -39,11 +37,11 @@ export function useTheatre(
         if (!lazy) setValues(values)
 
         onValuesChange?.(values)
-      }, rafDriver)
+      })
 
       return unsubscribe
     }
-  }, [object, rafDriver, lazy, ...deps])
+  }, [object, lazy, ...deps])
 
   const studio = useStudio()
 

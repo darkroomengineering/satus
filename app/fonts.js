@@ -3,17 +3,17 @@
 import cn from 'clsx'
 import localFont from 'next/font/local'
 
-const ibmPlexMono = localFont({
+const mono = localFont({
   src: [
     {
-      path: './fonts/IBM_Plex_Mono/IBMPlexMono-Medium.woff2',
+      path: '../public/fonts/V1_Server_Mono/V1-ServerMono-Regular.woff2',
       weight: '400',
       style: 'normal',
     },
   ],
   display: 'swap',
-  variable: '--font-ibm-plex-mono',
+  variable: '--font-mono',
   preload: true,
 })
 
-export const fonts = { className: cn(ibmPlexMono.variable) }
+export const fonts = { className: cn(mono.variable) }

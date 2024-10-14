@@ -1,0 +1,70 @@
+.add {
+  position: relative;
+  grid-column: 1/-1;
+  display: flex;
+  border: 2px solid var(--black);
+  border-radius: mobile-vw(8px);
+  overflow: hidden;
+  cursor: pointer;
+
+  @include desktop {
+    grid-column: 4/-4;
+    border-radius: desktop-vw(8px);
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    background-color: var(--black);
+    clip-path: circle(0%);
+  }
+
+  button {
+    position: relative;
+    padding: mobile-vw(16px);
+
+    @include desktop {
+      padding: desktop-vw(16px);
+    }
+  }
+
+  @include hover {
+    &:hover {
+      color: var(--white);
+
+      &::before {
+        transition: 1000ms clip-path var(--gleasing);
+        clip-path: circle(100%);
+      }
+    }
+  }
+}
+
+.size {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: mobile-vw(64px);
+
+  @include desktop {
+    width: desktop-vw(67px);
+  }
+
+  > button {
+    border: 2px solid var(--black) !important;
+    border-radius: mobile-vw(8px) !important;
+
+    @include desktop {
+      border-radius: desktop-vw(8px) !important;
+    }
+  }
+
+  > div {
+    padding: 0 !important;
+  }
+}

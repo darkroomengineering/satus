@@ -21,6 +21,8 @@ body {
 
 body {
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a,
@@ -34,7 +36,7 @@ select {
 }
 
 *::selection {
-  background-color: var(--theme-secondary);
+  background-color: var(--theme-contrast);
   color: var(--theme-primary);
 }
 
@@ -57,5 +59,20 @@ svg.icon {
     &:hover {
       text-decoration: underline;
     }
+  }
+}
+
+img {
+  user-drag: none;
+  -webkit-user-drag: none;
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+
+* {
+  &:focus-visible {
+    outline: 2px solid var(--theme-contrast);
   }
 }

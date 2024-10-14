@@ -2,66 +2,42 @@
 
 import cn from 'clsx'
 import { addItem } from 'libs/shopify/cart/actions'
-import { useSearchParams } from 'next/navigation'
-import { useEffect, useRef } from 'react'
-import { useFormState, useFormStatus } from 'react-dom'
+import { useCartContext } from '../cart-context'
 import { useCartModal } from '../modal'
 import s from './add-to-cart.module.scss'
 
-export function AddToCart({ variants, className }) {
-  // eslint-disable-next-line no-unused-vars
-  const [_, formAction] = useFormState(addItem, null)
-  const searchParams = useSearchParams()
+export function AddToCart({ product, variant, quantity = 1, className }) {
+  const { addCartItem } = useCartContext()
+  const { openCart } = useCartModal()
 
-  const defaultVariantId = variants.length === 1 ? variants[0]?.id : undefined
-  const variant = variants.find((variant) =>
-    variant.selectedOptions.every(
-      (option) => option.value === searchParams.get(option.name.toLowerCase()),
-    ),
-  )
-  const selectedVariantId = variant?.id || defaultVariantId
-  const actionWithVariant = formAction.bind(null, selectedVariantId)
+  const buttonState = variant
+    ? `ADD TO CART — $${Number(variant?.price?.amount).toFixed(2)}`
+    : product?.availableForSale
+      ? 'Select a size'
+      : 'Coming Soon'
 
-  return (
-    <form action={actionWithVariant} className={className}>
-      <ActionButton
-        aria-label="Add to cart"
-        defaultState={`${variants[0]?.price?.amount}$ - ADD TO CART`}
-        pendingState="ADDING TO CART"
-      />
-    </form>
-  )
-}
-
-function ActionButton({ defaultState, pendingState, ...props }) {
-  const pendingStartRef = useRef(false)
-  const { pending = false } = useFormStatus()
-  const openCart = useCartModal()
-
-  useEffect(() => {
-    if (pending) {
-      pendingStartRef.current = true
-    }
-
-    if (pendingStartRef.current && !pending) {
+  async function formAction() {
+    // Need to force priority
+    setTimeout(() => {
+      addCartItem(variant, product, quantity)
       openCart('add')
-      pendingStartRef.current = false
-    }
-  }, [pending, openCart])
+    }, 0)
+
+    await addItem(null, {
+      variantId: variant?.id,
+      quantity,
+    })
+  }
 
   return (
-    <button
-      type="submit"
-      onClick={(e) => {
-        if (pending) {
-          e.preventDefault()
-        }
-      }}
-      aria-disabled={pending}
-      {...props}
-      className={cn(s.cta, pending && s.disable)}
-    >
-      {pending ? pendingState : defaultState}
-    </button>
+    <form action={formAction} className={className}>
+      <button
+        type="submit"
+        className={cn(s.cta, !variant && s.disable)}
+        aria-label="Add to cart"
+      >
+        {buttonState}
+      </button>
+    </form>
   )
 }

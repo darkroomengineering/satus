@@ -18,6 +18,9 @@ function OrchestraPage({}) {
       <OrchestraToggle id="dev" className={s.button}>
         🚧
       </OrchestraToggle>
+      <OrchestraToggle id="minimap" className={s.button}>
+        🗺️
+      </OrchestraToggle>
     </div>
   )
 }

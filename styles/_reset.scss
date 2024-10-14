@@ -17,7 +17,8 @@
         svg,
         video,
         audio,
-        #theatrejs-studio-root
+        #theatrejs-studio-root,
+        vercel-live-feedback
       ):not(svg *, symbol *)
   ) {
   all: unset;

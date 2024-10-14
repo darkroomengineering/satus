@@ -15,7 +15,7 @@ export const Link = forwardRef(function Link(
   if (!href || typeof href !== 'string') {
     const Tag = fallback
 
-    return <Tag ref={ref} {...props} href={href} />
+    return <Tag ref={ref} onClick={onClick} {...props} href={href} />
   }
 
   const isExternal = href.startsWith('http')

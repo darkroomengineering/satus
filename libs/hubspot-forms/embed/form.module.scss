@@ -8,7 +8,7 @@
 
   //thanks message
   > div:first-child {
-    font-family: var(--font-inter);
+    font-family: var(--font-mono);
     text-align: center;
     font-size: mobile-vw(25px);
 
@@ -390,7 +390,7 @@
   .field {
     position: relative;
     width: 100%;
-    font-family: var(--font-inter);
+    font-family: var(--font-mono);
     line-height: 150%;
     color: var(--black) !important;
     // color: $gray;
@@ -489,7 +489,7 @@
   border: none !important;
   text-transform: uppercase;
   font-weight: 600;
-  font-family: var(--font-manrope);
+  font-family: var(--font-mono);
   border-radius: mobile-vw(10px);
   width: mobile-vw(233px);
   padding: mobile-vw(26px) mobile-vw(36px);

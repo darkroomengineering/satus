@@ -17,32 +17,27 @@ const useRoot = create(() => ({}))
 
 export const CanvasContext = createContext({})
 
-export function Canvas({ children, root = false }) {
+export function Canvas({ children, root = false, force = false, ...props }) {
   const [WebGLTunnel] = useState(() => new tunnel())
   const [DOMTunnel] = useState(() => new tunnel())
-  // const [state, setState] = useState()
 
   const { isWebGL } = useDeviceDetection()
 
   useEffect(() => {
     if (root) {
-      useRoot.setState(isWebGL ? { WebGLTunnel, DOMTunnel } : {})
+      useRoot.setState(isWebGL || force ? { WebGLTunnel, DOMTunnel } : {})
     }
 
     return () => {
       useRoot.setState({})
     }
-  }, [root, isWebGL, WebGLTunnel, DOMTunnel])
+  }, [root, isWebGL, force, WebGLTunnel, DOMTunnel])
 
   return (
-    <CanvasContext.Provider value={isWebGL ? { WebGLTunnel, DOMTunnel } : {}}>
-      {isWebGL && (
-        <WebGLCanvas
-        // onChange={(state) => {
-        //   if (root) setState(state)
-        // }}
-        />
-      )}
+    <CanvasContext.Provider
+      value={isWebGL || force ? { WebGLTunnel, DOMTunnel } : {}}
+    >
+      {(isWebGL || force) && <WebGLCanvas {...props} />}
       {children}
     </CanvasContext.Provider>
   )

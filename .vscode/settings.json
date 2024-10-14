@@ -14,5 +14,7 @@
     "**/app/**/page.js": "${dirname(1)}/${dirname} <page>",
     "**/app/**/layout.js": "${dirname(1)}/${dirname} <layout>",
     "**/app/api/**/route.js": "${dirname(1)}/${dirname} <route>"
-  }
+  },
+  "typescript.suggest.autoImports": true,
+  "javascript.suggest.autoImports": true
 }

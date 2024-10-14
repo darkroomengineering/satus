@@ -2,6 +2,11 @@
 
 import cn from 'clsx'
 import { HubspotNewsletterAction } from 'libs/hubspot-forms/action'
+import {
+  CreateCustomerAction,
+  LoginCustomerAction,
+  LogoutCustomerAction,
+} from 'libs/shopify/customer/actions'
 import { createContext, useContext, useEffect, useState } from 'react'
 import s from './form.module.scss'
 import { useForm } from './hook'
@@ -32,7 +37,7 @@ export const FormProvider = ({
   const { formAction, onSubmit, ...helpers } = useForm({
     action: formsActions[action],
     formId,
-    initalState: null,
+    initialState: null,
     dependencies: [],
   })
 
@@ -115,4 +120,7 @@ export const Messages = ({ className }) => {
 
 const formsActions = {
   HubspotNewsletterAction: HubspotNewsletterAction,
+  LoginCustomerAction: LoginCustomerAction,
+  LogoutCustomerAction: LogoutCustomerAction,
+  CreateCustomerAction: CreateCustomerAction,
 }

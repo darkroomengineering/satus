@@ -1,21 +1,22 @@
 import cn from 'clsx'
-import { Lenis } from 'libs/lenis'
 import { Canvas } from 'libs/webgl/components/canvas'
 import { Footer } from '../footer'
+import { Lenis } from '../lenis'
 import { Navigation } from '../navigation'
 import s from './wrapper.module.scss'
 
 export function Wrapper({
   children,
   theme = 'light',
-  lenis = true,
-  lenisOptions = {},
+  lenis = {
+    lerp: 0.125,
+  },
   webgl = false,
   className,
 }) {
   return (
     <>
-      {lenis && <Lenis root options={lenisOptions} />}
+      {lenis && <Lenis root options={lenis} />}
       {webgl && <Canvas root />}
       <div className={cn(s.wrapper, `theme-${theme}`, className)}>
         <Navigation />

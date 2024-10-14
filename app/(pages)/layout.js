@@ -19,10 +19,6 @@ const GTM_ID = process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID || false
 const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS || false
 
 export const metadata = {
-  metadataBase:
-    process.env.NODE_ENV === 'development'
-      ? new URL(`http://localhost:${process.env.PORT || 3000}`)
-      : new URL(APP_BASE_URL),
   applicationName: APP_NAME,
   title: {
     default: APP_DEFAULT_TITLE,
@@ -55,13 +51,16 @@ export const metadata = {
     },
     description: APP_DESCRIPTION,
   },
+  authors: [
+    { name: 'darkroom.engineering', url: 'https://darkroom.engineering' },
+  ],
 }
 
 export const viewport = {
   themeColor: '#e30613',
 }
 
-export default async function Layout({ children }) {
+export default function Layout({ children }) {
   return (
     <html lang="en" dir="ltr" className={fonts?.className}>
       <head>

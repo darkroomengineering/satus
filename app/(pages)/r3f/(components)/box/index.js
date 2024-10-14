@@ -1,26 +1,24 @@
 'use client'
 
-import { useFrame } from '@darkroom.engineering/hamo'
-import { OrbitControls } from '@react-three/drei'
+import { useRect } from '@darkroom.engineering/hamo'
 import { WebGLTunnel } from 'libs/webgl/components/tunnel'
-import { useRef } from 'react'
+import dynamic from 'next/dynamic'
 
-export function Box() {
-  const meshRef = useRef()
+const WebGLBox = dynamic(
+  () => import('./webgl').then(({ WebGLBox }) => WebGLBox),
+  {
+    ssr: false,
+  },
+)
 
-  useFrame((time) => {
-    if (!meshRef.current) return
-    meshRef.current.rotation.x = time * 0.0001
-    meshRef.current.rotation.y = time * 0.0001
-  })
+export function Box({ className }) {
+  const [setRectRef, rect] = useRect()
 
   return (
-    <WebGLTunnel>
-      <OrbitControls />
-      <mesh scale={250} ref={meshRef}>
-        <boxGeometry />
-        <meshNormalMaterial />
-      </mesh>
-    </WebGLTunnel>
+    <div ref={setRectRef} className={className}>
+      <WebGLTunnel>
+        <WebGLBox rect={rect} />
+      </WebGLTunnel>
+    </div>
   )
 }

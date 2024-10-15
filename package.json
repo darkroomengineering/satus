@@ -67,6 +67,7 @@
     "storybook": "^8.3.5",
     "typescript": "^5.6.3"
   },
+  "trustedDependencies": ["@biomejs/biome", "lefthook", "sharp"],
   "overrides": {
     "scheduler": "0.23.2"
   }

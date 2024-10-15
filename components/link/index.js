@@ -1,13 +1,13 @@
 'use client'
 
-import { useLenis } from 'libs/lenis'
+import { useLenis } from 'lenis/react'
 import NextLink from 'next/link'
 import { usePathname } from 'next/navigation'
 import { forwardRef } from 'react'
 
 export const Link = forwardRef(function Link(
   { href, fallback = 'div', onClick, ...props },
-  ref,
+  ref
 ) {
   const lenis = useLenis() // eslint-disable-line
   const pathname = usePathname()

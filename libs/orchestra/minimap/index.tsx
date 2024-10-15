@@ -5,7 +5,16 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { create } from 'zustand'
 import s from './minimap.module.css'
 
-const useMinimapStore = create(() => ({
+type MinimapEntry = {
+  element: HTMLElement
+  color: string
+}
+
+type MinimapStore = {
+  list: Record<string, MinimapEntry>
+}
+
+const useMinimapStore = create<MinimapStore>(() => ({
   list: {},
 }))
 
@@ -38,7 +47,7 @@ export function useMinimap({ color = 'blue' } = {}) {
 }
 
 export function Minimap() {
-  const [aspectRatio, setAspectRatio] = useState(1)
+  const [aspectRatio, setAspectRatio] = useState('1')
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver(([entry]) => {
@@ -54,14 +63,14 @@ export function Minimap() {
     }
   }, [])
 
-  const elementRef = useRef()
+  const elementRef = useRef<HTMLDivElement>(null!)
 
   const onScroll = useCallback(() => {
     const progress =
       window.scrollY /
       (document.documentElement.scrollHeight - window.innerHeight)
 
-    elementRef.current.style.setProperty('--progress', progress)
+    elementRef.current.style.setProperty('--progress', progress.toString())
   }, [])
 
   useEffect(() => {
@@ -95,8 +104,8 @@ export function Minimap() {
   )
 }
 
-function Marker({ element, color }) {
-  const markerRef = useRef()
+function Marker({ element, color }: MinimapEntry) {
+  const markerRef = useRef<HTMLDivElement>(null!)
 
   useFrame(() => {
     if (!element) return
@@ -108,7 +117,7 @@ function Marker({ element, color }) {
     const width = rect.width / window.innerWidth
 
     // markerRef.current.style.top = `${top * 100}%`
-    markerRef.current.style.setProperty('--top', top)
+    markerRef.current.style.setProperty('--top', top.toString())
     // markerRef.current.style.height = `${height * 100}%`
     markerRef.current.style.left = `${left * 100}%`
     markerRef.current.style.width = `${width * 100}%`

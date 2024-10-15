@@ -20,4 +20,4 @@ export const BLEND = {
 		return (blendColorDodge(base, blend) * opacity + base * (1.0 - opacity));
 	}
 	`,
-}
+} as const

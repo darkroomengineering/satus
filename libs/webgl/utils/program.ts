@@ -1,16 +1,22 @@
-import { OrthographicCamera } from 'three/src/cameras/OrthographicCamera'
-import { PlaneGeometry } from 'three/src/geometries/PlaneGeometry'
-import { Mesh } from 'three/src/objects/Mesh'
-import { Scene } from 'three/src/scenes/Scene'
+import {
+  type Material,
+  Mesh,
+  OrthographicCamera,
+  PlaneGeometry,
+  Scene,
+  type WebGLRenderer,
+} from 'three'
 
 const geometry = new PlaneGeometry(1, 1)
-
 const camera = new OrthographicCamera(1 / -2, 1 / 2, 1 / 2, 1 / -2, 0.001, 1000)
-
 camera.position.z = 1
 
 export default class Program extends Scene {
-  constructor(material) {
+  private material: Material
+  private mesh: Mesh
+  private scene: Scene
+
+  constructor(material: Material) {
     super()
     this.material = material
     this.mesh = new Mesh(geometry, this.material)
@@ -23,7 +29,7 @@ export default class Program extends Scene {
     return this.material
   }
 
-  render(renderer) {
+  render(renderer: WebGLRenderer) {
     renderer.render(this.scene, camera)
   }
 }

@@ -1,11 +1,16 @@
-import { useLenis } from 'libs/lenis'
+import { useLenis } from 'lenis/react'
 import { useTexture } from 'libs/webgl/hooks/use-texture'
 import { useWebGLRect } from 'libs/webgl/hooks/use-webgl-rect'
 import { useRef, useState } from 'react'
-import { LinearFilter, MeshBasicMaterial } from 'three'
+import { LinearFilter, type Mesh, MeshBasicMaterial } from 'three'
 
-export function WebGLImage({ src, rect }) {
-  const meshRef = useRef()
+type WebGLImageProps = {
+  src: string | undefined
+  rect: DOMRect
+}
+
+export function WebGLImage({ src, rect }: WebGLImageProps) {
+  const meshRef = useRef<Mesh>(null!)
   const [material] = useState(() => new MeshBasicMaterial())
 
   useTexture(src, (texture) => {
@@ -19,6 +24,7 @@ export function WebGLImage({ src, rect }) {
   const getWebGLRect = useWebGLRect(rect)
 
   useLenis(() => {
+    // TODO: Whaaat is going on with this?
     const { x, y, width, height } = getWebGLRect()
 
     meshRef.current.scale.set(width, height, width)

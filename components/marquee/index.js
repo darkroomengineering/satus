@@ -6,7 +6,7 @@ import {
   useResizeObserver,
 } from '@darkroom.engineering/hamo'
 import cn from 'clsx'
-import { useLenis } from 'libs/lenis'
+import { useLenis } from 'lenis/react'
 import { modulo } from 'libs/maths'
 import { useRef } from 'react'
 import s from './marquee.module.css'

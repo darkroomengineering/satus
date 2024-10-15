@@ -1,7 +1,16 @@
 import { types } from '@theatre/core'
 import { useRef } from 'react'
+import type { Group as ThreeGroup } from 'three'
 import { useCurrentSheet } from '.'
 import { useTheatre } from './hooks/use-theatre'
+
+type GroupProps = {
+  children: React.ReactNode
+  theatreKey: string
+  position?: [number, number, number]
+  rotation?: [number, number, number]
+  scale?: [number, number, number]
+}
 
 export function Group({
   children,
@@ -9,8 +18,8 @@ export function Group({
   position = [0, 0, 0],
   rotation = [0, 0, 0],
   scale = [1, 1, 1],
-}) {
-  const groupRef = useRef()
+}: GroupProps) {
+  const groupRef = useRef<ThreeGroup>(null!)
 
   const sheet = useCurrentSheet()
 
@@ -35,17 +44,19 @@ export function Group({
       },
       visible: true,
     },
-    ({ position, rotation, scale, visible }) => {
-      if (!groupRef.current) return
+    {
+      onValuesChange: ({ position, rotation, scale, visible }) => {
+        if (!groupRef.current) return
 
-      groupRef.current.visible = visible
+        groupRef.current.visible = visible
 
-      groupRef.current.position.set(position.x, position.y, position.z)
-      groupRef.current.rotation.set(rotation.x, rotation.y, rotation.z)
-      groupRef.current.scale.set(scale.x, scale.y, scale.z)
+        groupRef.current.position.set(position.x, position.y, position.z)
+        groupRef.current.rotation.set(rotation.x, rotation.y, rotation.z)
+        groupRef.current.scale.set(scale.x, scale.y, scale.z)
 
-      groupRef.current.updateMatrix()
-    },
+        groupRef.current.updateMatrix()
+      },
+    }
   )
 
   return (

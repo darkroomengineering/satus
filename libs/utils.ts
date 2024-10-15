@@ -1,20 +1,24 @@
-export const desktopVW = (value: number, width: number) =>
-  (value * width) / 1440
+export function desktopVW(value: number, width: number) {
+  return (value * width) / 1440
+}
 
-export const mobileVW = (value: number, width: number) => (value * width) / 375
+export function mobileVW(value: number, width: number) {
+  return (value * width) / 375
+}
 
-export const twoDigits = (number: number) =>
-  number > 9 ? `${number}` : `0${number}`
+export function twoDigits(number: number) {
+  return number > 9 ? `${number}` : `0${number}`
+}
 
-export function checkIsArray<T>(value: T[]): T | T[] {
+export function checkIsArray<T>(value: T): T extends unknown[] ? T[0] : T {
   return Array.isArray(value) ? value[0] : value
 }
 
-export const convertToCamelCase = (inputString: string) => {
+export function convertToCamelCase(inputString: string) {
   return inputString.charAt(0).toLowerCase() + inputString.slice(1)
 }
 
-export const capitalizeFirstLetter = (inputString: string) => {
+export function capitalizeFirstLetter(inputString: string) {
   return inputString.charAt(0).toUpperCase() + inputString.slice(1)
 }
 
@@ -34,20 +38,18 @@ export function isEmptyArray(arr: string | unknown[]) {
   return Array.isArray(arr) && arr.length === 0
 }
 
-export const arraytoObject = (array: Record<string, unknown>[]) =>
-  array.reduce(
-    (acc: Record<string, unknown>, currentObj: Record<string, unknown>) => {
-      const key = Object.keys(currentObj)[0]
-      acc[key] = currentObj[key]
-      return acc
-    },
-    {}
-  )
+export function arraytoObject(array: Record<string, unknown>[]) {
+  return array.reduce((acc, currentObj) => {
+    const key = Object.keys(currentObj)[0]
+    acc[key] = currentObj[key]
+    return acc
+  }, {})
+}
 
-export const shortenObjectKeys = (
-  obj: { [x: string]: unknown },
+export function shortenObjectKeys(
+  obj: Record<string, unknown>,
   keyword: string
-) => {
+) {
   const regex = new RegExp(`[^]+${keyword}(.*)`)
 
   for (const key in obj) {
@@ -63,10 +65,10 @@ export const shortenObjectKeys = (
   return obj
 }
 
-export const filterObjectKeys = (
+export function filterObjectKeys(
   obj: { [x: string]: unknown },
   keyword: string
-) => {
+) {
   const newObj: { [x: string]: unknown } = {}
 
   for (const key in obj) {
@@ -80,10 +82,10 @@ export const filterObjectKeys = (
   return newObj
 }
 
-export const iterableObject = (
+export function iterableObject(
   obj: { [s: string]: unknown } | ArrayLike<unknown>
-) =>
-  // eslint-disable-next-line no-unused-vars
-  Object.entries(obj).map(([_, value]) => {
+) {
+  return Object.entries(obj).map(([, value]) => {
     return value
   })
+}

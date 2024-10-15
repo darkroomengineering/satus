@@ -2,7 +2,13 @@
 
 import { useDeviceDetection } from 'hooks/use-device-detection'
 import dynamic from 'next/dynamic'
-import { createContext, useContext, useEffect, useState } from 'react'
+import {
+  type PropsWithChildren,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from 'react'
 import tunnel from 'tunnel-rat'
 import { create } from 'zustand'
 
@@ -10,16 +16,31 @@ const WebGLCanvas = dynamic(
   () => import('./webgl').then(({ WebGLCanvas }) => WebGLCanvas),
   {
     ssr: false,
-  },
+  }
 )
 
-const useRoot = create(() => ({}))
+type CanvasContextValue = {
+  WebGLTunnel?: ReturnType<typeof tunnel>
+  DOMTunnel?: ReturnType<typeof tunnel>
+}
 
-export const CanvasContext = createContext({})
+type CanvasProps = PropsWithChildren<{
+  root?: boolean
+  force?: boolean
+}>
 
-export function Canvas({ children, root = false, force = false, ...props }) {
-  const [WebGLTunnel] = useState(() => new tunnel())
-  const [DOMTunnel] = useState(() => new tunnel())
+const useRoot = create<CanvasContextValue>(() => ({}))
+
+export const CanvasContext = createContext<CanvasContextValue>({})
+
+export function Canvas({
+  children,
+  root = false,
+  force = false,
+  ...props
+}: CanvasProps) {
+  const [WebGLTunnel] = useState(() => tunnel())
+  const [DOMTunnel] = useState(() => tunnel())
 
   const { isWebGL } = useDeviceDetection()
 
@@ -49,5 +70,5 @@ export function useCanvas() {
 
   const isLocalDefined = Object.keys(local).length > 0
 
-  return isLocalDefined ? local : root
+  return (isLocalDefined ? local : root) as Required<CanvasContextValue>
 }

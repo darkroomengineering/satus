@@ -1,4 +1,12 @@
-export function StyleVariables({ colors = {}, themes = {} }) {
+type StyleVariablesProps = {
+  colors?: Record<string, string>
+  themes?: Record<string, Record<string, string>>
+}
+
+export function StyleVariables({
+  colors = {},
+  themes = {},
+}: StyleVariablesProps) {
   return (
     <style
       // biome-ignore lint/security/noDangerouslySetInnerHtml: idk let's find a better way

@@ -1,10 +1,20 @@
 import { useThree } from '@react-three/fiber'
 import { useTransform } from 'hooks/use-transform'
-import { useLenis } from 'libs/lenis'
+import { useLenis } from 'lenis/react'
 import { useCallback, useEffect, useRef } from 'react'
 import { Euler, Vector3 } from 'three'
 
-export function useWebGLRect(rect, onUpdate) {
+type Transform = {
+  position: Vector3
+  rotation: Euler
+  scale: Vector3
+  isVisible: boolean
+}
+
+export function useWebGLRect(
+  rect: DOMRect,
+  onUpdate?: (transform: Transform) => void
+) {
   const size = useThree(({ size }) => size)
 
   const transformRef = useRef({
@@ -14,15 +24,13 @@ export function useWebGLRect(rect, onUpdate) {
     isVisible: true,
   })
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const lenis = useLenis()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const getTransform = useTransform()
 
   const update = useCallback(() => {
     const { translate, scale } = getTransform()
 
-    let scroll
+    let scroll: number
 
     if (lenis) {
       scroll = Math.floor(lenis?.scroll)
@@ -43,7 +51,7 @@ export function useWebGLRect(rect, onUpdate) {
     transform.scale.y = rect.height * scale.y
 
     onUpdate?.(transformRef.current)
-  }, [lenis, getTransform, size, rect])
+  }, [lenis, getTransform, size, rect, onUpdate])
 
   useTransform(update, [update])
   useLenis(update, [update])

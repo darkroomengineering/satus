@@ -4,9 +4,11 @@ import { useThree } from '@react-three/fiber'
 export function RAF({ render = true }) {
   const { advance } = useThree()
 
-  useFrame((time) => {
+  useFrame((time: number) => {
     if (render) {
       advance(time / 1000)
     }
   }, 1)
+
+  return null
 }

@@ -3,20 +3,30 @@ import { types } from '@theatre/core'
 import { useCurrentSheet } from 'libs/theatre'
 import { useTheatre } from 'libs/theatre/hooks/use-theatre'
 import FluidSimulation from 'libs/webgl/utils/fluid-simulation'
-import { createContext, useCallback, useContext, useMemo, useRef } from 'react'
+import {
+  type PropsWithChildren,
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+} from 'react'
+import type { Texture } from 'three'
 
-export const FlowmapContext = createContext()
+export const FlowmapContext = createContext<() => Texture | undefined>(
+  () => undefined
+)
 
 export function useFlowmap() {
   return useContext(FlowmapContext)
 }
 
-export function FlowmapProvider({ children }) {
+export function FlowmapProvider({ children }: PropsWithChildren) {
   const gl = useThree(({ gl }) => gl)
 
   const fluidSimulation = useMemo(
     () => new FluidSimulation({ renderer: gl, size: 128 }),
-    [gl],
+    [gl]
   )
 
   const sheet = useCurrentSheet()
@@ -40,12 +50,10 @@ export function FlowmapProvider({ children }) {
         fluidSimulation.radius = radius
       },
       deps: [fluidSimulation],
-    },
+    }
   )
 
-  // const [texture, setTexture] = useState()
-
-  const textureRef = useRef()
+  const textureRef = useRef<Texture>()
 
   const getTexture = useCallback(() => textureRef.current, [])
 

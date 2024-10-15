@@ -45,6 +45,9 @@
       "a11y": {
         "useKeyWithClickEvents": "warn",
         "useValidAnchor": "warn"
+      },
+      "style": {
+        "noNonNullAssertion": "off"
       }
     }
   },

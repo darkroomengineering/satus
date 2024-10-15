@@ -7,7 +7,11 @@ import { RAF } from '../raf'
 import { useCanvas } from './'
 import s from './webgl.module.css'
 
-export function WebGLCanvas({ render = true, ...props }) {
+type WebGLCanvasProps = React.HTMLAttributes<HTMLDivElement> & {
+  render?: boolean
+}
+
+export function WebGLCanvas({ render = true, ...props }: WebGLCanvasProps) {
   const { WebGLTunnel, DOMTunnel } = useCanvas()
 
   return (

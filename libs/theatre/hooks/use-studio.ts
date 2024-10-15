@@ -1,7 +1,9 @@
+import type { ISheet } from '@theatre/core'
+import type { IStudio } from '@theatre/studio'
 import { useOrchestra } from 'libs/orchestra/react'
 import { useEffect, useState } from 'react'
 
-let studioPackage
+let studioPackage: IStudio
 
 export function useHasStudio() {
   const { studio } = useOrchestra()
@@ -27,13 +29,15 @@ export function useStudio() {
 export function useStudioCurrentObject() {
   const studio = useStudio()
 
-  const [currentObjectAddress, setCurrentObjectAddress] = useState(null)
+  const [currentObjectAddress, setCurrentObjectAddress] = useState<
+    ISheet['address'] | null
+  >(null)
 
   useEffect(() => {
     if (studio) {
       const unsubscribe = studio.onSelectionChange((v) => {
         const object = v.filter(
-          ({ type }) => type === 'Theatre_SheetObject_PublicAPI',
+          ({ type }) => type === 'Theatre_SheetObject_PublicAPI'
         )[0]
 
         setCurrentObjectAddress(object.address)

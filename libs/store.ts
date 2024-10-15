@@ -1,6 +1,11 @@
 import { create } from 'zustand'
 
-export const useStore = create((set) => ({
+type Store = {
+  isNavOpened: boolean
+  setIsNavOpened: (value: boolean) => void
+}
+
+export const useStore = create<Store>((set) => ({
   isNavOpened: false,
   setIsNavOpened: (value: boolean) => set({ isNavOpened: value }),
 }))

@@ -18,12 +18,12 @@ export function PostProcessing() {
         multisampling: isWebgl2 && needsAA ? maxSamples : 0,
         frameBufferType: HalfFloatType,
       }),
-    [gl, needsAA, isWebgl2, maxSamples],
+    [gl, needsAA, isWebgl2, maxSamples]
   )
 
   const renderPass = useMemo(
     () => new RenderPass(scene, camera),
-    [scene, camera],
+    [scene, camera]
   )
 
   const copyPass = useMemo(() => new CopyPass(), [])
@@ -51,9 +51,11 @@ export function PostProcessing() {
     setDpr(dpr)
 
     composer.setSize(windowWidth, windowHeight)
-  }, [composer, windowWidth, windowHeight])
+  }, [composer, windowWidth, windowHeight, setDpr])
 
   useFrame((_, deltaTime) => {
     composer.render(deltaTime)
-  }, Infinity)
+  }, Number.POSITIVE_INFINITY)
+
+  return null
 }

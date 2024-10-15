@@ -1,9 +1,10 @@
 'use client'
 
-import { getProject, onChange } from '@theatre/core'
+import { type IProject, type ISheet, getProject, onChange } from '@theatre/core'
 import {
+  type PropsWithChildren,
+  type Ref,
   createContext,
-  forwardRef,
   useContext,
   useEffect,
   useImperativeHandle,
@@ -13,10 +14,19 @@ import {
   useState,
 } from 'react'
 
-const TheatreProjectContext = createContext()
+const TheatreProjectContext = createContext<IProject | undefined>(undefined)
 
-export function TheatreProjectProvider({ children, id, config }) {
-  const [project, setproject] = useState()
+type TheatreProjectProviderProps = {
+  id: string
+  config: string
+}
+
+export function TheatreProjectProvider({
+  children,
+  id,
+  config,
+}: PropsWithChildren<TheatreProjectProviderProps>) {
+  const [project, setproject] = useState<IProject>()
   const isLoadingRef = useRef(false)
 
   useEffect(() => {
@@ -64,20 +74,20 @@ export function useCurrentProject() {
   return useContext(TheatreProjectContext)
 }
 
-export const SheetContext = createContext()
+export const SheetContext = createContext<ISheet | undefined>(undefined)
 
-export function useSheet(id, instance) {
+export function useSheet(sheetId: string, instanceId?: string) {
   const project = useCurrentProject()
 
   const sheet = useMemo(
-    () => project?.sheet(id, instance),
-    [project, id, instance],
+    () => project?.sheet(sheetId, instanceId),
+    [project, sheetId, instanceId]
   )
 
   return sheet
 }
 
-export function useSheetDuration(sheet) {
+export function useSheetDuration(sheet: ISheet) {
   const [duration, setDuration] = useState(0)
 
   useEffect(() => {
@@ -87,22 +97,30 @@ export function useSheetDuration(sheet) {
       setDuration(duration)
     })
 
-    return () => unsubscribe
+    return unsubscribe
   }, [sheet])
 
   return duration
 }
 
-export const SheetProvider = forwardRef(function SheetProvider(
-  { children, id, instance },
+type SheetProviderProps = {
+  id: string
+  instance?: string
+  ref?: Ref<ISheet | undefined>
+}
+
+export function SheetProvider({
+  children,
+  id,
+  instance,
   ref,
-) {
+}: PropsWithChildren<SheetProviderProps>) {
   const sheet = useSheet(id, instance)
 
   useImperativeHandle(ref, () => sheet, [sheet])
 
   return <SheetContext.Provider value={sheet}>{children}</SheetContext.Provider>
-})
+}
 
 export function useCurrentSheet() {
   return useContext(SheetContext)

@@ -1,7 +1,7 @@
 import { useProgress } from '@react-three/drei'
 import { useThree } from '@react-three/fiber'
 import { useEffect } from 'react'
-import { CubeCamera, WebGLCubeRenderTarget } from 'three'
+import { CubeCamera, type Object3D, WebGLCubeRenderTarget } from 'three'
 
 export function Preload() {
   const gl = useThree(({ gl }) => gl)
@@ -16,7 +16,7 @@ export function Preload() {
     console.log('Preloading...')
     console.time('Preload')
 
-    const invisible = []
+    const invisible: Object3D[] = []
     // Find all invisible objects, store and then flip them
     scene.traverse((object) => {
       if (object.visible === false) {
@@ -32,8 +32,12 @@ export function Preload() {
     cubeCamera.update(gl, scene)
     cubeRenderTarget.dispose()
     // Flips these objects back
-    invisible.forEach((object) => (object.visible = false))
+    for (const object of invisible) {
+      object.visible = false
+    }
 
     console.timeEnd('Preload')
   }, [active, gl, camera, scene])
+
+  return null
 }

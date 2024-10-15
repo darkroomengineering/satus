@@ -2,18 +2,21 @@ import { useRect } from '@darkroom.engineering/hamo'
 import { Image as NextImage } from 'components/image'
 import { useDeviceDetection } from 'hooks/use-device-detection'
 import dynamic from 'next/dynamic'
-import { useState } from 'react'
+import { type HTMLAttributes, useState } from 'react'
 import { WebGLTunnel } from '../tunnel'
 
 const WebGLImage = dynamic(
   () => import('./webgl').then(({ WebGLImage }) => WebGLImage),
   {
     ssr: false,
-  },
+  }
 )
 
-export function Image({ className, ...props }) {
-  const [src, setSrc] = useState()
+export function Image({
+  className,
+  ...props
+}: HTMLAttributes<HTMLImageElement>) {
+  const [src, setSrc] = useState<string>()
   const [setRectRef, rect] = useRect()
 
   const { isWebGL } = useDeviceDetection()

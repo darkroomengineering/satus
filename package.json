@@ -28,7 +28,7 @@
     "next": "^15.0.0-canary.194",
     "postprocessing": "^6.36.3",
     "react": "^19.0.0-rc-83825814-20241015",
-    "react-aria-components": "^1.4.0",
+    "react-aria-components": "^1.4.1",
     "react-dom": "^19.0.0-rc-83825814-20241015",
     "stats-gl": "^2.2.8",
     "storyblok-js-client": "^6.10.0",

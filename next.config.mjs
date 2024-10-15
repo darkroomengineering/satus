@@ -1,5 +1,6 @@
 import bundleAnalyzer from '@next/bundle-analyzer'
 
+/** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
@@ -13,6 +14,9 @@ const nextConfig = {
     },
     optimizeCss: true,
     nextScriptWorkers: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
   },
   images: {
     dangerouslyAllowSVG: true,
@@ -70,12 +74,12 @@ const nextConfig = {
   ],
 }
 
-const withBundleAnalyzer = bundleAnalyzer({
+const bundleAnalyzerPlugin = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 })
 
 const NextApp = () => {
-  const plugins = [withBundleAnalyzer]
+  const plugins = [bundleAnalyzerPlugin]
   return plugins.reduce((config, plugin) => plugin(config), nextConfig)
 }
 

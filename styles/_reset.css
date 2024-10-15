@@ -18,7 +18,8 @@
         video,
         audio,
         #theatrejs-studio-root,
-        vercel-live-feedback
+        vercel-live-feedback,
+        nextjs-portal
       ):not(svg *, symbol *)
   ) {
   all: unset;

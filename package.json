@@ -67,9 +67,7 @@
     "storybook": "^8.3.5",
     "typescript": "^5.6.3"
   },
-  "pnpm": {
-    "overrides": {
-      "scheduler": "0.23.2"
-    }
+  "overrides": {
+    "scheduler": "0.23.2"
   }
 }

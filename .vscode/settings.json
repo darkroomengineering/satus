@@ -15,11 +15,6 @@
     "*.json": "jsonc",
     "*.css": "css"
   },
-  "css.lint.validProperties": [
-    "user-drag"
-  ],
-  "css.lint.unknownAtRules": "ignore",
-  "[jsonc]": {
-    "editor.defaultFormatter": "vscode.json-language-features"
-  }
+  "css.lint.validProperties": ["user-drag"],
+  "css.lint.unknownAtRules": "ignore"
 }

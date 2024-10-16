@@ -11,7 +11,8 @@
     "analyze": "cross-env ANALYZE=true next build",
     "npmrc": "pnpx npmrc-replace-env -w",
     "storybook:dev": "storybook dev -p 6006",
-    "storybook:build": "storybook build --quiet"
+    "storybook:build": "storybook build --quiet",
+    "typecheck": "tsc --noEmit --incremental false"
   },
   "dependencies": {
     "@darkroom.engineering/hamo": "0.6.46",

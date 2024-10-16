@@ -81,7 +81,7 @@ export function Minimap() {
     }
   }, [onScroll])
 
-  const { width, height } = useWindowSize()
+  const { width = 0, height = 0 } = useWindowSize()
 
   const list = useMinimapStore((state) => state.list)
 

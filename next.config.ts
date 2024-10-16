@@ -1,7 +1,7 @@
 import bundleAnalyzer from '@next/bundle-analyzer'
+import type { NextConfig } from 'next'
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+const nextConfig: NextConfig = {
   reactStrictMode: true,
   experimental: {
     turbo: {

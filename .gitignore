@@ -44,3 +44,5 @@ yarn-error.log*
 
 *storybook.log
 certificates
+
+next-env.d.ts

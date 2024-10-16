@@ -14,6 +14,10 @@ const nextConfig = {
     },
     optimizeCss: true,
     nextScriptWorkers: true,
+    reactCompiler: true,
+  },
+  devIndicators: {
+    appIsrStatus: false,
   },
   typescript: {
     ignoreBuildErrors: true,

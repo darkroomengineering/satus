@@ -19,7 +19,8 @@
       "bun.lockb",
       "**/*.md",
       "**/*.mdx",
-      "**/public/*.js"
+      "**/public/*.js",
+      "**/.storybook/**"
     ]
   },
   "formatter": {
@@ -78,7 +79,9 @@
   },
   "overrides": [
     {
-      "include": ["**/*.css"],
+      "include": [
+        "**/*.css"
+      ],
       "linter": {
         "rules": {
           "correctness": {

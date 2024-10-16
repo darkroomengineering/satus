@@ -2,8 +2,10 @@
 
 // https://www.storyblok.com/docs/Guides/storyblok-latest-js?utm_source=github.com&utm_medium=readme&utm_campaign=storyblok-js
 
-import Script from 'next/script'
+import type { ISbStoryData, StoryblokBridgeConfigV2 } from '@storyblok/js'
+import Script, { type ScriptProps } from 'next/script'
 import {
+  type PropsWithChildren,
   Suspense,
   createContext,
   useCallback,
@@ -20,7 +22,7 @@ export function useStoryblokContext() {
 
 const BRIDGE_URL = '//app.storyblok.com/f/storyblok-v2-latest.js'
 
-function StoryblokBridge({ onLoad }) {
+function StoryblokBridge({ onLoad }: { onLoad: ScriptProps['onLoad'] }) {
   const isVisualEditor = useIsVisualEditor()
 
   // console.log('isVisualEditor', isVisualEditor)
@@ -37,19 +39,29 @@ function StoryblokBridge({ onLoad }) {
   )
 }
 
-export function StoryblokContextProvider({ story, options, children }) {
+type StoryblokContextProviderProps = {
+  story: ISbStoryData
+  options: StoryblokBridgeConfigV2
+}
+
+export function StoryblokContextProvider({
+  story,
+  options,
+  children,
+}: PropsWithChildren<StoryblokContextProviderProps>) {
   const id = story.id
 
   const [liveStory, setLiveStory] = useState(story)
 
   const onLoad = useCallback(() => {
     // console.log('StoryblokBridge loaded')
-    const bridge = new window.StoryblokBridge({ options })
+    const bridge = new window.StoryblokBridge(options)
 
-    bridge.on(['input'], ({ story }) => {
+    bridge.on('input', (payload) => {
+      if (!payload) return
       // console.log('input', story)
-      if (story.id === id) {
-        setLiveStory(story)
+      if (payload.story?.id === id) {
+        setLiveStory(payload.story)
       }
     })
   }, [id, options])

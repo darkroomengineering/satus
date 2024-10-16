@@ -1,8 +1,14 @@
 // https://github.com/storyblok/storyblok-js-client
 
-import StoryblokClient from 'storyblok-js-client'
+import StoryblokClient, {
+  type ISbCustomFetch,
+  type ISbStoriesParams,
+} from 'storyblok-js-client'
 
 class StoryblokApi extends StoryblokClient {
+  private draft: boolean
+  private version: ISbStoriesParams['version']
+
   constructor({ draft = false, ...props } = {}) {
     super({
       accessToken: draft
@@ -16,7 +22,11 @@ class StoryblokApi extends StoryblokClient {
     this.version = draft ? 'draft' : 'published'
   }
 
-  async get(path, params = {}, options = {}) {
+  async get(
+    path: string,
+    params: ISbStoriesParams = {},
+    options: ISbCustomFetch = {}
+  ) {
     params.version = this.version
 
     if (this.draft || process.env.NODE_ENV === 'development') {

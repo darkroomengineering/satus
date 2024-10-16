@@ -38,7 +38,7 @@
     "rules": {
       "recommended": true,
       "suspicious": {
-        "noExplicitAny": "error"
+        "noExplicitAny": "warn"
       },
       "correctness": {
         "useExhaustiveDependencies": "warn"
@@ -79,9 +79,7 @@
   },
   "overrides": [
     {
-      "include": [
-        "**/*.css"
-      ],
+      "include": ["**/*.css"],
       "linter": {
         "rules": {
           "correctness": {

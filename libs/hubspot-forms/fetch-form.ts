@@ -1,4 +1,7 @@
-const hubspotFormApi = async (id) => {
+import type { Client } from '@hubspot/api-client'
+
+// TODO: If only server side maybe use api-client
+async function hubspotFormApi(id: string | null) {
   const resp = await fetch(`https://api.hubapi.com/marketing/v3/forms/${id}`, {
     headers: {
       accept: 'application/json',
@@ -12,8 +15,11 @@ const hubspotFormApi = async (id) => {
   return apiParser(id, response)
 }
 
-const apiParser = (id, data) => {
-  const typeSetter = (type) => {
+function apiParser(
+  id: string | null,
+  data: Awaited<ReturnType<Client['marketing']['forms']['formsApi']['getById']>>
+) {
+  const typeSetter = (type: string) => {
     switch (type) {
       case 'phone':
         return 'single_line_text'
@@ -27,7 +33,7 @@ const apiParser = (id, data) => {
   const legalConsentOptions =
     data?.legalConsentOptions?.communicationsCheckboxes || null
 
-  const removeHTML = (htmlText) =>
+  const removeHTML = (htmlText: string) =>
     htmlText.replace('<p>', '').replace('</p>', '')
 
   return {
@@ -43,6 +49,8 @@ const apiParser = (id, data) => {
         hubspotType: typeSetter(flatData.fieldType),
         type: flatData.fieldType || '',
         hidden: flatData.hidden || false,
+        // TODO: Check if helpText does exist or type is wrong
+        // @ts-ignore
         helpText: flatData?.helpText || '',
         options: flatData.options
           ? flatData.options.map((option) => option.label)
@@ -59,21 +67,23 @@ const apiParser = (id, data) => {
           label: removeHTML(legalConsentOptions[0].label),
           disclaimer: [
             removeHTML(data.legalConsentOptions.privacyText),
-            removeHTML(data.legalConsentOptions.consentToProcessText),
+            removeHTML(data.legalConsentOptions.consentToProcessText || ''),
           ],
         }
       : { required: false },
     actions: {
-      redirect:
-        data.configuration.postSubmitAction.type === 'redirect_url'
-          ? true
-          : false,
+      redirect: data.configuration.postSubmitAction.type === 'redirect_url',
       redirectValue: data.configuration.postSubmitAction.value,
     },
   }
 }
 
-export const getForm = async (formId = null, handler = async () => {}) => {
+export async function getForm(
+  formId = null,
+  handler = (async () => {}) as (form: {
+    form: Awaited<ReturnType<typeof apiParser>>
+  }) => Promise<void>
+) {
   try {
     const form = {
       form: await hubspotFormApi(formId),
@@ -82,6 +92,9 @@ export const getForm = async (formId = null, handler = async () => {}) => {
     await handler(form)
     return form
   } catch (err) {
-    return { error: err.message }
+    if (err instanceof Error) {
+      return { error: err.message }
+    }
+    return { error: 'Unknown error' }
   }
 }

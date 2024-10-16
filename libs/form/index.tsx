@@ -7,12 +7,25 @@ import {
   LoginCustomerAction,
   LogoutCustomerAction,
 } from 'libs/shopify/customer/actions'
-import { createContext, useContext, useEffect, useState } from 'react'
+import {
+  type Dispatch,
+  type HTMLAttributes,
+  type SetStateAction,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from 'react'
 import s from './form.module.css'
 import { useForm } from './hook'
 
-export const Form = ({ children, ...props }) => {
-  const [key, setKey] = useState(null)
+type FormProps = HTMLAttributes<HTMLFormElement> & {
+  formId?: string
+  action: keyof typeof formsActions
+}
+
+export function Form({ children, ...props }: FormProps) {
+  const [key, setKey] = useState<string | null>(null)
 
   return (
     <FormProvider key={key} setKey={setKey} {...props}>
@@ -21,20 +34,32 @@ export const Form = ({ children, ...props }) => {
   )
 }
 
-const formContext = createContext()
-export const useFormContext = () => {
-  return useContext(formContext)
+type FormContextValue = Omit<
+  ReturnType<typeof useForm>,
+  'formAction' | 'onSubmit'
+>
+
+const FormContext = createContext<FormContextValue>(null!)
+
+export function useFormContext() {
+  return useContext(FormContext)
 }
 
-export const FormProvider = ({
+type FormProviderProps = FormProps & {
+  setKey: Dispatch<SetStateAction<string | null>>
+}
+
+export function FormProvider({
   children,
   setKey,
   formId,
   action,
   className,
   ...props
-}) => {
+}: FormProviderProps) {
   const { formAction, onSubmit, ...helpers } = useForm({
+    // TODO: Fix useForm overloads
+    // @ts-expect-error - no time to type, this usage works
     action: formsActions[action],
     formId,
     initialState: null,
@@ -42,15 +67,19 @@ export const FormProvider = ({
   })
 
   useEffect(() => {
+    // TODO: Fix useForm overloads
+    // @ts-expect-error - no time to type, this usage works
     if (helpers?.formState?.status) {
       setTimeout(() => {
         setKey(crypto.randomUUID())
       }, 2000)
     }
+    // TODO: Fix useForm overloads
+    // @ts-expect-error - no time to type, this usage works
   }, [helpers?.formState?.status, setKey])
 
   return (
-    <formContext.Provider value={helpers}>
+    <FormContext.Provider value={helpers}>
       <form
         className={className}
         action={formAction}
@@ -59,14 +88,26 @@ export const FormProvider = ({
       >
         {children}
       </form>
-    </formContext.Provider>
+    </FormContext.Provider>
   )
 }
 
-export function SubmitButton({ className, defaultText = 'submit' }) {
+type SubmitButtonProps = {
+  className?: string
+  defaultText?: string
+}
+
+export function SubmitButton({
+  className,
+  defaultText = 'submit',
+}: SubmitButtonProps) {
   const [buttonText, setButtonText] = useState(defaultText)
   const { isReady, isPending, formState } = useFormContext()
+  // TODO: Fix useForm overloads
+  // @ts-expect-error - no time to type, this usage works
   const submitted = formState?.status === 200
+  // TODO: Fix useForm overloads
+  // @ts-expect-error - no time to type, this usage works
   const error = formState?.status === 500
 
   useEffect(() => {
@@ -104,7 +145,7 @@ export function SubmitButton({ className, defaultText = 'submit' }) {
   )
 }
 
-export const Messages = ({ className }) => {
+export function Messages({ className }: { className?: string }) {
   const { errors } = useFormContext()
 
   return (

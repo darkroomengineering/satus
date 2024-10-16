@@ -4,14 +4,39 @@ import { useFormContext } from '..'
 import s from './fields.module.css'
 
 export const InputSelector = {
-  inputType: function inputType({ props, className, idx }) {
+  inputType: ({
+    props,
+    className,
+    idx,
+  }: {
+    props: Omit<InputFieldProps, 'className' | 'idx'>
+    className?: string
+    idx: number
+  }) => {
     return <InputField {...props} idx={idx} key={idx} className={className} />
   },
-  multipleOption: function multipleOption({ props, className, idx }) {
+  multipleOption: ({
+    props,
+    className,
+    idx,
+  }: {
+    props: Omit<CheckboxesFieldProps, 'className' | 'idx'>
+    className?: string
+    idx: number
+  }) => {
     return (
       <CheckboxesField {...props} idx={idx} key={idx} className={className} />
     )
   },
+}
+
+type InputFieldProps = {
+  className?: string
+  type: string
+  id: string
+  placeholder?: string
+  required?: boolean
+  idx: number
 }
 
 export function InputField({
@@ -21,7 +46,7 @@ export function InputField({
   placeholder,
   required = true,
   idx,
-}) {
+}: InputFieldProps) {
   const { errors, isActive, register } = useFormContext()
 
   return (
@@ -47,16 +72,33 @@ export function InputField({
   )
 }
 
-export function CheckboxesField({ className, options, idx }) {
+type CheckboxesFieldProps = {
+  className?: string
+  options: CheckboxesFieldOption[]
+  idx: number
+}
+
+type CheckboxesFieldOption = {
+  label: string
+  value: string
+}
+
+export function CheckboxesField({
+  className,
+  options,
+  idx,
+}: CheckboxesFieldProps) {
   const { register } = useFormContext()
-  const optionsRef = useRef(null)
+  const optionsRef = useRef<HTMLInputElement | null>(null)
   const [inputs, setInputs] = useState(JSON.stringify(['all']))
 
-  const handleList = useCallback((value) => {
-    let update = []
+  const handleList = useCallback((value: string) => {
+    if (!optionsRef.current) return
+    let update = ''
     const tmp = JSON.parse(optionsRef.current.value)
 
     if (tmp.includes(value)) {
+      // @ts-expect-error - no time to type, this usage works
       const rm = tmp.filter((item) => item !== value)
       update = JSON.stringify([...rm])
     } else {
@@ -86,9 +128,9 @@ export function CheckboxesField({ className, options, idx }) {
           key={value}
           className={cn(s.option, 'label', value === 'all' && s.selected)}
           type="button"
-          onClick={({ target }) => {
+          onClick={({ currentTarget }) => {
             handleList(value)
-            target.classList.toggle(s.selected)
+            currentTarget.classList.toggle(s.selected)
           }}
         >
           <span>{label}</span>

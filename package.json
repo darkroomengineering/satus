@@ -3,14 +3,13 @@
   "description": "Satūs is a next.js starter",
   "version": "0.0.2",
   "license": "MIT",
-  "packageManager": "bun@1.1.30",
   "scripts": {
     "dev": "next dev --turbo",
     "dev:https": "next dev --turbo --experimental-https",
     "build": "next build",
     "start": "next start",
     "analyze": "cross-env ANALYZE=true next build",
-    "npmrc": "bunx npmrc-replace-env -w",
+    "npmrc": "pnpx npmrc-replace-env -w",
     "storybook:dev": "storybook dev -p 6006",
     "storybook:build": "storybook build --quiet"
   },
@@ -22,21 +21,21 @@
     "@react-three/fiber": "^8.17.10",
     "@theatre/core": "^0.7.2",
     "@theatre/studio": "^0.7.2",
-    "babel-plugin-react-compiler": "^0.0.0-experimental-605e95c-20241015",
+    "babel-plugin-react-compiler": "0.0.0-experimental-605e95c-20241015",
     "clsx": "^2.1.1",
     "gsap": "^3.12.5",
     "lenis": "1.1.14",
-    "next": "^15.0.0-rc.1",
+    "next": "15.0.0-rc.1",
     "postprocessing": "^6.36.3",
-    "react": "^19.0.0-rc-83825814-20241015",
+    "react": "19.0.0-rc-cd22717c-20241013",
     "react-aria-components": "^1.4.1",
-    "react-dom": "^19.0.0-rc-83825814-20241015",
+    "react-dom": "19.0.0-rc-cd22717c-20241013",
     "stats-gl": "^2.2.8",
     "storyblok-js-client": "^6.10.0",
     "storyblok-rich-text-react-renderer": "^2.9.2",
     "three": "^0.169.0",
     "tunnel-rat": "^0.1.2",
-    "zustand": "5.0.0"
+    "zustand": "4.5.5"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.3",
@@ -53,6 +52,7 @@
     "@storybook/react": "^8.3.5",
     "@storybook/test": "^8.3.5",
     "@svgr/webpack": "^8.1.0",
+    "@types/node": "^22.7.5",
     "@types/react": "^18.3.11",
     "@types/three": "^0.169.0",
     "critters": "^0.0.25",
@@ -68,12 +68,11 @@
     "storybook": "^8.3.5",
     "typescript": "^5.6.3"
   },
-  "trustedDependencies": [
-    "@biomejs/biome",
-    "lefthook",
-    "sharp"
-  ],
-  "overrides": {
-    "scheduler": "0.23.2"
+  "pnpm": {
+    "overrides": {
+      "scheduler": "0.23.2",
+      "zustand": "4.5.5",
+      "react-reconciler": "0.27.0"
+    }
   }
 }

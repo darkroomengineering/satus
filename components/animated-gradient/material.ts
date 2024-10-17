@@ -1,7 +1,36 @@
 import { NOISE } from 'libs/webgl/utils/noise'
-import { MeshBasicMaterial, Vector2 } from 'three'
+import {
+  MeshBasicMaterial,
+  type Texture,
+  Vector2,
+  type WebGLProgramParametersWithUniforms,
+} from 'three'
 
 export class AnimatedGradientMaterial extends MeshBasicMaterial {
+  private uniforms: {
+    uTime: { value: number }
+    uAmplitude: { value: number }
+    uFrequency: { value: number }
+    uResolution: { value: Vector2 }
+    uAspect: { value: Vector2 }
+    uColorAmplitude: { value: number }
+    uColorFrequency: { value: number }
+    uColorsTexture: { value: Texture | null }
+    uOffset: { value: number }
+    uQuantize: { value: number }
+    uFlowmap: { value: Texture | null }
+    uDpr: { value: number }
+  }
+
+  defines: {
+    USE_RADIAL: boolean
+    USE_FLOWMAP: boolean
+    USE_UV: boolean
+  }
+
+  resolution: Vector2
+  aspect: Vector2
+
   constructor({
     frequency = 0.33,
     amplitude = 2,
@@ -30,8 +59,8 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
       uDpr: { value: 1 },
     }
     this.defines = {
-      USE_RADIAL: radial ? true : false,
-      USE_FLOWMAP: flowmap ? true : false,
+      USE_RADIAL: radial,
+      USE_FLOWMAP: flowmap,
       USE_UV: true,
     }
 
@@ -39,34 +68,34 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
     this.aspect = this.uniforms.uAspect.value
   }
 
-  onBeforeCompile(shader) {
-    shader.uniforms = {
-      ...shader.uniforms,
+  onBeforeCompile(parameters: WebGLProgramParametersWithUniforms) {
+    parameters.uniforms = {
+      ...parameters.uniforms,
       ...this.uniforms,
     }
 
-    shader.defines = {
-      ...shader.defines,
+    parameters.defines = {
+      ...parameters.defines,
       ...this.defines,
     }
 
-    shader.vertexShader = shader.vertexShader.replace(
+    parameters.vertexShader = parameters.vertexShader.replace(
       'void main() {',
       /* glsl */ `uniform vec2 uAspect;
       
-      void main() {`,
+      void main() {`
     )
 
-    shader.vertexShader = shader.vertexShader.replace(
+    parameters.vertexShader = parameters.vertexShader.replace(
       '#include <uv_vertex>',
       /* glsl */ `
       #include <uv_vertex>
       vUv += (uAspect - 1.) * 0.5;
       vUv /= uAspect;
-      `,
+      `
     )
 
-    shader.fragmentShader = shader.fragmentShader.replace(
+    parameters.fragmentShader = parameters.fragmentShader.replace(
       'void main() {',
       /* glsl */ `
       ${NOISE.FBM_3D(2)}
@@ -84,10 +113,10 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
       uniform sampler2D uFlowmap;
       uniform float uDpr;
       
-      void main() {`,
+      void main() {`
     )
 
-    shader.fragmentShader = shader.fragmentShader.replace(
+    parameters.fragmentShader = parameters.fragmentShader.replace(
       'vec4 diffuseColor = vec4( diffuse, opacity );',
       /* glsl */ `
       vec2 fragCoord = gl_FragCoord.xy;
@@ -129,7 +158,7 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
       alpha = alpha - rand(fragCoord) * 0.05;
 
       vec4 diffuseColor = vec4( color, alpha );
-      `,
+      `
     )
   }
 
@@ -165,7 +194,7 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
     this.uniforms.uAmplitude.value = value
   }
 
-  set colorsTexture(value) {
+  set colorsTexture(value: Texture | null) {
     this.uniforms.uColorsTexture.value = value
   }
 

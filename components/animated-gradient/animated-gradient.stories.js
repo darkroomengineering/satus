@@ -13,7 +13,7 @@ export default {
           style={{
             minHeight: '400px',
           }}
-        ></div>
+        />
         <div
           style={{
             position: 'fixed',

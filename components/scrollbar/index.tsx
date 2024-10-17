@@ -7,8 +7,7 @@ import { useEffect, useRef } from 'react'
 import s from './scrollbar.module.css'
 
 export function Scrollbar() {
-  const thumbRef = useRef()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const thumbRef = useRef<HTMLDivElement>(null!)
   const lenis = useLenis()
   const [innerMeasureRef, { height: innerHeight }] = useRect()
   const [thumbMeasureRef, { height: thumbHeight }] = useRect()
@@ -25,10 +24,10 @@ export function Scrollbar() {
   )
 
   useEffect(() => {
-    let start = null
+    let start: null | number = null
 
-    function onPointerMove(e) {
-      if (!start) return
+    function onPointerMove(e: PointerEvent) {
+      if (!start || !lenis) return
       e.preventDefault()
 
       const scroll = mapRange(
@@ -41,7 +40,7 @@ export function Scrollbar() {
       lenis.scrollTo(scroll, { immediate: true })
     }
 
-    function onPointerDown(e) {
+    function onPointerDown(e: PointerEvent) {
       start = e.offsetY
     }
 
@@ -66,6 +65,7 @@ export function Scrollbar() {
         <div
           className={s.thumb}
           ref={(node) => {
+            if (!node) return
             thumbRef.current = node
             thumbMeasureRef(node)
           }}

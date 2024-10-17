@@ -3,13 +3,28 @@
 import { useRect, useWindowSize } from '@darkroom.engineering/hamo'
 import cn from 'clsx'
 import { useScrollTrigger } from 'hooks/use-scroll-trigger'
-import { createContext, useContext, useRef } from 'react'
+import {
+  type HTMLAttributes,
+  type ReactNode,
+  createContext,
+  useContext,
+  useRef,
+} from 'react'
 import s from './fold.module.css'
 
 const FoldContext = createContext(false)
 
 export function useFold() {
   return useContext(FoldContext)
+}
+
+type FoldProps = HTMLAttributes<HTMLDivElement> & {
+  children?: ReactNode
+  className?: string
+  type?: 'bottom' | 'top'
+  disabled?: boolean
+  overlay?: boolean
+  parallax?: boolean
 }
 
 export function Fold({
@@ -20,16 +35,16 @@ export function Fold({
   overlay = true,
   parallax = true,
   ...props
-}) {
-  const foldRef = useRef()
-  const { height: windowHeight } = useWindowSize()
+}: FoldProps) {
+  const foldRef = useRef<HTMLDivElement | null>(null)
+  const { height: windowHeight = 0 } = useWindowSize()
   const [setRectRef, rect] = useRect({
     // ignoreTransform: true,
     // ignoreSticky: true,
   })
 
-  const overlayRef = useRef()
-  const stickyRef = useRef()
+  const overlayRef = useRef<HTMLDivElement>(null!)
+  const stickyRef = useRef<HTMLDivElement>(null!)
 
   useScrollTrigger({
     start: `${rect.top} top`,
@@ -37,11 +52,11 @@ export function Fold({
     disabled: disabled || type === 'bottom',
     onProgress: ({ progress }) => {
       if (overlayRef.current) {
-        overlayRef.current.style.setProperty('--progress', 1 - progress)
+        overlayRef.current.style.setProperty('--progress', String(1 - progress))
       }
 
       if (stickyRef.current) {
-        stickyRef.current.style.setProperty('--progress', 1 - progress)
+        stickyRef.current.style.setProperty('--progress', String(1 - progress))
       }
     },
   })
@@ -52,11 +67,11 @@ export function Fold({
     disabled: disabled || type === 'top',
     onProgress: ({ progress }) => {
       if (overlayRef.current) {
-        overlayRef.current.style.setProperty('--progress', progress)
+        overlayRef.current.style.setProperty('--progress', String(progress))
       }
 
       if (stickyRef.current) {
-        stickyRef.current.style.setProperty('--progress', progress)
+        stickyRef.current.style.setProperty('--progress', String(progress))
       }
     },
   })

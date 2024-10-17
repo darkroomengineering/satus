@@ -19,7 +19,7 @@ const useMinimapStore = create<MinimapStore>(() => ({
 }))
 
 export function useMinimap({ color = 'blue' } = {}) {
-  const [element, setElement] = useState()
+  const [element, setElement] = useState<HTMLElement | null>()
   const id = useId()
 
   useEffect(() => {

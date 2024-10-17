@@ -1,14 +1,26 @@
 'use client'
 
-import { useWindowSize } from '@darkroom.engineering/hamo'
+import {
+  type ExtendedDOMRect,
+  useLazyState,
+  useWindowSize,
+} from '@darkroom.engineering/hamo'
 import { useTransform } from 'hooks/use-transform'
 import { useLenis } from 'lenis/react'
 import { clamp, mapRange } from 'libs/maths'
-import { useMinimap } from 'libs/orchestra/minimap'
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
-import { useLazyState } from './use-lazy-state'
+import { useMinimap } from '~/libs/orchestra/minimap'
 
 // @refresh reset
+
+type UseMarkerOptions = {
+  text?: string
+  color?: string
+  type?: 'start' | 'end'
+  fixed?: boolean
+  visible?: boolean
+  id?: string
+}
 
 function useMarker({
   text = 'start',
@@ -17,8 +29,8 @@ function useMarker({
   fixed = false,
   visible = false,
   id = '',
-} = {}) {
-  const elementRef = useRef()
+}: UseMarkerOptions = {}) {
+  const elementRef = useRef<HTMLElement | null>()
 
   const setElementRef = useMinimap({
     color,
@@ -64,29 +76,32 @@ function useMarker({
 
     return () => {
       // setElementRef?.(null)
-      elementRef.current.remove()
+      elementRef.current?.remove()
     }
   }, [color, text, fixed, id, visible, type, setElementRef])
 
   const top = useCallback(
-    (value) => {
+    (value: number) => {
       if (!elementRef.current) return
-      elementRef.current.style.top = `${value}px`
+      const element = elementRef.current
+      element.style.top = `${value}px`
 
       if (!fixed) return
 
+      const firstChild = element.children[0] as HTMLElement
+
       if (value <= 0) {
-        elementRef.current.style.transform = 'translateY(0%)'
-        elementRef.current.style.borderBottom = 'none'
-        elementRef.current.style.borderTop = `1px solid ${color}`
+        element.style.transform = 'translateY(0%)'
+        element.style.borderBottom = 'none'
+        element.style.borderTop = `1px solid ${color}`
 
-        elementRef.current.children[0].style.top = 0
+        firstChild.style.top = '0'
       } else if (value >= window.innerHeight) {
-        elementRef.current.style.transform = 'translateY(-100%)'
-        elementRef.current.style.borderBottom = `1px solid ${color}`
-        elementRef.current.style.borderTop = 'none'
+        element.style.transform = 'translateY(-100%)'
+        element.style.borderBottom = `1px solid ${color}`
+        element.style.borderTop = 'none'
 
-        elementRef.current.children[0].style.bottom = 0
+        firstChild.style.bottom = '0'
       }
     },
     [color, fixed]
@@ -95,8 +110,30 @@ function useMarker({
   return { top }
 }
 
-function isNumber(value) {
+function isNumber(value: unknown): value is number {
   return typeof value === 'number' || !Number.isNaN(value)
+}
+
+type TriggerPosition = 'top' | 'center' | 'bottom' | number
+type TriggerPositionCombination = `${TriggerPosition} ${TriggerPosition}`
+
+export type UseScrollTriggerOptions = {
+  rect?: ExtendedDOMRect
+  start?: TriggerPositionCombination
+  end?: TriggerPositionCombination
+  id?: string
+  offset?: number
+  disabled?: boolean
+  markers?: boolean
+  onEnter?: () => void
+  onLeave?: () => void
+  onProgress?: (progress: {
+    height: number
+    isActive: boolean
+    progress: number
+    steps: number[]
+  }) => void
+  steps?: number
 }
 
 export function useScrollTrigger(
@@ -112,12 +149,10 @@ export function useScrollTrigger(
     onLeave,
     onProgress,
     steps = 1,
-  },
-  deps = []
+  }: UseScrollTriggerOptions,
+  deps = [] as unknown[]
 ) {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const getTransform = useTransform()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const lenis = useLenis()
 
   const elementMarkerStart = useMarker({
@@ -152,7 +187,7 @@ export function useScrollTrigger(
     visible: markers,
   })
 
-  const { height: windowHeight } = useWindowSize()
+  const { height: windowHeight = 0 } = useWindowSize()
 
   const [elementStartKeyword, viewportStartKeyword] = start.split(' ')
   const [elementEndKeyword, viewportEndKeyword] = end.split(' ')
@@ -173,32 +208,31 @@ export function useScrollTrigger(
 
   let elementStart = isNumber(elementStartKeyword)
     ? Number.parseFloat(elementStartKeyword)
-    : rect?.bottom
-  if (elementStartKeyword === 'top') elementStart = rect?.top
+    : rect?.bottom || 0
+  if (elementStartKeyword === 'top') elementStart = rect?.top || 0
   if (elementStartKeyword === 'center')
-    elementStart = rect?.top + rect?.height * 0.5
-  if (elementStartKeyword === 'bottom') elementStart = rect?.bottom
+    elementStart = (rect?.top || 0) + (rect?.height || 0) * 0.5
+  if (elementStartKeyword === 'bottom') elementStart = rect?.bottom || 0
 
   elementStart += offset
 
   let elementEnd = isNumber(elementEndKeyword)
     ? Number.parseFloat(elementEndKeyword)
-    : rect?.top
-  if (elementEndKeyword === 'top') elementEnd = rect?.top
+    : rect?.top || 0
+  if (elementEndKeyword === 'top') elementEnd = rect?.top || 0
   if (elementEndKeyword === 'center')
-    elementEnd = rect?.top + rect?.height * 0.5
-  if (elementEndKeyword === 'bottom') elementEnd = rect?.bottom
+    elementEnd = (rect?.top || 0) + (rect?.height || 0) * 0.5
+  if (elementEndKeyword === 'bottom') elementEnd = rect?.bottom || 0
 
   elementEnd += offset
 
   const startValue = elementStart - viewportStart
   const endValue = elementEnd - viewportEnd
 
-  // eslint-disable-next-line no-unused-vars
-  const [getProgress, setProgress] = useLazyState(
+  const [, setProgress] = useLazyState<undefined | number>(
     undefined,
     (progress, lastProgress) => {
-      if (Number.isNaN(progress)) return
+      if (!progress || !lastProgress || Number.isNaN(progress)) return
 
       if (
         (progress >= 0 && lastProgress < 0) ||
@@ -224,45 +258,50 @@ export function useScrollTrigger(
           clamp(0, mapRange(i / steps, (i + 1) / steps, progress, 0, 1), 1)
         ),
       })
-    },
-    [steps, startValue, endValue]
+    }
   )
 
-  const update = useCallback(
-    () => {
-      if (disabled) return
+  const update = useCallback(() => {
+    if (disabled) return
 
-      let scroll
+    let scroll: number
 
-      if (lenis) {
-        scroll = Math.floor(lenis?.scroll)
-      } else {
-        scroll = window.scrollY
-      }
+    if (lenis) {
+      scroll = Math.floor(lenis?.scroll)
+    } else {
+      scroll = window.scrollY
+    }
 
-      const { translate } = getTransform()
+    const { translate } = getTransform()
 
-      if (viewportMarkerStart) viewportMarkerStart.top(viewportStart)
+    if (viewportMarkerStart) viewportMarkerStart.top(viewportStart)
 
-      if (viewportMarkerEnd) viewportMarkerEnd.top(viewportEnd)
+    if (viewportMarkerEnd) viewportMarkerEnd.top(viewportEnd)
 
-      if (elementMarkerStart) elementMarkerStart.top(elementStart - translate.y)
+    if (elementMarkerStart) elementMarkerStart.top(elementStart - translate.y)
 
-      if (elementMarkerEnd) elementMarkerEnd.top(elementEnd - translate.y)
+    if (elementMarkerEnd) elementMarkerEnd.top(elementEnd - translate.y)
 
-      const progress = mapRange(
-        startValue,
-        endValue,
-        scroll - translate.y,
-        0,
-        1
-      )
+    const progress = mapRange(startValue, endValue, scroll - translate.y, 0, 1)
 
-      setProgress(progress)
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [lenis, rect, getTransform, startValue, endValue, disabled, steps, ...deps]
-  )
+    setProgress(progress)
+  }, [
+    lenis,
+    viewportMarkerStart,
+    viewportMarkerEnd,
+    viewportStart,
+    viewportEnd,
+    elementMarkerStart,
+    elementMarkerEnd,
+    elementStart,
+    elementEnd,
+    startValue,
+    endValue,
+    getTransform,
+    setProgress,
+    disabled,
+    ...deps,
+  ])
 
   useLenis(update, [update])
 

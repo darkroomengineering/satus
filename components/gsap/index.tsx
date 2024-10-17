@@ -12,7 +12,7 @@ export function GSAP({ scrollTrigger = false }) {
     // merge rafs
     gsap.ticker.lagSmoothing(0)
     gsap.ticker.remove(gsap.updateRoot)
-    Tempus?.add((time) => {
+    Tempus?.add((time: number) => {
       gsap.updateRoot(time / 1000)
     }, 0)
   }, [])

@@ -32,4 +32,6 @@ export function RealViewport() {
       window.removeEventListener('resize', onWindowResize, false)
     }
   }, [onWindowResize])
+
+  return null
 }

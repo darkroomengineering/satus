@@ -3,18 +3,28 @@
 import { useRect } from '@darkroom.engineering/hamo'
 import { WebGLTunnel } from 'libs/webgl/components/tunnel'
 import dynamic from 'next/dynamic'
+import type { CSSProperties, ComponentProps } from 'react'
 
 const WebGLAnimatedGradient = dynamic(
   () =>
     import('./webgl').then(
-      ({ WebGLAnimatedGradient }) => WebGLAnimatedGradient,
+      ({ WebGLAnimatedGradient }) => WebGLAnimatedGradient
     ),
   {
     ssr: false,
-  },
+  }
 )
 
-export function AnimatedGradient({ className, style, ...props }) {
+type AnimatedGradientProps = {
+  className?: string
+  style?: CSSProperties
+} & Omit<ComponentProps<typeof WebGLAnimatedGradient>, 'rect'>
+
+export function AnimatedGradient({
+  className,
+  style,
+  ...props
+}: AnimatedGradientProps) {
   const [setRectRef, rect] = useRect()
 
   return (

@@ -3,8 +3,13 @@
 import { useResizeObserver } from '@darkroom.engineering/hamo'
 import cn from 'clsx'
 import {
+  type Dispatch,
+  type HTMLAttributes,
+  type PropsWithChildren,
+  type ReactNode,
+  type Ref,
+  type SetStateAction,
   createContext,
-  forwardRef,
   useCallback,
   useContext,
   useId,
@@ -13,8 +18,15 @@ import {
 } from 'react'
 import s from './accordion.module.css'
 
-const AccordionsGroupContext = createContext({})
-const AccordionContext = createContext({})
+const AccordionsGroupContext = createContext(
+  {} as {
+    currentId: string | undefined
+    setCurrentId: Dispatch<SetStateAction<string | undefined>>
+  }
+)
+const AccordionContext = createContext(
+  {} as { isOpen: boolean; toggle: () => void }
+)
 
 function useAccordionsGroupContext() {
   return useContext(AccordionsGroupContext)
@@ -24,8 +36,8 @@ function useAccordionContext() {
   return useContext(AccordionContext)
 }
 
-function Group({ children }) {
-  const [currentId, setCurrentId] = useState()
+function Group({ children }: PropsWithChildren) {
+  const [currentId, setCurrentId] = useState<string | undefined>()
 
   return (
     <AccordionsGroupContext.Provider value={{ currentId, setCurrentId }}>
@@ -34,7 +46,13 @@ function Group({ children }) {
   )
 }
 
-const Root = forwardRef(function Root({ children, className }, ref) {
+type RootProps = {
+  className?: string
+  children?: ReactNode | ((props: { isOpen: boolean }) => ReactNode)
+  ref?: Ref<{ toggle: () => void }>
+}
+
+function Root({ children, className, ref }: RootProps) {
   const id = useId()
 
   const { currentId, setCurrentId } = useAccordionsGroupContext()
@@ -51,19 +69,26 @@ const Root = forwardRef(function Root({ children, className }, ref) {
 
   return (
     <AccordionContext.Provider value={{ isOpen, toggle }}>
-      <div className={cn(s.accordion, className)}>{children?.({ isOpen })}</div>
+      <div className={cn(s.accordion, className)}>
+        {typeof children === 'function' ? children({ isOpen }) : children}
+      </div>
     </AccordionContext.Provider>
   )
-})
+}
 
-function Button({ children, className, onClick, ...props }) {
+function Button({
+  children,
+  className,
+  onClick,
+  ...props
+}: HTMLAttributes<HTMLButtonElement>) {
   const { toggle } = useAccordionContext()
 
   return (
     <button
       className={cn(s.button, className)}
-      onClick={() => {
-        onClick?.()
+      onClick={(e) => {
+        onClick?.(e)
         toggle()
       }}
       {...props}
@@ -73,7 +98,10 @@ function Button({ children, className, onClick, ...props }) {
   )
 }
 
-function Body({ children, className }) {
+function Body({
+  children,
+  className,
+}: { children?: ReactNode; className?: string }) {
   const { isOpen } = useAccordionContext()
 
   const [setRectRef, { contentRect: rect }] = useResizeObserver()

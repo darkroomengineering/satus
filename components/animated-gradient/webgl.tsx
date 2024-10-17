@@ -1,17 +1,18 @@
-import { useWindowSize } from '@darkroom.engineering/hamo'
+import { type ExtendedDOMRect, useWindowSize } from '@darkroom.engineering/hamo'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useObjectFit } from 'hooks/use-object-fit'
 import { useFlowmap } from 'libs/webgl/components/flowmap'
 import { useWebGLRect } from 'libs/webgl/hooks/use-webgl-rect'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { CanvasTexture, LinearFilter } from 'three'
+import { CanvasTexture, LinearFilter, type Mesh } from 'three'
 import { AnimatedGradientMaterial } from './material'
 
 // @refresh reset
 
-function useGradient(colors) {
+function useGradient(colors: string[]) {
   const [canvas] = useState(() => document.createElement('canvas'))
   const texture = useMemo(() => {
+    // @ts-expect-error - maybe three types are wrong?
     const texture = new CanvasTexture(canvas, {
       minFilter: LinearFilter,
       magFilter: LinearFilter,
@@ -22,6 +23,7 @@ function useGradient(colors) {
 
   useEffect(() => {
     const ctx = canvas.getContext('2d')
+    if (!ctx) return
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height)
 
     if (colors.length > 1) {
@@ -41,6 +43,19 @@ function useGradient(colors) {
   return texture
 }
 
+type WebGLAnimatedGradientProps = {
+  rect: ExtendedDOMRect
+  amplitude?: number
+  frequency?: number
+  colorAmplitude?: number
+  colorFrequency?: number
+  quantize?: number
+  radial?: boolean
+  flowmap?: boolean
+  colors?: string[]
+  speed?: number
+}
+
 export function WebGLAnimatedGradient({
   rect,
   amplitude = 2,
@@ -52,7 +67,7 @@ export function WebGLAnimatedGradient({
   flowmap = true,
   colors = ['#ff0000', '#000000'],
   speed = 1,
-}) {
+}: WebGLAnimatedGradientProps) {
   const [material] = useState(
     () =>
       new AnimatedGradientMaterial({
@@ -63,14 +78,14 @@ export function WebGLAnimatedGradient({
         quantize,
         radial,
         flowmap,
-      }),
+      })
   )
 
   const getFlowmap = useFlowmap()
 
   useFrame(() => {
     const flowmap = getFlowmap()
-    material.flowmap = flowmap
+    material.flowmap = flowmap || null
   })
 
   const gradientTexture = useGradient(colors)
@@ -105,7 +120,7 @@ export function WebGLAnimatedGradient({
     material.aspect.set(aspect[0], aspect[1])
   }, [material, aspect])
 
-  const { width: windowWidth, height: windowHeight } = useWindowSize()
+  const { width: windowWidth = 0, height: windowHeight = 0 } = useWindowSize()
 
   useEffect(() => {
     material.resolution.set(windowWidth, windowHeight)
@@ -118,7 +133,7 @@ export function WebGLAnimatedGradient({
     material.dpr = viewport.dpr
   }, [material, viewport])
 
-  const meshRef = useRef()
+  const meshRef = useRef<Mesh>(null!)
 
   useWebGLRect(rect, ({ scale, position, rotation }) => {
     meshRef.current.position.set(position.x, position.y, position.z)

@@ -3,10 +3,12 @@ declare module '@darkroom.engineering/hamo' {
     callback: (now: DOMHighResTimeStamp, deltaTime: number) => void,
     priority?: number
   ): void
+
   function useLazyState<V>(
     initialValue: V,
     callback: (newValue: V, oldValue: V) => void
   ): [() => V, (value: V | ((prevValue: V) => V)) => void]
+
   function useObjectFit(
     parentWidth?: number,
     parentHeight?: number,
@@ -15,6 +17,7 @@ declare module '@darkroom.engineering/hamo' {
     objectFit?: 'contain' | 'cover',
     deps?: unknown[]
   ): [number, number]
+
   interface ExtendedDOMRect extends DOMRect {
     top: number
     left: number
@@ -35,10 +38,11 @@ declare module '@darkroom.engineering/hamo' {
     lazy?: L
     callback?: (rect: ExtendedDOMRect) => void
   }): [
-    (element: HTMLElement) => void,
-    L extends true ? ExtendedDOMRect : () => ExtendedDOMRect,
-    (wrapperElement: HTMLElement) => void,
+    (element: HTMLElement | null) => void,
+    L extends true ? () => ExtendedDOMRect : ExtendedDOMRect,
+    (wrapperElement: HTMLElement | null) => void,
   ]
+
   function useResizeObserver<L extends boolean = false>({
     debounce,
     lazy,
@@ -50,24 +54,30 @@ declare module '@darkroom.engineering/hamo' {
     box?: ResizeObserverBoxOptions
     callback?: (entry: ResizeObserverEntry) => void
   }): [
-    (element: HTMLElement) => void,
-    L extends true ? ResizeObserverEntry : () => ResizeObserverEntry,
+    (element: HTMLElement | null) => void,
+    L extends true ? () => ResizeObserverEntry : ResizeObserverEntry,
   ]
+
   function useTimeout(
     callback: () => void,
     delay: number,
     deps?: unknown[]
   ): void
+
   function useWindowSize(debounceDelay?: number): {
     width: number | undefined
     height: number | undefined
   }
+
   function useOutsideClickEffect(
     ref: React.RefObject<HTMLElement>,
     callback: () => void
   ): void
+
   function useDebug(): boolean
+
   function useDocumentReadyState(): DocumentReadyState
+
   function useIntersectionObserver<L extends boolean = false>(
     {
       root,
@@ -86,18 +96,23 @@ declare module '@darkroom.engineering/hamo' {
     },
     deps?: unknown[]
   ): [
-    (element: HTMLElement) => void,
+    (element: HTMLElement | null) => void,
     L extends true
-      ? IntersectionObserverEntry
-      : () => IntersectionObserverEntry,
+      ? () => IntersectionObserverEntry
+      : IntersectionObserverEntry,
   ]
+
   function useInterval(
     callback: () => void,
     delay?: number,
     deps?: unknown[]
   ): void
+
   function useIsClient(): boolean
+
   function useIsTouchDevice(): boolean | undefined
+
   function useMediaQuery(query: string): boolean | undefined
+
   function useSlots(types: string[], children: React.ReactNode): React.ReactNode
 }

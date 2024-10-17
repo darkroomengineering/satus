@@ -6,34 +6,26 @@ import { useEffect } from 'react'
 
 const Studio = dynamic(
   () => import('libs/theatre/studio').then(({ Studio }) => Studio),
-  { ssr: false },
+  { ssr: false }
 )
-
 const Stats = dynamic(
   () => import('libs/orchestra/stats').then(({ Stats }) => Stats),
-  {
-    ssr: false,
-  },
+  { ssr: false }
 )
 const GridDebugger = dynamic(
   () => import('libs/orchestra/grid').then(({ GridDebugger }) => GridDebugger),
-  {
-    ssr: false,
-  },
+  { ssr: false }
 )
-
 const Minimap = dynamic(
   () => import('libs/orchestra/minimap').then(({ Minimap }) => Minimap),
-  {
-    ssr: false,
-  },
+  { ssr: false }
 )
 
 export function Debug() {
   const { stats, grid, studio, dev, minimap } = useOrchestra()
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dev', Boolean(dev))
+    document.documentElement.classList.toggle('dev', dev)
   }, [dev])
 
   return (

@@ -3,10 +3,10 @@
 import { useResizeObserver } from '@darkroom.engineering/hamo'
 import cn from 'clsx'
 import { gsap } from 'gsap'
-import { SplitText as GSAPSplitText } from 'gsap/dist/SplitText'
+import { SplitText as GSAPSplitText } from 'gsap/SplitText'
 import { useIsVisualEditor } from 'libs/storyblok/use-is-visual-editor'
 import {
-  forwardRef,
+  type Ref,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -19,22 +19,30 @@ if (typeof window !== 'undefined') {
   gsap.registerPlugin(GSAPSplitText)
 }
 
-function replaceFromNode(node, string, replacement = string) {
+function replaceFromNode(
+  node: HTMLSpanElement,
+  string: string,
+  replacement = string
+) {
   node.innerHTML = node.innerHTML.replace(
     new RegExp(`(?!<[^>]+)${string}(?![^<]+>)`, 'g'),
     replacement
   )
 }
 
-export const SplitText = forwardRef(function SplitText(
-  { children, className, type },
-  ref
-) {
-  const elementRef = useRef()
-  const fallbackRef = useRef()
+type SplitTextProps = {
+  children: string
+  className?: string
+  type?: string
+  ref?: Ref<GSAPSplitText | undefined>
+}
+
+export function SplitText({ children, className, type, ref }: SplitTextProps) {
+  const elementRef = useRef<HTMLSpanElement>(null!)
+  const fallbackRef = useRef<HTMLSpanElement>(null!)
   const [setRectRef, { contentRect: rect }] = useResizeObserver()
 
-  const [splitted, setSplitted] = useState()
+  const [splitted, setSplitted] = useState<GSAPSplitText | undefined>()
 
   useImperativeHandle(ref, () => splitted, [splitted])
 
@@ -45,7 +53,9 @@ export const SplitText = forwardRef(function SplitText(
     replaceFromNode(fallbackRef.current, '-', '‑')
 
     const ignoredElements = [
-      ...elementRef.current.querySelectorAll('[data-ignore-split-text]'),
+      ...elementRef.current.querySelectorAll<HTMLElement>(
+        '[data-ignore-split-text]'
+      ),
     ]
     ignoredElements.map((item) => {
       item.innerText = item.innerText.replaceAll(' ', '&nbsp;')
@@ -62,7 +72,7 @@ export const SplitText = forwardRef(function SplitText(
 
     return () => {
       splitted.revert()
-      setSplitted()
+      setSplitted(undefined)
     }
   }, [rect, type])
 
@@ -77,6 +87,7 @@ export const SplitText = forwardRef(function SplitText(
         <span
           className={s.fallback}
           ref={(node) => {
+            if (!node) return
             setRectRef(node)
             fallbackRef.current = node
           }}
@@ -89,4 +100,4 @@ export const SplitText = forwardRef(function SplitText(
   )
 
   return isVisualEditor ? children : render
-})
+}

@@ -8,8 +8,16 @@ import {
 import cn from 'clsx'
 import { useLenis } from 'lenis/react'
 import { modulo } from 'libs/maths'
-import { useRef } from 'react'
+import { type HTMLAttributes, useRef } from 'react'
 import s from './marquee.module.css'
+
+interface MarqueeProps extends HTMLAttributes<HTMLDivElement> {
+  repeat?: number
+  speed?: number
+  scrollVelocity?: boolean
+  reversed?: boolean
+  pauseOnHover?: boolean
+}
 
 export function Marquee({
   children,
@@ -22,9 +30,9 @@ export function Marquee({
   onMouseEnter,
   onMouseLeave,
   ...props
-}) {
+}: MarqueeProps) {
   const [setRectRef, { contentRect: rect }] = useResizeObserver()
-  const elementsRef = useRef([])
+  const elementsRef = useRef<HTMLDivElement[]>([])
   const transformRef = useRef(Math.random() * 1000)
   const isHovered = useRef(false)
 
@@ -80,9 +88,10 @@ export function Marquee({
             i
           }`}
           className={s.inner}
-          aria-hidden={i !== 0 ?? undefined}
+          aria-hidden={i !== 0}
           data-nosnippet={i !== 0 ? '' : undefined}
           ref={(node) => {
+            if (!node) return
             elementsRef.current[i] = node
 
             if (i === 0) setRectRef(node)

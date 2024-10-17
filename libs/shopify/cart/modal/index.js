@@ -6,7 +6,7 @@ import { Link } from 'components/link'
 import { createContext, useContext, useState } from 'react'
 import { removeItem, updateItemQuantity } from '../actions'
 import { useCartContext } from '../cart-context'
-import s from './modal.module.scss'
+import s from './modal.module.css'
 
 const ModalContext = createContext()
 
@@ -24,9 +24,23 @@ export function CartModal({ children }) {
     <ModalContext.Provider value={{ isOpen, openCart, closeCart }}>
       {children}
       <div className={cn(s.modal, isOpen && s.open)}>
-        <div className={s['catch-click']} onClick={closeCart} />
+        <div
+          className={s['catch-click']}
+          onClick={closeCart}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              closeCart()
+            }
+          }}
+          role="button"
+          tabIndex={0}
+        />
         <div className={s.inner}>
-          <button className={cn('link', s.close)} onClick={closeCart}>
+          <button
+            type="button"
+            className={cn('link', s.close)}
+            onClick={closeCart}
+          >
             close
           </button>
           {!cart || cart.lines.length === 0 ? <EmptyCart /> : <InnerCart />}

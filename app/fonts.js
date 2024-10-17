@@ -6,7 +6,7 @@ import localFont from 'next/font/local'
 const mono = localFont({
   src: [
     {
-      path: '../public/fonts/V1_Server_Mono/V1-ServerMono-Regular.woff2',
+      path: '../public/fonts/ServerMono/ServerMono-Regular.woff2',
       weight: '400',
       style: 'normal',
     },

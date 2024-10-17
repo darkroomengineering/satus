@@ -1,10 +1,10 @@
-import { StoryblokApi } from 'libs/storyblok'
-import { StoryblokContextProvider } from 'libs/storyblok/context'
 import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
+import { StoryblokApi } from '~/libs/storyblok'
+import { StoryblokContextProvider } from '~/libs/storyblok/context'
 import { Wrapper } from '../(components)/wrapper'
 import { Tutorial } from './(component)/tutorial'
-import s from './storyblok.module.scss'
+import s from './storyblok.module.css'
 
 export default async function Storyblok() {
   const isDraftMode =
@@ -36,7 +36,7 @@ export default async function Storyblok() {
 }
 
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata
-export async function generateMetadata({}) {
+export async function generateMetadata() {
   const isDraftMode =
     draftMode().isEnabled || process.env.NODE_ENV === 'development'
 

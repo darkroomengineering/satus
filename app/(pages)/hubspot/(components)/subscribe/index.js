@@ -1,8 +1,8 @@
 'use client'
 
 import cn from 'clsx'
-import { Messages, SubmitButton, useFormContext } from 'libs/form'
-import s from './subscribe.module.scss'
+import { Messages, SubmitButton, useFormContext } from '~/libs/form'
+import s from './subscribe.module.css'
 
 export const Subscribe = ({ idx = 0, form }) => {
   const { errors, isActive, register } = useFormContext()
@@ -12,7 +12,7 @@ export const Subscribe = ({ idx = 0, form }) => {
       className={cn(
         s.fields,
         isActive[idx] && s.active,
-        errors[idx]?.state && s.error,
+        errors[idx]?.state && s.error
       )}
     >
       <input

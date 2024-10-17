@@ -1,10 +1,10 @@
 'use client'
 
 import { useFrame } from '@react-three/fiber'
-import { useCurrentSheet } from 'libs/theatre'
-import { useTheatre } from 'libs/theatre/hooks/use-theatre'
-import { useWebGLRect } from 'libs/webgl/hooks/use-webgl-rect'
 import { useRef } from 'react'
+import { useCurrentSheet } from '~/libs/theatre'
+import { useTheatre } from '~/libs/theatre/hooks/use-theatre'
+import { useWebGLRect } from '~/libs/webgl/hooks/use-webgl-rect'
 
 export function WebGLBox({ theatreKey = 'box', rect }) {
   const meshRef = useRef()
@@ -30,7 +30,7 @@ export function WebGLBox({ theatreKey = 'box', rect }) {
       onValuesChange: ({ x, y, z }) => {
         meshRef.current.position.set(x, y, z)
       },
-    },
+    }
   )
 
   useWebGLRect(rect, ({ scale, position, rotation }) => {

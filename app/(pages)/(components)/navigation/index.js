@@ -1,9 +1,9 @@
 'use client'
 
 import cn from 'clsx'
-import { Link } from 'components/link'
 import { usePathname } from 'next/navigation'
-import s from './navigation.module.scss'
+import { Link } from '~/components/link'
+import s from './navigation.module.css'
 
 const LINKS = [
   { href: '/', label: 'home' },

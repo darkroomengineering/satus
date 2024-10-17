@@ -1,0 +1,10 @@
+.footer {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--layout-margin);
+
+  @include-media ('mobile') {
+    flex-direction: column;
+    align-items: center;
+  }
+}

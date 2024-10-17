@@ -1,7 +1,7 @@
 'use client'
 
-import { Form, SubmitButton } from 'libs/form'
-import { InputField } from 'libs/form/fields'
+import { Form, SubmitButton } from '~/libs/form'
+import { InputField } from '~/libs/form/fields'
 
 // import {
 //   LoginCustomerAction,

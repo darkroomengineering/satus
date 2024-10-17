@@ -38,7 +38,7 @@ export function PostProcessing() {
     }
   }, [composer, renderPass, copyPass])
 
-  const { width: windowWidth, height: windowHeight } = useWindowSize()
+  const { width: windowWidth = 0, height: windowHeight = 0 } = useWindowSize()
 
   useEffect(() => {
     // reduce dpr as window width>2048 increases to maintain performance

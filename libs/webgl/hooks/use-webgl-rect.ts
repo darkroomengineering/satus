@@ -1,8 +1,8 @@
 import { useThree } from '@react-three/fiber'
-import { useTransform } from 'hooks/use-transform'
 import { useLenis } from 'lenis/react'
 import { useCallback, useEffect, useRef } from 'react'
 import { Euler, Vector3 } from 'three'
+import { useTransform } from '~/hooks/use-transform'
 
 type Transform = {
   position: Vector3

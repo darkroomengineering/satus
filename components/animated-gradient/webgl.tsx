@@ -1,10 +1,13 @@
-import { type ExtendedDOMRect, useWindowSize } from '@darkroom.engineering/hamo'
+import {
+  type ExtendedDOMRect,
+  useObjectFit,
+  useWindowSize,
+} from '@darkroom.engineering/hamo'
 import { useFrame, useThree } from '@react-three/fiber'
-import { useObjectFit } from 'hooks/use-object-fit'
-import { useFlowmap } from 'libs/webgl/components/flowmap'
-import { useWebGLRect } from 'libs/webgl/hooks/use-webgl-rect'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CanvasTexture, LinearFilter, type Mesh } from 'three'
+import { useFlowmap } from '~/libs/webgl/components/flowmap'
+import { useWebGLRect } from '~/libs/webgl/hooks/use-webgl-rect'
 import { AnimatedGradientMaterial } from './material'
 
 // @refresh reset

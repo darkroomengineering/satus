@@ -6,12 +6,13 @@ import type { CSSProperties, Ref } from 'react'
 import { breakpoints } from '~/styles/config.mjs'
 import s from './image.module.css'
 
-type ImageProps = Omit<NextImageProps, 'objectFit'> & {
+export type ImageProps = Omit<NextImageProps, 'objectFit' | 'alt'> & {
   objectFit?: CSSProperties['objectFit']
   block?: boolean
   mobileSize?: `${number}vw`
   desktopSize?: `${number}vw`
   ref?: Ref<HTMLImageElement>
+  alt?: string
 }
 
 export function Image({

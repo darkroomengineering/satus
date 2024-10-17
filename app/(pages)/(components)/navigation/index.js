@@ -1,8 +1,8 @@
 'use client'
 
 import cn from 'clsx'
-import { Link } from 'components/link'
 import { usePathname } from 'next/navigation'
+import { Link } from '~/components/link'
 import s from './navigation.module.css'
 
 const LINKS = [

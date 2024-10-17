@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og'
-import { themes } from 'styles/config.mjs'
+import { themes } from '~/styles/config.mjs'
 import AppData from '../package.json'
 
 export const runtime = 'edge'
@@ -15,7 +15,10 @@ export const contentType = 'image/png'
 
 const getFont = async () => {
   const res = await fetch(
-    new URL('public/fonts/ServerMono/ServerMono-Regular.woff2', import.meta.url)
+    new URL(
+      '../public/fonts/ServerMono/ServerMono-Regular.woff2',
+      import.meta.url
+    )
   )
   return await res.arrayBuffer()
 }

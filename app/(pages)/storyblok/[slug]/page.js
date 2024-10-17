@@ -1,8 +1,8 @@
-import { Wrapper } from 'app/(pages)/(components)/wrapper'
-import { StoryblokApi } from 'libs/storyblok'
-import { StoryblokContextProvider } from 'libs/storyblok/context'
 import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
+import { Wrapper } from '~/app/(pages)/(components)/wrapper'
+import { StoryblokApi } from '~/libs/storyblok'
+import { StoryblokContextProvider } from '~/libs/storyblok/context'
 import { Article } from './(component)/article'
 import s from './article-page.module.css'
 

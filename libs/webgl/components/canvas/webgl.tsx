@@ -1,6 +1,6 @@
 import { OrthographicCamera } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
-import { SheetProvider } from 'libs/theatre'
+import { SheetProvider } from '~/libs/theatre'
 import { FlowmapProvider } from '../flowmap'
 import { Preload } from '../preload'
 import { RAF } from '../raf'

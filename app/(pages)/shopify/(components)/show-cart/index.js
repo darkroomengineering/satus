@@ -1,7 +1,7 @@
 'use client'
 
 import cn from 'clsx'
-import { useCartModal } from 'libs/shopify/cart/modal'
+import { useCartModal } from '~/libs/shopify/cart/modal'
 
 export const ShowCart = ({ className }) => {
   const { openCart } = useCartModal()

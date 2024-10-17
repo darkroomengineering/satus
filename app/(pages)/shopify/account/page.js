@@ -1,5 +1,5 @@
-import { getCustomer } from 'libs/shopify/customer/actions'
 import { Suspense } from 'react'
+import { getCustomer } from '~/libs/shopify/customer/actions'
 import { LoginForm, LogoutButton, RegisterForm } from '../(components)/customer'
 import { Wrapper } from '../../(components)/wrapper'
 import s from './account.module.css'

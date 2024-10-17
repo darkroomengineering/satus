@@ -177,7 +177,7 @@ export function TransformProvider({ children, ref }: TransformProviderProps) {
 }
 
 export function useTransform(
-  callback: TransformCallback,
+  callback?: TransformCallback,
   deps = [] as unknown[]
 ) {
   const { getTransform, addCallback, removeCallback } =

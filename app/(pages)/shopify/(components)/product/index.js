@@ -1,5 +1,5 @@
-import { Image } from 'components/image'
-import { getCollectionProducts } from 'libs/shopify'
+import { Image } from '~/components/image'
+import { getCollectionProducts } from '~/libs/shopify'
 import { SizeAndBuy } from '../size-and-buy'
 import s from './product.module.css'
 

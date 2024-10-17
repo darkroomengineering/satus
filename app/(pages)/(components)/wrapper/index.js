@@ -1,5 +1,5 @@
 import cn from 'clsx'
-import { Canvas } from 'libs/webgl/components/canvas'
+import { Canvas } from '~/libs/webgl/components/canvas'
 import { Footer } from '../footer'
 import { Lenis } from '../lenis'
 import { Navigation } from '../navigation'

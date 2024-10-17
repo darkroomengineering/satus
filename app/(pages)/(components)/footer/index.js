@@ -1,4 +1,4 @@
-import { Link } from 'components/link'
+import { Link } from '~/components/link'
 import s from './footer.module.css'
 
 export function Footer() {

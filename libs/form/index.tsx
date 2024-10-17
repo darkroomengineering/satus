@@ -1,12 +1,6 @@
 'use client'
 
 import cn from 'clsx'
-import { HubspotNewsletterAction } from 'libs/hubspot-forms/action'
-import {
-  CreateCustomerAction,
-  LoginCustomerAction,
-  LogoutCustomerAction,
-} from 'libs/shopify/customer/actions'
 import {
   type Dispatch,
   type HTMLAttributes,
@@ -16,6 +10,12 @@ import {
   useEffect,
   useState,
 } from 'react'
+import { HubspotNewsletterAction } from '~/libs/hubspot-forms/action'
+import {
+  CreateCustomerAction,
+  LoginCustomerAction,
+  LogoutCustomerAction,
+} from '~/libs/shopify/customer/actions'
 import s from './form.module.css'
 import { useForm } from './hook'
 

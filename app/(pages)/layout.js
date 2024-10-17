@@ -1,12 +1,11 @@
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google'
-import { Debug } from 'components/debug'
-import { GSAP } from 'components/gsap'
-import { RealViewport } from 'components/real-viewport'
-import { StyleVariables } from 'libs/style-variables'
-import { colors, themes } from 'styles/config.mjs'
+import { Debug } from '~/components/debug'
+import { GSAP } from '~/components/gsap'
+import { RealViewport } from '~/components/real-viewport'
+import { StyleVariables } from '~/libs/style-variables'
+import { colors, themes } from '~/styles/config.mjs'
+import '~/styles/global.css'
 import AppData from '../../package.json'
-
-import 'styles/global.css'
 import { fonts } from '../fonts'
 
 const APP_NAME = AppData.name

@@ -5,10 +5,10 @@ import {
   useLazyState,
   useWindowSize,
 } from '@darkroom.engineering/hamo'
-import { useTransform } from 'hooks/use-transform'
 import { useLenis } from 'lenis/react'
-import { clamp, mapRange } from 'libs/maths'
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
+import { useTransform } from '~/hooks/use-transform'
+import { clamp, mapRange } from '~/libs/maths'
 import { useMinimap } from '~/libs/orchestra/minimap'
 
 // @refresh reset

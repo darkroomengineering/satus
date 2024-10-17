@@ -1,8 +1,5 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { types } from '@theatre/core'
-import { useCurrentSheet } from 'libs/theatre'
-import { useTheatre } from 'libs/theatre/hooks/use-theatre'
-import FluidSimulation from 'libs/webgl/utils/fluid-simulation'
 import {
   type PropsWithChildren,
   createContext,
@@ -12,6 +9,9 @@ import {
   useRef,
 } from 'react'
 import type { Texture } from 'three'
+import { useCurrentSheet } from '~/libs/theatre'
+import { useTheatre } from '~/libs/theatre/hooks/use-theatre'
+import FluidSimulation from '~/libs/webgl/utils/fluid-simulation'
 
 export const FlowmapContext = createContext<() => Texture | undefined>(
   () => undefined
@@ -25,6 +25,7 @@ export function FlowmapProvider({ children }: PropsWithChildren) {
   const gl = useThree(({ gl }) => gl)
 
   const fluidSimulation = useMemo(
+    // @ts-expect-error - FluidSimulation is not typed
     () => new FluidSimulation({ renderer: gl, size: 128 }),
     [gl]
   )

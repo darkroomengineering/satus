@@ -1,6 +1,6 @@
 'use client'
 
-import { OrchestraToggle } from 'libs/orchestra/react'
+import { OrchestraToggle } from '~/libs/orchestra/react'
 import s from './orchestra.module.css'
 
 function OrchestraPage() {

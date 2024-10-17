@@ -2,7 +2,6 @@
 
 import { useRect, useWindowSize } from '@darkroom.engineering/hamo'
 import cn from 'clsx'
-import { useScrollTrigger } from 'hooks/use-scroll-trigger'
 import {
   type HTMLAttributes,
   type ReactNode,
@@ -10,6 +9,7 @@ import {
   useContext,
   useRef,
 } from 'react'
+import { useScrollTrigger } from '~/hooks/use-scroll-trigger'
 import s from './fold.module.css'
 
 const FoldContext = createContext(false)

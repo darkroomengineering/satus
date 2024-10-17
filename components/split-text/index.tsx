@@ -4,7 +4,6 @@ import { useResizeObserver } from '@darkroom.engineering/hamo'
 import cn from 'clsx'
 import { gsap } from 'gsap'
 import { SplitText as GSAPSplitText } from 'gsap/SplitText'
-import { useIsVisualEditor } from 'libs/storyblok/use-is-visual-editor'
 import {
   type Ref,
   useEffect,
@@ -13,6 +12,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { useIsVisualEditor } from '~/libs/storyblok/use-is-visual-editor'
 import s from './split-text.module.css'
 
 if (typeof window !== 'undefined') {

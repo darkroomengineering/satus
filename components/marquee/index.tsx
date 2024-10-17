@@ -7,8 +7,8 @@ import {
 } from '@darkroom.engineering/hamo'
 import cn from 'clsx'
 import { useLenis } from 'lenis/react'
-import { modulo } from 'libs/maths'
 import { type HTMLAttributes, useRef } from 'react'
+import { modulo } from '~/libs/maths'
 import s from './marquee.module.css'
 
 interface MarqueeProps extends HTMLAttributes<HTMLDivElement> {

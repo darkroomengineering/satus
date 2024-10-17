@@ -1,8 +1,11 @@
 import { useRect } from '@darkroom.engineering/hamo'
-import { Image as NextImage } from 'components/image'
-import { useDeviceDetection } from 'hooks/use-device-detection'
 import dynamic from 'next/dynamic'
-import { type HTMLAttributes, useState } from 'react'
+import { useState } from 'react'
+import {
+  Image as DRImage,
+  type ImageProps as DRImageProps,
+} from '~/components/image'
+import { useDeviceDetection } from '~/hooks/use-device-detection'
 import { WebGLTunnel } from '../tunnel'
 
 const WebGLImage = dynamic(
@@ -12,10 +15,7 @@ const WebGLImage = dynamic(
   }
 )
 
-export function Image({
-  className,
-  ...props
-}: HTMLAttributes<HTMLImageElement>) {
+export function Image({ className, ...props }: DRImageProps) {
   const [src, setSrc] = useState<string>()
   const [setRectRef, rect] = useRect()
 
@@ -34,10 +34,10 @@ export function Image({
         }}
         ref={setRectRef}
       >
-        <NextImage
+        <DRImage
           {...props}
           onLoad={(img) => {
-            setSrc(img.target.currentSrc)
+            setSrc(img.currentTarget.currentSrc)
           }}
           fill
         />

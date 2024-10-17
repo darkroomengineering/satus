@@ -1,4 +1,4 @@
-import { TheatreProjectProvider } from 'libs/theatre'
+import { TheatreProjectProvider } from '~/libs/theatre'
 import { Wrapper } from '../(components)/wrapper'
 import { Box } from './(components)/box'
 import s from './r3f.module.css'

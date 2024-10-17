@@ -3,9 +3,11 @@
 import { useLenis } from 'lenis/react'
 import NextLink, { type LinkProps as NextLinkProps } from 'next/link'
 import { usePathname } from 'next/navigation'
-import type { ElementType, Ref } from 'react'
+import type { ElementType, HTMLAttributes, Ref } from 'react'
 
-type LinkProps = Omit<NextLinkProps, 'href'> & {
+interface LinkProps
+  extends HTMLAttributes<HTMLAnchorElement>,
+    Omit<NextLinkProps, 'href'> {
   href?: string
   fallback?: ElementType
   ref?: Ref<HTMLAnchorElement>

@@ -1,6 +1,5 @@
 'use client'
 
-import { useDeviceDetection } from 'hooks/use-device-detection'
 import dynamic from 'next/dynamic'
 import {
   type PropsWithChildren,
@@ -11,6 +10,7 @@ import {
 } from 'react'
 import tunnel from 'tunnel-rat'
 import { create } from 'zustand'
+import { useDeviceDetection } from '~/hooks/use-device-detection'
 
 const WebGLCanvas = dynamic(
   () => import('./webgl').then(({ WebGLCanvas }) => WebGLCanvas),

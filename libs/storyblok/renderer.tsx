@@ -1,7 +1,5 @@
 // https://www.npmjs.com/package/storyblok-rich-text-react-renderer
 
-import { Image } from 'components/image'
-import { Link } from 'components/link'
 import {
   MARK_LINK,
   NODE_IMAGE,
@@ -9,6 +7,8 @@ import {
   type StoryblokRichtext,
   render,
 } from 'storyblok-rich-text-react-renderer'
+import { Image } from '~/components/image'
+import { Link } from '~/components/link'
 
 type RenderRichTextOptions = {
   markResolvers?: RenderOptions['markResolvers']

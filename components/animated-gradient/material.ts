@@ -1,10 +1,10 @@
-import { NOISE } from 'libs/webgl/utils/noise'
 import {
   MeshBasicMaterial,
   type Texture,
   Vector2,
   type WebGLProgramParametersWithUniforms,
 } from 'three'
+import { NOISE } from '~/libs/webgl/utils/noise'
 
 export class AnimatedGradientMaterial extends MeshBasicMaterial {
   private uniforms: {

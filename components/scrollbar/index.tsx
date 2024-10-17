@@ -2,8 +2,8 @@
 
 import { useRect } from '@darkroom.engineering/hamo'
 import { useLenis } from 'lenis/react'
-import { mapRange } from 'libs/maths'
 import { useEffect, useRef } from 'react'
+import { mapRange } from '~/libs/maths'
 import s from './scrollbar.module.css'
 
 export function Scrollbar() {

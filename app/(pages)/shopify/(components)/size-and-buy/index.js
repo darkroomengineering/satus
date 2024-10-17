@@ -1,8 +1,8 @@
 'use client'
 
-import { Dropdown } from 'components/dropdown'
-import { AddToCart } from 'libs/shopify/cart/add-to-cart'
 import { useState } from 'react'
+import { Dropdown } from '~/components/dropdown'
+import { AddToCart } from '~/libs/shopify/cart/add-to-cart'
 import s from './size-and-buy.module.css'
 
 export const SizeAndBuy = ({ product }) => {

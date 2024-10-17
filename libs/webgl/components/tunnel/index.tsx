@@ -1,9 +1,9 @@
 'use client'
 
 import { useContextBridge } from '@react-three/drei'
-import { TransformContext } from 'hooks/use-transform'
-import { useCanvas } from 'libs/webgl/components/canvas'
 import { Fragment, type PropsWithChildren, useId } from 'react'
+import { TransformContext } from '~/hooks/use-transform'
+import { useCanvas } from '~/libs/webgl/components/canvas'
 
 export function WebGLTunnel({ children }: PropsWithChildren) {
   const { WebGLTunnel } = useCanvas()

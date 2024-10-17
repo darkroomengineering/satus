@@ -1,9 +1,9 @@
 'use client'
 
 import { useRect } from '@darkroom.engineering/hamo'
-import { WebGLTunnel } from 'libs/webgl/components/tunnel'
 import dynamic from 'next/dynamic'
 import type { CSSProperties, ComponentProps } from 'react'
+import { WebGLTunnel } from '~/libs/webgl/components/tunnel'
 
 const WebGLAnimatedGradient = dynamic(
   () =>

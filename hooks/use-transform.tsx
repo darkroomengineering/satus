@@ -1,6 +1,7 @@
 import {
+  type ReactNode,
+  type Ref,
   createContext,
-  forwardRef,
   useCallback,
   useContext,
   useEffect,
@@ -32,23 +33,44 @@ const DEFAULT_TRANSFORM = {
   },
 }
 
+type Transform = typeof DEFAULT_TRANSFORM
+type TransformCallback = (transform: Transform) => void
+type TransformRef = {
+  setTranslate: (x?: number, y?: number, z?: number) => void
+  setRotate: (x?: number, y?: number, z?: number) => void
+  setScale: (x?: number, y?: number, z?: number) => void
+  setClip: ({
+    top,
+    right,
+    bottom,
+    left,
+  }: {
+    top?: number
+    right?: number
+    bottom?: number
+    left?: number
+  }) => void
+}
+
 export const TransformContext = createContext({
   getTransform: () => structuredClone(DEFAULT_TRANSFORM),
-  addCallback: () => {},
-  removeCallback: () => {},
+  addCallback: (() => {}) as (callback: TransformCallback) => void,
+  removeCallback: (() => {}) as (callback: TransformCallback) => void,
 })
 
 // TODO: batch updates
 // TODO: update only when needed (if values have changed)
 
-export const TransformProvider = forwardRef(function TransformProvider(
-  { children },
-  ref
-) {
+type TransformProviderProps = {
+  children: ReactNode
+  ref?: Ref<TransformRef>
+}
+
+export function TransformProvider({ children, ref }: TransformProviderProps) {
   const parentTransformRef = useRef(structuredClone(DEFAULT_TRANSFORM))
   const transformRef = useRef(structuredClone(DEFAULT_TRANSFORM))
 
-  const getTransform = useCallback(() => {
+  const getTransform = useCallback<() => Transform>(() => {
     const transform = structuredClone(parentTransformRef.current)
 
     transform.translate.x += transformRef.current.translate.x
@@ -66,13 +88,13 @@ export const TransformProvider = forwardRef(function TransformProvider(
     return transform
   }, [])
 
-  const callbacksRefs = useRef([])
+  const callbacksRefs = useRef<TransformCallback[]>([])
 
-  const addCallback = useCallback((callback) => {
+  const addCallback = useCallback((callback: TransformCallback) => {
     callbacksRefs.current.push(callback)
   }, [])
 
-  const removeCallback = useCallback((callback) => {
+  const removeCallback = useCallback((callback: TransformCallback) => {
     callbacksRefs.current = callbacksRefs.current.filter(
       (ref) => ref !== callback
     )
@@ -86,12 +108,9 @@ export const TransformProvider = forwardRef(function TransformProvider(
 
   const setTranslate = useCallback(
     (x = 0, y = 0, z = 0) => {
-      if (!Number.isNaN(x))
-        transformRef.current.translate.x = Number.parseFloat(x)
-      if (!Number.isNaN(y))
-        transformRef.current.translate.y = Number.parseFloat(y)
-      if (!Number.isNaN(z))
-        transformRef.current.translate.z = Number.parseFloat(z)
+      if (!Number.isNaN(x)) transformRef.current.translate.x = Number(x)
+      if (!Number.isNaN(y)) transformRef.current.translate.y = Number(y)
+      if (!Number.isNaN(z)) transformRef.current.translate.z = Number(z)
 
       update()
     },
@@ -100,9 +119,9 @@ export const TransformProvider = forwardRef(function TransformProvider(
 
   const setRotate = useCallback(
     (x = 0, y = 0, z = 0) => {
-      if (!Number.isNaN(x)) transformRef.current.rotate.x = Number.parseFloat(x)
-      if (!Number.isNaN(y)) transformRef.current.rotate.y = Number.parseFloat(y)
-      if (!Number.isNaN(z)) transformRef.current.rotate.z = Number.parseFloat(z)
+      if (!Number.isNaN(x)) transformRef.current.rotate.x = Number(x)
+      if (!Number.isNaN(y)) transformRef.current.rotate.y = Number(y)
+      if (!Number.isNaN(z)) transformRef.current.rotate.z = Number(z)
 
       update()
     },
@@ -111,9 +130,9 @@ export const TransformProvider = forwardRef(function TransformProvider(
 
   const setScale = useCallback(
     (x = 1, y = 1, z = 1) => {
-      if (!Number.isNaN(x)) transformRef.current.scale.x = Number.parseFloat(x)
-      if (!Number.isNaN(y)) transformRef.current.scale.y = Number.parseFloat(y)
-      if (!Number.isNaN(z)) transformRef.current.scale.z = Number.parseFloat(z)
+      if (!Number.isNaN(x)) transformRef.current.scale.x = Number(x)
+      if (!Number.isNaN(y)) transformRef.current.scale.y = Number(y)
+      if (!Number.isNaN(z)) transformRef.current.scale.z = Number(z)
 
       update()
     },
@@ -122,14 +141,11 @@ export const TransformProvider = forwardRef(function TransformProvider(
 
   const setClip = useCallback(
     ({ top = 0, right = 0, bottom = 0, left = 0 } = {}) => {
-      if (!Number.isNaN(top))
-        transformRef.current.clip.top = Number.parseFloat(top)
-      if (!Number.isNaN(right))
-        transformRef.current.clip.right = Number.parseFloat(right)
+      if (!Number.isNaN(top)) transformRef.current.clip.top = Number(top)
+      if (!Number.isNaN(right)) transformRef.current.clip.right = Number(right)
       if (!Number.isNaN(bottom))
-        transformRef.current.clip.bottom = Number.parseFloat(bottom)
-      if (!Number.isNaN(left))
-        transformRef.current.clip.left = Number.parseFloat(left)
+        transformRef.current.clip.bottom = Number(bottom)
+      if (!Number.isNaN(left)) transformRef.current.clip.left = Number(left)
 
       update()
     },
@@ -158,9 +174,12 @@ export const TransformProvider = forwardRef(function TransformProvider(
       {children}
     </TransformContext.Provider>
   )
-})
+}
 
-export function useTransform(callback, deps = []) {
+export function useTransform(
+  callback: TransformCallback,
+  deps = [] as unknown[]
+) {
   const { getTransform, addCallback, removeCallback } =
     useContext(TransformContext)
 

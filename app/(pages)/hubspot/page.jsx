@@ -1,6 +1,6 @@
+import { Wrapper } from '~/app/(pages)/(components)/wrapper'
 import { Form } from '~/libs/form'
 import { getForm } from '~/libs/hubspot-forms/fetch-form'
-import { Wrapper } from '../(components)/wrapper'
 import { Subscribe } from './(components)/subscribe'
 import s from './hubspot.module.css'
 

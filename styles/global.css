@@ -19,6 +19,12 @@ body {
 
 body {
   min-height: 100vh;
+  background-color: var(--theme-primary);
+  color: var(--theme-secondary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

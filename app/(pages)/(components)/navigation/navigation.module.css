@@ -5,6 +5,8 @@
   z-index: 2;
   top: var(--layout-margin);
   left: var(--layout-margin);
+  text-transform: uppercase;
+  font-family: var(--font-mono);
 
   .title {
     display: inline-flex;

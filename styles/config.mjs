@@ -32,7 +32,8 @@ const screens = {
   desktop: { width: 1440, height: 816 },
 }
 
-const themeNames = []
+/** @type {(keyof typeof themes)[]} */
+const themeNames = Object.keys(themes)
 
 const config = {
   themes,

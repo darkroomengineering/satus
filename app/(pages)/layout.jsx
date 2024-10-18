@@ -61,7 +61,12 @@ export const viewport = {
 
 export default function Layout({ children }) {
   return (
-    <html lang="en" dir="ltr" className={fonts?.className}>
+    <html
+      lang="en"
+      dir="ltr"
+      className={fonts?.className}
+      suppressHydrationWarning
+    >
       <head>
         <StyleVariables colors={colors} themes={themes} />
       </head>

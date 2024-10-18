@@ -1,5 +1,6 @@
+import { Wrapper } from '~/app/(pages)/(components)/wrapper'
 import { TheatreProjectProvider } from '~/libs/theatre'
-import { Wrapper } from '../(components)/wrapper'
+import { Canvas } from '~/libs/webgl/components/canvas'
 import { Box } from './(components)/box'
 import s from './r3f.module.css'
 
@@ -10,6 +11,7 @@ export default function Home() {
         <div className={s.inner}>
           <Box className={s.box} />
         </div>
+        <Canvas root />
       </Wrapper>
     </TheatreProjectProvider>
   )

@@ -1,20 +1,20 @@
 {
-  "eslint.format.enable": true,
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
-    "source.organizeImports": "explicit",
-    "source.fixAll.eslint": "explicit"
+    "source.organizeImports": "explicit"
   },
-  "files.associations": {
-    "*.js": "javascriptreact"
-  },
-  "prettier.enable": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.defaultFormatter": "biomejs.biome",
+  "typescript.suggest.autoImports": true,
+  "javascript.suggest.autoImports": true,
   "workbench.editor.customLabels.patterns": {
     "**/app/**/page.js": "${dirname(1)}/${dirname} <page>",
     "**/app/**/layout.js": "${dirname(1)}/${dirname} <layout>",
     "**/app/api/**/route.js": "${dirname(1)}/${dirname} <route>"
   },
-  "typescript.suggest.autoImports": true,
-  "javascript.suggest.autoImports": true
+  "files.associations": {
+    "*.json": "jsonc",
+    "*.css": "css"
+  },
+  "css.lint.validProperties": ["user-drag"],
+  "css.lint.unknownAtRules": "ignore"
 }

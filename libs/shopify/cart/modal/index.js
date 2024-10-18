@@ -1,9 +1,9 @@
 'use client'
 
 import cn from 'clsx'
-import { Image } from 'components/image'
-import { Link } from 'components/link'
 import { createContext, useContext, useState } from 'react'
+import { Image } from '~/components/image'
+import { Link } from '~/components/link'
 import { removeItem, updateItemQuantity } from '../actions'
 import { useCartContext } from '../cart-context'
 import s from './modal.module.css'

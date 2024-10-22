@@ -34,8 +34,9 @@ Then you can use the following code to fetch data from Storyblok into your page:
 
 ```jsx
 export default async function Home() {
+  const _draftMode = await draftMode()
   const isDraftMode =
-    draftMode().isEnabled || process.env.NODE_ENV === 'development'
+    _draftMode.isEnabled || process.env.NODE_ENV === 'development'
 
   const { data } = await new StoryblokApi({
     draft: isDraftMode,

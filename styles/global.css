@@ -1,0 +1,83 @@
+@import url("./_reset.css");
+@import url("./_easings.css");
+@import url("./_utils.css");
+@import url("./_font-style.css");
+@import url("./_layout.css");
+
+:root {
+  --header-height: mobile-vw(58px);
+
+  @include-media ('desktop') {
+    --header-height: desktop-vw(98px);
+  }
+}
+
+html,
+body {
+  overscroll-behavior: none;
+}
+
+body {
+  min-height: 100vh;
+  background-color: var(--theme-primary);
+  color: var(--theme-secondary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a,
+button,
+input,
+label,
+textarea,
+select {
+  color: inherit;
+  cursor: pointer;
+}
+
+*::selection {
+  background-color: var(--theme-contrast);
+  color: var(--theme-primary);
+}
+
+svg.icon {
+  path[fill],
+  rect[fill],
+  circle[fill] {
+    fill: currentColor;
+  }
+
+  path[stroke],
+  rect[stroke],
+  circle[stroke] {
+    stroke: currentColor;
+  }
+}
+
+.link {
+  @include-media ('hover') {
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+img {
+  /* biome-ignore lint/correctness/noUnknownProperty: it exists, biome is drunk */
+  user-drag: none;
+  -webkit-user-drag: none;
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+
+* {
+  &:focus-visible {
+    outline: 2px solid var(--theme-contrast);
+  }
+}

@@ -1,10 +1,10 @@
 'use client'
 
 import cn from 'clsx'
-import { addItem } from 'libs/shopify/cart/actions'
+import { addItem } from '~/libs/shopify/cart/actions'
 import { useCartContext } from '../cart-context'
 import { useCartModal } from '../modal'
-import s from './add-to-cart.module.scss'
+import s from './add-to-cart.module.css'
 
 export function AddToCart({ product, variant, quantity = 1, className }) {
   const { addCartItem } = useCartContext()

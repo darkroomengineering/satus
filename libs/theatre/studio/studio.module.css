@@ -1,0 +1,17 @@
+.studio {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 10000;
+
+  .save {
+    pointer-events: all;
+    font-size: 50px;
+    left: 150px;
+    position: absolute;
+    top: 0;
+  }
+}

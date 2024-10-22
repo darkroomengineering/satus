@@ -1,0 +1,48 @@
+.fields {
+  display: flex;
+  position: relative;
+}
+
+.input {
+  width: mobile-vw(303px);
+  font-family: var(--font-mono);
+  font-size: mobile-vw(24px);
+  border-radius: mobile-vw(6px);
+  border: 2px solid var(--black);
+  padding: mobile-vw(18px) mobile-vw(19px);
+  font-size: mobile-vw(14px);
+  padding-right: mobile-vw(136px);
+
+  @include-media ('desktop') {
+    border-radius: desktop-vw(8px);
+    padding: 0 desktop-vw(18px);
+    padding-right: desktop-vw(115px);
+    width: desktop-vw(400px);
+    font-size: desktop-vw(16px);
+    aspect-ratio: 330 / 60;
+  }
+}
+
+.submit {
+  position: absolute;
+  right: -5%;
+  text-transform: uppercase;
+  padding: 0 mobile-vw(18px);
+  border: 2px solid var(--black);
+  border-radius: mobile-vw(8px);
+  height: 100%;
+
+  @include-media ('desktop') {
+    border-radius: desktop-vw(8px);
+    padding: 0 desktop-vw(24px);
+  }
+}
+
+.messages {
+  position: absolute;
+  bottom: mobile-vw(-20px);
+
+  @include-media ('desktop') {
+    bottom: desktop-vw(-20px);
+  }
+}

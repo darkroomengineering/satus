@@ -1,6 +1,6 @@
 // this file is used to generate the sitemap websites using storyblok
 
-import { StoryblokApi } from 'libs/storyblok'
+import { StoryblokApi } from '~/libs/storyblok'
 
 const storyblokApi = new StoryblokApi()
 

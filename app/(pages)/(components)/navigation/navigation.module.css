@@ -1,0 +1,30 @@
+.nav {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  z-index: 2;
+  top: var(--layout-margin);
+  left: var(--layout-margin);
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+
+  .title {
+    display: inline-flex;
+  }
+
+  .list {
+    padding-left: 24px;
+
+    .link {
+      position: relative;
+    }
+
+    .active {
+      &::before {
+        content: "■";
+        position: absolute;
+        left: -16px;
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+.page {
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+
+  .inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+
+    @include-media ('mobile') {
+      padding: 0 mobile-vw(16px);
+    }
+  }
+}

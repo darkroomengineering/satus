@@ -1,11 +1,11 @@
+import { revalidateTag } from 'next/cache'
+import { headers } from 'next/headers'
+import { NextResponse } from 'next/server'
 import {
   HIDDEN_PRODUCT_TAG,
   SHOPIFY_GRAPHQL_API_ENDPOINT,
   TAGS,
-} from 'libs/shopify/constants'
-import { revalidateTag } from 'next/cache'
-import { headers } from 'next/headers'
-import { NextResponse } from 'next/server'
+} from '~/libs/shopify/constants'
 import {
   addToCartMutation,
   createCartMutation,
@@ -277,7 +277,7 @@ export async function getCollections() {
     // Filter out the `hidden` collections.
     // Collections that start with `hidden-*` need to be hidden on the search page.
     ...reshapeCollections(shopifyCollections).filter(
-      (collection) => !collection.handle.startsWith('hidden'),
+      (collection) => !collection.handle.startsWith('hidden')
     ),
   ]
 

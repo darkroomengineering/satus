@@ -7,8 +7,9 @@ import { Tutorial } from './(component)/tutorial'
 import s from './storyblok.module.css'
 
 export default async function Storyblok() {
+  const _draftMode = await draftMode()
   const isDraftMode =
-    draftMode().isEnabled || process.env.NODE_ENV === 'development'
+    _draftMode.isEnabled || process.env.NODE_ENV === 'development'
 
   const { data } = await new StoryblokApi({
     draft: isDraftMode,
@@ -37,8 +38,9 @@ export default async function Storyblok() {
 
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata
 export async function generateMetadata() {
+  const _draftMode = await draftMode()
   const isDraftMode =
-    draftMode().isEnabled || process.env.NODE_ENV === 'development'
+    _draftMode.isEnabled || process.env.NODE_ENV === 'development'
 
   const { data } = await new StoryblokApi({
     draft: isDraftMode,

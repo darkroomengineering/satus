@@ -12,7 +12,8 @@ import {
 import { TAGS } from '~/libs/shopify/constants'
 
 export async function removeItem(prevState, merchandiseId) {
-  const cartId = cookies().get('cartId')?.value
+  const _cookies = await cookies()
+  const cartId = _cookies.get('cartId')?.value
 
   if (!cartId) {
     return 'Missing cart ID'
@@ -41,7 +42,8 @@ export async function removeItem(prevState, merchandiseId) {
 }
 
 export async function addItem(prevState, { variantId, quantity = 1 }) {
-  let cartId = cookies().get('cartId')?.value
+  const _cookies = await cookies()
+  let cartId = _cookies.get('cartId')?.value
   let cart
 
   // This is here beacuse cookie can only be set server side
@@ -49,7 +51,7 @@ export async function addItem(prevState, { variantId, quantity = 1 }) {
   if (!cartId) {
     cart = await createCart()
     cartId = cart.id
-    cookies().set('cartId', cartId)
+    _cookies.set('cartId', cartId)
   }
 
   if (!variantId) {
@@ -70,7 +72,8 @@ export async function updateItemQuantity(
   prevState,
   payload = { merchandiseId: '', quantity: '' }
 ) {
-  const cartId = cookies().get('cartId')?.value
+  const _cookies = await cookies()
+  const cartId = _cookies.get('cartId')?.value
 
   if (!cartId) {
     return 'Missing cart ID'
@@ -103,7 +106,8 @@ export async function updateItemQuantity(
 }
 
 export async function fetchCart() {
-  const cartId = cookies().get('cartId')?.value
+  const _cookies = await cookies()
+  const cartId = _cookies.get('cartId')?.value
 
   let cart
 

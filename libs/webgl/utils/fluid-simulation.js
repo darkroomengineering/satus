@@ -7,9 +7,9 @@ import {
   HalfFloatType,
   LinearFilter,
   NearestFilter,
-  RedFormat,
   RGBAFormat,
   RGFormat,
+  RedFormat,
 } from 'three/src/constants'
 import { ShaderMaterial } from 'three/src/materials/ShaderMaterial'
 import { Vector2 } from 'three/src/math/Vector2'
@@ -247,7 +247,7 @@ function createDoubleFBO(
     type,
     depthBuffer,
     stencilBuffer,
-  } = {},
+  } = {}
 ) {
   const fbo = {
     read: new WebGLRenderTarget(width, height, {
@@ -304,7 +304,7 @@ function getTHREEFormat(format) {
 }
 
 function supportRenderTextureFormat(gl, internalFormat, format, type) {
-  let texture = gl.createTexture()
+  const texture = gl.createTexture()
   gl.bindTexture(gl.TEXTURE_2D, texture)
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
@@ -319,21 +319,21 @@ function supportRenderTextureFormat(gl, internalFormat, format, type) {
     0,
     format,
     type,
-    null,
+    null
   )
 
-  let fbo = gl.createFramebuffer()
+  const fbo = gl.createFramebuffer()
   gl.bindFramebuffer(gl.FRAMEBUFFER, fbo)
   gl.framebufferTexture2D(
     gl.FRAMEBUFFER,
     gl.COLOR_ATTACHMENT0,
     gl.TEXTURE_2D,
     texture,
-    0,
+    0
   )
 
-  let status = gl.checkFramebufferStatus(gl.FRAMEBUFFER)
-  return status == gl.FRAMEBUFFER_COMPLETE
+  const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER)
+  return status === gl.FRAMEBUFFER_COMPLETE
 }
 
 // Helper functions for more device support
@@ -466,7 +466,7 @@ export default class FluidSimulation {
         },
         depthTest: false,
         depthWrite: false,
-      }),
+      })
     )
 
     this.splatProgram = new Program(
@@ -483,7 +483,7 @@ export default class FluidSimulation {
         },
         depthTest: false,
         depthWrite: false,
-      }),
+      })
     )
 
     this.advectionProgram = new Program(
@@ -504,7 +504,7 @@ export default class FluidSimulation {
         },
         depthTest: false,
         depthWrite: false,
-      }),
+      })
     )
 
     this.divergenceProgram = new Program(
@@ -517,7 +517,7 @@ export default class FluidSimulation {
         },
         depthTest: false,
         depthWrite: false,
-      }),
+      })
     )
 
     this.curlProgram = new Program(
@@ -530,7 +530,7 @@ export default class FluidSimulation {
         },
         depthTest: false,
         depthWrite: false,
-      }),
+      })
     )
 
     this.vorticityProgram = new Program(
@@ -546,7 +546,7 @@ export default class FluidSimulation {
         },
         depthTest: false,
         depthWrite: false,
-      }),
+      })
     )
 
     this.pressureProgram = new Program(
@@ -560,7 +560,7 @@ export default class FluidSimulation {
         },
         depthTest: false,
         depthWrite: false,
-      }),
+      })
     )
 
     this.gradienSubtractProgram = new Program(
@@ -574,7 +574,7 @@ export default class FluidSimulation {
         },
         depthTest: false,
         depthWrite: false,
-      }),
+      })
     )
 
     this.splats = []
@@ -601,7 +601,7 @@ export default class FluidSimulation {
   }
 
   updateMouse(e) {
-    if (e.changedTouches && e.changedTouches.length) {
+    if (e.changedTouches?.length) {
       e.x = e.changedTouches[0].pageX
       e.y = e.changedTouches[0].pageY
     }
@@ -724,7 +724,7 @@ export default class FluidSimulation {
     this.velocity.swap()
 
     this.advectionProgram.program.uniforms.dyeTexelSize.value.set(
-      1 / this.simRes,
+      1 / this.simRes
     )
     this.advectionProgram.program.uniforms.uVelocity.value =
       this.velocity.read.texture
@@ -739,7 +739,7 @@ export default class FluidSimulation {
     this.velocity.swap()
 
     this.advectionProgram.program.uniforms.dyeTexelSize.value.set(
-      1 / this.dyeRes,
+      1 / this.dyeRes
     )
     this.advectionProgram.program.uniforms.uVelocity.value =
       this.velocity.read.texture

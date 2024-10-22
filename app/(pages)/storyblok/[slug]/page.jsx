@@ -21,8 +21,9 @@ export async function generateStaticParams() {
 }
 
 export default async function StoryblokSubPage({ params }) {
+  const _draftMode = await draftMode()
   const isDraftMode =
-    draftMode().isEnabled || process.env.NODE_ENV === 'development'
+    _draftMode.isEnabled || process.env.NODE_ENV === 'development'
 
   const { data } = await new StoryblokApi({
     draft: isDraftMode,
@@ -50,8 +51,9 @@ export default async function StoryblokSubPage({ params }) {
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata
 
 export async function generateMetadata({ params }) {
+  const _draftMode = await draftMode()
   const isDraftMode =
-    draftMode().isEnabled || process.env.NODE_ENV === 'development'
+    _draftMode.isEnabled || process.env.NODE_ENV === 'development'
 
   const { data } = await new StoryblokApi({
     draft: isDraftMode,

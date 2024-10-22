@@ -12,6 +12,7 @@ import { getCustomerQuery } from '../queries/customer'
 export async function LoginCustomerAction(prevState, formData) {
   const email = formData.get('email')
   const password = formData.get('password')
+  
 
   try {
     const res = await shopifyFetch({
@@ -33,7 +34,8 @@ export async function LoginCustomerAction(prevState, formData) {
     }
 
     if (customerAccessToken) {
-      cookies().set('customerAccessToken', customerAccessToken.accessToken, {
+      const _cookies = await cookies()
+      _cookies.set('customerAccessToken', customerAccessToken.accessToken, {
         expires: new Date(customerAccessToken.expiresAt),
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -47,7 +49,8 @@ export async function LoginCustomerAction(prevState, formData) {
 }
 
 export async function LogoutCustomerAction() {
-  const customerAccessToken = cookies().get('customerAccessToken')?.value
+  const _cookies = await cookies()
+  const customerAccessToken = _cookies.get('customerAccessToken')?.value
 
   if (customerAccessToken) {
     try {
@@ -61,8 +64,7 @@ export async function LogoutCustomerAction() {
     } catch (error) {
       console.error('Error during logout:', error)
     }
-
-    cookies().delete('customerAccessToken')
+    _cookies.delete('customerAccessToken')
   }
 
   return { success: true }
@@ -101,7 +103,8 @@ export async function CreateCustomerAction(prevState, formData) {
 }
 
 export async function getCustomer() {
-  const customerAccessToken = cookies().get('customerAccessToken')?.value
+  const _cookies = await cookies()
+  const customerAccessToken = _cookies.get('customerAccessToken')?.value
 
   if (!customerAccessToken) {
     return null

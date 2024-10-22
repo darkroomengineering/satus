@@ -12,7 +12,6 @@ import { getCustomerQuery } from '../queries/customer'
 export async function LoginCustomerAction(prevState, formData) {
   const email = formData.get('email')
   const password = formData.get('password')
-  
 
   try {
     const res = await shopifyFetch({

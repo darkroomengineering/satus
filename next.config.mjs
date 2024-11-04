@@ -9,7 +9,6 @@ import sassVars from './styles/config.js'
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
-    optimizeCss: true,
     nextScriptWorkers: true,
     webpackBuildWorker: true,
   },

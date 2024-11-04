@@ -12,17 +12,17 @@ export default function manifest() {
     theme_color: themes.light.contrast,
     icons: [
       {
-        src: '/icon',
+        src: '/icon.png',
         sizes: 'any',
         type: 'image/png',
       },
       {
-        src: '/icon',
+        src: '/icon.png',
         sizes: '512x512',
         type: 'image/png',
       },
       {
-        src: '/apple-icon',
+        src: '/apple-icon.png',
         sizes: '192x192',
         type: 'image/png',
         purpose: 'any',

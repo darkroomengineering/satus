@@ -1,5 +1,4 @@
-import { useLenis } from 'libs/lenis'
-import { useTexture } from 'libs/webgl/hooks/use-texture'
+import { useTexture } from '@react-three/drei'
 import { useWebGLRect } from 'libs/webgl/hooks/use-webgl-rect'
 import { useRef, useState } from 'react'
 import { LinearFilter, MeshBasicMaterial } from 'three'
@@ -16,16 +15,11 @@ export function WebGLImage({ src, rect }) {
     material.needsUpdate = true
   })
 
-  const getWebGLRect = useWebGLRect(rect)
-
-  useLenis(() => {
-    const { x, y, width, height } = getWebGLRect()
-
-    meshRef.current.scale.set(width, height, width)
-    meshRef.current.position.set(x, y, 0)
-
+  useWebGLRect(rect, ({ position, scale }) => {
+    meshRef.current.position.set(position.x, position.y, position.z)
+    meshRef.current.scale.set(scale.x, scale.y, scale.z)
     meshRef.current.updateMatrix()
-  }, [getWebGLRect])
+  })
 
   return (
     <mesh ref={meshRef} matrixAutoUpdate={false}>

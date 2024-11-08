@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef } from 'react'
 import { Euler, Vector3 } from 'three'
 
 export function useWebGLRect(rect, onUpdate) {
-  const size = useThree(({ size }) => size)
+  const size = useThree((state) => state.size)
 
   const transformRef = useRef({
     position: new Vector3(0, 0, 0),

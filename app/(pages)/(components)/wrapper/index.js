@@ -1,3 +1,5 @@
+'use client'
+
 import cn from 'clsx'
 import { Canvas } from 'libs/webgl/components/canvas'
 import { Footer } from '../footer'

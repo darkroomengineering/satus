@@ -5,7 +5,7 @@ import { DefaultLoadingManager, TextureLoader } from 'three'
 const loader = new TextureLoader()
 
 export function useTexture(src, callback) {
-  const gl = useThree(({ gl }) => gl)
+  const gl = useThree((state) => state.gl)
 
   const isArray = Array.isArray(src)
 

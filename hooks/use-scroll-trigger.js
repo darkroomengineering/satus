@@ -5,14 +5,13 @@ import { useTransform } from 'hooks/use-transform'
 import { useLenis } from 'lenis/react'
 import { clamp, mapRange } from 'libs/maths'
 import { useMinimap } from 'libs/orchestra/minimap'
-import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
+import { useOrchestra } from 'libs/orchestra/react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useLazyState } from './use-lazy-state'
 
 // @refresh reset
 
 function useMarker({
-  text = 'start',
-  color = 'green',
   type = 'start',
   fixed = false,
   visible = false,
@@ -20,12 +19,17 @@ function useMarker({
 } = {}) {
   const elementRef = useRef()
 
+  const color = type === 'start' ? 'green' : 'red'
+  const text = type === 'start' ? 'start' : 'end'
+
   const setElementRef = useMinimap({
     color,
   })
 
-  useLayoutEffect(() => {
-    if (process.env.NODE_ENV !== 'development') return
+  const { minimap } = useOrchestra()
+
+  useEffect(() => {
+    if (!minimap) return
 
     if (!visible) return
 
@@ -52,6 +56,7 @@ function useMarker({
     innerElement.style.cssText = `
       position: absolute;
       padding: 8px;
+      ${type === 'start' ? 'left' : 'right'}: 0;
     `
     element.appendChild(innerElement)
 
@@ -66,7 +71,7 @@ function useMarker({
       // setElementRef?.(null)
       elementRef.current.remove()
     }
-  }, [color, text, fixed, id, visible, type, setElementRef])
+  }, [color, text, fixed, id, visible, type, setElementRef, minimap])
 
   const top = useCallback(
     (value) => {
@@ -122,32 +127,24 @@ export function useScrollTrigger(
 
   const elementMarkerStart = useMarker({
     id,
-    text: 'start',
-    color: 'green',
     type: 'start',
     visible: markers,
   })
   const elementMarkerEnd = useMarker({
     id,
-    text: 'end',
-    color: 'red',
     type: 'end',
     visible: markers,
   })
 
   const viewportMarkerStart = useMarker({
     id,
-    text: 'start',
-    color: 'green',
-    type: 'end',
+    type: 'start',
     fixed: true,
     visible: markers,
   })
   const viewportMarkerEnd = useMarker({
     id,
-    text: 'end',
-    color: 'red',
-    type: 'start',
+    type: 'end',
     fixed: true,
     visible: markers,
   })
@@ -194,39 +191,53 @@ export function useScrollTrigger(
   const startValue = elementStart - viewportStart
   const endValue = elementEnd - viewportEnd
 
-  // eslint-disable-next-line no-unused-vars
-  const [getProgress, setProgress] = useLazyState(
-    undefined,
+  const onUpdate = useCallback(
     (progress, lastProgress) => {
-      if (isNaN(progress)) return
+      // if (
+      //   (progress >= 0 && lastProgress < 0) ||
+      //   (progress <= 1 && lastProgress > 1)
+      // ) {
+      //   onEnter?.(progress)
+      // }
 
-      if (
-        (progress >= 0 && lastProgress < 0) ||
-        (progress <= 1 && lastProgress > 1)
-      ) {
-        onEnter?.()
-      }
-
-      if (
-        (progress < 0 && lastProgress >= 0) ||
-        (progress > 1 && lastProgress <= 1)
-      ) {
-        onLeave?.()
-      }
-
-      if (clamp(0, progress, 1) === clamp(0, lastProgress, 1)) return
+      // if (
+      //   (progress < 0 && lastProgress >= 0) ||
+      //   (progress > 1 && lastProgress <= 1)
+      // ) {
+      //   onLeave?.(progress)
+      // }
 
       onProgress?.({
         height: endValue - startValue,
         isActive: progress >= 0 && progress <= 1,
         progress: clamp(0, progress, 1),
+        lastProgress: lastProgress,
         steps: Array.from({ length: steps }).map((_, i) =>
           clamp(0, mapRange(i / steps, (i + 1) / steps, progress, 0, 1), 1),
         ),
       })
     },
-    [steps, startValue, endValue],
+    [endValue, startValue, steps, onProgress, onEnter, onLeave],
   )
+
+  // eslint-disable-next-line no-unused-vars
+  const [getProgress, setProgress] = useLazyState(
+    undefined,
+    (progress, lastProgress) => {
+      if (isNaN(progress)) return
+      if (clamp(0, progress, 1) === clamp(0, lastProgress, 1)) return
+
+      onUpdate(progress, lastProgress)
+    },
+    [endValue, startValue, steps, onUpdate],
+  )
+
+  useEffect(() => {
+    const progress = getProgress()
+    if (isNaN(progress)) return
+
+    onUpdate(progress, progress)
+  }, [getProgress, onUpdate, ...deps])
 
   const update = useCallback(
     () => {

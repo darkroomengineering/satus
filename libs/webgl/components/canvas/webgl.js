@@ -2,12 +2,17 @@ import { OrthographicCamera } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import { SheetProvider } from 'libs/theatre'
 import { FlowmapProvider } from '../flowmap'
+import { PostProcessing } from '../postprocessing'
 import { Preload } from '../preload'
 import { RAF } from '../raf'
 import { useCanvas } from './'
 import s from './webgl.module.scss'
 
-export function WebGLCanvas({ render = true, ...props }) {
+export function WebGLCanvas({
+  render = true,
+  postprocessing = true,
+  ...props
+}) {
   const { WebGLTunnel, DOMTunnel } = useCanvas()
 
   return (
@@ -18,8 +23,7 @@ export function WebGLCanvas({ render = true, ...props }) {
           powerPreference: 'high-performance',
           antialias: true,
           alpha: true,
-          // stencil: false,
-          // depth: false,
+          ...(postprocessing && { stencil: false, depth: false }),
         }}
         dpr={[1, 2]}
         orthographic
@@ -29,6 +33,7 @@ export function WebGLCanvas({ render = true, ...props }) {
         flat
         eventSource={document.documentElement}
         eventPrefix="client"
+        resize={{ scroll: false, debounce: { resize: 500 } }}
       >
         {/* <StateListener onChange={onChange} /> */}
         <SheetProvider id="webgl">
@@ -41,7 +46,7 @@ export function WebGLCanvas({ render = true, ...props }) {
           />
           <RAF render={render} />
           <FlowmapProvider>
-            {/* <PostProcessing /> */}
+            <PostProcessing />
             <WebGLTunnel.Out />
           </FlowmapProvider>
           <Preload />

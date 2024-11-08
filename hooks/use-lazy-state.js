@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react'
 
-export function useLazyState(initialValue, callback) {
+export function useLazyState(initialValue, callback, deps = []) {
   const stateRef = useRef(initialValue)
 
   useEffect(() => {
@@ -22,6 +22,10 @@ export function useLazyState(initialValue, callback) {
   }
 
   const get = useCallback(() => stateRef.current, [])
+
+  useEffect(() => {
+    callback(stateRef.current, stateRef.current)
+  }, [...deps])
 
   return [get, set]
 }

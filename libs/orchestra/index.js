@@ -9,7 +9,9 @@ import { createStore } from 'zustand/vanilla'
 const storageKey = 'orchestra'
 const store = createStore(
   persist(
-    subscribeWithSelector(() => ({})),
+    subscribeWithSelector(() => ({
+      webgl: true,
+    })),
     {
       name: storageKey,
       storage: createJSONStorage(() => localStorage),
@@ -59,7 +61,7 @@ class Toggle {
 class Orchestra {
   constructor() {
     this.domElement = document.createElement('div')
-
+    this.store = store
     this.toggles = []
   }
 

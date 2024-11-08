@@ -12,7 +12,7 @@ export function useFlowmap() {
 }
 
 export function FlowmapProvider({ children }) {
-  const gl = useThree(({ gl }) => gl)
+  const gl = useThree((state) => state.gl)
 
   const fluidSimulation = useMemo(
     () => new FluidSimulation({ renderer: gl, size: 128 }),

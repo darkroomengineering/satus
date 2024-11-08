@@ -22,6 +22,13 @@ const GridDebugger = dynamic(
   },
 )
 
+const CMDKDebug = dynamic(
+  () => import('libs/orchestra/cmdk').then(({ CMDKDebug }) => CMDKDebug),
+    {
+    ssr: false,
+  },
+)
+
 const Minimap = dynamic(
   () => import('libs/orchestra/minimap').then(({ Minimap }) => Minimap),
   {
@@ -42,6 +49,7 @@ export function Debug() {
       {stats && <Stats />}
       {grid && <GridDebugger />}
       {minimap && <Minimap />}
+      <CMDKDebug />
     </>
   )
 }

@@ -12,7 +12,7 @@ export function Preload() {
   const active = useProgress((state) => state.active)
 
   useDebounce(
-    () => {
+    async () => {
       if (active) return
 
       console.log('Preloading...')
@@ -28,7 +28,7 @@ export function Preload() {
         }
       })
       // Now compile the scene
-      gl.compile(scene, camera)
+      await gl.compileAsync(scene, camera)
       // And for good measure, hit it with a cube camera
       const cubeRenderTarget = new WebGLCubeRenderTarget(128)
       const cubeCamera = new CubeCamera(0.01, 100000, cubeRenderTarget)

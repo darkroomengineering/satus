@@ -12,7 +12,6 @@ const nextConfig: NextConfig = {
         },
       },
     },
-    optimizeCss: true,
     nextScriptWorkers: true,
     reactCompiler: true,
   },

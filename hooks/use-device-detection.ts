@@ -1,10 +1,6 @@
 import { useMediaQuery } from '@darkroom.engineering/hamo'
-<<<<<<< HEAD:hooks/use-device-detection.ts
+import { useOrchestra } from '~/libs/orchestra/react'
 import { breakpoints } from '~/styles/config.mjs'
-=======
-import { useOrchestra } from 'libs/orchestra/react'
-import variables from 'styles/config.js'
->>>>>>> main:hooks/use-device-detection.js
 
 export function useDeviceDetection() {
   const breakpoint = breakpoints.dt

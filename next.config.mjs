@@ -1,9 +1,6 @@
 import DuplicatePackageCheckerWebpackPlugin from '@cerner/duplicate-package-checker-webpack-plugin'
 import bundleAnalyzerPlugin from '@next/bundle-analyzer'
 
-import { castToSass } from './libs/sass-utils/index.js'
-import sassVars from './styles/config.js'
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -31,24 +28,6 @@ const nextConfig = {
       },
     ],
     formats: ['image/avif', 'image/webp'],
-  },
-  sassOptions: {
-    includePaths: ['styles'],
-    prependData: `
-    @import 'styles/_functions';
-  `,
-    functions: {
-      'get($keys)': function (keys) {
-        keys = keys.getValue().split('.')
-        let result = sassVars
-        for (let i = 0; i < keys.length; i++) {
-          result = result[keys[i]]
-        }
-        result = castToSass(result)
-
-        return result
-      },
-    },
   },
   webpack: (config, { dir }) => {
     config.module.rules.push(
@@ -110,7 +89,7 @@ const nextConfig = {
             loader: 'graphql-tag/loader',
           },
         ],
-      },
+      }
     )
 
     config.plugins.push(
@@ -121,7 +100,7 @@ const nextConfig = {
         strict: false,
         exclude: (instance) => instance.name === 'fbjs',
         alwaysEmitErrorsFor: ['react', 'react-router'],
-      }),
+      })
     )
 
     return config

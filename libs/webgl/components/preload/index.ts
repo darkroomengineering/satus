@@ -40,4 +40,6 @@ export function Preload() {
     500,
     [active, gl, camera, scene]
   )
+
+  return null
 }

@@ -20,12 +20,7 @@ This starter kit has an opinionated setting using the following:
 - [Shopify](https://www.shopify.com/)
 - [SERVER MONO](https://github.com/internet-development/www-server-mono) Open Source font
 - SVG import through [@svgr/webpack](https://www.npmjs.com/package/@svgr/webpack)
-- Sass architecture and tooling:
-  - Config file
-  - Viewport based sizes
-  - Reset
-  - Easings
-  - Themes
+- PostCSS architecture and tooling:
 - Debug tools:
   - Theatre.js Studio [@theatre/studio](https://www.npmjs.com/package/@theatre/studio)
   - FPS Meter

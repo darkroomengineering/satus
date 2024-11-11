@@ -1,4 +1,4 @@
-import { isEmptyArray } from 'libs/utils'
+import { isEmptyArray } from '~/libs/utils'
 
 export function cartReconciler(state, action) {
   const currentCart = state || createEmptyCart()
@@ -26,12 +26,8 @@ function createEmptyCart() {
 }
 
 const reconcilingActions = {
-  UPDATE_ITEM: function (state, action) {
-    return updateItem(state, action)
-  },
-  ADD_ITEM: function (state, action) {
-    return addItem(state, action)
-  },
+  UPDATE_ITEM: (state, action) => updateItem(state, action),
+  ADD_ITEM: (state, action) => addItem(state, action),
 }
 
 function updateItem(state, action) {
@@ -40,7 +36,7 @@ function updateItem(state, action) {
     .map((item) =>
       item.merchandise.id === merchandiseId
         ? updateCartItem(item, updateType)
-        : item,
+        : item
     )
     .filter(Boolean)
 
@@ -62,18 +58,18 @@ function updateItem(state, action) {
 function addItem(state, action) {
   const { variant, product, quantity } = action.payload
   const existingItem = state.lines.find(
-    (item) => item.merchandise.id === variant.id,
+    (item) => item.merchandise.id === variant.id
   )
   const updatedItem = createOrUpdateCartItem(
     existingItem,
     variant,
     product,
-    quantity,
+    quantity
   )
 
   const updatedLines = existingItem
     ? state.lines.map((item) =>
-        item.merchandise.id === variant.id ? updatedItem : item,
+        item.merchandise.id === variant.id ? updatedItem : item
       )
     : [...state.lines, updatedItem]
 
@@ -97,7 +93,7 @@ function updateCartItem(item, updateType) {
   const singleItemAmount = Number(item.cost.totalAmount.amount) / item.quantity
   const newTotalAmount = calculateItemCost(
     newQuantity,
-    singleItemAmount.toString(),
+    singleItemAmount.toString()
   )
 
   return {
@@ -150,7 +146,7 @@ function updateCartTotals(lines) {
   const totalQuantity = lines.reduce((sum, item) => sum + item.quantity, 0)
   const totalAmount = lines.reduce(
     (sum, item) => sum + Number(item.cost.totalAmount.amount),
-    0,
+    0
   )
   const currencyCode = lines[0]?.cost.totalAmount.currencyCode ?? 'USD'
 

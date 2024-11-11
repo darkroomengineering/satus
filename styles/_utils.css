@@ -1,0 +1,32 @@
+.full-width {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+}
+
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.relative {
+  position: relative;
+}
+
+.mobile-only {
+  @include-media ('desktop') {
+    display: none !important;
+  }
+}
+
+.desktop-only {
+  @include-media ('mobile') {
+    display: none !important;
+  }
+}
+
+.hidden {
+  display: none !important;
+}

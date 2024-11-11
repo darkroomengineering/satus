@@ -1,0 +1,27 @@
+.tutorial {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--layout-columns-gap);
+
+  .title {
+    text-align: center;
+  }
+
+  .codes {
+    display: flex;
+    gap: var(--layout-columns-gap);
+  }
+
+  code {
+    padding: mobile-vw(8px);
+    border: 1px solid var(--theme-secondary);
+    border-radius: mobile-vw(8px);
+    display: inline-block;
+
+    @include-media ('desktop') {
+      padding: desktop-vw(8px);
+      border-radius: desktop-vw(8px);
+    }
+  }
+}

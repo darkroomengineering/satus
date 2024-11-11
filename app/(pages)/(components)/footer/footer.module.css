@@ -1,0 +1,12 @@
+.footer {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--layout-margin);
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+
+  @include-media ('mobile') {
+    flex-direction: column;
+    align-items: center;
+  }
+}

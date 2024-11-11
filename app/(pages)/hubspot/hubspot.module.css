@@ -1,0 +1,34 @@
+.page {
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+
+  .inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    flex-grow: 1;
+
+    @include-media ('mobile') {
+      padding: 0 mobile-vw(16px);
+    }
+  }
+
+  .title {
+    margin-bottom: mobile-vw(19px);
+
+    @include-media ('desktop') {
+      margin-bottom: desktop-vw(15px);
+    }
+  }
+
+  .subscribe {
+    margin-bottom: mobile-vw(31px);
+    padding: 0 mobile-vw(15px);
+
+    @include-media ('desktop') {
+      margin-bottom: desktop-vw(32px);
+      padding: 0 desktop-vw(15px);
+    }
+  }
+}

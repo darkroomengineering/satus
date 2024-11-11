@@ -25,7 +25,6 @@ export function FlowmapProvider({ children }: PropsWithChildren) {
   const gl = useThree(({ gl }) => gl)
 
   const fluidSimulation = useMemo(
-    // @ts-expect-error - FluidSimulation is not typed
     () => new FluidSimulation({ renderer: gl, size: 128 }),
     [gl]
   )

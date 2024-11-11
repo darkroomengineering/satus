@@ -24,17 +24,20 @@ export function WebGLImage({ src, rect }: WebGLImageProps) {
   const getWebGLRect = useWebGLRect(rect)
 
   useLenis(() => {
-    // TODO: Whaaat is going on with this?
-    const { x, y, width, height } = getWebGLRect()
+    const { position, scale } = getWebGLRect()
 
-    meshRef.current.scale.set(width, height, width)
-    meshRef.current.position.set(x, y, 0)
+    meshRef.current.scale.set(scale.x, scale.y, scale.x)
+    meshRef.current.position.set(position.x, position.y, 0)
+  })
 
+  useWebGLRect(rect, ({ position, scale }) => {
+    meshRef.current.position.set(position.x, position.y, position.z)
+    meshRef.current.scale.set(scale.x, scale.y, scale.z)
     meshRef.current.updateMatrix()
-  }, [getWebGLRect])
+  })
 
   return (
-    <mesh ref={meshRef} matrixAutoUpdate={false}>
+    <mesh ref={meshRef as any} matrixAutoUpdate={false}>
       <planeGeometry />
       <primitive object={material} />
     </mesh>

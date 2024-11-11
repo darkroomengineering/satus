@@ -1,11 +1,15 @@
-import { useWindowSize } from '@darkroom.engineering/hamo'
 import { useFrame, useThree } from '@react-three/fiber'
 import { CopyPass, EffectComposer, RenderPass } from 'postprocessing'
 import { useEffect, useMemo } from 'react'
 import { HalfFloatType } from 'three'
 
 export function PostProcessing() {
-  const { gl, viewport, camera, scene, setDpr } = useThree()
+  const gl = useThree((state) => state.gl)
+  const viewport = useThree((state) => state.viewport)
+  const camera = useThree((state) => state.camera)
+  const scene = useThree((state) => state.scene)
+  const setDpr = useThree((state) => state.setDpr)
+  const size = useThree((state) => state.size)
 
   const isWebgl2 = gl.capabilities.isWebGL2
   const dpr = viewport.dpr
@@ -38,20 +42,16 @@ export function PostProcessing() {
     }
   }, [composer, renderPass, copyPass])
 
-  const { width: windowWidth = 0, height: windowHeight = 0 } = useWindowSize()
+  // const { width: windowWidth = 0, height: windowHeight = 0 } = useWindowSize()
 
   useEffect(() => {
-    // reduce dpr as window width>2048 increases to maintain performance
     const initialDpr = Math.min(window.devicePixelRatio, 2)
-    // let dpr = mapRange(2048, 4096, windowWidth, initialDpr, 1)
-    // dpr = clamp(1, dpr, 2)
-    // setDpr(dpr)
 
-    const dpr = windowWidth <= 2048 ? initialDpr : 1
+    const dpr = size.width <= 2048 ? initialDpr : 1
     setDpr(dpr)
 
-    composer.setSize(windowWidth, windowHeight)
-  }, [composer, windowWidth, windowHeight, setDpr])
+    composer.setSize(size.width, size.height)
+  }, [composer, size, setDpr])
 
   useFrame((_, deltaTime) => {
     composer.render(deltaTime)

@@ -109,6 +109,9 @@ function Marker({ element, color }: MinimapEntry) {
 
   useFrame(() => {
     if (!element) return
+
+    if (!markerRef.current) return
+
     // console.log(element)
     const rect = element.getBoundingClientRect()
     const top = rect.top / window.innerHeight

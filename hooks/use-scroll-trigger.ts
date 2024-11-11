@@ -6,10 +6,11 @@ import {
   useWindowSize,
 } from '@darkroom.engineering/hamo'
 import { useLenis } from 'lenis/react'
-import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useTransform } from '~/hooks/use-transform'
 import { clamp, mapRange } from '~/libs/maths'
 import { useMinimap } from '~/libs/orchestra/minimap'
+import { useOrchestra } from '~/libs/orchestra/react'
 
 // @refresh reset
 
@@ -23,8 +24,6 @@ type UseMarkerOptions = {
 }
 
 function useMarker({
-  text = 'start',
-  color = 'green',
   type = 'start',
   fixed = false,
   visible = false,
@@ -32,12 +31,17 @@ function useMarker({
 }: UseMarkerOptions = {}) {
   const elementRef = useRef<HTMLElement | null>()
 
+  const color = type === 'start' ? 'green' : 'red'
+  const text = type === 'start' ? 'start' : 'end'
+
   const setElementRef = useMinimap({
     color,
   })
 
-  useLayoutEffect(() => {
-    if (process.env.NODE_ENV !== 'development') return
+  const { minimap } = useOrchestra()
+
+  useEffect(() => {
+    if (!minimap) return
 
     if (!visible) return
 
@@ -64,6 +68,7 @@ function useMarker({
     innerElement.style.cssText = `
       position: absolute;
       padding: 8px;
+      ${type === 'start' ? 'left' : 'right'}: 0;
     `
     element.appendChild(innerElement)
 
@@ -78,7 +83,7 @@ function useMarker({
       // setElementRef?.(null)
       elementRef.current?.remove()
     }
-  }, [color, text, fixed, id, visible, type, setElementRef])
+  }, [color, text, fixed, id, visible, type, setElementRef, minimap])
 
   const top = useCallback(
     (value: number) => {
@@ -131,6 +136,7 @@ export type UseScrollTriggerOptions = {
     height: number
     isActive: boolean
     progress: number
+    lastProgress: number
     steps: number[]
   }) => void
   steps?: number
@@ -157,32 +163,24 @@ export function useScrollTrigger(
 
   const elementMarkerStart = useMarker({
     id,
-    text: 'start',
-    color: 'green',
     type: 'start',
     visible: markers,
   })
   const elementMarkerEnd = useMarker({
     id,
-    text: 'end',
-    color: 'red',
     type: 'end',
     visible: markers,
   })
 
   const viewportMarkerStart = useMarker({
     id,
-    text: 'start',
-    color: 'green',
-    type: 'end',
+    type: 'start',
     fixed: true,
     visible: markers,
   })
   const viewportMarkerEnd = useMarker({
     id,
-    text: 'end',
-    color: 'red',
-    type: 'start',
+    type: 'end',
     fixed: true,
     visible: markers,
   })
@@ -228,38 +226,38 @@ export function useScrollTrigger(
 
   const startValue = elementStart - viewportStart
   const endValue = elementEnd - viewportEnd
-
-  const [, setProgress] = useLazyState<undefined | number>(
-    undefined,
-    (progress, lastProgress) => {
-      if (!progress || !lastProgress || Number.isNaN(progress)) return
-
-      if (
-        (progress >= 0 && lastProgress < 0) ||
-        (progress <= 1 && lastProgress > 1)
-      ) {
-        onEnter?.()
-      }
-
-      if (
-        (progress < 0 && lastProgress >= 0) ||
-        (progress > 1 && lastProgress <= 1)
-      ) {
-        onLeave?.()
-      }
-
-      if (clamp(0, progress, 1) === clamp(0, lastProgress, 1)) return
-
+  const onUpdate = useCallback(
+    (progress: number, lastProgress: number) => {
       onProgress?.({
         height: endValue - startValue,
         isActive: progress >= 0 && progress <= 1,
         progress: clamp(0, progress, 1),
+        lastProgress: lastProgress,
         steps: Array.from({ length: steps }).map((_, i) =>
           clamp(0, mapRange(i / steps, (i + 1) / steps, progress, 0, 1), 1)
         ),
       })
+    },
+    [endValue, startValue, steps, onProgress]
+  )
+
+  // eslint-disable-next-line no-unused-vars
+  const [getProgress, setProgress] = useLazyState(
+    0,
+    (progress, lastProgress = 0) => {
+      if (Number.isNaN(progress)) return
+      if (clamp(0, progress, 1) === clamp(0, lastProgress, 1)) return
+
+      onUpdate(progress, lastProgress)
     }
   )
+
+  useEffect(() => {
+    const progress = getProgress()
+    if (Number.isNaN(progress)) return
+
+    onUpdate(progress, progress)
+  }, [getProgress, onUpdate, ...deps])
 
   const update = useCallback(() => {
     if (disabled) return

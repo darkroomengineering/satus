@@ -31,6 +31,7 @@ const DEFAULT_TRANSFORM = {
     bottom: 0,
     left: 0,
   },
+  userData: {},
 }
 
 type Transform = typeof DEFAULT_TRANSFORM
@@ -84,6 +85,8 @@ export function TransformProvider({ children, ref }: TransformProviderProps) {
     transform.scale.x *= transformRef.current.scale.x
     transform.scale.y *= transformRef.current.scale.y
     transform.scale.z *= transformRef.current.scale.z
+
+    transform.userData = { ...transformRef.current.userData }
 
     return transform
   }, [])
@@ -152,6 +155,14 @@ export function TransformProvider({ children, ref }: TransformProviderProps) {
     [update]
   )
 
+  const setUserData = useCallback(
+    (key, value) => {
+      transformRef.current.userData[key] = value
+      update()
+    },
+    [update],
+  )
+
   useTransform(
     (transform) => {
       parentTransformRef.current = structuredClone(transform)
@@ -165,11 +176,21 @@ export function TransformProvider({ children, ref }: TransformProviderProps) {
     setRotate,
     setScale,
     setClip,
+    setUserData,
   }))
 
   return (
     <TransformContext.Provider
-      value={{ getTransform, addCallback, removeCallback }}
+      value={{
+        getTransform,
+        addCallback,
+        removeCallback,
+        setTranslate,
+        setRotate,
+        setScale,
+        setClip,
+        setUserData,
+      }}
     >
       {children}
     </TransformContext.Provider>

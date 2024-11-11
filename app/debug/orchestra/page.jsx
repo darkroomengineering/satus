@@ -21,6 +21,9 @@ function OrchestraPage() {
       <OrchestraToggle id="minimap" className={s.button}>
         🗺️
       </OrchestraToggle>
+      <OrchestraToggle id="webgl" className={s.button}>
+        🧊
+      </OrchestraToggle>
     </div>
   )
 }

@@ -29,22 +29,15 @@ The usual process for Next.js based apps/websites:
 - [@react-three/drei](https://github.com/pmndrs/drei)
 - [@react-three/fiber](https://docs.pmnd.rs/react-three-fiber/getting-started/introduction)
 - [GSAP](https://greensock.com/gsap/)
-- Sass (Modules)
+- CSS with PostCSS custom settings (check `postcss.config.mjs`)
 - [Zustand](https://github.com/pmndrs/zustand)
 - GraphQL (CMS API)
-- [@svgr/webpack](https://github.com/gregberge/svgr/tree/main) (SVG Imports in `next.config.js`)
+- [@svgr/webpack](https://github.com/gregberge/svgr/tree/main) (SVG Imports in `next.config.ts`)
+- [pnpm](https://pnpm.io/)
 
 ## Code Style & Linting:
 
-- Eslint ([Next](https://nextjs.org/docs/basic-features/eslint#eslint-config) and [Prettier](https://github.com/prettier/eslint-config-prettier) plugins)
-- [Prettier](https://prettier.io/) with the following settings available in `.pretierrc`:
-  ```json
-  {
-    "endOfLine": "auto",
-    "semi": false,
-    "singleQuote": true
-  }
-  ```
+- [Biome](https://github.com/biomejs/biome)
 - [Lefthook](https://github.com/evilmartians/lefthook)
 
 ## Third Party (optional tools):
@@ -59,8 +52,15 @@ The usual process for Next.js based apps/websites:
 
 Alongside the usual Next.js App Router folder structure (`/public`, `/app`, etc.) We've added a few other folders to keep the code easier to read:
 
-- **/components:** Reusable components with their respective Sass file
+- **/components:** Reusable components with their respective CSS file
 - **/docs:** Readmes on how to use third party tools at darkroom
 - **/hooks:** Reusable Custom Hooks
-- **/libs:** Reusable Scripts and State Storing, hubspot integration, sass utils, etc.
-- **/styles:** Global styles and Sass partials
+- **/libs:** 
+  - Core form functionality
+  - Hubspot integration
+  - Shopify integration
+  - Storyblok integration
+  - Style variables
+  - Theatre.js integration
+  - general purpose functions
+- **/styles:** Style theme configurations, Global styles and CSS partials.

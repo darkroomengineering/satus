@@ -1,7 +1,7 @@
 import AppData from '../package.json'
 import Image from './opengraph-image'
 
-export const runtime = 'edge'
+// export const runtime = 'edge'
 
 // Image metadata
 export const alt = AppData.name

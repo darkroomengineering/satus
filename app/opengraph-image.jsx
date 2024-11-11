@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og'
 import { themes } from '~/styles/config.mjs'
 import AppData from '../package.json'
 
-// export const runtime = 'edge'
+export const runtime = 'edge'
 
 // Image metadata
 export const alt = AppData.name

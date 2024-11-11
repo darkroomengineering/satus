@@ -29,7 +29,7 @@
     "clsx": "^2.1.1",
     "gsap": "^3.12.5",
     "lenis": "1.1.16",
-    "next": "15.0.3",
+    "next": "15.0.4-canary.5",
     "postprocessing": "^6.36.4",
     "react": "19.0.0-rc-ed15d500-20241110",
     "react-aria": "^3.35.1",

@@ -96,9 +96,6 @@ importers:
       '@builder.io/partytown':
         specifier: ^0.10.2
         version: 0.10.2
-      '@cerner/duplicate-package-checker-webpack-plugin':
-        specifier: ^2.6.0
-        version: 2.6.0(webpack@5.96.1(esbuild@0.24.0))
       '@chromatic-com/storybook':
         specifier: 3.2.2
         version: 3.2.2(react@19.0.0-rc-ed15d500-20241110)(storybook@8.4.2(prettier@3.3.3))
@@ -144,6 +141,9 @@ importers:
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
+      lefthook:
+        specifier: ^1.8.2
+        version: 1.8.2
       postcss-extend:
         specifier: ^1.0.5
         version: 1.0.5
@@ -807,12 +807,6 @@ packages:
     resolution: {integrity: sha512-A9U+4PREWcS+CCYzKGIPovtGB/PBgnH/8oQyCE6Nr9drDJk6cMPpLQIEajpGPmG9tYF7N3FkRvhXm/AS9+0iKg==}
     engines: {node: '>=18.0.0'}
     hasBin: true
-
-  '@cerner/duplicate-package-checker-webpack-plugin@2.6.0':
-    resolution: {integrity: sha512-AqLUy1E42ZJ7p9VxXcIcj/elIdzZ3aRPvPLj7mO8akg1NypkJTIt3wRPVJYrp4Yo3vlxiTKXgtvLt4BP3r4p7A==}
-    engines: {node: 10 || 12 || 14, npm: 6 || 9}
-    peerDependencies:
-      webpack: ^4.30.0 || ^5.0.0
 
   '@chromatic-com/storybook@3.2.2':
     resolution: {integrity: sha512-xmXt/GW0hAPbzNTrxYuVo43Adrtjue4DeVrsoIIEeJdGaPNNeNf+DHMlJKOBdlHmCnFUoe9R/0mLM9zUp5bKWw==}
@@ -3434,9 +3428,6 @@ packages:
     resolution: {integrity: sha512-9ZonPT4ZAK4a+1pUPVPZJapbi7O5qbbJPdYw/NOQWZZbVLdDTYM3A4R9z/DpAM08IDaFGsvPgiGZ82WEwUDWjg==}
     engines: {node: '>=14.16'}
 
-  find-root@1.1.0:
-    resolution: {integrity: sha512-NKfW6bec6GfKc0SGx1e07QZY9PE99u0Bft/0rzSD5k3sO/vwkVUpDUKVm5Gpp5Ue3YfShPFTX2070tDs5kB9Ng==}
-
   find-up@4.1.0:
     resolution: {integrity: sha512-PpOwAdQ/YlXQ2vj8a3h8IipDuYRi3wceVQQGYWxNINccq40Anw7BlsEXCMbt1Zt+OLA6Fq9suIpIWD0OsnISlw==}
     engines: {node: '>=8'}
@@ -3784,6 +3775,60 @@ packages:
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
 
+  lefthook-darwin-arm64@1.8.2:
+    resolution: {integrity: sha512-g41SoFUv8SzHpG1NOPkHUEPhC1tJM5FF3Vo+HESmLmL9cDfd7JncHFPy59rVnC9Q8nOS0rvoik5HTq+3/wcfww==}
+    cpu: [arm64]
+    os: [darwin]
+
+  lefthook-darwin-x64@1.8.2:
+    resolution: {integrity: sha512-IlCm4PrA/aAZ1MChiExYTbladC87GaxmYHOMHCeChLecqn+lypAuiYLgf7w5r2s3MjH5rbXImfU925NRKi6RXQ==}
+    cpu: [x64]
+    os: [darwin]
+
+  lefthook-freebsd-arm64@1.8.2:
+    resolution: {integrity: sha512-f7AIvuIEXUUR1ZutIFxjYKFDAVUBrdsLm+cbwOCjdfpJh7j2Fjg6nKXbDcglPXlX9Ix+nw9pHbJE2DAgzkI1Vw==}
+    cpu: [arm64]
+    os: [freebsd]
+
+  lefthook-freebsd-x64@1.8.2:
+    resolution: {integrity: sha512-DSDL64fRLSNSWOa1y2bGXwXPiwU1fbAXpj63j6jeQ0jkgu6k+3XL/PBXKh80cI6MvCKz/KQKCtIencXZZ2Ua4Q==}
+    cpu: [x64]
+    os: [freebsd]
+
+  lefthook-linux-arm64@1.8.2:
+    resolution: {integrity: sha512-sJ95X+ZH8ayIE7ApiGEq5ZF9KGA+eKiocJU+536bLbAIHw5WjGmv2x3llFqUxH/zAmLe3k542oZ4d84wEO0EGQ==}
+    cpu: [arm64]
+    os: [linux]
+
+  lefthook-linux-x64@1.8.2:
+    resolution: {integrity: sha512-2eirc61M0WjlbSHamAgGf9iWsQTYz4IT6PAPm66vUaeG34+5D66xFicIV6pK2niRGUOPtNs8Kt4lboKtW+ba5g==}
+    cpu: [x64]
+    os: [linux]
+
+  lefthook-openbsd-arm64@1.8.2:
+    resolution: {integrity: sha512-ZMop7htaSwP3MiL06WHUV36EX05N33o0WzNzC8NO5KEubn8Z74vbXcaq6qYezmgi+erkG6dtTnlbcZy5PFvFIA==}
+    cpu: [arm64]
+    os: [openbsd]
+
+  lefthook-openbsd-x64@1.8.2:
+    resolution: {integrity: sha512-jXFoxmpYXO6ZafgQJVvk3MYlRgOBJD3n7H8A1Bj1E2yrLzOhKevUKlTNwZTxQdxlnvoo33yD6SjVSujZavEGpw==}
+    cpu: [x64]
+    os: [openbsd]
+
+  lefthook-windows-arm64@1.8.2:
+    resolution: {integrity: sha512-hsQUSk6kmB8E0UMD3Mk6ROoa7qv6XmigfPsn9tFjmbZ2aO+kpBfWitZ5v+gcjNp44yaECs3YTMIfv3QFwXlRCw==}
+    cpu: [arm64]
+    os: [win32]
+
+  lefthook-windows-x64@1.8.2:
+    resolution: {integrity: sha512-YypbMhvgAtkL7y+O3OlF81vwua7X4jloBz5hO3fILAuzaGAiPE1VbeuqRweV8VuKK4L/ZVVKqmpesygBUNDp9w==}
+    cpu: [x64]
+    os: [win32]
+
+  lefthook@1.8.2:
+    resolution: {integrity: sha512-lMXbcFHNDr+gzy/7ghuJDVB/Yyycj+ZL/7pN3Gm/s5Xqrc9+5sj3IrDAPylcEJ1cKCbUnXbwESrhhqpcYv4d4g==}
+    hasBin: true
+
   lenis@1.1.16:
     resolution: {integrity: sha512-bGS8IxJW3x310gTwFylgYU6bGzeVnTALmgyLP8RZ9DFSYC/hN3fi+urCWspr5otljbDAGF4ND2GKCFtemAd45Q==}
     peerDependencies:
@@ -3833,9 +3878,6 @@ packages:
 
   lodash.get@4.4.2:
     resolution: {integrity: sha512-z+Uw/vLuy6gQe8cfaFWD7p0wVv8fJl3mbzXh33RS+0oW2wvUqiRXiQ69gLWSLpgB5/6sU+r6BlQR0MBILadqTQ==}
-
-  lodash.groupby@4.6.0:
-    resolution: {integrity: sha512-5dcWxm23+VAoz+awKmBaiBvzox8+RqMgFhi7UvX9DHZr2HdxHXM/Wrf8cfKpsW37RNrvtPn6hSwNqurSILbmJw==}
 
   lodash.merge@4.6.2:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
@@ -6085,14 +6127,6 @@ snapshots:
     optional: true
 
   '@builder.io/partytown@0.10.2': {}
-
-  '@cerner/duplicate-package-checker-webpack-plugin@2.6.0(webpack@5.96.1(esbuild@0.24.0))':
-    dependencies:
-      chalk: 4.1.2
-      find-root: 1.1.0
-      lodash.groupby: 4.6.0
-      semver: 7.6.3
-      webpack: 5.96.1(esbuild@0.24.0)
 
   '@chromatic-com/storybook@3.2.2(react@19.0.0-rc-ed15d500-20241110)(storybook@8.4.2(prettier@3.3.3))':
     dependencies:
@@ -9349,8 +9383,6 @@ snapshots:
       common-path-prefix: 3.0.0
       pkg-dir: 7.0.0
 
-  find-root@1.1.0: {}
-
   find-up@4.1.0:
     dependencies:
       locate-path: 5.0.0
@@ -9689,6 +9721,49 @@ snapshots:
     dependencies:
       json-buffer: 3.0.1
 
+  lefthook-darwin-arm64@1.8.2:
+    optional: true
+
+  lefthook-darwin-x64@1.8.2:
+    optional: true
+
+  lefthook-freebsd-arm64@1.8.2:
+    optional: true
+
+  lefthook-freebsd-x64@1.8.2:
+    optional: true
+
+  lefthook-linux-arm64@1.8.2:
+    optional: true
+
+  lefthook-linux-x64@1.8.2:
+    optional: true
+
+  lefthook-openbsd-arm64@1.8.2:
+    optional: true
+
+  lefthook-openbsd-x64@1.8.2:
+    optional: true
+
+  lefthook-windows-arm64@1.8.2:
+    optional: true
+
+  lefthook-windows-x64@1.8.2:
+    optional: true
+
+  lefthook@1.8.2:
+    optionalDependencies:
+      lefthook-darwin-arm64: 1.8.2
+      lefthook-darwin-x64: 1.8.2
+      lefthook-freebsd-arm64: 1.8.2
+      lefthook-freebsd-x64: 1.8.2
+      lefthook-linux-arm64: 1.8.2
+      lefthook-linux-x64: 1.8.2
+      lefthook-openbsd-arm64: 1.8.2
+      lefthook-openbsd-x64: 1.8.2
+      lefthook-windows-arm64: 1.8.2
+      lefthook-windows-x64: 1.8.2
+
   lenis@1.1.16(react@19.0.0-rc-ed15d500-20241110):
     optionalDependencies:
       react: 19.0.0-rc-ed15d500-20241110
@@ -9726,8 +9801,6 @@ snapshots:
   lodash.debounce@4.0.8: {}
 
   lodash.get@4.4.2: {}
-
-  lodash.groupby@4.6.0: {}
 
   lodash.merge@4.6.2: {}
 

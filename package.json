@@ -46,7 +46,6 @@
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@builder.io/partytown": "^0.10.2",
-    "@cerner/duplicate-package-checker-webpack-plugin": "^2.6.0",
     "@chromatic-com/storybook": "3.2.2",
     "@next/bundle-analyzer": "^15.0.3",
     "@storybook/addon-essentials": "^8.4.2",
@@ -62,6 +61,7 @@
     "@types/react": "^18.3.12",
     "@types/three": "^0.169.0",
     "cross-env": "^7.0.3",
+    "lefthook": "^1.8.2",
     "postcss-extend": "^1.0.5",
     "postcss-flexbugs-fixes": "^5.0.2",
     "postcss-functions": "^4.0.2",

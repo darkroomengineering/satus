@@ -50,8 +50,10 @@
 }
 
 .layout-grid {
-  @extend .layout-block, .grid;
+  @extend .layout-block;
+  @extend .grid;
 }
 .layout-grid-inner {
-  @extend .layout-block-inner, .grid;
+  @extend .layout-block-inner;
+  @extend .grid;
 }

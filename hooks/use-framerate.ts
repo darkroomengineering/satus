@@ -1,17 +1,24 @@
 import { useFrame } from '@darkroom.engineering/hamo'
 import { useRef } from 'react'
 
-export function useFramerate(fps, callback, priority = 0) {
+type FPSValue = number | (() => number)
+type FrameCallback = (time: number, deltaTime: number) => void
+
+export function useFramerate(
+  fps: FPSValue,
+  callback?: FrameCallback,
+  priority = 0
+): void {
   const timeRef = useRef(0)
 
-  useFrame((time, delaTime) => {
-    timeRef.current += delaTime
+  useFrame((time, deltaTime) => {
+    timeRef.current += deltaTime
 
     const executionTime = 1000 / (typeof fps === 'function' ? fps() : fps)
 
     if (timeRef.current >= executionTime) {
       timeRef.current = timeRef.current % executionTime
-      callback?.(time, delaTime)
+      callback?.(time, deltaTime)
     }
   }, priority)
 }

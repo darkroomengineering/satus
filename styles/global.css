@@ -12,45 +12,31 @@
   }
 }
 
-html,
-body {
-  overscroll-behavior: none;
-}
-
+/* Core styles that shouldn't be reset */
 body {
   min-height: 100vh;
+  overscroll-behavior: none;
   background-color: var(--theme-primary);
   color: var(--theme-secondary);
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
-
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-a,
-button,
-input,
-label,
-textarea,
-select {
-  color: inherit;
-  cursor: pointer;
-}
-
+/* Selection styling */
 *::selection {
   background-color: var(--theme-contrast);
   color: var(--theme-primary);
 }
 
+/* SVG icon colors */
 svg.icon {
   path[fill],
   rect[fill],
   circle[fill] {
     fill: currentColor;
   }
-
   path[stroke],
   rect[stroke],
   circle[stroke] {
@@ -58,6 +44,7 @@ svg.icon {
   }
 }
 
+/* Hover states */
 .link {
   @include-media ('hover') {
     &:hover {
@@ -66,18 +53,7 @@ svg.icon {
   }
 }
 
-img {
-  /* biome-ignore lint/correctness/noUnknownProperty: it exists, biome is drunk */
-  user-drag: none;
-  -webkit-user-drag: none;
-  user-select: none;
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-}
-
-* {
-  &:focus-visible {
-    outline: 2px solid var(--theme-contrast);
-  }
+/* Focus states */
+*:focus-visible {
+  outline: 2px solid var(--theme-contrast);
 }

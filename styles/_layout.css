@@ -5,57 +5,53 @@
   --desktop-columns-gap: desktop-vw(16px);
   --mobile-margin: mobile-vw(16px);
   --desktop-margin: desktop-vw(16px);
-}
 
-/*  */
-/* THERE SHOULD BE NO NEED TO TOUCH BEYOND THIS POINT,
-/* JUST CONFIGURE THE SETTINGS ABOVE 
-/*  */
+  /*  */
+  /* THERE SHOULD BE NO NEED TO TOUCH BEYOND THIS POINT,
+  /* JUST CONFIGURE THE SETTINGS ABOVE 
+  /*  */
 
-:root {
   --layout-columns-count: var(--mobile-columns-count);
   --layout-columns-gap: var(--mobile-columns-gap);
   --layout-margin: var(--mobile-margin);
-  --layout-width: calc(calc(100 * var(--vw, 1vw)) - (2 * var(--layout-margin)));
+  --layout-width: calc(100vw - (2 * var(--layout-margin)));
   --layout-column-width: calc(
     (
       var(--layout-width) -
-      ((var(--layout-columns-count) - 1) * var(--layout-columns-gap))
+      (var(--layout-columns-count) - 1) *
+      var(--layout-columns-gap)
     ) /
     var(--layout-columns-count)
   );
+}
 
-  @include-media ('desktop') {
+@include-media ('desktop') {
+  :root {
     --layout-columns-count: var(--desktop-columns-count);
     --layout-columns-gap: var(--desktop-columns-gap);
     --layout-margin: var(--desktop-margin);
   }
 }
 
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--layout-columns-count), 1fr);
+  gap: var(--layout-columns-gap);
+}
+
 .layout-block {
-  margin-left: auto;
-  margin-right: auto;
+  margin-inline: auto;
   width: calc(100% - 2 * var(--layout-margin));
 }
 
 .layout-block-inner {
-  padding-left: var(--layout-margin);
-  padding-right: var(--layout-margin);
+  padding-inline: var(--layout-margin);
   width: 100%;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(var(--layout-columns-count), minmax(0, 1fr));
-  gap: var(--layout-columns-gap);
-}
-
 .layout-grid {
-  @extend .layout-block;
-  @extend .grid;
+  @extend .layout-block, .grid;
 }
-
 .layout-grid-inner {
-  @extend .layout-block-inner;
-  @extend .grid;
+  @extend .layout-block-inner, .grid;
 }

@@ -17,9 +17,10 @@
         svg,
         video,
         audio,
-        #theatrejs-studio-root,
         vercel-live-feedback,
-        nextjs-portal
+        nextjs-portal,
+        dialog,
+        :where(select, option)
       ):not(svg *, symbol *)
   ) {
   all: unset;
@@ -91,14 +92,14 @@ meter {
 }
 
 /* fix the feature of 'hidden' attribute.
- display:revert; revert to element instead of attribute */
+display:revert; revert to element instead of attribute */
 :where([hidden]) {
   display: none;
 }
 
 /* revert for bug in Chromium browsers
- - fix for the content editable attribute will work properly.
- - webkit-user-select: auto; added for Safari in case of using user-select:none on wrapper element*/
+- fix for the content editable attribute will work properly.
+- webkit-user-select: auto; added for Safari in case of using user-select:none on wrapper element*/
 :where([contenteditable]:not([contenteditable="false"])) {
   -moz-user-modify: read-write;
   -webkit-user-modify: read-write;
@@ -117,4 +118,37 @@ meter {
 /* Revert Modal native behavior */
 :where(dialog:modal) {
   all: revert;
+}
+
+/* Add support for color-scheme */
+:root {
+  color-scheme: light dark;
+}
+
+/* Add support for newer form controls */
+:where(input[type="file"]) {
+  cursor: default;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Improve text rendering */
+html {
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+}
+
+/* Remove tap highlight on iOS */
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Improve media defaults */
+video,
+audio {
+  max-inline-size: 100%;
+  max-block-size: 100%;
 }

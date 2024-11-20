@@ -61,7 +61,9 @@
     "@types/react": "^18.3.12",
     "@types/three": "^0.169.0",
     "cross-env": "^7.0.3",
+    "cssnano": "^7.0.6",
     "lefthook": "^1.8.2",
+    "postcss-combine-duplicated-selectors": "^10.0.3",
     "postcss-extend": "^1.0.5",
     "postcss-flexbugs-fixes": "^5.0.2",
     "postcss-functions": "^4.0.2",
@@ -69,6 +71,7 @@
     "postcss-include-media": "^1.1.1",
     "postcss-nesting": "^13.0.1",
     "postcss-preset-env": "^10.1.0",
+    "postcss-sort-media-queries": "^5.2.0",
     "storybook": "^8.4.2",
     "typescript": "^5.6.3"
   },

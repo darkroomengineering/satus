@@ -1,0 +1,7 @@
+.layer {
+  background-color: var(--theme-secondary);
+  inset: 0;
+  position: fixed;
+  transform: translateY(100%);
+  z-index: 2;
+}

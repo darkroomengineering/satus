@@ -54,8 +54,8 @@ importers:
         specifier: 15.0.4-canary.5
         version: 15.0.4-canary.5(@babel/core@7.26.0)(babel-plugin-react-compiler@19.0.0-beta-a7bf2bd-20241110)(react-dom@19.0.0-rc-ed15d500-20241110(react@19.0.0-rc-ed15d500-20241110))(react@19.0.0-rc-ed15d500-20241110)(sass@1.80.6)
       next-transition-router:
-        specifier: ^0.2.3
-        version: 0.2.3(next@15.0.4-canary.5(@babel/core@7.26.0)(babel-plugin-react-compiler@19.0.0-beta-a7bf2bd-20241110)(react-dom@19.0.0-rc-ed15d500-20241110(react@19.0.0-rc-ed15d500-20241110))(react@19.0.0-rc-ed15d500-20241110)(sass@1.80.6))(react-dom@19.0.0-rc-ed15d500-20241110(react@19.0.0-rc-ed15d500-20241110))(react@19.0.0-rc-ed15d500-20241110)
+        specifier: ^0.2.5
+        version: 0.2.5(next@15.0.4-canary.5(@babel/core@7.26.0)(babel-plugin-react-compiler@19.0.0-beta-a7bf2bd-20241110)(react-dom@19.0.0-rc-ed15d500-20241110(react@19.0.0-rc-ed15d500-20241110))(react@19.0.0-rc-ed15d500-20241110)(sass@1.80.6))(react-dom@19.0.0-rc-ed15d500-20241110(react@19.0.0-rc-ed15d500-20241110))(react@19.0.0-rc-ed15d500-20241110)
       postprocessing:
         specifier: ^6.36.4
         version: 6.36.4(three@0.170.0)
@@ -4014,8 +4014,8 @@ packages:
   neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
 
-  next-transition-router@0.2.3:
-    resolution: {integrity: sha512-IIDPzHx+a4pmzm1xdFVLEvbnKnInpd7Ohvw0+amaiik3XVvbmuMRJepW8/esE/av4VoK1bQuMY1SZLWyZZ6LTA==}
+  next-transition-router@0.2.5:
+    resolution: {integrity: sha512-vqk3M1oY89TkMrzEf4A25/o/LD8o5FWy2WWBV+7mEb8pFZ71NA6rpkA2E+CJP/NUVl9+noLdR9+zSD0DDhPSpw==}
     peerDependencies:
       next: '>=14.0.0'
       react: '>=18.2.0'
@@ -9937,7 +9937,7 @@ snapshots:
 
   neo-async@2.6.2: {}
 
-  next-transition-router@0.2.3(next@15.0.4-canary.5(@babel/core@7.26.0)(babel-plugin-react-compiler@19.0.0-beta-a7bf2bd-20241110)(react-dom@19.0.0-rc-ed15d500-20241110(react@19.0.0-rc-ed15d500-20241110))(react@19.0.0-rc-ed15d500-20241110)(sass@1.80.6))(react-dom@19.0.0-rc-ed15d500-20241110(react@19.0.0-rc-ed15d500-20241110))(react@19.0.0-rc-ed15d500-20241110):
+  next-transition-router@0.2.5(next@15.0.4-canary.5(@babel/core@7.26.0)(babel-plugin-react-compiler@19.0.0-beta-a7bf2bd-20241110)(react-dom@19.0.0-rc-ed15d500-20241110(react@19.0.0-rc-ed15d500-20241110))(react@19.0.0-rc-ed15d500-20241110)(sass@1.80.6))(react-dom@19.0.0-rc-ed15d500-20241110(react@19.0.0-rc-ed15d500-20241110))(react@19.0.0-rc-ed15d500-20241110):
     dependencies:
       delegate-it: 6.2.1
       next: 15.0.4-canary.5(@babel/core@7.26.0)(babel-plugin-react-compiler@19.0.0-beta-a7bf2bd-20241110)(react-dom@19.0.0-rc-ed15d500-20241110(react@19.0.0-rc-ed15d500-20241110))(react@19.0.0-rc-ed15d500-20241110)(sass@1.80.6)

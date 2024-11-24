@@ -1,9 +1,11 @@
+import { screens } from "~/styles/config.mjs"
+
 export function desktopVW(value: number, width: number) {
-  return (value * width) / 1440
+  return (value * width) / screens.desktop.width
 }
 
 export function mobileVW(value: number, width: number) {
-  return (value * width) / 375
+  return (value * width) / screens.mobile.width
 }
 
 export function twoDigits(number: number) {
@@ -23,7 +25,7 @@ export function capitalizeFirstLetter(inputString: string) {
 }
 
 export function numberWithCommas(x: { toString: () => string }) {
-  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
 }
 
 export function isEmptyObject(obj: Record<string, unknown>) {

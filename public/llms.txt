@@ -1,0 +1,64 @@
+# Project Overview
+Next.js application with R3F (React Three Fiber), Storyblok CMS, and Shopify integration.
+
+# Key Technologies
+- Next.js (App Router)
+- PNPM for package management
+- React Three Fiber/Three.js/Drei for 3D
+- CSS Modules with PostCSS
+- Storyblok for CMS
+- Shopify for e-commerce
+- Theatre.js for animation
+- Biome for linting/formatting
+- Storybook for component development
+- Husky for git hooks
+- Lefthook for git hooks
+
+# Project Structure
+/app/(pages)/ - Page components and layouts
+  /r3f/ - Three.js/R3F components
+/components/ - Reusable components with CSS modules
+/libs/ - Core functionality and integrations
+  - Storyblok integration
+  - Shopify integration
+  - Theatre.js integration
+  - WebGL utilities
+/docs/ - Documentation for third-party tools
+/styles/ - Global styles and theme config
+
+# Setup Process
+1. Install dependencies: `pnpm i`
+2. Install Vercel CLI and get env variables:
+   - `vc link`
+   - `vc env pull`
+3. Run dev environment: `pnpm dev`
+
+# Development Workflow
+1. Uses PNPM for package management
+2. Requires env variables from Vercel
+3. Uses both Husky and Lefthook for git hooks
+4. Biome for code formatting/linting
+5. Storybook for component development
+
+# Key Features
+- WebGL/3D capabilities via R3F and Drei
+- CMS integration with Storyblok
+- E-commerce functionality via Shopify
+- Animation system using Theatre.js
+- Debug mode accessible at /debug/orchestra
+- CSS Modules with custom PostCSS config
+
+# Code Conventions
+- CSS Modules for styling (with PostCSS custom settings)
+- Biome for code formatting
+- Component-based architecture
+- Next.js App Router conventions
+- TypeScript for type safety
+
+# Important Notes
+- Debug panel available at /debug/orchestra
+- Uses Vercel for deployment
+- Requires specific env variables (see .env.template)
+- GSAP Business version requires auth token
+- Components should have accompanying CSS modules
+- Uses both Husky and Lefthook for git hooks

@@ -16,5 +16,8 @@
     "*.css": "css"
   },
   "css.lint.validProperties": ["user-drag"],
-  "css.lint.unknownAtRules": "ignore"
+  "css.lint.unknownAtRules": "ignore",
+  "[javascript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  }
 }

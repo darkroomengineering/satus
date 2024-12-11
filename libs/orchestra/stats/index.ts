@@ -6,7 +6,6 @@ import s from "./stats.module.css"
 export function Stats() {
   const stats = useMemo(() => new _Stats({ minimal: false }), [])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: gl dependency is needed to adjust on size changes
   useEffect(() => {
     document.body.appendChild(stats.dom)
     stats.dom.classList.add(s.stats)

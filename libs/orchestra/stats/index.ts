@@ -1,7 +1,7 @@
-import { useFrame } from "@darkroom.engineering/hamo"
-import { useEffect, useMemo } from "react"
-import _Stats from "stats-gl"
-import s from "./stats.module.css"
+import { useFrame } from '@darkroom.engineering/hamo'
+import { useEffect, useMemo } from 'react'
+import _Stats from 'stats-gl'
+import s from './stats.module.css'
 
 export function Stats() {
   const stats = useMemo(() => new _Stats({ minimal: false }), [])

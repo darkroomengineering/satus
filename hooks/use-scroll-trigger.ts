@@ -192,7 +192,7 @@ export function useScrollTrigger(
 
   let viewportStart = isNumber(viewportStartKeyword)
     ? Number.parseFloat(viewportStartKeyword)
-    : windowHeight
+    : 0
   if (viewportStartKeyword === 'top') viewportStart = 0
   if (viewportStartKeyword === 'center') viewportStart = windowHeight * 0.5
   if (viewportStartKeyword === 'bottom') viewportStart = windowHeight
@@ -238,7 +238,7 @@ export function useScrollTrigger(
         ),
       })
     },
-    [endValue, startValue, steps, onProgress]
+    [endValue, startValue, steps, ...deps]
   )
 
   // eslint-disable-next-line no-unused-vars

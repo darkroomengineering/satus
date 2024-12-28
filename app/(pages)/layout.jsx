@@ -1,4 +1,5 @@
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google'
+import { ReactTempus } from 'tempus/react'
 import { Debug } from '~/components/debug'
 import { GSAP } from '~/components/gsap'
 import { RealViewport } from '~/components/real-viewport'
@@ -76,6 +77,7 @@ export default function Layout({ children }) {
         {children}
         <Debug />
         <GSAP />
+        <ReactTempus patch />
       </body>
       {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
     </html>

@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "@darkroom.engineering/hamo": "0.6.46",
-    "@darkroom.engineering/tempus": "0.0.46",
     "@hubspot/api-client": "^12.0.1",
     "@next/third-parties": "^15.0.3",
     "@react-three/drei": "^9.115.0",
@@ -28,7 +27,7 @@
     "babel-plugin-react-compiler": "19.0.0-beta-a7bf2bd-20241110",
     "clsx": "^2.1.1",
     "gsap": "^3.12.5",
-    "lenis": "1.1.16",
+    "lenis": "1.1.19-dev.3",
     "next": "15.0.4",
     "postprocessing": "^6.36.4",
     "react": "19.0.0",
@@ -39,6 +38,7 @@
     "stats-gl": "^3.6.0",
     "storyblok-js-client": "^6.10.1",
     "storyblok-rich-text-react-renderer": "^2.9.2",
+    "tempus": "1.0.0-dev.5",
     "three": "^0.170.0",
     "tunnel-rat": "^0.1.2",
     "zustand": "5.0.1"

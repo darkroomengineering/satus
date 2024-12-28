@@ -1,6 +1,6 @@
-import { useFrame } from '@darkroom.engineering/hamo'
 import { useEffect, useMemo } from 'react'
 import _Stats from 'stats-gl'
+import { useTempus } from 'tempus/react'
 import s from './stats.module.css'
 
 export function Stats() {
@@ -15,14 +15,22 @@ export function Stats() {
     }
   }, [stats])
 
-  useFrame(() => {
-    stats.begin()
-  }, Number.NEGATIVE_INFINITY)
+  useTempus(
+    () => {
+      stats.begin()
+    },
+    {
+      priority: Number.NEGATIVE_INFINITY,
+    }
+  )
 
-  useFrame(() => {
-    stats.end()
-    stats.update()
-  }, Number.POSITIVE_INFINITY)
-
-  return null
+  useTempus(
+    () => {
+      stats.end()
+      stats.update()
+    },
+    {
+      priority: Number.POSITIVE_INFINITY,
+    }
+  )
 }

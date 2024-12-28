@@ -12,6 +12,10 @@
   }
 }
 
+* {
+  scrollbar-width: thin;
+}
+
 /* Core styles that shouldn't be reset */
 body {
   min-height: 100vh;

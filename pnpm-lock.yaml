@@ -14,9 +14,6 @@ importers:
       '@darkroom.engineering/hamo':
         specifier: 0.6.46
         version: 0.6.46(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@darkroom.engineering/tempus':
-        specifier: 0.0.46
-        version: 0.0.46
       '@hubspot/api-client':
         specifier: ^12.0.1
         version: 12.0.1
@@ -48,8 +45,8 @@ importers:
         specifier: ^3.12.5
         version: 3.12.5
       lenis:
-        specifier: 1.1.16
-        version: 1.1.16(react@19.0.0)
+        specifier: 1.1.19-dev.3
+        version: 1.1.19-dev.3(react@19.0.0)
       next:
         specifier: 15.0.4
         version: 15.0.4(@babel/core@7.26.0)(babel-plugin-react-compiler@19.0.0-beta-a7bf2bd-20241110)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sass@1.80.6)
@@ -80,6 +77,9 @@ importers:
       storyblok-rich-text-react-renderer:
         specifier: ^2.9.2
         version: 2.9.2(react@19.0.0)
+      tempus:
+        specifier: 1.0.0-dev.5
+        version: 1.0.0-dev.5(react@19.0.0)
       three:
         specifier: ^0.170.0
         version: 0.170.0
@@ -3871,8 +3871,8 @@ packages:
     resolution: {integrity: sha512-lMXbcFHNDr+gzy/7ghuJDVB/Yyycj+ZL/7pN3Gm/s5Xqrc9+5sj3IrDAPylcEJ1cKCbUnXbwESrhhqpcYv4d4g==}
     hasBin: true
 
-  lenis@1.1.16:
-    resolution: {integrity: sha512-bGS8IxJW3x310gTwFylgYU6bGzeVnTALmgyLP8RZ9DFSYC/hN3fi+urCWspr5otljbDAGF4ND2GKCFtemAd45Q==}
+  lenis@1.1.19-dev.3:
+    resolution: {integrity: sha512-GezqBOT+a2jS9XA0aa1rTyTeEeFkIYa7n36wbBeXWenvQDWYdR7vXcGMw2i3WfSxt/WgTYHMe46vEtIqQDrpxw==}
     peerDependencies:
       react: '>=17.0.0'
       vue: '>=3.0.0'
@@ -5201,6 +5201,14 @@ packages:
   tapable@2.2.1:
     resolution: {integrity: sha512-GNzQvQTOIP6RyTfE2Qxb8ZVlNmw0n88vp1szwWRimP02mnTsx3Wtn5qRdqY9w2XduFNUgvOwhNnQsjwCp+kqaQ==}
     engines: {node: '>=6'}
+
+  tempus@1.0.0-dev.5:
+    resolution: {integrity: sha512-8uBIR/rKj41TJMGCN/0X4DcNAZJnehJzZR37M5vbWT0/cq0F525lP5w6hcaGXIe3ultlUzlGu0isfnX3yjME+A==}
+    peerDependencies:
+      react: '>=17.0.0'
+    peerDependenciesMeta:
+      react:
+        optional: true
 
   terser-webpack-plugin@5.3.10:
     resolution: {integrity: sha512-BKFPWlPDndPs+NGGCr1U59t0XScL5317Y0UReNrHaw9/FwhPENlq6bfgs+4yPfyP51vqC1bQ4rp1EfXW5ZSH9w==}
@@ -10055,7 +10063,7 @@ snapshots:
       lefthook-windows-arm64: 1.8.2
       lefthook-windows-x64: 1.8.2
 
-  lenis@1.1.16(react@19.0.0):
+  lenis@1.1.19-dev.3(react@19.0.0):
     optionalDependencies:
       react: 19.0.0
 
@@ -11553,6 +11561,10 @@ snapshots:
       picocolors: 1.1.1
 
   tapable@2.2.1: {}
+
+  tempus@1.0.0-dev.5(react@19.0.0):
+    optionalDependencies:
+      react: 19.0.0
 
   terser-webpack-plugin@5.3.10(esbuild@0.24.0)(webpack@5.96.1(esbuild@0.24.0)):
     dependencies:

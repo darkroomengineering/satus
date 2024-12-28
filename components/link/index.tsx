@@ -1,8 +1,6 @@
 'use client'
 
-import { useLenis } from 'lenis/react'
 import NextLink, { type LinkProps as NextLinkProps } from 'next/link'
-import { usePathname } from 'next/navigation'
 import type { ElementType, HTMLAttributes, Ref } from 'react'
 
 interface LinkProps
@@ -25,8 +23,8 @@ export function Link({
   ref,
   ...props
 }: LinkProps) {
-  const lenis = useLenis()
-  const pathname = usePathname()
+  // const lenis = useLenis()
+  // const pathname = usePathname()
 
   if (!href || typeof href !== 'string') {
     const Tag = fallback
@@ -42,16 +40,16 @@ export function Link({
     rel: isExternal ? 'noopener noreferrer' : undefined,
   }
 
-  const isAnchor = href.startsWith('#') || href.startsWith(`${pathname}#`)
+  // const isAnchor = href.startsWith('#') || href.startsWith(`${pathname}#`)
 
   return (
     <NextLink
       ref={ref}
       onClick={(e) => {
-        if (isAnchor && lenis) {
-          e.preventDefault()
-          lenis.scrollTo(href)
-        }
+        // if (isAnchor && lenis) {
+        //   e.preventDefault()
+        //   lenis.scrollTo(href)
+        // }
         onClick?.(e)
       }}
       {...internalLinkProps}

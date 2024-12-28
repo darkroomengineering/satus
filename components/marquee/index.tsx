@@ -1,15 +1,15 @@
-"use client"
+'use client'
 
 import {
   useIntersectionObserver,
   useResizeObserver,
-} from "@darkroom.engineering/hamo"
-import cn from "clsx"
-import { useLenis } from "lenis/react"
-import { type HTMLAttributes, useRef } from "react"
-import { useTempus } from "tempus/react"
-import { modulo } from "~/libs/maths"
-import s from "./marquee.module.css"
+} from '@darkroom.engineering/hamo'
+import cn from 'clsx'
+import { useLenis } from 'lenis/react'
+import { type HTMLAttributes, useRef } from 'react'
+import { useTempus } from 'tempus/react'
+import { modulo } from '~/libs/maths'
+import s from './marquee.module.css'
 
 interface MarqueeProps extends HTMLAttributes<HTMLDivElement> {
   repeat?: number
@@ -89,7 +89,7 @@ export function Marquee({
           }`}
           className={s.inner}
           aria-hidden={i !== 0}
-          data-nosnippet={i !== 0 ? "" : undefined}
+          data-nosnippet={i !== 0 ? '' : undefined}
           ref={(node) => {
             if (!node) return
             elementsRef.current[i] = node

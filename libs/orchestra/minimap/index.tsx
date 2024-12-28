@@ -1,10 +1,10 @@
-"use client"
+'use client'
 
-import { useWindowSize } from "@darkroom.engineering/hamo"
-import { useCallback, useEffect, useId, useRef, useState } from "react"
-import { useTempus } from "tempus/react"
-import { create } from "zustand"
-import s from "./minimap.module.css"
+import { useWindowSize } from '@darkroom.engineering/hamo'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { useTempus } from 'tempus/react'
+import { create } from 'zustand'
+import s from './minimap.module.css'
 
 type MinimapEntry = {
   element: HTMLElement
@@ -19,7 +19,7 @@ const useMinimapStore = create<MinimapStore>(() => ({
   list: {},
 }))
 
-export function useMinimap({ color = "blue" } = {}) {
+export function useMinimap({ color = 'blue' } = {}) {
   const [element, setElement] = useState<HTMLElement | null>()
   const id = useId()
 
@@ -48,7 +48,7 @@ export function useMinimap({ color = "blue" } = {}) {
 }
 
 export function Minimap() {
-  const [aspectRatio, setAspectRatio] = useState("1")
+  const [aspectRatio, setAspectRatio] = useState('1')
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver(([entry]) => {
@@ -71,14 +71,14 @@ export function Minimap() {
       window.scrollY /
       (document.documentElement.scrollHeight - window.innerHeight)
 
-    elementRef.current.style.setProperty("--progress", progress.toString())
+    elementRef.current.style.setProperty('--progress', progress.toString())
   }, [])
 
   useEffect(() => {
-    window.addEventListener("scroll", onScroll)
+    window.addEventListener('scroll', onScroll)
 
     return () => {
-      window.removeEventListener("scroll", onScroll)
+      window.removeEventListener('scroll', onScroll)
     }
   }, [onScroll])
 
@@ -90,8 +90,8 @@ export function Minimap() {
     <div
       ref={elementRef}
       style={{
-        "--viewport-ratio": width / height,
-        "--body-ratio": aspectRatio,
+        '--viewport-ratio': width / height,
+        '--body-ratio': aspectRatio,
       }}
       className={s.minimap}
     >
@@ -121,7 +121,7 @@ function Marker({ element, color }: MinimapEntry) {
     const width = rect.width / window.innerWidth
 
     // markerRef.current.style.top = `${top * 100}%`
-    markerRef.current.style.setProperty("--top", top.toString())
+    markerRef.current.style.setProperty('--top', top.toString())
     // markerRef.current.style.height = `${height * 100}%`
     markerRef.current.style.left = `${left * 100}%`
     markerRef.current.style.width = `${width * 100}%`

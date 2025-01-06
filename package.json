@@ -38,7 +38,7 @@
     "stats-gl": "^3.6.0",
     "storyblok-js-client": "^6.10.1",
     "storyblok-rich-text-react-renderer": "^2.9.2",
-    "tempus": "1.0.0-dev.5",
+    "tempus": "1.0.0-dev.9",
     "three": "^0.171.0",
     "tunnel-rat": "^0.1.2",
     "zustand": "5.0.2"

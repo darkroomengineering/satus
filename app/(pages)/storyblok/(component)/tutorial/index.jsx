@@ -10,9 +10,9 @@ import s from './tutorial.module.css'
 // - Draft mode
 
 export function Tutorial() {
-  const { story } = useStoryblokContext()
-
-  const content = story?.content
+  const {
+    story: { content },
+  } = useStoryblokContext()
 
   return (
     <div className={s.tutorial} {...storyblokEditable(content)}>

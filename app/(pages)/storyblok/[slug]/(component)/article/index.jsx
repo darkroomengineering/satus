@@ -5,9 +5,9 @@ import { useStoryblokContext } from '~/libs/storyblok/context'
 import s from './article.module.css'
 
 export function Article() {
-  const { story } = useStoryblokContext()
-
-  const content = story?.content
+  const {
+    story: { content },
+  } = useStoryblokContext()
 
   if (!content) return
 

@@ -1,44 +1,29 @@
-import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
-import { Wrapper } from '~/app/(pages)/(components)/wrapper'
-import { StoryblokApi } from '~/libs/storyblok'
+import { fetchAll, fetchStoryblokStory } from '~/libs/storyblok'
 import { StoryblokContextProvider } from '~/libs/storyblok/context'
+import { Wrapper } from '../../(components)/wrapper'
 import { Article } from './(component)/article'
 import s from './article-page.module.css'
 
 // https://nextjs.org/docs/app/api-reference/functions/generate-static-params
+const SLUG = 'cdn/stories/blog'
 
 export async function generateStaticParams() {
-  const { data } = await new StoryblokApi({
-    draft: true,
-  }).get('cdn/stories/', {
+  const { data } = await fetchAll('cdn/stories', {
     starts_with: 'blog',
   })
 
-  const stories = data?.stories
-
-  return stories?.map(({ slug }) => ({ slug }))
+  return data.map(({ slug }) => ({ slug }))
 }
 
 export default async function StoryblokSubPage({ params }) {
-  const _draftMode = await draftMode()
-  const isDraftMode =
-    _draftMode.isEnabled || process.env.NODE_ENV === 'development'
+  const { slug } = await params
+  const { data } = await fetchStoryblokStory(`${SLUG}/${slug}`)
 
-  const { data } = await new StoryblokApi({
-    draft: isDraftMode,
-  })
-    .get(`cdn/stories/blog/${params.slug}`, {
-      resolve_relations: [],
-    })
-    .catch(() => notFound())
-
-  const content = data?.story?.content
-
-  if (!content) return
+  if (!data) return notFound()
 
   return (
-    <StoryblokContextProvider story={data.story} options={{}}>
+    <StoryblokContextProvider {...data}>
       <Wrapper theme="red" className={s.page}>
         <div className={s.inner}>
           <Article />
@@ -51,33 +36,27 @@ export default async function StoryblokSubPage({ params }) {
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata
 
 export async function generateMetadata({ params }) {
-  const _draftMode = await draftMode()
-  const isDraftMode =
-    _draftMode.isEnabled || process.env.NODE_ENV === 'development'
+  const { slug } = await params
+  const { data } = await fetchStoryblokStory(`${SLUG}/${slug}`)
+  const metadata = data?.story?.content?.metadata?.[0]
 
-  const { data } = await new StoryblokApi({
-    draft: isDraftMode,
-  }).get(`cdn/stories/blog/${params.slug}`)
-
-  const content = data?.story?.content?.metadata?.[0]
-
-  if (!content) return
+  if (!metadata) return
 
   return {
-    title: content?.title,
-    description: content?.description,
-    images: content?.image?.filename,
-    keywords: content?.keywords?.value,
+    title: metadata?.title,
+    description: metadata?.description,
+    images: metadata?.image?.filename,
+    keywords: metadata?.keywords?.value,
     openGraph: {
-      title: content?.title,
-      description: content?.description,
-      images: content?.image?.filename,
+      title: metadata?.title,
+      description: metadata?.description,
+      images: metadata?.image?.filename,
       url: process.env.NEXT_PUBLIC_BASE_URL,
     },
     twitter: {
-      title: content?.title,
-      description: content?.description,
-      images: content?.image?.filename,
+      title: metadata?.title,
+      description: metadata?.description,
+      images: metadata?.image?.filename,
     },
   }
 }

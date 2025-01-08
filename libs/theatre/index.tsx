@@ -8,7 +8,6 @@ import {
   useContext,
   useEffect,
   useImperativeHandle,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -31,14 +30,16 @@ export function TheatreProjectProvider({
 
   useEffect(() => {
     if (project) {
-      console.log(`theatre project ${id} loaded`)
+      isLoadingRef.current = false
+      window.THEATRE_PROJECT_ID = project.address.projectId
+      console.log(`Theatre: project ${id} loaded`)
     }
   }, [project, id])
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (config) {
       if (!isLoadingRef.current) {
-        console.log(`theatre project ${id} loading...`)
+        console.log(`Theatre: project ${id} loading...`)
         isLoadingRef.current = true
         fetch(config)
           .then((response) => response.json())

@@ -1,3 +1,5 @@
+'use client'
+
 import { OrthographicCamera } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import { SheetProvider } from '~/libs/theatre'
@@ -10,13 +12,14 @@ import s from './webgl.module.css'
 
 type WebGLCanvasProps = React.HTMLAttributes<HTMLDivElement> & {
   render?: boolean
+  postprocessing?: boolean
 }
 
 export function WebGLCanvas({
   render = true,
-  postprocessing = true,
+  postprocessing = false,
   ...props
-}) {
+}: WebGLCanvasProps) {
   const { WebGLTunnel, DOMTunnel } = useCanvas()
 
   return (
@@ -50,7 +53,7 @@ export function WebGLCanvas({
           />
           <RAF render={render} />
           <FlowmapProvider>
-            <PostProcessing />
+            {postprocessing && <PostProcessing />}
             <WebGLTunnel.Out />
           </FlowmapProvider>
           <Preload />

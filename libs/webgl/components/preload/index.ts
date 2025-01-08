@@ -16,10 +16,12 @@ export function Preload() {
     async () => {
       if (active) return
 
-      console.log('Preloading...')
+      console.log('WebGL: Preloading...')
+
+      console.time('WebGL: Preload took:')
 
       const invisible: THREE.Object3D[] = []
-      scene.traverse((object: any) => {
+      scene.traverse((object: THREE.Object3D) => {
         if (object.visible === false) {
           invisible.push(object)
           object.visible = true
@@ -28,16 +30,16 @@ export function Preload() {
       await gl.compileAsync(scene, camera)
       const cubeRenderTarget = new WebGLCubeRenderTarget(128)
       const cubeCamera = new CubeCamera(0.01, 100000, cubeRenderTarget)
-      cubeCamera.update(gl as any, scene as any)
+      cubeCamera.update(gl as THREE.WebGLRenderer, scene as THREE.Scene)
       cubeRenderTarget.dispose()
 
       for (const object of invisible) {
         object.visible = false
       }
 
-      console.timeEnd('Preload')
+      console.timeEnd('WebGL: Preload took:')
     },
-    500,
+    1000,
     [active, gl, camera, scene]
   )
 

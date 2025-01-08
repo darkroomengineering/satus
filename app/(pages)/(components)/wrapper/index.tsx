@@ -4,15 +4,16 @@ import cn from 'clsx'
 import type { LenisOptions } from 'lenis'
 import { usePathname } from 'next/navigation'
 import { useEffect } from 'react'
+import { Canvas } from '~/libs/webgl/components/canvas'
 import type { themeNames } from '~/styles/config.mjs'
 import { Footer } from '../footer'
 import { Lenis } from '../lenis'
-import { Navigation } from '../navigation'
 import s from './page-config.module.css'
 
 interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
   theme?: (typeof themeNames)[number]
   lenis?: LenisOptions
+  webgl?: boolean | object
 }
 
 export function Wrapper({
@@ -20,6 +21,7 @@ export function Wrapper({
   theme = 'dark',
   className,
   lenis,
+  webgl,
   ...props
 }: WrapperProps) {
   const pathname = usePathname()
@@ -31,7 +33,7 @@ export function Wrapper({
 
   return (
     <>
-      <Navigation />
+      {webgl && <Canvas root {...(typeof webgl === 'object' && webgl)} />}
       <main className={cn(s.main, className)} {...props}>
         {children}
         <script>

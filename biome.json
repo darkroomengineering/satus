@@ -48,7 +48,8 @@
         "useValidAnchor": "warn"
       },
       "style": {
-        "noNonNullAssertion": "off"
+        "noNonNullAssertion": "off",
+        "noUnusedTemplateLiteral": "off"
       }
     }
   },

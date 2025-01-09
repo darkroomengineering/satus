@@ -8,6 +8,7 @@ import { Canvas } from '~/libs/webgl/components/canvas'
 import type { themeNames } from '~/styles/config.mjs'
 import { Footer } from '../footer'
 import { Lenis } from '../lenis'
+import { Navigation } from '../navigation'
 import s from './page-config.module.css'
 
 interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -34,6 +35,7 @@ export function Wrapper({
   return (
     <>
       {webgl && <Canvas root {...(typeof webgl === 'object' && webgl)} />}
+      <Navigation />
       <main className={cn(s.main, className)} {...props}>
         {children}
         <script>

@@ -9,8 +9,9 @@
     justify-content: space-between;
     padding: mobile-vw(8px) mobile-vw(12px);
     border-radius: mobile-vw(2px);
-    border: 1px solid var(--theme-secondary);
+    border: 1px solid currentColor;
     background-color: var(--theme-primary);
+    color: var(--theme-secondary);
 
     @include-media ('desktop') {
       padding: desktop-vw(8px) desktop-vw(12px);

@@ -12,6 +12,11 @@ export default {
           height: '100vh',
           overflowY: 'auto',
           fontSize: '5vw',
+          backgroundColor: 'var(--theme-primary)',
+          color: 'var(--theme-secondary)',
+        }}
+        options={{
+          autoRaf: true,
         }}
       >
         <div style={{ padding: '250px 0' }}>

@@ -31,7 +31,12 @@ export function Marquee({
   onMouseLeave,
   ...props
 }: MarqueeProps) {
-  const [setRectRef, { contentRect: rect }] = useResizeObserver()
+  const [setRectRef, getEntry] = useResizeObserver({
+    lazy: true,
+  })
+  
+
+  // return
   const elementsRef = useRef<HTMLDivElement[]>([])
   const transformRef = useRef(Math.random() * 1000)
   const isHovered = useRef(false)
@@ -41,10 +46,15 @@ export function Marquee({
   const lenis = useLenis() // eslint-disable-line react-hooks/exhaustive-deps
 
   useTempus((_, deltaTime) => {
+    // @ts-expect-error
+    const entry = getEntry()
+
+    const width = entry?.borderBoxSize[0]?.inlineSize
+
     if (!intersection.isIntersecting) return
     if (pauseOnHover && isHovered.current) return
 
-    if (!rect.width) return
+    if (!entry?.borderBoxSize[0]?.inlineSize) return
 
     let velocity = lenis?.velocity ?? 0
     if (!scrollVelocity) {
@@ -60,7 +70,7 @@ export function Marquee({
       transformRef.current += offset
     }
 
-    transformRef.current = modulo(transformRef.current, rect.width)
+    transformRef.current = modulo(transformRef.current, width)
 
     for (const node of elementsRef.current) {
       node.style.transform = `translate3d(${-transformRef.current}px,0,0)`

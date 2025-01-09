@@ -34,7 +34,6 @@ export function Marquee({
   const [setRectRef, getEntry] = useResizeObserver({
     lazy: true,
   })
-  
 
   // return
   const elementsRef = useRef<HTMLDivElement[]>([])

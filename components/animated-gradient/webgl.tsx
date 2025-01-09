@@ -84,11 +84,8 @@ export function WebGLAnimatedGradient({
       })
   )
 
-  const getFlowmap = useFlowmap()
-
-  useFrame(() => {
-    const flowmap = getFlowmap()
-    material.flowmap = flowmap || null
+  useFlowmap((texture) => {
+    material.flowmap = texture
   })
 
   const gradientTexture = useGradient(colors)

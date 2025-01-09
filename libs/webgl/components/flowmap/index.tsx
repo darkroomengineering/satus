@@ -27,6 +27,7 @@ export const FlowmapContext = createContext<FlowmapContextType>(
 export function useFlowmap(callback: FlowmapCallback) {
   const { addCallback, removeCallback } = useContext(FlowmapContext)
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: callback as deps can trigger infinite re-renders
   useEffect(() => {
     if (!callback) return
 

@@ -234,7 +234,7 @@ export function useScrollTrigger(
 
   const onUpdate = useCallback(
     (progress: number, lastProgress: number) => {
-      onProgress?.({
+      onProgressRef.current?.({
         height: endValue - startValue,
         isActive: progress >= 0 && progress <= 1,
         progress: clamp(0, progress, 1),

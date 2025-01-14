@@ -1,7 +1,7 @@
 'use client'
 
 import {
-  type ExtendedDOMRect,
+  type Rect,
   useLazyState,
   useWindowSize,
 } from '@darkroom.engineering/hamo'
@@ -29,7 +29,7 @@ function useMarker({
   visible = false,
   id = '',
 }: UseMarkerOptions = {}) {
-  const elementRef = useRef<HTMLElement | null>()
+  const elementRef = useRef<HTMLElement | null>(null)
 
   const color = type === 'start' ? 'green' : 'red'
   const text = type === 'start' ? 'start' : 'end'
@@ -123,15 +123,15 @@ type TriggerPosition = 'top' | 'center' | 'bottom' | number
 type TriggerPositionCombination = `${TriggerPosition} ${TriggerPosition}`
 
 export type UseScrollTriggerOptions = {
-  rect?: ExtendedDOMRect
+  rect?: Rect
   start?: TriggerPositionCombination
   end?: TriggerPositionCombination
   id?: string
   offset?: number
   disabled?: boolean
   markers?: boolean
-  onEnter?: () => void
-  onLeave?: () => void
+  onEnter?: ({ progress }: { progress: number }) => void
+  onLeave?: ({ progress }: { progress: number }) => void
   onProgress?: (progress: {
     height: number
     isActive: boolean
@@ -187,8 +187,10 @@ export function useScrollTrigger(
 
   const { height: windowHeight = 0 } = useWindowSize()
 
-  const [elementStartKeyword, viewportStartKeyword] = start.split(' ')
-  const [elementEndKeyword, viewportEndKeyword] = end.split(' ')
+  const [elementStartKeyword, viewportStartKeyword] =
+    typeof start === 'string' ? start.split(' ') : [start]
+  const [elementEndKeyword, viewportEndKeyword] =
+    typeof end === 'string' ? end.split(' ') : [end]
 
   let viewportStart = isNumber(viewportStartKeyword)
     ? Number.parseFloat(viewportStartKeyword)
@@ -226,6 +228,10 @@ export function useScrollTrigger(
 
   const startValue = elementStart - viewportStart
   const endValue = elementEnd - viewportEnd
+
+  const onProgressRef = useRef(onProgress)
+  onProgressRef.current = onProgress
+
   const onUpdate = useCallback(
     (progress: number, lastProgress: number) => {
       onProgress?.({
@@ -242,22 +248,38 @@ export function useScrollTrigger(
   )
 
   // eslint-disable-next-line no-unused-vars
-  const [getProgress, setProgress] = useLazyState(
-    0,
-    (progress, lastProgress = 0) => {
+  const [setProgress, getProgress] = useLazyState(
+    // @ts-ignore
+    undefined,
+    (progress: number, lastProgress: number) => {
       if (Number.isNaN(progress)) return
-      if (clamp(0, progress, 1) === clamp(0, lastProgress, 1)) return
 
-      onUpdate(progress, lastProgress)
-    }
+      if (
+        (progress >= 0 && lastProgress < 0) ||
+        (progress <= 1 && lastProgress > 1)
+      ) {
+        onEnter?.({ progress: clamp(0, progress, 1) })
+      }
+
+      if (!(clamp(0, progress, 1) === clamp(0, lastProgress, 1)))
+        onUpdate(progress, lastProgress)
+
+      if (
+        (progress < 0 && lastProgress >= 0) ||
+        (progress > 1 && lastProgress <= 1)
+      ) {
+        onLeave?.({ progress: clamp(0, progress, 1) })
+      }
+    },
+    [endValue, startValue, steps, onUpdate, ...deps]
   )
 
-  useEffect(() => {
-    const progress = getProgress()
-    if (Number.isNaN(progress)) return
+  // useEffect(() => {
+  //   const progress = getProgress()
+  //   if (Number.isNaN(progress)) return
 
-    onUpdate(progress, progress)
-  }, [getProgress, onUpdate, ...deps])
+  //   onUpdate(progress, progress)
+  // }, [getProgress, onUpdate, ...deps])
 
   const update = useCallback(() => {
     if (disabled) return

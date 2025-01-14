@@ -16,7 +16,7 @@
     "typecheck": "tsc --noEmit --incremental false"
   },
   "dependencies": {
-    "@darkroom.engineering/hamo": "1.0.0-dev.2",
+    "@darkroom.engineering/hamo": "1.0.0-dev.4",
     "@hubspot/api-client": "^12.0.1",
     "@next/third-parties": "^15.1.3",
     "@react-three/drei": "^9.120.5",

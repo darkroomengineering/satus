@@ -11,9 +11,6 @@ importers:
 
   .:
     dependencies:
-      '@darkroom.engineering/hamo':
-        specifier: 1.0.0-dev.4
-        version: 1.0.0-dev.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@hubspot/api-client':
         specifier: ^12.0.1
         version: 12.0.1
@@ -1069,12 +1066,6 @@ packages:
     engines: {node: '>=18'}
     peerDependencies:
       postcss: ^8.4
-
-  '@darkroom.engineering/hamo@1.0.0-dev.4':
-    resolution: {integrity: sha512-u6+Qyu54KHlq99ubCOgwnmw+bFpZ8nu/TBVO+1VgrRKmmrm8qoPlWakt4rhnzJrdO++5m4rvF7qgu8wyyQhttw==}
-    peerDependencies:
-      react: '>=17.0.0'
-      react-dom: '>=17.0.0'
 
   '@discoveryjs/json-ext@0.5.7':
     resolution: {integrity: sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==}
@@ -6523,13 +6514,6 @@ snapshots:
   '@csstools/utilities@2.0.0(postcss@8.4.49)':
     dependencies:
       postcss: 8.4.49
-
-  '@darkroom.engineering/hamo@1.0.0-dev.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
-    dependencies:
-      just-debounce-it: 3.2.0
-      nanoevents: 9.1.0
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
 
   '@discoveryjs/json-ext@0.5.7': {}
 

@@ -20,7 +20,8 @@
         dialog,
         vercel-live-feedback,
         nextjs-portal,
-        #theatrejs-studio-root, :where(select, option)
+        #theatrejs-studio-root,
+        :where(select, option)
       ):not(svg *, symbol *)
   ) {
   all: unset;

@@ -4,7 +4,9 @@ import {
   Vector2,
   type WebGLProgramParametersWithUniforms,
 } from 'three'
+import type { Fluid } from '~/libs/webgl/utils/fluid'
 import { NOISE } from '~/libs/webgl/utils/noise'
+import type { Flowmap } from './../../libs/webgl/utils/flowmap'
 
 export class AnimatedGradientMaterial extends MeshBasicMaterial {
   private uniforms: {
@@ -18,7 +20,12 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
     uColorsTexture: { value: Texture | null }
     uOffset: { value: number }
     uQuantize: { value: number }
-    uFlowmap: { value: Texture | null }
+    uFlowmap:
+      | Flowmap
+      | Fluid
+      | {
+          value: null
+        }
     uDpr: { value: number }
   }
 
@@ -38,11 +45,21 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
     colorFrequency = 0.33,
     quantize = 0,
     radial = false,
-    flowmap = true,
-  } = {}) {
+    flowmap,
+  }: {
+    frequency?: number
+    amplitude?: number
+    colorAmplitude?: number
+    colorFrequency?: number
+    quantize?: number
+    radial?: boolean
+    flowmap?: Flowmap | Fluid
+  }) {
     super({
       transparent: true,
     })
+
+    console.log(flowmap.uniform)
 
     this.uniforms = {
       uTime: { value: 0 },
@@ -55,12 +72,15 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
       uColorsTexture: { value: null },
       uOffset: { value: radial ? Math.random() * 1000 : 0 },
       uQuantize: { value: quantize },
-      uFlowmap: { value: null },
+      uFlowmap: flowmap?.uniform || {
+        value: null,
+      },
       uDpr: { value: 1 },
     }
+
     this.defines = {
       USE_RADIAL: radial,
-      USE_FLOWMAP: flowmap,
+      USE_FLOWMAP: !!flowmap,
       USE_UV: true,
     }
 
@@ -127,7 +147,7 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
 
       # ifdef USE_FLOWMAP
         vec4 flow = texture2D(uFlowmap, fragCoord / (uResolution.xy * uDpr));
-        flow *= 0.00025;
+        flow *= 0.0025;
 
         screenUV += flow.rg;
       # endif
@@ -158,6 +178,8 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
       alpha = alpha - rand(fragCoord) * 0.05;
 
       vec4 diffuseColor = vec4( color, alpha );
+
+      // diffuseColor = texture2D(uFlowmap, fragCoord / (uResolution.xy * uDpr));
       `
     )
   }
@@ -220,13 +242,5 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
 
   set quantize(value) {
     this.uniforms.uQuantize.value = value
-  }
-
-  get flowmap() {
-    return this.uniforms.uFlowmap.value
-  }
-
-  set flowmap(value) {
-    this.uniforms.uFlowmap.value = value
   }
 }

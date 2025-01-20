@@ -67,10 +67,12 @@ export function WebGLAnimatedGradient({
   colorFrequency = 0.33,
   quantize = 0,
   radial = false,
-  flowmap = true,
+  flowmap: hasFlowmap = true,
   colors = ['#ff0000', '#000000'],
   speed = 1,
 }: WebGLAnimatedGradientProps) {
+  const flowmap = useFlowmap('fluid')
+
   const [material] = useState(
     () =>
       new AnimatedGradientMaterial({
@@ -80,13 +82,9 @@ export function WebGLAnimatedGradient({
         colorFrequency,
         quantize,
         radial,
-        flowmap,
+        flowmap: hasFlowmap && flowmap,
       })
   )
-
-  useFlowmap((texture) => {
-    material.flowmap = texture
-  })
 
   const gradientTexture = useGradient(colors)
 
@@ -129,7 +127,6 @@ export function WebGLAnimatedGradient({
   const viewport = useThree((state) => state.viewport)
 
   useEffect(() => {
-    console.log(viewport.dpr)
     material.dpr = viewport.dpr
   }, [material, viewport])
 

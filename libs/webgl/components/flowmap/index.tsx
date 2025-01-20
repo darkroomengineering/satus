@@ -1,53 +1,33 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { types } from '@theatre/core'
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-} from 'react'
-import type { Texture } from 'three'
+import { createContext, useContext, useMemo } from 'react'
 import { useCurrentSheet } from '~/libs/theatre'
 import { useTheatre } from '~/libs/theatre/hooks/use-theatre'
-import FluidSimulation from '~/libs/webgl/utils/fluid-simulation'
+import { Flowmap } from '~/libs/webgl/utils/flowmap'
+import { Fluid } from '~/libs/webgl/utils/fluid'
 
 type FlowmapContextType = {
-  addCallback: (callback: FlowmapCallback) => void
-  removeCallback: (callback: FlowmapCallback) => void
+  fluid: Fluid
+  flowmap: Flowmap
 }
-
-type FlowmapCallback = (texture: Texture) => void
 
 export const FlowmapContext = createContext<FlowmapContextType>(
   {} as FlowmapContextType
 )
 
-export function useFlowmap(callback: FlowmapCallback) {
-  const { addCallback, removeCallback } = useContext(FlowmapContext)
+export function useFlowmap(type: 'fluid' | 'flowmap' = 'flowmap') {
+  const { fluid, flowmap } = useContext(FlowmapContext)
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: callback as deps can trigger infinite re-renders
-  useEffect(() => {
-    if (!callback) return
-
-    addCallback(callback)
-
-    return () => {
-      removeCallback(callback)
-    }
-  }, [addCallback, removeCallback])
-
-  return useContext(FlowmapContext)
+  if (type === 'fluid') return fluid
+  return flowmap
 }
 
 export function FlowmapProvider({ children }: { children: React.ReactNode }) {
   const gl = useThree((state) => state.gl)
 
-  const fluidSimulation = useMemo(
-    () => new FluidSimulation({ renderer: gl, size: 128 }),
-    [gl]
-  )
+  const fluid = useMemo(() => new Fluid(gl, { size: 128 }), [gl])
+
+  const flowmap = useMemo(() => new Flowmap(gl, { size: 128 }), [gl])
 
   const sheet = useCurrentSheet()
 
@@ -75,57 +55,45 @@ export function FlowmapProvider({ children }: { children: React.ReactNode }) {
         curl: number
         radius: number
       }) => {
-        fluidSimulation.curlStrength = curl
-        fluidSimulation.densityDissipation = density
-        fluidSimulation.velocityDissipation = velocity
-        fluidSimulation.pressureDissipation = pressure
-        fluidSimulation.radius = radius
+        fluid.curlStrength = curl
+        fluid.densityDissipation = density
+        fluid.velocityDissipation = velocity
+        fluid.pressureDissipation = pressure
+        fluid.radius = radius
       },
-      deps: [fluidSimulation],
+      deps: [fluid],
     }
   )
 
-  // const [texture, setTexture] = useState()
-
-  const textureRef = useRef()
-
-  // const getTexture = useCallback(() => textureRef.current, [])
-
-  const callbacksRefs = useRef<FlowmapCallback[]>([])
-
-  const addCallback = useCallback((callback: FlowmapCallback) => {
-    callbacksRefs.current.push(callback)
-  }, [])
-
-  const removeCallback = useCallback((callback: FlowmapCallback) => {
-    callbacksRefs.current = callbacksRefs.current.filter(
-      (ref) => ref !== callback
-    )
-  }, [])
-
-  const update = useCallback(() => {
-    for (const callback of callbacksRefs.current) {
-      callback(textureRef.current as unknown as Texture)
+  useTheatre(
+    sheet,
+    'flowmap',
+    {
+      falloff: types.number(0.2, { range: [0, 1], nudgeMultiplier: 0.01 }),
+      dissipation: types.number(0.98, { range: [0, 1], nudgeMultiplier: 0.01 }),
+    },
+    {
+      onValuesChange: ({
+        falloff,
+        dissipation,
+      }: {
+        falloff: number
+        dissipation: number
+      }) => {
+        flowmap.falloff = falloff
+        flowmap.dissipation = dissipation
+      },
+      deps: [flowmap],
     }
-  }, [])
+  )
 
-  useFrame(({ gl }) => {
-    if (callbacksRefs.current.length === 0) return
-
-    textureRef.current = fluidSimulation.update()
-    update()
-
-    gl.setRenderTarget(null)
-    gl.clear()
+  useFrame(() => {
+    fluid.update()
+    flowmap.update()
   }, -10)
 
   return (
-    <FlowmapContext.Provider
-      value={{
-        addCallback,
-        removeCallback,
-      }}
-    >
+    <FlowmapContext.Provider value={{ fluid, flowmap }}>
       {children}
     </FlowmapContext.Provider>
   )

@@ -1,20 +1,17 @@
-/* eslint-disable */
-
-// https://github.com/oframe/ogl/blob/master/examples/post-fluid-distortion.html
+// https://github.com/alienkitty/alien.js/blob/main/src/three/utils/Fluid.js
 
 import {
-  FloatType,
   HalfFloatType,
   LinearFilter,
   NearestFilter,
   RGBAFormat,
   RGFormat,
   RedFormat,
-} from 'three/src/constants'
-import { ShaderMaterial } from 'three/src/materials/ShaderMaterial'
-import { Vector2 } from 'three/src/math/Vector2'
-import { Vector3 } from 'three/src/math/Vector3'
-import { WebGLRenderTarget } from 'three/src/renderers/WebGLRenderTarget'
+  ShaderMaterial,
+  Vector2,
+  Vector3,
+  WebGLRenderTarget,
+} from 'three'
 
 import Program from './program'
 
@@ -270,10 +267,11 @@ function createDoubleFBO(
       depthBuffer,
       stencilBuffer,
     }),
-    swap: () => {
+    swap: (callback) => {
       const temp = fbo.read
       fbo.read = fbo.write
       fbo.write = temp
+      callback?.(fbo.write.texture)
     },
   }
   if (internalFormat) {
@@ -355,8 +353,8 @@ function getSupportedFormat(gl, internalFormat, format, type) {
   }
 }
 
-export default class FluidSimulation {
-  constructor({ renderer, size = 128 } = {}) {
+export class Fluid {
+  constructor(renderer, { size = 128 } = {}) {
     this.renderer = renderer
     // Resolution of simulation
     this.simRes = size
@@ -406,7 +404,13 @@ export default class FluidSimulation {
 
     const filtering = supportLinearFiltering ? LinearFilter : NearestFilter
 
-    halfFloat = isWebGL2 ? FloatType : HalfFloatType
+    halfFloat = isWebGL2
+      ? HalfFloatType
+      : gl.getExtension('OES_texture_half_float').HALF_FLOAT_OES
+
+    this.uniform = {
+      value: null,
+    }
 
     // Create fluid simulation FBOs
     this.density = createDoubleFBO(this.dyeRes, this.dyeRes, {
@@ -581,23 +585,9 @@ export default class FluidSimulation {
 
     this.lastMouse = new Vector2()
 
-    window.addEventListener('touchstart', this.onMouseDown.bind(this), false)
-    window.addEventListener('mousedown', this.onMouseDown.bind(this), false)
-
     window.addEventListener('touchstart', this.updateMouse.bind(this), false)
     window.addEventListener('touchmove', this.updateMouse.bind(this), false)
     window.addEventListener('mousemove', this.updateMouse.bind(this), false)
-
-    window.addEventListener('touchend', this.onMouseUp.bind(this), false)
-    window.addEventListener('mouseup', this.onMouseUp.bind(this), false)
-  }
-
-  onMouseDown() {
-    this.mouseDown = true
-  }
-
-  onMouseUp() {
-    this.mouseDown = false
   }
 
   updateMouse(e) {
@@ -657,12 +647,15 @@ export default class FluidSimulation {
     this.renderer.setRenderTarget(this.density.write)
     this.splatProgram.render(this.renderer)
 
-    this.density.swap()
+    this.density.swap((texture) => {
+      this.uniform.value = texture
+    })
   }
 
-  update(clock) {
+  update() {
     // Perform all of the fluid simulation renders
     // No need to clear during sim, saving a number of GL calls.
+    const oldAutoClear = this.renderer.autoClear
     this.renderer.autoClear = false
 
     // Render all of the inputs since last frame
@@ -751,11 +744,15 @@ export default class FluidSimulation {
     this.renderer.setRenderTarget(this.density.write)
     this.advectionProgram.render(this.renderer)
 
-    this.density.swap()
+    this.density.swap((texture) => {
+      this.uniform.value = texture
+    })
 
     // Set clear back to default
-    this.renderer.autoClear = true
+    this.renderer.autoClear = oldAutoClear
+    this.renderer.setRenderTarget(null)
+    // this.renderer.clear()
 
-    return this.density.read.texture
+    // return this.density.read.texture
   }
 }

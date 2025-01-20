@@ -12,9 +12,9 @@ const camera = new OrthographicCamera(1 / -2, 1 / 2, 1 / 2, 1 / -2, 0.001, 1000)
 camera.position.z = 1
 
 export default class Program extends Scene {
-  private material: Material
-  private mesh: Mesh
-  private scene: Scene
+  material: Material
+  mesh: Mesh
+  scene: Scene
 
   constructor(material: Material) {
     super()

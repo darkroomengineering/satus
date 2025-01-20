@@ -2,6 +2,7 @@
 
 import { OrthographicCamera } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
+import { Suspense } from 'react'
 import { SheetProvider } from '~/libs/theatre'
 import { FlowmapProvider } from '../flowmap'
 import { PostProcessing } from '../postprocessing'
@@ -54,7 +55,9 @@ export function WebGLCanvas({
           <RAF render={render} />
           <FlowmapProvider>
             {postprocessing && <PostProcessing />}
-            <WebGLTunnel.Out />
+            <Suspense>
+              <WebGLTunnel.Out />
+            </Suspense>
           </FlowmapProvider>
           <Preload />
         </SheetProvider>

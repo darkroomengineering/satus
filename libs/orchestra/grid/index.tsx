@@ -1,5 +1,5 @@
-import { useWindowSize } from '@darkroom.engineering/hamo'
 import cn from 'clsx'
+import { useWindowSize } from 'hamo'
 import { useMemo } from 'react'
 import s from './grid.module.css'
 

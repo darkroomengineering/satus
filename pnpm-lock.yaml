@@ -44,6 +44,9 @@ importers:
       gsap:
         specifier: ^3.12.5
         version: 3.12.5
+      hamo:
+        specifier: 1.0.0-dev.5
+        version: 1.0.0-dev.5(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       lenis:
         specifier: 1.1.20-dev.0
         version: 1.1.20-dev.0(react@19.0.0)
@@ -3480,6 +3483,12 @@ packages:
   gzip-size@6.0.0:
     resolution: {integrity: sha512-ax7ZYomf6jqPTQ4+XCpUGyXKHk5WweS+e05MBO4/y3WJ5RkmPXNKvX+bx1behVILVwr6JSQvZAku021CHPXG3Q==}
     engines: {node: '>=10'}
+
+  hamo@1.0.0-dev.5:
+    resolution: {integrity: sha512-njqFQkXH/8wh9M3Jx2wUC0uptVXn5O+Uf/EvhenW07sDQvpEnQ49mpXjyj/7Lr+9xl0YI4DxZeF0ECOvkD+6ng==}
+    peerDependencies:
+      react: '>=17.0.0'
+      react-dom: '>=17.0.0'
 
   has-ansi@2.0.0:
     resolution: {integrity: sha512-C8vBJ8DwUCx19vhm7urhTuUsr4/IyP6l4VzNQDv+ryHQObW3TTTp9yB68WpYgRe2bbaGuZ/se74IqFeVnMnLZg==}
@@ -9608,6 +9617,13 @@ snapshots:
   gzip-size@6.0.0:
     dependencies:
       duplexer: 0.1.2
+
+  hamo@1.0.0-dev.5(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+    dependencies:
+      just-debounce-it: 3.2.0
+      nanoevents: 9.1.0
+      react: 19.0.0
+      react-dom: 19.0.0(react@19.0.0)
 
   has-ansi@2.0.0:
     dependencies:

@@ -1,7 +1,7 @@
 'use client'
 
-import { useRect } from '@darkroom.engineering/hamo'
 import cn from 'clsx'
+import { useRect } from 'hamo'
 import { type CSSProperties, Fragment, type ReactNode, useRef } from 'react'
 import {
   type UseScrollTriggerOptions,

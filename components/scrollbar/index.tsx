@@ -1,6 +1,6 @@
 'use client'
 
-import { useRect } from '@darkroom.engineering/hamo'
+import { useRect } from 'hamo'
 import { useLenis } from 'lenis/react'
 import { useEffect, useRef } from 'react'
 import { mapRange } from '~/libs/maths'

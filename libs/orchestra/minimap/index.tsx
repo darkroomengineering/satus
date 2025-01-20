@@ -1,6 +1,6 @@
 'use client'
 
-import { useWindowSize } from '@darkroom.engineering/hamo'
+import { useWindowSize } from 'hamo'
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { useTempus } from 'tempus/react'
 import { create } from 'zustand'

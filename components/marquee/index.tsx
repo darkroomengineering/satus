@@ -1,10 +1,7 @@
 'use client'
 
-import {
-  useIntersectionObserver,
-  useResizeObserver,
-} from '@darkroom.engineering/hamo'
 import cn from 'clsx'
+import { useIntersectionObserver, useResizeObserver } from 'hamo'
 import { useLenis } from 'lenis/react'
 import { type HTMLAttributes, useRef } from 'react'
 import { useTempus } from 'tempus/react'

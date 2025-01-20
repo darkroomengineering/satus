@@ -1,4 +1,4 @@
-import { useRect } from '@darkroom.engineering/hamo'
+import { useRect } from 'hamo'
 import dynamic from 'next/dynamic'
 import { useState } from 'react'
 import {

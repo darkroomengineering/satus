@@ -1,7 +1,7 @@
 'use client'
 
-import { useRect, useWindowSize } from '@darkroom.engineering/hamo'
 import cn from 'clsx'
+import { useRect, useWindowSize } from 'hamo'
 import {
   type HTMLAttributes,
   type ReactNode,

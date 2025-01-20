@@ -1,10 +1,6 @@
 'use client'
 
-import {
-  type Rect,
-  useLazyState,
-  useWindowSize,
-} from '@darkroom.engineering/hamo'
+import { type Rect, useLazyState, useWindowSize } from 'hamo'
 import { useLenis } from 'lenis/react'
 import { useCallback, useEffect, useRef } from 'react'
 import { useTransform } from '~/hooks/use-transform'

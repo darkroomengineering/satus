@@ -1,9 +1,5 @@
-import {
-  type ExtendedDOMRect,
-  useObjectFit,
-  useWindowSize,
-} from '@darkroom.engineering/hamo'
 import { useFrame, useThree } from '@react-three/fiber'
+import { type ExtendedDOMRect, useObjectFit, useWindowSize } from 'hamo'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CanvasTexture, LinearFilter, type Mesh } from 'three'
 import { useFlowmap } from '~/libs/webgl/components/flowmap'

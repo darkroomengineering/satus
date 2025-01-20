@@ -1,7 +1,7 @@
 'use client'
 
-import { useResizeObserver } from '@darkroom.engineering/hamo'
 import cn from 'clsx'
+import { useResizeObserver } from 'hamo'
 import {
   type Dispatch,
   type HTMLAttributes,

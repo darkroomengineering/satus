@@ -1,9 +1,9 @@
 'use client'
 
-import { useResizeObserver } from '@darkroom.engineering/hamo'
 import cn from 'clsx'
 import { gsap } from 'gsap'
 import { SplitText as GSAPSplitText } from 'gsap/SplitText'
+import { useResizeObserver } from 'hamo'
 import {
   type Ref,
   useEffect,

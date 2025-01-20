@@ -1,4 +1,4 @@
-import { useMediaQuery } from '@darkroom.engineering/hamo'
+import { useMediaQuery } from 'hamo'
 import { breakpoints } from '~/styles/config.mjs'
 
 interface NavigatorWithBattery extends Navigator {

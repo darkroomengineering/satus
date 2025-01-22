@@ -64,7 +64,7 @@
     "cssnano": "^7.0.6",
     "lefthook": "^1.10.1",
     "postcss-combine-duplicated-selectors": "^10.0.3",
-    "postcss-extend": "^1.0.5",
+    "postcss-extend-rule": "^4.0.0",
     "postcss-flexbugs-fixes": "^5.0.2",
     "postcss-functions": "^4.0.2",
     "postcss-import": "^16.1.0",

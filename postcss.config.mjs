@@ -14,7 +14,7 @@ const validatePixels = (pixels, dimension) => {
 const postcss = {
   plugins: {
     'postcss-import': {},
-    'postcss-extend': {},
+    'postcss-extend-rule': {},
     'postcss-flexbugs-fixes': {},
     'postcss-preset-env': {
       autoprefixer: {

@@ -5,12 +5,17 @@ import {
 } from 'zustand/middleware'
 import { createStore } from 'zustand/vanilla'
 
+type OrchestraState = Record<string, boolean>
+
 const storageKey = 'orchestra'
-const store = createStore<Record<string, boolean>>()(
+const store = createStore<OrchestraState>()(
   persist(
-    subscribeWithSelector(() => ({
-      webgl: true,
-    })),
+    subscribeWithSelector(
+      () =>
+        ({
+          webgl: true,
+        }) as OrchestraState
+    ),
     {
       name: storageKey,
       storage: createJSONStorage(() => localStorage),
@@ -61,6 +66,7 @@ class Toggle {
 
 class Orchestra {
   private domElement: HTMLDivElement
+  private store: typeof store
   toggles: Toggle[]
   constructor() {
     this.domElement = document.createElement('div')

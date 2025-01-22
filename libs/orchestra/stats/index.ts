@@ -33,4 +33,6 @@ export function Stats() {
       priority: Number.POSITIVE_INFINITY,
     }
   )
+
+  return null
 }

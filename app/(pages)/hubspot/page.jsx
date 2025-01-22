@@ -5,6 +5,7 @@ import { Subscribe } from './(components)/subscribe'
 import s from './hubspot.module.css'
 
 export default async function Hubspot() {
+  // @ts-expect-error Server Component
   const { form } = await getForm(process.env.NEXT_HUSBPOT_FORM_ID)
 
   return (

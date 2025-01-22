@@ -60,7 +60,7 @@ export const viewport = {
   themeColor: '#e30613',
 }
 
-export default function Layout({ children }) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
@@ -77,6 +77,7 @@ export default function Layout({ children }) {
         {children}
         <Debug />
         <GSAP />
+        {/* @ts-expect-error Server Component */}
         <ReactTempus patch />
       </body>
       {GA_ID && <GoogleAnalytics gaId={GA_ID} />}

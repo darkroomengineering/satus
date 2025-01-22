@@ -9,3 +9,4 @@ post-merge:
   commands:
     update-env:
       run: pnpm dlx vercel env pull
+

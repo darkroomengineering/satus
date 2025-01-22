@@ -8,4 +8,4 @@ pre-commit:
 post-merge:
   commands:
     update-env:
-      run: pnpmx vercel env pull
+      run: pnpm dlx vercel env pull

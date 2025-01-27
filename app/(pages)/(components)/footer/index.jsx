@@ -1,9 +1,8 @@
 import { Link } from '~/components/link'
-import s from './footer.module.css'
 
 export function Footer() {
   return (
-    <footer className={s.footer}>
+    <footer className="flex flex-col dt:flex-row items-center dt:items-start justify-between p-margin uppercase font-mono">
       <Link href="https://darkroom.engineering/" className="link">
         darkroom.engineering
       </Link>

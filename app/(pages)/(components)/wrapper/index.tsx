@@ -9,7 +9,6 @@ import type { themeNames } from '~/styles/config.mjs'
 import { Footer } from '../footer'
 import { Lenis } from '../lenis'
 import { Navigation } from '../navigation'
-import s from './page-config.module.css'
 
 interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
   theme?: (typeof themeNames)[number]
@@ -36,7 +35,7 @@ export function Wrapper({
     <>
       {webgl && <Canvas root {...(typeof webgl === 'object' && webgl)} />}
       <Navigation />
-      <main className={cn(s.main, className)} {...props}>
+      <main className={cn('relative flex flex-col grow', className)} {...props}>
         {children}
         <script>
           {`document.documentElement.setAttribute('data-theme', '${theme}');`}

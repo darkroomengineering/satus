@@ -1,8 +1,13 @@
-@import "./_reset";
-@import "./_easings";
-@import "./_utils";
-@import "./_font-style";
-@import "./_layout";
+@layer theme, base, components, utilities;
+
+@import "./_reset" layer(base);
+@import "./_easings" layer(base);
+@import "./_utils" layer(base);
+@import "./_font-style" layer(base);
+@import "./_layout" layer(base);
+
+@import "./tailwind.css";
+@import "tailwindcss/utilities.css" layer(utilities);
 
 :root {
   --header-height: mobile-vw(58px);

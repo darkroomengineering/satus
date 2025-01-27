@@ -39,15 +39,15 @@ const config = {
   themes,
   columns: {
     mobile: 4,
-    desktop: 8,
+    desktop: 12,
   },
   gaps: {
-    mobile: 4,
-    desktop: 4,
+    mobile: 16,
+    desktop: 16,
   },
   margins: {
-    mobile: 4,
-    desktop: 4,
+    mobile: 16,
+    desktop: 16,
   },
 }
 

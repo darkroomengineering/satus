@@ -3,7 +3,6 @@
 import cn from 'clsx'
 import { usePathname } from 'next/navigation'
 import { Link } from '~/components/link'
-import s from './navigation.module.css'
 
 const LINKS = [
   { href: '/', label: 'home' },
@@ -17,18 +16,23 @@ export function Navigation() {
   const pathname = usePathname()
 
   return (
-    <nav className={s.nav}>
-      <div className={s.title}>
+    <nav className="fixed top-margin left-margin z-2 flex flex-col uppercase font-mono">
+      <div className="inline-flex">
         <h1>Satūs</h1>
         <span>{pathname}</span>
       </div>
 
-      <ul className={s.list}>
+      <ul className="pl-[24px]">
         {LINKS.map((link) => (
           <li key={link.href}>
             <Link
               href={link.href}
-              className={cn('link', s.link, pathname === link.href && s.active)}
+              className={cn(
+                'link',
+                'relative',
+                pathname === link.href &&
+                  "before:content-['■'] before:absolute before:left-[-16px]"
+              )}
             >
               {link.label}
             </Link>

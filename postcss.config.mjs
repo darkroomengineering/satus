@@ -13,6 +13,7 @@ const validatePixels = (pixels, dimension) => {
 
 const postcss = {
   plugins: {
+    '@tailwindcss/postcss': {},
     'postcss-import': {},
     'postcss-extend-rule': {},
     'postcss-flexbugs-fixes': {},

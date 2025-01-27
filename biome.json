@@ -20,7 +20,8 @@
       "**/*.md",
       "**/*.mdx",
       "**/public/*.js",
-      "**/.storybook/**"
+      "**/.storybook/**",
+      "styles/tailwind.css"
     ]
   },
   "formatter": {

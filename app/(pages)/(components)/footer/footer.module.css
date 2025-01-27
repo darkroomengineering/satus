@@ -10,3 +10,8 @@
     align-items: center;
   }
 }
+
+.logo {
+  height: desktop-vw(20px);
+  color: black;
+}

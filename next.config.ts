@@ -3,6 +3,8 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  output: 'standalone',
+  poweredByHeader: false,
   experimental: {
     turbo: {
       rules: {
@@ -57,8 +59,22 @@ const nextConfig: NextConfig = {
         },
       },
     },
-    nextScriptWorkers: true,
     reactCompiler: true,
+    nextScriptWorkers: true,
+    optimizePackageImports: [
+      '@react-three/drei',
+      '@react-three/fiber',
+      'gsap',
+      'react-aria-components',
+    ],
+  },
+  modularizeImports: {
+    '@react-three/drei': {
+      transform: '@react-three/drei/{{member}}',
+    },
+    gsap: {
+      transform: 'gsap/{{member}}',
+    },
   },
   devIndicators: {
     appIsrStatus: false,
@@ -84,15 +100,7 @@ const nextConfig: NextConfig = {
     ],
     formats: ['image/avif', 'image/webp'],
   },
-  webpack: (config) => {
-    const fileLoaderRule = config.module.rules.find(
-      (rule: { test?: { test?: (path: string) => boolean } }) =>
-        rule.test?.test?.('.svg')
-    )
-    if (fileLoaderRule) {
-      fileLoaderRule.exclude = /\.svg$/
-    }
-
+  webpack: (config, { dev, isServer }) => {
     config.module.rules.push({
       test: /\.svg$/,
       use: [

@@ -25,7 +25,6 @@ export function EmbedHubspotForm({
         strategy={strategy}
         onLoad={() => {
           console.log('Form script loaded')
-          // @ts-expect-error - don't want to augment window types for this
           window.hbspt.forms.create({
             portalId: process.env.NEXT_PUBLIC_HUSBPOT_PORTAL_ID,
             formId,

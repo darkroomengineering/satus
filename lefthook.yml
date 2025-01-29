@@ -3,10 +3,10 @@ pre-commit:
   commands:
     biome:
       glob: '*.{js,ts,jsx,tsx,css,scss}'
-      run: pnpm biome check --write "{staged_files}"
+      run: bun biome check --write "{staged_files}"
 
 post-merge:
   commands:
     update-env:
-      run: pnpm dlx vercel env pull
+      run: bunx vercel env pull
 

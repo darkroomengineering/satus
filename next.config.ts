@@ -68,14 +68,14 @@ const nextConfig: NextConfig = {
       'react-aria-components',
     ],
   },
-  modularizeImports: {
-    '@react-three/drei': {
-      transform: '@react-three/drei/{{member}}',
-    },
-    gsap: {
-      transform: 'gsap/{{member}}',
-    },
-  },
+  // modularizeImports: {
+  //   '@react-three/drei': {
+  //     transform: '@react-three/drei/{{member}}',
+  //   },
+  //   gsap: {
+  //     transform: 'gsap/{{member}}',
+  //   },
+  // },
   devIndicators: {
     appIsrStatus: false,
   },

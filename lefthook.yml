@@ -3,7 +3,7 @@ pre-commit:
   commands:
     biome:
       glob: "*.{js,ts,jsx,tsx}"
-      run: npx biome check --apply {staged_files}
+      run: npx biome check --write {staged_files}
 
 post-merge:
   commands:

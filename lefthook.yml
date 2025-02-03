@@ -2,8 +2,8 @@ pre-commit:
   parallel: true
   commands:
     biome:
-      glob: '*.{js,ts,jsx,tsx,css,scss}'
-      run: bun biome check --write "{staged_files}"
+      glob: "*.{js,ts,jsx,tsx}"
+      run: npx biome check --apply {staged_files}
 
 post-merge:
   commands:

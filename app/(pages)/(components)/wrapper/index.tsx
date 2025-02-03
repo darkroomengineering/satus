@@ -9,11 +9,11 @@ import type { themeNames } from '~/styles/config.mjs'
 import { Footer } from '../footer'
 import { Lenis } from '../lenis'
 import { Navigation } from '../navigation'
-import s from './page-config.module.css'
+import s from './wrapper.module.css'
 
 interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
   theme?: (typeof themeNames)[number]
-  lenis?: LenisOptions
+  lenis?: boolean | LenisOptions
   webgl?: boolean | object
 }
 
@@ -21,7 +21,7 @@ export function Wrapper({
   children,
   theme = 'dark',
   className,
-  lenis,
+  lenis = true,
   webgl,
   ...props
 }: WrapperProps) {
@@ -43,7 +43,7 @@ export function Wrapper({
         </script>
       </main>
       <Footer />
-      {lenis && <Lenis root options={lenis} />}
+      {lenis && <Lenis root options={typeof lenis === 'object' ? lenis : {}} />}
     </>
   )
 }

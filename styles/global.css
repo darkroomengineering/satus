@@ -12,6 +12,14 @@
   }
 }
 
+html {
+  --scrollbar-gutter: 0px;
+
+  &.lenis-stopped {
+    --scrollbar-gutter: var(--scrollbar-width);
+  }
+}
+
 * {
   scrollbar-width: thin;
 }

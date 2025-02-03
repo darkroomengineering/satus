@@ -15,8 +15,6 @@ function getScrollbarWidth() {
   const inner = document.createElement('div')
   outer.appendChild(inner)
 
-  console.log('test')
-
   // Calculating difference between container's full width and the child width
   const scrollbarWidth = outer.offsetWidth - inner.offsetWidth
 

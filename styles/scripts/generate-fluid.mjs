@@ -68,7 +68,7 @@ const utilityMap = {
  */
 function fluidUtility(name, properties) {
   const propertiesArray = Array.isArray(properties) ? properties : [properties]
-  return `@utility s${name}-* {
+  const utility = `@utility s${name}-* {
 	${propertiesArray
     .map(
       (property) =>
@@ -76,6 +76,12 @@ function fluidUtility(name, properties) {
     )
     .join('\n')}
 }`
+
+  const negatedUtility = utility
+    .replace('@utility s', '@utility -s')
+    .replace('--value(integer)', '--value(integer) * -1')
+
+  return `${utility}\n${negatedUtility}`
 }
 
 export function generateFluid() {

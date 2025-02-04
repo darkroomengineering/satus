@@ -20,13 +20,49 @@
   --font-mono: var(--font-mono);
 }
 
+:root {
+	--mobile-width: 375;
+	--mobile-height: 650;
+
+	--desktop-width: 1440;
+	--desktop-height: 816;
+
+	--mobile-columns: calc(((4 * 100) / var(--device-width)) * 1vw);
+	--desktop-columns: calc(((12 * 100) / var(--device-width)) * 1vw);
+
+	--mobile-gap: calc(((16 * 100) / var(--device-width)) * 1vw);
+	--desktop-gap: calc(((16 * 100) / var(--device-width)) * 1vw);
+
+	--mobile-space: calc(((16 * 100) / var(--device-width)) * 1vw);
+	--desktop-space: calc(((16 * 100) / var(--device-width)) * 1vw);
+
+  --mobile-header-height: calc(((58 * 100) / var(--device-width)) * 1vw);
+	--desktop-header-height: calc(((98 * 100) / var(--device-width)) * 1vw);
+
+	--device-width: var(--mobile-width);
+	--device-height: var(--mobile-height);
+	--device-columns: var(--mobile-columns);
+	--device-gap: var(--mobile-gap);
+	--device-space: var(--mobile-space);
+	--header-height: var(--mobile-header-height);
+
+	@variant dt {
+		--device-width: var(--desktop-width);
+		--device-height: var(--desktop-height);
+		--device-columns: var(--desktop-columns);
+		--device-gap: var(--desktop-gap);
+		--device-space: var(--desktop-space);
+		--header-height: var(--desktop-header-height);
+	}
+}
+
 @utility test-mono {
-font-family: var(--font-mono);
-		font-style: normal;
-		font-weight: 400;
-		line-height: 90%;
-		letter-spacing: 0;
-		@apply stext-20;
+  font-family: var(--font-mono);
+	font-style: normal;
+	font-weight: 400;
+	line-height: 90%;
+	letter-spacing: 0;
+	@apply stext-20;
 }
 
 @utility design-grid {
@@ -56,39 +92,6 @@ font-family: var(--font-mono);
 @custom-variant light (&:where([data-theme=light], [data-theme=light *]));
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark *]));
 @custom-variant red (&:where([data-theme=red], [data-theme=red *]));
-
-:root {
-	--mobile-width: 375;
-	--mobile-height: 650;
-	--desktop-width: 1440;
-	--desktop-height: 816;
-
-	--mobile-columns: calc(((4 * 100) / var(--device-width)) * 1vw);
-	--desktop-columns: calc(((12 * 100) / var(--device-width)) * 1vw);
---mobile-gap: calc(((16 * 100) / var(--device-width)) * 1vw);
-	--desktop-gap: calc(((16 * 100) / var(--device-width)) * 1vw);
---mobile-space: calc(((16 * 100) / var(--device-width)) * 1vw);
-	--desktop-space: calc(((16 * 100) / var(--device-width)) * 1vw);
-
-  --mobile-header-height: calc(((58 * 100) / var(--device-width)) * 1vw);
---desktop-header-height: calc(((98 * 100) / var(--device-width)) * 1vw);
-
-	--header-height: var(--mobile-header-height);
-
-	--device-width: var(--mobile-width);
-	--device-columns: var(--mobile-columns);
-	--device-gap: var(--mobile-gap);
-	--device-space: var(--mobile-space);
-
-	@variant dt {
-		--header-height: var(--desktop-header-height);
-    
-		--device-width: var(--desktop-width);
-		--device-columns: var(--desktop-columns);
-		--device-gap: var(--desktop-gap);
-		--device-space: var(--desktop-space);
-	}
-}
 
 @utility sw-* {
 	width: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));

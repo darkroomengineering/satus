@@ -28,18 +28,63 @@ export function generateBase({
     .join('\n\t')}
 }
 
+:root {
+	${Object.entries(screens)
+    .map(
+      ([name, { width, height }]) =>
+        `--${name}-width: ${width};\n\t--${name}-height: ${height};`
+    )
+    .join('\n\n\t')}
+
+	${Object.entries(layout)
+    .map(([name, { mobile, desktop }]) => {
+      if (name === 'columns') {
+        return `--mobile-columns: ${fluidCalc(mobile)};\n\t--desktop-columns: ${fluidCalc(desktop)};`
+      }
+
+      if (name === 'gap') {
+        return `--mobile-gap: ${fluidCalc(mobile)};\n\t--desktop-gap: ${fluidCalc(desktop)};`
+      }
+
+      if (name === 'space') {
+        return `--mobile-space: ${fluidCalc(mobile)};\n\t--desktop-space: ${fluidCalc(desktop)};`
+      }
+    })
+    .join('\n\n\t')}
+
+  ${Object.entries(headerHeight)
+    .map(([name, value]) => `--${name}-header-height: ${fluidCalc(value)};`)
+    .join('\n\t')}
+
+	--device-width: var(--mobile-width);
+	--device-height: var(--mobile-height);
+	--device-columns: var(--mobile-columns);
+	--device-gap: var(--mobile-gap);
+	--device-space: var(--mobile-space);
+	--header-height: var(--mobile-header-height);
+
+	@variant dt {
+		--device-width: var(--desktop-width);
+		--device-height: var(--desktop-height);
+		--device-columns: var(--desktop-columns);
+		--device-gap: var(--desktop-gap);
+		--device-space: var(--desktop-space);
+		--header-height: var(--desktop-header-height);
+	}
+}
+
 ${Object.entries(typeStyles)
   .map(
     ([name, value]) => `@utility ${name} {
-${Object.entries(value)
-  .map(([key, value]) => {
-    if (key === 'font-size') {
-      return `@apply stext-${value};`
-    }
+  ${Object.entries(value)
+    .map(([key, value]) => {
+      if (key === 'font-size') {
+        return `@apply stext-${value};`
+      }
 
-    return `${key}: ${value};`
-  })
-  .join('\n\t\t')}
+      return `${key}: ${value};`
+    })
+    .join('\n\t')}
 }`
   )
   .join('\n')}
@@ -73,52 +118,7 @@ ${Object.keys(themes)
     (name) =>
       `@custom-variant ${name} (&:where([data-theme=${name}], [data-theme=${name} *]));`
   )
-  .join('\n')}
-
-:root {
-	${Object.entries(screens)
-    .map(
-      ([name, { width, height }]) =>
-        `--${name}-width: ${width};\n\t--${name}-height: ${height};`
-    )
-    .join('\n\t')}
-
-	${Object.entries(layout)
-    .map(([name, { mobile, desktop }]) => {
-      if (name === 'columns') {
-        return `--mobile-columns: ${fluidCalc(mobile)};\n\t--desktop-columns: ${fluidCalc(desktop)};`
-      }
-
-      if (name === 'gap') {
-        return `--mobile-gap: ${fluidCalc(mobile)};\n\t--desktop-gap: ${fluidCalc(desktop)};`
-      }
-
-      if (name === 'space') {
-        return `--mobile-space: ${fluidCalc(mobile)};\n\t--desktop-space: ${fluidCalc(desktop)};`
-      }
-    })
-    .join('\n')}
-
-  ${Object.entries(headerHeight)
-    .map(([name, value]) => `--${name}-header-height: ${fluidCalc(value)};`)
-    .join('\n')}
-
-	--header-height: var(--mobile-header-height);
-
-	--device-width: var(--mobile-width);
-	--device-columns: var(--mobile-columns);
-	--device-gap: var(--mobile-gap);
-	--device-space: var(--mobile-space);
-
-	@variant dt {
-		--header-height: var(--desktop-header-height);
-
-		--device-width: var(--desktop-width);
-		--device-columns: var(--desktop-columns);
-		--device-gap: var(--desktop-gap);
-		--device-space: var(--desktop-space);
-	}
-}`
+  .join('\n')}`
 }
 
 function fluidCalc(value) {

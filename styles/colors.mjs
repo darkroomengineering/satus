@@ -1,17 +1,9 @@
-/**
- * Colors.
- * @type {Record<string, string>}
- */
 const colors = {
   black: '#000000',
   white: '#ffffff',
   red: '#e30613',
 }
 
-/**
- * Themes.
- * @type {Record<string, Record<string, string>>}
- */
 const themes = {
   light: {
     primary: colors.white,
@@ -30,10 +22,6 @@ const themes = {
   },
 }
 
-/**
- * Theme names.
- * @type {(keyof typeof themes)[]}
- */
 const themeNames = Object.keys(themes)
 
 export { colors, themeNames, themes }

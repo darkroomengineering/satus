@@ -84,7 +84,7 @@ ${Object.keys(themes)
     .join('\n\t')}
 
 	${Object.entries(layout)
-    .map(([name, [mobile, desktop]]) => {
+    .map(([name, { mobile, desktop }]) => {
       if (name === 'columns') {
         return `--mobile-columns: ${fluidCalc(mobile)};\n\t--desktop-columns: ${fluidCalc(desktop)};`
       }
@@ -112,7 +112,7 @@ ${Object.keys(themes)
 
 	@variant dt {
 		--header-height: var(--desktop-header-height);
-    
+
 		--device-width: var(--desktop-width);
 		--device-columns: var(--desktop-columns);
 		--device-gap: var(--desktop-gap);

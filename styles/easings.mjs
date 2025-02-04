@@ -1,7 +1,3 @@
-/**
- * Easing functions.
- * @type {Record<string, string>}
- */
 const easings = {
   'in-quad': 'cubic-bezier(0.55, 0.085, 0.68, 0.53)',
   'in-cubic': 'cubic-bezier(0.55, 0.055, 0.675, 0.19)',

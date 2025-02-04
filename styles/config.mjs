@@ -97,11 +97,12 @@ const easings = {
   gleasing: 'cubic-bezier(0.4, 0, 0, 1)',
 }
 
-import { typeStyles } from './typography.mjs'
+import { fontFamilies, typeStyles } from './typography.mjs'
 export {
   breakpoints,
   colors,
   easings,
+  fontFamilies,
   headerHeight,
   layout,
   screens,

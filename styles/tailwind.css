@@ -13,10 +13,12 @@
 	--color-contrast: #e30613;
     
   --spacing: 0.25rem;
-	--spacing-space: var(--device-space);
+	--spacing-page: var(--device-space);
 	--spacing-gap: var(--device-gap);
 
   --font-*: initial;
+  --font-americanGrotesk: var(--font-american-grotesk);
+	--font-mono: var(--font-mono);
 }
 
 @utility h2-black {

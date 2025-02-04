@@ -5,6 +5,7 @@ import { generateFluid } from './generate-fluid.mjs'
 
 const base = generateBase({
   breakpoints: config.breakpoints,
+  fontFamilies: config.fontFamilies,
   layout: config.layout,
   screens: config.screens,
   themes: config.themes,

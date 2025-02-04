@@ -29,15 +29,17 @@ const includeMediaConfig = {
   },
 }
 
+const emptyConfig = {}
+
 const postcssConfig = {
   plugins: {
-    '@tailwindcss/postcss': null,
-    'postcss-extend-rule': null,
+    '@tailwindcss/postcss': emptyConfig,
+    'postcss-extend-rule': emptyConfig,
     'postcss-preset-env': presetEnvConfig,
-    'postcss-nesting': null,
+    'postcss-nesting': emptyConfig,
     'postcss-include-media': includeMediaConfig,
     'postcss-functions': { functions },
-    cssnano: process.env.NODE_ENV === 'production' ? null : false,
+    cssnano: process.env.NODE_ENV === 'production' ? emptyConfig : false,
   },
 }
 

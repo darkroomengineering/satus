@@ -1,12 +1,11 @@
 export function generateBase({
   breakpoints,
+  fontFamilies,
   layout,
   screens,
   themes,
   typeStyles,
 }) {
-  console.log(breakpoints, layout, screens, themes, typeStyles)
-
   return `@theme {
 	--breakpoint-*: initial;
 	${Object.entries(breakpoints)
@@ -19,10 +18,13 @@ export function generateBase({
     .join('\n\t')}
     
   --spacing: 0.25rem;
-	--spacing-space: var(--device-space);
+	--spacing-page: var(--device-space);
 	--spacing-gap: var(--device-gap);
 
   --font-*: initial;
+  ${Object.entries(fontFamilies)
+    .map(([key, value]) => `--font-${key}: ${value};`)
+    .join('\n\t')}
 }
 
 ${Object.entries(typeStyles)

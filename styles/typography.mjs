@@ -1,5 +1,6 @@
 const fontFamilies = {
   americanGrotesk: 'var(--font-american-grotesk)',
+  mono: 'var(--font-mono)',
 }
 
 const typeStyles = {
@@ -13,4 +14,4 @@ const typeStyles = {
   },
 }
 
-export { typeStyles }
+export { fontFamilies, typeStyles }

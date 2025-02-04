@@ -1,18 +1,19 @@
-import { screens } from './config.mjs'
+import { screens } from '../layout.mjs'
 
 /**
  * Validate the pixel value and return the number of pixels
- * @param {string} pixels - The pixel value to validate
- * @param {string} dimension - The dimension to validate against
+ * @param {number} pixels - The pixel value to validate
+ * @param {"mobile" | "desktop"} device - The device to validate against
  * @returns {number} The number of pixels
  */
-function validatePixels(pixels, dimension) {
+function validatePixels(pixels, device) {
   const numPixels = Number.parseFloat(pixels)
+
   if (Number.isNaN(numPixels)) {
     throw new Error(`Invalid pixel value: ${pixels}`)
   }
-  if (screens[dimension].width === 0 || screens[dimension].height === 0) {
-    throw new Error(`Screen ${dimension} dimensions cannot be zero`)
+  if (screens[device].width === 0 || screens[device].height === 0) {
+    throw new Error(`Screen ${device} dimensions cannot be zero`)
   }
   return numPixels
 }

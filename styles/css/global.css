@@ -1,12 +1,9 @@
-@import "./reset.css";
-@import "tailwindcss/utilities.css";
-@import "./tailwind.css";
+/* GLOBAL CSS FILE - Contains global styles that shouldn't be reset */
 
 * {
   scrollbar-width: thin;
 }
 
-/* Core styles that shouldn't be reset */
 body {
   min-height: 100vh;
   overscroll-behavior: none;

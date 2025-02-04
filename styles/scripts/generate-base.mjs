@@ -1,6 +1,7 @@
 export function generateBase({
   breakpoints,
   fontFamilies,
+  headerHeight,
   layout,
   screens,
   themes,
@@ -98,7 +99,11 @@ ${Object.keys(themes)
     })
     .join('\n')}
 
-	--max-width: 9999;
+  ${Object.entries(headerHeight)
+    .map(([name, value]) => `--${name}-header-height: ${fluidCalc(value)};`)
+    .join('\n')}
+
+	--header-height: var(--mobile-header-height);
 
 	--device-width: var(--mobile-width);
 	--device-columns: var(--mobile-columns);
@@ -106,6 +111,8 @@ ${Object.keys(themes)
 	--device-space: var(--mobile-space);
 
 	@variant dt {
+		--header-height: var(--desktop-header-height);
+    
 		--device-width: var(--desktop-width);
 		--device-columns: var(--desktop-columns);
 		--device-gap: var(--desktop-gap);

@@ -1,4 +1,4 @@
-import { themes } from '~/styles/config.mjs'
+import { themes } from '~/styles/colors.mjs'
 import AppData from '../package.json'
 
 export default function manifest() {

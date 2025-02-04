@@ -1,15 +1,20 @@
 import { writeFile } from 'node:fs/promises'
-import * as config from '../config.mjs'
+
+import { themes } from '../colors.mjs'
+import { breakpoints, headerHeight, layout, screens } from '../layout.mjs'
+import { fontFamilies, typeStyles } from '../typography.mjs'
+
 import { generateBase } from './generate-base.mjs'
 import { generateFluid } from './generate-fluid.mjs'
 
 const base = generateBase({
-  breakpoints: config.breakpoints,
-  fontFamilies: config.fontFamilies,
-  layout: config.layout,
-  screens: config.screens,
-  themes: config.themes,
-  typeStyles: config.typeStyles,
+  breakpoints,
+  fontFamilies,
+  headerHeight,
+  layout,
+  screens,
+  themes,
+  typeStyles,
 })
 
 const fluid = generateFluid()
@@ -21,4 +26,4 @@ const banner = `/*
 
 const parts = [banner, base, fluid]
 
-await writeFile('./styles/tailwind.css', parts.join('\n\n'), 'utf-8')
+await writeFile('./styles/css/tailwind.css', parts.join('\n\n'), 'utf-8')

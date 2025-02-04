@@ -17,14 +17,13 @@
 	--spacing-gap: var(--device-gap);
 
   --font-*: initial;
-  --font-americanGrotesk: var(--font-american-grotesk);
-	--font-mono: var(--font-mono);
+  --font-mono: var(--font-mono);
 }
 
-@utility h2-black {
-font-family: var(--font-american-grotesk);
+@utility test-mono {
+font-family: var(--font-mono);
 		font-style: normal;
-		font-weight: 900;
+		font-weight: 400;
 		line-height: 90%;
 		letter-spacing: 0;
 		@apply stext-20;
@@ -71,7 +70,10 @@ font-family: var(--font-american-grotesk);
 --mobile-space: calc(((16 * 100) / var(--device-width)) * 1vw);
 	--desktop-space: calc(((16 * 100) / var(--device-width)) * 1vw);
 
-	--max-width: 9999;
+  --mobile-header-height: calc(((58 * 100) / var(--device-width)) * 1vw);
+--desktop-header-height: calc(((98 * 100) / var(--device-width)) * 1vw);
+
+	--header-height: var(--mobile-header-height);
 
 	--device-width: var(--mobile-width);
 	--device-columns: var(--mobile-columns);
@@ -79,6 +81,8 @@ font-family: var(--font-american-grotesk);
 	--device-space: var(--mobile-space);
 
 	@variant dt {
+		--header-height: var(--desktop-header-height);
+    
 		--device-width: var(--desktop-width);
 		--device-columns: var(--desktop-columns);
 		--device-gap: var(--desktop-gap);

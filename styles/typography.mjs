@@ -1,13 +1,12 @@
 const fontFamilies = {
-  americanGrotesk: 'var(--font-american-grotesk)',
   mono: 'var(--font-mono)',
 }
 
 const typeStyles = {
-  'h2-black': {
-    'font-family': fontFamilies.americanGrotesk,
+  'test-mono': {
+    'font-family': fontFamilies.mono,
     'font-style': 'normal',
-    'font-weight': 900,
+    'font-weight': 400,
     'line-height': '90%',
     'letter-spacing': 0,
     'font-size': 20,

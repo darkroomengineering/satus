@@ -1,7 +1,12 @@
-import { breakpoints } from './styles/config.mjs'
-import { functions } from './styles/functions.mjs'
+import { breakpoints } from './styles/layout.mjs'
+import { functions } from './styles/scripts/postcss-functions.mjs'
+
+/* Placeholder config for plugins that don't need any config */
+const emptyConfig = {}
 
 /**
+ * PostCSS preset-env config
+ * @see {@link https://github.com/csstools/postcss-plugins/blob/main/plugin-packs/postcss-preset-env/README.md#options}
  * @type {import('postcss-preset-env').pluginOptions}
  */
 const presetEnvConfig = {
@@ -15,6 +20,8 @@ const presetEnvConfig = {
 }
 
 /**
+ * PostCSS include-media config
+ * @see {@link https://github.com/jackmcpickle/postcss-include-media?tab=readme-ov-file#Options}
  * @type {import('postcss-include-media').IncludeMediaOptions}
  */
 const includeMediaConfig = {
@@ -29,7 +36,26 @@ const includeMediaConfig = {
   },
 }
 
-const emptyConfig = {}
+/**
+ * PostCSS functions config
+ * @see {@link https://github.com/andyjansson/postcss-functions?tab=readme-ov-file#options}
+ * @type {import('postcss-functions').Options}
+ */
+const functionsConfig = {
+  functions,
+}
+
+/**
+ * CSSnano config
+ * @see {@link https://cssnano.github.io/cssnano/docs/config-file/}
+ * @type {import('cssnano').Options}
+ */
+const cssnanoConfig =
+  process.env.NODE_ENV === 'production'
+    ? {
+        preset: 'default',
+      }
+    : false
 
 const postcssConfig = {
   plugins: {
@@ -38,8 +64,8 @@ const postcssConfig = {
     'postcss-preset-env': presetEnvConfig,
     'postcss-nesting': emptyConfig,
     'postcss-include-media': includeMediaConfig,
-    'postcss-functions': { functions },
-    cssnano: process.env.NODE_ENV === 'production' ? emptyConfig : false,
+    'postcss-functions': functionsConfig,
+    cssnano: cssnanoConfig,
   },
 }
 

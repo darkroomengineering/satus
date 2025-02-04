@@ -1,4 +1,4 @@
-import { screens } from "~/styles/config.mjs"
+import { screens } from '~/styles/layout.mjs'
 
 export function desktopVW(value: number, width: number) {
   return (value * width) / screens.desktop.width
@@ -25,7 +25,7 @@ export function capitalizeFirstLetter(inputString: string) {
 }
 
 export function numberWithCommas(x: { toString: () => string }) {
-  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 
 export function isEmptyObject(obj: Record<string, unknown>) {

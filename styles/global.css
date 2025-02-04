@@ -1,21 +1,6 @@
-@layer theme, base, components, utilities;
-
-@import "./_reset" layer(base);
-@import "./_easings" layer(base);
-@import "./_utils" layer(base);
-@import "./_font-style" layer(base);
-@import "./_layout" layer(base);
-
+@import "./reset.css";
+@import "tailwindcss/utilities.css";
 @import "./tailwind.css";
-@import "tailwindcss/utilities.css" layer(utilities);
-
-:root {
-  --header-height: mobile-vw(58px);
-
-  @include-media ('desktop') {
-    --header-height: desktop-vw(98px);
-  }
-}
 
 * {
   scrollbar-width: thin;

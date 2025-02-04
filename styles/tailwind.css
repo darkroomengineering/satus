@@ -13,11 +13,19 @@
 	--color-contrast: #e30613;
     
   --spacing: 0.25rem;
-	--spacing-margin: var(--device-margin);
+	--spacing-space: var(--device-space);
 	--spacing-gap: var(--device-gap);
 
-  /* TODO: This should be configurable */
-  --font-mono: var(--font-mono);
+  --font-*: initial;
+}
+
+@utility h2-black {
+font-family: var(--font-american-grotesk);
+		font-style: normal;
+		font-weight: 900;
+		line-height: 90%;
+		letter-spacing: 0;
+		@apply stext-20;
 }
 
 @utility design-grid {
@@ -58,72 +66,212 @@
 	--desktop-columns: calc(((12 * 100) / var(--device-width)) * 1vw);
 --mobile-gap: calc(((16 * 100) / var(--device-width)) * 1vw);
 	--desktop-gap: calc(((16 * 100) / var(--device-width)) * 1vw);
---mobile-margin: calc(((16 * 100) / var(--device-width)) * 1vw);
-	--desktop-margin: calc(((16 * 100) / var(--device-width)) * 1vw);
+--mobile-space: calc(((16 * 100) / var(--device-width)) * 1vw);
+	--desktop-space: calc(((16 * 100) / var(--device-width)) * 1vw);
 
 	--max-width: 9999;
 
 	--device-width: var(--mobile-width);
 	--device-columns: var(--mobile-columns);
 	--device-gap: var(--mobile-gap);
-	--device-margin: var(--mobile-margin);
+	--device-space: var(--mobile-space);
 
 	@variant dt {
 		--device-width: var(--desktop-width);
 		--device-columns: var(--desktop-columns);
 		--device-gap: var(--desktop-gap);
-		--device-margin: var(--desktop-margin);
+		--device-space: var(--desktop-space);
 	}
 }
 
-@utility fw-* {
+@utility sw-* {
 	width: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
 }
 
-@utility fh-* {
+@utility smin-w-* {
+	min-width: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility smax-w-* {
+	max-width: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility sh-* {
 	height: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
 }
 
-@utility ftext-* {
+@utility smin-h-* {
+	min-height: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility smax-h-* {
+	max-height: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility stext-* {
 	font-size: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
 }
 
-@utility fgap-* {
+@utility stracking-* {
+	letter-spacing: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility sleading-* {
+	line-height: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility sborder-* {
+	border-width: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility sborder-t-* {
+	border-top-width: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility sborder-r-* {
+	border-right-width: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility sborder-b-* {
+	border-bottom-width: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility sborder-l-* {
+	border-left-width: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility srounded-* {
+	border-radius: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility srounded-t-* {
+	border-top-left-radius: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+border-top-right-radius: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility srounded-r-* {
+	border-top-right-radius: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+border-bottom-right-radius: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility srounded-b-* {
+	border-bottom-right-radius: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+border-bottom-left-radius: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility srounded-l-* {
+	border-bottom-left-radius: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+border-top-left-radius: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility srounded-tl-* {
+	border-top-left-radius: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility srounded-tr-* {
+	border-top-right-radius: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility srounded-br-* {
+	border-bottom-right-radius: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility srounded-bl-* {
+	border-bottom-left-radius: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility sgap-* {
 	gap: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
 }
 
-@utility fgap-x-* {
+@utility sgap-x-* {
 	column-gap: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
 }
 
-@utility fgap-y-* {
+@utility sgap-y-* {
 	row-gap: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
 }
 
-@utility fp-* {
+@utility sp-* {
 	padding: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
 }
 
-@utility fpx-* {
+@utility spx-* {
 	padding-inline: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
 }
 
-@utility fpy-* {
+@utility spy-* {
 	padding-block: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
 }
 
-@utility fpt-* {
+@utility spt-* {
 	padding-top: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
 }
 
-@utility fpr-* {
+@utility spr-* {
 	padding-right: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
 }
 
-@utility fpl-* {
+@utility spl-* {
 	padding-left: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
 }
 
-@utility fpb-* {
+@utility spb-* {
 	padding-bottom: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility sm-* {
+	margin: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility smx-* {
+	margin-inline: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility smy-* {
+	margin-block: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility smt-* {
+	margin-top: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility smr-* {
+	margin-right: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility sml-* {
+	margin-left: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility smb-* {
+	margin-bottom: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility stop-* {
+	top: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility sright-* {
+	right: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility sbottom-* {
+	bottom: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility sleft-* {
+	left: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility sinset-* {
+	inset: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility sinset-x-* {
+	inset-inline: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
+}
+
+@utility sinset-y-* {
+	inset-block: calc(((--value(integer) * 100) / var(--device-width)) * min(1vw, var(--max-width) / 100 * 1px));
 }

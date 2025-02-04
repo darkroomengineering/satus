@@ -16,7 +16,7 @@ export function Navigation() {
   const pathname = usePathname()
 
   return (
-    <nav className="fixed top-margin left-margin z-2 flex flex-col uppercase font-mono">
+    <nav className="fixed top-space left-space z-2 flex flex-col uppercase font-mono">
       <div className="inline-flex">
         <h1>Satūs</h1>
         <span>{pathname}</span>

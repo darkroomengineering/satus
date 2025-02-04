@@ -1,4 +1,12 @@
-export function generateBase({ breakpoints, layout, screens, themes }) {
+export function generateBase({
+  breakpoints,
+  layout,
+  screens,
+  themes,
+  typeStyles,
+}) {
+  console.log(breakpoints, layout, screens, themes, typeStyles)
+
   return `@theme {
 	--breakpoint-*: initial;
 	${Object.entries(breakpoints)
@@ -11,12 +19,27 @@ export function generateBase({ breakpoints, layout, screens, themes }) {
     .join('\n\t')}
     
   --spacing: 0.25rem;
-	--spacing-margin: var(--device-margin);
+	--spacing-space: var(--device-space);
 	--spacing-gap: var(--device-gap);
 
-  /* TODO: This should be configurable */
-  --font-mono: var(--font-mono);
+  --font-*: initial;
 }
+
+${Object.entries(typeStyles)
+  .map(
+    ([name, value]) => `@utility ${name} {
+${Object.entries(value)
+  .map(([key, value]) => {
+    if (key === 'font-size') {
+      return `@apply stext-${value};`
+    }
+
+    return `${key}: ${value};`
+  })
+  .join('\n\t\t')}
+}`
+  )
+  .join('\n')}
 
 @utility design-grid {
 	display: grid;
@@ -58,17 +81,17 @@ ${Object.keys(themes)
     .join('\n\t')}
 
 	${Object.entries(layout)
-    .map(([name, { mobile, desktop }]) => {
+    .map(([name, [mobile, desktop]]) => {
       if (name === 'columns') {
         return `--mobile-columns: ${fluidCalc(mobile)};\n\t--desktop-columns: ${fluidCalc(desktop)};`
       }
 
-      if (name === 'gaps') {
+      if (name === 'gap') {
         return `--mobile-gap: ${fluidCalc(mobile)};\n\t--desktop-gap: ${fluidCalc(desktop)};`
       }
 
-      if (name === 'margins') {
-        return `--mobile-margin: ${fluidCalc(mobile)};\n\t--desktop-margin: ${fluidCalc(desktop)};`
+      if (name === 'space') {
+        return `--mobile-space: ${fluidCalc(mobile)};\n\t--desktop-space: ${fluidCalc(desktop)};`
       }
     })
     .join('\n')}
@@ -78,13 +101,13 @@ ${Object.keys(themes)
 	--device-width: var(--mobile-width);
 	--device-columns: var(--mobile-columns);
 	--device-gap: var(--mobile-gap);
-	--device-margin: var(--mobile-margin);
+	--device-space: var(--mobile-space);
 
 	@variant dt {
 		--device-width: var(--desktop-width);
 		--device-columns: var(--desktop-columns);
 		--device-gap: var(--desktop-gap);
-		--device-margin: var(--desktop-margin);
+		--device-space: var(--desktop-space);
 	}
 }`
 }

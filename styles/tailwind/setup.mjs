@@ -1,17 +1,14 @@
 import { writeFile } from 'node:fs/promises'
-import * as styles from '../config.mjs'
+import * as config from '../config.mjs'
 import { generateBase } from './generate-base.mjs'
 import { generateFluid } from './generate-fluid.mjs'
 
-const layout = { ...styles.config }
-// biome-ignore lint/performance/noDelete: fuck off
-delete layout.themes
-
 const base = generateBase({
-  breakpoints: styles.breakpoints,
-  layout,
-  screens: styles.screens,
-  themes: styles.themes,
+  breakpoints: config.breakpoints,
+  layout: config.layout,
+  screens: config.screens,
+  themes: config.themes,
+  typeStyles: config.typeStyles,
 })
 
 const fluid = generateFluid()

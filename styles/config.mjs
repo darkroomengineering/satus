@@ -48,11 +48,11 @@ const breakpoints = {
 
 /**
  * Screen sizes for responsive design.
- * @type {{mb: {width: number, height: number}, dt: {width: number, height: number}}}
+ * @type {{mobile: {width: number, height: number}, desktop: {width: number, height: number}}}
  */
 const screens = {
-  mb: { width: 375, height: 650 },
-  dt: { width: 1440, height: 816 },
+  mobile: { width: 375, height: 650 },
+  desktop: { width: 1440, height: 816 },
 }
 
 /**
@@ -97,6 +97,7 @@ const easings = {
   gleasing: 'cubic-bezier(0.4, 0, 0, 1)',
 }
 
+import { typeStyles } from './typography.mjs'
 export {
   breakpoints,
   colors,
@@ -106,4 +107,5 @@ export {
   screens,
   themeNames,
   themes,
+  typeStyles,
 }

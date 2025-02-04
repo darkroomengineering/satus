@@ -2,14 +2,13 @@ import { Suspense } from 'react'
 import { Wrapper } from '~/app/(pages)/(components)/wrapper'
 import { getCustomer } from '~/libs/shopify/customer/actions'
 import { LoginForm, LogoutButton, RegisterForm } from '../(components)/customer'
-import s from './account.module.css'
 
 export default async function AccountPage() {
   const customer = await getCustomer()
 
   return (
-    <Wrapper theme="red" className={s.page}>
-      <section className={s.inner}>
+    <Wrapper theme="red" className="font-mono uppercase overflow-clip">
+      <section className="flex flex-col items-center justify-center grow max-dt:px-page">
         <h1 className="p">My Account</h1>
         {customer ? (
           <Suspense fallback={<div>Loading...</div>}>

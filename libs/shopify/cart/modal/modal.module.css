@@ -34,7 +34,7 @@
   width: 75%;
   height: 100%;
   padding: mobile-vw(12px);
-  background-color: var(--black);
+  background-color: var(--color-black);
   color: var(--red);
   display: flex;
   flex-direction: column;
@@ -70,7 +70,7 @@
   }
 
   &.active {
-    background: var(--white);
+    background: var(--color-white);
   }
 }
 
@@ -166,7 +166,7 @@
       display: flex;
       height: fit-content;
       background-color: var(--red);
-      color: var(--black);
+      color: var(--color-black);
       border-radius: mobile-vw(100px);
       padding: mobile-vw(8px) mobile-vw(16px);
 
@@ -191,7 +191,7 @@
 
         @include hover {
           &:hover {
-            color: var(--white);
+            color: var(--color-white);
           }
         }
       }
@@ -274,7 +274,7 @@
 
     @include hover {
       &:hover {
-        color: var(--black);
+        color: var(--color-black);
 
         &::before {
           transition: 1000ms clip-path var(--ease-gleasing);

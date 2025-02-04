@@ -2,7 +2,7 @@
   position: relative;
   grid-column: 1 / -1;
   display: flex;
-  border: 2px solid var(--black);
+  border: 2px solid var(--color-black);
   border-radius: mobile-vw(8px);
   overflow: hidden;
   cursor: pointer;
@@ -20,7 +20,7 @@
     transform: translate(-50%, -50%);
     width: 100%;
     height: 100%;
-    background-color: var(--black);
+    background-color: var(--color-black);
     clip-path: circle(0%);
   }
 
@@ -35,7 +35,7 @@
 
   @include hover {
     &:hover {
-      color: var(--white);
+      color: var(--color-white);
 
       &::before {
         transition: 1000ms clip-path var(--ease-gleasing);
@@ -56,7 +56,7 @@
   }
 
   > button {
-    border: 2px solid var(--black) !important;
+    border: 2px solid var(--color-black) !important;
     border-radius: mobile-vw(8px) !important;
 
     @include-media ('desktop') {

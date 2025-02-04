@@ -11,6 +11,9 @@
 	--color-primary: #ffffff;
 	--color-secondary: #000000;
 	--color-contrast: #e30613;
+  --color-black: #000000;
+	--color-white: #ffffff;
+	--color-red: #e30613;
     
   --spacing: 0.25rem;
 	--spacing-page: var(--device-space);

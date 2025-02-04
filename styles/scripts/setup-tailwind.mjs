@@ -1,6 +1,6 @@
 import { writeFile } from 'node:fs/promises'
 
-import { themes } from '../colors.mjs'
+import { colors, themes } from '../colors.mjs'
 import { breakpoints, headerHeight, layout, screens } from '../layout.mjs'
 import { fontFamilies, typeStyles } from '../typography.mjs'
 
@@ -9,6 +9,7 @@ import { generateFluid } from './generate-fluid.mjs'
 
 const base = generateBase({
   breakpoints,
+  colors,
   fontFamilies,
   headerHeight,
   layout,

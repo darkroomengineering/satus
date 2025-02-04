@@ -1,5 +1,6 @@
 export function generateBase({
   breakpoints,
+  colors,
   fontFamilies,
   headerHeight,
   layout,
@@ -15,6 +16,9 @@ export function generateBase({
 
   --color-*: initial;
 	${Object.entries(Object.entries(themes)[0][1])
+    .map(([key, value]) => `--color-${key}: ${value};`)
+    .join('\n\t')}
+  ${Object.entries(colors)
     .map(([key, value]) => `--color-${key}: ${value};`)
     .join('\n\t')}
     

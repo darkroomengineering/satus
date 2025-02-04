@@ -1,6 +1,7 @@
 export function generateBase({
   breakpoints,
   colors,
+  easings,
   fontFamilies,
   headerHeight,
   layout,
@@ -66,6 +67,10 @@ export function generateBase({
 	--device-gap: var(--mobile-gap);
 	--device-space: var(--mobile-space);
 	--header-height: var(--mobile-header-height);
+
+  ${Object.entries(easings)
+    .map(([name, value]) => `--ease-${name}: ${value};`)
+    .join('\n\t')}
 
 	@variant dt {
 		--device-width: var(--desktop-width);

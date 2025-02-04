@@ -10,7 +10,6 @@
     "start": "next start",
     "lint": "biome lint",
     "analyze": "cross-env ANALYZE=true next build",
-    "npmrc": "pnpx npmrc-replace-env -w",
     "storybook:dev": "storybook dev -p 6006",
     "storybook:build": "storybook build --quiet",
     "typecheck": "tsc --noEmit --incremental false"
@@ -25,7 +24,7 @@
     "@theatre/studio": "^0.7.2",
     "babel-plugin-react-compiler": "^19.0.0-beta-27714ef-20250124",
     "clsx": "^2.1.1",
-    "gsap": "^3.12.7",
+    "gsap": "npm:@gsap/business@^3.12.7",
     "hamo": "1.0.0-dev.6",
     "lenis": "1.1.20",
     "next": "15.1.6",

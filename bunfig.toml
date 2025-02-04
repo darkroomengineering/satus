@@ -1,0 +1,2 @@
+[install.scopes]
+"@gsap" = { token = "$GSAP_AUTH_TOKEN", url = "https://npm.greensock.com/" }

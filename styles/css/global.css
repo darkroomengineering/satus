@@ -1,5 +1,13 @@
 /* GLOBAL CSS FILE - Contains global styles that shouldn't be reset */
 
+html {
+  --scrollbar-gutter: 0px;
+
+  &.lenis-stopped {
+    --scrollbar-gutter: var(--scrollbar-width);
+  }
+}
+
 * {
   scrollbar-width: thin;
 }

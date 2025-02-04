@@ -4,10 +4,10 @@ import { Debug } from '~/components/debug'
 import { GSAP } from '~/components/gsap'
 import { RealViewport } from '~/components/real-viewport'
 import { StyleVariables } from '~/libs/style-variables'
+import AppData from '~/package.json'
 import { colors, themes } from '~/styles/colors.mjs'
 import '~/styles/css/index.css'
-import AppData from '../../package.json'
-import { fonts } from '../fonts'
+import { fonts } from './fonts'
 
 const APP_NAME = AppData.name
 const APP_DEFAULT_TITLE = 'Satūs'

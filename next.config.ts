@@ -3,18 +3,79 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  output: 'standalone',
+  poweredByHeader: false,
   experimental: {
     turbo: {
       rules: {
         '*.svg': {
-          loaders: ['@svgr/webpack'],
+          loaders: [
+            {
+              loader: '@svgr/webpack',
+              options: {
+                memo: true,
+                dimensions: false,
+                svgoConfig: {
+                  multipass: true,
+                  plugins: [
+                    'removeDimensions',
+                    'removeOffCanvasPaths',
+                    'reusePaths',
+                    'removeElementsByAttr',
+                    'removeStyleElement',
+                    'removeScriptElement',
+                    'prefixIds',
+                    'cleanupIds',
+                    {
+                      name: 'cleanupNumericValues',
+                      params: {
+                        floatPrecision: 1,
+                      },
+                    },
+                    {
+                      name: 'convertPathData',
+                      params: {
+                        floatPrecision: 1,
+                      },
+                    },
+                    {
+                      name: 'convertTransform',
+                      params: {
+                        floatPrecision: 1,
+                      },
+                    },
+                    {
+                      name: 'cleanupListOfValues',
+                      params: {
+                        floatPrecision: 1,
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          ],
           as: '*.js',
         },
       },
     },
-    nextScriptWorkers: true,
     reactCompiler: true,
+    nextScriptWorkers: true,
+    optimizePackageImports: [
+      '@react-three/drei',
+      '@react-three/fiber',
+      'gsap',
+      'react-aria-components',
+    ],
   },
+  // modularizeImports: {
+  //   '@react-three/drei': {
+  //     transform: '@react-three/drei/{{member}}',
+  //   },
+  //   gsap: {
+  //     transform: 'gsap/{{member}}',
+  //   },
+  // },
   devIndicators: {
     appIsrStatus: false,
   },
@@ -39,15 +100,7 @@ const nextConfig: NextConfig = {
     ],
     formats: ['image/avif', 'image/webp'],
   },
-  webpack: (config) => {
-    const fileLoaderRule = config.module.rules.find(
-      (rule: { test?: { test?: (path: string) => boolean } }) =>
-        rule.test?.test?.('.svg')
-    )
-    if (fileLoaderRule) {
-      fileLoaderRule.exclude = /\.svg$/
-    }
-
+  webpack: (config, { dev, isServer }) => {
     config.module.rules.push({
       test: /\.svg$/,
       use: [

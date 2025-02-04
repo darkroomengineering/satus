@@ -248,7 +248,7 @@ export function useScrollTrigger(
     // @ts-ignore
     undefined,
     (progress: number, lastProgress: number) => {
-      if (Number.isNaN(progress)) return
+      if (Number.isNaN(progress) || progress === undefined) return
 
       if (
         (progress >= 0 && lastProgress < 0) ||
@@ -257,8 +257,9 @@ export function useScrollTrigger(
         onEnter?.({ progress: clamp(0, progress, 1) })
       }
 
-      if (!(clamp(0, progress, 1) === clamp(0, lastProgress, 1)))
+      if (!(clamp(0, progress, 1) === clamp(0, lastProgress, 1))) {
         onUpdate(progress, lastProgress)
+      }
 
       if (
         (progress < 0 && lastProgress >= 0) ||

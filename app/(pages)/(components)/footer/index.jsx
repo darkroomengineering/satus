@@ -1,10 +1,11 @@
+import Logo from '~/components/darkroom.svg'
 import { Link } from '~/components/link'
 
 export function Footer() {
   return (
     <footer className="flex flex-col dt:flex-row items-center dt:items-start justify-between p-page uppercase font-mono">
       <Link href="https://darkroom.engineering/" className="link">
-        darkroom.engineering
+        <Logo className="sw-20 text-black" />
       </Link>
       <div>
         <Link

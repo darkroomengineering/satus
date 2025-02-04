@@ -72,7 +72,7 @@ function fluidUtility(name, properties) {
 	${propertiesArray
     .map(
       (property) =>
-        `${property}: calc((--value(integer) * 100) / var(--device-width));`
+        `${property}: calc((--value(integer) * 100) / var(--device-width) * 1vw);`
     )
     .join('\n')}
 }`

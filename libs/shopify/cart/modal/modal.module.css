@@ -24,7 +24,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  transition: 500ms opacity var(--gleasing);
+  transition: 500ms opacity var(--ease-gleasing);
   background: rgba(0, 0, 0, 0.7);
 }
 
@@ -39,7 +39,7 @@
   display: flex;
   flex-direction: column;
   text-transform: uppercase;
-  transition: 800ms transform var(--gleasing);
+  transition: 800ms transform var(--ease-gleasing);
 
   @include-media ('desktop') {
     width: 50%;
@@ -277,7 +277,7 @@
         color: var(--black);
 
         &::before {
-          transition: 1000ms clip-path var(--gleasing);
+          transition: 1000ms clip-path var(--ease-gleasing);
           clip-path: circle(100%);
         }
       }

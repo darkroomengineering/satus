@@ -141,8 +141,8 @@
             border-radius: mobile-vw(4px);
             overflow: hidden;
             flex-shrink: 0;
-            transition: 500ms background-color var(--gleasing), 500ms color
-              var(--gleasing);
+            transition: 500ms background-color var(--ease-gleasing), 500ms color
+              var(--ease-gleasing);
 
             @include-media ('desktop') {
               width: desktop-vw(30px);
@@ -234,7 +234,7 @@
               background-color: var(--green);
               transform: scale(0.75);
               opacity: 0;
-              transition: 500ms opacity var(--gleasing);
+              transition: 500ms opacity var(--ease-gleasing);
             }
           }
         }
@@ -294,7 +294,7 @@
               border-radius: 100%;
               background-color: var(--gray);
               width: mobile-vw(24px);
-              transition: 500ms transform var(--gleasing);
+              transition: 500ms transform var(--ease-gleasing);
 
               @include-media ('desktop') {
                 width: desktop-vw(36px);

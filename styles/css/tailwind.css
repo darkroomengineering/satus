@@ -16,8 +16,8 @@
 	--color-red: #e30613;
     
   --spacing: 0.25rem;
-	--spacing-page: var(--device-space);
-	--spacing-gap: var(--device-gap);
+	--spacing-page: var(--space);
+	--spacing-gap: var(--gap);
 
   --font-*: initial;
   --font-mono: var(--font-mono);
@@ -83,7 +83,7 @@
 }
 
 @utility test-mono {
-  font-family: var(--font-mono);
+  font-family: --font-mono;
 	font-style: normal;
 	font-weight: 400;
 	line-height: 90%;
@@ -457,211 +457,211 @@ border-top-left-radius: calc((--value(integer) * 100) / var(--device-width) * 1v
 }
 
 @utility w-col-* {
-	width: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	width: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -w-col-* {
-	width: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	width: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility min-w-col-* {
-	min-width: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	min-width: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -min-w-col-* {
-	min-width: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	min-width: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility max-w-col-* {
-	max-width: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	max-width: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -max-w-col-* {
-	max-width: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	max-width: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility h-col-* {
-	height: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	height: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -h-col-* {
-	height: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	height: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility min-h-col-* {
-	min-height: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	min-height: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -min-h-col-* {
-	min-height: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	min-height: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility max-h-col-* {
-	max-height: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	max-height: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -max-h-col-* {
-	max-height: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	max-height: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility gap-col-* {
-	gap: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	gap: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -gap-col-* {
-	gap: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	gap: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility gap-x-col-* {
-	column-gap: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	column-gap: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -gap-x-col-* {
-	column-gap: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	column-gap: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility gap-y-col-* {
-	row-gap: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	row-gap: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -gap-y-col-* {
-	row-gap: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	row-gap: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility p-col-* {
-	padding: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	padding: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -p-col-* {
-	padding: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	padding: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility px-col-* {
-	padding-inline: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	padding-inline: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -px-col-* {
-	padding-inline: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	padding-inline: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility py-col-* {
-	padding-block: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	padding-block: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -py-col-* {
-	padding-block: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	padding-block: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility pt-col-* {
-	padding-top: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	padding-top: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -pt-col-* {
-	padding-top: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	padding-top: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility pr-col-* {
-	padding-right: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	padding-right: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -pr-col-* {
-	padding-right: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	padding-right: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility pl-col-* {
-	padding-left: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	padding-left: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -pl-col-* {
-	padding-left: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	padding-left: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility pb-col-* {
-	padding-bottom: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	padding-bottom: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -pb-col-* {
-	padding-bottom: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	padding-bottom: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility m-col-* {
-	margin: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	margin: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -m-col-* {
-	margin: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	margin: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility mx-col-* {
-	margin-inline: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	margin-inline: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -mx-col-* {
-	margin-inline: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	margin-inline: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility my-col-* {
-	margin-block: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	margin-block: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -my-col-* {
-	margin-block: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	margin-block: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility mt-col-* {
-	margin-top: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	margin-top: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -mt-col-* {
-	margin-top: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	margin-top: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility mr-col-* {
-	margin-right: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	margin-right: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -mr-col-* {
-	margin-right: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	margin-right: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility ml-col-* {
-	margin-left: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	margin-left: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -ml-col-* {
-	margin-left: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	margin-left: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility mb-col-* {
-	margin-bottom: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	margin-bottom: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -mb-col-* {
-	margin-bottom: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	margin-bottom: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility top-col-* {
-	top: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	top: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -top-col-* {
-	top: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	top: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility right-col-* {
-	right: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	right: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -right-col-* {
-	right: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	right: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility bottom-col-* {
-	bottom: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	bottom: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -bottom-col-* {
-	bottom: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	bottom: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility left-col-* {
-	left: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	left: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -left-col-* {
-	left: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	left: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility inset-col-* {
-	inset: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	inset: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -inset-col-* {
-	inset: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	inset: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility inset-x-col-* {
-	inset-inline: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	inset-inline: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -inset-x-col-* {
-	inset-inline: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	inset-inline: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 
 @utility inset-y-col-* {
-	inset-block: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	inset-block: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }
 @utility -inset-y-col-* {
-	inset-block: calc((--value(integer) * -1 * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));
+	inset-block: calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));
 }

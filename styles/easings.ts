@@ -18,6 +18,6 @@ const easings = {
   'in-out-expo': 'cubic-bezier(1, 0, 0, 1)',
   'in-out-circ': 'cubic-bezier(0.785, 0.135, 0.15, 0.86)',
   gleasing: 'cubic-bezier(0.4, 0, 0, 1)',
-}
+} as const
 
 export { easings }

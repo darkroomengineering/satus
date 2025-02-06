@@ -13,7 +13,7 @@
     "storybook:dev": "storybook dev -p 6006",
     "storybook:build": "storybook build --quiet",
     "typecheck": "tsc --noEmit --incremental false",
-    "tailwind": "node ./styles/scripts/setup-tailwind.mjs"
+    "setup:styles": "bun ./styles/scripts/setup-styles.ts"
   },
   "dependencies": {
     "@hubspot/api-client": "^12.0.1",
@@ -58,6 +58,8 @@
     "@storybook/test": "^8.5.2",
     "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4.0.0",
+    "@total-typescript/ts-reset": "^0.6.1",
+    "@types/bun": "^1.2.2",
     "@types/node": "^22.12.0",
     "@types/postcss-functions": "^4.0.4",
     "@types/react": "^19.0.8",

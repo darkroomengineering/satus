@@ -1,14 +1,16 @@
+import type { Config } from '../config'
+
 export function generateBase({
   breakpoints,
   colors,
   easings,
-  fontFamilies,
+  fonts,
   headerHeight,
   layout,
   screens,
   themes,
-  typeStyles,
-}) {
+  typography,
+}: Omit<Config, 'themeNames'>) {
   return `@theme {
 	--breakpoint-*: initial;
 	${Object.entries(breakpoints)
@@ -24,12 +26,12 @@ export function generateBase({
     .join('\n\t')}
     
   --spacing: 0.25rem;
-	--spacing-page: var(--device-space);
-	--spacing-gap: var(--device-gap);
+	--spacing-page: var(--space);
+	--spacing-gap: var(--gap);
 
   --font-*: initial;
-  ${Object.entries(fontFamilies)
-    .map(([key, value]) => `--font-${key}: ${value};`)
+  ${Object.entries(fonts)
+    .map(([name, variableName]) => `--font-${name}: var(${variableName});`)
     .join('\n\t')}
 }
 
@@ -85,7 +87,7 @@ export function generateBase({
 	}
 }
 
-${Object.entries(typeStyles)
+${Object.entries(typography)
   .map(
     ([name, value]) => `@utility ${name} {
   ${Object.entries(value)
@@ -133,6 +135,6 @@ ${Object.keys(themes)
   .join('\n')}`
 }
 
-function fluidCalc(value) {
+function fluidCalc(value: number) {
   return `calc(((${value} * 100) / var(--device-width)) * 1vw)`
 }

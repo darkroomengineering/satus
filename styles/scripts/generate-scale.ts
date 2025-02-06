@@ -59,7 +59,7 @@ const columnUtilityMap = {
   'inset-y': 'inset-block',
 }
 
-function scaleUtility(name, properties) {
+function scaleUtility(name: string, properties: string | string[]) {
   const propertiesArray = Array.isArray(properties) ? properties : [properties]
   const utility = `@utility s${name}-* {
 	${propertiesArray
@@ -77,7 +77,7 @@ function scaleUtility(name, properties) {
   return `${utility}\n${negatedUtility}`
 }
 
-function columnScaleUtility(name, properties) {
+function columnScaleUtility(name: string, properties: string | string[]) {
   const propertiesArray = Array.isArray(properties) ? properties : [properties]
   const utility = `@utility ${name}-col-* {
 	${propertiesArray

@@ -1,4 +1,4 @@
-import { screens } from '~/styles/layout.mjs'
+import { screens } from '~/styles/config'
 
 export function desktopVW(value: number, width: number) {
   return (value * width) / screens.desktop.width

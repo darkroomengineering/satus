@@ -1,3 +1,4 @@
+// THIS FILE HAS TO STAY .mjs AS ITS CONSUMED BY POSTCSS
 const breakpoints = {
   dt: 800,
 }

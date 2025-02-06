@@ -1,6 +1,3 @@
-// https://nextjs.org/docs/pages/building-your-application/optimizing/fonts#local-fonts
-
-import cn from 'clsx'
 import localFont from 'next/font/local'
 
 const mono = localFont({
@@ -16,4 +13,7 @@ const mono = localFont({
   preload: true,
 })
 
-export const fonts = { className: cn(mono.variable) }
+const fonts = [mono]
+const fontsClassName = fonts.map((font) => font.className).join(' ')
+
+export { fontsClassName }

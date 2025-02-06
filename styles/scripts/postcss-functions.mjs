@@ -1,11 +1,5 @@
 import { screens } from '../layout.mjs'
 
-/**
- * Validate the pixel value and return the number of pixels
- * @param {number} pixels - The pixel value to validate
- * @param {"mobile" | "desktop"} device - The device to validate against
- * @returns {number} The number of pixels
- */
 function validatePixels(pixels, device) {
   const numPixels = Number.parseFloat(pixels)
 
@@ -41,6 +35,6 @@ export const functions = {
     if (Number.isNaN(numColumns)) {
       throw new Error(`Invalid column value: ${columns}`)
     }
-    return `calc((${numColumns} * var(--layout-column-width)) + ((${numColumns} - 1) * var(--layout-columns-gap)))`
+    return `calc((${numColumns} * var(--column-width)) + ((${numColumns} - 1) * var(--gap)))`
   },
 }

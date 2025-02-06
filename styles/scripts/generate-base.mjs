@@ -63,20 +63,13 @@ export function generateBase({
 
 	--device-width: var(--mobile-width);
 	--device-height: var(--mobile-height);
-	--device-columns: var(--mobile-columns);
-	--device-gap: var(--mobile-gap);
-	--device-space: var(--mobile-space);
+	--columns: var(--mobile-columns);
+	--gap: var(--mobile-gap);
+	--space: var(--mobile-space);
 	--header-height: var(--mobile-header-height);
 
-  --layout-width: calc(100vw - (2 * var(--device-space)));
-  --layout-column-width: calc(
-    (
-      var(--layout-width) -
-      (var(--device-columns) - 1) *
-      var(--device-gap)
-    ) /
-    var(--device-columns)
-  );
+  --layout-width: calc(100vw - (2 * var(--space)));
+  --column-width: calc((var(--layout-width) - (var(--columns) - 1) * var(--gap)) / var(--columns));
 
   ${Object.entries(easings)
     .map(([name, value]) => `--ease-${name}: ${value};`)
@@ -85,9 +78,9 @@ export function generateBase({
 	@variant dt {
 		--device-width: var(--desktop-width);
 		--device-height: var(--desktop-height);
-		--device-columns: var(--desktop-columns);
-		--device-gap: var(--desktop-gap);
-		--device-space: var(--desktop-space);
+		--columns: var(--desktop-columns);
+		--gap: var(--desktop-gap);
+		--space: var(--desktop-space);
 		--header-height: var(--desktop-header-height);
 	}
 }
@@ -110,17 +103,17 @@ ${Object.entries(typeStyles)
 
 @utility design-grid {
 	display: grid;
-	grid-template-columns: repeat(var(--device-columns), 1fr);
-	gap: var(--device-gap);
+	grid-template-columns: repeat(var(--columns), 1fr);
+	gap: var(--gap);
 }
 
 @utility layout-block {
 	margin-inline: auto;
-	width: calc(100% - 2 * var(--device-margin));
+	width: calc(100% - 2 * var(--space));
 }
 
 @utility layout-block-inner {
-	padding-inline: var(--device-margin);
+	padding-inline: var(--space);
 	width: 100%;
 }
 

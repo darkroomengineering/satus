@@ -1,7 +1,3 @@
-/**
- * Map of fluid utility names to CSS properties
- * @type {Record<string, string | string[]>}
- */
 const scaleUtilityMap = {
   // Text
   text: 'font-size',
@@ -63,17 +59,6 @@ const columnUtilityMap = {
   'inset-y': 'inset-block',
 }
 
-const fullUtilityMap = {
-  ...scaleUtilityMap,
-  ...columnUtilityMap,
-}
-
-/**
- * Creates a scale utility CSS rule
- * @param {string} name - The name of the utility
- * @param {string|string[]} properties - CSS property or properties to make scale
- * @returns {string} The generated CSS utility rule
- */
 function scaleUtility(name, properties) {
   const propertiesArray = Array.isArray(properties) ? properties : [properties]
   const utility = `@utility s${name}-* {
@@ -98,7 +83,7 @@ function columnScaleUtility(name, properties) {
 	${propertiesArray
     .map(
       (property) =>
-        `${property}: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));`
+        `${property}: calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)));`
     )
     .join('\n')}
 }`
@@ -111,7 +96,7 @@ function columnScaleUtility(name, properties) {
 }
 
 export function generateScale() {
-  const scale = Object.entries(fullUtilityMap)
+  const scale = Object.entries({ ...scaleUtilityMap, ...columnUtilityMap })
     .map(([name, property]) => scaleUtility(name, property))
     .join('\n\n')
 

@@ -16,9 +16,7 @@ export function GridDebugger({
   const columns = useMemo(
     () =>
       Number.parseInt(
-        getComputedStyle(document.documentElement).getPropertyValue(
-          '--layout-columns-count'
-        )
+        getComputedStyle(document.documentElement).getPropertyValue('--columns')
       ),
     [windowWidth, windowHeight]
   )

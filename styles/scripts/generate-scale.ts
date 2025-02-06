@@ -104,5 +104,5 @@ export function generateScale() {
     .map(([name, property]) => columnScaleUtility(name, property))
     .join('\n\n')
 
-  return `${scale}\n\n${columnScale}`
+  return `/** Custom function utilities **/\n${scale}\n\n${columnScale}`
 }

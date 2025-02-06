@@ -2,14 +2,7 @@
  * Map of fluid utility names to CSS properties
  * @type {Record<string, string | string[]>}
  */
-const utilityMap = {
-  // Sizing
-  w: 'width',
-  'min-w': 'min-width',
-  'max-w': 'max-width',
-  h: 'height',
-  'min-h': 'min-height',
-  'max-h': 'max-height',
+const scaleUtilityMap = {
   // Text
   text: 'font-size',
   tracking: 'letter-spacing',
@@ -30,6 +23,16 @@ const utilityMap = {
   'rounded-tr': 'border-top-right-radius',
   'rounded-br': 'border-bottom-right-radius',
   'rounded-bl': 'border-bottom-left-radius',
+}
+
+const columnUtilityMap = {
+  // Sizing
+  w: 'width',
+  'min-w': 'min-width',
+  'max-w': 'max-width',
+  h: 'height',
+  'min-h': 'min-height',
+  'max-h': 'max-height',
   // Gap
   gap: 'gap',
   'gap-x': 'column-gap',
@@ -60,13 +63,18 @@ const utilityMap = {
   'inset-y': 'inset-block',
 }
 
+const fullUtilityMap = {
+  ...scaleUtilityMap,
+  ...columnUtilityMap,
+}
+
 /**
- * Creates a fluid utility CSS rule
+ * Creates a scale utility CSS rule
  * @param {string} name - The name of the utility
- * @param {string|string[]} properties - CSS property or properties to make fluid
+ * @param {string|string[]} properties - CSS property or properties to make scale
  * @returns {string} The generated CSS utility rule
  */
-function fluidUtility(name, properties) {
+function scaleUtility(name, properties) {
   const propertiesArray = Array.isArray(properties) ? properties : [properties]
   const utility = `@utility s${name}-* {
 	${propertiesArray
@@ -84,8 +92,32 @@ function fluidUtility(name, properties) {
   return `${utility}\n${negatedUtility}`
 }
 
-export function generateFluid() {
-  return Object.entries(utilityMap)
-    .map(([name, property]) => fluidUtility(name, property))
+function columnScaleUtility(name, properties) {
+  const propertiesArray = Array.isArray(properties) ? properties : [properties]
+  const utility = `@utility ${name}-col-* {
+	${propertiesArray
+    .map(
+      (property) =>
+        `${property}: calc((--value(integer) * var(--layout-column-width)) + ((--value(integer) - 1) * var(--device-gap)));`
+    )
+    .join('\n')}
+}`
+
+  const negatedUtility = utility
+    .replace('@utility ', '@utility -')
+    .replace('--value(integer)', '--value(integer) * -1')
+
+  return `${utility}\n${negatedUtility}`
+}
+
+export function generateScale() {
+  const scale = Object.entries(fullUtilityMap)
+    .map(([name, property]) => scaleUtility(name, property))
     .join('\n\n')
+
+  const columnScale = Object.entries(columnUtilityMap)
+    .map(([name, property]) => columnScaleUtility(name, property))
+    .join('\n\n')
+
+  return `${scale}\n\n${columnScale}`
 }

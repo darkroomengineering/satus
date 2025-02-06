@@ -1,5 +1,6 @@
 'use client'
 
+import cn from 'clsx'
 import { useState } from 'react'
 import { Dropdown } from '~/components/dropdown'
 import { AddToCart } from '~/libs/shopify/cart/add-to-cart'
@@ -11,7 +12,10 @@ export const SizeAndBuy = ({ product }) => {
   return (
     <>
       <Dropdown
-        className={s.size}
+        className={cn(
+          s.size,
+          'flex items-center justify-center sw-64 dt:sw-67'
+        )}
         placeholder="size"
         options={
           product.options.find((option) => option.name === 'Size').values
@@ -28,7 +32,10 @@ export const SizeAndBuy = ({ product }) => {
       <AddToCart
         product={product}
         variant={selectedVariant}
-        className={s.add}
+        className={cn(
+          s.add,
+          'relative col-span-full flex border-2 border-black srounded-8 overflow-hidden cursor-pointer dt:col-start-4 dt:-col-end-4'
+        )}
       />
     </>
   )

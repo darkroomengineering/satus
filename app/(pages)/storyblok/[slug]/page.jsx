@@ -3,7 +3,6 @@ import { fetchAll, fetchStoryblokStory } from '~/libs/storyblok'
 import { StoryblokContextProvider } from '~/libs/storyblok/context'
 import { Wrapper } from '../../(components)/wrapper'
 import { Article } from './(component)/article'
-import s from './article-page.module.css'
 
 // https://nextjs.org/docs/app/api-reference/functions/generate-static-params
 const SLUG = 'cdn/stories/blog'
@@ -24,8 +23,8 @@ export default async function StoryblokSubPage({ params }) {
 
   return (
     <StoryblokContextProvider {...data}>
-      <Wrapper theme="red" className={s.page}>
-        <div className={s.inner}>
+      <Wrapper theme="red" className="uppercase font-mono">
+        <div className="flex items-center justify-center grow max-dt:spx-16">
           <Article />
         </div>
       </Wrapper>

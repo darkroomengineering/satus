@@ -13,7 +13,7 @@
         "@theatre/studio": "^0.7.2",
         "babel-plugin-react-compiler": "^19.0.0-beta-27714ef-20250124",
         "clsx": "^2.1.1",
-        "gsap": "^3.12.7",
+        "gsap": "npm:@gsap/business@^3.12.7",
         "hamo": "1.0.0-dev.6",
         "lenis": "1.1.20",
         "next": "15.1.6",
@@ -1386,7 +1386,7 @@
 
     "graceful-fs": ["graceful-fs@4.2.11", "", {}, "sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ=="],
 
-    "gsap": ["gsap@3.12.7", "", {}, "sha512-V4GsyVamhmKefvcAKaoy0h6si0xX7ogwBoBSs2CTJwt7luW0oZzC0LhdkyuKV8PJAXr7Yaj8pMjCKD4GJ+eEMg=="],
+    "gsap": ["@gsap/business@3.12.7", "https://npm.greensock.com/@gsap%2fbusiness/-/business-3.12.7.tgz", {}, "sha512-R70kt4G2xfGOVwyaEkBxz7kbwQRasC6NFjUN2kT7hKUtj3O8EytwBcAh0KW1hhLEJWs8E9IcKLXx2jV9gTJtwA=="],
 
     "gzip-size": ["gzip-size@6.0.0", "", { "dependencies": { "duplexer": "^0.1.2" } }, "sha512-ax7ZYomf6jqPTQ4+XCpUGyXKHk5WweS+e05MBO4/y3WJ5RkmPXNKvX+bx1behVILVwr6JSQvZAku021CHPXG3Q=="],
 

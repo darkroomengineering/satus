@@ -21,7 +21,8 @@
       "**/*.mdx",
       "**/public/*.js",
       "**/.storybook/**",
-      "tailwind.css"
+      "tailwind.css",
+      "root.css"
     ]
   },
   "formatter": {

@@ -14,6 +14,7 @@ const presetEnvConfig = {
   features: {
     'custom-properties': false,
     'custom-media-queries': true,
+    'nesting-rules': true,
   },
 }
 

@@ -13,12 +13,12 @@
 
   &.submitted {
     pointer-events: none;
-    background: var(--green);
+    background: var(--color-green);
   }
 
   &.error {
     pointer-events: none;
-    background: var(--white);
+    background: var(--color-white);
   }
 
   span {
@@ -34,16 +34,16 @@
     transform: translate(-50%, -50%);
     width: 100%;
     height: 100%;
-    background-color: var(--black);
+    background-color: var(--color-black);
     clip-path: circle(0%);
   }
 
-  @include hover {
+  @media (--hover) {
     &:hover {
-      color: var(--white);
+      color: var(--color-white);
 
       &::before {
-        transition: 1000ms clip-path var(--gleasing);
+        transition: 1000ms clip-path var(--ease-gleasing);
         clip-path: circle(100%);
       }
     }
@@ -56,16 +56,16 @@
   font-size: mobile-vw(8px);
   padding-right: mobile-vw(16px);
 
-  @include-media ('desktop') {
+  @media (--desktop) {
     font-size: desktop-vw(14px);
     padding-right: desktop-vw(16px);
   }
 
   .success {
-    color: var(--green);
+    color: var(--color-green);
   }
 
   .error {
-    color: var(--white);
+    color: var(--color-white);
   }
 }

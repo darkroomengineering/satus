@@ -2,7 +2,6 @@ import { fetchStoryblokStory } from '~/libs/storyblok'
 import { StoryblokContextProvider } from '~/libs/storyblok/context'
 import { Wrapper } from '../(components)/wrapper'
 import { Tutorial } from './(component)/tutorial'
-import s from './storyblok.module.css'
 
 const SLUG = 'cdn/stories/home'
 
@@ -13,8 +12,8 @@ export default async function Storyblok() {
 
   return (
     <StoryblokContextProvider {...data}>
-      <Wrapper theme="red" className={s.page}>
-        <div className={s.inner}>
+      <Wrapper theme="red" className="uppercase font-mono">
+        <div className="flex items-center justify-center grow max-dt:spx-16">
           <Tutorial />
         </div>
       </Wrapper>

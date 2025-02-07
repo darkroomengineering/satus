@@ -1,25 +1,42 @@
-### Load fonts
+# Quick How-To Guide
 
+## Project Setup
+
+### Fonts
 Add fonts to load in app/fonts.js
+```ts
+// Example in app/fonts.js
+import localFont from 'next/font/local'
 
-### Debug
-
-Navigate to /debug/orchestra page to see the debug panel.
-
-### Use Lenis
-
-[See documentation](https://github.com/darkroomengineering/lenis/blob/main/packages/react/README.md)
-
-### Add WebGL
-
-- Add `<Canvas>` in the app to add a WebGL canvas, it will be fixed within your page behind the DOM elements.
-- Use <WebGLTunnel.In> when you want to add a r3f component to the canvas.
-
-```jsx
-<WebGLTunnel.In>
-  <mesh>
-    <boxBufferGeometry />
-    <meshNormalMaterial />
-  </mesh>
-</WebGLTunnel.In>
+export const fonts = {
+  mono: localFont({
+    src: '../public/fonts/ServerMono/ServerMono-Regular.woff2',
+    variable: '--font-mono',
+  }),
+}
 ```
+
+## Style System
+Run `bun setup:styles` to generate style configuration files after modifying:
+- typography.ts
+- colors.ts
+- layout.mjs
+
+The generated files will be:
+- styles/css/tailwind.css
+- styles/css/root.css
+
+## Debug Tools
+
+### Orchestra Panel
+Navigate to /debug/orchestra page to access:
+- Theatre.js Studio (⚙️)
+- Performance Stats (📈)
+- Grid Debug (🌐)
+- Development Mode (🚧)
+- Minimap (🗺️)
+- WebGL Debug (🧊)
+
+### Usage
+Each tool can be toggled independently and their state persists across page reloads.
+The tools are only available in development mode.

@@ -1,4 +1,4 @@
-import AppData from '../package.json'
+import AppData from '~/package.json'
 import Image from './opengraph-image'
 
 export const runtime = 'edge'

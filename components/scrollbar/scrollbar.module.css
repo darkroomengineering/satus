@@ -20,7 +20,7 @@
     cursor: grab;
   }
 
-  @include-media ('mobile') {
+  @media (--mobile) {
     display: none;
   }
 }

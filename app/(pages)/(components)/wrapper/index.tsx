@@ -3,18 +3,18 @@
 import cn from 'clsx'
 import type { LenisOptions } from 'lenis'
 import { usePathname } from 'next/navigation'
-import { useEffect } from 'react'
+import { type ComponentProps, useEffect } from 'react'
+
 import { Canvas } from '~/libs/webgl/components/canvas'
-import type { themeNames } from '~/styles/config.mjs'
+import type { Theme } from '~/styles/config'
 import { Footer } from '../footer'
 import { Lenis } from '../lenis'
 import { Navigation } from '../navigation'
-import s from './wrapper.module.css'
 
 interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
-  theme?: (typeof themeNames)[number]
+  theme?: Theme
   lenis?: boolean | LenisOptions
-  webgl?: boolean | object
+  webgl?: boolean | Omit<ComponentProps<typeof Canvas>, 'children'>
 }
 
 export function Wrapper({
@@ -36,7 +36,7 @@ export function Wrapper({
     <>
       {webgl && <Canvas root {...(typeof webgl === 'object' && webgl)} />}
       <Navigation />
-      <main className={cn(s.main, className)} {...props}>
+      <main className={cn('relative flex flex-col grow', className)} {...props}>
         {children}
         <script>
           {`document.documentElement.setAttribute('data-theme', '${theme}');`}

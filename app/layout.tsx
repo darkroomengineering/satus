@@ -5,9 +5,9 @@ import { GSAP } from '~/components/gsap'
 import { RealViewport } from '~/components/real-viewport'
 import { StyleVariables } from '~/libs/style-variables'
 import AppData from '~/package.json'
-import { colors, themes } from '~/styles/config.mjs'
-import '~/styles/global.css'
-import { fonts } from './fonts'
+import { colors, themes } from '~/styles/config'
+import '~/styles/css/index.css'
+import { fontsClassName } from '~/styles/fonts'
 
 const APP_NAME = AppData.name
 const APP_DEFAULT_TITLE = 'Satūs'
@@ -65,7 +65,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <html
       lang="en"
       dir="ltr"
-      className={fonts?.className}
+      className={fontsClassName}
       suppressHydrationWarning
     >
       <head>

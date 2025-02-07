@@ -2,7 +2,6 @@
 
 import { storyblokEditable } from '@storyblok/js'
 import { useStoryblokContext } from '~/libs/storyblok/context'
-import s from './article.module.css'
 
 export function Article() {
   const {
@@ -12,8 +11,11 @@ export function Article() {
   if (!content) return
 
   return (
-    <div className={s.article} {...storyblokEditable(content)}>
-      <h1 className={s.title}>article: {content?.title}</h1>
+    <div
+      className="flex flex-col items-center gap-gap"
+      {...storyblokEditable(content)}
+    >
+      <h1>article: {content?.title}</h1>
     </div>
   )
 }

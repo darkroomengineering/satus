@@ -1,16 +1,4 @@
-@import "./_reset";
-@import "./_easings";
-@import "./_utils";
-@import "./_font-style";
-@import "./_layout";
-
-:root {
-  --header-height: mobile-vw(58px);
-
-  @include-media ('desktop') {
-    --header-height: desktop-vw(98px);
-  }
-}
+/* GLOBAL CSS FILE - Contains global styles that shouldn't be reset */
 
 html {
   --scrollbar-gutter: 0px;
@@ -24,7 +12,6 @@ html {
   scrollbar-width: thin;
 }
 
-/* Core styles that shouldn't be reset */
 body {
   min-height: 100vh;
   overscroll-behavior: none;
@@ -58,7 +45,7 @@ svg.icon {
 
 /* Hover states */
 .link {
-  @include-media ('hover') {
+  @media (--hover) {
     &:hover {
       text-decoration: underline;
     }

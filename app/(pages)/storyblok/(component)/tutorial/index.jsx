@@ -2,7 +2,6 @@
 
 import { storyblokEditable } from '@storyblok/js'
 import { useStoryblokContext } from '~/libs/storyblok/context'
-import s from './tutorial.module.css'
 
 // TODO:
 // - Webhooks
@@ -15,16 +14,18 @@ export function Tutorial() {
   } = useStoryblokContext()
 
   return (
-    <div className={s.tutorial} {...storyblokEditable(content)}>
-      <h2 className={s.title}>{content?.title}</h2>
-
-      <div className={s.codes}>
-        <code>
+    <div
+      className="flex flex-col items-center gap-gap"
+      {...storyblokEditable(content)}
+    >
+      <h2 className="text-center">{content?.title}</h2>
+      <div className="flex gap-gap">
+        <code className="sp-8 inline-block border border-secondary srounded-8">
           # MacOS
           <br />
           brew install mkcert
         </code>
-        <code>
+        <code className="sp-8 inline-block border border-secondary srounded-8">
           # Windows
           <br />
           choco install mkcert
@@ -32,7 +33,7 @@ export function Tutorial() {
         </code>
       </div>
 
-      <code>
+      <code className="sp-8 inline-block border border-secondary srounded-8">
         mkcert -install
         <br />
         mkcert localhost
@@ -40,7 +41,7 @@ export function Tutorial() {
         npm run dev:storyblok
       </code>
 
-      <code>
+      <code className="sp-8 inline-block border border-secondary srounded-8">
         # update .env
         <br />
         STORYBLOK_PREVIEW_ACCESS_TOKEN

@@ -3,7 +3,6 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  output: 'standalone',
   poweredByHeader: false,
   experimental: {
     turbo: {
@@ -100,7 +99,7 @@ const nextConfig: NextConfig = {
     ],
     formats: ['image/avif', 'image/webp'],
   },
-  webpack: (config, { dev, isServer }) => {
+  webpack: (config) => {
     config.module.rules.push({
       test: /\.svg$/,
       use: [

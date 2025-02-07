@@ -14,13 +14,12 @@
       "**/public/**",
       ".github/**",
       ".vercel/**",
-      ".husky/**",
       "pnpm-lock.yaml",
-      "bun.lockb",
+      "bun.lock",
       "**/*.md",
       "**/*.mdx",
-      "**/public/*.js",
-      "**/.storybook/**"
+      "tailwind.css",
+      "root.css"
     ]
   },
   "formatter": {
@@ -41,7 +40,8 @@
         "noExplicitAny": "warn"
       },
       "correctness": {
-        "useExhaustiveDependencies": "warn"
+        "useExhaustiveDependencies": "warn",
+        "noUnknownMediaFeatureName": "off"
       },
       "a11y": {
         "useKeyWithClickEvents": "warn",

@@ -1,7 +1,8 @@
-import { themes } from '~/styles/config.mjs'
-import AppData from '../package.json'
+import type { MetadataRoute } from 'next'
+import AppData from '~/package.json'
+import { themes } from '~/styles/config'
 
-export default function manifest() {
+export default function manifest(): MetadataRoute.Manifest {
   return {
     name: AppData.name,
     short_name: AppData.name,

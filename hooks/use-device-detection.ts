@@ -1,5 +1,5 @@
 import { useMediaQuery } from 'hamo'
-import { breakpoints } from '~/styles/config.mjs'
+import { breakpoints } from '~/styles/config'
 
 interface NavigatorWithBattery extends Navigator {
   getBattery(): Promise<{ charging: boolean; level: number }>

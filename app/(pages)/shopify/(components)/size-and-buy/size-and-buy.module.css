@@ -1,17 +1,4 @@
 .add {
-  position: relative;
-  grid-column: 1 / -1;
-  display: flex;
-  border: 2px solid var(--black);
-  border-radius: mobile-vw(8px);
-  overflow: hidden;
-  cursor: pointer;
-
-  @include-media ('desktop') {
-    grid-column: 4 / -4;
-    border-radius: desktop-vw(8px);
-  }
-
   &::before {
     content: "";
     position: absolute;
@@ -20,7 +7,7 @@
     transform: translate(-50%, -50%);
     width: 100%;
     height: 100%;
-    background-color: var(--black);
+    background-color: var(--color-black);
     clip-path: circle(0%);
   }
 
@@ -28,17 +15,17 @@
     position: relative;
     padding: mobile-vw(16px);
 
-    @include-media ('desktop') {
+    @media (--desktop) {
       padding: desktop-vw(16px);
     }
   }
 
-  @include hover {
+  @media (--hover) {
     &:hover {
-      color: var(--white);
+      color: var(--color-white);
 
       &::before {
-        transition: 1000ms clip-path var(--gleasing);
+        transition: 1000ms clip-path var(--ease-gleasing);
         clip-path: circle(100%);
       }
     }
@@ -46,20 +33,11 @@
 }
 
 .size {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: mobile-vw(64px);
-
-  @include-media ('desktop') {
-    width: desktop-vw(67px);
-  }
-
   > button {
-    border: 2px solid var(--black) !important;
+    border: 2px solid var(--color-black) !important;
     border-radius: mobile-vw(8px) !important;
 
-    @include-media ('desktop') {
+    @media (--desktop) {
       border-radius: desktop-vw(8px) !important;
     }
   }

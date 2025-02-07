@@ -1,6 +1,9 @@
-# Storyblok
+# Storyblok Integration
 
-## Installation
+## Setup
+
+### SSL Certificate
+For local development with Storyblok's Visual Editor, you need an SSL certificate:
 
 ```bash
 # MacOS
@@ -15,71 +18,154 @@ mkcert -install
 mkcert localhost
 ```
 
-Once that `mkcert` is installed, use the following command for development:
-
-```bash
-npm run dev:storyblok
-```
-
-## Usage
-
-First, you need to setup .env file with your Storyblok Access Tokens. You can get them from your Storyblok dashboard, add them to your `.env` file:
+### Environment Variables
+Add your Storyblok Access Tokens to the `.env` file:
 
 ```
 STORYBLOK_PUBLIC_ACCESS_TOKEN="your-public-access-token"
 STORYBLOK_PREVIEW_ACCESS_TOKEN="your-preview-access-token"
 ```
 
-Then you can use the following code to fetch data from Storyblok into your page:
+### Development Server
+Once everything is set up, start the development server:
+
+```bash
+bun dev:https
+```
+
+## Content Management
+
+### Fetching Content
+Use the following pattern to fetch and display Storyblok content in your pages:
 
 ```jsx
-export default async function Home() {
-  const _draftMode = await draftMode()
-  const isDraftMode =
-    _draftMode.isEnabled || process.env.NODE_ENV === 'development'
+import { fetchStoryblokStory } from '~/libs/storyblok'
+import { StoryblokContextProvider } from '~/libs/storyblok/context'
 
-  const { data } = await new StoryblokApi({
-    draft: isDraftMode,
-  })
-    .get('cdn/stories/home', {
-      resolve_relations: [],
-    })
-    .catch(() => {
-      notFound()
-    })
+const SLUG = 'cdn/stories/home'
 
-  const content = data?.story?.content
+export default async function Page() {
+  const { data } = await fetchStoryblokStory(SLUG)
 
-  return /* ... */
+  if (!data) return notFound()
+
+  return (
+    <StoryblokContextProvider {...data}>
+      {/* Your components here */}
+    </StoryblokContextProvider>
+  )
 }
 ```
 
-See the [Storyblok Content Delivery API](https://www.storyblok.com/docs/api/content-delivery/v2/getting-started/introduction) for more information.
+### Client Components
+For client-side components, access content using the `useStoryblokContext` hook:
 
-## Draft Mode
+```jsx
+'use client'
 
-To enable draft mode you need a secret key, you can generate one by running this code in your browser console:
+import { storyblokEditable } from '@storyblok/js'
+import { useStoryblokContext } from '~/libs/storyblok/context'
 
+export function Component() {
+  const {
+    story: { content },
+  } = useStoryblokContext()
+
+  return (
+    <div {...storyblokEditable(content)}>
+      <h1>{content?.title}</h1>
+    </div>
+  )
+}
+```
+
+### Rich Text Rendering
+For Rich Text fields, use the built-in renderer:
+
+```jsx
+import { renderRichText } from '~/libs/storyblok/renderer'
+
+export function Component() {
+  const {
+    story: { content },
+  } = useStoryblokContext()
+
+  return renderRichText(content.rich_text)
+}
+```
+
+Customize the rendering with resolvers:
+
+```jsx
+renderRichText(content.rich_text, {
+  markResolvers: {...},
+  nodeResolvers: {...},
+  blokResolvers: {...}
+})
+```
+
+### Metadata Generation
+Generate page metadata from Storyblok content:
+
+```jsx
+export async function generateMetadata() {
+  const { data } = await fetchStoryblokStory(SLUG)
+  const metadata = data?.story?.content?.metadata?.[0]
+
+  if (!metadata) return
+
+  return {
+    title: metadata?.title,
+    description: metadata?.description,
+    images: metadata?.image?.filename,
+    keywords: metadata?.keywords?.value,
+    openGraph: {
+      title: metadata?.title,
+      description: metadata?.description,
+      images: metadata?.image?.filename,
+      url: process.env.NEXT_PUBLIC_BASE_URL,
+    },
+    twitter: {
+      title: metadata?.title,
+      description: metadata?.description,
+      images: metadata?.image?.filename,
+    },
+  }
+}
+```
+
+## Visual Editor
+
+### Draft Mode Setup
+1. Generate a secret token:
 ```js
 Math.random().toString(36).substr(2)
 ```
 
-Then add this token to your `.env` file:
+2. Add to `.env`:
+```
+DRAFT_MODE_TOKEN="your-draft-mode-token"
+```
 
-`DRAFT_MODE_TOKEN="your-draft-mode-token"`
+3. Configure Visual Editor URL in Storyblok settings:
+```
+https://your-website.url/api/draft?secret=DRAFT_MODE_TOKEN&slug=/
+```
 
-Use the following url as your Visual Editor default location in Storyblok settings:
+The Visual Editor will automatically be enabled when accessing your site through Storyblok's interface.
 
-`https://your-website.url/api/draft?secret=DRAFT_MODE_TOKEN&slug=/`
+## Production
 
-Now you can use the Visual Editor to edit your website.
+### Content Revalidation
+To update content without redeployment, set up a Storyblok webhook with this endpoint:
 
-See the [Next.js Draft Mode documentation](https://nextjs.org/docs/app/building-your-application/configuring/draft-mode) for more information.
+```
+https://your-website.url/api/revalidate
+```
 
-## Revalidation
+This webhook should trigger on content being published, unpublished, deleted, or moved.
 
-Production website caches the Storyblok data until the next deployment. To be able to update production data without deploying, you have to setup a revalidation mechanism. For that you need to create a Storyblok webhook that will trigger a revalidation on any Story published, unpublished, deleted or moved. Here is the endpoint URL:
-
-`https://your-website.url/api/revalidate`
-
-See the [Next.js revalidatePath](https://nextjs.org/docs/app/api-reference/functions/revalidatePath) documentation for more information.
+## References
+- [Storyblok Content Delivery API](https://www.storyblok.com/docs/api/content-delivery/v2/getting-started/introduction)
+- [Next.js Draft Mode](https://nextjs.org/docs/app/building-your-application/configuring/draft-mode)
+- [Next.js revalidatePath](https://nextjs.org/docs/app/api-reference/functions/revalidatePath)

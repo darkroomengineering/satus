@@ -2,5 +2,5 @@
   opacity: 0.5;
   pointer-events: none;
   cursor: not-allowed;
-  transition: 300ms opacity var(--gleasing);
+  transition: 300ms opacity var(--ease-gleasing);
 }

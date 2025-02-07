@@ -1,8 +1,8 @@
-import { fonts } from 'app/fonts'
 import cn from 'clsx'
 import { StyleVariables } from '~/libs/style-variables'
 import { colors, themes } from '~/styles/config'
 import '~/styles/css/index.css'
+import { fontsClassName } from '~/styles/fonts'
 
 /** @type { import('@storybook/react').Preview } */
 const preview = {
@@ -13,7 +13,7 @@ const preview = {
           <StyleVariables colors={colors} themes={themes} />
         </head>
         <div
-          className={cn(fonts?.className, 'theme-light')}
+          className={cn(fontsClassName, 'theme-light')}
           style={{ fontFamily: 'var(--font-mono)' }}
         >
           <Story />

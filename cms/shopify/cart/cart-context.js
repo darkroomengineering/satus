@@ -13,7 +13,7 @@ export function useCartContext() {
 export function CartProvider({ children, cart }) {
   const [optimisticCart, updateOptimisticCart] = useOptimistic(
     cart,
-    cartReconciler,
+    cartReconciler
   )
 
   function updateCartItem(merchandiseId, updateType) {

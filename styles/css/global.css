@@ -45,7 +45,7 @@ svg.icon {
 
 /* Hover states */
 .link {
-  @include-media ('hover') {
+  @media (--hover) {
     &:hover {
       text-decoration: underline;
     }

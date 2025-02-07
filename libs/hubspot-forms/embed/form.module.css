@@ -2,7 +2,7 @@
   --gray: rgba(0, 0, 0, 0.25);
   padding: 0 mobile-vw(24px);
 
-  @include-media ('desktop') {
+  @media (--desktop) {
     padding: 0 desktop-vw(24px);
   }
 
@@ -11,7 +11,7 @@
     text-align: center;
     font-size: mobile-vw(25px);
 
-    @include-media ('desktop') {
+    @media (--desktop) {
       font-size: desktop-vw(25px);
     }
   }
@@ -41,7 +41,7 @@
         border-right: mobile-vw(6px) solid transparent;
         border-top: mobile-vw(6px) solid var(--color-black);
 
-        @include-media ('desktop') {
+        @media (--desktop) {
           right: desktop-vw(15px);
           border-left: desktop-vw(6px) solid transparent;
           border-right: desktop-vw(6px) solid transparent;
@@ -57,7 +57,7 @@
     @extend .field;
     min-height: mobile-vw(100px);
 
-    @include-media ('desktop') {
+    @media (--desktop) {
       border-radius: desktop-vw(8px);
       min-height: desktop-vw(100px);
     }
@@ -67,7 +67,7 @@
       padding: mobile-vw(10px);
       margin-bottom: 0;
 
-      @include-media ('desktop') {
+      @media (--desktop) {
         padding: desktop-vw(6px) desktop-vw(16px);
       }
     }
@@ -95,7 +95,7 @@
         border-right: mobile-vw(6px) solid transparent;
         border-top: mobile-vw(6px) solid var(--color-black);
 
-        @include-media ('desktop') {
+        @media (--desktop) {
           right: desktop-vw(15px);
           border-left: desktop-vw(6px) solid transparent;
           border-right: desktop-vw(6px) solid transparent;
@@ -114,14 +114,14 @@
       flex-direction: column;
       row-gap: mobile-vw(10px);
 
-      @include-media ('desktop') {
+      @media (--desktop) {
         row-gap: desktop-vw(10px);
       }
 
       > li {
         position: relative;
 
-        @include hover {
+        @media (--hover) {
           &:hover {
             input {
               background-color: var(--color-green);
@@ -144,7 +144,7 @@
             transition: 500ms background-color var(--ease-gleasing), 500ms color
               var(--ease-gleasing);
 
-            @include-media ('desktop') {
+            @media (--desktop) {
               width: desktop-vw(30px);
               border-radius: desktop-vw(4px);
             }
@@ -158,7 +158,7 @@
               height: 100%;
               font-size: mobile-vw(20px);
 
-              @include-media ('desktop') {
+              @media (--desktop) {
                 font-size: desktop-vw(20px);
                 top: -5%;
                 left: 12%;
@@ -185,14 +185,14 @@
       align-items: center;
       column-gap: mobile-vw(10px);
 
-      @include-media ('desktop') {
+      @media (--desktop) {
         column-gap: desktop-vw(10px);
       }
 
       > li {
         position: relative;
 
-        @include hover {
+        @media (--hover) {
           &:hover {
             input {
               &::after {
@@ -205,7 +205,7 @@
         > label {
           @extend .check-labels;
 
-          @include-media ('desktop') {
+          @media (--desktop) {
             font-size: desktop-vw(14px);
           }
 
@@ -219,7 +219,7 @@
             overflow: hidden;
             flex-shrink: 0;
 
-            @include-media ('desktop') {
+            @media (--desktop) {
               width: desktop-vw(40px);
             }
 
@@ -257,7 +257,7 @@
       > li {
         position: relative;
 
-        @include hover {
+        @media (--hover) {
           &:hover {
             input {
               &::after {
@@ -279,7 +279,7 @@
             flex-shrink: 0;
             border-radius: mobile-vw(32px);
 
-            @include-media ('desktop') {
+            @media (--desktop) {
               width: desktop-vw(104px);
               border-radius: desktop-vw(32px);
             }
@@ -296,7 +296,7 @@
               width: mobile-vw(24px);
               transition: 500ms transform var(--ease-gleasing);
 
-              @include-media ('desktop') {
+              @media (--desktop) {
                 width: desktop-vw(36px);
               }
             }
@@ -311,7 +311,7 @@
           background-color: var(--color-white);
           transform: translate(175%, -50%);
 
-          @include-media ('desktop') {
+          @media (--desktop) {
             transform: translate(160%, -50%);
           }
         }
@@ -323,7 +323,7 @@
     margin-bottom: desktop-vw(15px) !important;
     color: red !important;
 
-    @include-media ('desktop') {
+    @media (--desktop) {
       text-align: center;
       font-size: desktop-vw(16px);
     }
@@ -333,7 +333,7 @@
     @extend .field;
     margin-bottom: mobile-vw(45px);
 
-    @include-media ('desktop') {
+    @media (--desktop) {
       margin-bottom: desktop-vw(25px);
     }
 
@@ -372,7 +372,7 @@
       padding: mobile-vw(15px) mobile-vw(21px);
       border-radius: mobile-vw(8px);
 
-      @include-media ('desktop') {
+      @media (--desktop) {
         font-size: desktop-vw(14px);
         padding: desktop-vw(10px) desktop-vw(16px);
         border-radius: desktop-vw(8px);
@@ -385,7 +385,7 @@
     color: var(--color-black);
     top: mobile-vw(-5px);
 
-    @include-media ('desktop') {
+    @media (--desktop) {
       font-size: desktop-vw(14px);
       top: desktop-vw(-5px);
     }
@@ -399,14 +399,14 @@
   line-height: normal;
   font-size: mobile-vw(14px);
 
-  @include-media ('desktop') {
+  @media (--desktop) {
     font-size: desktop-vw(14px);
   }
 
   span {
     margin-left: mobile-vw(12px);
 
-    @include-media ('desktop') {
+    @media (--desktop) {
       margin-left: desktop-vw(12px);
     }
   }
@@ -424,7 +424,7 @@
     width: 100%;
     color: red;
 
-    @include-media ('desktop') {
+    @media (--desktop) {
       bottom: desktop-vw(-25px);
     }
 
@@ -438,7 +438,7 @@
       position: relative;
       font-size: mobile-vw(10px) !important;
 
-      @include-media ('desktop') {
+      @media (--desktop) {
         font-size: desktop-vw(10px) !important;
       }
     }
@@ -461,7 +461,7 @@
   width: mobile-vw(233px);
   padding: mobile-vw(26px) mobile-vw(36px);
 
-  @include-media ('desktop') {
+  @media (--desktop) {
     width: desktop-vw(233px);
     padding: desktop-vw(26px) desktop-vw(36px);
     border-radius: desktop-vw(10px);

@@ -13,7 +13,7 @@
     background-color: var(--theme-primary);
     color: var(--theme-secondary);
 
-    @include-media ('desktop') {
+    @media (--desktop) {
       padding: desktop-vw(8px) desktop-vw(12px);
       border-radius: desktop-vw(2px);
     }
@@ -33,7 +33,7 @@
     overflow: clip;
     padding: mobile-vw(4px);
 
-    @include-media ('desktop') {
+    @media (--desktop) {
       border-radius: desktop-vw(2px);
       top: calc(100% + desktop-vw(4px));
       padding: desktop-vw(4px);
@@ -49,12 +49,12 @@
       width: 100%;
       border-radius: mobile-vw(2px);
 
-      @include-media ('desktop') {
+      @media (--desktop) {
         padding: desktop-vw(8px) desktop-vw(12px);
         border-radius: desktop-vw(2px);
       }
 
-      @include hover {
+      @media (--hover) {
         &:hover {
           background-color: var(--theme-contrast);
           color: var(--theme-primary);

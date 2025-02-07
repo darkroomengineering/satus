@@ -1,12 +1,21 @@
 import type { Config } from '../config'
 
 export function generateRoot({
+  breakpoints,
   easings,
   headerHeight,
   layout,
   screens,
-}: Pick<Config, 'easings' | 'headerHeight' | 'layout' | 'screens'>) {
-  return `:root {
+}: Pick<
+  Config,
+  'breakpoints' | 'easings' | 'headerHeight' | 'layout' | 'screens'
+>) {
+  return `@custom-media --hover (hover: hover);
+@custom-media --mobile (width <= ${breakpoints.dt - 0.02}px);
+@custom-media --desktop (width >= ${breakpoints.dt}px);
+@custom-media --reduced-motion (prefers-reduced-motion: reduce);
+
+:root {
 	${Object.entries(screens)
     .map(
       ([name, { width, height }]) =>

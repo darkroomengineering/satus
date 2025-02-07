@@ -38,7 +38,7 @@
     clip-path: circle(0%);
   }
 
-  @include hover {
+  @media (--hover) {
     &:hover {
       color: var(--color-white);
 
@@ -56,7 +56,7 @@
   font-size: mobile-vw(8px);
   padding-right: mobile-vw(16px);
 
-  @include-media ('desktop') {
+  @media (--desktop) {
     font-size: desktop-vw(14px);
     padding-right: desktop-vw(16px);
   }

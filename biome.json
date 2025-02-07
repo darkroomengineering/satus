@@ -42,7 +42,8 @@
         "noExplicitAny": "warn"
       },
       "correctness": {
-        "useExhaustiveDependencies": "warn"
+        "useExhaustiveDependencies": "warn",
+        "noUnknownMediaFeatureName": "off"
       },
       "a11y": {
         "useKeyWithClickEvents": "warn",

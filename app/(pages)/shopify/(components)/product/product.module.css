@@ -1,7 +1,7 @@
 .product {
   height: calc(100vh - mobile-vw(74px));
 
-  @include-media ('desktop') {
+  @media (--desktop) {
     height: calc(100vh - desktop-vw(52px));
   }
 }

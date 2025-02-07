@@ -1,12 +1,9 @@
-import { breakpoints } from './styles/layout.mjs'
 import { functions } from './styles/scripts/postcss-functions.mjs'
-
-/* Placeholder config for plugins that don't need any config */
-const emptyConfig = {}
 
 /**
  * PostCSS preset-env config
- * @see {@link https://github.com/csstools/postcss-plugins/blob/main/plugin-packs/postcss-preset-env/README.md#options}
+ * @see Docs {@link https://github.com/csstools/postcss-plugins/blob/main/plugin-packs/postcss-preset-env/README.md#options}
+ * @see Features Flags {@link https://github.com/csstools/postcss-plugins/blob/main/plugin-packs/postcss-preset-env/FEATURES.md}
  * @type {import('postcss-preset-env').pluginOptions}
  */
 const presetEnvConfig = {
@@ -16,56 +13,31 @@ const presetEnvConfig = {
   stage: 3,
   features: {
     'custom-properties': false,
+    'custom-media-queries': true,
   },
 }
 
 /**
- * PostCSS include-media config
- * @see {@link https://github.com/jackmcpickle/postcss-include-media?tab=readme-ov-file#Options}
- * @type {import('postcss-include-media').IncludeMediaOptions}
+ * PostCSS global data config
+ * Makes sure the css module files have access to these context files
+ * @see {@link https://github.com/csstools/postcss-global-data?tab=readme-ov-file#options}
+ * @type {import('@csstools/postcss-global-data').pluginOptions}
  */
-const includeMediaConfig = {
-  breakpoints: {
-    dt: `${breakpoints.dt}px`,
-  },
-  mediaExpressions: {
-    hover: '(hover: hover)',
-    mobile: `(max-width: ${breakpoints.dt - 1}px)`,
-    desktop: `(min-width: ${breakpoints.dt}px)`,
-    'reduced-motion': '(prefers-reduced-motion: reduce)',
-  },
+const globalDataConfig = {
+  files: ['./styles/css/root.css'],
 }
-
-/**
- * PostCSS functions config
- * @see {@link https://github.com/andyjansson/postcss-functions?tab=readme-ov-file#options}
- * @type {import('postcss-functions').Options}
- */
-const functionsConfig = {
-  functions,
-}
-
-/**
- * CSSnano config
- * @see {@link https://cssnano.github.io/cssnano/docs/config-file/}
- * @type {import('cssnano').Options}
- */
-const cssnanoConfig =
-  process.env.NODE_ENV === 'production'
-    ? {
-        preset: 'default',
-      }
-    : false
 
 const postcssConfig = {
+  // NOTE: Order is important
   plugins: {
-    '@tailwindcss/postcss': emptyConfig,
-    'postcss-extend-rule': emptyConfig,
+    '@tailwindcss/postcss': {},
+    '@csstools/postcss-global-data': globalDataConfig,
+    'postcss-extend-rule': {},
+    'postcss-functions': { functions },
+    // NOTE: This has to be last config
     'postcss-preset-env': presetEnvConfig,
-    'postcss-nesting': emptyConfig,
-    'postcss-include-media': includeMediaConfig,
-    'postcss-functions': functionsConfig,
-    cssnano: cssnanoConfig,
+    // NOTE: This has to be last plugin as it minifies the css
+    cssnano: process.env.NODE_ENV === 'production' ? {} : false,
   },
 }
 

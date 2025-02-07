@@ -2,23 +2,25 @@
 
 import dynamic from 'next/dynamic'
 import { useEffect } from 'react'
-import { useOrchestra } from '~/libs/orchestra/react'
+import { useOrchestra } from '~/app/debug/orchestra/react'
 
 const Studio = dynamic(
-  () => import('~/libs/theatre/studio').then(({ Studio }) => Studio),
+  () => import('~/app/theatre/studio').then(({ Studio }) => Studio),
   { ssr: false }
 )
 const Stats = dynamic(
-  () => import('~/libs/orchestra/stats').then(({ Stats }) => Stats),
+  () => import('~/app/debug/orchestra/stats').then(({ Stats }) => Stats),
   { ssr: false }
 )
 const GridDebugger = dynamic(
   () =>
-    import('~/libs/orchestra/grid').then(({ GridDebugger }) => GridDebugger),
+    import('~/app/debug/orchestra/grid').then(
+      ({ GridDebugger }) => GridDebugger
+    ),
   { ssr: false }
 )
 const Minimap = dynamic(
-  () => import('~/libs/orchestra/minimap').then(({ Minimap }) => Minimap),
+  () => import('~/app/debug/orchestra/minimap').then(({ Minimap }) => Minimap),
   { ssr: false }
 )
 

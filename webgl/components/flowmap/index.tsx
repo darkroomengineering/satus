@@ -1,10 +1,10 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { types } from '@theatre/core'
 import { createContext, useContext, useMemo } from 'react'
-import { useCurrentSheet } from '~/libs/theatre'
-import { useTheatre } from '~/libs/theatre/hooks/use-theatre'
-import { Flowmap } from '~/libs/webgl/utils/flowmap'
-import { Fluid } from '~/libs/webgl/utils/fluid'
+import { useCurrentSheet } from '~/app/theatre'
+import { useTheatre } from '~/app/theatre/hooks/use-theatre'
+import { Flowmap } from '~/webgl/utils/flowmap'
+import { Fluid } from '~/webgl/utils/fluid'
 
 type FlowmapContextType = {
   fluid: Fluid

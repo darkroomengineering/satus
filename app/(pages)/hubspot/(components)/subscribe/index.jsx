@@ -1,7 +1,7 @@
 'use client'
 
 import cn from 'clsx'
-import { Messages, SubmitButton, useFormContext } from '~/libs/form'
+import { Messages, SubmitButton, useFormContext } from '~/components/form'
 
 export const Subscribe = ({ idx = 0, form }) => {
   const { errors, isActive, register } = useFormContext()

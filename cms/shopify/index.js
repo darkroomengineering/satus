@@ -5,7 +5,7 @@ import {
   HIDDEN_PRODUCT_TAG,
   SHOPIFY_GRAPHQL_API_ENDPOINT,
   TAGS,
-} from '~/libs/shopify/constants'
+} from '~/cms/shopify/constants'
 import {
   addToCartMutation,
   createCartMutation,

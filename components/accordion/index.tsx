@@ -104,14 +104,14 @@ function Body({
 }: { children?: ReactNode; className?: string }) {
   const { isOpen } = useAccordionContext()
 
-  const [setRectRef, { contentRect: rect }] = useResizeObserver()
+  const [setRectRef, entry] = useResizeObserver()
 
   return (
     <div
       className={cn(s.body, isOpen && s.isOpen)}
       aria-hidden={!isOpen}
       style={{
-        height: `${isOpen ? rect?.height : 0}px`,
+        height: `${isOpen ? entry?.contentRect.height : 0}px`,
       }}
     >
       <div ref={setRectRef}>

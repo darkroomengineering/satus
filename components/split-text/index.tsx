@@ -12,7 +12,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import { useIsVisualEditor } from '~/libs/storyblok/use-is-visual-editor'
+import { useIsVisualEditor } from '~/cms/storyblok/use-is-visual-editor'
 import s from './split-text.module.css'
 
 if (typeof window !== 'undefined') {
@@ -40,7 +40,8 @@ type SplitTextProps = {
 export function SplitText({ children, className, type, ref }: SplitTextProps) {
   const elementRef = useRef<HTMLSpanElement>(null!)
   const fallbackRef = useRef<HTMLSpanElement>(null!)
-  const [setRectRef, { contentRect: rect }] = useResizeObserver()
+  const [setRectRef, entry] = useResizeObserver()
+  const rect = entry?.contentRect
 
   const [splitted, setSplitted] = useState<GSAPSplitText | undefined>()
 

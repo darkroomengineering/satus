@@ -1,5 +1,5 @@
 import { Wrapper } from '~/app/(pages)/(components)/wrapper'
-import { Cart } from '~/libs/shopify/cart'
+import { Cart } from '~/cms/shopify/cart'
 import { Product } from './(components)/product'
 import { ShowCart } from './(components)/show-cart'
 

@@ -3,7 +3,7 @@
 import { OrthographicCamera } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import { Suspense } from 'react'
-import { SheetProvider } from '~/libs/theatre'
+import { SheetProvider } from '~/app/theatre'
 import { FlowmapProvider } from '../flowmap'
 import { PostProcessing } from '../postprocessing'
 import { Preload } from '../preload'

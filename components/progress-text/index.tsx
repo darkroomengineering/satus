@@ -7,7 +7,7 @@ import {
   type UseScrollTriggerOptions,
   useScrollTrigger,
 } from '~/hooks/use-scroll-trigger'
-import { slugify } from '~/libs/slugify'
+import { slugify } from '~/libs/utils'
 import s from './progress-text.module.css'
 
 // TODO: add support for children as an array of strings and objects

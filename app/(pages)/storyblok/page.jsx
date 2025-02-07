@@ -1,5 +1,5 @@
-import { fetchStoryblokStory } from '~/libs/storyblok'
-import { StoryblokContextProvider } from '~/libs/storyblok/context'
+import { fetchStoryblokStory } from '~/cms/storyblok'
+import { StoryblokContextProvider } from '~/cms/storyblok/context'
 import { Wrapper } from '../(components)/wrapper'
 import { Tutorial } from './(component)/tutorial'
 

@@ -1,7 +1,13 @@
 'use client'
 
-import { OrchestraToggle } from '~/libs/orchestra/react'
+import dynamic from 'next/dynamic'
 import s from './orchestra.module.css'
+
+const OrchestraToggle = dynamic(
+  () =>
+    import('~/app/debug/orchestra/react').then((mod) => mod.OrchestraToggle),
+  { ssr: false }
+)
 
 function OrchestraPage() {
   return (

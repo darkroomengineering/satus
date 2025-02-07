@@ -8,8 +8,8 @@ import {
   getCart,
   removeFromCart,
   updateCart,
-} from '~/libs/shopify'
-import { TAGS } from '~/libs/shopify/constants'
+} from '~/cms/shopify'
+import { TAGS } from '~/cms/shopify/constants'
 
 export async function removeItem(prevState, merchandiseId) {
   const _cookies = await cookies()

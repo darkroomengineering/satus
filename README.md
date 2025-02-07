@@ -1,5 +1,98 @@
 [![SATUS](https://assets.darkroom.engineering/satus/header.png)](https://github.com/darkroomengineering/satus)
 
+# Satus
+
+A modern React application with advanced features including WebGL graphics, animations, and CMS integration.
+
+## Project Structure
+
+```
+├── app/                    # Next.js application pages and routes
+│   └── (pages)/           # Page components and layouts
+├── components/            # Reusable UI components
+│   ├── button/           # Button components
+│   ├── form/            # Form components
+│   ├── animation/       # Animation components
+│   └── ...              # Other UI components
+├── cms/                  # CMS integrations
+│   ├── storyblok/       # Storyblok CMS integration
+│   └── shopify/         # Shopify integration
+├── hooks/                # Custom React hooks
+│   ├── use-scroll-trigger.ts
+│   ├── use-transform.tsx
+│   └── use-device-detection.ts
+├── libs/                 # Utility libraries and functions
+│   ├── utils.ts
+│   ├── maths.ts
+│   └── store.ts
+└── webgl/               # WebGL and 3D graphics
+    ├── components/      # WebGL components
+    ├── hooks/          # WebGL-specific hooks
+    └── utils/          # WebGL utilities
+```
+
+## Features
+
+- **Modern React Development**
+  - Next.js for server-side rendering and routing
+  - TypeScript for type safety
+  - Custom hooks for reusable logic
+
+- **Rich UI Components**
+  - Extensive component library
+  - Animation and interaction capabilities
+  - Responsive and accessible design
+
+- **3D Graphics and WebGL**
+  - Three.js integration
+  - Custom WebGL shaders
+  - React Three Fiber (R3F) implementation
+
+- **CMS Integration**
+  - Storyblok for content management
+  - Shopify for e-commerce
+  - Headless CMS architecture
+
+- **Developer Experience**
+  - Hot module replacement
+  - Development tools and debugging
+  - Comprehensive documentation
+
+## Getting Started
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Run the development server:
+```bash
+npm run dev
+```
+
+3. Build for production:
+```bash
+npm run build
+```
+
+## Documentation
+
+Each major directory contains its own README with specific documentation:
+
+- [Components Documentation](./components/README.md)
+- [Hooks Documentation](./hooks/README.md)
+- [WebGL Documentation](./webgl/README.md)
+- [CMS Integration Documentation](./cms/README.md)
+- [Utility Libraries Documentation](./libs/README.md)
+
+## Contributing
+
+Please read our contributing guidelines before submitting pull requests.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
 # Satūs
 
 Satūs means start, beginning, planting, to be used as a template when starting a new project.

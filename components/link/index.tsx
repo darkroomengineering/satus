@@ -29,6 +29,8 @@ export function Link({
   if (!href || typeof href !== 'string') {
     const Tag = fallback
 
+    // TODO: review this component entirely lol
+    // @ts-expect-error
     return <Tag ref={ref} onClick={onClick} {...props} href={href} />
   }
 

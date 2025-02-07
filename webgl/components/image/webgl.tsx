@@ -1,7 +1,7 @@
 import { useTexture } from '@react-three/drei'
 import { useRef, useState } from 'react'
 import { LinearFilter, type Mesh, MeshBasicMaterial } from 'three'
-import { useWebGLRect } from '~/libs/webgl/hooks/use-webgl-rect'
+import { useWebGLRect } from '~/webgl/hooks/use-webgl-rect'
 
 type WebGLImageProps = {
   src: string | undefined

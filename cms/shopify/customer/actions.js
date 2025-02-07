@@ -1,7 +1,7 @@
 'use server'
 
 import { cookies } from 'next/headers'
-import { shopifyFetch } from '~/libs/shopify'
+import { shopifyFetch } from '~/cms/shopify'
 import {
   customerAccessTokenCreateMutation,
   customerAccessTokenDeleteMutation,

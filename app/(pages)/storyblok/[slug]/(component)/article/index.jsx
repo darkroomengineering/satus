@@ -1,7 +1,7 @@
 'use client'
 
 import { storyblokEditable } from '@storyblok/js'
-import { useStoryblokContext } from '~/libs/storyblok/context'
+import { useStoryblokContext } from '~/cms/storyblok/context'
 
 export function Article() {
   const {

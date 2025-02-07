@@ -103,7 +103,6 @@ Detailed documentation is available in the repository:
 
 ### Development
 - [Biome](https://biomejs.dev/)
-- [Storybook](https://storybook.js.org/)
 - [Lefthook](https://github.com/evilmartians/lefthook)
 
 ### Performance & Utilities
@@ -118,7 +117,6 @@ Detailed documentation is available in the repository:
 - `bun setup:styles` - Regenerate style configuration
 - `bun typecheck` - TypeScript validation
 - `bun lint` - Run Biome linting
-- `bun storybook:dev` - Component development
 - `bun analyze` - Bundle analysis
 
 ### Debug Tools

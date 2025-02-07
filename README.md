@@ -30,7 +30,6 @@ Satūs means start, beginning, planting, to be used as a template when starting 
 - `bun dev` or `npm run dev` - Start development server with Turbo
 - `bun dev:https` - Start development server with HTTPS (useful for Storyblok)
 - `bun setup:styles` - Generate style configuration files
-- `bun storybook:dev` - Start Storybook development server
 - `bun typecheck` - Run TypeScript type checking
 - `bun lint` - Run Biome linting
 
@@ -96,7 +95,6 @@ These hooks help maintain code quality and keep environment variables in sync ac
 
 There is a `docs` folder with documentation on how to use tools such as GSAP and Storyblok at Darkroom. There is also a HOW-TO.md file serving as a catch-all file for any other tools or processes that are too straigthforward to warrant a full documentation file.
 
-[See Storybook](https://satus-storybook.vercel.app/)
 
 # Deployment
 

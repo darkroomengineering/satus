@@ -3,11 +3,11 @@ import { ReactTempus } from 'tempus/react'
 import { Debug } from '~/components/debug'
 import { GSAP } from '~/components/gsap'
 import { RealViewport } from '~/components/real-viewport'
-import { StyleVariables } from '~/libs/style-variables'
 import AppData from '~/package.json'
 import { colors, themes } from '~/styles/config'
 import '~/styles/css/index.css'
 import { fontsClassName } from '~/styles/fonts'
+import { StyleVariables } from '~/styles/scripts/style-variables'
 
 const APP_NAME = AppData.name
 const APP_DEFAULT_TITLE = 'Satūs'

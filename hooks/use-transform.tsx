@@ -31,7 +31,7 @@ const DEFAULT_TRANSFORM = {
     bottom: 0,
     left: 0,
   },
-  userData: {},
+  userData: {} as Record<string | number, unknown>,
 }
 
 type Transform = typeof DEFAULT_TRANSFORM
@@ -53,10 +53,31 @@ type TransformRef = {
   }) => void
 }
 
-export const TransformContext = createContext({
+type TransformContextType = {
+  getTransform: () => Transform
+  addCallback: (callback: TransformCallback) => void
+  removeCallback: (callback: TransformCallback) => void
+  setTranslate: (x?: number, y?: number, z?: number) => void
+  setRotate: (x?: number, y?: number, z?: number) => void
+  setScale: (x?: number, y?: number, z?: number) => void
+  setClip: (params?: {
+    top?: number
+    right?: number
+    bottom?: number
+    left?: number
+  }) => void
+  setUserData: (key: string | number, value: unknown) => void
+}
+
+export const TransformContext = createContext<TransformContextType>({
   getTransform: () => structuredClone(DEFAULT_TRANSFORM),
-  addCallback: (() => {}) as (callback: TransformCallback) => void,
-  removeCallback: (() => {}) as (callback: TransformCallback) => void,
+  addCallback: () => {},
+  removeCallback: () => {},
+  setTranslate: () => {},
+  setRotate: () => {},
+  setScale: () => {},
+  setClip: () => {},
+  setUserData: () => {},
 })
 
 // TODO: batch updates
@@ -156,11 +177,11 @@ export function TransformProvider({ children, ref }: TransformProviderProps) {
   )
 
   const setUserData = useCallback(
-    (key, value) => {
+    (key: string | number, value: unknown) => {
       transformRef.current.userData[key] = value
       update()
     },
-    [update],
+    [update]
   )
 
   useTransform(

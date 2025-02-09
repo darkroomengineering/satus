@@ -3,11 +3,10 @@ import { ReactTempus } from 'tempus/react'
 import { Debug } from '~/components/debug'
 import { GSAP } from '~/components/gsap'
 import { RealViewport } from '~/components/real-viewport'
+import { Cmdk } from '~/debug/cmdk'
 import AppData from '~/package.json'
-import { colors, themes } from '~/styles/config'
 import '~/styles/css/index.css'
 import { fontsClassName } from '~/styles/fonts'
-import { StyleVariables } from '~/styles/scripts/style-variables'
 
 const APP_NAME = AppData.name
 const APP_DEFAULT_TITLE = 'Satūs'
@@ -68,14 +67,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       className={fontsClassName}
       suppressHydrationWarning
     >
-      <head>
-        <StyleVariables colors={colors} themes={themes} />
-      </head>
       {GTM_ID && <GoogleTagManager gtmId={GTM_ID} />}
       <body>
         <RealViewport />
         {children}
         <Debug />
+        <Cmdk />
         <GSAP />
         {/* @ts-expect-error Server Component */}
         <ReactTempus patch />

@@ -1,13 +1,11 @@
 import { useThree } from '@react-three/fiber'
+import type { Rect } from 'hamo'
 import { useLenis } from 'lenis/react'
 import { useCallback, useEffect, useRef } from 'react'
 import { Euler, Vector3 } from 'three'
 import { useTransform } from '~/hooks/use-transform'
 
-export function useWebGLRect(
-  rect: DOMRect,
-  onUpdate?: (transform: any) => void
-) {
+export function useWebGLRect(rect: Rect, onUpdate?: (transform: any) => void) {
   const size = useThree((state) => state.size)
 
   const transformRef = useRef({
@@ -32,6 +30,11 @@ export function useWebGLRect(
     }
 
     const transform = transformRef.current
+
+    if (!rect.top || !rect.height || !rect.left || !rect.width) {
+      console.warn('useWebGLRect: rect is missing required properties', rect)
+      return
+    }
 
     transform.isVisible =
       scroll > rect.top - size.height + translate.y &&

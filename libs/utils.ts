@@ -1,3 +1,4 @@
+import type { Ref } from 'react'
 import { screens } from '~/styles/config'
 
 export function desktopVW(value: number, width: number) {
@@ -103,4 +104,25 @@ export function slugify(text: { toString: () => string }) {
     .replace(/\s+/g, '-') // Replace spaces with -
     .replace(/[^\w\-]+/g, '') // Remove all non-word chars
     .replace(/\-\-+/g, '-') // Replace multiple - with single -
+}
+
+export function mergeRefs<T>(...refs: (Ref<T> | undefined)[]): Ref<T> {
+  return (value) => {
+    const cleanups = refs.reduce<VoidFunction[]>((accumulator, ref) => {
+      if (typeof ref === 'function') {
+        const cleanup = ref(value)
+        if (typeof cleanup === 'function') {
+          accumulator.push(cleanup)
+        }
+      } else if (ref) {
+        ref.current = value
+      }
+
+      return accumulator
+    }, [])
+
+    return () => {
+      for (const cleanup of cleanups) cleanup()
+    }
+  }
 }

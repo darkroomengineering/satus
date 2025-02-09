@@ -2,8 +2,8 @@
 
 import { useFrame } from '@react-three/fiber'
 import { useRef } from 'react'
-import { useCurrentSheet } from '~/app/theatre'
-import { useTheatre } from '~/app/theatre/hooks/use-theatre'
+import { useCurrentSheet } from '~/debug/theatre'
+import { useTheatre } from '~/debug/theatre/hooks/use-theatre'
 import { useWebGLRect } from '~/webgl/hooks/use-webgl-rect'
 
 export function WebGLBox({ theatreKey = 'box', rect }) {

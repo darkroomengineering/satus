@@ -1,7 +1,7 @@
 import type { ISheet } from '@theatre/core'
 import type { IStudio } from '@theatre/studio'
 import { useEffect, useState } from 'react'
-import { useOrchestra } from '~/app/debug/orchestra/react'
+import { useOrchestra } from '~/debug/react'
 
 let studioPackage: IStudio
 

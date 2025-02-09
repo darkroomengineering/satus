@@ -9,7 +9,7 @@ export function generateTailwind({
 }: Pick<Config, 'breakpoints' | 'colors' | 'fonts' | 'themes' | 'typography'>) {
   // Theme
   const theme = `/** Custom theme **/
-  @theme {
+@theme {
 	--breakpoint-*: initial;
 	${Object.entries(breakpoints)
     .map(([name, value]) => `--breakpoint-${name}: ${value}px;`)
@@ -32,6 +32,20 @@ export function generateTailwind({
     .map(([name, variableName]) => `--font-${name}: var(${variableName});`)
     .join('\n\t')}
 }`
+
+  // Theme overwrites
+  const themeOverwrites = `
+/** Custom theme overwrites **/
+${Object.entries(themes)
+  .map(
+    ([name, value]) => `[data-theme=${name}] {
+  ${Object.entries(value)
+    .map(([key, value]) => `--color-${key}: ${value};`)
+    .join('\n\t')}
+}`
+  )
+  .join('\n')}
+  `
 
   // Utilities
   const utilities = `
@@ -86,5 +100,5 @@ ${Object.keys(themes)
   )
   .join('\n')}`
 
-  return [theme, utilities, variants].join('\n')
+  return [theme, themeOverwrites, utilities, variants].join('\n')
 }

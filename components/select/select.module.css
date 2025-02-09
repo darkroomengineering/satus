@@ -1,83 +1,33 @@
-.wrapper {
-  color: var(--text-color);
-
-  .button {
-    box-shadow: 0 1px 2px rgba(0 0 0 / 0.1);
-    border-radius: 6px;
-    font-size: 1.072rem;
-    padding: 0.286rem 0.286rem 0.286rem 0.571rem;
-    display: flex;
-    align-items: center;
-    max-width: 250px;
-
-    &[data-focus-visible] {
-      outline: 2px solid var(--focus-ring-color);
-      outline-offset: -1px;
-    }
-  }
-
-  .value {
-    &[data-placeholder] {
-      opacity: 0.8;
-    }
-  }
-
-  span[aria-hidden] {
-    width: 1.5rem;
-    line-height: 1.375rem;
-    margin-left: 1rem;
-    padding: 1px;
-    background: var(--highlight-background);
-    color: var(--highlight-foreground);
-    forced-color-adjust: none;
-    border-radius: 4px;
-    font-size: 0.857rem;
-  }
+.trigger {
+  box-shadow: 0 1px 2px rgba(0 0 0 / 0.1);
+  display: flex;
+  align-items: center;
 }
 
-.popover[data-trigger="Select"] {
-  cursor: pointer;
-  min-width: var(--trigger-width);
+.option {
+  min-width: var(--anchor-width);
+  cursor: default;
+  grid-template-columns: 0.75rem 1fr;
+  outline: none;
 
-  .list {
-    display: block;
-    width: unset;
-    max-height: inherit;
-    min-height: unset;
-    border: none;
-
-    .react-aria-Header {
-      padding-left: 1.571rem;
-    }
+  &[data-side="none"] {
+    min-width: calc(var(--anchor-width) + 1rem);
+    padding-right: 1rem;
   }
 
-  .option {
-    padding: 0.286rem 0.571rem 0.286rem 1.571rem;
+  &[data-highlighted] {
+    z-index: 0;
+    position: relative;
+    background-color: var(--gray-900);
+  }
 
-    &[data-focus-visible] {
-      outline: none;
-    }
-
-    &[data-selected] {
-      position: relative;
-      font-weight: 600;
-      background: unset;
-      color: var(--text-color);
-
-      &::before {
-        content: "✓";
-        content: "✓" / "";
-        alt: " ";
-        position: absolute;
-        top: 4px;
-        left: 4px;
-      }
-    }
-
-    &[data-focused],
-    &[data-pressed] {
-      background: var(--highlight-background);
-      color: var(--highlight-foreground);
-    }
+  &[data-highlighted]::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline: 0.25rem;
+    z-index: -1;
+    background-color: var(--color-primary);
+    border-radius: 0.25rem;
   }
 }

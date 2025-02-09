@@ -1,13 +1,5 @@
+import { Select } from '@base-ui-components/react/select'
 import cn from 'clsx'
-import {
-  Select as AriaSelect,
-  SelectValue as AriaSelectValue,
-  Button,
-  Label,
-  ListBox,
-  ListBoxItem,
-  Popover,
-} from 'react-aria-components'
 import s from './select.module.css'
 
 type SelectProps = {
@@ -18,36 +10,52 @@ type SelectProps = {
   icon?: React.ReactNode
 }
 
-export function Select({
+function CustomSelect({
   className,
   label,
-  options = [{ value: '1', label: 'Option 1' }],
+  options,
   placeholder,
   icon,
 }: SelectProps) {
   return (
-    <AriaSelect className={cn(className, s.wrapper)} placeholder={placeholder}>
-      {label && <Label>{label}</Label>}
-      <Button className={s.button}>
-        <AriaSelectValue className={s.value} />
-        {icon ? icon : <span aria-hidden="true">▼</span>}
-      </Button>
-      <Popover className={s.popover}>
-        <ListBox className={s.list}>
-          {options.map(({ value, label }) => {
-            return (
-              <ListBoxItem
+    <Select.Root defaultValue="sans" alignItemToTrigger={false}>
+      {!!label && label}
+      <Select.Trigger
+        className={cn(
+          'flex h-10 min-w-36 items-center justify-between gap-3 rounded-md border pr-3 pl-3.5 select-none',
+          className
+        )}
+      >
+        <Select.Value placeholder={placeholder ?? 'Select an item'} />
+        <Select.Icon className="flex">
+          {icon ? icon : <span aria-hidden="true">▼</span>}
+        </Select.Icon>
+      </Select.Trigger>
+      <Select.Portal>
+        <Select.Positioner className="outline-none" sideOffset={8}>
+          <Select.Popup className="">
+            {options?.map(({ value, label }) => (
+              <Select.Item
+                className={cn(
+                  'grid items-center gap-2 py-2 pr-4 pl-2.5 outline-none select-none',
+                  s.item
+                )}
+                value={value}
                 key={value}
-                value={{ value, label }}
-                textValue={label}
-                className={s.option}
               >
-                {label}
-              </ListBoxItem>
-            )
-          })}
-        </ListBox>
-      </Popover>
-    </AriaSelect>
+                <Select.ItemIndicator className="col-start-1">
+                  ✓
+                </Select.ItemIndicator>
+                <Select.ItemText className="col-start-2">
+                  {label}
+                </Select.ItemText>
+              </Select.Item>
+            ))}
+          </Select.Popup>
+        </Select.Positioner>
+      </Select.Portal>
+    </Select.Root>
   )
 }
+
+export { CustomSelect as Select }

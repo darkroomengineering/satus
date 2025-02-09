@@ -43,8 +43,8 @@ Example usage in CSS:
 
 We implement a custom column-based grid system using CSS custom properties:
 
-- Mobile: 4-column grid
-- Desktop: 12-column grid
+- Mobile: 4-column grid (depending on layout.mjs config)
+- Desktop: 12-column grid (depending on layout.mjs config)
 
 The `columns()` function helps calculate widths based on the number of columns:
 
@@ -76,7 +76,30 @@ Usage:
 }
 ```
 
-### 4. CSS Custom Properties
+### 4. Custom tailwind utilities
+
+We use the tailwind v4.0 introduced @utility directive to create our own custom tailwind utilities.
+This basic gist of it is that you can prefix classic tailwind classes with an "s" to make it a scaling utility based on the current viewport.
+The number after the dash is the value in pixels for the current viewport.
+There are custom utilities for all tailwind classes that are related to sizing, spacing, etc.
+
+Example:
+```css
+<div className="sw-150">
+  <!-- This will be 150px relative to the current viewport off mobile or desktop -->
+</div>
+```
+
+Special utilites for column based sizes ending in -col-* are available. They will set a value based on the number of columns and the current viewport.
+
+Example:
+```css
+<div className="w-col-4">
+  <!-- This will be 4 columns wide relative to the current viewport off mobile or desktop -->
+</div>
+```
+
+### 5. CSS Custom Properties
 
 Our root.css defines various CSS custom properties for:
 - Viewport dimensions
@@ -87,7 +110,7 @@ Our root.css defines various CSS custom properties for:
 
 These variables automatically adjust based on viewport size.
 
-### 5. PostCSS Configuration
+### 6. PostCSS Configuration
 
 We use several PostCSS plugins to enhance our CSS capabilities:
 - `@tailwindcss/postcss`: Tailwind CSS processing

@@ -1,10 +1,13 @@
 'use client'
 
+import { Dialog } from '@base-ui-components/react/dialog'
 import dynamic from 'next/dynamic'
-import { type ReactNode, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import Logo from '~/components/darkroom.svg'
+import Orchestra from '.'
 
 const OrchestraToggle = dynamic(
-  () => import('./react').then((mod) => mod.OrchestraToggle),
+  () => import('./toggle').then((mod) => mod.OrchestraToggle),
   { ssr: false }
 )
 
@@ -18,7 +21,13 @@ export function Cmdk() {
         setOpen((open) => !open)
       }
 
-      console.log(e.key)
+      // Toggle grid
+      if (e.key === 'G' && e.shiftKey) {
+        e.preventDefault()
+        Orchestra?.store.setState((state) => ({
+          grid: !state.grid,
+        }))
+      }
 
       if (e.key === 'Escape') {
         setOpen(false)
@@ -29,51 +38,58 @@ export function Cmdk() {
     return () => document.removeEventListener('keydown', down)
   }, [])
 
-  if (!open) return null
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="flex flex-col gap-4 bg-contrast p-4 rounded-lg">
-        <OrchestraToggle id="studio" className="">
-          Studio
-        </OrchestraToggle>
-        <OrchestraToggle id="stats" className="">
-          Stats
-        </OrchestraToggle>
-        <OrchestraToggle id="grid" className="">
-          Grid
-        </OrchestraToggle>
-        <OrchestraToggle id="dev" className="">
-          Dev
-        </OrchestraToggle>
-        <OrchestraToggle id="minimap" className="">
-          Minimap
-        </OrchestraToggle>
-        <OrchestraToggle id="webgl" className="">
-          WebGL
-        </OrchestraToggle>
-      </div>
-    </div>
-  )
-}
-
-type CmdkToggleProps = {
-  shortcut: {
-    displayName: string
-    keys: string[]
-  }
-  children?: ReactNode
-}
-
-function CmdkToggle({ shortcut, children }: CmdkToggleProps) {
-  useEffect(() => {}, [])
-
-  return (
-    <li className="flex items-center gap-2">
-      {children}
-      <span className="text-sm text-muted-foreground">
-        {shortcut.displayName}
-      </span>
-    </li>
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <Dialog.Portal>
+        <Dialog.Backdrop className="fixed inset-0 bg-secondary/20 backdrop-blur-[2px] transition-all duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 z-40" />
+        <Dialog.Popup className="fixed top-1/2 left-1/2 -translate-1/2 rounded-lg bg-primary p-6 pt-20 text-gray-900 outline outline-gray-200 transition-all duration-150 data-[ending-style]:scale-90 data-[ending-style]:opacity-0 data-[starting-style]:scale-90 data-[starting-style]:opacity-0 z-50">
+          <Dialog.Title className="absolute top-6 left-6 flex flex-col gap-y-1">
+            <Logo className="sw-148 text-black" aria-label="Darkroom" />
+            <span>ORCHESTRA</span>
+          </Dialog.Title>
+          <Dialog.Description className="absolute top-6 right-6 text-[14px]">
+            Good luck at debugging!
+          </Dialog.Description>
+          <div className="flex gap-4 rounded-lg [&_button]:size-full [&_button]:grid [&_button]:place-items-center">
+            <OrchestraToggle
+              id="grid"
+              className="bg-contrast/10 grid place-items-center size-20 srounded-10"
+            >
+              🌐
+            </OrchestraToggle>
+            <OrchestraToggle
+              id="studio"
+              className="bg-contrast/10 grid place-items-center size-20 srounded-10"
+            >
+              ⚙️
+            </OrchestraToggle>
+            <OrchestraToggle
+              id="stats"
+              className="bg-contrast/10 grid place-items-center size-20 srounded-10"
+            >
+              📈
+            </OrchestraToggle>
+            <OrchestraToggle
+              id="dev"
+              className="bg-contrast/10 grid place-items-center size-20 srounded-10"
+            >
+              🚧
+            </OrchestraToggle>
+            <OrchestraToggle
+              id="minimap"
+              className="bg-contrast/10 grid place-items-center size-20 srounded-10"
+            >
+              🗺️
+            </OrchestraToggle>
+            <OrchestraToggle
+              id="webgl"
+              className="bg-contrast/10 grid place-items-center size-20 srounded-10"
+            >
+              🧊
+            </OrchestraToggle>
+          </div>
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }

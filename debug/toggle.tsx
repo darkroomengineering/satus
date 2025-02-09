@@ -1,4 +1,10 @@
-import { type HTMLAttributes, useEffect, useRef, useState } from 'react'
+import {
+  type HTMLAttributes,
+  type RefObject,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import Orchestra from '.'
 
 export function useOrchestra() {
@@ -20,11 +26,13 @@ type OrchestraToggleProps = Omit<
 > & {
   children: string
   id: string
+  buttonRef?: RefObject<HTMLButtonElement | null>
 }
 
 export function OrchestraToggle({
   id,
   children,
+  buttonRef,
   ...props
 }: OrchestraToggleProps) {
   const elementRef = useRef<HTMLDivElement>(null!)
@@ -34,10 +42,16 @@ export function OrchestraToggle({
     Orchestra.add(id, children)
     const toggle = Orchestra.toggles.find((toggle) => toggle.id === id)
     toggle?.domElement && elementRef.current.appendChild(toggle.domElement)
+    if (toggle?.domElement && buttonRef?.current) {
+      buttonRef.current = toggle.domElement
+    }
 
     return () => {
       Orchestra?.remove(id)
       toggle?.domElement.remove()
+      if (buttonRef?.current) {
+        buttonRef.current = null
+      }
     }
   }, [id, children])
 

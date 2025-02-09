@@ -2,26 +2,26 @@
 
 import dynamic from 'next/dynamic'
 import { useEffect } from 'react'
-import { useOrchestra } from '~/debug/react'
+import { Cmdk } from './cmdk'
+import { useOrchestra } from './toggle'
 
 const Studio = dynamic(
-  () => import('~/debug/theatre/studio').then(({ Studio }) => Studio),
+  () => import('./theatre/studio').then(({ Studio }) => Studio),
   { ssr: false }
 )
-const Stats = dynamic(
-  () => import('~/debug/stats').then(({ Stats }) => Stats),
-  { ssr: false }
-)
+const Stats = dynamic(() => import('./stats').then(({ Stats }) => Stats), {
+  ssr: false,
+})
 const GridDebugger = dynamic(
-  () => import('~/debug/grid').then(({ GridDebugger }) => GridDebugger),
+  () => import('./grid').then(({ GridDebugger }) => GridDebugger),
   { ssr: false }
 )
 const Minimap = dynamic(
-  () => import('~/debug/minimap').then(({ Minimap }) => Minimap),
+  () => import('./minimap').then(({ Minimap }) => Minimap),
   { ssr: false }
 )
 
-export function Debug() {
+export function DebugTools() {
   const { stats, grid, studio, dev, minimap } = useOrchestra()
 
   useEffect(() => {
@@ -30,6 +30,7 @@ export function Debug() {
 
   return (
     <>
+      <Cmdk />
       {studio && <Studio />}
       {stats && <Stats />}
       {grid && <GridDebugger />}

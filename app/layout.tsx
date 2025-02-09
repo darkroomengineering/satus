@@ -1,12 +1,15 @@
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google'
+import type { Metadata, Viewport } from 'next'
+import type { PropsWithChildren } from 'react'
 import { ReactTempus } from 'tempus/react'
-import { Debug } from '~/components/debug'
 import { GSAP } from '~/components/gsap'
 import { RealViewport } from '~/components/real-viewport'
-import { Cmdk } from '~/debug/cmdk'
+import { DebugTools } from '~/debug/tools'
 import AppData from '~/package.json'
-import '~/styles/css/index.css'
+import { themes } from '~/styles/colors'
 import { fontsClassName } from '~/styles/fonts'
+
+import '~/styles/css/index.css'
 
 const APP_NAME = AppData.name
 const APP_DEFAULT_TITLE = 'Satūs'
@@ -17,7 +20,7 @@ const APP_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
 const GTM_ID = process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID || false
 const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS || false
 
-export const metadata = {
+export const metadata: Metadata = {
   applicationName: APP_NAME,
   title: {
     default: APP_DEFAULT_TITLE,
@@ -55,26 +58,27 @@ export const metadata = {
   ],
 }
 
-export const viewport = {
-  themeColor: '#e30613',
+export const viewport: Viewport = {
+  themeColor: themes.red.primary,
+  colorScheme: 'normal',
 }
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function Layout({ children }: PropsWithChildren) {
   return (
     <html
       lang="en"
       dir="ltr"
       className={fontsClassName}
+      // NOTE: This is due to the data-theme attribute being set which causes hydration errors
       suppressHydrationWarning
     >
       {GTM_ID && <GoogleTagManager gtmId={GTM_ID} />}
       <body>
         <RealViewport />
         {children}
-        <Debug />
-        <Cmdk />
+        <DebugTools />
         <GSAP />
-        {/* @ts-expect-error Server Component */}
+        {/* @ts-expect-error - TODO: Fix in tempus */}
         <ReactTempus patch />
       </body>
       {GA_ID && <GoogleAnalytics gaId={GA_ID} />}

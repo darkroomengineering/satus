@@ -66,7 +66,7 @@ class Toggle {
 
 class Orchestra {
   private domElement: HTMLDivElement
-  private store: typeof store
+  store: typeof store
   toggles: Toggle[]
   constructor() {
     this.domElement = document.createElement('div')

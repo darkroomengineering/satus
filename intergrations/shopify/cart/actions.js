@@ -2,14 +2,14 @@
 
 import { revalidateTag } from 'next/cache'
 import { cookies } from 'next/headers'
+import { TAGS } from '../constants'
 import {
   addToCart,
   createCart,
   getCart,
   removeFromCart,
   updateCart,
-} from '~/cms/shopify'
-import { TAGS } from '~/cms/shopify/constants'
+} from '../index'
 
 export async function removeItem(prevState, merchandiseId) {
   const _cookies = await cookies()

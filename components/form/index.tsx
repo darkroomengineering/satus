@@ -10,12 +10,12 @@ import {
   useEffect,
   useState,
 } from 'react'
+import { HubspotNewsletterAction } from '~/intergrations/hubspot/action'
 import {
   CreateCustomerAction,
   LoginCustomerAction,
   LogoutCustomerAction,
-} from '~/cms/shopify/customer/actions'
-import { HubspotNewsletterAction } from '~/components/hubspot/action'
+} from '~/intergrations/shopify/customer/actions'
 import s from './form.module.css'
 import { useForm } from './hook'
 

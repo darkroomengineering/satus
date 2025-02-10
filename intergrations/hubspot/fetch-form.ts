@@ -1,5 +1,9 @@
 import type { Client } from '@hubspot/api-client'
 
+type HubspotFormResponse = Awaited<
+  ReturnType<Client['marketing']['forms']['formsApi']['getById']>
+>
+
 // TODO: If only server side maybe use api-client
 async function hubspotFormApi(id: string | null) {
   const resp = await fetch(`https://api.hubapi.com/marketing/v3/forms/${id}`, {
@@ -11,14 +15,11 @@ async function hubspotFormApi(id: string | null) {
   if (!resp.ok) {
     throw new Error(`Failed to fetch form data: ${resp.status}`)
   }
-  const response = await resp.json()
+  const response = (await resp.json()) as HubspotFormResponse
   return apiParser(id, response)
 }
 
-function apiParser(
-  id: string | null,
-  data: Awaited<ReturnType<Client['marketing']['forms']['formsApi']['getById']>>
-) {
+function apiParser(id: string | null, data: HubspotFormResponse) {
   const typeSetter = (type: string) => {
     switch (type) {
       case 'phone':

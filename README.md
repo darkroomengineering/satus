@@ -7,28 +7,29 @@ A modern React application with advanced features including WebGL graphics, anim
 ## Project Structure
 
 ```
-├── app/                    # Next.js application pages and routes
-│   └── (pages)/           # Page components and layouts
-├── components/            # Reusable UI components
-│   ├── button/           # Button components
-│   ├── form/            # Form components
-│   ├── animation/       # Animation components
-│   └── ...              # Other UI components
-├── cms/                  # CMS integrations
-│   ├── storyblok/       # Storyblok CMS integration
-│   └── shopify/         # Shopify integration
-├── hooks/                # Custom React hooks
+├── app/                          # Next.js application pages and routes
+│   └── (pages)/                  # Page components and layouts
+├── components/                   # Reusable UI components
+│   ├── button/                   # Button components
+│   ├── form/                     # Form components
+│   ├── animation/                # Animation components
+│   └── ...                       # Other UI components
+├── hooks/                        # Custom React hooks
 │   ├── use-scroll-trigger.ts
 │   ├── use-transform.tsx
 │   └── use-device-detection.ts
-├── libs/                 # Utility libraries and functions
+├── intergrations/                # Third party integrations
+│   ├── hubspot/                  # Hubspot form integration
+│   ├── storyblok/                # Storyblok CMS integration
+│   └── shopify/                  # Shopify integration
+├── libs/                         # Utility libraries and functions
 │   ├── utils.ts
 │   ├── maths.ts
 │   └── store.ts
-└── webgl/               # WebGL and 3D graphics
-    ├── components/      # WebGL components
-    ├── hooks/          # WebGL-specific hooks
-    └── utils/          # WebGL utilities
+└── webgl/                        # WebGL and 3D graphics
+    ├── components/               # WebGL components
+    ├── hooks/                    # WebGL-specific hooks
+    └── utils/                    # WebGL utilities
 ```
 
 ## Features
@@ -62,17 +63,17 @@ A modern React application with advanced features including WebGL graphics, anim
 
 1. Install dependencies:
 ```bash
-npm install
+bun install
 ```
 
 2. Run the development server:
 ```bash
-npm run dev
+bun dev
 ```
 
 3. Build for production:
 ```bash
-npm run build
+bun build
 ```
 
 ## Documentation
@@ -82,7 +83,7 @@ Each major directory contains its own README with specific documentation:
 - [Components Documentation](./components/README.md)
 - [Hooks Documentation](./hooks/README.md)
 - [WebGL Documentation](./webgl/README.md)
-- [CMS Integration Documentation](./cms/README.md)
+- [Integration Documentation](./intergrations/README.md)
 - [Utility Libraries Documentation](./libs/README.md)
 
 ## Contributing

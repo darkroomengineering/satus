@@ -74,7 +74,7 @@ bun dev
 
 3. Build for production:
 ```bash
-bun build
+bun run build
 ```
 
 ## Documentation

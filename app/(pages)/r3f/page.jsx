@@ -1,5 +1,5 @@
 import { Wrapper } from '~/app/(pages)/(components)/wrapper'
-import { TheatreProjectProvider } from '~/debug/theatre'
+import { TheatreProjectProvider } from '~/orchestra/theatre'
 import { Canvas } from '~/webgl/components/canvas'
 import { Box } from './(components)/box'
 

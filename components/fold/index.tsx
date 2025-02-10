@@ -47,8 +47,8 @@ export function Fold({
   const stickyRef = useRef<HTMLDivElement>(null!)
 
   useScrollTrigger({
-    start: `${rect.top} top`,
-    end: `${rect.top + windowHeight} top`,
+    start: `${rect.top ?? 0} top`,
+    end: `${(rect.top ?? 0) + windowHeight} top`,
     disabled: disabled || type === 'bottom',
     onProgress: ({ progress }) => {
       if (overlayRef.current) {
@@ -62,8 +62,8 @@ export function Fold({
   })
 
   useScrollTrigger({
-    start: `${rect.bottom - windowHeight} bottom`,
-    end: `${rect.bottom} bottom`,
+    start: `${(rect.bottom ?? 0) - windowHeight} bottom`,
+    end: `${rect.bottom ?? 0} bottom`,
     disabled: disabled || type === 'top',
     onProgress: ({ progress }) => {
       if (overlayRef.current) {

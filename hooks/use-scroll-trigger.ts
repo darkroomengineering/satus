@@ -5,8 +5,8 @@ import { useLenis } from 'lenis/react'
 import { useCallback, useEffect, useRef } from 'react'
 import { useTransform } from '~/hooks/use-transform'
 import { clamp, mapRange } from '~/libs/maths'
-import { useMinimap } from '~/libs/orchestra/minimap'
-import { useOrchestra } from '~/libs/orchestra/react'
+import { useOrchestra } from '~/orchestra'
+import { useMinimap } from '~/orchestra/minimap'
 
 // @refresh reset
 

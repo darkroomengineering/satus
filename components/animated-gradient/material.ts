@@ -4,9 +4,9 @@ import {
   Vector2,
   type WebGLProgramParametersWithUniforms,
 } from 'three'
-import type { Fluid } from '~/libs/webgl/utils/fluid'
-import { NOISE } from '~/libs/webgl/utils/noise'
-import type { Flowmap } from './../../libs/webgl/utils/flowmap'
+import type { Flowmap } from '~/webgl/utils/flowmap'
+import type { Fluid } from '~/webgl/utils/fluid'
+import { NOISE } from '~/webgl/utils/noise'
 
 export class AnimatedGradientMaterial extends MeshBasicMaterial {
   private uniforms: {
@@ -20,12 +20,7 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
     uColorsTexture: { value: Texture | null }
     uOffset: { value: number }
     uQuantize: { value: number }
-    uFlowmap:
-      | Flowmap
-      | Fluid
-      | {
-          value: null
-        }
+    uFlowmap: { value: Texture | null }
     uDpr: { value: number }
   }
 
@@ -59,8 +54,6 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
       transparent: true,
     })
 
-    console.log(flowmap.uniform)
-
     this.uniforms = {
       uTime: { value: 0 },
       uAmplitude: { value: amplitude },
@@ -72,9 +65,7 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
       uColorsTexture: { value: null },
       uOffset: { value: radial ? Math.random() * 1000 : 0 },
       uQuantize: { value: quantize },
-      uFlowmap: flowmap?.uniform || {
-        value: null,
-      },
+      uFlowmap: { value: flowmap?.uniform?.value ?? null },
       uDpr: { value: 1 },
     }
 

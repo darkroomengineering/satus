@@ -1,9 +1,9 @@
 import { useFrame, useThree } from '@react-three/fiber'
-import { type ExtendedDOMRect, useObjectFit, useWindowSize } from 'hamo'
+import { useObjectFit, useWindowSize } from 'hamo'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CanvasTexture, LinearFilter, type Mesh } from 'three'
-import { useFlowmap } from '~/libs/webgl/components/flowmap'
-import { useWebGLRect } from '~/libs/webgl/hooks/use-webgl-rect'
+import { useFlowmap } from '~/webgl/components/flowmap'
+import { useWebGLRect } from '~/webgl/hooks/use-webgl-rect'
 import { AnimatedGradientMaterial } from './material'
 
 // @refresh reset
@@ -43,7 +43,7 @@ function useGradient(colors: string[]) {
 }
 
 type WebGLAnimatedGradientProps = {
-  rect: ExtendedDOMRect
+  rect: DOMRect
   amplitude?: number
   frequency?: number
   colorAmplitude?: number
@@ -78,7 +78,7 @@ export function WebGLAnimatedGradient({
         colorFrequency,
         quantize,
         radial,
-        flowmap: hasFlowmap && flowmap,
+        flowmap: hasFlowmap ? flowmap : undefined,
       })
   )
 

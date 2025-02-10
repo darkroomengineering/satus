@@ -99,7 +99,7 @@ Detailed documentation is available in the repository:
 - CSS Modules with PostCSS
 - [Tailwind CSS](https://tailwindcss.com/)
 - [clsx](https://github.com/lukeed/clsx)
-- [React Aria](https://react-spectrum.adobe.com/react-aria/)
+- [Base UI](https://base-ui.com/)
 
 ### Development
 - [Biome](https://biomejs.dev/)

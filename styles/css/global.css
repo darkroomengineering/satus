@@ -15,8 +15,8 @@ html {
 body {
   min-height: 100vh;
   overscroll-behavior: none;
-  background-color: var(--theme-primary);
-  color: var(--theme-secondary);
+  background-color: var(--color-primary);
+  color: var(--color-secondary);
   display: flex;
   flex-direction: column;
   -webkit-font-smoothing: antialiased;
@@ -25,8 +25,8 @@ body {
 
 /* Selection styling */
 *::selection {
-  background-color: var(--theme-contrast);
-  color: var(--theme-primary);
+  background-color: var(--color-contrast);
+  color: var(--color-primary);
 }
 
 /* SVG icon colors */
@@ -54,5 +54,5 @@ svg.icon {
 
 /* Focus states */
 *:focus-visible {
-  outline: 2px solid var(--theme-contrast);
+  outline: 2px solid var(--color-contrast);
 }

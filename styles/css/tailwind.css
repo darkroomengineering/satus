@@ -4,7 +4,7 @@
  */
 
 /** Custom theme **/
-  @theme {
+@theme {
 	--breakpoint-*: initial;
 	--breakpoint-dt: 800px;
 
@@ -23,6 +23,24 @@
   --font-*: initial;
   --font-mono: var(--font-mono);
 }
+
+/** Custom theme overwrites **/
+[data-theme=light] {
+  --color-primary: #ffffff;
+	--color-secondary: #000000;
+	--color-contrast: #e30613;
+}
+[data-theme=dark] {
+  --color-primary: #000000;
+	--color-secondary: #ffffff;
+	--color-contrast: #e30613;
+}
+[data-theme=red] {
+  --color-primary: #e30613;
+	--color-secondary: #000000;
+	--color-contrast: #ffffff;
+}
+  
 
 /** Custom static utilities **/
 @utility test-mono {

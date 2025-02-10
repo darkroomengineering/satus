@@ -60,12 +60,7 @@ const nextConfig: NextConfig = {
     },
     reactCompiler: true,
     nextScriptWorkers: true,
-    optimizePackageImports: [
-      '@react-three/drei',
-      '@react-three/fiber',
-      'gsap',
-      'react-aria-components',
-    ],
+    optimizePackageImports: ['@react-three/drei', '@react-three/fiber', 'gsap'],
   },
   // modularizeImports: {
   //   '@react-three/drei': {

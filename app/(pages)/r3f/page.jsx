@@ -1,6 +1,6 @@
 import { Wrapper } from '~/app/(pages)/(components)/wrapper'
-import { TheatreProjectProvider } from '~/libs/theatre'
-import { Canvas } from '~/libs/webgl/components/canvas'
+import { TheatreProjectProvider } from '~/orchestra/theatre'
+import { Canvas } from '~/webgl/components/canvas'
 import { Box } from './(components)/box'
 
 export default function Home() {

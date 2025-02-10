@@ -9,8 +9,8 @@ import s from './scrollbar.module.css'
 export function Scrollbar() {
   const thumbRef = useRef<HTMLDivElement>(null!)
   const lenis = useLenis()
-  const [innerMeasureRef, { height: innerHeight }] = useRect()
-  const [thumbMeasureRef, { height: thumbHeight }] = useRect()
+  const [innerMeasureRef, { height: innerHeight = 0 }] = useRect()
+  const [thumbMeasureRef, { height: thumbHeight = 0 }] = useRect()
 
   useLenis(
     ({ scroll, limit }) => {

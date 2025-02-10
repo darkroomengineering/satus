@@ -39,13 +39,10 @@ export function Marquee({
 
   const [setIntersectionRef, intersection] = useIntersectionObserver()
 
-  const lenis = useLenis() // eslint-disable-line react-hooks/exhaustive-deps
+  const lenis = useLenis()
 
   useTempus((_, deltaTime) => {
-    // @ts-expect-error
     const entry = getEntry()
-
-    const width = entry?.borderBoxSize[0]?.inlineSize
 
     if (!intersection.isIntersecting) return
     if (pauseOnHover && isHovered.current) return
@@ -66,6 +63,7 @@ export function Marquee({
       transformRef.current += offset
     }
 
+    const width = entry.borderBoxSize[0].inlineSize
     transformRef.current = modulo(transformRef.current, width)
 
     for (const node of elementsRef.current) {

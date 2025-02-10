@@ -26,6 +26,7 @@ A modern React application with advanced features including WebGL graphics, anim
 │   ├── utils.ts
 │   ├── maths.ts
 │   └── store.ts
+├── orchestra/                    # Debugging and development tools
 └── webgl/                        # WebGL and 3D graphics
     ├── components/               # WebGL components
     ├── hooks/                    # WebGL-specific hooks
@@ -135,7 +136,7 @@ The project includes preconfigured settings:
 - Path aliases support
 
 ### Debug Tools
-Access debug features at `/debug/orchestra`
+Access debug features at `/orchestra`
 - Theatre.js Studio
 - FPS Meter
 - Grid Debugger

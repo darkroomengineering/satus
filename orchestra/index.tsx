@@ -1,9 +1,9 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useEffect } from 'react'
-import { Cmdk } from './cmdk'
-import { useOrchestra } from './toggle'
+import { useEffect, useState } from 'react'
+import { Cmdo } from './cmdo'
+import Orchestra from './orchestra'
 
 const Studio = dynamic(
   () => import('./theatre/studio').then(({ Studio }) => Studio),
@@ -21,7 +21,7 @@ const Minimap = dynamic(
   { ssr: false }
 )
 
-export function DebugTools() {
+export function OrchestraTools() {
   const { stats, grid, studio, dev, minimap } = useOrchestra()
 
   useEffect(() => {
@@ -30,11 +30,24 @@ export function DebugTools() {
 
   return (
     <>
-      <Cmdk />
+      <Cmdo />
       {studio && <Studio />}
       {stats && <Stats />}
       {grid && <GridDebugger />}
       {minimap && <Minimap />}
     </>
   )
+}
+
+export function useOrchestra() {
+  const [state, setState] = useState<Record<string, boolean>>({})
+
+  useEffect(() => {
+    if (!Orchestra) return
+    const usubscribe = Orchestra.subscribe(setState)
+
+    return usubscribe
+  }, [])
+
+  return state
 }

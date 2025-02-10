@@ -4,19 +4,19 @@ import { Dialog } from '@base-ui-components/react/dialog'
 import dynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
 import Logo from '~/components/darkroom.svg'
-import Orchestra from '.'
+import Orchestra from './orchestra'
 
 const OrchestraToggle = dynamic(
   () => import('./toggle').then((mod) => mod.OrchestraToggle),
   { ssr: false }
 )
 
-export function Cmdk() {
+export function Cmdo() {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+      if (e.key === 'o' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         setOpen((open) => !open)
       }
@@ -47,7 +47,7 @@ export function Cmdk() {
             <Logo className="sw-148 text-black" aria-label="Darkroom" />
             <span>ORCHESTRA</span>
           </Dialog.Title>
-          <Dialog.Description className="absolute top-6 right-6 text-[14px]">
+          <Dialog.Description className="absolute top-6 right-6 text-[12px] uppercase">
             Good luck at debugging!
           </Dialog.Description>
           <div className="flex gap-4 rounded-lg [&_button]:size-full [&_button]:grid [&_button]:place-items-center">

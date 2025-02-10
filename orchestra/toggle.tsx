@@ -1,24 +1,5 @@
-import {
-  type HTMLAttributes,
-  type RefObject,
-  useEffect,
-  useRef,
-  useState,
-} from 'react'
-import Orchestra from '.'
-
-export function useOrchestra() {
-  const [state, setState] = useState<Record<string, boolean>>({})
-
-  useEffect(() => {
-    if (!Orchestra) return
-    const usubscribe = Orchestra.subscribe(setState)
-
-    return usubscribe
-  }, [])
-
-  return state
-}
+import { type HTMLAttributes, type RefObject, useEffect, useRef } from 'react'
+import Orchestra from './orchestra'
 
 type OrchestraToggleProps = Omit<
   HTMLAttributes<HTMLDivElement>,

@@ -4,7 +4,7 @@ import type { PropsWithChildren } from 'react'
 import { ReactTempus } from 'tempus/react'
 import { GSAP } from '~/components/gsap'
 import { RealViewport } from '~/components/real-viewport'
-import { DebugTools } from '~/debug/tools'
+import { OrchestraTools } from '~/orchestra'
 import AppData from '~/package.json'
 import { themes } from '~/styles/colors'
 import { fontsClassName } from '~/styles/fonts'
@@ -76,7 +76,7 @@ export default function Layout({ children }: PropsWithChildren) {
       <body>
         <RealViewport />
         {children}
-        <DebugTools />
+        <OrchestraTools />
         <GSAP />
         {/* @ts-expect-error - TODO: Fix in tempus */}
         <ReactTempus patch />

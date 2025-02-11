@@ -117,12 +117,6 @@ A modern React application template with advanced features including WebGL graph
 
 The project can be deployed on Vercel, Netlify, or any service supporting Next.js. See PROD-README.md for production-specific details.
 
-## About
-
-### Authors
-
-This repository has been open sourced by the team at [darkroom.engineering](https://darkroom.engineering)
-
 ## License
 
 MIT © [darkroom.engineering](https://github.com/darkroomengineering)

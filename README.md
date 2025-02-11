@@ -1,4 +1,4 @@
-[![SATUS](https://assets.darkroom.engineering/satus/header.png)](https://github.com/darkroomengineering/satus)
+[![SATUS](https://assets.darkroom.engineering/satus/banner.gif)](https://github.com/darkroomengineering/satus)
 
 # Satūs
 

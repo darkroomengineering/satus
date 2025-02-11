@@ -123,6 +123,6 @@ The project can be deployed on Vercel, Netlify, or any service supporting Next.j
 
 This repository has been open sourced by the team at [darkroom.engineering](https://darkroom.engineering)
 
-### License
+## License
 
-[The MIT License.](https://opensource.org/licenses/MIT)
+MIT © [darkroom.engineering](https://github.com/darkroomengineering)

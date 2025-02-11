@@ -1,0 +1,166 @@
+You are an expert in TypeScript, Next.js App Router, React, WebGL, Three.js, BaseUI, Tailwindcss, and modern web development practices.
+
+CORE TECHNOLOGY STACK
+====================
+
+Framework & Runtime
+- Next.js 15+ with App Router
+- React 19
+- TypeScript 5.7+
+- Bun as package manager and runtime
+
+Graphics & Animation
+- Three.js and React Three Fiber for 3D graphics
+- Theatre.js for animation development
+- GSAP Business for advanced animations
+- Lenis for smooth scrolling
+- Tempus for animation timing
+
+Content & Integration
+- Storyblok for content management
+- Hamo for React hooks and utilities
+- PostCSS with custom functions and Tailwind v4
+- Partytown for third-party script optimization
+
+Development Tools
+- Biome for code quality
+- Orchestra for debugging
+- @next/bundle-analyzer for bundle analysis
+
+PROJECT ARCHITECTURE
+===================
+
+Directory Structure
+
+app/
+  (pages)/ - (route group)
+    (components)/ (global components, such as footer, navigation, etc)
+    home/ (home page)
+      page.jsx (Next.js App Router page file for home page)
+
+webgl/
+  components/ (R3F components)
+  materials/ (Custom Three.js materials)
+  shaders/ (GLSL shaders)
+  scenes/ (Scene compositions)
+
+components/
+  ui/ (Basic UI components)
+  layout/ (Layout components)
+
+styles/
+  functions/ (PostCSS functions)
+  variables/ (CSS custom properties)
+  utilities/ (Reusable styles)
+
+Component File Structure
+1. Imports
+2. Type Definitions
+3. Constants/Utilities
+4. Component Definition
+5. Hooks and Effects
+6. Render Logic
+
+IMPLEMENTATION PATTERNS
+======================
+
+Standard Component Pattern:
+'use client' // When needed
+
+import { type ComponentProps } from 'react'
+
+type ComponentProps = {
+  // Props definition
+}
+
+const CONSTANTS = {
+  // Component constants
+}
+
+export function Component({ ...props }: ComponentProps) {
+  // Component logic
+  return (...)
+}
+
+WebGL Component Pattern:
+'use client'
+
+import { type ThreeElements } from '@react-three/fiber'
+
+export function WebGLComponent(props: ThreeElements['mesh']) {
+  const cleanup = () => {
+    // Proper disposal
+  }
+
+  useEffect(() => cleanup, [])
+  
+  return (...)
+}
+
+Animation Hierarchy
+1. CSS Transitions (for simple animations)
+2. CSS Animations (for repeatable sequences)
+3. GSAP (for complex animations)
+4. Tempus (for precise timing)
+5. Theatre.js (for scene orchestration)
+
+DEVELOPMENT STANDARDS
+===================
+
+WebGL and Graphics
+- Organize Three.js components in webgl/components/
+- Implement proper WebGL cleanup and disposal
+- Use React Three Fiber best practices
+- Optimize 3D scene performance
+- Implement proper memory management
+- Follow Theatre.js conventions for animation
+- Use GLSL for custom shaders
+- Implement proper WebGL error handling
+
+Styling Architecture
+- Use PostCSS with custom functions
+- Follow mobile-first responsive design
+- Implement proper CSS Modules
+- Review /styles for global css
+
+Performance Requirements
+- Optimize for Core Web Vitals
+- Implement proper code splitting
+- Use dynamic imports for heavy components
+- Optimize Three.js scenes
+- Implement proper loading states
+- Use proper caching strategies
+
+Quality Assurance
+- Use Biome for linting and formatting
+- Implement proper type checking
+- Use proper error handling
+- Follow accessibility guidelines
+- Implement proper testing patterns
+
+Documentation
+- Maintain component documentation
+- Document WebGL implementations
+- Keep integration guides updated
+- Document animation sequences
+
+Environment and Deployment
+- Use proper environment variables
+- Follow Vercel deployment best practices
+- Implement proper build optimization
+- Use proper caching strategies
+- Follow security best practices
+
+BEST PRACTICES
+=============
+
+Follow:
+- Next.js App Router conventions
+- React Three Fiber best practices
+- Storyblok API best practices
+- GSAP animation patterns
+- Proper TypeScript patterns
+- Use Bun for package management and scripts
+- Implement proper environment variable validation
+- Use Biome for consistent code formatting
+- Implement proper bundle analysis with @next/bundle-analyzer

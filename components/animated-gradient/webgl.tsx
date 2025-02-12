@@ -11,11 +11,9 @@ import { AnimatedGradientMaterial } from './material'
 function useGradient(colors: string[]) {
   const [canvas] = useState(() => document.createElement('canvas'))
   const texture = useMemo(() => {
-    // @ts-expect-error - maybe three types are wrong?
-    const texture = new CanvasTexture(canvas, {
-      minFilter: LinearFilter,
-      magFilter: LinearFilter,
-    })
+    const texture = new CanvasTexture(canvas)
+    texture.minFilter = LinearFilter
+    texture.magFilter = LinearFilter
 
     return texture
   }, [canvas])

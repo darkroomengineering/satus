@@ -4,14 +4,15 @@
   "version": "0.0.2",
   "license": "MIT",
   "scripts": {
-    "dev": "next dev --turbo",
+    "dev": "bun run watch:styles & next dev --turbo",
     "dev:https": "next dev --turbo --experimental-https",
     "build": "next build",
     "start": "next start",
     "lint": "biome lint",
     "analyze": "cross-env ANALYZE=true next build",
     "typecheck": "tsc --noEmit --incremental false",
-    "setup:styles": "bun ./styles/scripts/setup-styles.ts"
+    "setup:styles": "bun ./styles/scripts/setup-styles.ts",
+    "watch:styles": "bun --watch ./styles/scripts/setup-styles.ts"
   },
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-alpha.6",
@@ -39,14 +40,14 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
-    "@theatre/core": "^0.7.2",
-    "@theatre/studio": "^0.7.2",
     "@biomejs/biome": "1.9.4",
     "@builder.io/partytown": "^0.10.3",
     "@csstools/postcss-global-data": "^3.0.0",
     "@next/bundle-analyzer": "^15.1.7",
     "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4.0.7",
+    "@theatre/core": "^0.7.2",
+    "@theatre/studio": "^0.7.2",
     "@total-typescript/ts-reset": "^0.6.1",
     "@types/bun": "^1.2.2",
     "@types/node": "^22.13.4",

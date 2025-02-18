@@ -1,0 +1,133 @@
+---
+description: Best practices for Next.js applications using App Router
+globs: **/*.{ts,tsx}
+---
+# Next.js Best Practices
+
+## Core Principles
+- Use Server Components by default
+- Implement proper TypeScript integration
+- Follow App Router patterns
+- Optimize for performance
+
+## Project Structure
+```
+app/
+├── (pages)/              # Page components and layouts
+├── api/                  # API routes
+├── error.tsx            # Error handling
+├── layout.tsx           # Root layout
+└── loading.tsx          # Loading states
+```
+
+## Routing & Navigation
+- Use App Router for improved performance
+- Implement proper loading states with `loading.tsx`
+- Handle errors gracefully with `error.tsx`
+- Use route groups for organization
+- Implement dynamic routes when needed
+- Use parallel routes appropriately
+
+## Data Fetching
+### Server Components
+```typescript
+// Preferred pattern for data fetching
+export default async function Page() {
+  const data = await fetchData()
+  return <Component data={data} />
+}
+```
+
+### API Routes
+```typescript
+// Route Handler pattern
+export async function GET() {
+  const data = await getData()
+  return Response.json(data)
+}
+```
+
+## Performance Optimization
+- Use `next/image` for image optimization
+- Implement `next/font` for font optimization
+- Use proper metadata generation
+- Implement proper caching strategies
+- Use proper code splitting
+- Optimize bundle size
+
+## Security Guidelines
+- Use proper environment variables
+- Implement proper authentication
+- Use proper CORS policies
+- Follow CSP guidelines
+- Validate user input
+
+## Development Workflow
+- Use Turbo for development (`bun dev`)
+- Implement proper error handling
+- Use proper TypeScript configuration
+- Follow proper testing patterns
+
+## Integration with Project Stack
+### Storyblok Integration
+- Use proper preview mode
+- Implement proper caching
+- Follow proper content structure
+
+### WebGL Integration
+- Use proper loading strategies
+- Implement proper error boundaries
+- Follow proper optimization patterns
+
+### Animation Integration
+- Use proper GSAP integration
+- Implement proper Lenis scrolling
+- Follow proper Theatre.js patterns
+
+## Deployment
+- Use proper build configuration
+- Implement proper environment variables
+- Follow proper CI/CD practices
+- Use proper monitoring tools
+
+## Common Patterns
+### Layout Pattern
+```typescript
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="layout">
+      {children}
+    </div>
+  )
+}
+```
+
+### Error Handling
+```typescript
+'use client'
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error
+  reset: () => void
+}) {
+  return (
+    <div>
+      <h2>Something went wrong!</h2>
+      <button onClick={reset}>Try again</button>
+    </div>
+  )
+}
+```
+
+## Testing & Quality Assurance
+- Write proper unit tests
+- Implement proper E2E testing
+- Use proper development tools
+- Implement proper logging
+
+## Resources
+- [Next.js Documentation](mdc:https:/nextjs.org/docs)
+- [App Router Documentation](mdc:https:/nextjs.org/docs/app)
+- [React Server Components](mdc:https:/nextjs.org/docs/getting-started/react-essentials)

@@ -1,0 +1,15 @@
+---
+description: 
+globs: 
+---
+---
+name: gsap-best-practices.mdc
+description: Best practices for GSAP Business animations
+globs: **/*.{ts,tsx}
+---
+
+- Use GSAP for complex animations that require precise control.
+- Implement proper animation cleanup to prevent memory leaks.
+- Utilize GSAP's timeline for sequencing animations.
+- Implement proper error handling for GSAP operations.
+- Use GSAP's plugins for advanced animation features.

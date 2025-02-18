@@ -1,0 +1,15 @@
+---
+description: 
+globs: 
+---
+---
+name: tailwindcss-best-practices.mdc
+description: Best practices for styling with Tailwind CSS v4
+globs: **/*.{ts,tsx,css}
+---
+
+- Use Tailwind CSS for utility-first styling.
+- Implement proper responsive design using Tailwind's breakpoints.
+- Utilize Tailwind's custom functions for extending styles.
+- Implement proper CSS modules for component-specific styles.
+- Use Tailwind's JIT mode for improved performance.

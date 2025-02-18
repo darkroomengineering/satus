@@ -1,0 +1,82 @@
+---
+description: 
+globs: 
+---
+# Styles Best Practices
+
+## File Organization
+- Keep style configurations in dedicated files (`colors.ts`, `typography.ts`, `easings.ts`, etc.)
+- Use TypeScript for type safety in style configurations
+- Maintain consistent naming conventions
+- Follow PostCSS and Tailwind conventions
+
+## CSS Modules
+- Use CSS Modules for component-specific styles
+- Follow BEM-like naming for classes
+- Maintain proper scoping
+- Use custom properties for theming
+
+## Typography System
+- Follow the defined type scale
+- Implement proper responsive typography
+- Use proper font loading strategies
+
+## Colors and Theming
+- Use design tokens for colors
+- Support dark/light theme variants
+- Use CSS custom properties for dynamic theming
+- Follow accessibility guidelines for contrast
+
+## Layout and Grid
+- Use the custom grid system (4 columns mobile, 12 columns desktop)
+- Implement proper responsive breakpoints
+- Use viewport-relative units correctly
+- Follow mobile-first approach
+
+## Animations and Transitions
+- Use defined easing functions from `easings.ts`
+- Implement performant animations
+- Support reduced motion preferences
+- Use GPU-accelerated properties
+
+## Best Practices
+```css
+/* Example of proper CSS Module usage */
+.component {
+  /* Use custom properties */
+  color: var(--color-text);
+  
+  /* Use responsive units */
+  font-size: clamp(1rem, 2vw, 2rem);
+  
+  /* Use grid system */
+  grid-column: span 4;
+  
+  @media (--desktop) {
+    grid-column: span 12;
+  }
+}
+```
+
+## Configuration
+- Keep configuration in TypeScript files
+- Export proper type definitions
+- Document configuration options
+- Support theme customization
+
+## Performance
+- Implement proper CSS loading strategies
+- Use critical CSS optimization
+- Minimize CSS bundle size
+- Implement proper caching strategies
+
+## Usage Examples
+```typescript
+// Importing style configurations
+import { colors } from '~/styles/colors'
+import { typography } from '~/styles/typography'
+import { easings } from '~/styles/easings'
+
+// Using CSS Modules
+import styles from './styles.module.css'
+```

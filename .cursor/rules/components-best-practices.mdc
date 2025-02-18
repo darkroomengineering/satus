@@ -1,0 +1,67 @@
+---
+description: 
+globs: 
+---
+# Components Best Practices
+
+## Component Structure
+- Each component should be in its own directory under `components/`
+- Include an `index.tsx` as the main component file
+- Include a `styles.module.css` for component-specific styles
+- Include a README.md documenting the component's usage
+
+## Component Categories
+### Core Components
+- Implement with TypeScript and proper type definitions
+- Use CSS Modules for styling
+- Include proper accessibility attributes
+- Support dark/light theme variants
+
+### Animation Components
+- Use GSAP for complex animations
+- Implement proper cleanup in useEffect
+- Use Theatre.js for animation debugging
+- Support mobile and desktop variants
+
+### Layout Components
+- Support responsive layouts
+- Use the custom grid system (4 columns mobile, 12 columns desktop)
+- Implement proper viewport calculations
+- Handle SSR appropriately
+
+### Integration Components
+- Implement proper error handling
+- Include loading states
+- Support offline fallbacks
+- Document integration requirements
+
+## Best Practices
+- Use TypeScript for all components
+- Implement proper prop validation
+- Include proper JSDoc documentation
+- Follow React 19 best practices
+- Support server and client components appropriately
+- Implement proper error boundaries
+- Use React.memo for performance optimization when needed
+
+## Imports and Exports
+```typescript
+// Correct way to export components
+export function ComponentName() {
+  // Implementation
+}
+
+// Correct way to import components
+import { ComponentName } from '~/components/component-name'
+```
+
+## Testing
+- Test accessibility features
+- Test different viewport sizes
+- Test animation states
+
+## Performance
+- Implement proper code splitting
+- Use React.lazy for large components
+- Optimize animations for performance 
+- Implement proper caching strategies

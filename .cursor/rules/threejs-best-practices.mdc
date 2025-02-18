@@ -1,0 +1,15 @@
+---
+description: 
+globs: 
+---
+---
+name: threejs-best-practices.mdc
+description: Best practices for Three.js and WebGL development
+globs: **/webgl/*.{ts,tsx}
+---
+
+- Organize Three.js components in `webgl/components/` for better project structure.
+- Implement proper WebGL cleanup and disposal to prevent memory leaks.
+- Use `useEffect` hooks for initialization and cleanup of Three.js objects.
+- Optimize 3D scenes by reducing polygon counts and using level of detail (LOD).
+- Implement proper error handling for WebGL operations.

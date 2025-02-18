@@ -1,0 +1,15 @@
+---
+description: 
+globs: 
+---
+---
+name: biome-best-practices.mdc
+description: Best practices for code quality with Biome
+globs: **/*.{ts,tsx,js,jsx}
+---
+
+- Use Biome for consistent code formatting and linting.
+- Implement Biome's configuration for project-specific rules.
+- Utilize Biome's CLI for running lint and format commands.
+- Implement proper error handling for Biome operations.
+- Use Biome's documentation for understanding available rules and configuration options.

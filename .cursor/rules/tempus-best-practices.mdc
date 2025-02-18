@@ -1,0 +1,15 @@
+---
+description: 
+globs: 
+---
+---
+name: tempus-best-practices.mdc
+description: Best practices for animation timing with Tempus
+globs: **/*.{ts,tsx}
+---
+
+- Use Tempus for precise animation timing.
+- Implement proper initialization and cleanup of Tempus instances.
+- Utilize Tempus's API for controlling animation timing.
+- Implement proper error handling for Tempus operations.
+- Use Tempus in conjunction with other animation libraries for seamless integration.

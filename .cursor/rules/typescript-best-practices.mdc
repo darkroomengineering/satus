@@ -1,0 +1,15 @@
+---
+description: TypeScript coding standards and type safety guidelines
+globs: **/*.{ts,tsx}
+---
+---
+name: typescript-best-practices.mdc
+description: TypeScript coding standards and type safety guidelines
+globs: **/*.{ts,tsx}
+---
+
+- Enable strict mode in `tsconfig.json` for better type checking.
+- Use type inference where possible to reduce redundancy.
+- Implement generics for reusable components and functions.
+- Use `readonly` for array and object properties to prevent unintended mutations.
+- Utilize utility types like `Partial`, `Readonly`, and `Pick` for type manipulation.

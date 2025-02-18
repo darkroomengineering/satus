@@ -1,0 +1,91 @@
+---
+description: 
+globs: 
+---
+# Hooks Best Practices
+
+## Hook Structure
+- Follow React hooks naming convention (`use` prefix)
+- Keep hooks focused and single-purpose
+- Implement proper TypeScript types
+- Document hook usage and parameters
+
+## Performance
+- Implement proper dependency arrays
+- Use memoization where appropriate
+- Avoid unnecessary re-renders
+- Clean up side effects properly
+
+## Common Hooks
+### `use-scroll-trigger`
+- Handle scroll events efficiently
+- Implement proper throttling/debouncing
+- Clean up event listeners
+- Support SSR
+
+### `use-transform`
+- Handle animations efficiently
+- Support GSAP transformations
+- Implement proper cleanup
+- Support mobile and desktop variants
+
+### `use-device-detection`
+- Implement proper device detection
+- Handle SSR appropriately
+- Support responsive design
+- Cache results when possible
+
+## Best Practices
+```typescript
+/**
+ * Example hook documentation
+ * @param options - Hook configuration options
+ * @returns Hook state and methods
+ * @example
+ * const { state, methods } = useCustomHook({ option: value })
+ */
+export function useCustomHook<T>(options: Options): HookResult<T> {
+  // Implementation
+  useEffect(() => {
+    // Setup
+    return () => {
+      // Cleanup
+    }
+  }, [/* dependencies */])
+}
+```
+
+## Error Handling
+- Implement proper error boundaries
+- Handle edge cases
+- Provide meaningful error messages
+- Support error recovery
+
+## Testing
+- Test hook behavior
+- Test side effects
+- Test cleanup
+- Test error cases
+
+## Documentation
+- Include JSDoc comments
+- Document parameters and return types
+- Provide usage examples
+- Document side effects
+
+## Usage Examples
+```typescript
+// Importing hooks
+import { useScrollTrigger } from '~/hooks/use-scroll-trigger'
+import { useTransform } from '~/hooks/use-transform'
+import { useDeviceDetection } from '~/hooks/use-device-detection'
+
+// Using hooks
+function Component() {
+  const { isMobile } = useDeviceDetection()
+  const { scrollY } = useScrollTrigger()
+  const { transform } = useTransform({ /* options */ })
+  
+  // Implementation
+}
+```

@@ -1,0 +1,15 @@
+---
+description: 
+globs: 
+---
+---
+name: storyblok-best-practices.mdc
+description: Best practices for Storyblok content management
+globs: **/*.{ts,tsx}
+---
+
+- Use Storyblok's API for fetching and managing content.
+- Implement proper caching strategies for Storyblok data.
+- Utilize Storyblok's visual editor for content editing.
+- Implement proper error handling for Storyblok operations.
+- Use Storyblok's rich text renderer for formatting content.

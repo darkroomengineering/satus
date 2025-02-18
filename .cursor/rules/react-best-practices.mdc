@@ -1,0 +1,76 @@
+---
+description: Best practices for React 19 development
+globs: **/*.{ts,tsx,js,jsx}
+---
+# React Best Practices
+
+## Component Architecture
+- Use functional components with hooks
+- Implement proper component composition
+- Follow single responsibility principle
+- Use proper prop drilling alternatives
+- Implement proper error boundaries
+- Use proper React.memo optimization
+
+## Hooks Usage
+- Follow hooks rules and best practices
+- Implement custom hooks for reusable logic
+- Use proper dependency arrays
+- Implement proper cleanup in useEffect
+- Use proper state management patterns
+- Implement proper context usage
+
+## Performance Optimization
+- Use proper code splitting with React.lazy
+- Implement proper memo and useMemo
+- Use proper useCallback optimization
+- Implement proper key usage in lists
+- Use proper bundle optimization
+- Implement proper rendering optimization
+
+## State Management
+- Use proper local state management
+- Implement proper global state patterns
+- Use proper context API patterns
+- Implement proper state updates
+- Use proper immutable patterns
+- Implement proper side effects
+
+## Code Examples
+```typescript
+// Proper way to implement a functional component
+interface Props {
+  data: Data
+  onAction: (id: string) => void
+}
+
+export default function Component({ data, onAction }: Props) {
+  const [state, setState] = useState<State>(initialState)
+
+  useEffect(() => {
+    // Proper cleanup
+    return () => cleanup()
+  }, [])
+
+  return <div>{/* Component JSX */}</div>
+}
+
+// Proper way to implement a custom hook
+function useCustomHook(deps: Deps) {
+  const [state, setState] = useState<State>(initialState)
+
+  useEffect(() => {
+    // Effect logic
+  }, [deps])
+
+  return { state, setState }
+}
+```
+
+## Testing and Development
+- Implement proper unit tests
+- Use proper testing patterns
+- Implement proper accessibility testing
+- Use proper development tools
+- Implement proper documentation
+- Use proper TypeScript patterns

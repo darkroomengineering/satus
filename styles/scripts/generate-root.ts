@@ -1,4 +1,5 @@
 import type { Config } from '../config'
+import { scalingCalc } from './utils'
 
 export function generateRoot({
   breakpoints,
@@ -30,17 +31,17 @@ export function generateRoot({
       }
 
       if (name === 'gap') {
-        return `--mobile-gap: ${fluidCalc(mobile)};\n\t--desktop-gap: ${fluidCalc(desktop)};`
+        return `--mobile-gap: ${scalingCalc(mobile)};\n\t--desktop-gap: ${scalingCalc(desktop)};`
       }
 
       if (name === 'space') {
-        return `--mobile-space: ${fluidCalc(mobile)};\n\t--desktop-space: ${fluidCalc(desktop)};`
+        return `--mobile-space: ${scalingCalc(mobile)};\n\t--desktop-space: ${scalingCalc(desktop)};`
       }
     })
     .join('\n\n\t')}
 	
 	${Object.entries(headerHeight)
-    .map(([name, value]) => `--${name}-header-height: ${fluidCalc(value)};`)
+    .map(([name, value]) => `--${name}-header-height: ${scalingCalc(value)};`)
     .join('\n\t')}
 	
 	--device-width: var(--mobile-width);
@@ -67,8 +68,4 @@ export function generateRoot({
 	}
 }
   `
-}
-
-function fluidCalc(value: number) {
-  return `calc(((${value} * 100) / var(--device-width)) * 1vw)`
 }

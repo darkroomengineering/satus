@@ -6,7 +6,7 @@ const fonts = {
 
 const typography: TypeStyles = {
   'test-mono': {
-    'font-family': fonts.mono,
+    'font-family': `var(${fonts.mono})`,
     'font-style': 'normal',
     'font-weight': 400,
     'line-height': '90%',

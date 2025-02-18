@@ -4,7 +4,7 @@
     rgba(0, 0, 0, 0.1) 50%,
     rgba(247, 181, 68, 0.1) 50%
   );
-  background-size: 8px 8px;
+  background-size: var(--gap) var(--gap);
 
   span {
     background: pink;

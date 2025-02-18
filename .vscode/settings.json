@@ -12,8 +12,11 @@
     "**/app/api/**/route.js": "${dirname(1)}/${dirname} <route>"
   },
   "files.associations": {
-    "*.json": "jsonc",
-    "*.css": "css"
+    "*.ts": "typescript",
+    "*.tsx": "typescriptreact",
+    "*.js": "javascript",
+    "*.jsx": "javascriptreact",
+    "*.json": "json"
   },
   "css.lint.validProperties": ["user-drag"],
   "css.lint.unknownAtRules": "ignore",
@@ -27,6 +30,9 @@
     "editor.defaultFormatter": "biomejs.biome"
   },
   "[typescriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[json]": {
     "editor.defaultFormatter": "biomejs.biome"
   }
 }

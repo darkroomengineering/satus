@@ -44,11 +44,11 @@
 
 /** Custom static utilities **/
 @utility test-mono {
-  font-family: --font-mono;
+  font-family: var(--font-mono);
 	font-style: normal;
 	font-weight: 400;
 	line-height: 90%;
-	letter-spacing: 0;
+	letter-spacing: 0%;
 	font-size: calc(((20 * 100) / var(--device-width)) * 1vw);
 	@variant dt { font-size: calc(((24 * 100) / var(--device-width)) * 1vw); }
 }

@@ -76,13 +76,13 @@ ${Object.entries(typography)
 
 @utility desktop-only {
   @media (--mobile) {
-    display: none;
+    display: none !important;
   }
 }
 
 @utility mobile-only {
   @media (--desktop) {
-    display: none;
+    display: none !important;
   }
 }
 

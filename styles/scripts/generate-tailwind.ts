@@ -74,6 +74,18 @@ ${Object.entries(typography)
   )
   .join('\n')}
 
+@utility desktop-only {
+  @media (--mobile) {
+    display: none;
+  }
+}
+
+@utility mobile-only {
+  @media (--desktop) {
+    display: none;
+  }
+}
+
 @utility design-grid {
 	display: grid;
 	grid-template-columns: repeat(var(--columns), 1fr);

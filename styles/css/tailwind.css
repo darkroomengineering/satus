@@ -53,6 +53,18 @@
 	@variant dt { font-size: calc(((24 * 100) / var(--device-width)) * 1vw); }
 }
 
+@utility desktop-only {
+  @media (--mobile) {
+    display: none;
+  }
+}
+
+@utility mobile-only {
+  @media (--desktop) {
+    display: none;
+  }
+}
+
 @utility design-grid {
 	display: grid;
 	grid-template-columns: repeat(var(--columns), 1fr);

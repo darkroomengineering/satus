@@ -70,7 +70,9 @@ const nextConfig: NextConfig = {
   //     transform: 'gsap/{{member}}',
   //   },
   // },
-  devIndicators: false,
+  devIndicators: {
+    appIsrStatus: false,
+  },
   typescript: {
     ignoreBuildErrors: true,
   },

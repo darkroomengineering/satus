@@ -9,30 +9,14 @@
 @custom-media --reduced-motion (prefers-reduced-motion: reduce);
 
 :root {
-	--mobile-width: 375;
-	--mobile-height: 650;
-
-	--desktop-width: 1440;
-	--desktop-height: 816;
+	--device-width: 375px;
+	--device-height: 650px;
 	
-	--mobile-columns: 4;
-	--desktop-columns: 12;
-
-	--mobile-gap: calc(((16 * 100) / var(--device-width)) * 1vw);
-	--desktop-gap: calc(((16 * 100) / var(--device-width)) * 1vw);
-
-	--mobile-space: calc(((16 * 100) / var(--device-width)) * 1vw);
-	--desktop-space: calc(((16 * 100) / var(--device-width)) * 1vw);
+	--columns: 4;
+	--gap: calc(((16 * 100) / var(--device-width)) * 1vw);
+	--space: calc(((16 * 100) / var(--device-width)) * 1vw);
 	
-	--mobile-header-height: calc(((58 * 100) / var(--device-width)) * 1vw);
-	--desktop-header-height: calc(((98 * 100) / var(--device-width)) * 1vw);
-	
-	--device-width: var(--mobile-width);
-	--device-height: var(--mobile-height);
-	--columns: var(--mobile-columns);
-	--gap: var(--mobile-gap);
-	--space: var(--mobile-space);
-	--header-height: var(--mobile-header-height);
+	--header-height: calc(((58 * 100) / var(--device-width)) * 1vw);
 
 	--layout-width: calc(100vw - (2 * var(--space)));
 	--column-width: calc((var(--layout-width) - (var(--columns) - 1) * var(--gap)) / var(--columns));
@@ -57,13 +41,19 @@
 	--ease-in-out-circ: cubic-bezier(0.785, 0.135, 0.15, 0.86);
 	--ease-gleasing: cubic-bezier(0.4, 0, 0, 1);
 	
+	--color-black: #000000;
+	--color-white: #ffffff;
+	--color-red: #e30613;
+	
 	@variant dt {
-		--device-width: var(--desktop-width);
-		--device-height: var(--desktop-height);
-		--columns: var(--desktop-columns);
-		--gap: var(--desktop-gap);
-		--space: var(--desktop-space);
-		--header-height: var(--desktop-header-height);
+    --device-width: 1440;
+    --device-height: 816;
+
+    --columns: 12;
+		--gap: calc(((16 * 100) / var(--device-width)) * 1vw);
+		--space: calc(((16 * 100) / var(--device-width)) * 1vw);
+
+    --header-height: calc(((98 * 100) / var(--device-width)) * 1vw);
 	}
 }
   

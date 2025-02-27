@@ -4,13 +4,13 @@ import { scalingCalc } from './utils'
 export function generateRoot({
   breakpoints,
   colors,
+  customSizes,
   easings,
-  headerHeight,
   layout,
   screens,
 }: Pick<
   Config,
-  'breakpoints' | 'colors' | 'easings' | 'headerHeight' | 'layout' | 'screens'
+  'breakpoints' | 'colors' | 'customSizes' | 'easings' | 'layout' | 'screens'
 >) {
   return `@custom-media --hover (hover: hover);
 @custom-media --mobile (width <= ${breakpoints.dt - 0.02}px);
@@ -18,39 +18,20 @@ export function generateRoot({
 @custom-media --reduced-motion (prefers-reduced-motion: reduce);
 
 :root {
-	${Object.entries(screens)
-    .map(
-      ([name, { width, height }]) =>
-        `--${name}-width: ${width};\n\t--${name}-height: ${height};`
-    )
-    .join('\n\n\t')}
+	--device-width: ${screens.mobile.width}px;
+	--device-height: ${screens.mobile.height}px;
 	
 	${Object.entries(layout)
-    .map(([name, { mobile, desktop }]) => {
-      if (name === 'columns') {
-        return `--mobile-columns: ${mobile};\n\t--desktop-columns: ${desktop};`
-      }
+    .map(([name, { mobile }]) => {
+      if (name === 'columns') return `--columns: ${mobile};`
 
-      if (name === 'gap') {
-        return `--mobile-gap: ${scalingCalc(mobile)};\n\t--desktop-gap: ${scalingCalc(desktop)};`
-      }
-
-      if (name === 'space') {
-        return `--mobile-space: ${scalingCalc(mobile)};\n\t--desktop-space: ${scalingCalc(desktop)};`
-      }
+      return `--${name}: ${scalingCalc(mobile)};`
     })
-    .join('\n\n\t')}
-	
-	${Object.entries(headerHeight)
-    .map(([name, value]) => `--${name}-header-height: ${scalingCalc(value)};`)
     .join('\n\t')}
 	
-	--device-width: var(--mobile-width);
-	--device-height: var(--mobile-height);
-	--columns: var(--mobile-columns);
-	--gap: var(--mobile-gap);
-	--space: var(--mobile-space);
-	--header-height: var(--mobile-header-height);
+	${Object.entries(customSizes)
+    .map(([name, { mobile }]) => `--${name}: ${scalingCalc(mobile)};`)
+    .join('\n\t')}
 
 	--layout-width: calc(100vw - (2 * var(--space)));
 	--column-width: calc((var(--layout-width) - (var(--columns) - 1) * var(--gap)) / var(--columns));
@@ -64,12 +45,20 @@ export function generateRoot({
     .join('\n\t')}
 	
 	@variant dt {
-		--device-width: var(--desktop-width);
-		--device-height: var(--desktop-height);
-		--columns: var(--desktop-columns);
-		--gap: var(--desktop-gap);
-		--space: var(--desktop-space);
-		--header-height: var(--desktop-header-height);
+    --device-width: ${screens.desktop.width};
+    --device-height: ${screens.desktop.height};
+
+    ${Object.entries(layout)
+      .map(([name, { desktop }]) => {
+        if (name === 'columns') return `--columns: ${desktop};`
+
+        return `--${name}: ${scalingCalc(desktop)};`
+      })
+      .join('\n\t\t')}
+
+    ${Object.entries(customSizes)
+      .map(([name, { desktop }]) => `--${name}: ${scalingCalc(desktop)};`)
+      .join('\n\t')}
 	}
 }
   `

@@ -1,6 +1,6 @@
 import { colors, themeNames, themes } from './colors'
 import { easings } from './easings'
-import { breakpoints, headerHeight, layout, screens } from './layout.mjs'
+import { breakpoints, customSizes, layout, screens } from './layout.mjs'
 import { fonts, typography } from './typography'
 
 const config = {
@@ -10,7 +10,7 @@ const config = {
   themes,
   easings,
   breakpoints,
-  headerHeight,
+  customSizes,
   layout,
   screens,
   typography,
@@ -19,9 +19,9 @@ const config = {
 export {
   breakpoints,
   colors,
+  customSizes,
   easings,
   fonts,
-  headerHeight,
   layout,
   screens,
   themeNames,

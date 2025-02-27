@@ -14,9 +14,8 @@ const layout = {
   space: { mobile: 16, desktop: 16 },
 }
 
-const headerHeight = {
-  mobile: 58,
-  desktop: 98,
+const customSizes = {
+  'header-height': { mobile: 58, desktop: 98 },
 }
 
-export { breakpoints, headerHeight, layout, screens }
+export { breakpoints, customSizes, layout, screens }

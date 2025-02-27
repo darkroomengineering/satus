@@ -3,13 +3,14 @@ import { scalingCalc } from './utils'
 
 export function generateRoot({
   breakpoints,
+  colors,
   easings,
   headerHeight,
   layout,
   screens,
 }: Pick<
   Config,
-  'breakpoints' | 'easings' | 'headerHeight' | 'layout' | 'screens'
+  'breakpoints' | 'colors' | 'easings' | 'headerHeight' | 'layout' | 'screens'
 >) {
   return `@custom-media --hover (hover: hover);
 @custom-media --mobile (width <= ${breakpoints.dt - 0.02}px);
@@ -56,6 +57,10 @@ export function generateRoot({
 	
 	${Object.entries(easings)
     .map(([name, value]) => `--ease-${name}: ${value};`)
+    .join('\n\t')}
+	
+	${Object.entries(colors)
+    .map(([name, value]) => `--color-${name}: ${value};`)
     .join('\n\t')}
 	
 	@variant dt {

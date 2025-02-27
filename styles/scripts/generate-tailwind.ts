@@ -4,10 +4,14 @@ import { scalingCalc } from './utils'
 export function generateTailwind({
   breakpoints,
   colors,
+  easings,
   fonts,
   themes,
   typography,
-}: Pick<Config, 'breakpoints' | 'colors' | 'fonts' | 'themes' | 'typography'>) {
+}: Pick<
+  Config,
+  'breakpoints' | 'colors' | 'easings' | 'fonts' | 'themes' | 'typography'
+>) {
   // Theme
   const theme = `/** Custom theme **/
 @theme {
@@ -24,13 +28,18 @@ export function generateTailwind({
     .map(([key, value]) => `--color-${key}: ${value};`)
     .join('\n\t')}
     
-  --spacing: 0.25rem;
+  --spacing-*: initial;
 	--spacing-page: var(--space);
 	--spacing-gap: var(--gap);
 
   --font-*: initial;
   ${Object.entries(fonts)
     .map(([name, variableName]) => `--font-${name}: var(${variableName});`)
+    .join('\n\t')}
+
+  --ease-*: initial;
+  ${Object.entries(easings)
+    .map(([name, value]) => `--ease-${name}: ${value};`)
     .join('\n\t')}
 }`
 

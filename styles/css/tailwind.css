@@ -19,6 +19,7 @@
   --spacing-*: initial;
 	--spacing-page: var(--space);
 	--spacing-gap: var(--gap);
+  --spacing-header-height: var(--header-height);
 
   --font-*: initial;
   --font-mono: var(--font-mono);

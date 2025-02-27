@@ -1,5 +1,5 @@
 import type { Config } from '../config'
-import { scalingCalc } from './utils'
+import { formatObject, scalingCalc } from './utils'
 
 export function generateRoot({
   breakpoints,
@@ -21,44 +21,36 @@ export function generateRoot({
 	--device-width: ${screens.mobile.width}px;
 	--device-height: ${screens.mobile.height}px;
 	
-	${Object.entries(layout)
-    .map(([name, { mobile }]) => {
-      if (name === 'columns') return `--columns: ${mobile};`
+	${formatObject(layout, ([name, { mobile }]) => {
+    if (name === 'columns') return `--columns: ${mobile};`
 
-      return `--${name}: ${scalingCalc(mobile)};`
-    })
-    .join('\n\t')}
+    return `--${name}: ${scalingCalc(mobile)};`
+  })}
 	
-	${Object.entries(customSizes)
-    .map(([name, { mobile }]) => `--${name}: ${scalingCalc(mobile)};`)
-    .join('\n\t')}
+	${formatObject(customSizes, ([name, { mobile }]) => `--${name}: ${scalingCalc(mobile)};`)}
 
 	--layout-width: calc(100vw - (2 * var(--space)));
 	--column-width: calc((var(--layout-width) - (var(--columns) - 1) * var(--gap)) / var(--columns));
 	
-	${Object.entries(easings)
-    .map(([name, value]) => `--ease-${name}: ${value};`)
-    .join('\n\t')}
+	${formatObject(easings, ([name, value]) => `--ease-${name}: ${value};`)}
 	
-	${Object.entries(colors)
-    .map(([name, value]) => `--color-${name}: ${value};`)
-    .join('\n\t')}
+	${formatObject(colors, ([name, value]) => `--color-${name}: ${value};`)}
 	
 	@variant dt {
     --device-width: ${screens.desktop.width};
     --device-height: ${screens.desktop.height};
 
-    ${Object.entries(layout)
-      .map(([name, { desktop }]) => {
+    ${formatObject(
+      layout,
+      ([name, { desktop }]) => {
         if (name === 'columns') return `--columns: ${desktop};`
 
         return `--${name}: ${scalingCalc(desktop)};`
-      })
-      .join('\n\t\t')}
+      },
+      '\n\t\t'
+    )}
 
-    ${Object.entries(customSizes)
-      .map(([name, { desktop }]) => `--${name}: ${scalingCalc(desktop)};`)
-      .join('\n\t')}
+    ${formatObject(customSizes, ([name, { desktop }]) => `--${name}: ${scalingCalc(desktop)};`, '\n\t\t')}
 	}
 }
   `

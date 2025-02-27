@@ -1,5 +1,5 @@
 import type { Config } from '../config'
-import { scalingCalc } from './utils'
+import { formatObject, scalingCalc } from './utils'
 
 export function generateTailwind({
   breakpoints,
@@ -23,48 +23,34 @@ export function generateTailwind({
   const theme = `/** Custom theme **/
 @theme {
 	--breakpoint-*: initial;
-	${Object.entries(breakpoints)
-    .map(([name, value]) => `--breakpoint-${name}: ${value}px;`)
-    .join('\n\t')}
+	${formatObject(breakpoints, ([name, value]) => `--breakpoint-${name}: ${value}px;`)}
 
   --color-*: initial;
-	${Object.entries(Object.entries(themes)[0][1])
-    .map(([key, value]) => `--color-${key}: ${value};`)
-    .join('\n\t')}
-  ${Object.entries(colors)
-    .map(([key, value]) => `--color-${key}: ${value};`)
-    .join('\n\t')}
+	${formatObject(Object.entries(themes)[0][1], ([key, value]) => `--color-${key}: ${value};`)}
+  ${formatObject(colors, ([key, value]) => `--color-${key}: ${value};`)}
     
   --spacing-*: initial;
 	--spacing-page: var(--space);
 	--spacing-gap: var(--gap);
-  ${Object.entries(customSizes)
-    .map(([key]) => `--spacing-${key}: var(--${key});`)
-    .join('\n\t')}
+  ${formatObject(customSizes, ([key]) => `--spacing-${key}: var(--${key});`)}
 
   --font-*: initial;
-  ${Object.entries(fonts)
-    .map(([name, variableName]) => `--font-${name}: var(${variableName});`)
-    .join('\n\t')}
+  ${formatObject(fonts, ([name, variableName]) => `--font-${name}: var(${variableName});`)}
 
   --ease-*: initial;
-  ${Object.entries(easings)
-    .map(([name, value]) => `--ease-${name}: ${value};`)
-    .join('\n\t')}
+  ${formatObject(easings, ([name, value]) => `--ease-${name}: ${value};`)}
 }`
 
   // Theme overwrites
   const themeOverwrites = `
 /** Custom theme overwrites **/
-${Object.entries(themes)
-  .map(
-    ([name, value]) => `[data-theme=${name}] {
-  ${Object.entries(value)
-    .map(([key, value]) => `--color-${key}: ${value};`)
-    .join('\n\t')}
-}`
-  )
-  .join('\n')}
+${formatObject(
+  themes,
+  ([name, value]) => `[data-theme=${name}] {
+  ${formatObject(value, ([key, value]) => `--color-${key}: ${value};`)}
+}`,
+  '\n'
+)}
   `
 
   // Utilities

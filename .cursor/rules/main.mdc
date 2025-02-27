@@ -1,47 +1,8 @@
 ---
 description: Main index of best practices for Satūs
 globs: **/*
+alwaysApply: false
 ---
-# Satūs Best Practices
-
-## Core Technologies
-
-### Framework & Runtime
-- [Next.js Best Practices](mdc:nextjs-best-practices.mdc)
-- [React Best Practices](mdc:react-best-practices.mdc)
-- [TypeScript Best Practices](mdc:typescript-best-practices.mdc)
-- [Bun Best Practices](mdc:bun-best-practices.mdc)
-
-### 3D & Graphics
-- [Three.js Best Practices](mdc:threejs-best-practices.mdc)
-- [React Three Fiber Best Practices](mdc:react-three-fiber-best-practices.mdc)
-- [WebGL Best Practices](mdc:webgl-best-practices.mdc)
-
-### Animation & Interaction
-- [Theatre.js Best Practices](mdc:theatrejs-best-practices.mdc)
-- [GSAP Best Practices](mdc:gsap-best-practices.mdc)
-- [Lenis Best Practices](mdc:lenis-best-practices.mdc)
-- [Hamo Best Practices](mdc:hamo-best-practices.mdc)
-- [Tempus Best Practices](mdc:tempus-best-practices.mdc)
-
-### Content & Integration
-- [Storyblok Best Practices](mdc:storyblok-best-practices.mdc)
-- [Integrations Best Practices](mdc:integrations-best-practices.mdc)
-
-### Development & Tooling
-- [Biome Best Practices](mdc:biome-best-practices.mdc)
-- [Orchestra Best Practices](mdc:orchestra-best-practices.mdc)
-
-### Styling & Components
-- [Components Best Practices](mdc:components-best-practices.mdc)
-- [Styles Best Practices](mdc:styles-best-practices.mdc)
-- [PostCSS Best Practices](mdc:postcss-best-practices.mdc)
-- [TailwindCSS Best Practices](mdc:tailwindcss-best-practices.mdc)
-
-### Architecture & Utils
-- [Hooks Best Practices](mdc:hooks-best-practices.mdc)
-- [Libs Best Practices](mdc:libs-best-practices.mdc)
-
 ## Global Rules
 
 1. **Type Safety**
@@ -82,13 +43,13 @@ globs: **/*
 ## File Organization
 
 ```
-├── app/                    # Next.js pages and routes
-├── components/            # Reusable UI components
+├── app/                  # Next.js pages and routes
+├── components/           # Reusable UI components
 ├── hooks/                # Custom React hooks
 ├── integrations/         # Third-party integrations
 ├── libs/                 # Utility libraries
 ├── orchestra/            # Debug tools
-└── webgl/               # WebGL and 3D graphics
+└── webgl/                # WebGL and 3D graphics
 ```
 
 ## Getting Started

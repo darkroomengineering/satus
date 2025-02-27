@@ -1,0 +1,171 @@
+---
+description: Styling guidelines for Satūs
+globs: "**/*.css,**/*.module.css"
+alwaysApply: false
+---
+
+# Styling Guidelines
+
+## CSS Modules
+
+1. **File Naming**
+   - Use kebab-case for CSS module files
+   - Match the component name followed by `.module.css`
+   ```
+   button.tsx
+   button.module.css
+   ```
+
+2. **Class Naming**
+   - Use camelCase for class names
+   - Use descriptive, semantic names
+   ```css
+   .button { /* Base styles */ }
+   .isPrimary { /* Variant styles */ }
+   .isDisabled { /* State styles */ }
+   ```
+
+3. **Imports in Components**
+   - Always import CSS modules as `s`
+   ```tsx
+   import s from './component-name.module.css'
+   
+   function Component() {
+     return <div className={s.wrapper} />
+   }
+   ```
+
+## Responsive Design
+
+1. **Viewport Functions**
+   - Use custom viewport functions for responsive sizing
+   ```css
+   .element {
+     width: mobile-vw(150);      /* 150px at mobile viewport */
+     height: mobile-vh(100);     /* 100px at mobile viewport */
+     margin: desktop-vw(50);     /* 50px at desktop viewport */
+     padding: desktop-vh(25);    /* 25px at desktop viewport */
+   }
+   ```
+
+2. **Breakpoints**
+   - Desktop breakpoint: 800px (defined in styles/config.ts)
+   ```css
+   @media (min-width: 800px) {
+     /* Desktop styles */
+   }
+   ```
+
+3. **Grid System**
+   - Use the column function for grid-based layouts
+   ```css
+   .container {
+     width: columns(6);          /* Span 6 columns */
+     margin-left: columns(1);    /* Offset by 1 column */
+   }
+   ```
+
+## Typography
+
+1. **Font Hierarchy**
+   - Use typography variables from the theme
+   ```css
+   .title {
+     font-size: var(--font-size-title);
+     line-height: var(--line-height-title);
+     font-weight: var(--font-weight-bold);
+   }
+   ```
+
+2. **Text Scaling**
+   - Use scale utilities with the 's' prefix
+   ```css
+   .scalingText {
+     --size: 1;
+     font-size: s(var(--size) * 16px);   /* Scales appropriately */
+   }
+   ```
+
+## Colors and Themes
+
+1. **Color Variables**
+   - Use theme colors from CSS variables
+   ```css
+   .element {
+     color: var(--color-text);
+     background-color: var(--color-background);
+     border-color: var(--color-accent);
+   }
+   ```
+
+2. **Theme Switching**
+   - Use theme-specific variables when needed
+   ```css
+   .element {
+     color: var(--theme-dark-text);
+     background-color: var(--theme-dark-background);
+   }
+   
+   [data-theme="light"] .element {
+     color: var(--theme-light-text);
+     background-color: var(--theme-light-background);
+   }
+   ```
+
+## Animations and Transitions
+
+1. **Transition Timing**
+   - Use consistent transition variables
+   ```css
+   .element {
+     transition: opacity var(--transition-duration) var(--transition-ease);
+   }
+   ```
+
+2. **Animation Easings**
+   - Import easings from the theme
+   ```css
+   .element {
+     transition: transform 0.5s var(--ease-out-expo);
+   }
+   ```
+
+## Best Practices
+
+1. **Performance**
+   - Prefer CPU-friendly properties (transform, opacity)
+   - Use `will-change` sparingly and only when needed
+   ```css
+   .animatedElement {
+     will-change: transform, opacity;
+   }
+   ```
+
+2. **Organization**
+   - Group related properties together
+   - Order properties consistently
+   ```css
+   .element {
+     /* Positioning */
+     position: absolute;
+     top: 0;
+     left: 0;
+     z-index: 1;
+     
+     /* Box model */
+     display: flex;
+     width: 100%;
+     padding: 1rem;
+     
+     /* Visual */
+     background-color: var(--color-background);
+     border-radius: 4px;
+     
+     /* Typography */
+     font-size: 1rem;
+     color: var(--color-text);
+     
+     /* Animation */
+     transition: all 0.3s ease;
+   }
+   ``` 

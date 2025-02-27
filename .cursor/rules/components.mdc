@@ -1,0 +1,125 @@
+---
+description: Component creation rules for Satūs
+globs: "**/*.tsx,**/*.jsx"
+alwaysApply: false
+---
+
+# Component Creation Guidelines
+
+## Imports and Dependencies
+
+1. **Utility Functions**
+   - Always use `cn` from `clsx` for className conditionals
+   ```tsx
+   import cn from 'clsx'
+   
+   function MyComponent({ className }) {
+     return <div className={cn(s.component, className)} />
+   }
+   ```
+
+2. **Base UI Components**
+   - Use components from `@base-ui-components/react` when available
+   ```tsx
+   import { Select } from '@base-ui-components/react/select'
+   ```
+
+3. **Animation Libraries**
+   - Use `gsap` for complex animations
+   - Use `lenis` for smooth scrolling
+   - Use `tempus` for timing utilities
+   - Use `hamo` for DOM utilities
+
+## Component Structure
+
+1. **CSS Modules**
+   - Use CSS modules for component styling
+   - Import styles as `s`
+   ```tsx
+   import s from './component-name.module.css'
+   ```
+
+2. **Client Components**
+   - Add 'use client' directive for client components
+   ```tsx
+   'use client'
+   
+   import { useState } from 'react'
+   ```
+
+3. **Props Interface**
+   - Define props interface at the top of the file
+   - Extend HTML attributes when appropriate
+   ```tsx
+   interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+     variant?: 'primary' | 'secondary'
+     size?: 'sm' | 'md' | 'lg'
+   }
+   ```
+
+4. **Default Exports**
+   - Use named function declarations for components
+   - Export the component as default
+   ```tsx
+   function Button({ variant = 'primary', size = 'md', ...props }: ButtonProps) {
+     // component logic
+   }
+   
+   export default Button
+   ```
+
+## WebGL Components
+
+1. **Three.js Integration**
+   - Use React Three Fiber for Three.js integration
+   - Import components from `@react-three/drei` for common 3D needs
+   ```tsx
+   import { Canvas } from '~/webgl/components/canvas'
+   import { useThree } from '@react-three/fiber'
+   import { OrbitControls } from '@react-three/drei'
+   ```
+
+2. **WebGL Structure**
+   - Separate Three.js components from React components
+   - Use a `.webgl.tsx` file for Three.js specific logic
+   ```tsx
+   // component.tsx
+   import WebGL from './component.webgl'
+   
+   // component.webgl.tsx
+   export default function WebGL() {
+     // Three.js specific code
+   }
+   ```
+
+## Form Components
+
+1. **Form Handling**
+   - Use custom form hooks when appropriate
+   - Connect to integrations for external services
+   ```tsx
+   import { useForm } from '~/components/form/hook'
+   import { HubspotNewsletterAction } from '~/intergrations/hubspot/action'
+   ```
+
+## Responsive Design
+
+1. **Device Detection**
+   - Use `useDeviceDetection` hook from `~/hooks` for responsive logic
+   ```tsx
+   import { useDeviceDetection } from '~/hooks/use-device-detection'
+   
+   function ResponsiveComponent() {
+     const { isMobile } = useDeviceDetection()
+     return isMobile ? <MobileVersion /> : <DesktopVersion />
+   }
+   ```
+
+2. **Viewport Units**
+   - Use custom viewport units for responsive values
+   ```css
+   .element {
+     width: mobile-vw(150);
+     margin-top: desktop-vh(100);
+   }
+   ``` 

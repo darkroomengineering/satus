@@ -8,7 +8,7 @@ export default async function AccountPage() {
 
   return (
     <Wrapper theme="red" className="font-mono uppercase overflow-clip">
-      <section className="flex flex-col items-center justify-center grow max-dt:px-page">
+      <section className="flex flex-col items-center justify-center grow max-dt:px-safe">
         <h1 className="p">My Account</h1>
         {customer ? (
           <Suspense fallback={<div>Loading...</div>}>

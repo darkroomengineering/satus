@@ -52,7 +52,7 @@
     "@types/bun": "^1.2.4",
     "@types/node": "^22.13.5",
     "@types/react": "^19.0.10",
-    "@types/three": "^0.173.0",
+    "@types/three": "^0.174.0",
     "cross-env": "^7.0.3",
     "cssnano": "^7.0.6",
     "lefthook": "^1.11.2",

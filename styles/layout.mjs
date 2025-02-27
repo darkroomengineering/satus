@@ -11,7 +11,7 @@ const screens = {
 const layout = {
   columns: { mobile: 4, desktop: 12 },
   gap: { mobile: 16, desktop: 16 },
-  space: { mobile: 16, desktop: 16 },
+  safe: { mobile: 16, desktop: 16 },
 }
 
 const customSizes = {

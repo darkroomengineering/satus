@@ -30,7 +30,7 @@ export function generateTailwind({
   ${formatObject(colors, ([key, value]) => `--color-${key}: ${value};`)}
     
   --spacing-*: initial;
-	--spacing-page: var(--space);
+	--spacing-safe: var(--safe);
 	--spacing-gap: var(--gap);
   ${formatObject(customSizes, ([key]) => `--spacing-${key}: var(--${key});`)}
 
@@ -91,28 +91,28 @@ ${Object.entries(typography)
   }
 }
 
-@utility design-grid {
+@utility dr-grid {
 	display: grid;
 	grid-template-columns: repeat(var(--columns), 1fr);
 	gap: var(--gap);
 }
 
-@utility layout-block {
+@utility dr-layout-block {
 	margin-inline: auto;
-	width: calc(100% - 2 * var(--space));
+	width: calc(100% - 2 * var(--safe));
 }
 
-@utility layout-block-inner {
-	padding-inline: var(--space);
+@utility dr-layout-block-inner {
+	padding-inline: var(--safe);
 	width: 100%;
 }
 
-@utility layout-grid {
-	@apply layout-block design-grid;
+@utility dr-layout-grid {
+	@apply dr-layout-block dr-grid;
 }
 
-@utility layout-grid-inner {
-	@apply layout-block-inner design-grid;
+@utility dr-layout-grid-inner {
+	@apply dr-layout-block-inner dr-grid;
 }`
 
   // Variants

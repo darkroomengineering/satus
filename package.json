@@ -35,7 +35,7 @@
     "storyblok-js-client": "^6.10.7",
     "storyblok-rich-text-react-renderer": "^2.9.2",
     "tempus": "1.0.0-dev.10",
-    "three": "^0.173.0",
+    "three": "^0.174.0",
     "tunnel-rat": "^0.1.2",
     "zustand": "^5.0.3"
   },
@@ -65,6 +65,6 @@
   "overrides": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "scheduler": "0.23.2"
+    "scheduler": "0.25.0"
   }
 }

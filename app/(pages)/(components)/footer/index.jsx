@@ -5,7 +5,7 @@ export function Footer() {
   return (
     <footer className="flex flex-col dt:flex-row items-center dt:items-start justify-between p-safe uppercase font-mono">
       <Link href="https://darkroom.engineering/" className="link">
-        <Logo className="sw-148 text-black" />
+        <Logo className="dr-w-148 text-black" />
       </Link>
       <div>
         <Link

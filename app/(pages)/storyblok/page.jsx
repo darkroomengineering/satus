@@ -14,7 +14,7 @@ export default async function Storyblok() {
   return (
     <StoryblokContextProvider {...data}>
       <Wrapper theme="red" className="uppercase font-mono">
-        <div className="flex items-center justify-center grow max-dt:spx-16">
+        <div className="flex items-center justify-center grow max-dt:dr-px-16">
           <Tutorial />
         </div>
       </Wrapper>

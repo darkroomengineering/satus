@@ -24,7 +24,7 @@ export default async function StoryblokSubPage({ params }) {
   return (
     <StoryblokContextProvider {...data}>
       <Wrapper theme="red" className="uppercase font-mono">
-        <div className="flex items-center justify-center grow max-dt:spx-16">
+        <div className="flex items-center justify-center grow max-dt:dr-px-16">
           <Article />
         </div>
       </Wrapper>

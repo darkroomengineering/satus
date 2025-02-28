@@ -19,9 +19,9 @@ export const Subscribe = ({ idx = 0, form }) => {
         id={form?.inputs[idx]?.name}
         name={form?.inputs[idx]?.name}
         className={cn(
-          'sw-303 dt:sw-400 stext-14 dt:stext-16 dt:aspect-[330/60]',
-          'border-2 border-black srounded-6 dt:srounded-8',
-          'spx-19 spy-18 spr-136 dt:py-0 dt:spx-18 dt:spr-115'
+          'dr-w-303 dt:dr-w-400 dr-text-14 dt:dr-text-16 dt:aspect-[330/60]',
+          'border-2 border-black dr-rounded-6 dt:dr-rounded-8',
+          'dr-px-19 dr-py-18 dr-pr-136 dt:py-0 dt:dr-px-18 dt:dr-pr-115'
         )}
         placeholder={form?.inputs[idx]?.placeHolder ?? 'email'}
         required
@@ -30,8 +30,8 @@ export const Subscribe = ({ idx = 0, form }) => {
       <SubmitButton
         className={cn(
           '!absolute -right-[5%] h-full',
-          'border-2 border-black srounded-6 dt:srounded-8',
-          'spx-18 dt:spx-24'
+          'border-2 border-black dr-rounded-6 dt:dr-rounded-8',
+          'dr-px-18 dt:dr-px-24'
         )}
         defaultText={form?.submitButton?.text}
       />

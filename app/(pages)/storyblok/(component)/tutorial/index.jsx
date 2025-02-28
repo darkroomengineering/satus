@@ -20,12 +20,12 @@ export function Tutorial() {
     >
       <h2 className="text-center">{content?.title}</h2>
       <div className="flex gap-gap">
-        <code className="sp-8 inline-block border border-secondary srounded-8">
+        <code className="dr-p-8 inline-block border border-secondary dr-rounded-8">
           # MacOS
           <br />
           brew install mkcert
         </code>
-        <code className="sp-8 inline-block border border-secondary srounded-8">
+        <code className="dr-p-8 inline-block border border-secondary dr-rounded-8">
           # Windows
           <br />
           choco install mkcert
@@ -33,7 +33,7 @@ export function Tutorial() {
         </code>
       </div>
 
-      <code className="sp-8 inline-block border border-secondary srounded-8">
+      <code className="dr-p-8 inline-block border border-secondary dr-rounded-8">
         mkcert -install
         <br />
         mkcert localhost
@@ -41,7 +41,7 @@ export function Tutorial() {
         npm run dev:storyblok
       </code>
 
-      <code className="sp-8 inline-block border border-secondary srounded-8">
+      <code className="dr-p-8 inline-block border border-secondary dr-rounded-8">
         # update .env
         <br />
         STORYBLOK_PREVIEW_ACCESS_TOKEN

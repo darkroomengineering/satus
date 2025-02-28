@@ -9,8 +9,8 @@
 @custom-media --reduced-motion (prefers-reduced-motion: reduce);
 
 :root {
-	--device-width: 375px;
-	--device-height: 650px;
+	--device-width: 375;
+	--device-height: 650;
 	
 	--columns: 4;
 	--gap: calc(((16 * 100) / var(--device-width)) * 1vw);

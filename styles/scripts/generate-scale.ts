@@ -61,7 +61,7 @@ const columnUtilityMap = {
 
 function scaleUtility(name: string, properties: string | string[]) {
   const propertiesArray = Array.isArray(properties) ? properties : [properties]
-  const utility = `@utility s${name}-* {
+  const utility = `@utility dr-${name}-* {
 	${propertiesArray
     .map(
       (property) =>
@@ -70,16 +70,26 @@ function scaleUtility(name: string, properties: string | string[]) {
     .join('\n')}
 }`
 
-  const negatedUtility = utility
-    .replace('@utility s', '@utility -s')
-    .replace('--value(integer)', '--value(integer) * -1')
+  const autoCompleteUtility = `@utility dr-${name}-px {
+	${propertiesArray
+    .map((property) => `${property}: calc(100 / var(--device-width) * 1vw);`)
+    .join('\n')}
+}`
 
-  return `${utility}\n${negatedUtility}`
+  const negatedUtility = utility
+    .replace('@utility ', '@utility -')
+    .replace('--value(integer) * 100', '--value(integer) * -100')
+
+  const negatedAutoCompleteUtility = autoCompleteUtility
+    .replace('@utility ', '@utility -')
+    .replace('100', '-100')
+
+  return `${utility}\n${autoCompleteUtility}\n${negatedUtility}\n${negatedAutoCompleteUtility}`
 }
 
 function columnScaleUtility(name: string, properties: string | string[]) {
   const propertiesArray = Array.isArray(properties) ? properties : [properties]
-  const utility = `@utility ${name}-col-* {
+  const utility = `@utility dr-${name}-col-* {
 	${propertiesArray
     .map(
       (property) =>
@@ -88,11 +98,24 @@ function columnScaleUtility(name: string, properties: string | string[]) {
     .join('\n')}
 }`
 
+  const autoCompleteUtility = `@utility dr-${name}-col-value {
+	${propertiesArray
+    .map(
+      (property) =>
+        `${property}: calc((value * var(--column-width)) + ((value - 1) * var(--gap)));`
+    )
+    .join('\n')}
+}`
+
   const negatedUtility = utility
     .replace('@utility ', '@utility -')
     .replace('--value(integer)', '--value(integer) * -1')
 
-  return `${utility}\n${negatedUtility}`
+  const negatedAutoCompleteUtility = autoCompleteUtility
+    .replace('@utility ', '@utility -')
+    .replace('value', '-value')
+
+  return `${utility}\n${autoCompleteUtility}\n${negatedUtility}\n${negatedAutoCompleteUtility}`
 }
 
 export function generateScale() {

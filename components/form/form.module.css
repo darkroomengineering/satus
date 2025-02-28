@@ -1,13 +1,13 @@
 .submit {
   position: relative;
-  background-color: var(--red);
+  background-color: var(--color-red);
   display: flex;
   justify-content: center;
   align-items: center;
 
   &.disabled {
     pointer-events: none;
-    background-color: var(--red);
+    background-color: var(--color-red);
     color: rgba(0, 0, 0, 0.75);
   }
 

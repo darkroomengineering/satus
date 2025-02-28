@@ -30,6 +30,7 @@ export function generateTailwind({
   ${formatObject(colors, ([key, value]) => `--color-${key}: ${value};`)}
     
   --spacing-*: initial;
+  --spacing-0: 0;
 	--spacing-safe: var(--safe);
 	--spacing-gap: var(--gap);
   ${formatObject(customSizes, ([key]) => `--spacing-${key}: var(--${key});`)}

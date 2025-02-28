@@ -18,8 +18,8 @@ export function generateRoot({
 @custom-media --reduced-motion (prefers-reduced-motion: reduce);
 
 :root {
-	--device-width: ${screens.mobile.width}px;
-	--device-height: ${screens.mobile.height}px;
+	--device-width: ${screens.mobile.width};
+	--device-height: ${screens.mobile.height};
 	
 	${formatObject(layout, ([name, { mobile }]) => {
     if (name === 'columns') return `--columns: ${mobile};`

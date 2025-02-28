@@ -11,14 +11,14 @@ export async function Product() {
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center sgap-y-24',
+        'flex flex-col items-center justify-center dr-gap-y-24',
         s.product
       )}
     >
       <div className="relative col-span-full aspect-[320/357] h-[40vh] dt:col-start-3 dt:-col-end-3">
         <Image src={product?.images[0].url} alt={product?.altText} />
       </div>
-      <aside className="flex flex-col text-center sgap-16 dt:w-col-6">
+      <aside className="flex flex-col text-center dr-gap-16 dt:dr-w-col-6">
         <h1>{product?.title}</h1>
         <p>{product?.description}</p>
       </aside>

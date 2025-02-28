@@ -35,7 +35,7 @@
   height: 100%;
   padding: mobile-vw(12px);
   background-color: var(--color-black);
-  color: var(--red);
+  color: var(--color-red);
   display: flex;
   flex-direction: column;
   text-transform: uppercase;
@@ -49,7 +49,7 @@
   }
 
   .heading {
-    border-bottom: 1px solid var(--red);
+    border-bottom: 1px solid var(--color-red);
     padding-bottom: mobile-vw(16px);
 
     @media (--desktop) {
@@ -91,7 +91,7 @@
     grid-template-columns: repeat(6, minmax(0, 1fr));
     grid-gap: var(--layout-columns-gap);
     padding: mobile-vw(16px) 0;
-    border-bottom: 1px solid var(--red);
+    border-bottom: 1px solid var(--color-red);
     grid-template-areas:
       "media media info info . remove"
       "media media quantity quantity price price";
@@ -165,7 +165,7 @@
       grid-area: quantity;
       display: flex;
       height: fit-content;
-      background-color: var(--red);
+      background-color: var(--color-red);
       color: var(--color-black);
       border-radius: mobile-vw(100px);
       padding: mobile-vw(8px) mobile-vw(16px);
@@ -253,7 +253,7 @@
     width: 100%;
     padding: desktop-vw(25px) 0;
     text-align: center;
-    border: 2px solid red;
+    border: 2px solid var(--color-red);
     border-radius: desktop-vw(8px);
 
     span {
@@ -268,7 +268,7 @@
       transform: translate(-50%, -50%);
       width: 100%;
       height: 100%;
-      background-color: var(--red);
+      background-color: var(--color-red);
       clip-path: circle(0%);
     }
 

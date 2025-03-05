@@ -43,6 +43,9 @@ export function useTheatre<Config extends UnknownShorthandCompoundProps>(
   config: Config,
   { onValuesChange, lazy = true, deps = [] }: UseTheatreOptions<Config> = {}
 ) {
+  const onValuesChangeRef = useRef(onValuesChange)
+  onValuesChangeRef.current = onValuesChange
+
   const object = useTheatreObject(sheet, theatreKey, config, deps)
 
   const [values, setValues] = useState({})
@@ -52,16 +55,14 @@ export function useTheatre<Config extends UnknownShorthandCompoundProps>(
 
   useEffect(() => {
     if (object) {
-      const unsubscribe = object.onValuesChange((values) => {
+      return object.onValuesChange((values) => {
         lazyValues.current = values
         if (!lazy) setValues(values)
 
-        onValuesChange?.(values as TheatrePropsToValues<Config>)
+        onValuesChangeRef.current?.(values as TheatrePropsToValues<Config>)
       })
-
-      return unsubscribe
     }
-  }, [object, lazy, onValuesChange, ...deps])
+  }, [object, lazy, ...deps])
 
   const studio = useStudio()
 

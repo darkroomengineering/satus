@@ -9,4 +9,6 @@ post-merge:
   commands:
     update-env:
       run: bunx vercel env pull
+    install-deps:
+      run: bun i
 

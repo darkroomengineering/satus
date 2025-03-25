@@ -6,7 +6,7 @@ import s from './product.module.css'
 
 export async function Product() {
   const data = await getCollectionProducts({ collection: 'satus' })
-  const product = data?.find((product) => product.handle === 'boxy-hoodie')
+  const product = data?.find((product) => product.handle === 'darkroom-hoodie')
 
   return (
     <div

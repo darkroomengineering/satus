@@ -16,6 +16,7 @@ import {
   LoginCustomerAction,
   LogoutCustomerAction,
 } from '~/intergrations/shopify/customer/actions'
+import { mutate } from '~/libs/tempus-queue'
 import s from './form.module.css'
 import { useForm } from './hook'
 
@@ -70,9 +71,11 @@ export function FormProvider({
     // TODO: Fix useForm overloads
     // @ts-expect-error - no time to type, this usage works
     if (helpers?.formState?.status) {
-      setTimeout(() => {
-        setKey(crypto.randomUUID())
-      }, 2000)
+      mutate(() => {
+        setTimeout(() => {
+          setKey(crypto.randomUUID())
+        }, 2000)
+      })
     }
     // TODO: Fix useForm overloads
     // @ts-expect-error - no time to type, this usage works

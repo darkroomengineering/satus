@@ -4,6 +4,7 @@ import { useRect } from 'hamo'
 import { useLenis } from 'lenis/react'
 import { useEffect, useRef } from 'react'
 import { mapRange } from '~/libs/maths'
+import { mutate } from '~/libs/tempus-queue'
 import s from './scrollbar.module.css'
 
 export function Scrollbar() {
@@ -27,17 +28,18 @@ export function Scrollbar() {
     let start: null | number = null
 
     function onPointerMove(e: PointerEvent) {
-      if (!start || !lenis) return
-      e.preventDefault()
+      if (start === null || !lenis) return
 
       const scroll = mapRange(
-        start,
+        e.clientY - start,
+        0,
         innerHeight - (thumbHeight - start),
-        e.clientY,
         0,
         lenis.limit
       )
-      lenis.scrollTo(scroll, { immediate: true })
+      mutate(() => {
+        lenis?.scrollTo(scroll, { immediate: true })
+      })
     }
 
     function onPointerDown(e: PointerEvent) {

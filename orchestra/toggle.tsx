@@ -1,4 +1,5 @@
 import { type HTMLAttributes, type RefObject, useEffect, useRef } from 'react'
+import { mutate } from '~/libs/tempus-queue'
 import Orchestra from './orchestra'
 
 type OrchestraToggleProps = Omit<
@@ -22,17 +23,24 @@ export function OrchestraToggle({
     if (!Orchestra) return
     Orchestra.add(id, children)
     const toggle = Orchestra.toggles.find((toggle) => toggle.id === id)
-    toggle?.domElement && elementRef.current.appendChild(toggle.domElement)
-    if (toggle?.domElement && buttonRef?.current) {
-      buttonRef.current = toggle.domElement
-    }
+
+    mutate(() => {
+      if (toggle?.domElement) {
+        elementRef.current.appendChild(toggle.domElement)
+        if (buttonRef?.current) {
+          buttonRef.current = toggle.domElement
+        }
+      }
+    })
 
     return () => {
       Orchestra?.remove(id)
-      toggle?.domElement.remove()
-      if (buttonRef?.current) {
-        buttonRef.current = null
-      }
+      mutate(() => {
+        toggle?.domElement.remove()
+        if (buttonRef?.current) {
+          buttonRef.current = null
+        }
+      })
     }
   }, [id, children])
 

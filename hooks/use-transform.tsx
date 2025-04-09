@@ -107,7 +107,10 @@ export function TransformProvider({ children, ref }: TransformProviderProps) {
     transform.scale.y *= transformRef.current.scale.y
     transform.scale.z *= transformRef.current.scale.z
 
-    transform.userData = { ...transformRef.current.userData }
+    transform.userData = {
+      ...transformRef.current.userData,
+      ...transform.userData,
+    }
 
     return transform
   }, [])
@@ -201,7 +204,7 @@ export function TransformProvider({ children, ref }: TransformProviderProps) {
   }))
 
   return (
-    <TransformContext.Provider
+    <TransformContext
       value={{
         getTransform,
         addCallback,
@@ -214,7 +217,7 @@ export function TransformProvider({ children, ref }: TransformProviderProps) {
       }}
     >
       {children}
-    </TransformContext.Provider>
+    </TransformContext>
   )
 }
 

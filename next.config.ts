@@ -4,60 +4,60 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  experimental: {
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: [
-            {
-              loader: '@svgr/webpack',
-              options: {
-                memo: true,
-                dimensions: false,
-                svgoConfig: {
-                  multipass: true,
-                  plugins: [
-                    'removeDimensions',
-                    'removeOffCanvasPaths',
-                    'reusePaths',
-                    'removeElementsByAttr',
-                    'removeStyleElement',
-                    'removeScriptElement',
-                    'prefixIds',
-                    'cleanupIds',
-                    {
-                      name: 'cleanupNumericValues',
-                      params: {
-                        floatPrecision: 1,
-                      },
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: [
+          {
+            loader: '@svgr/webpack',
+            options: {
+              memo: true,
+              dimensions: false,
+              svgoConfig: {
+                multipass: true,
+                plugins: [
+                  'removeDimensions',
+                  'removeOffCanvasPaths',
+                  'reusePaths',
+                  'removeElementsByAttr',
+                  'removeStyleElement',
+                  'removeScriptElement',
+                  'prefixIds',
+                  'cleanupIds',
+                  {
+                    name: 'cleanupNumericValues',
+                    params: {
+                      floatPrecision: 1,
                     },
-                    {
-                      name: 'convertPathData',
-                      params: {
-                        floatPrecision: 1,
-                      },
+                  },
+                  {
+                    name: 'convertPathData',
+                    params: {
+                      floatPrecision: 1,
                     },
-                    {
-                      name: 'convertTransform',
-                      params: {
-                        floatPrecision: 1,
-                      },
+                  },
+                  {
+                    name: 'convertTransform',
+                    params: {
+                      floatPrecision: 1,
                     },
-                    {
-                      name: 'cleanupListOfValues',
-                      params: {
-                        floatPrecision: 1,
-                      },
+                  },
+                  {
+                    name: 'cleanupListOfValues',
+                    params: {
+                      floatPrecision: 1,
                     },
-                  ],
-                },
+                  },
+                ],
               },
             },
-          ],
-          as: '*.js',
-        },
+          },
+        ],
+        as: '*.js',
       },
     },
+  },
+  experimental: {
     reactCompiler: true,
     nextScriptWorkers: true,
     optimizePackageImports: ['@react-three/drei', '@react-three/fiber', 'gsap'],
@@ -92,59 +92,59 @@ const nextConfig: NextConfig = {
     ],
     formats: ['image/avif', 'image/webp'],
   },
-  webpack: (config) => {
-    config.module.rules.push({
-      test: /\.svg$/,
-      use: [
-        {
-          loader: '@svgr/webpack',
-          options: {
-            memo: true,
-            dimensions: false,
-            svgoConfig: {
-              multipass: true,
-              plugins: [
-                'removeDimensions',
-                'removeOffCanvasPaths',
-                'reusePaths',
-                'removeElementsByAttr',
-                'removeStyleElement',
-                'removeScriptElement',
-                'prefixIds',
-                'cleanupIds',
-                {
-                  name: 'cleanupNumericValues',
-                  params: {
-                    floatPrecision: 1,
-                  },
-                },
-                {
-                  name: 'convertPathData',
-                  params: {
-                    floatPrecision: 1,
-                  },
-                },
-                {
-                  name: 'convertTransform',
-                  params: {
-                    floatPrecision: 1,
-                  },
-                },
-                {
-                  name: 'cleanupListOfValues',
-                  params: {
-                    floatPrecision: 1,
-                  },
-                },
-              ],
-            },
-          },
-        },
-      ],
-    })
+  // webpack: (config) => {
+  //   config.module.rules.push({
+  //     test: /\.svg$/,
+  //     use: [
+  //       {
+  //         loader: '@svgr/webpack',
+  //         options: {
+  //           memo: true,
+  //           dimensions: false,
+  //           svgoConfig: {
+  //             multipass: true,
+  //             plugins: [
+  //               'removeDimensions',
+  //               'removeOffCanvasPaths',
+  //               'reusePaths',
+  //               'removeElementsByAttr',
+  //               'removeStyleElement',
+  //               'removeScriptElement',
+  //               'prefixIds',
+  //               'cleanupIds',
+  //               {
+  //                 name: 'cleanupNumericValues',
+  //                 params: {
+  //                   floatPrecision: 1,
+  //                 },
+  //               },
+  //               {
+  //                 name: 'convertPathData',
+  //                 params: {
+  //                   floatPrecision: 1,
+  //                 },
+  //               },
+  //               {
+  //                 name: 'convertTransform',
+  //                 params: {
+  //                   floatPrecision: 1,
+  //                 },
+  //               },
+  //               {
+  //                 name: 'cleanupListOfValues',
+  //                 params: {
+  //                   floatPrecision: 1,
+  //                 },
+  //               },
+  //             ],
+  //           },
+  //         },
+  //       },
+  //     ],
+  //   })
 
-    return config
-  },
+  //   return config
+  // },
   headers: async () => [
     {
       source: '/(.*)',

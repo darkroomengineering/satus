@@ -21,12 +21,19 @@ const GTM_ID = process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID || false
 const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS || false
 
 export const metadata: Metadata = {
+  metadataBase: new URL(`${APP_BASE_URL}`),
   applicationName: APP_NAME,
   title: {
     default: APP_DEFAULT_TITLE,
     template: APP_TITLE_TEMPLATE,
   },
   description: APP_DESCRIPTION,
+  alternates: {
+    canonical: '/',
+    languages: {
+      'en-US': '/en-US',
+    },
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -44,6 +51,15 @@ export const metadata: Metadata = {
     },
     description: APP_DESCRIPTION,
     url: APP_BASE_URL,
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: APP_DEFAULT_TITLE,
+      },
+    ],
+    locale: 'en_US',
   },
   twitter: {
     card: 'summary_large_image',
@@ -56,6 +72,9 @@ export const metadata: Metadata = {
   authors: [
     { name: 'darkroom.engineering', url: 'https://darkroom.engineering' },
   ],
+  other: {
+    'fb:app_id': process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '',
+  },
 }
 
 export const viewport: Viewport = {

@@ -29,21 +29,51 @@ export async function generateMetadata() {
 
   if (!metadata) return
 
+  const baseUrl = `${process.env.NEXT_PUBLIC_BASE_URL}`
+  const pageUrl = `${baseUrl}/storyblok`
+
   return {
+    metadataBase: new URL(baseUrl),
     title: metadata?.title,
     description: metadata?.description,
-    images: metadata?.image?.filename,
+    alternates: {
+      canonical: '/',
+      languages: {
+        'en-US': '/en-US',
+      },
+    },
     keywords: metadata?.keywords?.value,
     openGraph: {
       title: metadata?.title,
       description: metadata?.description,
-      images: metadata?.image?.filename,
-      url: process.env.NEXT_PUBLIC_BASE_URL,
+      images: [
+        {
+          url: metadata?.image?.filename || '/og-image.png',
+          width: 1200,
+          height: 630,
+          alt: metadata?.title,
+        },
+      ],
+      url: pageUrl,
+      siteName: 'Satūs',
+      locale: 'en_US',
+      type: 'website',
     },
     twitter: {
       title: metadata?.title,
       description: metadata?.description,
-      images: metadata?.image?.filename,
+      card: 'summary_large_image',
+      images: [
+        {
+          url: metadata?.image?.filename || '/og-image.png',
+          width: 1200,
+          height: 630,
+          alt: metadata?.title,
+        },
+      ],
+    },
+    other: {
+      'fb:app_id': process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '',
     },
   }
 }

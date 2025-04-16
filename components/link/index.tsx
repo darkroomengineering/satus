@@ -1,61 +1,68 @@
 'use client'
 
-import NextLink, { type LinkProps as NextLinkProps } from 'next/link'
-import type { ElementType, HTMLAttributes, Ref } from 'react'
+import NextLink from 'next/link'
+import type { ComponentProps, MouseEvent } from 'react'
+// import { usePageTransitionNavigate } from '../page-transition/context'
 
-interface LinkProps
-  extends HTMLAttributes<HTMLAnchorElement>,
-    Omit<NextLinkProps, 'href'> {
+type LinkProps = Omit<ComponentProps<'a'>, 'href'> & {
   href?: string
-  fallback?: ElementType
-  ref?: Ref<HTMLAnchorElement>
-}
-
-type InternalLinkProps = LinkProps & {
-  target?: string
-  rel?: string
+  prefetch?: boolean
+  onClick?: (e: MouseEvent<HTMLElement>) => void
 }
 
 export function Link({
   href,
-  fallback = 'div',
   onClick,
-  ref,
+  prefetch = true,
+  children,
   ...props
 }: LinkProps) {
-  // const lenis = useLenis()
-  // const pathname = usePathname()
+  // const navigate = usePageTransitionNavigate()
+  const isExternal = href?.startsWith('http')
 
-  if (!href || typeof href !== 'string') {
-    const Tag = fallback
-
-    // TODO: review this component entirely lol
-    // @ts-expect-error
-    return <Tag ref={ref} onClick={onClick} {...props} href={href} />
+  // If no href is provided but there's an onClick, render a button
+  if (!href && onClick) {
+    return (
+      <button
+        onClick={(e: MouseEvent<HTMLButtonElement>) => onClick(e)}
+        type="button"
+        {...(props as ComponentProps<'button'>)}
+      >
+        {children}
+      </button>
+    )
   }
 
-  const isExternal = href.startsWith('http')
+  // If no href and no onClick, render a div
+  if (!href) {
+    return <div {...(props as ComponentProps<'div'>)}>{children}</div>
+  }
 
-  const internalLinkProps: InternalLinkProps = {
+  const linkProps = {
     ...props,
-    target: isExternal ? '_blank' : undefined,
-    rel: isExternal ? 'noopener noreferrer' : undefined,
+    ...(isExternal && {
+      target: '_blank',
+      rel: 'noopener noreferrer',
+    }),
   }
 
-  // const isAnchor = href.startsWith('#') || href.startsWith(`${pathname}#`)
+  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    onClick?.(e)
+
+    // if (!isExternal) {
+    // e.preventDefault()
+    // navigate(href)
+    // }
+  }
 
   return (
     <NextLink
-      ref={ref}
-      onClick={(e) => {
-        // if (isAnchor && lenis) {
-        //   e.preventDefault()
-        //   lenis.scrollTo(href)
-        // }
-        onClick?.(e)
-      }}
-      {...internalLinkProps}
+      prefetch={prefetch}
+      onClick={handleClick}
+      {...linkProps}
       href={href}
-    />
+    >
+      {children}
+    </NextLink>
   )
 }

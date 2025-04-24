@@ -5,14 +5,9 @@ import { useOrchestra } from '~/orchestra'
 
 let studioPackage: IStudio
 
-export function useHasStudio() {
-  const { studio } = useOrchestra()
-  return studio
-}
-
 export function useStudio() {
   const [studio, setStudio] = useState(studioPackage)
-  const hasStudio = useHasStudio()
+  const { studio: hasStudio } = useOrchestra()
 
   useEffect(() => {
     if (hasStudio && !studioPackage) {
@@ -40,7 +35,7 @@ export function useStudioCurrentObject() {
           ({ type }) => type === 'Theatre_SheetObject_PublicAPI'
         )[0]
 
-        setCurrentObjectAddress(object.address)
+        setCurrentObjectAddress(object?.address)
       })
 
       return unsubscribe

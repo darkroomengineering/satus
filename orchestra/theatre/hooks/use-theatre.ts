@@ -1,3 +1,5 @@
+'use client'
+
 import type {
   ISheet,
   ISheetObject,
@@ -80,5 +82,5 @@ export function useTheatre<Config extends UnknownShorthandCompoundProps>(
     [studio, object]
   )
 
-  return { get: getLazyValues, values, set }
+  return { get: getLazyValues, values, set, object }
 }

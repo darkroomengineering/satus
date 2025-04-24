@@ -3,7 +3,7 @@
 import cn from 'clsx'
 import { useState } from 'react'
 import { Dropdown } from '~/components/dropdown'
-import { AddToCart } from '~/intergrations/shopify/cart/add-to-cart'
+import { AddToCart } from '~/integrations/shopify/cart/add-to-cart'
 import s from './size-and-buy.module.css'
 
 export const SizeAndBuy = ({ product }) => {

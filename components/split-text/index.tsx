@@ -12,7 +12,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import { useIsVisualEditor } from '~/intergrations/storyblok/use-is-visual-editor'
+import { useIsVisualEditor } from '~/integrations/storyblok/use-is-visual-editor'
 import s from './split-text.module.css'
 
 if (typeof window !== 'undefined') {

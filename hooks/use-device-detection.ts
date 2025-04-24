@@ -14,17 +14,9 @@ export function useDeviceDetection() {
   const isWebGL = isDesktop && !isReducedMotion
 
   // Check for low power mode with fallback for unsupported browsers
-  const isLowPowerMode =
-    useMediaQuery('(any-pointer: coarse) and (hover: none)') &&
-    typeof (navigator as NavigatorWithBattery).getBattery === 'function'
-      ? (navigator as NavigatorWithBattery)
-          .getBattery?.()
-          .then(
-            (battery: { charging: boolean; level: number }) =>
-              battery.charging === false && battery.level <= 0.2
-          )
-          .catch(() => false)
-      : false
+  const isLowPowerMode = useMediaQuery(
+    '(any-pointer: coarse) and (hover: none)'
+  )
 
   return { isMobile, isDesktop, isReducedMotion, isWebGL, isLowPowerMode }
 }

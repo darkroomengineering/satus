@@ -1,7 +1,7 @@
 'use client'
 
 import { storyblokEditable } from '@storyblok/js'
-import { useStoryblokContext } from '~/intergrations/storyblok/context'
+import { useStoryblokContext } from '~/integrations/storyblok/context'
 
 // TODO:
 // - Webhooks

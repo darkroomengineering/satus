@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
-import { fetchStoryblokStory } from '~/intergrations/storyblok'
-import { StoryblokContextProvider } from '~/intergrations/storyblok/context'
+import { fetchStoryblokStory } from '~/integrations/storyblok'
+import { StoryblokContextProvider } from '~/integrations/storyblok/context'
 import { Wrapper } from '../(components)/wrapper'
 import { Tutorial } from './(component)/tutorial'
 

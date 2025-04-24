@@ -22,8 +22,8 @@ The HubSpot integration provides form handling and marketing automation features
 ### Usage
 
 ```tsx
-import { HubspotNewsletterAction } from '~/intergrations/hubspot/action'
-import { HubspotForm } from '~/intergrations/hubspot/embed/form'
+import { HubspotNewsletterAction } from '~/integrations/hubspot/action'
+import { HubspotForm } from '~/integrations/hubspot/embed/form'
 
 // Embed a HubSpot form
 function NewsletterForm() {
@@ -51,8 +51,8 @@ The Storyblok integration provides headless CMS functionality.
 ### Usage
 
 ```tsx
-import { StoryblokProvider } from '~/intergrations/storyblok'
-import { RichTextRenderer } from '~/intergrations/storyblok/renderer'
+import { StoryblokProvider } from '~/integrations/storyblok'
+import { RichTextRenderer } from '~/integrations/storyblok/renderer'
 
 // Setup Storyblok Provider
 function App({ children }) {
@@ -87,8 +87,8 @@ The Shopify integration provides e-commerce functionality.
 import { 
   useShopifyCart, 
   useShopifyProduct 
-} from '~/intergrations/shopify/hooks'
-import { AddToCart } from '~/intergrations/shopify/cart/add-to-cart'
+} from '~/integrations/shopify/hooks'
+import { AddToCart } from '~/integrations/shopify/cart/add-to-cart'
 
 // Use Shopify product data
 function ProductDisplay({ handle }) {

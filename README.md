@@ -33,7 +33,7 @@ A modern React application template with advanced features including WebGL graph
 │   ├── animation/                # Animation components
 │   └── ...                       # Other UI components
 ├── hooks/                        # Custom React hooks
-├── intergrations/                # Third party integrations
+├── integrations/                # Third party integrations
 │   ├── hubspot/                  # Hubspot form integration
 │   ├── storyblok/                # Storyblok CMS integration
 │   └── shopify/                  # Shopify integration

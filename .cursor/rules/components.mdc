@@ -99,7 +99,7 @@ alwaysApply: false
    - Connect to integrations for external services
    ```tsx
    import { useForm } from '~/components/form/hook'
-   import { HubspotNewsletterAction } from '~/intergrations/hubspot/action'
+   import { HubspotNewsletterAction } from '~/integrations/hubspot/action'
    ```
 
 ## Responsive Design

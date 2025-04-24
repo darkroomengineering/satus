@@ -1,48 +1,54 @@
-import { type HTMLAttributes, type RefObject, useEffect, useRef } from 'react'
-import { mutate } from '~/libs/tempus-queue'
+import { type HTMLAttributes, type RefObject, useEffect, useState } from 'react'
 import Orchestra from './orchestra'
-
 type OrchestraToggleProps = Omit<
-  HTMLAttributes<HTMLDivElement>,
-  'id' | 'children'
+  HTMLAttributes<HTMLButtonElement>,
+  'id' | 'children' | 'defaultValue'
 > & {
   children: string
   id: string
   buttonRef?: RefObject<HTMLButtonElement | null>
+  defaultValue?: boolean
 }
 
 export function OrchestraToggle({
   id,
   children,
   buttonRef,
+  defaultValue,
   ...props
 }: OrchestraToggleProps) {
-  const elementRef = useRef<HTMLDivElement>(null!)
+  useEffect(() => {
+    Orchestra.setState((state) => ({ [id]: defaultValue ?? state[id] }))
+  }, [defaultValue, id])
+
+  const [active, setActive] = useState(defaultValue ?? Orchestra.getState()[id])
 
   useEffect(() => {
-    if (!Orchestra) return
-    Orchestra.add(id, children)
-    const toggle = Orchestra.toggles.find((toggle) => toggle.id === id)
-
-    mutate(() => {
-      if (toggle?.domElement) {
-        elementRef.current.appendChild(toggle.domElement)
-        if (buttonRef?.current) {
-          buttonRef.current = toggle.domElement
-        }
+    const unsubscribe = Orchestra.subscribe(
+      ({ [id]: value }) => value,
+      (value) => {
+        setActive(value)
+      },
+      {
+        fireImmediately: true,
       }
-    })
+    )
+    return unsubscribe
+  }, [id])
 
-    return () => {
-      Orchestra?.remove(id)
-      mutate(() => {
-        toggle?.domElement.remove()
-        if (buttonRef?.current) {
-          buttonRef.current = null
-        }
-      })
-    }
-  }, [id, children])
-
-  return <div ref={elementRef} {...props} />
+  return (
+    <button
+      type="button"
+      {...props}
+      onClick={() => {
+        Orchestra.setState((state) => ({ [id]: !state[id] }))
+      }}
+      style={{
+        backgroundColor: active ? 'green' : '',
+      }}
+      className="text-[64px]"
+    >
+      {children}
+    </button>
+  )
 }

@@ -22,7 +22,9 @@ const Minimap = dynamic(
 )
 
 export function OrchestraTools() {
-  const { stats, grid, studio, dev, minimap } = useOrchestra()
+  const { stats, grid, studio, dev, minimap, webgl } = useOrchestra()
+
+  console.log({ stats, webgl })
 
   useEffect(() => {
     document.documentElement.classList.toggle('dev', dev)
@@ -43,10 +45,13 @@ export function useOrchestra() {
   const [state, setState] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
-    if (!Orchestra) return
-    const usubscribe = Orchestra.subscribe(setState)
-
-    return usubscribe
+    return Orchestra.subscribe(
+      (state) => state,
+      (state) => setState(state),
+      {
+        fireImmediately: true,
+      }
+    )
   }, [])
 
   return state

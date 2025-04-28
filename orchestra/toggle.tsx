@@ -15,6 +15,7 @@ export function OrchestraToggle({
   children,
   buttonRef,
   defaultValue,
+  className,
   ...props
 }: OrchestraToggleProps) {
   useEffect(() => {
@@ -44,9 +45,10 @@ export function OrchestraToggle({
         Orchestra.setState((state) => ({ [id]: !state[id] }))
       }}
       style={{
-        backgroundColor: active ? 'green' : '',
+        backgroundColor: active ? 'rgba(0, 255, 0, 0.5)' : '',
       }}
-      className="text-[64px]"
+      className="text-[64px] grid place-items-center size-20 rounded-[8px]"
+      title={id}
     >
       {children}
     </button>

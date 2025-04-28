@@ -120,7 +120,7 @@ Detailed documentation is available in the repository:
 - `bun analyze` - Bundle analysis
 
 ### Debug Tools
-Access at `/debug/orchestra`:
+Access with `CMD+O`:
 - Theatre.js Studio (⚙️)
 - Performance Stats (📈)
 - Grid Debug (🌐)

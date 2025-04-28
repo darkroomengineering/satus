@@ -77,7 +77,7 @@ A modern React application template with advanced features including WebGL graph
   - [Biome 1.9.4](https://biomejs.dev/) for linting & formatting
   - [Lefthook](https://github.com/evilmartians/lefthook) for Git hooks automation
   - Theatre.js Studio for animation debugging
-  - Built-in debug tools at `/orchestra`
+  - Built-in debug tools with `CMD+O`
   - Hot module replacement
   - VSCode configuration included
 
@@ -94,7 +94,7 @@ A modern React application template with advanced features including WebGL graph
 - `bun lint` - Run Biome linting
 - `bun analyze` - Analyze bundle sizes
 
-### Debug Features (at `/orchestra`)
+### Debug Features (with `CMD+O`)
 - Theatre.js Studio
 - FPS Meter
 - Grid Debugger

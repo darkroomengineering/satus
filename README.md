@@ -2,126 +2,185 @@
 
 # Satūs
 
-A modern React application template with advanced features including WebGL graphics, animations, and CMS integration. Satūs means "start" or "beginning" in Latin, serving as a foundation for new projects.
+A modern, high-performance React application starter with Next.js 15, React 19, Tailwind CSS v4, and advanced WebGL capabilities. Satūs means "start" or "beginning" in Latin, serving as a foundation for new projects.
 
-## Quick Setup
+## Quick Start
 
-1. Install dependencies:
-   ```bash
-   bun install
-   ```
+```bash
+# Install dependencies
+bun install
 
-2. Setup Vercel and environment variables:
-   ```bash
-   vercel link
-   vercel env pull
-   ```
+# Setup environment variables
+cp .env.example .env.local
 
-3. Start development server:
-   ```bash
-   bun dev
-   ```
+# Start development server with Turbopack
+bun dev
 
-## Project Structure
+# Build for production
+bun build
 
-```
-├── app/                          # Next.js application pages and routes
-│   └── (pages)/                  # Page components and layouts
-├── components/                   # Reusable UI components
-│   ├── button/                   # Button components
-│   ├── form/                     # Form components
-│   ├── animation/                # Animation components
-│   └── ...                       # Other UI components
-├── hooks/                        # Custom React hooks
-├── integrations/                # Third party integrations
-│   ├── hubspot/                  # Hubspot form integration
-│   ├── storyblok/                # Storyblok CMS integration
-│   └── shopify/                  # Shopify integration
-├── libs/                         # Utility libraries and functions
-├── orchestra/                    # Debugging and development tools
-├── styles/                       # Styling system configuration and utilities
-└── webgl/                        # WebGL and 3D graphics
-    ├── components/               # WebGL components
-    ├── hooks/                    # WebGL-specific hooks
-    └── utils/                    # WebGL utilities
+# Start production server
+bun start
 ```
 
-## Core Technologies
+## 🛠 Tech Stack
 
-- **Framework & Runtime**
-  - [Next.js 15.2](https://nextjs.org) App Router with React Server Components
-  - [React 19.0](https://react.dev) with React Compiler for improved performance
-  - [Bun](https://bun.sh) as JavaScript runtime and package manager
-  - TypeScript with strict type checking
+- **[Next.js 15.3.2](https://nextjs.org)** - React framework with App Router and Turbopack
+- **[React 19.1.0](https://react.dev)** - Latest React with simplified ref handling
+- **[TypeScript](https://www.typescriptlang.org)** - Type-safe development
+- **[Tailwind CSS 4.1.7](https://tailwindcss.com)** - CSS-first configuration
+- **[React Three Fiber](https://docs.pmnd.rs/react-three-fiber)** - React renderer for Three.js
+- **[GSAP 3.13.0](https://greensock.com/gsap/)** - Timeline-based animations
+- **[Biome 1.9.4](https://biomejs.dev)** - Fast formatter and linter
+- **[Bun](https://bun.sh)** - All-in-one JavaScript runtime
 
-- **3D & Graphics**
-  - [React Three Fiber](https://docs.pmnd.rs/react-three-fiber) & [Drei](https://github.com/pmndrs/drei)
-  - [Three.js 0.174.0](https://threejs.org/) for 3D rendering
-  - Custom WebGL shaders and materials
-  - Advanced gradient animations with flowmap support
-  - [Postprocessing](https://pmndrs.github.io/postprocessing) for visual effects
+## 📁 Project Structure
 
-- **Animation & Interaction**
-  - [Theatre.js 0.7](https://www.theatrejs.com/) for animation tooling
-  - [GSAP 3.12](https://greensock.com/gsap/) (Business Edition) for advanced animations
-  - [Lenis 1.1](https://github.com/darkroomengineering/lenis) for smooth scrolling
-  - [Hamo](https://github.com/darkroomengineering/hamo) utilities
-  - [Tempus](https://github.com/darkroomengineering/tempus) timing utilities
+```
+satus/
+├── app/                    # Next.js App Router pages and layouts
+├── components/             # Reusable UI components
+├── hooks/                  # Custom React hooks
+├── integrations/           # Third-party service integrations
+│   ├── hubspot/           # HubSpot forms integration
+│   ├── shopify/           # E-commerce functionality
+│   └── storyblok/         # Headless CMS
+├── libs/                   # Utility functions and helpers
+├── orchestra/              # Debug and development tools
+│   ├── grid/              # Grid overlay
+│   ├── minimap/           # Page minimap
+│   ├── stats/             # Performance stats
+│   └── theatre/           # Animation tools
+├── styles/                 # Global styles and configuration
+├── webgl/                  # 3D graphics and WebGL components
+└── public/                 # Static assets
+```
 
-- **Content Management**
-  - [Storyblok 3.2](https://www.storyblok.com/) headless CMS
-  - [Shopify](https://www.shopify.com/) e-commerce integration
-  - [HubSpot](https://www.hubspot.com/) form management
+## Key Features
 
-- **Development Tools**
-  - [Biome 1.9.4](https://biomejs.dev/) for linting & formatting
-  - [Lefthook](https://github.com/evilmartians/lefthook) for Git hooks automation
-  - Theatre.js Studio for animation debugging
-  - Built-in debug tools with `CMD+O`
-  - Hot module replacement
-  - VSCode configuration included
+### Performance Optimized
+- **Turbopack** for lightning-fast HMR in development
+- **React Server Components** by default
+- **Dynamic imports** for code splitting
+- **Image optimization** with a custom thin wrapper around Next.js Image
+- **Font optimization** with Next.js Font
 
-## Development Tools
+### Modern Styling
+- **Tailwind CSS v4** with CSS-first configuration
+- **CSS Modules** for component styles
+- **Custom viewport units** (`mobile-vw`, `desktop-vw`)
+- **Theme support** with CSS variables
+
+### Advanced Graphics
+- **WebGL/Three.js** integration with React Three Fiber
+- **Post-processing effects** pipeline
+- **Shader support** with GLSL
+- **Theatre.js** for animation debugging
+- **Optimized 3D performance**
+
+### Developer Experience
+- **TypeScript** with strict mode
+- **Biome** for consistent code style
+- **Hot Module Replacement** with Turbopack
+- **Git hooks** with Lefthook
+- **Debug tools** accessible with `CMD+O`
+
+### Third-Party Integrations boilerplate
+- **Storyblok** - Headless CMS for content management
+- **Shopify** - E-commerce with cart functionality
+- **HubSpot** - Forms and marketing automation
+
+## 🎨 Styling System
+
+### CSS Modules
+Components use CSS modules with the `s` import convention:
+
+```tsx
+import s from './component.module.css'
+
+function Component() {
+  return <div className={s.wrapper} />
+}
+```
+
+### Responsive Design
+Custom viewport functions for responsive sizing:
+
+```css
+.element {
+  width: mobile-vw(150);    /* 150px at mobile viewport */
+  height: desktop-vh(100);  /* 100px at desktop viewport */
+}
+```
+
+### Theme Variables
+CSS variables for consistent theming:
+
+```css
+.element {
+  color: var(--color-text);
+  background-color: var(--color-background);
+}
+```
+
+## 🔧 Development Tools
+
+### Debug Panel (CMD+O)
+- **Theatre.js Studio** - Visual animation editor
+- **FPS Meter** - Performance monitoring
+- **Grid Overlay** - Layout debugging
+- **Minimap** - Page overview
 
 ### Available Scripts
-- `bun dev` - Start development server with Turbo
-- `bun dev:https` - Start development server with HTTPS
-- `bun build` - Build the project for production
-- `bun start` - Start the production server
-- `bun setup:styles` - Generate style configuration files
-- `bun watch:styles` - Watch and rebuild styles on changes
-- `bun typecheck` - Run TypeScript type checking
-- `bun lint` - Run Biome linting
-- `bun analyze` - Analyze bundle sizes
 
-### Debug Features (with `CMD+O`)
-- Theatre.js Studio
-- FPS Meter
-- Grid Debugger
-- Minimap
+```bash
+# Development
+bun dev              # Start dev server with Turbopack
+bun dev:https        # Start with HTTPS
 
-## Styling Architecture
+# Building
+bun build            # Production build
+bun analyze          # Bundle analysis
 
-- **System Overview**
-  - Tailwind CSS v4.0.9 with custom utilities
-  - PostCSS with advanced configuration and functions
-  - CSS Modules for component styles
-  - Responsive viewport-based units
+# Code Quality
+bun lint             # Run Biome linter
+bun typecheck        # TypeScript checking
 
-- **Key Features**
-  - Viewport-relative units (`mobile-vw`, `desktop-vw`)
-  - Custom responsive grid system (configurable [in styles/layout.mjs](/styles/layout.mjs))
-  - Pre-defined breakpoints (800px desktop threshold)
-  - Typography system with [SERVER MONO](https://github.com/internet-development/www-server-mono) font
-  - Theme support
-  - Custom scaling utilities with 's' prefix
+# Styling
+bun setup:styles     # Generate style files
+bun watch:styles     # Watch style changes
+```
 
-- **Build Process**
-  - Automated style generation with `setup:styles` script
-  - CSS optimization with cssnano in production
-  - Type-safe theme properties and configuration
+## 🌐 Environment Variables
 
-For more details on the styling system, see [styles/README.md](/styles/README.md).
+Create a `.env.local` file based on `.env.example`:
+
+```env
+# Storyblok CMS
+STORYBLOK_ACCESS_TOKEN=your_token_here
+
+# Shopify
+SHOPIFY_DOMAIN=your-store.myshopify.com
+SHOPIFY_STOREFRONT_TOKEN=your_token_here
+
+# HubSpot
+HUBSPOT_ACCESS_TOKEN=your_token_here
+```
+
+## 📚 Documentation
+
+- [Component Guidelines](/.cursor/rules/components.mdc)
+- [Styling Guidelines](/.cursor/rules/styling.mdc)
+- [WebGL Development](/.cursor/rules/webgl.mdc)
+- [Integration Guide](/.cursor/rules/integrations.mdc)
+- [Tailwind CSS v4 Reference](/.cursor/rules/tailwind-css-v4.mdc)
+
+## Deployment
+
+### Vercel (Recommended)
+```bash
+vercel
+```
 
 ## Git Workflow
 
@@ -129,19 +188,21 @@ For more details on the styling system, see [styles/README.md](/styles/README.md
 - **Pre-commit**: Runs Biome to check and format staged files
 - **Post-merge**: Automatically pulls latest environment variables from Vercel
 
-## Documentation
+### Other Platforms
+The project supports deployment to any platform that supports Next.js:
+- Netlify
+- AWS Amplify
+- Google Cloud Run
+- Self-hosted with Node.js
 
-- Detailed documentation available in the respective folders:
-  - [`libs/readme.md`](/libs/readme.md)
-  - [`styles/readme.md`](/styles/readme.md)
-  - [`integrations/readme.md`](/integrations/readme.md)
-  - [`hooks/readme.md`](/hooks/readme.md)
-  - [`components/readme.md`](/components/readme.md)
+## 🤝 Contributing
 
-## Deployment
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/fix-everything`)
+3. Commit your changes (`git commit -m 'Add fix everything feature'`)
+4. Push to the branch (`git push origin feature/fix-everything`)
+5. Open a Pull Request
 
-The project can be deployed on Vercel, Netlify, or any service supporting Next.js. See PROD-README.md for production-specific details.
-
-## License
+## 📄 License
 
 MIT © [darkroom.engineering](https://github.com/darkroomengineering)

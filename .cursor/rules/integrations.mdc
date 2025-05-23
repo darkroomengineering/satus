@@ -1,0 +1,144 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+description: Third party integration guidelines
+globs: *.tsx, *.jsx, *.css, *.js, *.ts
+---
+
+## Storyblok CMS
+
+1. **Configuration**
+   - Use environment variables for API tokens
+   - Configure in `integrations/storyblok`
+   ```typescript
+   const storyblokApi = new StoryblokClient({
+     accessToken: process.env.STORYBLOK_ACCESS_TOKEN,
+     cache: {
+       type: 'memory'
+     }
+   })
+   ```
+
+2. **Content Fetching**
+   - Use Server Components for fetching
+   - Implement proper caching strategies
+   ```typescript
+   export async function getStory(slug: string) {
+     const { data } = await storyblokApi.get(`cdn/stories/${slug}`)
+     return data.story
+   }
+   ```
+
+3. **Rich Text Rendering**
+   - Use `storyblok-rich-text-react-renderer`
+   - Configure custom components for rendering
+   ```typescript
+   import { render } from 'storyblok-rich-text-react-renderer'
+   ```
+
+## Shopify Integration
+
+1. **API Configuration**
+   - Use GraphQL for queries
+   - Store credentials securely
+   ```typescript
+   const shopifyClient = createShopifyClient({
+     domain: process.env.SHOPIFY_DOMAIN,
+     storefrontAccessToken: process.env.SHOPIFY_STOREFRONT_TOKEN
+   })
+   ```
+
+2. **Product Management**
+   - Use fragments for reusable queries
+   - Implement proper error handling
+   ```typescript
+   import { PRODUCT_FRAGMENT } from '~/integrations/shopify/fragments'
+   ```
+
+3. **Cart Operations**
+   - Use mutations for cart operations
+   - Maintain cart state with Zustand
+   ```typescript
+   import { ADD_TO_CART } from '~/integrations/shopify/mutations'
+   ```
+
+## Hubspot Forms
+
+1. **Form Integration**
+   - Use Server Actions for submissions
+   - Validate data server-side
+   ```typescript
+   export async function submitToHubspot(formData: FormData) {
+     'use server'
+     const client = new HubspotClient({
+       accessToken: process.env.HUBSPOT_ACCESS_TOKEN
+     })
+     // submission logic
+   }
+   ```
+
+2. **Newsletter Subscriptions**
+   - Implement proper consent management
+   - Handle errors gracefully
+   ```typescript
+   import { HubspotNewsletterAction } from '~/integrations/hubspot/action'
+   ```
+
+## General Integration Best Practices
+
+1. **Environment Variables**
+   - Never commit API keys
+   - Use `.env.local` for development
+   - Document required variables in `.env.example`
+
+2. **Error Handling**
+   - Implement retry logic for API calls
+   - Provide user-friendly error messages
+   - Log errors for debugging
+
+3. **Type Safety**
+   - Generate TypeScript types from APIs when possible
+   - Use proper validation (e.g., Zod schemas)
+   ```typescript
+   import { z } from 'zod'
+   
+   const ProductSchema = z.object({
+     id: z.string(),
+     title: z.string(),
+     price: z.number()
+   })
+   ```
+
+4. **Performance**
+   - Cache API responses appropriately
+   - Use ISR (Incremental Static Regeneration) for dynamic content
+   - Implement proper loading states
+
+5. **Security**
+   - Validate all user inputs
+   - Use server-side API calls for sensitive operations
+   - Implement rate limiting where necessary
+
+## Webhook Handling
+
+1. **Verification**
+   - Always verify webhook signatures
+   - Use proper authentication
+   ```typescript
+   export async function verifyWebhookSignature(
+     payload: string,
+     signature: string
+   ): Promise<boolean> {
+     // verification logic
+   }
+   ```
+
+2. **Processing**
+   - Process webhooks asynchronously
+   - Implement idempotency
+   - Return 200 status quickly
+
+Last updated: 2025-05-23

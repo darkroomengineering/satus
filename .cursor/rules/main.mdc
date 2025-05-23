@@ -3,42 +3,63 @@ description: Main index of best practices for Satūs
 globs: **/*
 alwaysApply: false
 ---
-## Global Rules
+---
+description: Global rules
+globs: *.tsx, *.jsx, *.css, *.js, *.ts
+---
 
 1. **Type Safety**
    - Use TypeScript for all new code
    - Maintain strict type checking
    - Avoid `any` types unless absolutely necessary
+   - Use proper type imports (`import type` when importing only types)
 
 2. **Performance**
    - Use React Server Components by default
-   - Implement proper code splitting
+   - Enable Turbopack for development (`bun dev` uses `--turbopack`)
+   - Implement proper code splitting with `next/dynamic`
    - Follow recommended caching strategies
    - Optimize assets and bundles
+   - **Always use the custom `Image` component (`~/components/image`) for all images. Do not use `next/image` directly.**
+   - **In WebGL contexts, use `webgl/components/image`, which wraps the custom `Image` component for DOM fallback and WebGL texture integration.**
 
 3. **Code Quality**
    - Follow Biome linting rules
    - Maintain consistent code style
    - Write meaningful comments and documentation
    - Use meaningful variable and function names
+   - Prefer named exports for components
 
 4. **Testing & Debugging**
    - Write unit tests for critical functionality
-   - Use Orchestra tools for debugging
+   - Use Orchestra tools for debugging (CMD+O)
    - Implement proper error boundaries
    - Follow error handling best practices
+   - Use Theatre.js Studio for animation debugging
 
 5. **Security**
    - Follow security best practices
    - Properly handle environment variables
    - Implement proper authentication
    - Follow CSP guidelines
+   - Use server-side validation for forms
 
 6. **Architecture**
    - Follow the defined project structure
    - Maintain separation of concerns
-   - Use proper state management
+   - Use proper state management (Zustand when needed)
    - Follow component composition patterns
+   - Keep client/server boundaries clear
+
+## Technology Stack
+
+- **Next.js 15.3.2** - App Router with Turbopack support
+- **React 19.1.0** - Latest features including simplified ref handling
+- **React Compiler enabled** - Automatically optimizes most component re-renders and memoization; manual memoization is rarely needed
+- **TypeScript** - Strict mode enabled
+- **Tailwind CSS 4.1.7** - CSS-first configuration
+- **Biome 1.9.4** - Linting and formatting
+- **Bun** - JavaScript runtime and package manager
 
 ## File Organization
 
@@ -49,8 +70,33 @@ alwaysApply: false
 ├── integrations/         # Third-party integrations
 ├── libs/                 # Utility libraries
 ├── orchestra/            # Debug tools
+├── styles/               # Styling configuration
 └── webgl/                # WebGL and 3D graphics
 ```
+
+## Development Guidelines
+
+1. **Component Development**
+   - Use CSS modules for component styling
+   - Import styles as `s` (e.g., `import s from './component.module.css'`)
+   - Use `cn` from `clsx` for conditional classes
+   - Implement responsive design with custom viewport functions
+
+2. **State Management**
+   - Prefer React's built-in state for component state
+   - Use Zustand for global state when needed
+   - Keep state as close to where it's used as possible
+
+3. **Routing & Navigation**
+   - Use Next.js App Router conventions
+   - Implement proper loading and error states
+   - Use `next/link` for internal navigation
+
+4. **Styling**
+   - Follow Tailwind CSS v4 conventions
+   - Use CSS variables for theming
+   - Implement responsive design with breakpoints
+   - Use custom viewport units (mobile-vw, desktop-vw)
 
 ## Getting Started
 
@@ -67,4 +113,4 @@ These best practices are regularly updated to reflect:
 - Community feedback and learnings
 - Project-specific requirements
 
-Last updated: 2024-02-18 
+Last updated: 2025-05-23 

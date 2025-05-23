@@ -3,8 +3,10 @@ description: Component creation rules for Satūs
 globs: "**/*.tsx,**/*.jsx"
 alwaysApply: false
 ---
-
-# Component Creation Guidelines
+---
+description: Component creation guidelines
+globs: *.tsx, *.jsx, *.css, *.js, *.ts
+---
 
 ## Imports and Dependencies
 
@@ -50,14 +52,29 @@ alwaysApply: false
 3. **Props Interface**
    - Define props interface at the top of the file
    - Extend HTML attributes when appropriate
+   - Use proper type imports
    ```tsx
-   interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+   import type { ComponentProps } from 'react'
+   
+   interface ButtonProps extends ComponentProps<'button'> {
      variant?: 'primary' | 'secondary'
      size?: 'sm' | 'md' | 'lg'
    }
    ```
 
-4. **Default Exports**
+4. **React 19 Ref Handling**
+   - In React 19, ref is passed as a regular prop (no forwardRef needed)
+   ```tsx
+   // Old pattern (React 18)
+   // const Button = forwardRef<HTMLButtonElement, ButtonProps>(...)
+   
+   // New pattern (React 19)
+   function Button({ ref, variant = 'primary', ...props }: ButtonProps & { ref?: React.Ref<HTMLButtonElement> }) {
+     return <button ref={ref} {...props} />
+   }
+   ```
+
+5. **Default Exports**
    - Use named function declarations for components
    - Export the component as default
    ```tsx
@@ -97,9 +114,20 @@ alwaysApply: false
 1. **Form Handling**
    - Use custom form hooks when appropriate
    - Connect to integrations for external services
+   - Implement proper validation
    ```tsx
    import { useForm } from '~/components/form/hook'
    import { HubspotNewsletterAction } from '~/integrations/hubspot/action'
+   ```
+
+2. **Server Actions**
+   - Use Server Actions for form submissions when possible
+   - Implement proper error handling
+   ```tsx
+   async function submitForm(formData: FormData) {
+     'use server'
+     // server-side logic
+   }
    ```
 
 ## Responsive Design
@@ -122,4 +150,43 @@ alwaysApply: false
      width: mobile-vw(150);
      margin-top: desktop-vh(100);
    }
-   ``` 
+   ```
+
+## Performance Best Practices
+
+1. **Code Splitting**
+   - Use `next/dynamic` for heavy components
+   ```tsx
+   import dynamic from 'next/dynamic'
+   
+   const HeavyComponent = dynamic(() => import('./HeavyComponent'), {
+     loading: () => <div>Loading...</div>,
+     ssr: false // if needed
+   })
+   ```
+
+2. **Image Optimization**
+   - **Always use the custom `Image` component (`~/components/image`) for all images. Do not use `next/image` directly.**
+   - **In WebGL contexts, use `webgl/components/image`, which wraps the custom `Image` component for DOM fallback and WebGL texture integration.**
+   ```tsx
+   import { Image } from '~/components/image'
+   // For WebGL:
+   import { Image as WebGLImage } from '~/webgl/components/image'
+   ```
+
+3. **Memoization and React Compiler**
+   - The React Compiler is enabled in this project and automatically optimizes most component re-renders and memoization.
+   - **Avoid manual use of `useMemo`, `useCallback`, and `React.memo` unless you have a proven edge case** (e.g., non-serializable dependencies, refs, or when the compiler cannot optimize).
+   - Refer to the [React Compiler documentation](mdc:https:/react.dev/reference/react/compiler) for best practices and up-to-date guidance.
+
+## Error Handling
+
+1. **Error Boundaries**
+   - Implement error boundaries for critical sections
+   - Provide meaningful fallback UI
+
+2. **Loading States**
+   - Always handle loading states
+   - Use Suspense boundaries where appropriate
+
+Last updated: 2025-05-23 

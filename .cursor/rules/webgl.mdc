@@ -1,0 +1,229 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+description: WebGL and 3D guidelines
+globs: *.tsx, *.jsx, *.css, *.js, *.ts
+---
+
+## React Three Fiber Setup
+
+1. **Canvas Component**
+   - Use the custom Canvas wrapper from `~/webgl/components/canvas`
+   - Configure appropriate defaults
+   ```tsx
+   import { Canvas } from '~/webgl/components/canvas'
+   
+   function Scene() {
+     return (
+       <Canvas
+         camera={{ position: [0, 0, 5], fov: 50 }}
+         gl={{ antialias: true, alpha: true }}
+       >
+         {/* 3D content */}
+       </Canvas>
+     )
+   }
+   ```
+
+2. **Performance Optimization**
+   - Use `frameloop="demand"` for static scenes
+   - Implement LOD (Level of Detail) for complex models
+   - Use instancing for repeated geometries
+   ```tsx
+   <Canvas frameloop="demand">
+     <PerformanceMonitor onDecline={() => setDpr(0.5)} />
+   </Canvas>
+   ```
+
+## Component Structure
+
+1. **File Organization**
+   - Separate WebGL logic into `webgl.tsx` files
+   - Keep React logic in main component files
+   ```
+   components/
+     scene/
+       index.tsx         # React component
+       webgl.tsx         # Three.js logic
+       scene.module.css  # Styles
+   ```
+
+2. **WebGL Component Pattern**
+   ```tsx
+   // scene/webgl.tsx
+   import { useFrame } from '@react-three/fiber'
+   import { useRef } from 'react'
+   import type { Mesh } from 'three'
+   
+   export default function SceneWebGL() {
+     const meshRef = useRef<Mesh>(null)
+     
+     useFrame((state, delta) => {
+       if (meshRef.current) {
+         meshRef.current.rotation.y += delta
+       }
+     })
+     
+     return (
+       <mesh ref={meshRef}>
+         <boxGeometry args={[1, 1, 1]} />
+         <meshStandardMaterial color="hotpink" />
+       </mesh>
+     )
+   }
+   ```
+
+## Drei Components
+
+1. **Common Helpers**
+   - Use Drei components for common functionality
+   ```tsx
+   import {
+     OrbitControls,
+     PerspectiveCamera,
+     Environment,
+     useGLTF,
+     useTexture
+   } from '@react-three/drei'
+   ```
+
+2. **Loading Assets**
+   - Preload assets using Drei hooks
+   - Implement proper loading states
+   ```tsx
+   // Preload in separate component
+   function Preload() {
+     useGLTF.preload('/models/model.glb')
+     useTexture.preload('/textures/texture.jpg')
+     return null
+   }
+   ```
+
+## Custom Shaders
+
+1. **Shader Materials**
+   - Use template literals for GLSL
+   - Implement proper uniforms
+   ```tsx
+   import { shaderMaterial } from '@react-three/drei'
+   import { extend } from '@react-three/fiber'
+   
+   const CustomMaterial = shaderMaterial(
+     { uTime: 0, uColor: new THREE.Color(0.0, 0.0, 0.0) },
+     vertexShader,
+     fragmentShader
+   )
+   
+   extend({ CustomMaterial })
+   ```
+
+2. **GLSL Best Practices**
+   - Keep shaders in separate files when complex
+   - Use proper precision qualifiers
+   - Comment complex calculations
+   ```glsl
+   precision mediump float;
+   
+   uniform float uTime;
+   varying vec2 vUv;
+   
+   void main() {
+     // Shader logic
+   }
+   ```
+
+## Animation & Interaction
+
+1. **Animation Loops**
+   - Use `useFrame` for frame-based animations
+   - Consider performance impact
+   ```tsx
+   useFrame((state, delta) => {
+     // Animation logic
+   }, priority) // Lower priority = runs first
+   ```
+
+2. **Interaction**
+   - Use Drei's interaction helpers
+   - Implement proper hover/click states
+   ```tsx
+   import { useCursor } from '@react-three/drei'
+   
+   function InteractiveObject() {
+     const [hovered, setHovered] = useState(false)
+     useCursor(hovered)
+     
+     return (
+       <mesh
+         onPointerOver={() => setHovered(true)}
+         onPointerOut={() => setHovered(false)}
+       >
+         {/* geometry and material */}
+       </mesh>
+     )
+   }
+   ```
+
+## Post-Processing
+
+1. **Effect Composer**
+   - Use postprocessing library for effects
+   - Chain effects efficiently
+   ```tsx
+   import { EffectComposer, Bloom, ChromaticAberration } from '@react-three/postprocessing'
+   
+   function Effects() {
+     return (
+       <EffectComposer>
+         <Bloom intensity={1.5} />
+         <ChromaticAberration offset={[0.002, 0.002]} />
+       </EffectComposer>
+     )
+   }
+   ```
+
+2. **Performance Considerations**
+   - Limit number of passes
+   - Use lower resolution for effects when possible
+   - Profile performance impact
+
+## Best Practices
+
+1. **Memory Management**
+   - Dispose of geometries and materials
+   - Clean up in useEffect return
+   ```tsx
+   useEffect(() => {
+     return () => {
+       geometry.dispose()
+       material.dispose()
+       texture.dispose()
+     }
+   }, [])
+   ```
+
+2. **Responsive Design**
+   - Handle window resizing
+   - Adjust quality based on device capabilities
+   ```tsx
+   const { viewport } = useThree()
+   // Use viewport.width, viewport.height for responsive sizing
+   ```
+
+3. **Debugging**
+   - Use Theatre.js for animation debugging
+   - Enable WebGL inspector in development
+   - Use `<Stats />` component for performance monitoring
+
+4. **Mobile Optimization**
+   - Reduce polygon count for mobile
+   - Use simpler shaders
+   - Implement touch controls
+   ```tsx
+   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+   ```
+
+Last updated: 2025-05-23

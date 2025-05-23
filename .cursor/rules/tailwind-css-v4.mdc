@@ -3,7 +3,10 @@ description:
 globs: 
 alwaysApply: false
 ---
-# Tailwind CSS v4.0
+---
+description:  Tailwind v.4.x
+globs: *.tsx, *.jsx, *.css, *.js, *.ts
+---
 
 ## Core Changes
 
@@ -207,3 +210,50 @@ alwaysApply: false
     }
   </style>
   ```
+
+## Project-Specific Customizations
+
+### Custom Utility Classes (`dr-*`)
+The project generates a set of custom utility classes prefixed with `dr-` for scaling, layout, and grid, available in all CSS:
+
+- **Scaling Utilities** (responsive to device width):
+  - `dr-text-*` — font-size
+  - `dr-tracking-*` — letter-spacing
+  - `dr-leading-*` — line-height
+  - `dr-border-*`, `dr-border-t-*`, `dr-border-r-*`, `dr-border-b-*`, `dr-border-l-*` — border widths
+  - `dr-rounded-*`, `dr-rounded-t-*`, `dr-rounded-r-*`, `dr-rounded-b-*`, `dr-rounded-l-*`, `dr-rounded-tl-*`, `dr-rounded-tr-*`, `dr-rounded-br-*`, `dr-rounded-bl-*` — border radii
+
+- **Column-Based Sizing Utilities** (responsive to grid columns):
+  - `dr-w-col-*`, `dr-min-w-col-*`, `dr-max-w-col-*` — width, min-width, max-width by columns
+  - `dr-h-col-*`, `dr-min-h-col-*`, `dr-max-h-col-*` — height, min-height, max-height by columns
+  - `dr-gap-col-*`, `dr-gap-x-col-*`, `dr-gap-y-col-*` — grid gaps by columns
+  - `dr-p-col-*`, `dr-px-col-*`, `dr-py-col-*`, `dr-pt-col-*`, `dr-pr-col-*`, `dr-pl-col-*`, `dr-pb-col-*` — padding by columns
+  - `dr-m-col-*`, `dr-mx-col-*`, `dr-my-col-*`, `dr-mt-col-*`, `dr-mr-col-*`, `dr-ml-col-*`, `dr-mb-col-*` — margin by columns
+
+- **Standard Sizing Utilities** (responsive to device width):
+  - `dr-w-*`, `dr-min-w-*`, `dr-max-w-*` — width, min-width, max-width
+  - `dr-h-*`, `dr-min-h-*`, `dr-max-h-*` — height, min-height, max-height
+  - `dr-gap-*`, `dr-gap-x-*`, `dr-gap-y-*` — grid gaps
+  - `dr-p-*`, `dr-px-*`, `dr-py-*`, `dr-pt-*`, `dr-pr-*`, `dr-pl-*`, `dr-pb-*` — padding
+  - `dr-m-*`, `dr-mx-*`, `dr-my-*`, `dr-mt-*`, `dr-mr-*`, `dr-ml-*`, `dr-mb-*` — margin
+  - `dr-top-*`, `dr-right-*`, `dr-bottom-*`, `dr-left-*`, `dr-inset-*`, `dr-inset-x-*`, `dr-inset-y-*` — positioning
+
+- **Layout and Grid Utilities:**
+  - `dr-grid` — sets display: grid and grid-template-columns based on project columns
+  - `dr-layout-block` — sets margin-inline and width for layout blocks
+  - `dr-layout-block-inner` — sets padding-inline and width for inner layout blocks
+  - `dr-layout-grid` — combines layout block and grid
+  - `dr-layout-grid-inner` — combines inner layout block and grid
+  - `desktop-only` — hides element on mobile
+  - `mobile-only` — hides element on desktop
+
+### Custom PostCSS Functions
+The project provides custom PostCSS functions for responsive units:
+- `mobile-vw(pixels)` — converts pixels to viewport width for mobile
+- `mobile-vh(pixels)` — converts pixels to viewport height for mobile
+- `desktop-vw(pixels)` — converts pixels to viewport width for desktop
+- `desktop-vh(pixels)` — converts pixels to viewport height for desktop
+- `columns(n)` — calculates width based on number of grid columns
+
+### Theme and Utility Generation
+- The theme, utilities, and variants are generated from project config and may differ from vanilla Tailwind. Always check `/styles/css/tailwind.css` for the latest generated classes.

@@ -30,7 +30,7 @@ export function generateTailwind({
   ${formatObject(colors, ([key, value]) => `--color-${key}: ${value};`)}
     
   --spacing-*: initial;
-  --spacing-0: 0;
+	--spacing-0: 0;
 	--spacing-safe: var(--safe);
 	--spacing-gap: var(--gap);
   ${formatObject(customSizes, ([key]) => `--spacing-${key}: var(--${key});`)}
@@ -61,6 +61,8 @@ ${Object.entries(typography)
   .map(
     ([name, value]) => `@utility ${name} {
   ${Object.entries(value)
+    .filter((entry) => entry?.[0] && entry?.[1])
+    .filter((entry) => entry !== undefined)
     .map(([key, value]) => {
       if (key === 'font-size') {
         if (typeof value === 'number') {
@@ -70,6 +72,13 @@ ${Object.entries(typography)
         return [
           `font-size: ${scalingCalc(value.mobile)};`,
           `@variant dt { font-size: ${scalingCalc(value.desktop)}; }`,
+        ].join('\n\t')
+      }
+
+      if (typeof value === 'object') {
+        return [
+          `${key}: ${value.mobile};`,
+          `@variant dt { ${key}: ${value.desktop}; }`,
         ].join('\n\t')
       }
 
@@ -95,12 +104,12 @@ ${Object.entries(typography)
 @utility dr-grid {
 	display: grid;
 	grid-template-columns: repeat(var(--columns), 1fr);
-	gap: var(--gap);
+	column-gap: var(--gap);
 }
 
 @utility dr-layout-block {
 	margin-inline: auto;
-	width: calc(100% - 2 * var(--safe));
+  width: calc(100% - 2 * var(--safe));
 }
 
 @utility dr-layout-block-inner {

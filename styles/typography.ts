@@ -10,7 +10,7 @@ const typography: TypeStyles = {
     'font-style': 'normal',
     'font-weight': 400,
     'line-height': '90%',
-    'letter-spacing': '0%',
+    'letter-spacing': '0em',
     'font-size': { mobile: 20, desktop: 24 },
   },
 } as const
@@ -24,8 +24,13 @@ type TypeStyles = Record<
     'font-family': string
     'font-style': CSSProperties['fontStyle']
     'font-weight': CSSProperties['fontWeight']
-    'line-height': `${number}%`
-    'letter-spacing': `${number}%`
+    'line-height':
+      | `${number}%`
+      | { mobile: `${number}%`; desktop: `${number}%` }
+    'letter-spacing':
+      | `${number}em`
+      | { mobile: `${number}em`; desktop: `${number}em` }
+    'font-feature-settings'?: string
     'font-size': number | { mobile: number; desktop: number }
   }
 >

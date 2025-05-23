@@ -97,7 +97,6 @@ export default function Layout({ children }: PropsWithChildren) {
         {children}
         <OrchestraTools />
         <GSAP />
-        {/* @ts-expect-error - TODO: Fix in tempus */}
         <ReactTempus patch />
       </body>
       {GA_ID && <GoogleAnalytics gaId={GA_ID} />}

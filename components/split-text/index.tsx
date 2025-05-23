@@ -30,14 +30,26 @@ function replaceFromNode(
   )
 }
 
+type SplitText = 'chars' | 'words' | 'lines'
+
+type SplitType =
+  | `${SplitText}`
+  | `${SplitText},${SplitText}`
+  | `${SplitText},${SplitText},${SplitText}`
+
 type SplitTextProps = {
   children: string
   className?: string
-  type?: string
+  type?: SplitType
   ref?: Ref<GSAPSplitText | undefined>
 }
 
-export function SplitText({ children, className, type, ref }: SplitTextProps) {
+export function SplitText({
+  children,
+  className,
+  type = 'words',
+  ref,
+}: SplitTextProps) {
   const elementRef = useRef<HTMLSpanElement>(null!)
   const fallbackRef = useRef<HTMLSpanElement>(null!)
   const [setRectRef, entry] = useResizeObserver()

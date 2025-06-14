@@ -47,3 +47,7 @@ yarn-error.log*
 certificates
 
 next-env.d.ts
+
+# auto generated CSS files
+styles/css/root.css
+styles/css/tailwind.css

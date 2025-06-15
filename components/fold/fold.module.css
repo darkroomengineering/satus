@@ -7,7 +7,7 @@
         position: absolute;
         inset: 0;
         pointer-events: none;
-        background-color: var(--theme-primary);
+        background-color: var(--color-primary);
         opacity: var(--progress, 0);
       }
     }

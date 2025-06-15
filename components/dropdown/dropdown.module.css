@@ -10,8 +10,8 @@
     padding: mobile-vw(8px) mobile-vw(12px);
     border-radius: mobile-vw(2px);
     border: 1px solid currentColor;
-    background-color: var(--theme-primary);
-    color: var(--theme-secondary);
+    background-color: var(--color-primary);
+    color: var(--color-secondary);
 
     @media (--desktop) {
       padding: desktop-vw(8px) desktop-vw(12px);
@@ -27,8 +27,8 @@
     align-items: center;
     z-index: 1;
     min-width: 100%;
-    background-color: var(--theme-primary);
-    border: 1px solid var(--theme-secondary);
+    background-color: var(--color-primary);
+    border: 1px solid var(--color-secondary);
     border-radius: mobile-vw(2px);
     overflow: clip;
     padding: mobile-vw(4px);
@@ -40,7 +40,7 @@
     }
 
     .option {
-      color: var(--theme-secondary);
+      color: var(--color-secondary);
       padding: mobile-vw(8px) mobile-vw(12px);
       position: relative;
       text-align: center;
@@ -56,8 +56,8 @@
 
       @media (--hover) {
         &:hover {
-          background-color: var(--theme-contrast);
-          color: var(--theme-primary);
+          background-color: var(--color-contrast);
+          color: var(--color-primary);
         }
       }
     }

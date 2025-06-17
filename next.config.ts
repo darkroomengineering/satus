@@ -4,6 +4,7 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  productionBrowserSourceMaps: process.env.SOURCE_MAPS === 'true',
   turbopack: {
     rules: {
       '*.svg': {

@@ -11,7 +11,8 @@
     "wp:build": "next build",
     "start": "next start",
     "lint": "biome lint",
-    "analyze": "cross-env ANALYZE=true next build",
+    "analyze": "cross-env SOURCE_MAPS=true bun run build && source-map-explorer .next/static/chunks/*.js",
+    "wp:analyze": "cross-env ANALYZE=true next build",
     "typecheck": "tsc --noEmit --incremental false",
     "setup:styles": "bun ./styles/scripts/setup-styles.ts",
     "watch:styles": "bun --watch ./styles/scripts/setup-styles.ts"
@@ -62,6 +63,7 @@
     "postcss-extend-rule": "^4.0.0",
     "postcss-functions": "^4.0.2",
     "postcss-preset-env": "^10.1.6",
+    "source-map-explorer": "^2.5.3",
     "tailwindcss": "^4.1.7",
     "typescript": "^5.8.3"
   },

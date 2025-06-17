@@ -9,11 +9,11 @@ const mono = localFont({
     },
   ],
   display: 'swap',
-  variable: '--font-mono',
+  variable: '--next-font-mono',
   preload: true,
 })
 
 const fonts = [mono]
-const fontsClassName = fonts.map((font) => font.className).join(' ')
+const fontsVariable = fonts.map((font) => font.variable).join(' ')
 
-export { fontsClassName }
+export { fontsVariable }

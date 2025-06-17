@@ -17,13 +17,13 @@
 	--color-red: #e30613;
     
   --spacing-*: initial;
-  --spacing-0: 0;
+	--spacing-0: 0;
 	--spacing-safe: var(--safe);
 	--spacing-gap: var(--gap);
   --spacing-header-height: var(--header-height);
 
   --font-*: initial;
-  --font-mono: var(--font-mono);
+  --font-mono: var(--next-font-mono);
 
   --ease-*: initial;
   --ease-in-quad: cubic-bezier(0.55, 0.085, 0.68, 0.53);
@@ -67,11 +67,11 @@
 
 /** Custom static utilities **/
 @utility test-mono {
-  font-family: var(--font-mono);
+  font-family: var(--next-font-mono);
 	font-style: normal;
 	font-weight: 400;
 	line-height: 90%;
-	letter-spacing: 0%;
+	letter-spacing: 0em;
 	font-size: calc(((20 * 100) / var(--device-width)) * 1vw);
 	@variant dt { font-size: calc(((24 * 100) / var(--device-width)) * 1vw); }
 }
@@ -91,12 +91,12 @@
 @utility dr-grid {
 	display: grid;
 	grid-template-columns: repeat(var(--columns), 1fr);
-	gap: var(--gap);
+	column-gap: var(--gap);
 }
 
 @utility dr-layout-block {
 	margin-inline: auto;
-	width: calc(100% - 2 * var(--safe));
+  width: calc(100% - 2 * var(--safe));
 }
 
 @utility dr-layout-block-inner {

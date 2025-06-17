@@ -7,7 +7,7 @@ import { RealViewport } from '~/components/real-viewport'
 import { OrchestraTools } from '~/orchestra'
 import AppData from '~/package.json'
 import { themes } from '~/styles/colors'
-import { fontsClassName } from '~/styles/fonts'
+import { fontsVariable } from '~/styles/fonts'
 
 import '~/styles/css/index.css'
 
@@ -87,7 +87,7 @@ export default function Layout({ children }: PropsWithChildren) {
     <html
       lang="en"
       dir="ltr"
-      className={fontsClassName}
+      className={fontsVariable}
       // NOTE: This is due to the data-theme attribute being set which causes hydration errors
       suppressHydrationWarning
     >

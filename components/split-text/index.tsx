@@ -1,8 +1,6 @@
 'use client'
 
 import cn from 'clsx'
-import { gsap } from 'gsap'
-import { SplitText as GSAPSplitText } from 'gsap/SplitText'
 import { useResizeObserver } from 'hamo'
 import {
   type Ref,
@@ -15,8 +13,25 @@ import {
 import { useIsVisualEditor } from '~/integrations/storyblok/use-is-visual-editor'
 import s from './split-text.module.css'
 
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(GSAPSplitText)
+// Type for GSAP SplitText
+type GSAPSplitTextType = any // We'll use any to avoid complex type imports
+
+// Lazy load GSAP and SplitText
+let gsapLoaded = false
+let GSAPSplitTextConstructor: any = null
+
+async function loadGSAPSplitText() {
+  if (!gsapLoaded) {
+    const [gsapModule, splitTextModule] = await Promise.all([
+      import('gsap'),
+      import('gsap/SplitText'),
+    ])
+    const gsap = gsapModule.gsap
+    GSAPSplitTextConstructor = splitTextModule.SplitText
+    gsap.registerPlugin(GSAPSplitTextConstructor)
+    gsapLoaded = true
+  }
+  return GSAPSplitTextConstructor
 }
 
 function replaceFromNode(
@@ -41,7 +56,7 @@ type SplitTextProps = {
   children: string
   className?: string
   type?: SplitType
-  ref?: Ref<GSAPSplitText | undefined>
+  ref?: Ref<GSAPSplitTextType | undefined>
 }
 
 export function SplitText({
@@ -55,7 +70,7 @@ export function SplitText({
   const [setRectRef, entry] = useResizeObserver()
   const rect = entry?.contentRect
 
-  const [splitted, setSplitted] = useState<GSAPSplitText | undefined>()
+  const [splitted, setSplitted] = useState<GSAPSplitTextType | undefined>()
 
   useImperativeHandle(ref, () => splitted, [splitted])
 
@@ -73,18 +88,26 @@ export function SplitText({
     ignoredElements.map((item) => {
       item.innerText = item.innerText.replaceAll(' ', '&nbsp;')
     })
-    const splitted = new GSAPSplitText(elementRef.current, {
-      tag: 'span',
-      type,
-      linesClass: 'line',
-      wordsClass: 'word',
-      charsClass: 'char',
+
+    let splittedInstance: any = null
+
+    // Load and create SplitText instance
+    loadGSAPSplitText().then((SplitTextConstructor) => {
+      splittedInstance = new SplitTextConstructor(elementRef.current, {
+        tag: 'span',
+        type,
+        linesClass: 'line',
+        wordsClass: 'word',
+        charsClass: 'char',
+      })
+
+      setSplitted(splittedInstance)
     })
 
-    setSplitted(splitted)
-
     return () => {
-      splitted.revert()
+      if (splittedInstance) {
+        splittedInstance.revert()
+      }
       setSplitted(undefined)
     }
   }, [rect, type])

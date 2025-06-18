@@ -57,23 +57,27 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  compiler: {
+    removeConsole: {
+      exclude: ['error', 'warn'],
+    },
+    reactRemoveProperties: true,
+  },
   experimental: {
     reactCompiler: true,
     nextScriptWorkers: true,
-    optimizePackageImports: ['@react-three/drei', '@react-three/fiber', 'gsap'],
+    optimizePackageImports: [
+      '@react-three/drei',
+      '@react-three/fiber',
+      'gsap',
+      'three',
+      'postprocessing',
+      '@base-ui-components/react',
+    ],
+    // Enable PPR for better loading performance (when stable)
+    // ppr: true,
   },
-  // modularizeImports: {
-  //   '@react-three/drei': {
-  //     transform: '@react-three/drei/{{member}}',
-  //   },
-  //   gsap: {
-  //     transform: 'gsap/{{member}}',
-  //   },
-  // },
-  devIndicators: {
-    appIsrStatus: false,
-    buildActivity: false,
-  },
+  devIndicators: false,
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -95,59 +99,6 @@ const nextConfig: NextConfig = {
     ],
     formats: ['image/avif', 'image/webp'],
   },
-  // webpack: (config) => {
-  //   config.module.rules.push({
-  //     test: /\.svg$/,
-  //     use: [
-  //       {
-  //         loader: '@svgr/webpack',
-  //         options: {
-  //           memo: true,
-  //           dimensions: false,
-  //           svgoConfig: {
-  //             multipass: true,
-  //             plugins: [
-  //               'removeDimensions',
-  //               'removeOffCanvasPaths',
-  //               'reusePaths',
-  //               'removeElementsByAttr',
-  //               'removeStyleElement',
-  //               'removeScriptElement',
-  //               'prefixIds',
-  //               'cleanupIds',
-  //               {
-  //                 name: 'cleanupNumericValues',
-  //                 params: {
-  //                   floatPrecision: 1,
-  //                 },
-  //               },
-  //               {
-  //                 name: 'convertPathData',
-  //                 params: {
-  //                   floatPrecision: 1,
-  //                 },
-  //               },
-  //               {
-  //                 name: 'convertTransform',
-  //                 params: {
-  //                   floatPrecision: 1,
-  //                 },
-  //               },
-  //               {
-  //                 name: 'cleanupListOfValues',
-  //                 params: {
-  //                   floatPrecision: 1,
-  //                 },
-  //               },
-  //             ],
-  //           },
-  //         },
-  //       },
-  //     ],
-  //   })
-
-  //   return config
-  // },
   headers: async () => [
     {
       source: '/(.*)',
@@ -170,6 +121,60 @@ const nextConfig: NextConfig = {
         },
       ],
     },
+    // // Only cache truly static assets aggressively in production
+    // ...(process.env.NODE_ENV === 'production'
+    //   ? [
+    //       // Next.js static assets (immutable by design)
+    //       {
+    //         source: '/_next/static/(.*)',
+    //         headers: [
+    //           {
+    //             key: 'Cache-Control',
+    //             value: 'public, max-age=31536000, immutable',
+    //           },
+    //         ],
+    //       },
+    //       // Public static assets
+    //       {
+    //         source: '/fonts/(.*)',
+    //         headers: [
+    //           {
+    //             key: 'Cache-Control',
+    //             value: 'public, max-age=31536000, immutable',
+    //           },
+    //         ],
+    //       },
+    //       {
+    //         source: '/images/(.*)',
+    //         headers: [
+    //           {
+    //             key: 'Cache-Control',
+    //             value: 'public, max-age=31536000, immutable',
+    //           },
+    //         ],
+    //       },
+    //       // Other static file types in public folder
+    //       {
+    //         source: '/(.*)\\.{js,css,woff,woff2,ttf,otf,ico}$',
+    //         headers: [
+    //           {
+    //             key: 'Cache-Control',
+    //             value: 'public, max-age=31536000, immutable',
+    //           },
+    //         ],
+    //       },
+    //       // Images with shorter cache for CMS content
+    //       {
+    //         source: '/(.*)\\.{jpg,jpeg,png,gif,webp,svg,avif}$',
+    //         headers: [
+    //           {
+    //             key: 'Cache-Control',
+    //             value: 'public, max-age=3600, s-maxage=31536000',
+    //           },
+    //         ],
+    //       },
+    //     ]
+    //   : []),
   ],
   redirects: async () => [
     {

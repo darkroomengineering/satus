@@ -3,6 +3,8 @@ import type { Metadata, Viewport } from 'next'
 import type { PropsWithChildren } from 'react'
 import { ReactTempus } from 'tempus/react'
 import { GSAP } from '~/components/gsap'
+import { PerformanceMonitor } from '~/components/performance-monitor'
+import { RoutePerformanceTracker } from '~/components/performance-monitor/route-tracker'
 import { RealViewport } from '~/components/real-viewport'
 import { OrchestraTools } from '~/orchestra'
 import AppData from '~/package.json'
@@ -94,12 +96,14 @@ export default function Layout({ children }: PropsWithChildren) {
       {GTM_ID && <GoogleTagManager gtmId={GTM_ID} />}
       <body>
         <RealViewport />
+        <PerformanceMonitor />
+        <RoutePerformanceTracker />
         {children}
         <OrchestraTools />
         <GSAP />
         <ReactTempus patch />
+        {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
       </body>
-      {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
     </html>
   )
 }

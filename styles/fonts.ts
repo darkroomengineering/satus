@@ -11,6 +11,15 @@ const mono = localFont({
   display: 'swap',
   variable: '--next-font-mono',
   preload: true,
+  // adjustFontFallback: 'Arial',
+  fallback: [
+    'ui-monospace',
+    'SFMono-Regular',
+    'Consolas',
+    'Liberation Mono',
+    'Menlo',
+    'monospace',
+  ],
 })
 
 const fonts = [mono]

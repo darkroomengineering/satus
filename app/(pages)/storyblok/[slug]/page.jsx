@@ -7,6 +7,9 @@ import { Article } from './(component)/article'
 // https://nextjs.org/docs/app/api-reference/functions/generate-static-params
 const SLUG = 'cdn/stories/blog'
 
+// Add ISR revalidation - revalidate every hour
+export const revalidate = 3600
+
 export async function generateStaticParams() {
   const { data } = await fetchAll('cdn/stories', {
     starts_with: 'blog',

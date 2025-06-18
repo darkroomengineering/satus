@@ -147,3 +147,117 @@ import { useScrollTrigger } from '~/hooks/use-scroll-trigger'
 import { useTransform } from '~/hooks/use-transform'
 import { useDeviceDetection } from '~/hooks/use-device-detection'
 ```
+
+# Hooks
+
+This directory contains custom React hooks for the Satus starter kit.
+
+## Available Hooks
+
+### Performance & Optimization
+
+#### `usePerformance`
+Automatically tracks and reports Core Web Vitals metrics to analytics services.
+
+```tsx
+import { usePerformance } from '~/hooks/use-performance'
+
+// Add to your root layout or app component
+function App() {
+  usePerformance()
+  return <>{/* Your app */}</>
+}
+```
+
+#### `useRenderTime`
+Tracks component render performance in development.
+
+```tsx
+import { useRenderTime } from '~/hooks/use-performance'
+
+function HeavyComponent() {
+  useRenderTime('HeavyComponent')
+  // Component logic...
+}
+```
+
+#### `usePrefetch`
+Prefetches routes when elements become visible in the viewport.
+
+```tsx
+import { usePrefetch } from '~/hooks/use-prefetch'
+
+function ProductCard({ href }: { href: string }) {
+  const prefetchRef = usePrefetch(href)
+  
+  return (
+    <div ref={prefetchRef}>
+      <Link href={href}>View Product</Link>
+    </div>
+  )
+}
+```
+
+### Device & Browser
+
+#### `useDeviceDetection`
+Detects device capabilities and features.
+
+```tsx
+import { useDeviceDetection } from '~/hooks/use-device-detection'
+
+function Component() {
+  const { isWebGL, isMobile, isTablet } = useDeviceDetection()
+  
+  if (!isWebGL) {
+    return <FallbackComponent />
+  }
+  
+  return <WebGLComponent />
+}
+```
+
+### Animation & Scroll
+
+#### `useScrollTrigger`
+Provides scroll-based animations and triggers.
+
+```tsx
+import { useScrollTrigger } from '~/hooks/use-scroll-trigger'
+
+function AnimatedSection() {
+  const ref = useRef<HTMLElement>(null)
+  
+  useScrollTrigger({
+    ref,
+    start: 'top center',
+    end: 'bottom center',
+    onProgress: ({ progress }) => {
+      // Animate based on scroll progress
+    }
+  })
+  
+  return <section ref={ref}>Content</section>
+}
+```
+
+#### `useTransform`
+Transforms values with easing and interpolation.
+
+```tsx
+import { useTransform } from '~/hooks/use-transform'
+
+function Component() {
+  const transformedValue = useTransform(scrollProgress, [0, 1], [0, 100])
+  
+  return <div style={{ transform: `translateY(${transformedValue}px)` }} />
+}
+```
+
+## Best Practices
+
+1. **Performance First**: Always consider performance implications when using hooks
+2. **Conditional Loading**: Use device detection to conditionally load heavy features
+3. **Lazy Loading**: Prefer lazy loading for non-critical functionality
+4. **Cleanup**: Ensure proper cleanup in useEffect hooks
+5. **Type Safety**: All hooks are fully typed with TypeScript

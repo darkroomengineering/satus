@@ -8,25 +8,25 @@
     - The "symbol *" part is to solve Firefox SVG sprite bug
     - The "html" element is excluded, otherwise a bug in Chrome breaks the CSS hyphens property (https://github.com/elad2412/the-new-css-reset/issues/36)
  */
- *:where(
-  :not(
-      html,
-      iframe,
-      canvas,
-      img,
-      svg,
-      video,
-      audio,
-      dialog,
-      vercel-live-feedback,
-      nextjs-portal,
-      #theatrejs-studio-root,
-      .sc-default,
-      :where(select, option)
-    ):not(svg *, symbol *)
-) {
-all: unset;
-display: revert;
+*:where(
+    :not(
+        html,
+        iframe,
+        canvas,
+        img,
+        svg,
+        video,
+        audio,
+        dialog,
+        vercel-live-feedback,
+        nextjs-portal,
+        #theatrejs-studio-root,
+        .sc-default,
+        :where(select, option)
+      ):not(svg *, symbol *)
+  ) {
+  all: unset;
+  display: revert;
 }
 
 /* Preferred box-sizing value */

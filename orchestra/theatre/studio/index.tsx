@@ -19,7 +19,7 @@ function initializeStudio() {
   }
 }
 
-initializeStudio()
+// initializeStudio()
 
 export function Studio() {
   useEffect(() => {

@@ -8,7 +8,7 @@
     "dev:next": "next dev --turbopack",
     "dev:https": "next dev --turbopack --experimental-https",
     "build": "next build --turbopack",
-    "build:analyze": "cross-env ANALYZE=true next build --turbopack",
+    "build:analyze": "cross-env SOURCE_MAPS=true bun run build && source-map-explorer .next/static/chunks/*.js",
     "build:profile": "cross-env NEXT_BUILD_PROFILE=true next build",
     "wp:build": "next build",
     "start": "next start",
@@ -68,6 +68,7 @@
     "postcss-extend-rule": "^4.0.0",
     "postcss-functions": "^4.0.2",
     "postcss-preset-env": "^10.2.3",
+    "source-map-explorer": "^2.5.3",
     "tailwindcss": "^4.1.10",
     "typescript": "^5.8.3"
   },

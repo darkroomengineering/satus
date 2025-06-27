@@ -1,9 +1,12 @@
 'use client'
 
 import { Dialog } from '@base-ui-components/react/dialog'
+import studio from '@theatre/studio'
 import { useEffect, useState } from 'react'
 import Orchestra from './orchestra'
 import { OrchestraToggle } from './toggle'
+
+console.log(studio)
 
 export function Cmdo() {
   const [open, setOpen] = useState(false)

@@ -4,7 +4,7 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  transpilePackages: ['nanoid'],
+  transpilePackages: ['nanoid', '@theatre/studio'],
   turbopack: {
     rules: {
       '*.svg': {

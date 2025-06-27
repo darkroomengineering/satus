@@ -1,34 +1,17 @@
 'use client'
 
 import '@theatre/core'
-import type { IStudio } from '@theatre/studio'
+import studio from '@theatre/studio'
 import { useEffect } from 'react'
 import s from './studio.module.css'
 
-let studio: IStudio | undefined
-
-if (typeof window !== 'undefined') {
-  studio = require('@theatre/studio').default
-}
-
-function initializeStudio() {
-  if (studio) {
-    studio.initialize()
-    studio.ui.restore()
-    console.log('Theatre: Studio initialized')
-  }
-}
-
-// initializeStudio()
-
 export function Studio() {
   useEffect(() => {
-    initializeStudio()
+    studio.initialize()
+    studio.ui.restore()
 
     return () => {
-      if (studio) {
-        studio.ui.hide()
-      }
+      studio.ui.hide()
     }
   }, [])
 
@@ -37,8 +20,6 @@ export function Studio() {
       <button
         type="button"
         onClick={() => {
-          if (!studio) return
-
           const id = window.THEATRE_PROJECT_ID
           const json = studio.createContentOfSaveFile(window.THEATRE_PROJECT_ID)
 

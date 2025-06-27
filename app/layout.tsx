@@ -23,7 +23,7 @@ const GTM_ID = process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID || false
 const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS || false
 
 export const metadata: Metadata = {
-  metadataBase: new URL(`${APP_BASE_URL}`),
+  metadataBase: APP_BASE_URL ? new URL(APP_BASE_URL) : undefined,
   applicationName: APP_NAME,
   title: {
     default: APP_DEFAULT_TITLE,

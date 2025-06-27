@@ -48,7 +48,7 @@ export async function generateMetadata({ params }) {
   const pageUrl = `${baseUrl}/storyblok/${slug}`
 
   return {
-    metadataBase: new URL(baseUrl),
+    metadataBase: APP_BASE_URL ? new URL(APP_BASE_URL) : undefined,
     title: metadata?.title,
     description: metadata?.description,
     alternates: {

@@ -5,9 +5,11 @@ import studio from '@theatre/studio'
 import { useEffect } from 'react'
 import s from './studio.module.css'
 
+studio.initialize()
+studio.ui.hide()
+
 export function Studio() {
   useEffect(() => {
-    studio.initialize()
     studio.ui.restore()
 
     return () => {

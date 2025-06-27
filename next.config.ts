@@ -4,6 +4,9 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  turbo: {
+    transpilePackages: ['nanoid'],
+  },
   turbopack: {
     rules: {
       '*.svg': {

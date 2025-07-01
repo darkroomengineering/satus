@@ -1,9 +1,16 @@
 import { useEffect } from 'react'
 import type { Metric } from 'web-vitals'
 
+// Store whether web vitals have been initialized
+let webVitalsInitialized = false
+
 export function usePerformance() {
   useEffect(() => {
     if (typeof window === 'undefined') return
+
+    // Prevent duplicate initialization
+    if (webVitalsInitialized) return
+    webVitalsInitialized = true
 
     const reportWebVitals = (metric: Metric) => {
       // Log to console in development
@@ -66,7 +73,7 @@ export function useRenderTime(componentName: string) {
 
 declare global {
   interface Window {
-    gtag?: (...args: any[]) => void
-    va?: (...args: any[]) => void
+    gtag?: (command: string, ...args: unknown[]) => void
+    va?: (command: string, data: Record<string, unknown>) => void
   }
 }

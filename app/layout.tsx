@@ -93,15 +93,29 @@ export default function Layout({ children }: PropsWithChildren) {
       // NOTE: This is due to the data-theme attribute being set which causes hydration errors
       suppressHydrationWarning
     >
+      {/* Google Tag Manager - loads in <head> for optimal performance */}
       {GTM_ID && <GoogleTagManager gtmId={GTM_ID} />}
       <body>
+        {/* Critical: CSS custom properties needed for layout */}
         <RealViewport />
+
+        {/* Main app content */}
+        {children}
+
+        {/* Non-critical: Performance monitoring (singleton, lightweight) */}
         <PerformanceMonitor />
         <RoutePerformanceTracker />
-        {children}
+
+        {/* Development tools - dynamically imported */}
         <OrchestraTools />
+
+        {/* Animation framework - lazy loaded */}
         <GSAP />
+
+        {/* RAF management - lightweight */}
         <ReactTempus patch />
+
+        {/* Analytics - loads async, non-blocking */}
         {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
       </body>
     </html>

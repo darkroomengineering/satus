@@ -51,7 +51,7 @@ export function useForm({
     })
   }
 
-  const setToActiveInput = useCallback((value: any, index: number) => {
+  const setToActiveInput = useCallback((value: string, index: number) => {
     if (value.length === 0) {
       setIsActive((prev) =>
         prev.map((state, i) => (i === index ? false : state))
@@ -63,7 +63,7 @@ export function useForm({
     setIsActive((prev) => prev.map((state, i) => (i === index ? true : state)))
   }, [])
 
-  const validate = useCallback((value: any, index: number) => {
+  const validate = useCallback((value: string, index: number) => {
     const element = inputsRefs.current[index]
     if (!element) return
 

@@ -14,11 +14,31 @@ import { useIsVisualEditor } from '~/integrations/storyblok/use-is-visual-editor
 import s from './split-text.module.css'
 
 // Type for GSAP SplitText
-type GSAPSplitTextType = any // We'll use any to avoid complex type imports
+interface GSAPSplitTextInstance {
+  chars?: Element[]
+  words?: Element[]
+  lines?: Element[]
+  revert(): void
+}
+
+interface GSAPSplitTextConstructor {
+  new (
+    element: HTMLElement,
+    options?: {
+      tag?: string
+      type?: string
+      linesClass?: string
+      wordsClass?: string
+      charsClass?: string
+    }
+  ): GSAPSplitTextInstance
+}
+
+type GSAPSplitTextType = GSAPSplitTextInstance
 
 // Lazy load GSAP and SplitText
 let gsapLoaded = false
-let GSAPSplitTextConstructor: any = null
+let GSAPSplitTextConstructor: GSAPSplitTextConstructor | null = null
 
 async function loadGSAPSplitText() {
   if (!gsapLoaded) {
@@ -27,7 +47,8 @@ async function loadGSAPSplitText() {
       import('gsap/SplitText'),
     ])
     const gsap = gsapModule.gsap
-    GSAPSplitTextConstructor = splitTextModule.SplitText
+    GSAPSplitTextConstructor =
+      splitTextModule.SplitText as GSAPSplitTextConstructor
     gsap.registerPlugin(GSAPSplitTextConstructor)
     gsapLoaded = true
   }
@@ -89,10 +110,12 @@ export function SplitText({
       item.innerText = item.innerText.replaceAll(' ', '&nbsp;')
     })
 
-    let splittedInstance: any = null
+    let splittedInstance: GSAPSplitTextInstance | null = null
 
     // Load and create SplitText instance
     loadGSAPSplitText().then((SplitTextConstructor) => {
+      if (!SplitTextConstructor) return
+
       splittedInstance = new SplitTextConstructor(elementRef.current, {
         tag: 'span',
         type,

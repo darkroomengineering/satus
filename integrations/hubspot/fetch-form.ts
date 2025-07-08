@@ -4,6 +4,28 @@ type HubspotFormResponse = Awaited<
   ReturnType<Client['marketing']['forms']['formsApi']['getById']>
 >
 
+interface HubSpotFormField {
+  name: string
+  label: string
+  placeholder?: string
+  required: boolean
+  fieldType: string
+  hidden?: boolean
+  helpText?: string
+  options?: Array<{ label: string; value: string }>
+}
+
+interface HubSpotLegalConsentOption {
+  subscriptionTypeId: string
+  label: string
+}
+
+interface HubSpotLegalConsentOptions {
+  communicationsCheckboxes?: HubSpotLegalConsentOption[]
+  privacyText?: string
+  consentToProcessText?: string
+}
+
 // TODO: If only server side maybe use api-client
 async function hubspotFormApi(id: string | null) {
   const resp = await fetch(`https://api.hubapi.com/marketing/v3/forms/${id}`, {
@@ -33,7 +55,8 @@ function apiParser(id: string | null, data: HubspotFormResponse) {
 
   // Fix: Use proper type assertion and optional chaining
   const legalConsentOptions =
-    (data?.legalConsentOptions as any)?.communicationsCheckboxes || null
+    (data?.legalConsentOptions as HubSpotLegalConsentOptions)
+      ?.communicationsCheckboxes || null
 
   const removeHTML = (htmlText: string) =>
     htmlText.replace('<p>', '').replace('</p>', '')
@@ -42,7 +65,7 @@ function apiParser(id: string | null, data: HubspotFormResponse) {
     portalId: process.env.NEXT_PUBLIC_HUSBPOT_PORTAL_ID,
     id: id,
     inputs: data.fieldGroups.map((item) => {
-      const flatData = item.fields[0] as any // Type assertion to handle incomplete types
+      const flatData = item.fields[0] as HubSpotFormField // Type assertion to handle incomplete types
       return {
         name: flatData?.name || '',
         label: flatData?.label || '',
@@ -53,7 +76,7 @@ function apiParser(id: string | null, data: HubspotFormResponse) {
         hidden: flatData.hidden || false,
         helpText: flatData?.helpText || '',
         options: flatData.options
-          ? flatData.options.map((option: any) => option.label)
+          ? flatData.options.map((option) => option.label)
           : [],
       }
     }),
@@ -66,9 +89,13 @@ function apiParser(id: string | null, data: HubspotFormResponse) {
           subscriptionTypeId: legalConsentOptions[0].subscriptionTypeId,
           label: removeHTML(legalConsentOptions[0].label),
           disclaimer: [
-            removeHTML((data.legalConsentOptions as any).privacyText || ''),
             removeHTML(
-              (data.legalConsentOptions as any).consentToProcessText || ''
+              (data.legalConsentOptions as HubSpotLegalConsentOptions)
+                .privacyText || ''
+            ),
+            removeHTML(
+              (data.legalConsentOptions as HubSpotLegalConsentOptions)
+                .consentToProcessText || ''
             ),
           ],
         }

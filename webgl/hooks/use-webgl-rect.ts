@@ -5,10 +5,20 @@ import { useCallback, useEffect, useRef } from 'react'
 import { Euler, Vector3 } from 'three'
 import { useTransform } from '~/hooks/use-transform'
 
-export function useWebGLRect(rect: Rect, onUpdate?: (transform: any) => void) {
+interface WebGLTransform {
+  position: Vector3
+  rotation: Euler
+  scale: Vector3
+  isVisible: boolean
+}
+
+export function useWebGLRect(
+  rect: Rect,
+  onUpdate?: (transform: WebGLTransform) => void
+) {
   const size = useThree((state) => state.size)
 
-  const transformRef = useRef({
+  const transformRef = useRef<WebGLTransform>({
     position: new Vector3(0, 0, 0),
     rotation: new Euler(0, 0, 0),
     scale: new Vector3(1, 1, 1),

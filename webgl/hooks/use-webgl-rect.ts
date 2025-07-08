@@ -41,7 +41,7 @@ export function useWebGLRect(
 
     const transform = transformRef.current
 
-    if (!rect.top || !rect.height || !rect.left || !rect.width) {
+    if (!(((rect.top && rect.height ) && rect.left ) && rect.width)) {
       console.warn('useWebGLRect: rect is missing required properties', rect)
       return
     }

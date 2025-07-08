@@ -39,7 +39,7 @@ export function WebGLImage({ src, rect }: WebGLImageProps) {
     }
   )
   return (
-    <mesh ref={meshRef as any} matrixAutoUpdate={false}>
+    <mesh ref={meshRef} matrixAutoUpdate={false}>
       <planeGeometry />
       <primitive object={material} />
     </mesh>

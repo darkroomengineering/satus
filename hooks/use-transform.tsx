@@ -71,13 +71,27 @@ type TransformContextType = {
 
 export const TransformContext = createContext<TransformContextType>({
   getTransform: () => structuredClone(DEFAULT_TRANSFORM),
-  addCallback: () => {},
-  removeCallback: () => {},
-  setTranslate: () => {},
-  setRotate: () => {},
-  setScale: () => {},
-  setClip: () => {},
-  setUserData: () => {},
+  addCallback: () => {
+    // Default no-op implementation
+  },
+  removeCallback: () => {
+    // Default no-op implementation
+  },
+  setTranslate: () => {
+    // Default no-op implementation
+  },
+  setRotate: () => {
+    // Default no-op implementation
+  },
+  setScale: () => {
+    // Default no-op implementation
+  },
+  setClip: () => {
+    // Default no-op implementation
+  },
+  setUserData: () => {
+    // Default no-op implementation
+  },
 })
 
 // TODO: batch updates

@@ -7,7 +7,7 @@ export function Stats() {
   const stats = useMemo(() => new _Stats({ minimal: false }), [])
 
   useEffect(() => {
-    const domElement = (stats as any).dom
+    const domElement = (stats as unknown as { dom: HTMLElement }).dom
     document.body.appendChild(domElement)
     domElement.classList.add(s.stats)
 

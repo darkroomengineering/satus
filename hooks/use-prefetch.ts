@@ -23,9 +23,11 @@ export function usePrefetch<T extends HTMLElement = HTMLElement>(
       const [entry] = entries
       if (entry?.isIntersecting && !prefetchedRef.current && href) {
         // Check network conditions before prefetching
-        const connection = (navigator as any).connection as
-          | NetworkInformation
-          | undefined
+        const connection = (
+          navigator as Navigator & {
+            connection?: NetworkInformation
+          }
+        ).connection
         connectionRef.current = connection || null
 
         const shouldPrefetch =

@@ -27,7 +27,7 @@ export function GridDebugger({
         {Array.from({ length: columns }).map((_, index) => (
           <span
             key={`column-${
-              // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+              // biome-ignore lint/suspicious/noArrayIndexKey: grid columns are static
               index
             }`}
           />

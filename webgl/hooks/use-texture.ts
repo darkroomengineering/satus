@@ -44,7 +44,9 @@ export function useTexture(
 
         DefaultLoadingManager.itemEnd(src)
 
-        gl.initTexture(texture as any)
+        gl.initTexture(
+          texture as unknown as Parameters<typeof gl.initTexture>[0]
+        )
       })
     })
   }, [JSON.stringify(src), isArray])

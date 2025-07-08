@@ -28,6 +28,7 @@ import {
 
 const endpoint = process.env.SHOPIFY_STORE_DOMAIN + SHOPIFY_GRAPHQL_API_ENDPOINT
 const key = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN
+const domain = process.env.SHOPIFY_STORE_DOMAIN
 
 export async function shopifyFetch({
   cache = 'force-cache',
@@ -384,7 +385,7 @@ export async function revalidate(req) {
     return NextResponse.json({ status: 200 })
   }
 
-  if (!isCollectionUpdate && !isProductUpdate) {
+  if (!(isCollectionUpdate || isProductUpdate)) {
     // We don't need to revalidate anything for any other topics.
     return NextResponse.json({ status: 200 })
   }

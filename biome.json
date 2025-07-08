@@ -1,9 +1,9 @@
 {
-  "$schema": "node_modules/@biomejs/biome/configuration_schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.1.0/schema.json",
   "vcs": {
-    "enabled": false,
+    "enabled": true,
     "clientKind": "git",
-    "useIgnoreFile": false
+    "useIgnoreFile": true
   },
   "files": {
     "ignoreUnknown": false,
@@ -19,8 +19,8 @@
       "!bun.lock",
       "!**/*.md",
       "!**/*.mdx",
-      "!tailwind.css",
-      "!root.css"
+      "!**/tailwind.css",
+      "!**/root.css"
     ]
   },
   "formatter": {
@@ -46,16 +46,13 @@
     },
     "rules": {
       "recommended": true,
-      "suspicious": {
-        "noExplicitAny": "warn"
-      },
       "correctness": {
+        "noUnusedImports": "error",
+        "noUnusedVariables": "warn",
         "useExhaustiveDependencies": "warn",
-        "noUnknownMediaFeatureName": "off"
-      },
-      "a11y": {
-        "useKeyWithClickEvents": "warn",
-        "useValidAnchor": "warn"
+        "noUnknownMediaFeatureName": "off",
+        "noUndeclaredVariables": "error",
+        "noInvalidUseBeforeDeclaration": "error"
       },
       "style": {
         "noNonNullAssertion": "off",
@@ -68,7 +65,62 @@
         "useSingleVarDeclarator": "error",
         "useNumberNamespace": "error",
         "noInferrableTypes": "error",
-        "noUselessElse": "error"
+        "noUselessElse": "error",
+        "useConsistentArrayType": "error",
+        "useForOf": "warn",
+        "useShorthandAssign": "error",
+        "useTemplate": "warn",
+        "useCollapsedElseIf": "warn",
+        "useExponentiationOperator": "error",
+        "useConsistentBuiltinInstantiation": "error",
+        "useFilenamingConvention": {
+          "level": "warn",
+          "options": {
+            "filenameCases": ["kebab-case", "camelCase"],
+            "strictCase": false
+          }
+        }
+      },
+      "suspicious": {
+        "noExplicitAny": "warn",
+        "noEmptyBlockStatements": "warn",
+        "noDoubleEquals": "error",
+        "noDebugger": "warn",
+        "noGlobalIsFinite": "error",
+        "noGlobalIsNan": "error",
+        "noMisleadingCharacterClass": "error",
+        "noPrototypeBuiltins": "warn",
+        "noSelfCompare": "error",
+        "noSparseArray": "error",
+        "useAwait": "off"
+      },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": "warn",
+        "noForEach": "off",
+        "useSimplifiedLogicExpression": "warn",
+        "useFlatMap": "warn"
+      },
+      "security": {
+        "noGlobalEval": "error",
+        "noDangerouslySetInnerHtml": "warn",
+        "noDangerouslySetInnerHtmlWithChildren": "error"
+      },
+      "a11y": {
+        "useKeyWithClickEvents": "warn",
+        "useValidAnchor": "warn",
+        "useAltText": "error",
+        "useButtonType": "error",
+        "useValidAriaProps": "error",
+        "useValidAriaRole": "error",
+        "useValidAriaValues": "error",
+        "noAriaUnsupportedElements": "error",
+        "noAutofocus": "warn",
+        "noDistractingElements": "error",
+        "noRedundantAlt": "error",
+        "useSemanticElements": "warn"
+      },
+      "nursery": {
+        "useSortedClasses": "off"
       }
     }
   },
@@ -79,7 +131,8 @@
     "formatter": {
       "enabled": true,
       "indentStyle": "space",
-      "indentWidth": 2
+      "indentWidth": 2,
+      "lineWidth": 80
     },
     "parser": {
       "cssModules": true
@@ -104,6 +157,83 @@
         "rules": {
           "correctness": {
             "noUnknownFunction": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.tsx", "**/*.jsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useImportType": "error"
+          },
+          "correctness": {
+            "useJsxKeyInIterable": "error"
+          },
+          "a11y": {
+            "useValidAnchor": "error",
+            "useKeyWithClickEvents": "error",
+            "useKeyWithMouseEvents": "error"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.ts", "**/*.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useImportType": "error",
+            "useExportType": "error",
+            "useConsistentArrayType": "error"
+          },
+          "suspicious": {
+            "noExplicitAny": "warn"
+          },
+          "correctness": {
+            "noUndeclaredVariables": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "app/**/*.tsx",
+        "app/**/*.ts",
+        "app/**/*.jsx",
+        "app/**/*.js"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDefaultExport": "off"
+          },
+          "suspicious": {
+            "useAwait": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.module.css"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUnknownProperty": "off"
+          },
+          "style": {
+            "noDescendingSpecificity": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["styles/css/root.css"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noDuplicateCustomProperties": "off"
           }
         }
       }

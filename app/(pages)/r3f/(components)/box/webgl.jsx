@@ -41,17 +41,15 @@ export function WebGLBox({ theatreKey = 'box', rect }) {
   })
 
   return (
-    <>
-      <mesh
-        matrixAutoUpdate={false}
-        ref={(node) => {
-          meshRef.current = node
-          node?.updateMatrix()
-        }}
-      >
-        <boxGeometry />
-        <meshNormalMaterial />
-      </mesh>
-    </>
+    <mesh
+      matrixAutoUpdate={false}
+      ref={(node) => {
+        meshRef.current = node
+        node?.updateMatrix()
+      }}
+    >
+      <boxGeometry />
+      <meshNormalMaterial />
+    </mesh>
   )
 }

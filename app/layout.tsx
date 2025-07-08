@@ -19,8 +19,8 @@ const APP_TITLE_TEMPLATE = '%s - Satūs'
 const APP_DESCRIPTION = AppData.description
 const APP_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
 
-const GTM_ID = process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID || false
-const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS || false
+const GTM_ID = process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID
+const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS
 
 export const metadata: Metadata = {
   metadataBase: new URL(`${APP_BASE_URL}`),

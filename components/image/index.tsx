@@ -73,7 +73,7 @@ export function Image({
 
   // Generate blur data URL if needed
   const blurDataURL = (() => {
-    if (!shouldUsePlaceholder || !aspectRatio) return props.blurDataURL
+    if (!(shouldUsePlaceholder && aspectRatio)) return props.blurDataURL
 
     const shimmerSvg = generateShimmer(700, Math.round(700 / aspectRatio))
     return `data:image/svg+xml;base64,${toBase64(shimmerSvg)}`

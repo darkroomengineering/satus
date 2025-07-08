@@ -45,7 +45,11 @@ export function Link({
     }
 
     // Only prefetch on good connections
-    const connection = (navigator as any).connection
+    const connection = (
+      navigator as Navigator & {
+        connection?: { effectiveType: string; saveData: boolean }
+      }
+    ).connection
     if (connection) {
       const { effectiveType, saveData } = connection
       setShouldPrefetch(effectiveType === '4g' && !saveData)

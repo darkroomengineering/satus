@@ -70,10 +70,10 @@ function apiParser(id: string | null, data: HubspotFormResponse) {
         name: flatData?.name || '',
         label: flatData?.label || '',
         placeholder: flatData?.placeholder || 'placeHolder',
-        required: flatData?.required || false,
+        required: flatData?.required,
         hubspotType: typeSetter(flatData.fieldType),
         type: flatData.fieldType || '',
-        hidden: flatData.hidden || false,
+        hidden: flatData.hidden,
         helpText: flatData?.helpText || '',
         options: flatData.options
           ? flatData.options.map((option) => option.label)
@@ -109,9 +109,9 @@ function apiParser(id: string | null, data: HubspotFormResponse) {
 
 export async function getForm(
   formId = null,
-  handler = (async () => {}) as (form: {
-    form: Awaited<ReturnType<typeof apiParser>>
-  }) => Promise<void>
+  handler = (async () => {
+    // Default no-op handler
+  }) as (form: { form: Awaited<ReturnType<typeof apiParser>> }) => Promise<void>
 ) {
   try {
     const form = {

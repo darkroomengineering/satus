@@ -244,7 +244,7 @@ export function useScrollTrigger(
   )
 
   // eslint-disable-next-line no-unused-vars
-  const [setProgress, getProgress] = useLazyState(
+  const [setProgress, _getProgress] = useLazyState(
     // @ts-ignore
     undefined,
     (progress: number, lastProgress: number) => {

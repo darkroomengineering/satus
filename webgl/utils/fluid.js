@@ -15,7 +15,7 @@ import {
 
 import Program from './program'
 
-const fragment = /* glsl */ `
+const _fragment = /* glsl */ `
 precision highp float;
 uniform sampler2D tMap;
 uniform sampler2D tFluid;

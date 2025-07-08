@@ -5,7 +5,6 @@ This directory contains reusable UI components used throughout the application.
 ## Component Categories
 
 ### Core Components
-- `button/` - Button components with various styles and states
 - `link/` - Custom link components for navigation
 - `form/` - Form-related components and inputs
 - `image/` - Image components with optimization and lazy loading
@@ -25,10 +24,12 @@ This directory contains reusable UI components used throughout the application.
 - `real-viewport/` - Viewport-aware components
 - `scrollbar/` - Custom scrollbar components
 
-### Integration Components
-- `hubspot/` - HubSpot form integration components
-- `debug/` - Debugging and development tools
-- `console/` - Console logging components
+### Development Tools
+- `performance-monitor/` - Performance monitoring and debugging tools
+- `console/` - Console logging utilities
+
+### Assets
+- `darkroom.svg` - Darkroom Engineering logo and branding assets
 
 ## Features
 
@@ -43,7 +44,8 @@ This directory contains reusable UI components used throughout the application.
 Import components directly from their respective directories:
 
 ```typescript
-import Button from '~/components/button'
 import Link from '~/components/link'
 import Form from '~/components/form'
+import { Image } from '~/components/image'
+import { GSAP } from '~/components/gsap'
 ```

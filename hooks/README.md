@@ -4,11 +4,71 @@ This directory contains reusable React hooks that provide common functionality a
 
 ## Available Hooks
 
+- `use-device-detection.ts` - Hook for detecting device type and characteristics
+- `use-performance.ts` - Hook for tracking Core Web Vitals and performance metrics
+- `use-prefetch.ts` - Hook for prefetching routes when elements become visible
 - `use-scroll-trigger.ts` - Hook for detecting and responding to scroll-based triggers and animations
 - `use-transform.tsx` - Hook for handling element transformations with GSAP
-- `use-device-detection.ts` - Hook for detecting device type and characteristics
 
 ## Detailed Usage
+
+### useDeviceDetection
+
+Detects device type and characteristics to adapt components for different devices.
+
+```tsx
+import { useDeviceDetection } from '~/hooks/use-device-detection'
+
+function ResponsiveComponent() {
+  const { isMobile, isTablet, isDesktop, isTouch } = useDeviceDetection()
+  
+  return (
+    <div>
+      {isMobile && <MobileLayout />}
+      {isTablet && <TabletLayout />}
+      {isDesktop && <DesktopLayout />}
+      
+      {isTouch ? (
+        <TouchInteractions />
+      ) : (
+        <MouseInteractions />
+      )}
+    </div>
+  )
+}
+```
+
+### usePerformance
+
+Automatically tracks and reports Core Web Vitals metrics to analytics services.
+
+```tsx
+import { usePerformance } from '~/hooks/use-performance'
+
+// Add to your root layout or app component
+function App() {
+  usePerformance()
+  return <>{/* Your app */}</>
+}
+```
+
+### usePrefetch
+
+Prefetches routes when elements become visible in the viewport.
+
+```tsx
+import { usePrefetch } from '~/hooks/use-prefetch'
+
+function ProductCard({ href }: { href: string }) {
+  const prefetchRef = usePrefetch(href)
+  
+  return (
+    <div ref={prefetchRef}>
+      <Link href={href}>View Product</Link>
+    </div>
+  )
+}
+```
 
 ### useScrollTrigger
 
@@ -78,32 +138,6 @@ function AnimatedElement() {
 }
 ```
 
-### useDeviceDetection
-
-Detects device type and characteristics to adapt components for different devices.
-
-```tsx
-import { useDeviceDetection } from '~/hooks/use-device-detection'
-
-function ResponsiveComponent() {
-  const { isMobile, isTablet, isDesktop, isTouch } = useDeviceDetection()
-  
-  return (
-    <div>
-      {isMobile && <MobileLayout />}
-      {isTablet && <TabletLayout />}
-      {isDesktop && <DesktopLayout />}
-      
-      {isTouch ? (
-        <TouchInteractions />
-      ) : (
-        <MouseInteractions />
-      )}
-    </div>
-  )
-}
-```
-
 ## Integration with Other Libraries
 
 These hooks are designed to work seamlessly with:
@@ -133,9 +167,11 @@ These hooks are designed to work seamlessly with:
 
 ## Features
 
+- Device detection and responsive behavior
+- Performance monitoring with Core Web Vitals
+- Route prefetching for improved navigation
 - Scroll-based animations and triggers
 - Element transformations with GSAP integration
-- Device detection and responsive behavior
 - Type-safe implementations with TypeScript
 
 ## Usage
@@ -143,121 +179,9 @@ These hooks are designed to work seamlessly with:
 Import hooks directly from this directory:
 
 ```typescript
-import { useScrollTrigger } from '~/hooks/use-scroll-trigger'
-import { useTransform } from '~/hooks/use-transform'
 import { useDeviceDetection } from '~/hooks/use-device-detection'
-```
-
-# Hooks
-
-This directory contains custom React hooks for the Satus starter kit.
-
-## Available Hooks
-
-### Performance & Optimization
-
-#### `usePerformance`
-Automatically tracks and reports Core Web Vitals metrics to analytics services.
-
-```tsx
 import { usePerformance } from '~/hooks/use-performance'
-
-// Add to your root layout or app component
-function App() {
-  usePerformance()
-  return <>{/* Your app */}</>
-}
-```
-
-#### `useRenderTime`
-Tracks component render performance in development.
-
-```tsx
-import { useRenderTime } from '~/hooks/use-performance'
-
-function HeavyComponent() {
-  useRenderTime('HeavyComponent')
-  // Component logic...
-}
-```
-
-#### `usePrefetch`
-Prefetches routes when elements become visible in the viewport.
-
-```tsx
 import { usePrefetch } from '~/hooks/use-prefetch'
-
-function ProductCard({ href }: { href: string }) {
-  const prefetchRef = usePrefetch(href)
-  
-  return (
-    <div ref={prefetchRef}>
-      <Link href={href}>View Product</Link>
-    </div>
-  )
-}
-```
-
-### Device & Browser
-
-#### `useDeviceDetection`
-Detects device capabilities and features.
-
-```tsx
-import { useDeviceDetection } from '~/hooks/use-device-detection'
-
-function Component() {
-  const { isWebGL, isMobile, isTablet } = useDeviceDetection()
-  
-  if (!isWebGL) {
-    return <FallbackComponent />
-  }
-  
-  return <WebGLComponent />
-}
-```
-
-### Animation & Scroll
-
-#### `useScrollTrigger`
-Provides scroll-based animations and triggers.
-
-```tsx
 import { useScrollTrigger } from '~/hooks/use-scroll-trigger'
-
-function AnimatedSection() {
-  const ref = useRef<HTMLElement>(null)
-  
-  useScrollTrigger({
-    ref,
-    start: 'top center',
-    end: 'bottom center',
-    onProgress: ({ progress }) => {
-      // Animate based on scroll progress
-    }
-  })
-  
-  return <section ref={ref}>Content</section>
-}
-```
-
-#### `useTransform`
-Transforms values with easing and interpolation.
-
-```tsx
 import { useTransform } from '~/hooks/use-transform'
-
-function Component() {
-  const transformedValue = useTransform(scrollProgress, [0, 1], [0, 100])
-  
-  return <div style={{ transform: `translateY(${transformedValue}px)` }} />
-}
 ```
-
-## Best Practices
-
-1. **Performance First**: Always consider performance implications when using hooks
-2. **Conditional Loading**: Use device detection to conditionally load heavy features
-3. **Lazy Loading**: Prefer lazy loading for non-critical functionality
-4. **Cleanup**: Ensure proper cleanup in useEffect hooks
-5. **Type Safety**: All hooks are fully typed with TypeScript

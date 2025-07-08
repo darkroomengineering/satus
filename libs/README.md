@@ -6,8 +6,10 @@ This directory contains utility functions, type definitions, and shared librarie
 
 - `utils.ts` - General utility functions for common operations
 - `maths.ts` - Mathematical utility functions for calculations and transformations
-- `store.ts` - Zustand-based state management utilities 
+- `store.ts` - Zustand-based state management utilities
+- `tempus-queue.ts` - Queue utilities for Tempus animation library
 - `augment.d.ts` - TypeScript type augmentations for third-party libraries
+- `css.d.ts` - TypeScript definitions for CSS modules
 - `reset.d.ts` - TypeScript reset type definitions
 
 ## Utility Functions (utils.ts)

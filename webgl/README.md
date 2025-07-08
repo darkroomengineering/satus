@@ -23,10 +23,10 @@ This directory contains WebGL and 3D graphics components, utilities, and hooks f
 
 ## Core Technologies
 
-- [Three.js 0.174.0](https://threejs.org/) - 3D WebGL library
-- [React Three Fiber 9.0](https://docs.pmnd.rs/react-three-fiber) - React renderer for Three.js
-- [Drei 10.0](https://github.com/pmndrs/drei) - Useful helpers for R3F
-- [Postprocessing 6.36](https://pmndrs.github.io/postprocessing) - Post-processing effects
+- [Three.js](https://threejs.org/) - 3D WebGL library
+- [React Three Fiber](https://docs.pmnd.rs/react-three-fiber) - React renderer for Three.js
+- [Drei](https://github.com/pmndrs/drei) - Useful helpers for R3F
+- [Postprocessing](https://pmndrs.github.io/postprocessing) - Post-processing effects
 
 ## Features
 

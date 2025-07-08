@@ -58,22 +58,24 @@ NEXT_PUBLIC_BASE_URL="https://your-domain.com"
 ### Animation Systems
 - GSAP for general animations
 - Theatre.js for complex sequences
-- [GSAP Documentation](docs/gsap/README.md)
+- [GSAP Documentation](components/gsap/README.md)
 
 ### Styling System
 - Hybrid approach with Tailwind CSS and PostCSS
 - Responsive units: `mobile-vw()` and `desktop-vw()`
 - Grid system: 4 columns (mobile) / 12 columns (desktop)
-- [Styling Documentation](docs/styles/README.md)
+- [Styling Documentation](styles/README.md)
 
 ## Documentation
 
 Detailed documentation is available in the repository:
 
 - [Styles System](styles/README.md) - Complete styling architecture and usage
-- [GSAP Integration](docs/gsap/README.md) - Animation system setup and examples
-- [Storyblok Integration](docs/storyblok/README.md) - CMS configuration and usage
-- [Quick How-To Guide](docs/HOW-TO.md) - Common tasks and solutions
+- [GSAP Integration](components/gsap/README.md) - Animation system setup and examples
+- [Storyblok Integration](integrations/storyblok/README.md) - CMS configuration and usage
+- [Components Guide](components/README.md) - UI components and usage patterns
+- [Hooks Documentation](hooks/README.md) - Custom React hooks and utilities
+- [WebGL Components](webgl/README.md) - 3D graphics and WebGL usage
 - [Root README](README.md) - Project overview and development setup
 
 ## Stack:
@@ -140,7 +142,7 @@ Access with `CMD+O`:
 ### Monitoring
 - Vercel Analytics Dashboard
 - Lighthouse CI Reports
-- [Performance Documentation](docs/performance/README.md)
+- Performance monitoring with hooks/use-performance.ts
 
 ### Content Updates
 1. Content changes through Storyblok will automatically update via webhooks

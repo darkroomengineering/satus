@@ -25,13 +25,13 @@ bun start
 
 ## 🛠 Tech Stack
 
-- **[Next.js 15.3.2](https://nextjs.org)** - React framework with App Router and Turbopack
+- **[Next.js](https://nextjs.org)** - React framework with App Router and Turbopack
 - **[React 19.1.0](https://react.dev)** - Latest React with simplified ref handling
 - **[TypeScript](https://www.typescriptlang.org)** - Type-safe development
-- **[Tailwind CSS 4.1.7](https://tailwindcss.com)** - CSS-first configuration
+- **[Tailwind CSS](https://tailwindcss.com)** - CSS-first configuration
 - **[React Three Fiber](https://docs.pmnd.rs/react-three-fiber)** - React renderer for Three.js
-- **[GSAP 3.13.0](https://greensock.com/gsap/)** - Timeline-based animations
-- **[Biome 1.9.4](https://biomejs.dev)** - Fast formatter and linter
+- **[GSAP](https://greensock.com/gsap/)** - Timeline-based animations
+- **[Biome](https://biomejs.dev)** - Fast formatter and linter
 - **[Bun](https://bun.sh)** - All-in-one JavaScript runtime
 
 ## 📁 Project Structure

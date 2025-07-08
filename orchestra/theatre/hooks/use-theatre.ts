@@ -64,6 +64,8 @@ export function useTheatre<Config extends UnknownShorthandCompoundProps>(
         onValuesChangeRef.current?.(values as TheatrePropsToValues<Config>)
       })
     }
+
+    return undefined
   }, [object, lazy, ...deps])
 
   const studio = useStudio()

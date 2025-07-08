@@ -40,6 +40,8 @@ export function useStudioCurrentObject() {
 
       return unsubscribe
     }
+
+    return undefined
   }, [studio])
 
   return currentObjectAddress

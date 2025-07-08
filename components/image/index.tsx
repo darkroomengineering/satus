@@ -37,6 +37,45 @@ const generateShimmer = (w: number, h: number) => `
     <animate xlink:href="#r" attributeName="x" from="-${w}" to="${w}" dur="1s" repeatCount="indefinite"  />
   </svg>`
 
+// Helper to determine if blur placeholder should be used
+const shouldUseBlurPlaceholder = (
+  src: NextImageProps['src'],
+  placeholder: string,
+  blurDataURL: string | undefined
+): boolean => {
+  if (!src) return false
+  const isSvg = typeof src === 'string' && src.includes('.svg')
+  return !isSvg && placeholder === 'blur' && !blurDataURL
+}
+
+// Helper to generate blur data URL
+const generateBlurDataURL = (
+  shouldUse: boolean,
+  aspectRatio: number | undefined,
+  existingBlurDataURL: string | undefined
+): string | undefined => {
+  if (!(shouldUse && aspectRatio)) return existingBlurDataURL
+
+  const shimmerSvg = generateShimmer(700, Math.round(700 / aspectRatio))
+  return `data:image/svg+xml;base64,${toBase64(shimmerSvg)}`
+}
+
+// Helper to determine final placeholder value
+const getFinalPlaceholder = (
+  shouldUse: boolean,
+  aspectRatio: number | undefined,
+  blurDataURL: string | undefined,
+  originalPlaceholder: NextImageProps['placeholder']
+): NextImageProps['placeholder'] => {
+  if (!shouldUse) {
+    return originalPlaceholder === 'blur' && !blurDataURL
+      ? 'empty'
+      : originalPlaceholder
+  }
+
+  return aspectRatio || blurDataURL ? 'blur' : 'empty'
+}
+
 export function Image({
   style,
   className,
@@ -66,30 +105,27 @@ export function Image({
   const finalSizes =
     sizes || `(max-width: ${breakpoints.dt}px) ${mobileSize}, ${desktopSize}`
 
-  // Generate placeholder for non-SVG images
-  const isSvg = typeof src === 'string' && src?.includes('.svg')
-  const shouldUsePlaceholder =
-    !isSvg && placeholder === 'blur' && !props.blurDataURL
-
-  // Generate blur data URL if needed
-  const blurDataURL = (() => {
-    if (!(shouldUsePlaceholder && aspectRatio)) return props.blurDataURL
-
-    const shimmerSvg = generateShimmer(700, Math.round(700 / aspectRatio))
-    return `data:image/svg+xml;base64,${toBase64(shimmerSvg)}`
-  })()
-
   // Early return after hooks
   if (!src) return null
 
-  // Determine final placeholder value
-  const finalPlaceholder = shouldUsePlaceholder
-    ? aspectRatio || props.blurDataURL
-      ? 'blur'
-      : 'empty'
-    : placeholder === 'blur' && !props.blurDataURL
-      ? 'empty'
-      : placeholder
+  // Determine SVG status and placeholder logic
+  const isSvg = typeof src === 'string' && src.includes('.svg')
+  const shouldUsePlaceholder = shouldUseBlurPlaceholder(
+    src,
+    placeholder,
+    props.blurDataURL
+  )
+  const blurDataURL = generateBlurDataURL(
+    shouldUsePlaceholder,
+    aspectRatio,
+    props.blurDataURL
+  )
+  const finalPlaceholder = getFinalPlaceholder(
+    shouldUsePlaceholder,
+    aspectRatio,
+    props.blurDataURL,
+    placeholder
+  )
 
   return (
     <NextImage

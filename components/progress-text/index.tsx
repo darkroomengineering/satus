@@ -65,7 +65,7 @@ export function ProgressText({
       }}
     >
       {children.split(' ').map((word, index) => (
-        <Fragment key={slugify(word)}>
+        <Fragment key={`${slugify(word)}-${index}`}>
           <span
             className={s.word}
             ref={(node) => {

@@ -141,8 +141,9 @@
             border-radius: mobile-vw(4px);
             overflow: hidden;
             flex-shrink: 0;
-            transition: 500ms background-color var(--ease-gleasing), 500ms color
-              var(--ease-gleasing);
+            transition:
+              500ms background-color var(--ease-gleasing),
+              500ms color var(--ease-gleasing);
 
             @media (--desktop) {
               width: desktop-vw(30px);

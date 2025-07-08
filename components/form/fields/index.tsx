@@ -95,10 +95,9 @@ export function CheckboxesField({
   const handleList = useCallback((value: string) => {
     if (!optionsRef.current) return
     let update = ''
-    const tmp = JSON.parse(optionsRef.current.value)
+    const tmp = JSON.parse(optionsRef.current.value) as string[]
 
     if (tmp.includes(value)) {
-      // @ts-expect-error - no time to type, this usage works
       const rm = tmp.filter((item) => item !== value)
       update = JSON.stringify([...rm])
     } else {

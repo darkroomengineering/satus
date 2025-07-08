@@ -9,7 +9,7 @@ import {
 } from '../mutations/customer'
 import { getCustomerQuery } from '../queries/customer'
 
-export async function LoginCustomerAction(prevState, formData) {
+export async function LoginCustomerAction(_prevState, formData) {
   const email = formData.get('email')
   const password = formData.get('password')
 
@@ -42,7 +42,7 @@ export async function LoginCustomerAction(prevState, formData) {
     }
 
     return { success: true }
-  } catch (error) {
+  } catch (_error) {
     return { error: 'An unexpected error occurred. Please try again.' }
   }
 }
@@ -69,7 +69,7 @@ export async function LogoutCustomerAction() {
   return { success: true }
 }
 
-export async function CreateCustomerAction(prevState, formData) {
+export async function CreateCustomerAction(_prevState, formData) {
   const firstName = formData.get('firstName')
   const lastName = formData.get('lastName')
   const email = formData.get('email')
@@ -96,7 +96,7 @@ export async function CreateCustomerAction(prevState, formData) {
     }
 
     return { success: true, customer }
-  } catch (error) {
+  } catch (_error) {
     return { error: 'An unexpected error occurred. Please try again.' }
   }
 }

@@ -1,10 +1,10 @@
 'use client'
 
-import { type IProject, type ISheet, getProject, onChange } from '@theatre/core'
+import { getProject, type IProject, type ISheet, onChange } from '@theatre/core'
 import {
+  createContext,
   type PropsWithChildren,
   type Ref,
-  createContext,
   useContext,
   useEffect,
   useImperativeHandle,

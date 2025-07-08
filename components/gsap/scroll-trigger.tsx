@@ -15,7 +15,7 @@ export function ScrollTriggerConfig() {
   }, [])
 
   const lenis = useLenis(ScrollTrigger.update)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  // biome-ignore lint/correctness/useExhaustiveDependencies: no time to type
   useEffect(() => ScrollTrigger.refresh(), [lenis])
 
   return null

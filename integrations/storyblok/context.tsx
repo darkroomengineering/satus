@@ -5,9 +5,9 @@
 import type { ISbStoryData, StoryblokBridgeConfigV2 } from '@storyblok/js'
 import Script, { type ScriptProps } from 'next/script'
 import {
+  createContext,
   type PropsWithChildren,
   Suspense,
-  createContext,
   useCallback,
   useContext,
   useState,

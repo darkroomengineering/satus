@@ -7,11 +7,12 @@ export function Stats() {
   const stats = useMemo(() => new _Stats({ minimal: false }), [])
 
   useEffect(() => {
-    document.body.appendChild(stats.dom)
-    stats.dom.classList.add(s.stats)
+    const domElement = (stats as any).dom
+    document.body.appendChild(domElement)
+    domElement.classList.add(s.stats)
 
     return () => {
-      stats.dom.remove()
+      domElement.remove()
     }
   }, [stats])
 

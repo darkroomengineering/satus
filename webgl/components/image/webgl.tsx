@@ -13,15 +13,16 @@ export function WebGLImage({ src, rect }: WebGLImageProps) {
   const meshRef = useRef<Mesh>(null!)
   const [material] = useState(() => new MeshBasicMaterial())
 
-  src &&
-    useTexture(src, (texture) => {
-      texture.magFilter = texture.minFilter = LinearFilter
-      texture.generateMipmaps = false
+  useTexture(src || '', (texture) => {
+    if (!src) return
 
-      // @ts-ignore - Type mismatch between Three.js versions
-      material.map = texture
-      material.needsUpdate = true
-    })
+    texture.magFilter = texture.minFilter = LinearFilter
+    texture.generateMipmaps = false
+
+    // @ts-ignore - Type mismatch between Three.js versions
+    material.map = texture
+    material.needsUpdate = true
+  })
 
   useWebGLRect(
     rect,

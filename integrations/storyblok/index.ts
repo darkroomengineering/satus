@@ -17,7 +17,7 @@ interface StoryblokConfig {
 
 class StoryblokApi extends StoryblokClient {
   private draft: boolean
-  private version: ISbStoriesParams['version']
+  private _version: ISbStoriesParams['version']
 
   constructor({ draft = false, ...props }: StoryblokConfig = {}) {
     super({
@@ -29,7 +29,7 @@ class StoryblokApi extends StoryblokClient {
     })
 
     this.draft = draft
-    this.version = draft ? 'draft' : 'published'
+    this._version = draft ? 'draft' : 'published'
   }
 
   async get(
@@ -37,7 +37,7 @@ class StoryblokApi extends StoryblokClient {
     params: ISbStoriesParams = {},
     options: ISbCustomFetch = {}
   ) {
-    params.version = this.version
+    params.version = this._version
 
     if (this.draft) {
       options.cache = 'no-store'
@@ -122,7 +122,7 @@ export async function fetchDataSources(slug: string) {
       'cdn/datasource_entries/',
       {
         datasource: slug,
-        cv: new Date().getTime(),
+        cv: Date.now(),
         page,
         per_page: 100, // Maximum allowed per page
       },

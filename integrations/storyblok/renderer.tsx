@@ -1,12 +1,14 @@
 // https://www.npmjs.com/package/storyblok-rich-text-react-renderer
 
+import type {
+  RenderOptions,
+  StoryblokRichtext,
+} from 'storyblok-rich-text-react-renderer'
 import {
   MARK_LINK,
   NODE_HEADING,
   NODE_IMAGE,
   NODE_PARAGRAPH,
-  type RenderOptions,
-  type StoryblokRichtext,
   render,
 } from 'storyblok-rich-text-react-renderer'
 import { Image } from '~/components/image'
@@ -29,7 +31,7 @@ export function renderRichText(
   return render(content, {
     markResolvers: {
       [MARK_LINK]: (children, { href }) =>
-        children ? <Link href={href}>{children}</Link> : null,
+        children && href ? <Link href={href}>{children}</Link> : null,
       ...markResolvers,
     },
     nodeResolvers: {

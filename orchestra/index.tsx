@@ -26,7 +26,7 @@ const Minimap = dynamic(
 )
 
 export function OrchestraTools() {
-  const { stats, grid, studio, dev, minimap, webgl } = useOrchestra()
+  const { stats, grid, studio, dev, minimap, _webgl } = useOrchestra()
 
   useEffect(() => {
     document.documentElement.classList.toggle('dev', dev)

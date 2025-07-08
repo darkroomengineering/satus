@@ -8,7 +8,7 @@ import { useTempus } from 'tempus/react'
 import { modulo } from '~/libs/maths'
 import s from './marquee.module.css'
 
-interface MarqueeProps extends HTMLAttributes<HTMLDivElement> {
+interface MarqueeProps extends HTMLAttributes<HTMLElement> {
   repeat?: number
   speed?: number
   scrollVelocity?: boolean
@@ -72,9 +72,11 @@ export function Marquee({
   })
 
   return (
-    <div
+    <section
       ref={setIntersectionRef}
       className={cn(className, s.marquee)}
+      aria-live="off"
+      aria-label="Scrolling content"
       onMouseEnter={(e) => {
         isHovered.current = true
         onMouseEnter?.(e)
@@ -104,6 +106,6 @@ export function Marquee({
           {children}
         </div>
       ))}
-    </div>
+    </section>
   )
 }

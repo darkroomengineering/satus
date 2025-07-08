@@ -35,22 +35,18 @@ export function Dropdown({
   }, [])
 
   return (
-    <div
-      className={cn(s.dropdown, isOpened && s.isOpened, className)}
-      onClick={(e) => {
-        e.stopPropagation()
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') {
-          setIsOpened(false)
-        }
-      }}
-    >
+    <div className={cn(s.dropdown, isOpened && s.isOpened, className)}>
       <button
         type="button"
         className={s.trigger}
-        onClick={() => {
+        onClick={(e) => {
+          e.stopPropagation()
           setIsOpened(!isOpened)
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            setIsOpened(false)
+          }
         }}
       >
         <span>
@@ -58,7 +54,11 @@ export function Dropdown({
         </span>
       </button>
       {isOpened && (
-        <div className={s.options} aria-hidden={isOpened ? undefined : true}>
+        <div
+          className={s.options}
+          aria-hidden={isOpened ? undefined : true}
+          onClick={(e) => e.stopPropagation()}
+        >
           {options.map((value, i) => (
             <button
               type="button"

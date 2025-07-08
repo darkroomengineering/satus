@@ -31,8 +31,9 @@ function apiParser(id: string | null, data: HubspotFormResponse) {
     }
   }
 
+  // Fix: Use proper type assertion and optional chaining
   const legalConsentOptions =
-    data?.legalConsentOptions?.communicationsCheckboxes || null
+    (data?.legalConsentOptions as any)?.communicationsCheckboxes || null
 
   const removeHTML = (htmlText: string) =>
     htmlText.replace('<p>', '').replace('</p>', '')
@@ -41,7 +42,7 @@ function apiParser(id: string | null, data: HubspotFormResponse) {
     portalId: process.env.NEXT_PUBLIC_HUSBPOT_PORTAL_ID,
     id: id,
     inputs: data.fieldGroups.map((item) => {
-      const flatData = item.fields[0]
+      const flatData = item.fields[0] as any // Type assertion to handle incomplete types
       return {
         name: flatData?.name || '',
         label: flatData?.label || '',
@@ -50,11 +51,9 @@ function apiParser(id: string | null, data: HubspotFormResponse) {
         hubspotType: typeSetter(flatData.fieldType),
         type: flatData.fieldType || '',
         hidden: flatData.hidden || false,
-        // TODO: Check if helpText does exist or type is wrong
-        // @ts-ignore
         helpText: flatData?.helpText || '',
         options: flatData.options
-          ? flatData.options.map((option) => option.label)
+          ? flatData.options.map((option: any) => option.label)
           : [],
       }
     }),
@@ -67,8 +66,10 @@ function apiParser(id: string | null, data: HubspotFormResponse) {
           subscriptionTypeId: legalConsentOptions[0].subscriptionTypeId,
           label: removeHTML(legalConsentOptions[0].label),
           disclaimer: [
-            removeHTML(data.legalConsentOptions.privacyText),
-            removeHTML(data.legalConsentOptions.consentToProcessText || ''),
+            removeHTML((data.legalConsentOptions as any).privacyText || ''),
+            removeHTML(
+              (data.legalConsentOptions as any).consentToProcessText || ''
+            ),
           ],
         }
       : { required: false },

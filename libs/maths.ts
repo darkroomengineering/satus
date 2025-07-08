@@ -26,7 +26,4 @@ function modulo(n: number, d: number) {
   return ((n % d) + d) % d
 }
 
-const Maths = { lerp, clamp, mapRange, truncate, modulo }
-
 export { clamp, lerp, mapRange, modulo, truncate }
-export default Maths

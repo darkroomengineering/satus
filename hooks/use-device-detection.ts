@@ -1,10 +1,6 @@
 import { useMediaQuery } from 'hamo'
 import { breakpoints } from '~/styles/config'
 
-interface NavigatorWithBattery extends Navigator {
-  getBattery?: () => Promise<{ charging: boolean; level: number }>
-}
-
 export function useDeviceDetection() {
   const breakpoint = breakpoints.dt
 

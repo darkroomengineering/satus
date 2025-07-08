@@ -3,13 +3,13 @@
 import cn from 'clsx'
 import { useResizeObserver } from 'hamo'
 import {
+  createContext,
   type Dispatch,
   type HTMLAttributes,
   type PropsWithChildren,
   type ReactNode,
   type Ref,
   type SetStateAction,
-  createContext,
   useCallback,
   useContext,
   useId,
@@ -101,7 +101,10 @@ function Button({
 function Body({
   children,
   className,
-}: { children?: ReactNode; className?: string }) {
+}: {
+  children?: ReactNode
+  className?: string
+}) {
   const { isOpen } = useAccordionContext()
 
   const [setRectRef, entry] = useResizeObserver()

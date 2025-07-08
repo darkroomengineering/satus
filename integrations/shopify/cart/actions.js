@@ -11,7 +11,7 @@ import {
   updateCart,
 } from '../index'
 
-export async function removeItem(prevState, merchandiseId) {
+export async function removeItem(_prevState, merchandiseId) {
   const _cookies = await cookies()
   const cartId = _cookies.get('cartId')?.value
 
@@ -36,12 +36,12 @@ export async function removeItem(prevState, merchandiseId) {
     } else {
       return 'Item not found in cart'
     }
-  } catch (e) {
+  } catch (_e) {
     return 'Error removing item from cart'
   }
 }
 
-export async function addItem(prevState, { variantId, quantity = 1 }) {
+export async function addItem(_prevState, { variantId, quantity = 1 }) {
   const _cookies = await cookies()
   let cartId = _cookies.get('cartId')?.value
   let cart
@@ -63,13 +63,13 @@ export async function addItem(prevState, { variantId, quantity = 1 }) {
     revalidateTag(TAGS.cart)
 
     return 'success'
-  } catch (e) {
+  } catch (_e) {
     return 'Error adding item to cart'
   }
 }
 
 export async function updateItemQuantity(
-  prevState,
+  _prevState,
   payload = { merchandiseId: '', quantity: '' }
 ) {
   const _cookies = await cookies()
@@ -100,7 +100,7 @@ export async function updateItemQuantity(
       },
     ])
     revalidateTag(TAGS.cart)
-  } catch (e) {
+  } catch (_e) {
     return 'Error updating item quantity'
   }
 }

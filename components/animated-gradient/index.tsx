@@ -2,7 +2,7 @@
 
 import { useRect } from 'hamo'
 import dynamic from 'next/dynamic'
-import type { CSSProperties, ComponentProps } from 'react'
+import type { ComponentProps, CSSProperties } from 'react'
 import { WebGLTunnel } from '~/webgl/components/tunnel'
 
 const WebGLAnimatedGradient = dynamic(

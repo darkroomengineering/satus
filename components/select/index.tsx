@@ -18,7 +18,7 @@ function CustomSelect({
   icon,
 }: SelectProps) {
   return (
-    <Select.Root defaultValue="sans" alignItemToTrigger={false}>
+    <Select.Root defaultValue="sans">
       {!!label && label}
       <Select.Trigger
         className={cn(
@@ -26,13 +26,17 @@ function CustomSelect({
           className
         )}
       >
-        <Select.Value placeholder={placeholder ?? 'Select an item'} />
+        <Select.Value>{placeholder ?? 'Select an item'}</Select.Value>
         <Select.Icon className="flex">
           {icon ? icon : <span aria-hidden="true">▼</span>}
         </Select.Icon>
       </Select.Trigger>
       <Select.Portal>
-        <Select.Positioner className="outline-none" sideOffset={8}>
+        <Select.Positioner
+          className="outline-none"
+          sideOffset={8}
+          alignItemWithTrigger={false}
+        >
           <Select.Popup className="">
             {options?.map(({ value, label }) => (
               <Select.Item

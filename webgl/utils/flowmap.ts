@@ -6,8 +6,8 @@ import {
   ShaderMaterial,
   type Texture,
   Vector2,
-  WebGLRenderTarget,
   type WebGLRenderer,
+  WebGLRenderTarget,
 } from 'three'
 import Program from './program'
 

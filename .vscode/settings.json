@@ -17,6 +17,10 @@
   },
   "css.lint.validProperties": ["user-drag"],
   "css.lint.unknownAtRules": "ignore",
+
+  "[css]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
   "[javascript]": {
     "editor.defaultFormatter": "biomejs.biome"
   },

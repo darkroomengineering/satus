@@ -95,7 +95,6 @@
         "useAwait": "off"
       },
       "complexity": {
-        "noExcessiveCognitiveComplexity": "warn",
         "noForEach": "off",
         "useSimplifiedLogicExpression": "warn",
         "useFlatMap": "warn"

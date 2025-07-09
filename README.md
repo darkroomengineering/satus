@@ -46,7 +46,7 @@ satus/
 ├── integrations/           # Third-party service integrations
 │   ├── hubspot/           # HubSpot forms integration
 │   ├── shopify/           # E-commerce functionality
-│   └── storyblok/         # Headless CMS
+│   └── sanity/            # Headless CMS
 ├── libs/                   # Utility functions and helpers
 ├── orchestra/              # Debug and development tools
 │   ├── grid/              # Grid overlay
@@ -87,8 +87,8 @@ satus/
 - **Git hooks** with Lefthook
 - **Debug tools** accessible with `CMD+O`
 
-### Third-Party Integrations boilerplate
-- **Storyblok** - Headless CMS for content management
+### Third-Party Integrations
+- **Sanity** - Headless CMS with visual editing
 - **Shopify** - E-commerce with cart functionality
 - **HubSpot** - Forms and marketing automation
 
@@ -138,7 +138,6 @@ CSS variables for consistent theming:
 ```bash
 # Development
 bun dev              # Start dev server with Turbopack
-bun dev:https        # Start with HTTPS
 
 # Building
 bun build            # Production build
@@ -158,15 +157,18 @@ bun watch:styles     # Watch style changes
 Create a `.env.local` file based on `.env.example`:
 
 ```env
-# Storyblok CMS
-STORYBLOK_ACCESS_TOKEN=your_token_here
+# Sanity CMS
+NEXT_PUBLIC_SANITY_PROJECT_ID="your-project-id"
+NEXT_PUBLIC_SANITY_DATASET="production"
+NEXT_PUBLIC_SANITY_STUDIO_URL="http://localhost:3000/studio"
+SANITY_VIEWER_TOKEN="your-viewer-token"
 
 # Shopify
-SHOPIFY_DOMAIN=your-store.myshopify.com
-SHOPIFY_STOREFRONT_TOKEN=your_token_here
+SHOPIFY_DOMAIN="your-store.myshopify.com"
+SHOPIFY_STOREFRONT_TOKEN="your-storefront-token"
 
 # HubSpot
-HUBSPOT_ACCESS_TOKEN=your_token_here
+HUBSPOT_ACCESS_TOKEN="your-access-token"
 ```
 
 ## 📚 Documentation
@@ -207,4 +209,10 @@ The project supports deployment to any platform that supports Next.js:
 
 ## 📄 License
 
-MIT © [darkroom.engineering](https://github.com/darkroomengineering)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built by [darkroom.engineering](https://darkroom.engineering)
+- Inspired by modern web development best practices
+- Community contributions and feedback

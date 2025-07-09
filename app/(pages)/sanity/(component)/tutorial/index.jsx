@@ -1,24 +1,27 @@
 'use client'
 
-import { storyblokEditable } from '@storyblok/js'
-import { useStoryblokContext } from '~/integrations/storyblok/context'
+import { useSanityContext } from '~/integrations/sanity/context'
+import { RichText } from '~/integrations/sanity/rich-text'
 
-// TODO:
-// - Webhooks
-// - Visual Editor url
-// - Draft mode
+export function SanityTutorial() {
+  const { document } = useSanityContext()
 
-export function Tutorial() {
-  const {
-    story: { content },
-  } = useStoryblokContext()
+  if (!document) return null
 
   return (
     <div
       className="flex flex-col items-center gap-gap"
-      {...storyblokEditable(content)}
+      data-sanity={document._id}
     >
-      <h2 className="text-center">{content?.title}</h2>
+      <h2 className="text-center" data-sanity="title">
+        {document.title}
+      </h2>
+      {document.content && (
+        <div data-sanity="content">
+          <RichText content={document.content} />
+        </div>
+      )}
+
       <div className="flex gap-gap">
         <code className="dr-p-8 inline-block border border-secondary dr-rounded-8">
           # MacOS
@@ -38,15 +41,17 @@ export function Tutorial() {
         <br />
         mkcert localhost
         <br />
-        npm run dev:storyblok
+        npm run dev:sanity
       </code>
 
       <code className="dr-p-8 inline-block border border-secondary dr-rounded-8">
         # update .env
         <br />
-        STORYBLOK_PREVIEW_ACCESS_TOKEN
+        SANITY_PROJECT_ID
         <br />
-        STORYBLOK_PUBLIC_ACCESS_TOKEN
+        SANITY_DATASET
+        <br />
+        SANITY_API_TOKEN
       </code>
     </div>
   )

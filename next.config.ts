@@ -91,10 +91,6 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'a-us.storyblok.com',
-      },
-      {
-        protocol: 'https',
         hostname: 'assets.darkroom.engineering',
       },
     ],
@@ -110,7 +106,7 @@ const nextConfig: NextConfig = {
         },
         {
           key: 'Content-Security-Policy',
-          value: "frame-ancestors 'self' https://app.storyblok.com/",
+          value: "frame-ancestors 'self';",
         },
         {
           key: 'X-Frame-Options',
@@ -122,60 +118,6 @@ const nextConfig: NextConfig = {
         },
       ],
     },
-    // // Only cache truly static assets aggressively in production
-    // ...(process.env.NODE_ENV === 'production'
-    //   ? [
-    //       // Next.js static assets (immutable by design)
-    //       {
-    //         source: '/_next/static/(.*)',
-    //         headers: [
-    //           {
-    //             key: 'Cache-Control',
-    //             value: 'public, max-age=31536000, immutable',
-    //           },
-    //         ],
-    //       },
-    //       // Public static assets
-    //       {
-    //         source: '/fonts/(.*)',
-    //         headers: [
-    //           {
-    //             key: 'Cache-Control',
-    //             value: 'public, max-age=31536000, immutable',
-    //           },
-    //         ],
-    //       },
-    //       {
-    //         source: '/images/(.*)',
-    //         headers: [
-    //           {
-    //             key: 'Cache-Control',
-    //             value: 'public, max-age=31536000, immutable',
-    //           },
-    //         ],
-    //       },
-    //       // Other static file types in public folder
-    //       {
-    //         source: '/(.*)\\.{js,css,woff,woff2,ttf,otf,ico}$',
-    //         headers: [
-    //           {
-    //             key: 'Cache-Control',
-    //             value: 'public, max-age=31536000, immutable',
-    //           },
-    //         ],
-    //       },
-    //       // Images with shorter cache for CMS content
-    //       {
-    //         source: '/(.*)\\.{jpg,jpeg,png,gif,webp,svg,avif}$',
-    //         headers: [
-    //           {
-    //             key: 'Cache-Control',
-    //             value: 'public, max-age=3600, s-maxage=31536000',
-    //           },
-    //         ],
-    //       },
-    //     ]
-    //   : []),
   ],
   redirects: async () => [
     {

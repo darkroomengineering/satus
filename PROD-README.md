@@ -25,21 +25,16 @@ The usual process for Next.js based apps/websites:
    bun dev
    ```
 
-   For HTTPS (required for Storyblok):
-   
-   ```bash
-   bun dev:https
-   ```
-
 ## Environment Variables
 
-Required in `.env`:
+Required in `.env.local`:
 
 ```env
-# Storyblok
-STORYBLOK_PUBLIC_ACCESS_TOKEN="your-public-token"
-STORYBLOK_PREVIEW_ACCESS_TOKEN="your-preview-token"
-DRAFT_MODE_TOKEN="your-draft-mode-token"
+# Sanity CMS
+NEXT_PUBLIC_SANITY_PROJECT_ID="your-project-id"
+NEXT_PUBLIC_SANITY_DATASET="production"
+NEXT_PUBLIC_SANITY_STUDIO_URL="http://localhost:3000/studio"
+SANITY_VIEWER_TOKEN="your-viewer-token"
 
 # GSAP (if using premium features)
 GSAP_AUTH_TOKEN="your-gsap-token"
@@ -50,10 +45,10 @@ NEXT_PUBLIC_BASE_URL="https://your-domain.com"
 
 ## Core Technologies:
 
-### Content Management (Storyblok)
-- Visual Editor: `https://your-domain.com/api/draft?secret=DRAFT_MODE_TOKEN&slug=/`
+### Content Management (Sanity)
+- Visual Editor: Embedded at `/studio` with presentation tool
 - Content Revalidation Webhook: `https://your-domain.com/api/revalidate`
-- [Storyblok Documentation](docs/storyblok/README.md)
+- [Sanity Documentation](integrations/sanity/README.md)
 
 ### Animation Systems
 - GSAP for general animations
@@ -72,7 +67,7 @@ Detailed documentation is available in the repository:
 
 - [Styles System](styles/README.md) - Complete styling architecture and usage
 - [GSAP Integration](components/gsap/README.md) - Animation system setup and examples
-- [Storyblok Integration](integrations/storyblok/README.md) - CMS configuration and usage
+- [Sanity Integration](integrations/sanity/README.md) - CMS configuration and usage
 - [Components Guide](components/README.md) - UI components and usage patterns
 - [Hooks Documentation](hooks/README.md) - Custom React hooks and utilities
 - [WebGL Components](webgl/README.md) - 3D graphics and WebGL usage
@@ -94,8 +89,9 @@ Detailed documentation is available in the repository:
 - [GSAP Business](https://greensock.com/gsap/)
 
 ### Integrations
-- [Storyblok](https://www.storyblok.com/)
+- [Sanity](https://www.sanity.io/)
 - [HubSpot](https://www.hubspot.com/)
+- [Shopify](https://shopify.com/)
 
 ### UI & Styling
 - CSS Modules with PostCSS
@@ -134,7 +130,7 @@ Access with `CMD+O`:
 
 ### Production Checks
 1. Environment variables are set in Vercel
-2. Storyblok webhooks are configured
+2. Sanity webhooks are configured
 3. GSAP license is valid (if using premium features)
 4. SSL certificates are valid
 5. Performance metrics are within acceptable ranges
@@ -145,7 +141,7 @@ Access with `CMD+O`:
 - Performance monitoring with hooks/use-performance.ts
 
 ### Content Updates
-1. Content changes through Storyblok will automatically update via webhooks
+1. Content changes through Sanity will automatically update via webhooks
 2. For code changes, follow the standard Vercel deployment flow
 3. Clear cache if needed: `https://your-domain.com/api/revalidate`
 
@@ -157,10 +153,10 @@ project/
 │   └── (pages)/         # Page components
 │       └── r3f/         # Three.js components
 ├── components/          # Reusable components
-├── libs/                # Core functionality
-│   ├── storyblok/      # CMS integration
-│   ├── theatre/        # Animation tooling
-│   └── webgl/          # Three.js utilities
+├── integrations/        # Third-party integrations
+│   ├── sanity/         # CMS integration
+│   ├── hubspot/        # Marketing integration
+│   └── shopify/        # E-commerce integration
 ├── styles/             # Styling system
 │   ├── css/            # Generated CSS
 │   └── scripts/        # Style generation
@@ -170,10 +166,10 @@ project/
 ## Support & Maintenance:
 
 ### Common Issues
-1. **Storyblok Visual Editor Not Working**
-   - Check SSL certificates
-   - Verify draft mode token
-   - Ensure correct preview URL in Storyblok
+1. **Sanity Visual Editor Not Working**
+   - Check environment variables
+   - Verify draft mode configuration
+   - Ensure presentation tool is properly configured
 
 2. **Style Updates Not Reflecting**
    - Run `bun setup:styles`

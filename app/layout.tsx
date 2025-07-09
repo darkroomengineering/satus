@@ -1,5 +1,7 @@
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google'
 import type { Metadata, Viewport } from 'next'
+import { VisualEditing } from 'next-sanity'
+import { draftMode } from 'next/headers'
 import type { PropsWithChildren } from 'react'
 import { ReactTempus } from 'tempus/react'
 import { GSAP } from '~/components/gsap'
@@ -84,7 +86,9 @@ export const viewport: Viewport = {
   colorScheme: 'normal',
 }
 
-export default function Layout({ children }: PropsWithChildren) {
+export default async function Layout({ children }: PropsWithChildren) {
+  const isDraftMode = (await draftMode()).isEnabled
+
   return (
     <html
       lang="en"
@@ -114,6 +118,14 @@ export default function Layout({ children }: PropsWithChildren) {
 
         {/* RAF management - lightweight */}
         <ReactTempus patch />
+
+        {/* Visual editing - only in draft mode */}
+        {isDraftMode && (
+          <>
+            <VisualEditing />
+            {/* <DisableDraftMode /> */}
+          </>
+        )}
 
         {/* Analytics - loads async, non-blocking */}
         {GA_ID && <GoogleAnalytics gaId={GA_ID} />}

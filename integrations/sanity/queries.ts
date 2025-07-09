@@ -85,7 +85,7 @@ export async function fetchSanityPage(slug: string, isDraftMode = false) {
       { slug },
       isDraftMode
         ? {
-            perspective: 'previewDrafts',
+            perspective: 'drafts',
             useCdn: false,
             stega: true,
             cache: 'no-store',
@@ -110,7 +110,7 @@ export async function fetchSanityArticle(slug: string, isDraftMode = false) {
       { slug },
       isDraftMode
         ? {
-            perspective: 'previewDrafts',
+            perspective: 'drafts',
             useCdn: false,
             stega: true,
             cache: 'no-store',

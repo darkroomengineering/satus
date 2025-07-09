@@ -1,7 +1,7 @@
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google'
 import type { Metadata, Viewport } from 'next'
-import { VisualEditing } from 'next-sanity'
 import { draftMode } from 'next/headers'
+import { VisualEditing } from 'next-sanity'
 import type { PropsWithChildren } from 'react'
 import { ReactTempus } from 'tempus/react'
 import { GSAP } from '~/components/gsap'

@@ -146,7 +146,7 @@ For production applications, consider implementing Sanity's Live Content API wit
    - Add `data-sanity` attributes to editable elements.
 6. Test by enabling draft mode and using the visual editor.
 
-For detailed guidelines, refer to [Integration Guide](/.cursor/rules/integrations.mdc).
+For detailed guidelines, refer to [Sanity Integration Guide](integrations/sanity/README.md).
 
 ## 🎨 Styling System
 
@@ -229,6 +229,7 @@ HUBSPOT_ACCESS_TOKEN="your-access-token"
 
 ## 📚 Documentation
 
+- [Sanity CMS Integration Guide](integrations/sanity/README.md) - Complete guide for visual editing, content management, and development
 - [Component Guidelines](/.cursor/rules/components.mdc)
 - [Styling Guidelines](/.cursor/rules/styling.mdc)
 - [WebGL Development](/.cursor/rules/webgl.mdc)

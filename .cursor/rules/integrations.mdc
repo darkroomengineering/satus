@@ -130,38 +130,40 @@ Third party integration guidelines
    <SanityImage image={document.image} maxWidth={1200} />
    ```
 
-7. **Presentation Tool Configuration**
-   - Configure routes properly to avoid conflicts
-   - Use defined() filters for documents with slugs
-   - Implement proper location resolvers
-   ```typescript
-   presentationTool({
-     resolve: {
-       mainDocuments: [
-         {
-           route: '/pages/:slug',
-           filter: `_type == "page" && slug.current == $slug && defined(slug.current)`,
-         },
-       ],
-       locations: {
-         page: {
-           select: { title: 'title', slug: 'slug.current' },
-           resolve: (doc) => {
-             if (!doc?.slug) return null
-             return {
-               locations: [
-                 {
-                   title: doc?.title || 'Untitled Page',
-                   href: `/pages/${doc.slug}`,
-                 },
-               ],
-             }
-           },
-         },
-       },
-     },
-   })
-   ```
+ 7. **Presentation Tool Configuration**
+    - Configure routes properly to avoid conflicts
+    - Use defined() filters for documents with slugs
+    - Implement proper location resolvers
+    - Configuration files are located in `/sanity/` directory
+    ```typescript
+    // In sanity/sanity.config.ts
+    presentationTool({
+      resolve: {
+        mainDocuments: [
+          {
+            route: '/pages/:slug',
+            filter: `_type == "page" && slug.current == $slug && defined(slug.current)`,
+          },
+        ],
+        locations: {
+          page: {
+            select: { title: 'title', slug: 'slug.current' },
+            resolve: (doc) => {
+              if (!doc?.slug) return null
+              return {
+                locations: [
+                  {
+                    title: doc?.title || 'Untitled Page',
+                    href: `/pages/${doc.slug}`,
+                  },
+                ],
+              }
+            },
+          },
+        },
+      },
+    })
+    ```
 
 ## Shopify Integration
 

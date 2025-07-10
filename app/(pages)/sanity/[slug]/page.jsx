@@ -3,8 +3,8 @@ import { notFound } from 'next/navigation'
 import {
   fetchAllSanityArticles,
   fetchSanityArticle,
+  SanityContextProvider,
 } from '~/integrations/sanity'
-import { SanityContextProvider } from '~/integrations/sanity/context'
 import { Wrapper } from '../../(components)/wrapper'
 import { SanityArticle } from './(component)/article'
 

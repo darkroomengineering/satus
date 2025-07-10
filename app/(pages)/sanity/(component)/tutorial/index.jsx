@@ -1,7 +1,6 @@
 'use client'
 
-import { useSanityContext } from '~/integrations/sanity/context'
-import { RichText } from '~/integrations/sanity/rich-text'
+import { RichText, useSanityContext } from '~/integrations/sanity'
 
 export function SanityTutorial() {
   const { document } = useSanityContext()

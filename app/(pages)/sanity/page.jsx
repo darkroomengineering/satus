@@ -1,7 +1,6 @@
 import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
-import { fetchSanityPage } from '~/integrations/sanity'
-import { SanityContextProvider } from '~/integrations/sanity/context'
+import { fetchSanityPage, SanityContextProvider } from '~/integrations/sanity'
 import { Wrapper } from '../(components)/wrapper'
 import { SanityTutorial } from './(component)/tutorial'
 

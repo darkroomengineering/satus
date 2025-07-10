@@ -5,7 +5,9 @@ Third party integration guidelines
 1. **Configuration & Setup**
    - Use CDN for performance with stega for visual editing
    - Store credentials securely in environment variables
+   - All Sanity files are organized in `/integrations/sanity/` directory
    ```typescript
+   // In integrations/sanity/client.ts
    export const client = createClient({
      projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
      dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
@@ -58,7 +60,10 @@ Third party integration guidelines
    - Always add `data-sanity` attributes for visual editing
    - Use SanityContextProvider for document access
    - Implement proper draft mode handling
+   - Import from `/integrations/sanity` directory
    ```typescript
+   import { useSanityContext, RichText } from '~/integrations/sanity'
+   
    export function MyComponent() {
      const { document } = useSanityContext()
      
@@ -77,7 +82,11 @@ Third party integration guidelines
    - Use proper perspective for draft vs published content
    - Implement caching strategies for performance
    - Handle errors gracefully with try-catch
+   - Import from `/integrations/sanity` directory
    ```typescript
+   // In integrations/sanity/queries.ts
+   import { client } from './client'
+   
    export async function fetchSanityPage(slug: string, isDraftMode = false) {
      try {
        const page = await client.fetch(
@@ -105,7 +114,11 @@ Third party integration guidelines
    - Use projections to fetch only needed data
    - Implement proper filtering and sorting
    - Use fragments for reusable query parts
+   - Store in `/integrations/sanity/queries.ts`
    ```typescript
+   // In integrations/sanity/queries.ts
+   import { groq } from 'next-sanity'
+   
    export const pageQuery = groq`
      *[_type == "page" && slug.current == $slug][0] {
        _id,
@@ -122,7 +135,10 @@ Third party integration guidelines
    - Use ISR for static content with revalidation
    - Implement proper cache invalidation via webhooks
    - Optimize images with proper sizing
+   - Use consolidated imports for better tree-shaking
    ```typescript
+   import { urlForImage } from '~/integrations/sanity'
+   
    // Use ISR for published content
    export const revalidate = 3600
    
@@ -130,40 +146,28 @@ Third party integration guidelines
    <SanityImage image={document.image} maxWidth={1200} />
    ```
 
- 7. **Presentation Tool Configuration**
-    - Configure routes properly to avoid conflicts
-    - Use defined() filters for documents with slugs
-    - Implement proper location resolvers
-    - Configuration files are located in `/sanity/` directory
-    ```typescript
-    // In sanity/sanity.config.ts
-    presentationTool({
-      resolve: {
-        mainDocuments: [
-          {
-            route: '/pages/:slug',
-            filter: `_type == "page" && slug.current == $slug && defined(slug.current)`,
-          },
-        ],
-        locations: {
-          page: {
-            select: { title: 'title', slug: 'slug.current' },
-            resolve: (doc) => {
-              if (!doc?.slug) return null
-              return {
-                locations: [
-                  {
-                    title: doc?.title || 'Untitled Page',
-                    href: `/pages/${doc.slug}`,
-                  },
-                ],
-              }
-            },
-          },
-        },
-      },
-    })
-    ```
+ 7. **Project Structure**
+   - All Sanity files are organized in `/integrations/sanity/` directory
+   - Configuration files: `sanity.config.ts`, `sanity.cli.ts`
+   - Schema definitions: `schemaTypes/`
+   - Integration code: `client.ts`, `queries.ts`, `components/`, `utils/`
+   ```
+   integrations/sanity/
+   ├── sanity.cli.ts           # CLI configuration
+   ├── sanity.config.ts        # Studio configuration
+   ├── env.ts                  # Environment variables
+   ├── structure.ts            # Studio structure
+   ├── client.ts               # Sanity client
+   ├── queries.ts              # GROQ queries and fetch functions
+   ├── index.ts                # Main exports
+   ├── README.md               # Documentation
+   ├── schemaTypes/            # Content type definitions
+   ├── components/             # React components
+   │   ├── context.tsx         # React context
+   │   └── rich-text.tsx       # Rich text component
+   └── utils/
+       └── image.ts            # Image utilities
+   ```
 
 ## Shopify Integration
 

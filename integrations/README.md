@@ -51,9 +51,7 @@ The Sanity integration provides headless CMS functionality with visual editing c
 ### Usage
 
 ```tsx
-import { fetchSanityPage } from '~/integrations/sanity'
-import { SanityContextProvider } from '~/integrations/sanity/context'
-import { RichText } from '~/integrations/sanity/rich-text'
+import { fetchSanityPage, SanityContextProvider, RichText } from '~/integrations/sanity'
 
 // Fetch content from Sanity
 async function getPageData(slug: string) {

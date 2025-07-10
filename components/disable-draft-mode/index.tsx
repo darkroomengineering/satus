@@ -1,17 +1,15 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useTransition } from 'react'
 
 export function DisableDraftMode() {
   const router = useRouter()
+  const pathname = usePathname()
   const [pending, startTransition] = useTransition()
 
-  // Don't show in iframes (when embedded in Sanity Studio)
-  if (
-    typeof window !== 'undefined' &&
-    (window !== window.parent || !!window.opener)
-  ) {
+  // Don't show when in Sanity Studio
+  if (pathname.startsWith('/studio')) {
     return null
   }
 
@@ -22,7 +20,7 @@ export function DisableDraftMode() {
     })
 
   return (
-    <div className="fixed bottom-4 left-4 bg-blue-500 text-white px-4 py-2 rounded font-mono text-sm z-50">
+    <div className="fixed right-safe top-safe bg-blue-500 text-primary uppercase px-4 py-2 rounded font-mono text-sm z-50">
       {pending ? (
         'Disabling draft mode...'
       ) : (

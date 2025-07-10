@@ -1,5 +1,5 @@
 import { defineEnableDraftMode } from 'next-sanity/draft-mode'
-import { client } from '~/integrations/sanity/client'
+import { client } from '~/integrations/sanity'
 
 export const { GET } = defineEnableDraftMode({
   client: client.withConfig({

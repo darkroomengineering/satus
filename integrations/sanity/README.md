@@ -94,7 +94,7 @@ export default async function Page() {
 
 **3. Context Provider**
 ```tsx
-import { SanityContextProvider } from '~/integrations/sanity/context'
+import { SanityContextProvider } from '~/integrations/sanity'
 
 export default function Page({ data }) {
   return (
@@ -209,7 +209,7 @@ export const schema: { types: SchemaTypeDefinition[] } = {
 #### Step 3: Create Query Functions
 
 ```typescript
-// integrations/sanity/queries.ts
+// sanity/queries.ts
 export const landingQuery = groq`
   *[_type == "landing" && slug.current == $slug][0] {
     _id,
@@ -250,8 +250,7 @@ export async function fetchSanityLanding(slug: string, isDraftMode = false) {
 // app/(pages)/landing/[slug]/page.tsx
 import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
-import { fetchSanityLanding } from '~/integrations/sanity'
-import { SanityContextProvider } from '~/integrations/sanity/context'
+import { fetchSanityLanding, SanityContextProvider } from '~/integrations/sanity'
 import { LandingComponent } from './landing-component'
 
 export default async function LandingPage({ params }) {
@@ -278,8 +277,7 @@ export const dynamic = 'force-dynamic'
 // app/(pages)/landing/[slug]/landing-component.tsx
 'use client'
 
-import { useSanityContext } from '~/integrations/sanity/context'
-import { RichText } from '~/integrations/sanity/rich-text'
+import { useSanityContext, RichText } from '~/integrations/sanity'
 import { SanityImage } from '~/components/sanity-image'
 
 export function LandingComponent() {
@@ -308,7 +306,7 @@ export function LandingComponent() {
 #### Step 6: Update Presentation Tool Configuration
 
 ```typescript
-// sanity.config.ts
+// sanity/sanity.config.ts
 export default defineConfig({
   plugins: [
     presentationTool({
@@ -803,7 +801,7 @@ The visual editor has two panels:
 
 2. **Verify CORS Settings:**
    ```javascript
-   // Check sanity.config.ts
+   // Check sanity/sanity.config.ts
    // Verify CORS settings in Sanity dashboard
    ```
 

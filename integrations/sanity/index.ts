@@ -5,9 +5,9 @@ export {
   SanityContext,
   SanityContextProvider,
   useSanityContext,
-} from './context'
-// Image utilities
-export { urlForImage } from './image'
+} from './components/context'
+// Components
+export { RichText } from './components/rich-text'
 export {
   allArticlesQuery,
   articleByIdQuery,
@@ -20,5 +20,5 @@ export {
   pageByIdQuery,
   pageQuery,
 } from './queries'
-// Components
-export { RichText } from './rich-text'
+// Image utilities
+export { urlForImage } from './utils/image'

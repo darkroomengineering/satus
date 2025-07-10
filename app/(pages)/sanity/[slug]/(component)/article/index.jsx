@@ -1,8 +1,7 @@
 'use client'
 
 import { SanityImage } from '~/components/sanity-image'
-import { useSanityContext } from '~/integrations/sanity/context'
-import { RichText } from '~/integrations/sanity/rich-text'
+import { RichText, useSanityContext } from '~/integrations/sanity'
 
 export function SanityArticle() {
   const { document } = useSanityContext()

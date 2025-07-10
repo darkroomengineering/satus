@@ -1,5 +1,5 @@
 // Client and queries
-export { client, writeClient } from './client'
+export { client } from './client'
 // Context
 export {
   SanityContext,

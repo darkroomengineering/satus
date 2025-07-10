@@ -77,7 +77,6 @@ export const articleByIdQuery = groq`
   }
 `
 
-// Fetch functions to replace Storyblok functions
 export async function fetchSanityPage(slug: string, isDraftMode = false) {
   try {
     const page = await client.fetch(
@@ -85,15 +84,12 @@ export async function fetchSanityPage(slug: string, isDraftMode = false) {
       { slug },
       isDraftMode
         ? {
-            perspective: 'drafts',
-            useCdn: false,
+            perspective: 'previewDrafts',
             stega: true,
             cache: 'no-store',
-            next: { tags: ['page', `page:${slug}`] },
           }
         : {
-            cache: 'force-cache',
-            next: { tags: ['page', `page:${slug}`] },
+            next: { revalidate: 3600, tags: ['page', `page:${slug}`] },
           }
     )
     return { data: page, error: null }
@@ -110,15 +106,12 @@ export async function fetchSanityArticle(slug: string, isDraftMode = false) {
       { slug },
       isDraftMode
         ? {
-            perspective: 'drafts',
-            useCdn: false,
+            perspective: 'previewDrafts',
             stega: true,
             cache: 'no-store',
-            next: { tags: ['article', `article:${slug}`] },
           }
         : {
-            cache: 'force-cache',
-            next: { tags: ['article', `article:${slug}`] },
+            next: { revalidate: 3600, tags: ['article', `article:${slug}`] },
           }
     )
     return { data: article, error: null }
@@ -134,8 +127,7 @@ export async function fetchAllSanityArticles() {
       allArticlesQuery,
       {},
       {
-        cache: 'force-cache',
-        next: { tags: ['article'] },
+        next: { revalidate: 3600, tags: ['article'] },
       }
     )
     return { data: articles, error: null }

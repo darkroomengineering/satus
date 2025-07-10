@@ -4,7 +4,7 @@ import { type Rect, useLazyState, useWindowSize } from 'hamo'
 import { useLenis } from 'lenis/react'
 import { useCallback, useEffect, useRef } from 'react'
 import { useTransform } from '~/hooks/use-transform'
-import { clamp, mapRange } from '~/libs/maths'
+import { clamp, mapRange } from '~/libs/utils'
 import { useOrchestra } from '~/orchestra'
 import { useMinimap } from '~/orchestra/minimap'
 
@@ -84,28 +84,26 @@ function useMarker({
   const top = useCallback(
     (value: number) => {
       if (!elementRef.current) return
-      const element = elementRef.current
-      element.style.top = `${value}px`
 
-      if (!fixed) return
-
-      const firstChild = element.children[0] as HTMLElement
-
-      if (value <= 0) {
-        element.style.transform = 'translateY(0%)'
-        element.style.borderBottom = 'none'
-        element.style.borderTop = `1px solid ${color}`
-
-        firstChild.style.top = '0'
-      } else if (value >= window.innerHeight) {
-        element.style.transform = 'translateY(-100%)'
-        element.style.borderBottom = `1px solid ${color}`
-        element.style.borderTop = 'none'
-
-        firstChild.style.bottom = '0'
+      if (type === 'start') {
+        return clamp(
+          0,
+          value,
+          elementRef.current.getBoundingClientRect().height
+        )
       }
+
+      if (type === 'end') {
+        return clamp(
+          0,
+          value - window.innerHeight,
+          elementRef.current.getBoundingClientRect().height - window.innerHeight
+        )
+      }
+
+      return 0
     },
-    [color, fixed]
+    [type]
   )
 
   return { top }

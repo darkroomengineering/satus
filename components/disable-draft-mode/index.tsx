@@ -2,12 +2,12 @@
 
 import { useRouter } from 'next/navigation'
 import { useTransition } from 'react'
-import { disableDraftMode } from '~/app/actions'
 
 export function DisableDraftMode() {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
 
+  // Don't show in iframes (when embedded in Sanity Studio)
   if (
     typeof window !== 'undefined' &&
     (window !== window.parent || !!window.opener)
@@ -17,12 +17,12 @@ export function DisableDraftMode() {
 
   const disable = () =>
     startTransition(async () => {
-      await disableDraftMode()
+      await fetch('/api/disable-draft')
       router.refresh()
     })
 
   return (
-    <div className="fixed bottom-4 left-4 bg-blue-500 text-white px-4 py-2 rounded font-mono text-sm">
+    <div className="fixed bottom-4 left-4 bg-blue-500 text-white px-4 py-2 rounded font-mono text-sm z-50">
       {pending ? (
         'Disabling draft mode...'
       ) : (

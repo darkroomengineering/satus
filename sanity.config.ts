@@ -25,6 +25,62 @@ export default defineConfig({
     visionTool({ defaultApiVersion: apiVersion }),
     // Presentation tool for visual editing
     presentationTool({
+      resolve: {
+        mainDocuments: [
+          // Home page - specific route for home page
+          {
+            route: '/sanity',
+            filter: `_type == "page" && slug.current == "home"`,
+          },
+          // Pages by slug - only pages with valid slugs
+          {
+            route: '/sanity/:slug',
+            filter: `_type == "page" && slug.current == $slug && defined(slug.current)`,
+          },
+          // Articles by slug - only articles with valid slugs
+          {
+            route: '/sanity/:slug',
+            filter: `_type == "article" && slug.current == $slug && defined(slug.current)`,
+          },
+        ],
+        locations: {
+          page: {
+            select: {
+              title: 'title',
+              slug: 'slug.current',
+            },
+            resolve: (doc) => {
+              if (!doc?.slug) return null
+              return {
+                locations: [
+                  {
+                    title: doc?.title || 'Untitled Page',
+                    href:
+                      doc?.slug === 'home' ? '/sanity' : `/sanity/${doc.slug}`,
+                  },
+                ],
+              }
+            },
+          },
+          article: {
+            select: {
+              title: 'title',
+              slug: 'slug.current',
+            },
+            resolve: (doc) => {
+              if (!doc?.slug) return null
+              return {
+                locations: [
+                  {
+                    title: doc?.title || 'Untitled Article',
+                    href: `/sanity/${doc.slug}`,
+                  },
+                ],
+              }
+            },
+          },
+        },
+      },
       previewUrl: {
         draftMode: {
           enable: '/api/draft',

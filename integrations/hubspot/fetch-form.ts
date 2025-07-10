@@ -62,7 +62,7 @@ function apiParser(id: string | null, data: HubspotFormResponse) {
     htmlText.replace('<p>', '').replace('</p>', '')
 
   return {
-    portalId: process.env.NEXT_PUBLIC_HUSBPOT_PORTAL_ID,
+    portalId: process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID,
     id: id,
     inputs: data.fieldGroups.map((item) => {
       const flatData = item.fields[0] as HubSpotFormField // Type assertion to handle incomplete types

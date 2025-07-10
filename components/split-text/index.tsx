@@ -10,7 +10,6 @@ import {
   useRef,
   useState,
 } from 'react'
-import { useIsVisualEditor } from '~/integrations/storyblok/use-is-visual-editor'
 import s from './split-text.module.css'
 
 // Type for GSAP SplitText
@@ -135,7 +134,7 @@ export function SplitText({
     }
   }, [rect, type])
 
-  const isVisualEditor = useIsVisualEditor()
+  const isIframe = typeof window !== 'undefined' && window !== window.parent
 
   const render = useMemo(
     () => (
@@ -158,5 +157,5 @@ export function SplitText({
     [children, className, setRectRef]
   )
 
-  return isVisualEditor ? children : render
+  return isIframe ? children : render
 }

@@ -31,13 +31,13 @@ export function SanityArticle() {
         </div>
       )}
       {document.publishedAt && (
-        <time dateTime={document.publishedAt}>
+        <time dateTime={document.publishedAt} data-sanity="publishedAt">
           {new Date(document.publishedAt).toLocaleDateString()}
         </time>
       )}
-      {document.author && <p>By {document.author}</p>}
+      {document.author && <p data-sanity="author">By {document.author}</p>}
       {document.categories && document.categories.length > 0 && (
-        <div className="flex gap-2">
+        <div className="flex gap-2" data-sanity="categories">
           {document.categories.map((category) => (
             <span
               key={category}
@@ -49,7 +49,7 @@ export function SanityArticle() {
         </div>
       )}
       {document.tags && document.tags.length > 0 && (
-        <div className="flex gap-2">
+        <div className="flex gap-2" data-sanity="tags">
           {document.tags.map((tag) => (
             <span key={tag} className="text-xs bg-gray-200 px-2 py-1 rounded">
               #{tag}

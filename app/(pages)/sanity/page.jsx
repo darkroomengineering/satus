@@ -24,9 +24,13 @@ export default async function SanityPage() {
   )
 }
 
+// Force dynamic rendering for draft mode
+export const dynamic = 'force-dynamic'
+
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata
 export async function generateMetadata() {
-  const { data } = await fetchSanityPage(SLUG)
+  const isDraftMode = (await draftMode()).isEnabled
+  const { data } = await fetchSanityPage(SLUG, isDraftMode)
   const metadata = data?.metadata
 
   if (!metadata) return

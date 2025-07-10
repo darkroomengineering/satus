@@ -3,7 +3,7 @@
 import { createContext, type PropsWithChildren, useContext } from 'react'
 
 interface SanityContextValue {
-  document: any
+  document: unknown
   isLoading?: boolean
   error?: Error | null
 }
@@ -21,7 +21,7 @@ export function useSanityContext() {
 }
 
 type SanityContextProviderProps = {
-  document: any
+  document: unknown
   isLoading?: boolean
   error?: Error | null
 }

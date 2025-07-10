@@ -75,8 +75,6 @@ const nextConfig: NextConfig = {
       'postprocessing',
       '@base-ui-components/react',
     ],
-    // Enable PPR for better loading performance (when stable)
-    // ppr: true,
   },
   devIndicators: false,
   typescript: {

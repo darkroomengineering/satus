@@ -1,43 +1,7 @@
 ---
-description: 
-globs: 
-alwaysApply: false
----
----
 description: Third party integration guidelines
 globs: *.tsx, *.jsx, *.css, *.js, *.ts
 ---
-
-## Storyblok CMS
-
-1. **Configuration**
-   - Use environment variables for API tokens
-   - Configure in `integrations/storyblok`
-   ```typescript
-   const storyblokApi = new StoryblokClient({
-     accessToken: process.env.STORYBLOK_ACCESS_TOKEN,
-     cache: {
-       type: 'memory'
-     }
-   })
-   ```
-
-2. **Content Fetching**
-   - Use Server Components for fetching
-   - Implement proper caching strategies
-   ```typescript
-   export async function getStory(slug: string) {
-     const { data } = await storyblokApi.get(`cdn/stories/${slug}`)
-     return data.story
-   }
-   ```
-
-3. **Rich Text Rendering**
-   - Use `storyblok-rich-text-react-renderer`
-   - Configure custom components for rendering
-   ```typescript
-   import { render } from 'storyblok-rich-text-react-renderer'
-   ```
 
 ## Shopify Integration
 
@@ -142,3 +106,6 @@ globs: *.tsx, *.jsx, *.css, *.js, *.ts
    - Return 200 status quickly
 
 Last updated: 2025-05-23
+
+   - Implement idempotency
+   - Return 200 status quickly

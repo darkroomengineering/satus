@@ -3,6 +3,6 @@ import { client } from '~/integrations/sanity/client'
 
 export const { GET } = defineEnableDraftMode({
   client: client.withConfig({
-    token: process.env.SANITY_VIEWER_TOKEN,
+    token: process.env.SANITY_API_WRITE_TOKEN,
   }),
 })

@@ -92,6 +92,62 @@ satus/
 - **Shopify** - E-commerce with cart functionality
 - **HubSpot** - Forms and marketing automation
 
+## Modular Integrations
+
+This template includes optional integrations that can be easily removed if not needed for your project:
+
+### Removing an Integration
+1. Delete the integration directory from `integrations/` (e.g., `integrations/shopify/`)
+2. Remove the corresponding page directory from `app/(pages)/` (e.g., `app/(pages)/shopify/`)
+3. Remove any related imports or references in other files
+4. Update documentation and environment variables as needed
+
+This keeps the template lightweight and customized to your needs.
+
+## Sanity Integration Setup
+
+### Overview
+Sanity is integrated as a headless CMS with support for visual editing in the Next.js App Router. It uses React Server Components for server-side data fetching and client-side visual editing overlays.
+
+### Configuration
+- **Dependencies**: Managed via `next-sanity`, `@sanity/presentation`, `@sanity/visual-editing`.
+- **Studio**: Mounted at `/studio` using `NextStudio`.
+- **Visual Editing**: Enabled via `presentationTool` in `sanity.config.ts` with draft mode routes `/api/draft` and `/api/disable-draft`.
+- **Client**: Configured in `integrations/sanity/client.ts` with stega for visual editing.
+- **Queries**: Server-side fetches in page components check `draftMode()` to fetch draft content with `previewDrafts` perspective.
+- **RSC Compatibility**: Data fetching occurs on the server, with `<VisualEditing />` component used client-side in layout.
+
+### Environment Variables
+Set these in `.env.local` (based on `.env.example`):
+```
+NEXT_PUBLIC_SANITY_PROJECT_ID="your-project-id"
+NEXT_PUBLIC_SANITY_DATASET="production"
+NEXT_PUBLIC_SANITY_STUDIO_URL="http://localhost:3000/studio"
+SANITY_API_WRITE_TOKEN="your-write-token"
+```
+
+### Visual Editing Features
+- **Real-time editing**: Changes in Studio sidebar reflect instantly in preview
+- **Draft mode**: Toggle between published and draft content
+- **Disable draft mode**: UI component to exit draft mode when not in Studio
+- **Proper targeting**: Components use `data-sanity` attributes for editing overlay
+
+### Future Enhancement: Live Content API
+For production applications, consider implementing Sanity's Live Content API with `defineLive`, `sanityFetch`, and `SanityLive` components for optimal real-time performance and cache management.
+
+### Replication for New Projects
+1. Create a new Sanity project at sanity.io.
+2. Update env vars with your project ID and dataset.
+3. Configure schemas in `sanity/schemaTypes/`.
+4. Set up webhooks for revalidation at `/api/revalidate`.
+5. To enable visual editing:
+   - Install Sanity Presentation tool.
+   - Ensure draft mode is configured.
+   - Add `data-sanity` attributes to editable elements.
+6. Test by enabling draft mode and using the visual editor.
+
+For detailed guidelines, refer to [Integration Guide](/.cursor/rules/integrations.mdc).
+
 ## 🎨 Styling System
 
 ### CSS Modules
@@ -161,7 +217,7 @@ Create a `.env.local` file based on `.env.example`:
 NEXT_PUBLIC_SANITY_PROJECT_ID="your-project-id"
 NEXT_PUBLIC_SANITY_DATASET="production"
 NEXT_PUBLIC_SANITY_STUDIO_URL="http://localhost:3000/studio"
-SANITY_VIEWER_TOKEN="your-viewer-token"
+SANITY_API_WRITE_TOKEN="your-write-token"
 
 # Shopify
 SHOPIFY_DOMAIN="your-store.myshopify.com"
@@ -186,11 +242,40 @@ HUBSPOT_ACCESS_TOKEN="your-access-token"
 vercel
 ```
 
-## Git Workflow
+### Production Checks
+1. Environment variables are set in Vercel
+2. Sanity webhooks are configured
+3. GSAP license is valid (if using premium features)
+4. SSL certificates are valid
+5. Performance metrics are within acceptable ranges
 
-### Automated Git Hooks (via Lefthook)
-- **Pre-commit**: Runs Biome to check and format staged files
-- **Post-merge**: Automatically pulls latest environment variables from Vercel
+### Monitoring
+- Vercel Analytics Dashboard
+- Lighthouse CI Reports
+- Performance monitoring with hooks/use-performance.ts
+
+### Content Updates
+1. Content changes through Sanity will automatically update via webhooks
+2. For code changes, follow the standard Vercel deployment flow
+3. Clear cache if needed: `https://your-domain.com/api/revalidate`
+
+## Support & Maintenance
+
+### Common Issues
+1. **Sanity Visual Editor Not Working**
+   - Check environment variables
+   - Verify draft mode configuration
+   - Ensure presentation tool is properly configured
+
+2. **Style Updates Not Reflecting**
+   - Run `bun setup:styles`
+   - Clear browser cache
+   - Check deployment status
+
+3. **Performance Issues**
+   - Check Theatre.js sequences
+   - Verify GSAP animations
+   - Monitor WebGL performance
 
 ### Other Platforms
 The project supports deployment to any platform that supports Next.js:

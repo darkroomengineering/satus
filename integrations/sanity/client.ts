@@ -5,21 +5,9 @@ export const client = createClient({
   projectId,
   dataset,
   apiVersion,
-  useCdn: true,
-  token: process.env.SANITY_VIEWER_TOKEN,
+  useCdn: true, // Use CDN for better performance
+  token: process.env.SANITY_API_WRITE_TOKEN, // Keep write token for editing capabilities
   stega: {
-    studioUrl: process.env.NEXT_PUBLIC_SANITY_STUDIO_URL,
-  },
-})
-
-// Client with authentication for writing
-export const writeClient = createClient({
-  projectId,
-  dataset,
-  apiVersion,
-  useCdn: false,
-  token: process.env.SANITY_API_WRITE_TOKEN,
-  stega: {
-    enabled: false,
+    studioUrl: process.env.NEXT_PUBLIC_SANITY_STUDIO_URL || '/studio',
   },
 })

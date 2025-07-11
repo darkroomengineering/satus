@@ -1,0 +1,12 @@
+language js;
+
+`<a $attrs>$content</a>` as $anchor where {
+    !$anchor <: within `if ($condition) { return ($jsx) }` where {
+        $condition <: contains or { `isExternal`, `isExternalSSR` }
+    },
+    register_diagnostic(
+        span = $anchor,
+        message = "Use custom Link component instead of <a> element. The Link component handles both internal and external links automatically.",
+        severity = "error"
+    )
+} 

@@ -5,6 +5,11 @@
     "clientKind": "git",
     "useIgnoreFile": true
   },
+  "plugins": [
+    "./biome-plugins/no-anchor-element.grit",
+    "./biome-plugins/no-unnecessary-forwardref.grit",
+    "./biome-plugins/no-relative-parent-imports.grit"
+  ],
   "files": {
     "ignoreUnknown": true,
     "includes": [
@@ -79,7 +84,8 @@
             "filenameCases": ["kebab-case", "camelCase"],
             "strictCase": false
           }
-        }
+        },
+        "noNestedTernary": "error"
       },
       "suspicious": {
         "noExplicitAny": "warn",
@@ -117,6 +123,9 @@
         "noDistractingElements": "error",
         "noRedundantAlt": "error",
         "useSemanticElements": "warn"
+      },
+      "performance": {
+        "noImgElement": "error"
       },
       "nursery": {
         "useSortedClasses": "off"

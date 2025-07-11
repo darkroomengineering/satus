@@ -1,0 +1,10 @@
+language js;
+
+`import $imports from $source` as $import where {
+    $source <: r"['\"]\.\.\/\.\.\/.*['\"]",
+    register_diagnostic(
+        span = $import,
+        message = "Use alias imports (~/dir/) instead of deep relative imports (../../). Single level imports (../) are allowed for colocated files.",
+        severity = "error"
+    )
+} 

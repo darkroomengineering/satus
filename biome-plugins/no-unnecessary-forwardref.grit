@@ -1,0 +1,9 @@
+language js;
+
+`forwardRef($func)` as $ref where {
+    register_diagnostic(
+        span = $ref,
+        message = "forwardRef is unnecessary in React 19 with the compiler",
+        severity = "warning"
+    )
+} 

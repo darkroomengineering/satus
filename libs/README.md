@@ -5,7 +5,6 @@ This directory contains utility functions, type definitions, and shared librarie
 ## Available Files
 
 - `utils.ts` - General utility functions for common operations
-- `maths.ts` - Mathematical utility functions for calculations and transformations
 - `store.ts` - Zustand-based state management utilities
 - `tempus-queue.ts` - Queue utilities for Tempus animation library
 - `augment.d.ts` - TypeScript type augmentations for third-party libraries
@@ -43,7 +42,7 @@ const debouncedFunction = debounce(() => {
 await wait(500) // Pauses execution for 500ms
 ```
 
-## Mathematical Utilities (maths.ts)
+## Mathematical Utilities (utils.ts)
 
 Mathematical functions for calculations and transformations:
 
@@ -54,7 +53,7 @@ import {
   lerp,
   random,
   modulo
-} from '~/libs/maths'
+} from '~/libs/utils'
 
 // Clamp a value between min and max
 const clamped = clamp(150, 0, 100) // 100
@@ -152,7 +151,6 @@ const found: string | undefined = ['a', 'b'].find(x => x === 'c')
 Import utilities directly from their respective files:
 
 ```typescript
-import { slugify, numberWithCommas } from '~/libs/utils'
-import { clamp, mapRange } from '~/libs/maths'
+import { slugify, numberWithCommas, clamp, mapRange  } from '~/libs/utils'
 import { store } from '~/libs/store'
 ```

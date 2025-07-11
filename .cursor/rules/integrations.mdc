@@ -1,42 +1,172 @@
----
-description: 
-globs: 
-alwaysApply: false
----
----
-description: Third party integration guidelines
-globs: *.tsx, *.jsx, *.css, *.js, *.ts
----
+Third party integration guidelines
 
-## Storyblok CMS
+## Sanity CMS Integration
 
-1. **Configuration**
-   - Use environment variables for API tokens
-   - Configure in `integrations/storyblok`
+1. **Configuration & Setup**
+   - Use CDN for performance with stega for visual editing
+   - Store credentials securely in environment variables
+   - All Sanity files are organized in `/integrations/sanity/` directory
    ```typescript
-   const storyblokApi = new StoryblokClient({
-     accessToken: process.env.STORYBLOK_ACCESS_TOKEN,
-     cache: {
-       type: 'memory'
-     }
+   // In integrations/sanity/client.ts
+   export const client = createClient({
+     projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
+     dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
+     apiVersion: '2024-03-15',
+     useCdn: true, // Use CDN for better performance
+     token: process.env.SANITY_API_WRITE_TOKEN, // Write token for editing
+     stega: {
+       studioUrl: process.env.NEXT_PUBLIC_SANITY_STUDIO_URL || '/studio',
+     },
    })
    ```
 
-2. **Content Fetching**
-   - Use Server Components for fetching
-   - Implement proper caching strategies
+2. **Schema Management**
+   - Use consistent naming conventions for schemas
+   - Always include proper validation and descriptions
+   - Implement custom previews for better UX
    ```typescript
-   export async function getStory(slug: string) {
-     const { data } = await storyblokApi.get(`cdn/stories/${slug}`)
-     return data.story
+   export const article = defineType({
+     name: 'article',
+     title: 'Article',
+     type: 'document',
+     fields: [
+       defineField({
+         name: 'title',
+         title: 'Title',
+         type: 'string',
+         validation: (Rule) => Rule.required().max(60),
+       }),
+       defineField({
+         name: 'slug',
+         title: 'Slug',
+         type: 'slug',
+         options: { source: 'title', maxLength: 96 },
+         validation: (Rule) => Rule.required(),
+       }),
+     ],
+     preview: {
+       select: { title: 'title', slug: 'slug.current' },
+       prepare({ title, slug }) {
+         return {
+           title: title || 'Untitled',
+           subtitle: slug ? `/${slug}` : 'No slug',
+         }
+       },
+     },
+   })
+   ```
+
+3. **Visual Editing**
+   - Always add `data-sanity` attributes for visual editing
+   - Use SanityContextProvider for document access
+   - Implement proper draft mode handling
+   - Import from `/integrations/sanity` directory
+   ```typescript
+   import { useSanityContext, RichText } from '~/integrations/sanity'
+   
+   export function MyComponent() {
+     const { document } = useSanityContext()
+     
+     return (
+       <div data-sanity={document._id}>
+         <h1 data-sanity="title">{document.title}</h1>
+         <div data-sanity="content">
+           <RichText content={document.content} />
+         </div>
+       </div>
+     )
    }
    ```
 
-3. **Rich Text Rendering**
-   - Use `storyblok-rich-text-react-renderer`
-   - Configure custom components for rendering
+4. **Data Fetching**
+   - Use proper perspective for draft vs published content
+   - Implement caching strategies for performance
+   - Handle errors gracefully with try-catch
+   - Import from `/integrations/sanity` directory
    ```typescript
-   import { render } from 'storyblok-rich-text-react-renderer'
+   // In integrations/sanity/queries.ts
+   import { client } from './client'
+   
+   export async function fetchSanityPage(slug: string, isDraftMode = false) {
+     try {
+       const page = await client.fetch(
+         pageQuery,
+         { slug },
+         isDraftMode
+           ? {
+               perspective: 'previewDrafts',
+               stega: true,
+               cache: 'no-store',
+             }
+           : {
+               next: { revalidate: 3600, tags: ['page', `page:${slug}`] },
+             }
+       )
+       return { data: page, error: null }
+     } catch (error) {
+       console.error('fetchSanityPage error:', error)
+       return { data: null, error }
+     }
+   }
+   ```
+
+5. **GROQ Queries**
+   - Use projections to fetch only needed data
+   - Implement proper filtering and sorting
+   - Use fragments for reusable query parts
+   - Store in `/integrations/sanity/queries.ts`
+   ```typescript
+   // In integrations/sanity/queries.ts
+   import { groq } from 'next-sanity'
+   
+   export const pageQuery = groq`
+     *[_type == "page" && slug.current == $slug][0] {
+       _id,
+       title,
+       slug,
+       content,
+       "imageUrl": image.asset->url,
+       _updatedAt
+     }
+   `
+   ```
+
+6. **Performance Optimization**
+   - Use ISR for static content with revalidation
+   - Implement proper cache invalidation via webhooks
+   - Optimize images with proper sizing
+   - Use consolidated imports for better tree-shaking
+   ```typescript
+   import { urlForImage } from '~/integrations/sanity'
+   
+   // Use ISR for published content
+   export const revalidate = 3600
+   
+   // Optimize images
+   <SanityImage image={document.image} maxWidth={1200} />
+   ```
+
+ 7. **Project Structure**
+   - All Sanity files are organized in `/integrations/sanity/` directory
+   - Configuration files: `sanity.config.ts`, `sanity.cli.ts`
+   - Schema definitions: `schemaTypes/`
+   - Integration code: `client.ts`, `queries.ts`, `components/`, `utils/`
+   ```
+   integrations/sanity/
+   ├── sanity.cli.ts           # CLI configuration
+   ├── sanity.config.ts        # Studio configuration
+   ├── env.ts                  # Environment variables
+   ├── structure.ts            # Studio structure
+   ├── client.ts               # Sanity client
+   ├── queries.ts              # GROQ queries and fetch functions
+   ├── index.ts                # Main exports
+   ├── README.md               # Documentation
+   ├── schemaTypes/            # Content type definitions
+   ├── components/             # React components
+   │   ├── context.tsx         # React context
+   │   └── rich-text.tsx       # Rich text component
+   └── utils/
+       └── image.ts            # Image utilities
    ```
 
 ## Shopify Integration
@@ -141,4 +271,8 @@ globs: *.tsx, *.jsx, *.css, *.js, *.ts
    - Implement idempotency
    - Return 200 status quickly
 
-Last updated: 2025-05-23
+Last updated: 2025-01-08
+
+
+   - Implement idempotency
+   - Return 200 status quickly

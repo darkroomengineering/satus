@@ -7,7 +7,7 @@ import { Link } from '~/components/link'
 const LINKS = [
   { href: '/', label: 'home' },
   { href: '/r3f', label: 'r3f' },
-  { href: '/storyblok', label: 'storyblok' },
+  { href: '/sanity', label: 'sanity' },
   { href: '/shopify', label: 'shopify' },
   { href: '/hubspot', label: 'hubspot' },
 ]

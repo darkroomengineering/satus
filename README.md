@@ -46,7 +46,7 @@ satus/
 ├── integrations/           # Third-party service integrations
 │   ├── hubspot/           # HubSpot forms integration
 │   ├── shopify/           # E-commerce functionality
-│   └── storyblok/         # Headless CMS
+│   └── sanity/            # Headless CMS
 ├── libs/                   # Utility functions and helpers
 ├── orchestra/              # Debug and development tools
 │   ├── grid/              # Grid overlay
@@ -87,10 +87,66 @@ satus/
 - **Git hooks** with Lefthook
 - **Debug tools** accessible with `CMD+O`
 
-### Third-Party Integrations boilerplate
-- **Storyblok** - Headless CMS for content management
+### Third-Party Integrations
+- **Sanity** - Headless CMS with visual editing
 - **Shopify** - E-commerce with cart functionality
 - **HubSpot** - Forms and marketing automation
+
+## Modular Integrations
+
+This template includes optional integrations that can be easily removed if not needed for your project:
+
+### Removing an Integration
+1. Delete the integration directory from `integrations/` (e.g., `integrations/shopify/`)
+2. Remove the corresponding page directory from `app/(pages)/` (e.g., `app/(pages)/shopify/`)
+3. Remove any related imports or references in other files
+4. Update documentation and environment variables as needed
+
+This keeps the template lightweight and customized to your needs.
+
+## Sanity Integration Setup
+
+### Overview
+Sanity is integrated as a headless CMS with support for visual editing in the Next.js App Router. It uses React Server Components for server-side data fetching and client-side visual editing overlays.
+
+### Configuration
+- **Dependencies**: Managed via `next-sanity`, `@sanity/presentation`, `@sanity/visual-editing`.
+- **Studio**: Mounted at `/studio` using `NextStudio`.
+- **Visual Editing**: Enabled via `presentationTool` in `sanity.config.ts` with draft mode routes `/api/draft` and `/api/disable-draft`.
+- **Client**: Configured in `integrations/sanity/client.ts` with stega for visual editing.
+- **Queries**: Server-side fetches in page components check `draftMode()` to fetch draft content with `previewDrafts` perspective.
+- **RSC Compatibility**: Data fetching occurs on the server, with `<VisualEditing />` component used client-side in layout.
+
+### Environment Variables
+Set these in `.env.local` (based on `.env.example`):
+```
+NEXT_PUBLIC_SANITY_PROJECT_ID="your-project-id"
+NEXT_PUBLIC_SANITY_DATASET="production"
+NEXT_PUBLIC_SANITY_STUDIO_URL="http://localhost:3000/studio"
+SANITY_API_WRITE_TOKEN="your-write-token"
+```
+
+### Visual Editing Features
+- **Real-time editing**: Changes in Studio sidebar reflect instantly in preview
+- **Draft mode**: Toggle between published and draft content
+- **Disable draft mode**: UI component to exit draft mode when not in Studio
+- **Proper targeting**: Components use `data-sanity` attributes for editing overlay
+
+### Future Enhancement: Live Content API
+For production applications, consider implementing Sanity's Live Content API with `defineLive`, `sanityFetch`, and `SanityLive` components for optimal real-time performance and cache management.
+
+### Replication for New Projects
+1. Create a new Sanity project at sanity.io.
+2. Update env vars with your project ID and dataset.
+3. Configure schemas in `sanity/schemaTypes/`.
+4. Set up webhooks for revalidation at `/api/revalidate`.
+5. To enable visual editing:
+   - Install Sanity Presentation tool.
+   - Ensure draft mode is configured.
+   - Add `data-sanity` attributes to editable elements.
+6. Test by enabling draft mode and using the visual editor.
+
+For detailed guidelines, refer to [Sanity Integration Guide](integrations/sanity/README.md).
 
 ## 🎨 Styling System
 
@@ -138,7 +194,6 @@ CSS variables for consistent theming:
 ```bash
 # Development
 bun dev              # Start dev server with Turbopack
-bun dev:https        # Start with HTTPS
 
 # Building
 bun build            # Production build
@@ -158,19 +213,23 @@ bun watch:styles     # Watch style changes
 Create a `.env.local` file based on `.env.example`:
 
 ```env
-# Storyblok CMS
-STORYBLOK_ACCESS_TOKEN=your_token_here
+# Sanity CMS
+NEXT_PUBLIC_SANITY_PROJECT_ID="your-project-id"
+NEXT_PUBLIC_SANITY_DATASET="production"
+NEXT_PUBLIC_SANITY_STUDIO_URL="http://localhost:3000/studio"
+SANITY_API_WRITE_TOKEN="your-write-token"
 
 # Shopify
-SHOPIFY_DOMAIN=your-store.myshopify.com
-SHOPIFY_STOREFRONT_TOKEN=your_token_here
+SHOPIFY_DOMAIN="your-store.myshopify.com"
+SHOPIFY_STOREFRONT_TOKEN="your-storefront-token"
 
 # HubSpot
-HUBSPOT_ACCESS_TOKEN=your_token_here
+HUBSPOT_ACCESS_TOKEN="your-access-token"
 ```
 
 ## 📚 Documentation
 
+- [Sanity CMS Integration Guide](integrations/sanity/README.md) - Complete guide for visual editing, content management, and development
 - [Component Guidelines](/.cursor/rules/components.mdc)
 - [Styling Guidelines](/.cursor/rules/styling.mdc)
 - [WebGL Development](/.cursor/rules/webgl.mdc)
@@ -184,11 +243,40 @@ HUBSPOT_ACCESS_TOKEN=your_token_here
 vercel
 ```
 
-## Git Workflow
+### Production Checks
+1. Environment variables are set in Vercel
+2. Sanity webhooks are configured
+3. GSAP license is valid (if using premium features)
+4. SSL certificates are valid
+5. Performance metrics are within acceptable ranges
 
-### Automated Git Hooks (via Lefthook)
-- **Pre-commit**: Runs Biome to check and format staged files
-- **Post-merge**: Automatically pulls latest environment variables from Vercel
+### Monitoring
+- Vercel Analytics Dashboard
+- Lighthouse CI Reports
+- Performance monitoring with hooks/use-performance.ts
+
+### Content Updates
+1. Content changes through Sanity will automatically update via webhooks
+2. For code changes, follow the standard Vercel deployment flow
+3. Clear cache if needed: `https://your-domain.com/api/revalidate`
+
+## Support & Maintenance
+
+### Common Issues
+1. **Sanity Visual Editor Not Working**
+   - Check environment variables
+   - Verify draft mode configuration
+   - Ensure presentation tool is properly configured
+
+2. **Style Updates Not Reflecting**
+   - Run `bun setup:styles`
+   - Clear browser cache
+   - Check deployment status
+
+3. **Performance Issues**
+   - Check Theatre.js sequences
+   - Verify GSAP animations
+   - Monitor WebGL performance
 
 ### Other Platforms
 The project supports deployment to any platform that supports Next.js:
@@ -207,4 +295,10 @@ The project supports deployment to any platform that supports Next.js:
 
 ## 📄 License
 
-MIT © [darkroom.engineering](https://github.com/darkroomengineering)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built by [darkroom.engineering](https://darkroom.engineering)
+- Inspired by modern web development best practices
+- Community contributions and feedback

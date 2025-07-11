@@ -1,36 +1,41 @@
+import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
-import { fetchStoryblokStory } from '~/integrations/storyblok'
-import { StoryblokContextProvider } from '~/integrations/storyblok/context'
+import { fetchSanityPage, SanityContextProvider } from '~/integrations/sanity'
 import { Wrapper } from '../(components)/wrapper'
-import { Tutorial } from './(component)/tutorial'
+import { SanityTutorial } from './(component)/tutorial'
 
-const SLUG = 'cdn/stories/home'
+const SLUG = 'home'
 
-export default async function Storyblok() {
-  const { data } = await fetchStoryblokStory(SLUG)
+export default async function SanityPage() {
+  const isDraftMode = (await draftMode()).isEnabled
+  const { data } = await fetchSanityPage(SLUG, isDraftMode)
 
   if (!data) return notFound()
 
   return (
-    <StoryblokContextProvider {...data}>
+    <SanityContextProvider document={data} isLoading={false} error={null}>
       <Wrapper theme="red" className="uppercase font-mono">
         <div className="flex items-center justify-center grow max-dt:dr-px-16">
-          <Tutorial />
+          <SanityTutorial />
         </div>
       </Wrapper>
-    </StoryblokContextProvider>
+    </SanityContextProvider>
   )
 }
 
+// Force dynamic rendering for draft mode
+export const dynamic = 'force-dynamic'
+
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata
 export async function generateMetadata() {
-  const { data } = await fetchStoryblokStory(SLUG)
-  const metadata = data?.story?.content?.metadata?.[0]
+  const isDraftMode = (await draftMode()).isEnabled
+  const { data } = await fetchSanityPage(SLUG, isDraftMode)
+  const metadata = data?.metadata
 
   if (!metadata) return
 
   const baseUrl = `${process.env.NEXT_PUBLIC_BASE_URL}`
-  const pageUrl = `${baseUrl}/storyblok`
+  const pageUrl = `${baseUrl}/sanity`
 
   return {
     metadataBase: baseUrl ? new URL(baseUrl) : undefined,
@@ -42,13 +47,13 @@ export async function generateMetadata() {
         'en-US': '/en-US',
       },
     },
-    keywords: metadata?.keywords?.value,
+    keywords: metadata?.keywords,
     openGraph: {
       title: metadata?.title,
       description: metadata?.description,
       images: [
         {
-          url: metadata?.image?.filename || '/og-image.png',
+          url: metadata?.image?.asset?.url || '/og-image.png',
           width: 1200,
           height: 630,
           alt: metadata?.title,
@@ -65,7 +70,7 @@ export async function generateMetadata() {
       card: 'summary_large_image',
       images: [
         {
-          url: metadata?.image?.filename || '/og-image.png',
+          url: metadata?.image?.asset?.url || '/og-image.png',
           width: 1200,
           height: 630,
           alt: metadata?.title,

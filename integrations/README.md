@@ -5,7 +5,7 @@ This directory contains integrations with external services and APIs used throug
 ## Available Integrations
 
 - `hubspot/` - HubSpot integration for forms and marketing
-- `storyblok/` - Storyblok CMS integration for content management
+- `sanity/` - Sanity CMS integration for content management
 - `shopify/` - Shopify integration for e-commerce functionality
 
 ## HubSpot Integration
@@ -36,36 +36,36 @@ async function handleSubmit(formData) {
 }
 ```
 
-## Storyblok Integration
+## Sanity Integration
 
-The Storyblok integration provides headless CMS functionality.
+The Sanity integration provides headless CMS functionality with visual editing capabilities.
 
 ### Features
 
-- Content management
-- Rich text rendering
-- Dynamic page creation
-- Visual editor compatibility
-- Preview mode support
+- Content management with Sanity Studio
+- Rich text rendering with Portable Text
+- Visual editing and live preview
+- Draft mode support
+- Image optimization
 
 ### Usage
 
 ```tsx
-import { StoryblokProvider } from '~/integrations/storyblok'
-import { RichTextRenderer } from '~/integrations/storyblok/renderer'
+import { fetchSanityPage, SanityContextProvider, RichText } from '~/integrations/sanity'
 
-// Setup Storyblok Provider
-function App({ children }) {
-  return (
-    <StoryblokProvider>
-      {children}
-    </StoryblokProvider>
-  )
+// Fetch content from Sanity
+async function getPageData(slug: string) {
+  const { data } = await fetchSanityPage(slug)
+  return data
 }
 
-// Render content from Storyblok
-function ContentBlock({ data }) {
-  return <RichTextRenderer data={data.content} />
+// Render content with context
+function ContentPage({ data }) {
+  return (
+    <SanityContextProvider document={data}>
+      <RichText content={data.content} />
+    </SanityContextProvider>
+  )
 }
 ```
 
@@ -126,22 +126,21 @@ function CartSummary() {
 }
 ```
 
-## Configuration
+## Environment Variables
 
-Each integration requires specific configuration in the environment variables:
-
-```
+```env
 # HubSpot
 HUBSPOT_ACCESS_TOKEN=your-token
 HUBSPOT_PORTAL_ID=your-portal-id
 
-# Storyblok
-STORYBLOK_ACCESS_TOKEN=your-token
-STORYBLOK_PREVIEW_TOKEN=your-preview-token
+# Sanity CMS
+NEXT_PUBLIC_SANITY_PROJECT_ID="your-project-id"
+NEXT_PUBLIC_SANITY_DATASET="production"
+NEXT_PUBLIC_SANITY_STUDIO_URL="http://localhost:3000/studio"
+SANITY_API_WRITE_TOKEN="your-viewer-token"
 
 # Shopify
-SHOPIFY_STORE_DOMAIN=your-store.myshopify.com
-SHOPIFY_STOREFRONT_ACCESS_TOKEN=your-token
-```
+SHOPIFY_DOMAIN="your-store.myshopify.com"
+SHOPIFY_STOREFRONT_TOKEN="your-storefront-token"
 
-See `.env.example` for all required environment variables.
+```

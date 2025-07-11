@@ -10,7 +10,6 @@ import {
   useRef,
   useState,
 } from 'react'
-import { useIsVisualEditor } from '~/integrations/storyblok/use-is-visual-editor'
 import s from './split-text.module.css'
 
 // Type for GSAP SplitText
@@ -135,8 +134,6 @@ export function SplitText({
     }
   }, [rect, type])
 
-  const isVisualEditor = useIsVisualEditor()
-
   const render = useMemo(
     () => (
       <span className={cn(s.wrapper, className)}>
@@ -158,5 +155,5 @@ export function SplitText({
     [children, className, setRectRef]
   )
 
-  return isVisualEditor ? children : render
+  return render
 }

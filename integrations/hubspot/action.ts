@@ -1,7 +1,7 @@
 'use server'
 
 export async function HubspotNewsletterAction(_: unknown, formData: FormData) {
-  const portalId = process.env.NEXT_PUBLIC_HUSBPOT_PORTAL_ID
+  const portalId = process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID
   const formId = formData.get('formId')
 
   const body = {
@@ -25,12 +25,12 @@ export async function HubspotNewsletterAction(_: unknown, formData: FormData) {
     })
 
     if (!response.ok) {
-      throw new Error(`Failed to submit to husbpot: ${response.status}`)
+      throw new Error(`Failed to submit to hubspot: ${response.status}`)
     }
 
-    return { status: 200, message: 'submitted to Hubspot succesfully' }
+    return { status: 200, message: 'submitted to Hubspot successfully' }
   } catch (error) {
-    console.error(`Error submiting to husbpot form: ${formId}`, error)
-    return { status: 500, message: 'Failed to submit to husbpot' }
+    console.error(`Error submitting to hubspot form: ${formId}`, error)
+    return { status: 500, message: 'Failed to submit to hubspot' }
   }
 }

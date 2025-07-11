@@ -3,8 +3,8 @@
 import { useRect } from 'hamo'
 import { useLenis } from 'lenis/react'
 import { useEffect, useRef } from 'react'
-import { mapRange } from '~/libs/maths'
 import { mutate } from '~/libs/tempus-queue'
+import { mapRange } from '~/libs/utils'
 import s from './scrollbar.module.css'
 
 export function Scrollbar() {

@@ -83,7 +83,7 @@ function useMarker({
 
   const top = useCallback(
     (value: number) => {
-      if (!elementRef.current) return
+      if (!elementRef.current) return 0
 
       if (type === 'start') {
         return clamp(

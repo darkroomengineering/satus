@@ -134,7 +134,7 @@ export function SplitText({
     }
   }, [rect, type])
 
-  const { draftMode } = useSanityContext(); // Use Sanity's context to detect visual editing mode
+  const { document, isLoading, error } = useSanityContext(); // Use Sanity's context
 
   const render = useMemo(
     () => (

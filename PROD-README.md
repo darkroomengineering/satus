@@ -34,7 +34,7 @@ Required in `.env.local`:
 NEXT_PUBLIC_SANITY_PROJECT_ID="your-project-id"
 NEXT_PUBLIC_SANITY_DATASET="production"
 NEXT_PUBLIC_SANITY_STUDIO_URL="http://localhost:3000/studio"
-SANITY_VIEWER_TOKEN="your-viewer-token"
+SANITY_API_WRITE_TOKEN="your-viewer-token"
 
 # GSAP (if using premium features)
 GSAP_AUTH_TOKEN="your-gsap-token"

@@ -137,7 +137,7 @@ HUBSPOT_PORTAL_ID=your-portal-id
 NEXT_PUBLIC_SANITY_PROJECT_ID="your-project-id"
 NEXT_PUBLIC_SANITY_DATASET="production"
 NEXT_PUBLIC_SANITY_STUDIO_URL="http://localhost:3000/studio"
-SANITY_VIEWER_TOKEN="your-viewer-token"
+SANITY_API_WRITE_TOKEN="your-viewer-token"
 
 # Shopify
 SHOPIFY_DOMAIN="your-store.myshopify.com"

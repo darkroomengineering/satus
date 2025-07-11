@@ -10,11 +10,13 @@ export function AddToCart({ product, variant, quantity = 1, className }) {
   const { addCartItem } = useCartContext()
   const { openCart } = useCartModal()
 
-  const buttonState = variant
-    ? `ADD TO CART — $${Number(variant?.price?.amount).toFixed(2)}`
-    : product?.availableForSale
-      ? 'Select a size'
-      : 'Coming Soon'
+  let buttonState = 'Coming Soon'
+
+  if (variant) {
+    buttonState = `ADD TO CART — $${Number(variant?.price?.amount).toFixed(2)}`
+  } else if (product?.availableForSale) {
+    buttonState = 'Select a size'
+  }
 
   async function formAction() {
     // Need to force priority

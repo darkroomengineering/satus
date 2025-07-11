@@ -1,11 +1,11 @@
 import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
+import { Wrapper } from '~/app/(pages)/(components)/wrapper'
 import {
   fetchAllSanityArticles,
   fetchSanityArticle,
   SanityContextProvider,
 } from '~/integrations/sanity'
-import { Wrapper } from '../../(components)/wrapper'
 import { SanityArticle } from './(component)/article'
 
 // Add ISR revalidation - revalidate every hour

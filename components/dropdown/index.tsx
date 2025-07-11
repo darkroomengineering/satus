@@ -49,9 +49,7 @@ export function Dropdown({
           }
         }}
       >
-        <span>
-          {isOpened ? placeholder : selected ? options[selected] : placeholder}
-        </span>
+        <span>{selected && !isOpened ? options[selected] : placeholder}</span>
       </button>
       {isOpened && (
         <div

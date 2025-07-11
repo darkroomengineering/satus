@@ -25,7 +25,8 @@
       "!**/*.md",
       "!**/*.mdx",
       "!**/tailwind.css",
-      "!**/root.css"
+      "!**/root.css",
+      "!**/*.grit"
     ]
   },
   "formatter": {

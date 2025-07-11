@@ -157,5 +157,5 @@ export function SplitText({
     [children, className, setRectRef]
   )
 
-  return isIframe ? children : render
+  return draftMode ? children : render
 }

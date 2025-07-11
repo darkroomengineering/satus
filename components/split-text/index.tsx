@@ -134,8 +134,6 @@ export function SplitText({
     }
   }, [rect, type])
 
-  const { document, isLoading, error } = useSanityContext(); // Use Sanity's context
-
   const render = useMemo(
     () => (
       <span className={cn(s.wrapper, className)}>
@@ -157,5 +155,5 @@ export function SplitText({
     [children, className, setRectRef]
   )
 
-  return draftMode ? children : render
+  return render
 }

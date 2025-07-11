@@ -134,7 +134,7 @@ export function SplitText({
     }
   }, [rect, type])
 
-  const isIframe = typeof window !== 'undefined' && window !== window.parent
+  const { draftMode } = useSanityContext(); // Use Sanity's context to detect visual editing mode
 
   const render = useMemo(
     () => (

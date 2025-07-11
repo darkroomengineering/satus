@@ -30,7 +30,7 @@ export async function HubspotNewsletterAction(_: unknown, formData: FormData) {
 
     return { status: 200, message: 'submitted to Hubspot successfully' }
   } catch (error) {
-    console.error(`Error submiting to hubspot form: ${formId}`, error)
+    console.error(`Error submitting to hubspot form: ${formId}`, error)
     return { status: 500, message: 'Failed to submit to hubspot' }
   }
 }

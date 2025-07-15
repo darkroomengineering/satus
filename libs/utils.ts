@@ -1,5 +1,6 @@
 import type { Ref } from 'react'
 import { screens } from '~/styles/config'
+import { easings } from './easings'
 
 export function desktopVW(value: number, width: number) {
   return (value * width) / screens.desktop.width
@@ -127,32 +128,114 @@ export function mergeRefs<T>(...refs: (Ref<T> | undefined)[]): Ref<T> {
   }
 }
 
-function clamp(min: number, input: number, max: number) {
+export function clamp(min: number, input: number, max: number) {
   return Math.max(min, Math.min(input, max))
 }
 
-function mapRange(
+export function mapRange(
   inMin: number,
   inMax: number,
   input: number,
   outMin: number,
-  outMax: number
+  outMax: number,
+  shouldClamp = false
 ) {
-  return ((input - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin
+  const result =
+    ((input - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin
+
+  const isInverted = outMin > outMax
+
+  if (isInverted) {
+    return shouldClamp ? clamp(outMax, result, outMin) : result
+  }
+
+  return shouldClamp ? clamp(outMin, result, outMax) : result
 }
 
-function lerp(start: number, end: number, amount: number) {
+export function lerp(start: number, end: number, amount: number) {
   return (1 - amount) * start + amount * end
 }
 
-function truncate(value: number, decimals: number) {
+export function truncate(value: number, decimals: number) {
   return Number.parseFloat(value.toFixed(decimals))
 }
 
-function modulo(n: number, d: number) {
+export function modulo(n: number, d: number) {
   if (d === 0) return n
   if (d < 0) return Number.NaN
   return ((n % d) + d) % d
 }
 
-export { clamp, lerp, mapRange, modulo, truncate }
+export function stagger(
+  index: number,
+  total: number,
+  progress: number,
+  stagger: number
+) {
+  const start = index * stagger
+  const end = 1 - (total - index) * stagger
+  return clamp(0, mapRange(start, end, progress, 0, 1), 1)
+}
+
+export function ease(progress: number, ease: keyof typeof easings) {
+  return easings[ease](progress)
+}
+
+export function fromTo(
+  entries:
+    | number
+    | (number | HTMLElement | null | Element | undefined)[]
+    | HTMLElement
+    | Element
+    | null
+    | undefined,
+  from: number | Record<string, number | ((index: number) => number)> = 0,
+  to: number | Record<string, number | ((index: number) => number)> = 1,
+  progress = 0,
+  options: {
+    ease?: keyof typeof easings
+    stagger?: number
+    render?: (
+      element: HTMLElement | number | Element,
+      value: Record<string, number>
+    ) => void
+  } = {}
+) {
+  if (!entries) return
+
+  if (typeof options?.stagger === 'undefined') options.stagger = 0
+  if (typeof options?.ease === 'undefined') options.ease = 'linear'
+
+  const keys = typeof from === 'object' ? Object.keys(from) : ['value']
+
+  const elements = Array.isArray(entries) ? entries : [entries]
+
+  for (const [index, element] of elements.entries()) {
+    const staggeredProgress = stagger(
+      index,
+      elements.length,
+      progress,
+      options.stagger!
+    )
+
+    const easedProgress = ease(staggeredProgress, options.ease!)
+
+    const values = Object.fromEntries(
+      keys.map((key) => {
+        const fromPreValue = typeof from === 'object' ? from[key] : from
+        const toPreValue = typeof to === 'object' ? to[key] : to
+
+        const fromValue =
+          typeof fromPreValue === 'function'
+            ? fromPreValue(index)
+            : fromPreValue
+        const toValue =
+          typeof toPreValue === 'function' ? toPreValue(index) : toPreValue
+
+        return [key, mapRange(0, 1, easedProgress, fromValue, toValue)]
+      })
+    )
+
+    if (options.render && element) options.render(element, values)
+  }
+}

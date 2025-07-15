@@ -1,7 +1,7 @@
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google'
 import type { Metadata, Viewport } from 'next'
-import { draftMode } from 'next/headers'
 import { VisualEditing } from 'next-sanity'
+import { draftMode } from 'next/headers'
 import type { PropsWithChildren } from 'react'
 import { ReactTempus } from 'tempus/react'
 import { DisableDraftMode } from '~/components/disable-draft-mode'
@@ -26,7 +26,7 @@ const GTM_ID = process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID
 const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS
 
 export const metadata: Metadata = {
-  metadataBase: new URL(`${APP_BASE_URL}`),
+  metadataBase: APP_BASE_URL ? new URL(`${APP_BASE_URL}`) : undefined,
   applicationName: APP_NAME,
   title: {
     default: APP_DEFAULT_TITLE,

@@ -1,22 +1,22 @@
 'use client'
 
 import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/all'
+import { ScrollTrigger as GSAPScrollTrigger } from 'gsap/all'
 import { useLenis } from 'lenis/react'
-import { useEffect, useLayoutEffect } from 'react'
+import { useEffect } from 'react'
 
-export function ScrollTriggerConfig() {
-  useLayoutEffect(() => {
-    gsap.registerPlugin(ScrollTrigger)
-    ScrollTrigger.clearScrollMemory('manual')
-    ScrollTrigger.defaults({
-      markers: process.env.NODE_ENV === 'development',
-    })
-  }, [])
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(GSAPScrollTrigger)
+  GSAPScrollTrigger.clearScrollMemory('manual')
+  GSAPScrollTrigger.defaults({
+    markers: process.env.NODE_ENV === 'development',
+  })
+}
 
-  const lenis = useLenis(ScrollTrigger.update)
+export function ScrollTrigger() {
+  const lenis = useLenis(GSAPScrollTrigger.update)
   // biome-ignore lint/correctness/useExhaustiveDependencies: no time to type
-  useEffect(() => ScrollTrigger.refresh(), [lenis])
+  useEffect(() => GSAPScrollTrigger.refresh(), [lenis])
 
   return null
 }

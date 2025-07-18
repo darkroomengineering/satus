@@ -75,19 +75,27 @@ function ProductCard({ href }: { href: string }) {
 Provides scroll-based animation and trigger functionality. Useful for creating scroll-driven animations and effects.
 
 ```tsx
+import { useRect } from 'hamo/use-rect'
 import { useScrollTrigger } from '~/hooks/use-scroll-trigger'
 
 function ScrollAnimation() {
-  const { ref, progress } = useScrollTrigger({
-    start: 'top bottom', // Start when element's top reaches viewport bottom
-    end: 'bottom top',   // End when element's bottom reaches viewport top
+  const [setRectRef, rect] = useRect()
+
+  useScrollTrigger({
+    rect,
+    start: 'bottom bottom', // Start when element's top reaches viewport bottom
+    end: 'center center',   // End when element's bottom reaches viewport top
     scrub: true,         // Smooth animation that follows scroll position
     markers: true,       // Show debug markers (development only)
+    onProgress: ({ progress }) => {
+      console.log(progress)
+      rect.element.style.opacity = progress
+    },
   })
   
   return (
-    <div ref={ref} style={{ opacity: progress }}>
-      This element fades in as you scroll
+    <div ref={setRectRef}>
+      This element appears in as you scroll
     </div>
   )
 }
@@ -98,42 +106,27 @@ function ScrollAnimation() {
 Manages element transformations and animations with GSAP, providing a declarative way to handle complex animations.
 
 ```tsx
-import { useTransform } from '~/hooks/use-transform'
+import { TransformProvider } from '~/hooks/use-transform'
 
 function AnimatedElement() {
-  const { ref, setTransform } = useTransform()
-  
-  // Trigger an animation
-  const handleHover = () => {
-    setTransform({
-      x: 20,
-      y: 10,
-      rotation: 5,
-      scale: 1.1,
-      duration: 0.5,
-      ease: 'power2.out',
-    })
-  }
-  
-  // Reset animation
-  const handleLeave = () => {
-    setTransform({
-      x: 0,
-      y: 0,
-      rotation: 0,
-      scale: 1,
-      duration: 0.3,
-    })
-  }
-  
+  const transformProviderRef = useRef<TransformRef>(null)
+
+  useEffect(() => {
+    // Set transform values
+    transformProviderRef.current?.setTranslate(0, 100, 0)
+  }, [])
+
+  useTransform(({ translate, rotate, scale, clip }) => {
+    // listen to transform changes
+    console.log(translate, rotate, scale, clip)
+  },[])
+
   return (
-    <div 
-      ref={ref}
-      onMouseEnter={handleHover}
-      onMouseLeave={handleLeave}
-    >
-      Hover me for animation
-    </div>
+    <TransformProvider ref={transformProviderRef}>
+      <div>
+        <h1>Hello</h1>
+      </div>
+    </TransformProvider>
   )
 }
 ```

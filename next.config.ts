@@ -59,9 +59,12 @@ const nextConfig: NextConfig = {
     },
   },
   compiler: {
-    removeConsole: {
-      exclude: ['error', 'warn'],
-    },
+    removeConsole:
+      process.env.NODE_ENV === 'production'
+        ? {
+            exclude: ['error', 'warn'],
+          }
+        : false,
     reactRemoveProperties: true,
   },
   experimental: {

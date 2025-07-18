@@ -6,15 +6,15 @@ import type { PropsWithChildren } from 'react'
 import { ReactTempus } from 'tempus/react'
 import { DisableDraftMode } from '~/components/disable-draft-mode'
 import { GSAP } from '~/components/gsap'
+import { ScrollTrigger } from '~/components/gsap/scroll-trigger'
 import { PerformanceMonitor } from '~/components/performance-monitor'
 import { RoutePerformanceTracker } from '~/components/performance-monitor/route-tracker'
 import { RealViewport } from '~/components/real-viewport'
 import { OrchestraTools } from '~/orchestra'
 import AppData from '~/package.json'
 import { themes } from '~/styles/colors'
-import { fontsVariable } from '~/styles/fonts'
-
 import '~/styles/css/index.css'
+import { fontsVariable } from '~/styles/fonts'
 
 const APP_NAME = AppData.name
 const APP_DEFAULT_TITLE = 'Satūs'
@@ -114,8 +114,9 @@ export default async function Layout({ children }: PropsWithChildren) {
         {/* Development tools - dynamically imported */}
         <OrchestraTools />
 
-        {/* Animation framework - lazy loaded */}
+        {/* Animation framework */}
         <GSAP />
+        <ScrollTrigger />
 
         {/* RAF management - lightweight, but don't patch in draft mode to avoid conflicts */}
         <ReactTempus patch={!isDraftMode} />

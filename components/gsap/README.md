@@ -6,7 +6,7 @@
 Satūs comes with GSAP pre-installed. To enable GSAP in your project, use the `<GSAP>` component at the root level:
 
 ```jsx
-<GSAP scrollTrigger />
+<GSAP />
 ```
 
 This will:
@@ -55,8 +55,8 @@ export function Component() {
 When using ScrollTrigger, make sure you've enabled it in the GSAP component:
 
 ```jsx
-// At your app's root
-<GSAP scrollTrigger />
+// In your layout.tsx
+<ScrollTrigger />
 
 // In your component
 useGSAP(() => {

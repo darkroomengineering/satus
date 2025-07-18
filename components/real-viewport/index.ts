@@ -1,5 +1,6 @@
 'use client'
 
+import debounce from 'just-debounce-it'
 import { useLayoutEffect } from 'react'
 import { mutate } from '~/libs/tempus-queue'
 
@@ -35,54 +36,43 @@ function getScrollbarWidth() {
   return scrollbarWidth
 }
 
-let resizeTimeout: ReturnType<typeof setTimeout> | null = null
-
 function onWindowResize() {
-  // Throttle resize updates
-  if (resizeTimeout !== null) {
-    clearTimeout(resizeTimeout)
-  }
+  mutate(() => {
+    document.documentElement.style.setProperty(
+      '--vw',
+      `${document.documentElement.offsetWidth * 0.01}px`
+    )
 
-  resizeTimeout = setTimeout(() => {
-    mutate(() => {
-      document.documentElement.style.setProperty(
-        '--vw',
-        `${document.documentElement.offsetWidth * 0.01}px`
-      )
+    document.documentElement.style.setProperty(
+      '--dvh',
+      `${window.innerHeight * 0.01}px`
+    )
 
-      document.documentElement.style.setProperty(
-        '--dvh',
-        `${window.innerHeight * 0.01}px`
-      )
+    document.documentElement.style.setProperty(
+      '--svh',
+      `${document.documentElement.clientHeight * 0.01}px`
+    )
 
-      document.documentElement.style.setProperty(
-        '--svh',
-        `${document.documentElement.clientHeight * 0.01}px`
-      )
+    document.documentElement.style.setProperty('--lvh', '1vh')
 
-      document.documentElement.style.setProperty('--lvh', '1vh')
-
-      document.documentElement.style.setProperty(
-        '--scrollbar-width',
-        `${getScrollbarWidth()}px`
-      )
-    })
-    resizeTimeout = null
-  }, 100) // 100ms throttle
+    document.documentElement.style.setProperty(
+      '--scrollbar-width',
+      `${getScrollbarWidth()}px`
+    )
+  })
 }
+
+const debouncedOnWindowResize = debounce(onWindowResize, 500)
 
 export function RealViewport() {
   useLayoutEffect(() => {
     // Set initial values immediately
     onWindowResize()
 
-    window.addEventListener('resize', onWindowResize, false)
+    window.addEventListener('resize', debouncedOnWindowResize, false)
 
     return () => {
-      window.removeEventListener('resize', onWindowResize, false)
-      if (resizeTimeout !== null) {
-        clearTimeout(resizeTimeout)
-      }
+      window.removeEventListener('resize', debouncedOnWindowResize, false)
     }
   }, [])
 

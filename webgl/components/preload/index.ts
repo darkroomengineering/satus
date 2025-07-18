@@ -1,8 +1,7 @@
 'use client'
 
-import { useProgress } from '@react-three/drei'
 import { useThree } from '@react-three/fiber'
-import { useDebounce } from 'react-use'
+import { useEffect } from 'react'
 import type * as THREE from 'three'
 import { CubeCamera, WebGLCubeRenderTarget } from 'three'
 
@@ -10,37 +9,42 @@ export function Preload() {
   const gl = useThree((state) => state.gl)
   const camera = useThree((state) => state.camera)
   const scene = useThree((state) => state.scene)
-  const active = useProgress((state) => state.active)
+  // const loaderLoaded = useStore((state) => state.loaderLoaded)
 
-  useDebounce(
-    async () => {
-      if (active) return
+  useEffect(
+    () => {
+      // if (!loaderLoaded) return
 
-      console.log('WebGL: Preloading...')
+      async function load() {
+        console.log('WebGL: Preloading...')
 
-      console.time('WebGL: Preload took:')
+        console.time('WebGL: Preload took:')
 
-      const invisible: THREE.Object3D[] = []
-      scene.traverse((object: THREE.Object3D) => {
-        if (object.visible === false) {
-          invisible.push(object)
-          object.visible = true
+        const invisible: THREE.Object3D[] = []
+        scene.traverse((object: THREE.Object3D) => {
+          if (object.visible === false && !object.userData?.debug) {
+            invisible.push(object)
+            object.visible = true
+          }
+        })
+        await gl.compileAsync(scene, camera)
+        const cubeRenderTarget = new WebGLCubeRenderTarget(128)
+        const cubeCamera = new CubeCamera(0.01, 100000, cubeRenderTarget)
+        cubeCamera.update(gl as THREE.WebGLRenderer, scene as THREE.Scene)
+        cubeRenderTarget.dispose()
+
+        for (const object of invisible) {
+          object.visible = false
         }
-      })
-      await gl.compileAsync(scene, camera)
-      const cubeRenderTarget = new WebGLCubeRenderTarget(128)
-      const cubeCamera = new CubeCamera(0.01, 100000, cubeRenderTarget)
-      cubeCamera.update(gl as THREE.WebGLRenderer, scene as THREE.Scene)
-      cubeRenderTarget.dispose()
 
-      for (const object of invisible) {
-        object.visible = false
+        console.timeEnd('WebGL: Preload took:')
       }
 
-      console.timeEnd('WebGL: Preload took:')
+      load()
     },
-    1000,
-    [active, gl, camera, scene]
+    [
+      // loaderLoaded
+    ]
   )
 
   return null

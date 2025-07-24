@@ -1,159 +1,118 @@
 'use client'
 
 import cn from 'clsx'
-import { useResizeObserver } from 'hamo'
-import {
-  type Ref,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import { SplitText as GSAPSplitText } from 'gsap/SplitText'
+import { useEffect, useImperativeHandle, useRef, useState } from 'react'
+// import { useIsVisualEditor } from '~/integrations/storyblok/use-is-visual-editor'
 import s from './split-text.module.css'
 
-// Type for GSAP SplitText
-interface GSAPSplitTextInstance {
-  chars?: Element[]
-  words?: Element[]
-  lines?: Element[]
-  revert(): void
-}
+// @refresh reset
 
-interface GSAPSplitTextConstructor {
-  new (
-    element: HTMLElement,
-    options?: {
-      tag?: string
-      type?: string
-      linesClass?: string
-      wordsClass?: string
-      charsClass?: string
-    }
-  ): GSAPSplitTextInstance
-}
-
-type GSAPSplitTextType = GSAPSplitTextInstance
-
-// Lazy load GSAP and SplitText
-let gsapLoaded = false
-let GSAPSplitTextConstructor: GSAPSplitTextConstructor | null = null
-
-async function loadGSAPSplitText() {
-  if (!gsapLoaded) {
-    const [gsapModule, splitTextModule] = await Promise.all([
-      import('gsap'),
-      import('gsap/SplitText'),
-    ])
-    const gsap = gsapModule.gsap
-    GSAPSplitTextConstructor =
-      splitTextModule.SplitText as GSAPSplitTextConstructor
-    gsap.registerPlugin(GSAPSplitTextConstructor)
-    gsapLoaded = true
-  }
-  return GSAPSplitTextConstructor
-}
-
-function replaceFromNode(
-  node: HTMLSpanElement,
-  string: string,
-  replacement = string
-) {
-  node.innerHTML = node.innerHTML.replace(
-    new RegExp(`(?!<[^>]+)${string}(?![^<]+>)`, 'g'),
-    replacement
-  )
-}
-
-type SplitText = 'chars' | 'words' | 'lines'
-
-type SplitType =
-  | `${SplitText}`
-  | `${SplitText},${SplitText}`
-  | `${SplitText},${SplitText},${SplitText}`
-
-type SplitTextProps = {
-  children: string
+interface SplitTextProps {
+  children: React.ReactNode
   className?: string
-  type?: SplitType
-  ref?: Ref<GSAPSplitTextType | undefined>
+  as?: 'span' | 'div' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p'
+  willAppear?: boolean
+  type?: 'lines' | 'words' | 'chars'
+  mask?: boolean
 }
 
-export function SplitText({
+interface SplitTextRef {
+  getNode: () => HTMLElement | null
+  getSplitText: () => GSAPSplitText | null
+  splittedText: GSAPSplitText | null
+}
+
+export function SplittedText({
+  ref,
   children,
   className,
+  as: Tag = 'span',
+  willAppear = false,
   type = 'words',
-  ref,
-}: SplitTextProps) {
-  const elementRef = useRef<HTMLSpanElement>(null!)
-  const fallbackRef = useRef<HTMLSpanElement>(null!)
-  const [setRectRef, entry] = useResizeObserver()
-  const rect = entry?.contentRect
+  mask = true,
+}: SplitTextProps & {
+  ref?:
+    | React.RefObject<SplitTextRef | null>
+    | ((node: SplitTextRef | null) => void)
+}) {
+  // const isVisualEditor = useIsVisualEditor()
 
-  const [splitted, setSplitted] = useState<GSAPSplitTextType | undefined>()
+  const splitRef = useRef<HTMLDivElement>(null)
+  const splittedRef = useRef<GSAPSplitText | null>(null)
+  const [splittedText, setSplittedText] = useState<GSAPSplitText | null>(null)
 
-  useImperativeHandle(ref, () => splitted, [splitted])
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: rect dependency is needed to adjust on size changes
   useEffect(() => {
-    if (!elementRef.current) return
+    function findDeepestElement(
+      element: HTMLElement | null
+    ): HTMLElement | null {
+      if (!element) return null
 
-    replaceFromNode(fallbackRef.current, '-', '‑')
+      if (element.children.length !== element.childNodes.length) {
+        return element
+      }
 
-    const ignoredElements = [
-      ...elementRef.current.querySelectorAll<HTMLElement>(
-        '[data-ignore-split-text]'
-      ),
-    ]
-    ignoredElements.map((item) => {
-      item.innerText = item.innerText.replaceAll(' ', '&nbsp;')
-    })
+      if (element.children.length === 1) {
+        return findDeepestElement(element.children[0] as HTMLElement)
+      }
 
-    let splittedInstance: GSAPSplitTextInstance | null = null
+      return element as HTMLElement
+    }
 
-    // Load and create SplitText instance
-    loadGSAPSplitText().then((SplitTextConstructor) => {
-      if (!SplitTextConstructor) return
+    splittedRef.current?.revert()
 
-      splittedInstance = new SplitTextConstructor(elementRef.current, {
-        tag: 'span',
-        type,
-        linesClass: 'line',
-        wordsClass: 'word',
-        charsClass: 'char',
-      })
-
-      setSplitted(splittedInstance)
+    const split = GSAPSplitText.create(findDeepestElement(splitRef.current), {
+      type,
+      mask: mask ? type : undefined,
+      autoSplit: true,
+      wordsClass: 'word',
+      linesClass: 'line',
+      charsClass: 'char',
+      onSplit: (splitted) => {
+        splittedRef.current = splitted
+        setSplittedText(splitted)
+      },
     })
 
     return () => {
-      if (splittedInstance) {
-        splittedInstance.revert()
-      }
-      setSplitted(undefined)
+      split.revert()
     }
-  }, [rect, type])
+  }, [type, mask])
 
-  const render = useMemo(
-    () => (
-      <span className={cn(s.wrapper, className)}>
-        <span ref={elementRef} className={s.splitText} aria-hidden>
-          {children}
-        </span>
-        <span
-          className={s.fallback}
-          ref={(node) => {
-            if (!node) return
-            setRectRef(node)
-            fallbackRef.current = node
-          }}
-        >
-          {children}
-        </span>
-      </span>
-    ),
-    [children, className, setRectRef]
+  useImperativeHandle(
+    ref,
+    () => ({
+      // timeline,
+      getSplitText: () => splittedRef.current,
+      getNode: () => splitRef.current,
+      splittedText,
+    }),
+    [splittedText]
   )
 
-  return render
+  // if (isVisualEditor) {
+  //   return (
+  //     <Tag
+  //       className={cn(s.splitText, className)}
+  //       ref={splitRef}
+  //       style={{
+  //         opacity: willAppear ? 0 : 1,
+  //       }}
+  //     >
+  //       {children}
+  //     </Tag>
+  //   )
+  // }
+
+  return (
+    <Tag
+      className={cn(s.splitText, className)}
+      ref={splitRef}
+      style={{
+        opacity: willAppear ? 0 : 1,
+      }}
+    >
+      {children}
+    </Tag>
+  )
 }

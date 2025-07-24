@@ -3,7 +3,6 @@
 import { useRect } from 'hamo'
 import { useLenis } from 'lenis/react'
 import { useEffect, useRef } from 'react'
-import { mutate } from '~/libs/tempus-queue'
 import { mapRange } from '~/libs/utils'
 import s from './scrollbar.module.css'
 
@@ -30,24 +29,27 @@ export function Scrollbar() {
     function onPointerMove(e: PointerEvent) {
       if (start === null || !lenis) return
 
+      e.preventDefault()
+
       const scroll = mapRange(
+        0,
+        innerHeight,
         e.clientY - start,
         0,
-        innerHeight - (thumbHeight - start),
-        0,
-        lenis.limit
+        lenis.limit + innerHeight + thumbHeight + start
       )
-      mutate(() => {
-        lenis?.scrollTo(scroll, { immediate: true })
-      })
+
+      lenis?.scrollTo(scroll, { lerp: 0.2 })
     }
 
     function onPointerDown(e: PointerEvent) {
       start = e.offsetY
+      document.documentElement.classList.add('scrollbar-grabbing')
     }
 
     function onPointerUp() {
       start = null
+      document.documentElement.classList.remove('scrollbar-grabbing')
     }
 
     thumbRef.current?.addEventListener('pointerdown', onPointerDown, false)

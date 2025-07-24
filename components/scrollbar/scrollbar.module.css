@@ -11,12 +11,12 @@
   }
 
   .thumb {
-    min-height: desktop-vw(80px);
-    width: desktop-vw(8px);
-    background-color: var(--color-contrast);
+    height: 80px;
+    width: 8px;
+    background-color: var(--color-blue);
     position: absolute;
     right: 0;
-    border-radius: 0;
+    border-radius: 4px;
     cursor: grab;
   }
 

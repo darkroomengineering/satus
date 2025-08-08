@@ -24,7 +24,7 @@ export function CartModal({ children }) {
     <ModalContext.Provider value={{ isOpen, openCart, closeCart }}>
       {children}
       <div className={cn(s.modal, isOpen && s.open)}>
-        <div
+        <button
           className={s['catch-click']}
           onClick={closeCart}
           onKeyDown={(e) => {
@@ -32,9 +32,10 @@ export function CartModal({ children }) {
               closeCart()
             }
           }}
-          role="button"
-          tabIndex={0}
-        />
+          type="button"
+        >
+          <span className="sr-only">Close cart</span>
+        </button>
         <div className={s.inner}>
           <button
             type="button"

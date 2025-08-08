@@ -22,6 +22,7 @@ export function WebGLCanvas({
   ...props
 }: WebGLCanvasProps) {
   const { WebGLTunnel, DOMTunnel } = useCanvas()
+  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1
 
   return (
     <div className={s.webgl} {...props}>
@@ -29,7 +30,8 @@ export function WebGLCanvas({
         gl={{
           precision: 'highp',
           powerPreference: 'high-performance',
-          antialias: true,
+          // Disable MSAA when DPR is high to avoid redundant work
+          antialias: dpr < 2,
           alpha: true,
           ...(postprocessing && { stencil: false, depth: false }),
         }}

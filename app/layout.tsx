@@ -5,8 +5,6 @@ import { draftMode } from 'next/headers'
 import type { PropsWithChildren } from 'react'
 import { ReactTempus } from 'tempus/react'
 import { DisableDraftMode } from '~/components/disable-draft-mode'
-import { GSAP } from '~/components/gsap'
-import { ScrollTrigger } from '~/components/gsap/scroll-trigger'
 import { PerformanceMonitor } from '~/components/performance-monitor'
 import { RoutePerformanceTracker } from '~/components/performance-monitor/route-tracker'
 import { RealViewport } from '~/components/real-viewport'
@@ -14,6 +12,8 @@ import { OrchestraTools } from '~/orchestra'
 import AppData from '~/package.json'
 import { themes } from '~/styles/colors'
 import '~/styles/css/index.css'
+
+import { GSAPRuntime } from '~/components/gsap/runtime'
 import { fontsVariable } from '~/styles/fonts'
 
 const APP_NAME = AppData.name
@@ -115,8 +115,7 @@ export default async function Layout({ children }: PropsWithChildren) {
         <OrchestraTools />
 
         {/* Animation framework */}
-        <GSAP />
-        <ScrollTrigger />
+        <GSAPRuntime />
 
         {/* RAF management - lightweight, but don't patch in draft mode to avoid conflicts */}
         <ReactTempus patch={!isDraftMode} />

@@ -26,7 +26,7 @@
     "@hubspot/api-client": "^13.1.0",
     "@next/third-parties": "^15.4.6",
     "@portabletext/react": "^3.2.1",
-    "@react-three/drei": "^10.6.1",
+    "@react-three/drei": "^10.7.3",
     "@react-three/fiber": "^9.3.0",
     "@sanity/asset-utils": "^2.2.1",
     "@sanity/image-url": "^1.1.0",

@@ -1,5 +1,3 @@
-// integrations/mailchimp/index.ts
-
 export type {
   ContactData,
   MailchimpConfig,

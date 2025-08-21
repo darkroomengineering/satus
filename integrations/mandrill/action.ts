@@ -3,8 +3,6 @@
 import type { ErrorField, FormState } from '~/components/form/types'
 import { validateFormWithTurnstile } from '../mailchimp/turnstile'
 
-// File: /Users/ivanfier/gitlab/Darkroom-Git/ael-website/integrations/mandrill/action.ts
-
 export interface ContactData {
   name: string
   email: string

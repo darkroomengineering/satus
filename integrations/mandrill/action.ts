@@ -214,7 +214,7 @@ function escapeHtml(text: string): string {
 
 // Main contact form action using Mandrill
 export async function mandrillContactAction(
-  initialState: FormState,
+  _initialState: FormState,
   formData: FormData
 ): Promise<FormState> {
   const rawData = {
@@ -290,7 +290,7 @@ export async function mandrillContactAction(
 
 // Combined contact form action - uses BOTH Mailchimp AND Mandrill
 export async function combinedContactAction(
-  initialState: FormState,
+  _initialState: FormState,
   formData: FormData
 ): Promise<FormState> {
   const rawData = {

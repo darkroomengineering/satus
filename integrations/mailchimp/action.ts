@@ -186,7 +186,7 @@ async function addSubscriberToMailchimp(
 
 // Contact form action (replaces the mock action)
 export async function mailchimpContactAction(
-  initialState: FormState,
+  _initialState: FormState,
   formData: FormData
 ): Promise<FormState> {
   const rawData = {
@@ -261,7 +261,7 @@ export async function mailchimpContactAction(
 
 // Newsletter subscription action
 export async function mailchimpSubscriptionAction(
-  initialState: FormState,
+  _initialState: FormState,
   formData: FormData
 ): Promise<FormState> {
   const email = formData.get('email')?.toString() || ''

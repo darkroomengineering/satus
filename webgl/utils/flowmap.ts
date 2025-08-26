@@ -85,7 +85,7 @@ export class Flowmap {
     }
   }
 
-  // @ts-ignore
+  // @ts-expect-error
   updateMouse = (e) => {
     if (e.changedTouches?.length) {
       e.x = e.changedTouches[0].pageX

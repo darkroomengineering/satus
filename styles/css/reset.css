@@ -102,14 +102,14 @@ meter {
 }
 
 /* fix the feature of 'hidden' attribute.
- display:revert; revert to element instead of attribute */
+display:revert; revert to element instead of attribute */
 :where([hidden]) {
   display: none;
 }
 
 /* revert for bug in Chromium browsers
- - fix for the content editable attribute will work properly.
- - webkit-user-select: auto; added for Safari in case of using user-select:none on wrapper element*/
+- fix for the content editable attribute will work properly.
+- webkit-user-select: auto; added for Safari in case of using user-select:none on wrapper element*/
 :where([contenteditable]:not([contenteditable="false"])) {
   -moz-user-modify: read-write;
   -webkit-user-modify: read-write;

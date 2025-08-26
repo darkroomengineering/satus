@@ -243,7 +243,7 @@ export function useScrollTrigger(
 
   // eslint-disable-next-line no-unused-vars
   const [setProgress, _getProgress] = useLazyState(
-    // @ts-ignore
+    // @ts-expect-error
     undefined,
     (progress: number, lastProgress: number) => {
       if (Number.isNaN(progress) || progress === undefined) return

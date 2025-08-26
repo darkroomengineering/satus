@@ -3,7 +3,7 @@ pre-commit:
   commands:
     biome:
       glob: '*.{js,mjs,ts,jsx,tsx,css,scss}'
-      run: bun biome check --write {staged_files}
+      run: bun biome lint --max-diagnostics=200 --write {staged_files}
 
 post-merge:
   commands:

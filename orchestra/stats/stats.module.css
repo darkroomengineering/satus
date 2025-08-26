@@ -1,8 +1,10 @@
 .stats {
+  /* biome-ignore lint: has to be unset to work */
   top: unset !important;
   bottom: 0;
 
   canvas {
+    /* biome-ignore lint: has to be unset to work */
     top: unset !important;
     bottom: 0;
   }

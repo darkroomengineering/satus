@@ -19,7 +19,7 @@ export function WebGLImage({ src, rect }: WebGLImageProps) {
     texture.magFilter = texture.minFilter = LinearFilter
     texture.generateMipmaps = false
 
-    // @ts-ignore - Type mismatch between Three.js versions
+    // @ts-expect-error - Type mismatch between Three.js versions
     material.map = texture
     material.needsUpdate = true
   })

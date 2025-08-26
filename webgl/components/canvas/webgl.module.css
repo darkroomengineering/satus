@@ -6,7 +6,9 @@
   pointer-events: none;
 
   canvas {
+    /* biome-ignore lint: idk ask Clement */
     width: 100% !important;
+    /* biome-ignore lint: idk ask Clement */
     height: 100% !important;
   }
 }

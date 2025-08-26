@@ -16,7 +16,10 @@ export function GridDebugger({
   const columns = useMemo(
     () =>
       Number.parseInt(
-        getComputedStyle(document.documentElement).getPropertyValue('--columns')
+        getComputedStyle(document.documentElement).getPropertyValue(
+          '--columns'
+        ),
+        10
       ),
     [windowWidth, windowHeight]
   )

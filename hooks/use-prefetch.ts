@@ -1,3 +1,4 @@
+import type { Route } from 'next'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef } from 'react'
 
@@ -8,7 +9,7 @@ import { useCallback, useEffect, useRef } from 'react'
  * @returns ref to attach to the element that should trigger prefetching
  */
 export function usePrefetch<T extends HTMLElement = HTMLElement>(
-  href: string | null | undefined,
+  href: Route | null | undefined,
   options?: IntersectionObserverInit
 ) {
   const ref = useRef<T>(null)

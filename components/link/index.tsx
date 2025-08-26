@@ -1,9 +1,10 @@
 'use client'
 
-import NextLink, { type LinkProps } from 'next/link'
+import NextLink from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   type AnchorHTMLAttributes,
+  type ComponentProps,
   type MouseEvent,
   useEffect,
   useState,
@@ -13,9 +14,9 @@ import {
 
 type CustomLinkProps = Omit<
   AnchorHTMLAttributes<HTMLAnchorElement>,
-  keyof LinkProps | 'href'
+  keyof ComponentProps<typeof NextLink> | 'href'
 > &
-  LinkProps & {
+  Omit<ComponentProps<typeof NextLink>, 'href'> & {
     href?: string
     onClick?: (e: MouseEvent<HTMLElement>) => void
     scroll?: boolean
@@ -100,7 +101,7 @@ export function Link({
 
   return (
     <NextLink
-      href={href}
+      href={href as ComponentProps<typeof NextLink>['href']}
       prefetch={shouldPrefetch}
       scroll={scroll}
       data-active={isActive || undefined}

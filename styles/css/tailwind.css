@@ -113,9 +113,9 @@
 }
 
 /** Custom variants **/
-@custom-variant light (&:where([data-theme=light], [data-theme=light *]));
-@custom-variant dark (&:where([data-theme=dark], [data-theme=dark *]));
-@custom-variant red (&:where([data-theme=red], [data-theme=red *]));
+@custom-variant light (&:where([data-theme=light], [data-theme=light] *));
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+@custom-variant red (&:where([data-theme=red], [data-theme=red] *));
 
 /** Custom function utilities **/
 @utility dr-text-* {

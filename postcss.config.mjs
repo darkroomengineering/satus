@@ -33,7 +33,6 @@ const postcssConfig = {
   plugins: {
     '@tailwindcss/postcss': {},
     '@csstools/postcss-global-data': globalDataConfig,
-    'postcss-extend-rule': {},
     'postcss-functions': { functions },
     // NOTE: This has to be last config
     'postcss-preset-env': presetEnvConfig,

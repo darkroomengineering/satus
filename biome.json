@@ -232,9 +232,6 @@
           },
           "style": {
             "noDescendingSpecificity": "off"
-          },
-          "suspicious": {
-            "noUnknownAtRules": "off"
           }
         }
       }

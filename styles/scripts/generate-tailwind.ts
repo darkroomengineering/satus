@@ -66,7 +66,7 @@ ${Object.entries(typography)
     .map(([key, value]) => {
       if (key === 'font-size') {
         if (typeof value === 'number') {
-          return `@apply stext-${value};`
+          return `@apply dr-text-${value};`
         }
 
         return [
@@ -131,7 +131,7 @@ ${Object.entries(typography)
 ${Object.keys(themes)
   .map(
     (name) =>
-      `@custom-variant ${name} (&:where([data-theme=${name}], [data-theme=${name} *]));`
+      `@custom-variant ${name} (&:where([data-theme=${name}], [data-theme=${name}] *));`
   )
   .join('\n')}`
 

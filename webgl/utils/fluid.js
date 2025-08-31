@@ -1,6 +1,7 @@
 // https://github.com/alienkitty/alien.js/blob/main/src/three/utils/Fluid.js
 
 import {
+  FloatType,
   HalfFloatType,
   LinearFilter,
   NearestFilter,
@@ -15,7 +16,7 @@ import {
 
 import Program from './program'
 
-const _fragment = /* glsl */ `
+const fragment = /* glsl */ `
 precision highp float;
 uniform sampler2D tMap;
 uniform sampler2D tFluid;
@@ -404,9 +405,7 @@ export class Fluid {
 
     const filtering = supportLinearFiltering ? LinearFilter : NearestFilter
 
-    halfFloat = isWebGL2
-      ? HalfFloatType
-      : gl.getExtension('OES_texture_half_float').HALF_FLOAT_OES
+    halfFloat = isWebGL2 ? FloatType : HalfFloatType
 
     this.uniform = {
       value: null,

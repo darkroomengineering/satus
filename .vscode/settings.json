@@ -34,5 +34,8 @@
   "[typescriptreact]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
-  "files.eol": "\n"
+  "files.eol": "\n",
+  "workbench.editorAssociations": {
+    "*.svg": "default"
+  }
 }

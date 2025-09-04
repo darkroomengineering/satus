@@ -10,7 +10,7 @@ const RANDOM = Math.random()
 
 interface OptionsType extends MeshBasicMaterialParameters {}
 
-export class EvilRabbitMaterial extends MeshBasicMaterial {
+export class GenericMaterial extends MeshBasicMaterial {
   uniforms: {}
   defines?: Record<string, string>
   options?: OptionsType

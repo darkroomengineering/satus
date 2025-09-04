@@ -26,11 +26,15 @@ const Minimap = dynamic(
 )
 
 export function OrchestraTools() {
-  const { stats, grid, studio, dev, minimap, _webgl } = useOrchestra()
+  const { stats, grid, studio, dev, minimap, screenshot } = useOrchestra()
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dev', dev)
+    document.documentElement.classList.toggle('dev', Boolean(dev))
   }, [dev])
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('screenshot', Boolean(screenshot))
+  }, [screenshot])
 
   // Only render debug tools in development
   // if (process.env.NODE_ENV !== 'development') {

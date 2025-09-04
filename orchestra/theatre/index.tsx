@@ -8,6 +8,7 @@ import {
   useContext,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -36,7 +37,7 @@ export function TheatreProjectProvider({
     }
   }, [project, id])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (config) {
       if (!isLoadingRef.current) {
         console.log(`Theatre: project ${id} loading...`)
@@ -77,12 +78,13 @@ export function useCurrentProject() {
 
 export const SheetContext = createContext<ISheet | undefined>(undefined)
 
-export function useSheet(sheetId: string, instanceId?: string) {
+export function useSheet(sheetId?: string, instanceId?: string) {
   const project = useCurrentProject()
+  const currentSheet = useContext(SheetContext)
 
   const sheet = useMemo(
-    () => project?.sheet(sheetId, instanceId),
-    [project, sheetId, instanceId]
+    () => (sheetId ? project?.sheet(sheetId, instanceId) : currentSheet),
+    [project, sheetId, instanceId, currentSheet]
   )
 
   return sheet
@@ -105,8 +107,8 @@ export function useSheetDuration(sheet: ISheet) {
 }
 
 type SheetProviderProps = {
-  id: string
-  instance?: string
+  id: ISheet['address']['sheetId'] | string | undefined
+  instance?: ISheet['address']['sheetInstanceId'] | undefined
   ref?: Ref<ISheet | undefined>
 }
 

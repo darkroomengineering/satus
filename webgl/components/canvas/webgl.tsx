@@ -14,15 +14,16 @@ import s from './webgl.module.css'
 type WebGLCanvasProps = React.HTMLAttributes<HTMLDivElement> & {
   render?: boolean
   postprocessing?: boolean
+  alpha?: boolean
 }
 
 export function WebGLCanvas({
   render = true,
   postprocessing = false,
+  alpha = true,
   ...props
 }: WebGLCanvasProps) {
   const { WebGLTunnel, DOMTunnel } = useCanvas()
-  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1
 
   return (
     <div className={s.webgl} {...props}>
@@ -31,8 +32,8 @@ export function WebGLCanvas({
           precision: 'highp',
           powerPreference: 'high-performance',
           // Disable MSAA when DPR is high to avoid redundant work
-          antialias: dpr < 2,
-          alpha: true,
+          antialias: !postprocessing && window.devicePixelRatio < 2,
+          alpha,
           ...(postprocessing && { stencil: false, depth: false }),
         }}
         dpr={[1, 2]}

@@ -66,3 +66,13 @@ img {
   -o-user-select: none;
   user-select: none;
 }
+
+button {
+  cursor: pointer;
+}
+
+html.screenshot {
+  *:not(:has(canvas), canvas, :has(#orchestra), #orchestra, #orchestra *) {
+    opacity: 0 !important;
+  }
+}

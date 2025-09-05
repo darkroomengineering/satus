@@ -6,6 +6,29 @@ interface RichTextProps {
   content: PortableTextBlock[]
 }
 
+interface LinkFieldData {
+  type: 'external' | 'internal'
+  url?: string
+  blank?: boolean
+  label?: string
+}
+
+function resolveLinkFieldUrl(linkData: LinkFieldData): string {
+  if (!linkData) return '#'
+
+  // External URL
+  if (linkData.type === 'external' && linkData.url) {
+    return linkData.url
+  }
+
+  // Internal path (like /home, /hubspot, /r3f, etc.)
+  if (linkData.type === 'internal' && linkData.url) {
+    return linkData.url
+  }
+
+  return '#'
+}
+
 export function RichText({ content }: RichTextProps) {
   if (!content) return null
 
@@ -17,9 +40,23 @@ export function RichText({ content }: RichTextProps) {
           image: ({ value }) => <SanityImage image={value} maxWidth={1920} />,
         },
         marks: {
-          link: ({ children, value }) => (
-            <Link href={value.href}>{children}</Link>
-          ),
+          link: ({ children, value }) => {
+            const href = resolveLinkFieldUrl(value)
+            const isExternal = value?.type === 'url'
+
+            return (
+              <Link
+                href={href}
+                target={isExternal && value?.blank ? '_blank' : undefined}
+                rel={
+                  isExternal && value?.blank ? 'noopener noreferrer' : undefined
+                }
+                data-sanity-edit-target
+              >
+                {children}
+              </Link>
+            )
+          },
         },
         block: {
           h1: ({ children }) => <h1 className="h1">{children}</h1>,

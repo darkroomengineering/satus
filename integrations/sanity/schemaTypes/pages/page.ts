@@ -1,4 +1,5 @@
 import { defineField, defineType } from 'sanity'
+import { linkFieldWithLabelAndRequired } from '../link'
 
 export const page = defineType({
   name: 'page',
@@ -42,6 +43,7 @@ export const page = defineType({
       description: 'When this page was published',
       initialValue: () => new Date().toISOString(),
     }),
+    linkFieldWithLabelAndRequired,
   ],
   preview: {
     select: {

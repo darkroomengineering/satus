@@ -19,7 +19,8 @@
     "typecheck": "tsc --noEmit --incremental false",
     "setup:styles": "bun ./styles/scripts/setup-styles.ts",
     "watch:styles": "bun --watch ./styles/scripts/setup-styles.ts",
-    "lighthouse": "bunx @unlighthouse/cli --site http://localhost:3000"
+    "lighthouse": "bunx @unlighthouse/cli --site http://localhost:3000",
+    "setup:sanity-mcp": "echo -n 'cursor://anysphere.cursor-deeplink/mcp/install?name=Sanity&config=eyJ1cmwiOiJodHRwczovL21jcC5zYW5pdHkuaW8iLCJ0eXBlIjoiaHR0cCJ9Cg==' | pbcopy && echo 'Link copied to clipboard (without newline)' && echo 'Paste this in Cursor or browser address bar'"
   },
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-beta.2",
@@ -45,6 +46,7 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-use": "^17.6.0",
+    "sanity-plugin-link-field": "^1.4.1",
     "server-only": "^0.0.1",
     "styled-components": "^6.1.19",
     "tempus": "1.0.0-dev.12",

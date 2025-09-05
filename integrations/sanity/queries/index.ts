@@ -1,5 +1,26 @@
 import { groq } from 'next-sanity'
-import { client } from './client'
+import { client } from '../client'
+
+// Helper for rich text content with link projections
+const richTextWithLinks = `
+  content[]{
+    ...,
+    markDefs[]{
+      ...,
+      _type == "link" => {
+        ...,
+        internalLink->{_type, slug, title}
+      }
+    }
+  }
+`
+
+const linkWithLabel = `
+  link {
+    ...,
+    internalLink->{_type, slug, title}
+  }
+`
 
 // Page queries
 export const pageQuery = groq`
@@ -7,7 +28,8 @@ export const pageQuery = groq`
     _id,
     title,
     slug,
-    content,
+    ${richTextWithLinks},
+    ${linkWithLabel},
     metadata,
     publishedAt,
     _updatedAt
@@ -19,7 +41,7 @@ export const pageByIdQuery = groq`
     _id,
     title,
     slug,
-    content,
+    ${richTextWithLinks},
     metadata,
     publishedAt,
     _updatedAt
@@ -34,7 +56,7 @@ export const articleQuery = groq`
     slug,
     excerpt,
     featuredImage,
-    content,
+    ${richTextWithLinks},
     categories,
     tags,
     author,
@@ -67,7 +89,7 @@ export const articleByIdQuery = groq`
     slug,
     excerpt,
     featuredImage,
-    content,
+    ${richTextWithLinks},
     categories,
     tags,
     author,

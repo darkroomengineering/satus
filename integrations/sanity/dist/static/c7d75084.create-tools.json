@@ -1,0 +1,31 @@
+[
+  {
+    "title": "Structure",
+    "name": "structure",
+    "type": "sanity/structure",
+    "icon": "<svg data-sanity-icon=\"master-detail\" width=\"1em\" height=\"1em\" viewBox=\"0 0 25 25\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M9.5 6.5V10.5M9.5 10.5V14.5M9.5 10.5H5.5M9.5 14.5V18.5M9.5 14.5H5.5M5.5 6.5H19.5V18.5H5.5V6.5Z\" stroke=\"currentColor\" stroke-width=\"1.2\" stroke-linejoin=\"round\"></path></svg>"
+  },
+  {
+    "title": "Vision",
+    "name": "vision",
+    "type": "sanity/vision",
+    "icon": "<svg data-sanity-icon=\"eye-open\" width=\"1em\" height=\"1em\" viewBox=\"0 0 25 25\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M9.39999 12.5C9.39999 10.7879 10.7879 9.39999 12.5 9.39999C14.2121 9.39999 15.6 10.7879 15.6 12.5C15.6 14.2121 14.2121 15.6 12.5 15.6C10.7879 15.6 9.39999 14.2121 9.39999 12.5Z\" fill=\"currentColor\"></path><path d=\"M12.5 7.5C8.5 7.5 6 10 4.5 12.5C6 15 8.5 17.5 12.5 17.5C16.5 17.5 19 15 20.5 12.5C19 10 16.5 7.5 12.5 7.5Z\" stroke=\"currentColor\" stroke-width=\"1.2\" stroke-linejoin=\"round\"></path></svg>"
+  },
+  {
+    "name": "presentation",
+    "type": "sanity/presentation",
+    "icon": "<svg data-sanity-icon=\"compose\" width=\"1em\" height=\"1em\" viewBox=\"0 0 25 25\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M17 6L19 8M14 5.5H5.5V19.5H19.5V11M9 16L9.5 13.5L19 4L21 6L11.5 15.5L9 16Z\" stroke=\"currentColor\" stroke-width=\"1.2\" stroke-linejoin=\"round\"></path></svg>"
+  },
+  {
+    "title": "Schedules",
+    "name": "schedules",
+    "type": "sanity/scheduled-publishing",
+    "icon": "<svg data-sanity-icon=\"calendar\" width=\"1em\" height=\"1em\" viewBox=\"0 0 25 25\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M5.5 18.5H19.5V6.5H5.5V18.5Z\" stroke=\"currentColor\" stroke-width=\"1.2\" stroke-linejoin=\"round\"></path><path d=\"M16.5 8V4M8.5 8V4M8 12.5H10M8 15.5H10M11.5 12.5H13.5M11.5 15.5H13.5M15 12.5H17M15 15.5H17M12.5 8V4M5.5 9.5H19.5\" stroke=\"currentColor\" stroke-width=\"1.2\" stroke-linejoin=\"round\"></path></svg>"
+  },
+  {
+    "title": "Releases",
+    "name": "releases",
+    "type": null,
+    "icon": "<style data-styled=\"true\" data-styled-version=\"6.1.19\">.eaNFDC{font-family:Inter,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,\"Helvetica Neue\",\"Liberation Sans\",Helvetica,Arial,system-ui,sans-serif;font-weight:500;font-size:13px;transform:translateY(1px);}/*!sc*/\ndata-styled.g394[id=\"sc-fwDEoq\"]{content:\"eaNFDC,\"}/*!sc*/\n</style><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><rect width=\"32\" height=\"32\" rx=\"2\" fill=\"#a8bfff\"></rect><text x=\"50%\" y=\"50%\" text-anchor=\"middle\" alignment-baseline=\"middle\" fill=\"hsla(224, 100%, 43%, 1)\" class=\"sc-fwDEoq eaNFDC\">R</text></svg>"
+  }
+]

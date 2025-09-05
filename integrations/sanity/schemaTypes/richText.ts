@@ -1,4 +1,5 @@
 import { defineType } from 'sanity'
+import { linkField } from './link'
 
 export const richText = defineType({
   name: 'richText',
@@ -29,30 +30,7 @@ export const richText = defineType({
           { title: 'Underline', value: 'underline' },
           { title: 'Strike', value: 'strike-through' },
         ],
-        annotations: [
-          {
-            name: 'link',
-            type: 'object',
-            title: 'Link',
-            fields: [
-              {
-                name: 'href',
-                type: 'url',
-                title: 'URL',
-                validation: (Rule) =>
-                  Rule.uri({
-                    scheme: ['http', 'https', 'mailto', 'tel'],
-                  }),
-              },
-              {
-                name: 'openInNewTab',
-                type: 'boolean',
-                title: 'Open in new tab',
-                initialValue: false,
-              },
-            ],
-          },
-        ],
+        annotations: [linkField],
       },
     },
     {

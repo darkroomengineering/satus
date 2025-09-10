@@ -1,13 +1,21 @@
 import { createClient } from 'next-sanity'
-import { apiVersion, dataset, projectId } from './env'
+import { apiVersion, dataset, projectId, studioUrl, writeToken } from './env'
 
 export const client = createClient({
   projectId,
   dataset,
   apiVersion,
-  useCdn: true, // Use CDN for better performance
-  token: process.env.SANITY_API_WRITE_TOKEN, // Keep write token for editing capabilities
+  useCdn: true,
+  perspective: 'published',
+  token: writeToken,
   stega: {
-    studioUrl: process.env.NEXT_PUBLIC_SANITY_STUDIO_URL || '/studio',
+    studioUrl,
+    filter: (props) => {
+      if (props.sourcePath.at(-1) === 'title') {
+        return true
+      }
+
+      return props.filterDefault(props)
+    },
   },
 })

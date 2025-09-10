@@ -1,5 +1,4 @@
 import { groq } from 'next-sanity'
-import { client } from '../client'
 
 // Helper for rich text content with link projections
 const richTextWithLinks = `
@@ -98,83 +97,3 @@ export const articleByIdQuery = groq`
     _updatedAt
   }
 `
-
-export async function fetchSanityPage(slug: string, isDraftMode = false) {
-  try {
-    const page = await client.fetch(
-      pageQuery,
-      { slug },
-      isDraftMode
-        ? {
-            perspective: 'previewDrafts',
-            stega: true,
-            cache: 'no-store',
-          }
-        : {
-            next: { revalidate: 3600, tags: ['page', `page:${slug}`] },
-          }
-    )
-    return { data: page, error: null }
-  } catch (error) {
-    console.error('fetchSanityPage error:', error)
-    return { data: null, error }
-  }
-}
-
-export async function fetchSanityArticle(slug: string, isDraftMode = false) {
-  try {
-    const article = await client.fetch(
-      articleQuery,
-      { slug },
-      isDraftMode
-        ? {
-            perspective: 'previewDrafts',
-            stega: true,
-            cache: 'no-store',
-          }
-        : {
-            next: { revalidate: 3600, tags: ['article', `article:${slug}`] },
-          }
-    )
-    return { data: article, error: null }
-  } catch (error) {
-    console.error('fetchSanityArticle error:', error)
-    return { data: null, error }
-  }
-}
-
-export async function fetchAllSanityArticles() {
-  try {
-    const articles = await client.fetch(
-      allArticlesQuery,
-      {},
-      {
-        next: { revalidate: 3600, tags: ['article'] },
-      }
-    )
-    return { data: articles, error: null }
-  } catch (error) {
-    console.error('fetchAllSanityArticles error:', error)
-    return { data: [], error }
-  }
-}
-
-export async function fetchSanityPageById(id: string) {
-  try {
-    const page = await client.fetch(pageByIdQuery, { id })
-    return { data: page, error: null }
-  } catch (error) {
-    console.error('fetchSanityPageById error:', error)
-    return { data: null, error }
-  }
-}
-
-export async function fetchSanityArticleById(id: string) {
-  try {
-    const article = await client.fetch(articleByIdQuery, { id })
-    return { data: article, error: null }
-  } catch (error) {
-    console.error('fetchSanityArticleById error:', error)
-    return { data: null, error }
-  }
-}

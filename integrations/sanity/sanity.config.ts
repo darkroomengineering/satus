@@ -4,20 +4,34 @@
 
 import { visionTool } from '@sanity/vision'
 import { defineConfig } from 'sanity'
-import { presentationTool } from 'sanity/presentation'
+import {
+  defineDocuments,
+  defineLocations,
+  presentationTool,
+} from 'sanity/presentation'
 import { structureTool } from 'sanity/structure'
 import { linkField } from 'sanity-plugin-link-field'
-
-// Go to https://www.sanity.io/docs/api-versioning to learn how API versioning works
-import { apiVersion, dataset, projectId } from './env'
+import { apiVersion, dataset, previewURL, projectId } from './env'
 import { schema } from './schemaTypes'
 import { structure } from './structure'
+
+// Helper function for URL resolution
+function resolveHref(documentType?: string, slug?: string): string | undefined {
+  switch (documentType) {
+    case 'page':
+      return slug === 'home' ? '/sanity' : `/sanity/${slug}`
+    case 'article':
+      return slug ? `/sanity/${slug}` : undefined
+    default:
+      console.warn('Invalid document type:', documentType)
+      return undefined
+  }
+}
 
 export default defineConfig({
   basePath: '/studio',
   projectId,
   dataset,
-  // Add and edit the content schema in the './schemaTypes' folder
   schema,
   plugins: [
     structureTool({ structure }),
@@ -31,65 +45,56 @@ export default defineConfig({
     // Presentation tool for visual editing
     presentationTool({
       resolve: {
-        mainDocuments: [
-          // Home page - specific route for home page
+        mainDocuments: defineDocuments([
           {
             route: '/sanity',
             filter: `_type == "page" && slug.current == "home"`,
           },
-          // Pages by slug - only pages with valid slugs
           {
             route: '/sanity/:slug',
             filter: `_type == "page" && slug.current == $slug && defined(slug.current)`,
           },
-          // Articles by slug - only articles with valid slugs
           {
             route: '/sanity/:slug',
             filter: `_type == "article" && slug.current == $slug && defined(slug.current)`,
           },
-        ],
+        ]),
         locations: {
-          page: {
+          page: defineLocations({
             select: {
               title: 'title',
               slug: 'slug.current',
             },
-            resolve: (doc) => {
-              if (!doc?.slug) return null
-              return {
-                locations: [
-                  {
-                    title: doc?.title || 'Untitled Page',
-                    href:
-                      doc?.slug === 'home' ? '/sanity' : `/sanity/${doc.slug}`,
-                  },
-                ],
-              }
-            },
-          },
-          article: {
+            resolve: (doc) => ({
+              locations: [
+                {
+                  title: doc?.title || 'Untitled Page',
+                  href: resolveHref('page', doc?.slug)!,
+                },
+              ],
+            }),
+          }),
+          article: defineLocations({
             select: {
               title: 'title',
               slug: 'slug.current',
             },
-            resolve: (doc) => {
-              if (!doc?.slug) return null
-              return {
-                locations: [
-                  {
-                    title: doc?.title || 'Untitled Article',
-                    href: `/sanity/${doc.slug}`,
-                  },
-                ],
-              }
-            },
-          },
+            resolve: (doc) => ({
+              locations: [
+                {
+                  title: doc?.title || 'Untitled Article',
+                  href: resolveHref('article', doc?.slug)!,
+                },
+              ],
+            }),
+          }),
         },
       },
       previewUrl: {
+        origin: previewURL,
         draftMode: {
-          enable: '/api/draft',
-          disable: '/api/disable-draft',
+          enable: '/api/draft-mode/enable',
+          disable: '/api/draft-mode/disable',
         },
       },
     }),

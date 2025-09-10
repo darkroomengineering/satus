@@ -94,7 +94,7 @@ Third party integration guidelines
          { slug },
          isDraftMode
            ? {
-               perspective: 'previewDrafts',
+               perspective: 'drafts',
                stega: true,
                cache: 'no-store',
              }

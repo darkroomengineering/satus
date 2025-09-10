@@ -1,35 +1,35 @@
-import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
-import { fetchSanityPage, SanityContextProvider } from '~/integrations/sanity'
+import { sanityFetch } from '~/integrations/sanity/live'
+import { pageQuery } from '~/integrations/sanity/queries'
 import { Wrapper } from '../(components)/wrapper'
 import { SanityTutorial } from './(component)/tutorial'
 
 const SLUG = 'home'
 
 export default async function SanityPage() {
-  const isDraftMode = (await draftMode()).isEnabled
-  const { data } = await fetchSanityPage(SLUG, isDraftMode)
+  const { data } = await sanityFetch({
+    query: pageQuery,
+    params: { slug: SLUG },
+  })
 
   if (!data) return notFound()
 
   return (
-    <SanityContextProvider document={data} isLoading={false} error={null}>
-      <Wrapper theme="red" className="uppercase font-mono">
-        <div className="flex items-center justify-center grow max-dt:dr-px-16">
-          <SanityTutorial />
-        </div>
-      </Wrapper>
-    </SanityContextProvider>
+    <Wrapper theme="red" className="uppercase font-mono">
+      <div className="flex items-center justify-center grow max-dt:dr-px-16">
+        <SanityTutorial data={data} />
+      </div>
+    </Wrapper>
   )
 }
 
-// Force dynamic rendering for draft mode
-export const dynamic = 'force-dynamic'
-
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata
 export async function generateMetadata() {
-  const isDraftMode = (await draftMode()).isEnabled
-  const { data } = await fetchSanityPage(SLUG, isDraftMode)
+  const { data } = await sanityFetch({
+    query: pageQuery,
+    params: { slug: SLUG },
+  })
+
   const metadata = data?.metadata
 
   if (!metadata) return

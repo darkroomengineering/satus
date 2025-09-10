@@ -4,16 +4,17 @@ import { draftMode } from 'next/headers'
 import { VisualEditing } from 'next-sanity'
 import type { PropsWithChildren } from 'react'
 import { ReactTempus } from 'tempus/react'
-import { DisableDraftMode } from '~/components/disable-draft-mode'
 import { PerformanceMonitor } from '~/components/performance-monitor'
 import { RoutePerformanceTracker } from '~/components/performance-monitor/route-tracker'
 import { RealViewport } from '~/components/real-viewport'
+import { DisableDraftMode } from '~/integrations/sanity/components/disable-draft-mode'
 import { OrchestraTools } from '~/orchestra'
 import AppData from '~/package.json'
 import { themes } from '~/styles/colors'
 import '~/styles/css/index.css'
 
 import { GSAPRuntime } from '~/components/gsap/runtime'
+import { SanityLive } from '~/integrations/sanity/live'
 import { fontsVariable } from '~/styles/fonts'
 
 const APP_NAME = AppData.name
@@ -127,6 +128,8 @@ export default async function Layout({ children }: PropsWithChildren) {
             <DisableDraftMode />
           </>
         )}
+
+        <SanityLive />
 
         {/* Analytics - loads async, non-blocking */}
         {GA_ID && <GoogleAnalytics gaId={GA_ID} />}

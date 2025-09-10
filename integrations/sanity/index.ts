@@ -12,11 +12,6 @@ export {
   allArticlesQuery,
   articleByIdQuery,
   articleQuery,
-  fetchAllSanityArticles,
-  fetchSanityArticle,
-  fetchSanityArticleById,
-  fetchSanityPage,
-  fetchSanityPageById,
   pageByIdQuery,
   pageQuery,
 } from './queries'

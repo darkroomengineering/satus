@@ -1,8 +1,8 @@
 import type { SchemaTypeDefinition } from 'sanity'
-import { metadata } from './metadata'
-import { article } from './pages/article'
-import { page } from './pages/page'
-import { richText } from './richText'
+import { article } from './documents/article'
+import { page } from './documents/page'
+import { metadata } from './objects/metadata'
+import { richText } from './objects/richText'
 
 export const schema: { types: SchemaTypeDefinition[] } = {
   types: [

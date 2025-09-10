@@ -1,24 +1,23 @@
 'use client'
 
-import { RichText, useSanityContext } from '~/integrations/sanity'
+import { Link } from '~/components/link'
+import { RichText } from '~/integrations/sanity'
 
-export function SanityTutorial() {
-  const { document } = useSanityContext()
-
-  if (!document) return null
-
+export function SanityTutorial({ data }) {
   return (
-    <div
-      className="flex flex-col items-center gap-gap"
-      data-sanity={document._id}
-    >
+    <div className="flex flex-col items-center gap-gap" data-sanity={data._id}>
       <h2 className="text-center" data-sanity="title">
-        {document.title}
+        {data.title}
       </h2>
-      {document.content && (
+      {data.content && (
         <div data-sanity="content">
-          <RichText content={document.content} />
+          <RichText content={data.content} />
         </div>
+      )}
+      {data?.link && (
+        <Link href={`/sanity/${data.link.internalLink.slug.current}`}>
+          {data.link.text}
+        </Link>
       )}
     </div>
   )

@@ -109,7 +109,7 @@ function NewsletterForm() {
 
 ## Spam Protection: Cloudflare Turnstile
 
-**Production Only**: Turnstile only works with HTTPS domains, gracefully disabled in development.
+**Production Only**: Turnstile requires HTTPS in production. In development it is skipped gracefully.
 
 **Why Turnstile over reCAPTCHA?**
 - ✅ **Completely invisible** - no user interaction required

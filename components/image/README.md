@@ -9,10 +9,9 @@ The Image component has been optimized with the following improvements:
 - Automatically uses `eager` loading when `priority` prop is set
 - Respects explicit `loading` prop when provided
 
-### 2. **Memoization**
-- `useMemo` for responsive sizes calculation
-- `useMemo` for blur placeholder generation
-- Prevents unnecessary recalculations on re-renders
+### 2. **Responsive sizes & placeholder logic**
+- Auto-generates `sizes` using project breakpoint when not provided
+- Smart blur placeholder with aspect-ratio-based shimmer
 
 ### 3. **Blur Placeholder**
 - Automatic shimmer effect when `aspectRatio` is provided
@@ -129,7 +128,7 @@ With these optimizations:
 
 ## Monitoring
 
-Use the performance hook to track image loading:
+Use the performance hook to track component render time:
 
 ```tsx
 import { useRenderTime } from '~/hooks/use-performance'
@@ -137,6 +136,6 @@ import { useRenderTime } from '~/hooks/use-performance'
 function MyImageComponent() {
   useRenderTime('MyImageComponent')
   
-  return <Image ... />
+  return <Image src="/img.jpg" alt="" />
 }
-``` 
+```

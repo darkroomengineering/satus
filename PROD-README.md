@@ -34,7 +34,7 @@ Required in `.env.local`:
 NEXT_PUBLIC_SANITY_PROJECT_ID="your-project-id"
 NEXT_PUBLIC_SANITY_DATASET="production"
 NEXT_PUBLIC_SANITY_STUDIO_URL="http://localhost:3000/studio"
-SANITY_API_WRITE_TOKEN="your-viewer-token"
+SANITY_API_WRITE_TOKEN="your-write-token"
 
 # GSAP (if using premium features)
 GSAP_AUTH_TOKEN="your-gsap-token"
@@ -56,7 +56,7 @@ NEXT_PUBLIC_BASE_URL="https://your-domain.com"
 - [GSAP Documentation](components/gsap/README.md)
 
 ### Styling System
-- Hybrid approach with Tailwind CSS and PostCSS
+- Hybrid approach with Tailwind CSS v4 and PostCSS
 - Responsive units: `mobile-vw()` and `desktop-vw()`
 - Grid system: 4 columns (mobile) / 12 columns (desktop)
 - [Styling Documentation](styles/README.md)
@@ -118,7 +118,7 @@ Detailed documentation is available in the repository:
 - `bun analyze` - Bundle analysis
 
 ### Debug Tools
-Access with `CMD+O`:
+Access with `Cmd/Ctrl + O`:
 - Theatre.js Studio (⚙️)
 - Performance Stats (📈)
 - Grid Debug (🌐)
@@ -160,7 +160,26 @@ project/
 ├── styles/             # Styling system
 │   ├── css/            # Generated CSS
 │   └── scripts/        # Style generation
-└── docs/               # Documentation
+└── docs/               # Documentation (if present)
+
+## Environment
+
+Sanity Presentation uses draft mode routes:
+
+```
+/api/draft-mode/enable
+/api/draft-mode/disable
+```
+
+Ensure `NEXT_PUBLIC_BASE_URL` is set in production for preview resolution.
+
+Shopify environment variables must be named:
+
+```
+SHOPIFY_STORE_DOMAIN
+SHOPIFY_STOREFRONT_ACCESS_TOKEN
+SHOPIFY_REVALIDATION_SECRET
+```
 ```
 
 ## Support & Maintenance:

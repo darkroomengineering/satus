@@ -17,29 +17,17 @@ Common utility functions for general-purpose operations:
 
 ```tsx
 import { 
-  slugify, 
-  capitalize, 
-  truncate,
-  debounce,
-  wait
+  slugify,
+  numberWithCommas,
+  clamp,
+  mapRange
 } from '~/libs/utils'
 
 // Convert string to URL-friendly slug
 const slug = slugify('Hello World') // 'hello-world'
 
-// Capitalize first letter
-const capitalized = capitalize('hello') // 'Hello'
-
-// Truncate text with ellipsis
-const truncated = truncate('Long text to truncate', 10) // 'Long text...'
-
-// Debounce a function call
-const debouncedFunction = debounce(() => {
-  // Expensive operation
-}, 300)
-
-// Await a timeout
-await wait(500) // Pauses execution for 500ms
+// Add thousands separators
+const formatted = numberWithCommas(1234567) // '1,234,567'
 ```
 
 ## Mathematical Utilities (utils.ts)

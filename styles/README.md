@@ -76,10 +76,10 @@ Usage:
 }
 ```
 
-### 4. Custom tailwind utilities
+### 4. Custom Tailwind utilities
 
-We use the tailwind v4.0 introduced @utility directive to create our own custom tailwind utilities.
-This basic gist of it is that you can prefix classic tailwind classes with an "s" to make it a scaling utility based on the current viewport.
+We use the Tailwind v4 @utility directive to create our own custom utilities.
+The basic gist is that you can prefix classic Tailwind classes with an "s" to make it a scaling utility based on the current viewport.
 The number after the dash is the value in pixels for the current viewport.
 There are custom utilities for all tailwind classes that are related to sizing, spacing, etc.
 
@@ -90,7 +90,7 @@ Example:
 </div>
 ```
 
-Special utilites for column based sizes ending in -col-* are available. They will set a value based on the number of columns and the current viewport.
+Special utilities for column-based sizes ending in -col-* are available. They will set a value based on the number of columns and the current viewport.
 
 Example:
 ```css
@@ -357,7 +357,7 @@ This will:
 - Regenerate Tailwind configuration
 - Update type definitions
 
-Note: This project uses Bun as the JavaScript runtime. Make sure you have Bun installed on your system. If you don't have Bun installed, you can install it by following the instructions at [bun.sh](https://bun.sh).
+Note: This project uses Bun as the JavaScript runtime. Make sure you have Bun installed (see https://bun.sh).
 
 ### Testing Your Changes
 

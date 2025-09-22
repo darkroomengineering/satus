@@ -44,8 +44,8 @@ This directory contains reusable UI components used throughout the application.
 Import components directly from their respective directories:
 
 ```typescript
-import Link from '~/components/link'
-import Form from '~/components/form'
+import { Link } from '~/components/link'
+import { Form } from '~/components/form'
 import { Image } from '~/components/image'
-import { GSAP } from '~/components/gsap'
+import { GSAPRuntime } from '~/components/gsap/runtime'
 ```

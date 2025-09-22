@@ -3,15 +3,19 @@
 ## Setup
 
 ### Basic Installation
-Satūs comes with GSAP pre-installed. To enable GSAP in your project, use the `<GSAP>` component at the root level:
+Satūs comes with GSAP pre-installed. To enable GSAP and ScrollTrigger in your project, add the `<GSAPRuntime />` component in `app/layout.tsx` (it wires GSAP to Tempus and registers ScrollTrigger with Lenis):
 
 ```jsx
-<GSAP />
+// app/layout.tsx
+import { GSAPRuntime } from '~/components/gsap/runtime'
+
+// inside <body>
+<GSAPRuntime />
 ```
 
 This will:
 - Synchronize GSAP's ticker with [Tempus](https://www.npmjs.com/package/tempus) for better performance
-- Setup ScrollTrigger integration with [Lenis](https://www.npmjs.com/package/lenis) if the `scrollTrigger` prop is passed
+- Register and configure ScrollTrigger with [Lenis](https://www.npmjs.com/package/lenis)
 
 ### GSAP Business License
 For projects requiring premium GSAP features:
@@ -21,10 +25,10 @@ For projects requiring premium GSAP features:
 GSAP_AUTH_TOKEN=your-gsap-auth-token
 ```
 
-2. The project includes a `bunfig.toml` that configures the GSAP Business scope:
-```toml
-[install.scopes]
-"@gsap" = { token = "$GSAP_AUTH_TOKEN", url = "https://npm.greensock.com/" }
+2. If you plan to use GSAP Business plugins, configure your npm scope with your token. With Bun, you can set `npmScopes` in `package.json` or use an `.npmrc`. Example `.npmrc`:
+```
+@gsap:registry=https://npm.greensock.com
+//npm.greensock.com/:_authToken=${GSAP_AUTH_TOKEN}
 ```
 
 3. Install GSAP Business:
@@ -54,11 +58,9 @@ export function Component() {
 ### ScrollTrigger
 When using ScrollTrigger, make sure you've enabled it in the GSAP component:
 
-```jsx
-// In your layout.tsx
-<ScrollTrigger />
+`GSAPRuntime` already initializes ScrollTrigger and syncs with Lenis. In your component you can use it directly:
 
-// In your component
+```jsx
 useGSAP(() => {
   gsap.to('.target', {
     scrollTrigger: {

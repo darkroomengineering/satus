@@ -13,7 +13,6 @@ This directory contains WebGL and 3D graphics components, utilities, and hooks f
   - `raf/` - RequestAnimationFrame management
   - `tunnel/` - Portal system for WebGL context
 - `hooks/` - Custom hooks for 3D scene management
-  - `use-texture.ts` - Hooks for texture loading and management
   - `use-webgl-rect.ts` - Hooks for WebGL rectangle positioning
 - `utils/` - Utility functions
   - `blend.ts` - Blending mode utilities
@@ -84,17 +83,10 @@ export default function AnimatedGradient() {
 ### Image with WebGL Effects
 
 ```tsx
-import { WebGLImage } from '~/webgl/components/image'
+import { Image as WebGLImage } from '~/webgl/components/image'
 
 export default function EnhancedImage() {
-  return (
-    <WebGLImage
-      src="/images/photo.jpg"
-      alt="Enhanced image"
-      effect="distortion"
-      intensity={0.3}
-    />
-  )
+  return <WebGLImage src="/images/photo.jpg" alt="Enhanced image" />
 }
 ```
 

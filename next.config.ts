@@ -96,6 +96,7 @@ const nextConfig: NextConfig = {
         hostname: 'assets.darkroom.engineering',
       },
     ],
+    qualities: [90],
     formats: ['image/avif', 'image/webp'],
   },
   headers: async () => [

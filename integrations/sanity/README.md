@@ -58,7 +58,7 @@ The visual editor is already configured in this project. Here's how it works:
 **1. Layout Integration (`app/layout.tsx`)**
 ```tsx
 import { VisualEditing } from 'next-sanity'
-import { DisableDraftMode } from '~/components/disable-draft-mode'
+import { DisableDraftMode } from '~/integrations/sanity/components/disable-draft-mode'
 
 export default async function Layout({ children }) {
   const isDraftMode = (await draftMode()).isEnabled
@@ -79,15 +79,14 @@ export default async function Layout({ children }) {
 }
 ```
 
-**2. Data Fetching with Draft Mode**
+**2. Data Fetching with Draft Mode / Live**
 ```tsx
 import { draftMode } from 'next/headers'
-import { fetchSanityPage } from '~/integrations/sanity'
+import { sanityFetch } from '~/integrations/sanity/live'
+import { pageQuery } from '~/integrations/sanity/queries'
 
 export default async function Page() {
-  const isDraftMode = (await draftMode()).isEnabled
-  const { data } = await fetchSanityPage('home', isDraftMode)
-  
+  const { data } = await sanityFetch({ query: pageQuery, params: { slug: 'home' } })
   return <YourComponent data={data} />
 }
 ```

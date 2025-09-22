@@ -22,47 +22,26 @@ Orchestra is a suite of debugging and development tools for Satūs. It provides 
 
 ## Usage
 
-Orchestra tools are accessible during development at the `/orchestra` route. You can toggle various debugging tools using the interface:
+Toggle the command panel with `Cmd/Ctrl + O`. You can enable/disable tools from there. Tools are dynamically imported and state is persisted in `localStorage` and synchronized across tabs.
 
 ```tsx
-import { Orchestra } from '~/orchestra'
+import { OrchestraTools } from '~/orchestra'
 
-// Enable specific debug tools
-<Orchestra.Grid />
-<Orchestra.Stats />
-<Orchestra.Minimap />
-<Orchestra.Theatre />
+// Add once in app/layout.tsx inside <body>
+<OrchestraTools />
 ```
 
 ### Grid Debugger
 
-Visualizes the layout grid system to assist with component positioning and alignment:
-
-```tsx
-import { Grid } from '~/orchestra/grid'
-
-<Grid />
-```
+Visualizes the layout grid system to assist with component positioning and alignment.
 
 ### Performance Monitoring
 
-Monitor frame rates and performance metrics:
-
-```tsx
-import { Stats } from '~/orchestra/stats'
-
-<Stats />
-```
+Monitor frame rates and performance metrics.
 
 ### Theatre.js Animation Tools
 
-Access Theatre.js for animation debugging and sequencing:
-
-```tsx
-import { Theatre } from '~/orchestra/theatre'
-
-<Theatre />
-```
+Access Theatre.js for animation debugging and sequencing.
 
 ## Best Practices
 

@@ -40,7 +40,7 @@ function ResponsiveComponent() {
 
 ### usePerformance
 
-Automatically tracks and reports Core Web Vitals metrics to analytics services.
+Automatically tracks and reports Core Web Vitals metrics to analytics services (Google Analytics if available, and Vercel Analytics if installed).
 
 ```tsx
 import { usePerformance } from '~/hooks/use-performance'
@@ -72,7 +72,7 @@ function ProductCard({ href }: { href: string }) {
 
 ### useScrollTrigger
 
-Provides scroll-based animation and trigger functionality. Useful for creating scroll-driven animations and effects.
+Provides scroll-based animation and trigger functionality synchronized with GSAP ScrollTrigger + Lenis (initialized by `GSAPRuntime`). Useful for creating scroll-driven animations and effects.
 
 ```tsx
 import { useRect } from 'hamo/use-rect'

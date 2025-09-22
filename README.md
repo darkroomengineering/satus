@@ -12,8 +12,8 @@ A modern, high-performance React application starter with Next.js 15, React 19, 
 # Install dependencies
 bun install
 
-# Setup environment variables
-cp .env.example .env.local
+# Create .env.local (see Environment Variables below)
+# touch .env.local
 
 # Start development server with Turbopack
 bun dev
@@ -28,7 +28,7 @@ bun start
 ## 🛠 Tech Stack
 
 - **[Next.js](https://nextjs.org)** - React framework with App Router and Turbopack
-- **[React 19.1.0](https://react.dev)** - Latest React with simplified ref handling
+- **[React 19.1.1](https://react.dev)** - Latest React with simplified ref handling
 - **[TypeScript](https://www.typescriptlang.org)** - Type-safe development
 - **[Tailwind CSS](https://tailwindcss.com)** - CSS-first configuration
 - **[React Three Fiber](https://docs.pmnd.rs/react-three-fiber)** - React renderer for Three.js
@@ -112,7 +112,7 @@ Sanity is integrated as a headless CMS with support for visual editing in the Ne
 ### Configuration
 - **Dependencies**: Managed via `next-sanity`, `@sanity/presentation`, `@sanity/visual-editing`.
 - **Studio**: Mounted at `/studio` using `NextStudio`.
-- **Visual Editing**: Enabled via `presentationTool` in `sanity.config.ts` with draft mode routes `/api/draft` and `/api/disable-draft`.
+- **Visual Editing**: Enabled via `presentationTool` in `sanity.config.ts` with draft mode routes `/api/draft-mode/enable` and `/api/draft-mode/disable`.
 - **Client**: Configured in `integrations/sanity/client.ts` with stega for visual editing.
 - **Queries**: Server-side fetches in page components check `draftMode()` to fetch draft content with `previewDrafts` perspective.
 - **RSC Compatibility**: Data fetching occurs on the server, with `<VisualEditing />` component used client-side in layout.
@@ -210,7 +210,7 @@ bun watch:styles     # Watch style changes
 
 ## 🌐 Environment Variables
 
-Create a `.env.local` file based on `.env.example`:
+Create a `.env.local` file with:
 
 ```env
 # Sanity CMS
@@ -220,21 +220,30 @@ NEXT_PUBLIC_SANITY_STUDIO_URL="http://localhost:3000/studio"
 SANITY_API_WRITE_TOKEN="your-write-token"
 
 # Shopify
-SHOPIFY_DOMAIN="your-store.myshopify.com"
-SHOPIFY_STOREFRONT_TOKEN="your-storefront-token"
+SHOPIFY_STORE_DOMAIN="your-store.myshopify.com"
+SHOPIFY_STOREFRONT_ACCESS_TOKEN="your-storefront-token"
+SHOPIFY_REVALIDATION_SECRET="your-random-secret"
 
 # HubSpot
 HUBSPOT_ACCESS_TOKEN="your-access-token"
+NEXT_PUBLIC_HUBSPOT_PORTAL_ID="your-portal-id"
+
+# App Base URL
+NEXT_PUBLIC_BASE_URL="http://localhost:3000"
 ```
 
 ## 📚 Documentation
 
-- [Sanity CMS Integration Guide](integrations/sanity/README.md) - Complete guide for visual editing, content management, and development
-- [Component Guidelines](/.cursor/rules/components.mdc)
-- [Styling Guidelines](/.cursor/rules/styling.mdc)
-- [WebGL Development](/.cursor/rules/webgl.mdc)
-- [Integration Guide](/.cursor/rules/integrations.mdc)
-- [Tailwind CSS v4 Reference](/.cursor/rules/tailwind-css-v4.mdc)
+- [Sanity CMS Integration Guide](integrations/sanity/README.md)
+- [Integrations Overview](integrations/README.md)
+- [Components](components/README.md)
+- [GSAP](components/gsap/README.md)
+- [Image](components/image/README.md)
+- [Styles System](styles/README.md)
+- [WebGL](webgl/README.md)
+- [Orchestra Debug Tools](orchestra/README.md)
+- [Hooks](hooks/README.md)
+- [Utility Libraries](libs/README.md)
 
 ## Deployment
 
@@ -284,6 +293,15 @@ The project supports deployment to any platform that supports Next.js:
 - AWS Amplify
 - Google Cloud Run
 - Self-hosted with Node.js
+
+## ⚠️ Architectural Gotchas
+
+- Use `~/components/link` for all navigation; it auto-detects external links and smart-prefetches on fast connections.
+- Use `~/components/image` for DOM images and `~/webgl/components/image` in WebGL contexts; do not import `next/image` directly.
+- Add `<GSAPRuntime />` in `app/layout.tsx` to wire GSAP to Tempus and enable ScrollTrigger + Lenis; no manual ticker setup needed.
+- Sanity Presentation requires `/api/draft-mode/enable` and `/api/draft-mode/disable` plus `NEXT_PUBLIC_BASE_URL` for preview resolution.
+- Orchestra tools toggle with `Cmd/Ctrl + O` and persist state in `localStorage` across tabs.
+- Shopify requires `SHOPIFY_STORE_DOMAIN` and `SHOPIFY_STOREFRONT_ACCESS_TOKEN`; older var names won't work.
 
 ## 🤝 Contributing
 

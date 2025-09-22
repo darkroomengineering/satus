@@ -43,13 +43,8 @@ MANDRILL_FROM_NAME="Your Company Contact Form"
 MANDRILL_TO_EMAIL=admin@your-domain.com
 
 # ===== MAILCHIMP (Audience Building) =====
-# Required - Mailchimp API key
 MAILCHIMP_API_KEY=your_mailchimp_api_key_here
-
-# Required - Server prefix (e.g., us17 from your Mailchimp dashboard URL)
 MAILCHIMP_SERVER_PREFIX=us17
-
-# Required - Audience ID (from Audience → Settings → Unique id)
 MAILCHIMP_AUDIENCE_ID=your_audience_id_here
 
 # ===== TURNSTILE (Spam Protection) =====

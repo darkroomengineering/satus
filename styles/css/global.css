@@ -79,6 +79,7 @@ button {
 
 html.screenshot {
   *:not(:has(canvas), canvas, :has(#orchestra), #orchestra, #orchestra *) {
+    /* biome-ignore lint: it's all good */
     opacity: 0 !important;
   }
 }

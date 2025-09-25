@@ -9,7 +9,13 @@ export const ThemeContext = createContext<{
   name: ThemeName
   theme: Themes[ThemeName]
   setThemeName: (theme: ThemeName) => void
-}>({ name: 'light', theme: themes.light, setThemeName: () => {} })
+}>({
+  name: 'light',
+  theme: themes.light,
+  setThemeName: () => {
+    void 0
+  },
+})
 
 export function useTheme() {
   return useContext(ThemeContext)

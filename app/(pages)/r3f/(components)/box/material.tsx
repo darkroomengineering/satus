@@ -11,14 +11,18 @@ const RANDOM = Math.random()
 interface OptionsType extends MeshBasicMaterialParameters {}
 
 export class GenericMaterial extends MeshBasicMaterial {
-  uniforms: {}
+  uniforms: {
+    uTime: { value: number }
+  }
   defines?: Record<string, string>
   options?: OptionsType
 
   constructor({ ...props }: OptionsType = {}) {
     super({ ...props })
 
-    this.uniforms = {}
+    this.uniforms = {
+      uTime: { value: 0 },
+    }
 
     this.defines = {}
 

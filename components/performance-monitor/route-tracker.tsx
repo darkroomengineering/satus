@@ -17,7 +17,7 @@ export function RoutePerformanceTracker() {
       }
 
       // Send to analytics
-      if (typeof window !== 'undefined' && window.gtag) {
+      if (window?.gtag) {
         window.gtag('event', 'timing_complete', {
           name: 'route_change',
           value: Math.round(duration),

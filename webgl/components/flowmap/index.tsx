@@ -1,6 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { types } from '@theatre/core'
-import { createContext, useContext, useMemo } from 'react'
+import { createContext, useContext, useEffect, useMemo } from 'react'
 import { useCurrentSheet } from '~/orchestra/theatre'
 import { useTheatre } from '~/orchestra/theatre/hooks/use-theatre'
 import { Flowmap } from '~/webgl/utils/flowmap'
@@ -86,6 +86,14 @@ export function FlowmapProvider({ children }: { children: React.ReactNode }) {
       deps: [flowmap],
     }
   )
+
+  const size = useThree((state) => state.size)
+
+  useEffect(() => {
+    // @ts-expect-error: TODO: fix this
+    fluid.splatProgram.program.uniforms.aspectRatio.value =
+      size.width / size.height
+  }, [size, fluid])
 
   useFrame(() => {
     fluid.update()

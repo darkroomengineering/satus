@@ -2,6 +2,7 @@
 
 html {
   --scrollbar-gutter: 0px;
+  scrollbar-gutter: stable; /* This is needed to prevent the scrollbar from jumping */
 
   &.lenis-stopped {
     --scrollbar-gutter: var(--scrollbar-width);
@@ -10,6 +11,11 @@ html {
 
 * {
   scrollbar-width: thin;
+}
+
+html.overflow-hidden {
+  overflow: hidden;
+  touch-action: none;
 }
 
 body {

@@ -2,6 +2,7 @@
 
 import { OrthographicCamera } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
+import cn from 'clsx'
 import { Suspense } from 'react'
 import { SheetProvider } from '~/orchestra/theatre'
 import { FlowmapProvider } from '../flowmap'
@@ -15,18 +16,20 @@ type WebGLCanvasProps = React.HTMLAttributes<HTMLDivElement> & {
   render?: boolean
   postprocessing?: boolean
   alpha?: boolean
+  className?: string
 }
 
 export function WebGLCanvas({
   render = true,
   postprocessing = false,
   alpha = true,
+  className,
   ...props
 }: WebGLCanvasProps) {
   const { WebGLTunnel, DOMTunnel } = useCanvas()
 
   return (
-    <div className={s.webgl} {...props}>
+    <div className={cn(s.webgl, className)} {...props}>
       <Canvas
         gl={{
           precision: 'highp',
@@ -44,7 +47,8 @@ export function WebGLCanvas({
         flat
         eventSource={document.documentElement}
         eventPrefix="client"
-        resize={{ scroll: false, debounce: { scroll: 0, resize: 500 } }}
+        resize={{ scroll: false, debounce: 500 }}
+        style={{ pointerEvents: 'all' }}
       >
         {/* <StateListener onChange={onChange} /> */}
         <SheetProvider id="webgl">

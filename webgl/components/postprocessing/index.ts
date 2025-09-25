@@ -44,8 +44,6 @@ export function PostProcessing() {
     }
   }, [composer, renderPass, copyPass])
 
-  // const { width: windowWidth = 0, height: windowHeight = 0 } = useWindowSize()
-
   useEffect(() => {
     const initialDpr = Math.min(window.devicePixelRatio, 2)
 

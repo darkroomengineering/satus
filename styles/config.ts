@@ -28,5 +28,5 @@ export {
   themes,
   typography,
 }
-export type Theme = keyof typeof themes
+export type ThemeName = keyof typeof themes
 export type Config = typeof config

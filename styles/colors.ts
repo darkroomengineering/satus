@@ -28,7 +28,7 @@ const themes = {
 export { colors, themeNames, themes }
 
 // UTIL TYPES
-type Themes = Record<
+export type Themes = Record<
   (typeof themeNames)[number],
   Record<(typeof colorNames)[number], string>
 >

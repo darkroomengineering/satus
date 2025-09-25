@@ -1,7 +1,7 @@
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google'
 import type { Metadata, Viewport } from 'next'
 import { draftMode } from 'next/headers'
-import { VisualEditing } from 'next-sanity'
+import { VisualEditing } from 'next-sanity/visual-editing'
 import type { PropsWithChildren } from 'react'
 import { ReactTempus } from 'tempus/react'
 import { PerformanceMonitor } from '~/components/performance-monitor'
@@ -21,13 +21,14 @@ const APP_NAME = AppData.name
 const APP_DEFAULT_TITLE = 'Satūs'
 const APP_TITLE_TEMPLATE = '%s - Satūs'
 const APP_DESCRIPTION = AppData.description
-const APP_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
+const APP_BASE_URL =
+  process.env.NEXT_PUBLIC_BASE_URL ?? 'https://localhost:3000'
 
 const GTM_ID = process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID
 const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS
 
 export const metadata: Metadata = {
-  metadataBase: APP_BASE_URL ? new URL(`${APP_BASE_URL}`) : undefined,
+  metadataBase: new URL(APP_BASE_URL),
   applicationName: APP_NAME,
   title: {
     default: APP_DEFAULT_TITLE,

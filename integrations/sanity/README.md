@@ -57,7 +57,7 @@ The visual editor is already configured in this project. Here's how it works:
 
 **1. Layout Integration (`app/layout.tsx`)**
 ```tsx
-import { VisualEditing } from 'next-sanity'
+import { VisualEditing } from 'next-sanity/visual-editing'
 import { DisableDraftMode } from '~/integrations/sanity/components/disable-draft-mode'
 
 export default async function Layout({ children }) {

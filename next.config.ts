@@ -3,6 +3,7 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  reactCompiler: true,
   poweredByHeader: false,
   productionBrowserSourceMaps: process.env.SOURCE_MAPS === 'true',
   typedRoutes: true,
@@ -69,7 +70,6 @@ const nextConfig: NextConfig = {
     reactRemoveProperties: true,
   },
   experimental: {
-    reactCompiler: true,
     nextScriptWorkers: true,
     optimizePackageImports: [
       '@react-three/drei',

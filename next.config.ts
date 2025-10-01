@@ -95,6 +95,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'assets.darkroom.engineering',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn.sanity.io',
+      },
     ],
     qualities: [90],
     formats: ['image/avif', 'image/webp'],

@@ -1,18 +1,28 @@
 import { defineField, defineType } from 'sanity'
 import { linkFieldWithLabelAndRequired } from '../objects/link'
 
+const pageFields = [
+  defineField({
+    name: 'title',
+    title: 'Title',
+    type: 'string',
+    description: 'The title of the page',
+    validation: (Rule) => Rule.required(),
+  }),
+  defineField({
+    name: 'content',
+    title: 'Content',
+    type: 'richText',
+    description: 'The main content of the page',
+  }),
+  linkFieldWithLabelAndRequired,
+]
+
 export const page = defineType({
   name: 'page',
   title: 'Page',
   type: 'document',
   fields: [
-    defineField({
-      name: 'title',
-      title: 'Title',
-      type: 'string',
-      description: 'The main title of the page',
-      validation: (Rule) => Rule.required(),
-    }),
     defineField({
       name: 'slug',
       title: 'Slug',
@@ -25,25 +35,20 @@ export const page = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      name: 'content',
-      title: 'Content',
-      type: 'richText',
-      description: 'The main content of the page',
-    }),
-    defineField({
-      name: 'metadata',
-      title: 'SEO & Metadata',
-      type: 'metadata',
-      description: 'SEO settings for this page',
-    }),
-    defineField({
       name: 'publishedAt',
       title: 'Published At',
       type: 'datetime',
       description: 'When this page was published',
       initialValue: () => new Date().toISOString(),
     }),
-    linkFieldWithLabelAndRequired,
+
+    defineField({
+      name: 'metadata',
+      title: 'SEO & Metadata',
+      type: 'metadata',
+      description: 'SEO settings for this page',
+    }),
+    ...pageFields,
   ],
   preview: {
     select: {

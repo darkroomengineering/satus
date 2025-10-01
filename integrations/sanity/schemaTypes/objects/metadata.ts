@@ -4,6 +4,10 @@ export const metadata = defineType({
   name: 'metadata',
   title: 'SEO & Metadata',
   type: 'object',
+  options: {
+    collapsible: true,
+    collapsed: true,
+  },
   fields: [
     defineField({
       name: 'title',

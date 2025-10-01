@@ -4,7 +4,7 @@ import { pageQuery } from '~/integrations/sanity/queries'
 import { Wrapper } from '../(components)/wrapper'
 import { SanityTutorial } from './(component)/tutorial'
 
-const SLUG = 'home'
+const SLUG = 'sanity'
 
 export default async function SanityPage() {
   const { data } = await sanityFetch({

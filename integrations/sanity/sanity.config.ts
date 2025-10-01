@@ -19,7 +19,7 @@ import { structure } from './structure'
 function resolveHref(documentType?: string, slug?: string): string | undefined {
   switch (documentType) {
     case 'page':
-      return slug === 'home' ? '/sanity' : `/sanity/${slug}`
+      return slug === 'sanity' ? '/sanity' : `/sanity/${slug}`
     case 'article':
       return slug ? `/sanity/${slug}` : undefined
     default:
@@ -34,25 +34,14 @@ export default defineConfig({
   dataset,
   schema,
   plugins: [
-    structureTool({ structure }),
-    // Vision is for querying with GROQ from inside the Studio
-    // https://www.sanity.io/docs/the-vision-plugin
-    visionTool({ defaultApiVersion: apiVersion }),
-    linkField({
-      // Optional: customize the link field behavior
-      linkableSchemaTypes: ['page', 'article'],
-    }),
     // Presentation tool for visual editing
     presentationTool({
       resolve: {
+        // Map routes to documents and GROQ filters
         mainDocuments: defineDocuments([
           {
             route: '/sanity',
-            filter: `_type == "page" && slug.current == "home"`,
-          },
-          {
-            route: '/sanity/:slug',
-            filter: `_type == "page" && slug.current == $slug && defined(slug.current)`,
+            filter: `_type == "page" && slug.current == "sanity"`,
           },
           {
             route: '/sanity/:slug',
@@ -97,6 +86,14 @@ export default defineConfig({
           disable: '/api/draft-mode/disable',
         },
       },
+    }),
+    structureTool({ structure }),
+    // Vision is for querying with GROQ from inside the Studio
+    // https://www.sanity.io/docs/the-vision-plugin
+    visionTool({ defaultApiVersion: apiVersion }),
+    linkField({
+      // Optional: customize the link field behavior
+      linkableSchemaTypes: ['page', 'article'],
     }),
   ],
 })

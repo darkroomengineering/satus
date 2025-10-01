@@ -1,5 +1,5 @@
 import { createClient } from 'next-sanity'
-import { apiVersion, dataset, projectId, studioUrl, writeToken } from './env'
+import { apiVersion, dataset, privateToken, projectId, studioUrl } from './env'
 
 export const client = createClient({
   projectId,
@@ -7,7 +7,7 @@ export const client = createClient({
   apiVersion,
   useCdn: true,
   perspective: 'published',
-  token: writeToken,
+  token: privateToken,
   stega: {
     studioUrl,
     filter: (props) => {

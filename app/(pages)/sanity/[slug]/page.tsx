@@ -12,9 +12,12 @@ import { SanityArticle } from './(component)/article'
 //   return data.map((article) => ({ slug: article.slug?.current }))
 // }
 
-export default async function SanityArticlePage({ params }) {
+export default async function SanityArticlePage({
+  params,
+}: {
+  params: { slug: string }
+}) {
   const { slug } = await params
-
   const { data } = await sanityFetch({
     query: articleQuery,
     params: { slug },
@@ -32,7 +35,11 @@ export default async function SanityArticlePage({ params }) {
 }
 
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata
-export async function generateMetadata({ params }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string }
+}) {
   const { slug } = await params
   const { data } = await sanityFetch({
     query: articleQuery,

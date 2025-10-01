@@ -1,9 +1,11 @@
-'use client'
+import type { PortableTextBlock } from 'next-sanity'
+import { Image } from '~/components/image'
+import { RichText, urlForImage } from '~/integrations/sanity'
+import type { Article } from '~/integrations/sanity/sanity.types'
 
-import { SanityImage } from '~/components/sanity-image'
-import { RichText } from '~/integrations/sanity'
+type SanityArticleProps = NonNullable<Article>
 
-export function SanityArticle({ data }) {
+export function SanityArticle({ data }: { data: SanityArticleProps }) {
   if (!data) return null
 
   return (
@@ -16,12 +18,12 @@ export function SanityArticle({ data }) {
       )}
       {data.featuredImage && (
         <div data-sanity="featuredImage">
-          <SanityImage image={data.featuredImage} maxWidth={800} />
+          <Image src={urlForImage(data.featuredImage).url()} />
         </div>
       )}
       {data.content && (
         <div data-sanity="content">
-          <RichText content={data.content} />
+          <RichText content={data.content as PortableTextBlock[]} />
         </div>
       )}
       {data.publishedAt && (

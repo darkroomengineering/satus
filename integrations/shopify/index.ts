@@ -1,5 +1,6 @@
 import { revalidateTag } from 'next/cache'
 import { headers } from 'next/headers'
+import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import {
   HIDDEN_PRODUCT_TAG,
@@ -26,24 +27,40 @@ import {
   getProductsQuery,
 } from './queries/product'
 
-const endpoint = process.env.SHOPIFY_STORE_DOMAIN + SHOPIFY_GRAPHQL_API_ENDPOINT
-const key = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN
-const domain = process.env.SHOPIFY_STORE_DOMAIN
+const endpoint = `${process.env.SHOPIFY_STORE_DOMAIN || ''}${SHOPIFY_GRAPHQL_API_ENDPOINT}`
+const key = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN || ''
+const domain = process.env.SHOPIFY_STORE_DOMAIN || ''
 
-export async function shopifyFetch({
+interface ShopifyFetchOptions {
+  cache?: RequestCache
+  headers?: HeadersInit
+  query: string
+  tags?: string[]
+  variables?: Record<string, unknown>
+}
+
+interface ShopifyResponse<T = Record<string, unknown>> {
+  status: number
+  body: {
+    data: T
+    errors?: Array<{ message: string }>
+  }
+}
+
+export async function shopifyFetch<T = Record<string, unknown>>({
   cache = 'force-cache',
-  headers,
+  headers: customHeaders,
   query,
   tags,
   variables,
-}) {
+}: ShopifyFetchOptions): Promise<ShopifyResponse<T>> {
   try {
     const result = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-Shopify-Storefront-Access-Token': key,
-        ...headers,
+        ...customHeaders,
       },
       body: JSON.stringify({
         ...(query && { query }),
@@ -53,7 +70,10 @@ export async function shopifyFetch({
       ...(tags && { next: { tags } }),
     })
 
-    const body = await result.json()
+    const body = (await result.json()) as {
+      data: T
+      errors?: Array<{ message: string }>
+    }
 
     if (body.errors) {
       throw body.errors[0]
@@ -71,25 +91,70 @@ export async function shopifyFetch({
   }
 }
 
-const removeEdgesAndNodes = (array) => {
+interface EdgeNode<T> {
+  edges: Array<{ node: T }>
+}
+
+const removeEdgesAndNodes = <T>(array: EdgeNode<T>): T[] => {
   return array.edges.map((edge) => edge?.node)
 }
 
-const reshapeCart = (cart) => {
-  if (!cart.cost?.totalTaxAmount) {
-    cart.cost.totalTaxAmount = {
-      amount: '0.0',
-      currencyCode: 'USD',
-    }
+interface Money {
+  amount: string
+  currencyCode: string
+}
+
+interface ShopifyCart {
+  cost: {
+    totalTaxAmount?: Money
+    subtotalAmount: Money
+    totalAmount: Money
+  }
+  lines: EdgeNode<unknown>
+  [key: string]: unknown
+}
+
+interface Cart {
+  cost: {
+    totalTaxAmount: Money
+    subtotalAmount: Money
+    totalAmount: Money
+  }
+  lines: unknown[]
+  [key: string]: unknown
+}
+
+const reshapeCart = (cart: ShopifyCart): Cart => {
+  const totalTaxAmount = cart.cost?.totalTaxAmount || {
+    amount: '0.0',
+    currencyCode: 'USD',
   }
 
   return {
     ...cart,
+    cost: {
+      ...cart.cost,
+      totalTaxAmount,
+    },
     lines: removeEdgesAndNodes(cart.lines),
   }
 }
 
-const reshapeCollection = (collection) => {
+interface Collection {
+  handle: string
+  title: string
+  description?: string
+  seo?: {
+    title: string
+    description: string
+  }
+  path?: string
+  updatedAt?: string
+}
+
+const reshapeCollection = (
+  collection: Collection | null
+): Collection | undefined => {
   if (!collection) {
     return undefined
   }
@@ -100,8 +165,10 @@ const reshapeCollection = (collection) => {
   }
 }
 
-const reshapeCollections = (collections) => {
-  const reshapedCollections = []
+const reshapeCollections = (
+  collections: (Collection | null)[]
+): Collection[] => {
+  const reshapedCollections: Collection[] = []
 
   for (const collection of collections) {
     if (collection) {
@@ -116,11 +183,25 @@ const reshapeCollections = (collections) => {
   return reshapedCollections
 }
 
-const reshapeImages = (images, productTitle) => {
+interface ShopifyImage {
+  url: string
+  altText?: string
+  width?: number
+  height?: number
+}
+
+interface Image extends ShopifyImage {
+  altText: string
+}
+
+const reshapeImages = (
+  images: EdgeNode<ShopifyImage>,
+  productTitle: string
+): Image[] => {
   const flattened = removeEdgesAndNodes(images)
 
   return flattened.map((image) => {
-    const filename = image.url.match(/.*\/(.*)\..*/)[1]
+    const filename = image.url.match(/.*\/(.*)\..*/)?.[1] || 'product'
     return {
       ...image,
       altText: image.altText || `${productTitle} - ${filename}`,
@@ -128,7 +209,26 @@ const reshapeImages = (images, productTitle) => {
   })
 }
 
-const reshapeProduct = (product, filterHiddenProducts) => {
+interface ShopifyProduct {
+  title: string
+  tags: string[]
+  images: EdgeNode<ShopifyImage>
+  variants: EdgeNode<unknown>
+  [key: string]: unknown
+}
+
+interface Product {
+  title: string
+  tags: string[]
+  images: Image[]
+  variants: unknown[]
+  [key: string]: unknown
+}
+
+const reshapeProduct = (
+  product: ShopifyProduct | null,
+  filterHiddenProducts = true
+): Product | undefined => {
   if (
     !product ||
     (filterHiddenProducts && product.tags.includes(HIDDEN_PRODUCT_TAG))
@@ -145,8 +245,8 @@ const reshapeProduct = (product, filterHiddenProducts) => {
   }
 }
 
-const reshapeProducts = (products) => {
-  const reshapedProducts = []
+const reshapeProducts = (products: (ShopifyProduct | null)[]): Product[] => {
+  const reshapedProducts: Product[] = []
 
   for (const product of products) {
     if (product) {
@@ -161,8 +261,8 @@ const reshapeProducts = (products) => {
   return reshapedProducts
 }
 
-export async function createCart() {
-  const res = await shopifyFetch({
+export async function createCart(): Promise<Cart> {
+  const res = await shopifyFetch<{ cartCreate: { cart: ShopifyCart } }>({
     query: createCartMutation,
     cache: 'no-store',
   })
@@ -170,8 +270,16 @@ export async function createCart() {
   return reshapeCart(res.body.data.cartCreate.cart)
 }
 
-export async function addToCart(cartId, lines = []) {
-  const res = await shopifyFetch({
+interface CartLineInput {
+  merchandiseId: string
+  quantity: number
+}
+
+export async function addToCart(
+  cartId: string,
+  lines: CartLineInput[] = []
+): Promise<Cart> {
+  const res = await shopifyFetch<{ cartLinesAdd: { cart: ShopifyCart } }>({
     query: addToCartMutation,
     variables: {
       cartId,
@@ -183,8 +291,11 @@ export async function addToCart(cartId, lines = []) {
   return reshapeCart(res.body.data.cartLinesAdd.cart)
 }
 
-export async function removeFromCart(cartId, lineIds = []) {
-  const res = await shopifyFetch({
+export async function removeFromCart(
+  cartId: string,
+  lineIds: string[] = []
+): Promise<Cart> {
+  const res = await shopifyFetch<{ cartLinesRemove: { cart: ShopifyCart } }>({
     query: removeFromCartMutation,
     variables: {
       cartId,
@@ -196,8 +307,17 @@ export async function removeFromCart(cartId, lineIds = []) {
   return reshapeCart(res.body.data.cartLinesRemove.cart)
 }
 
-export async function updateCart(cartId, lines = []) {
-  const res = await shopifyFetch({
+interface CartLineUpdateInput {
+  id: string
+  merchandiseId: string
+  quantity: number
+}
+
+export async function updateCart(
+  cartId: string,
+  lines: CartLineUpdateInput[] = []
+): Promise<Cart> {
+  const res = await shopifyFetch<{ cartLinesUpdate: { cart: ShopifyCart } }>({
     query: editCartItemsMutation,
     variables: {
       cartId,
@@ -209,8 +329,8 @@ export async function updateCart(cartId, lines = []) {
   return reshapeCart(res.body.data.cartLinesUpdate.cart)
 }
 
-export async function getCart(cartId) {
-  const res = await shopifyFetch({
+export async function getCart(cartId: string): Promise<Cart | undefined> {
+  const res = await shopifyFetch<{ cart: ShopifyCart | null }>({
     query: getCartQuery,
     variables: { cartId },
     tags: [TAGS.cart],
@@ -225,8 +345,10 @@ export async function getCart(cartId) {
   return reshapeCart(res.body.data.cart)
 }
 
-export async function getCollection(handle) {
-  const res = await shopifyFetch({
+export async function getCollection(
+  handle: string
+): Promise<Collection | undefined> {
+  const res = await shopifyFetch<{ collection: Collection | null }>({
     query: getCollectionQuery,
     tags: [TAGS.collections],
     variables: {
@@ -237,8 +359,20 @@ export async function getCollection(handle) {
   return reshapeCollection(res.body.data.collection)
 }
 
-export async function getCollectionProducts({ collection, reverse, sortKey }) {
-  const res = await shopifyFetch({
+interface GetCollectionProductsOptions {
+  collection: string
+  reverse?: boolean
+  sortKey?: string
+}
+
+export async function getCollectionProducts({
+  collection,
+  reverse,
+  sortKey,
+}: GetCollectionProductsOptions): Promise<Product[]> {
+  const res = await shopifyFetch<{
+    collection: { products: EdgeNode<ShopifyProduct> } | null
+  }>({
     query: getCollectionProductsQuery,
     tags: [TAGS.collections, TAGS.products],
     cache: 'no-store',
@@ -257,13 +391,13 @@ export async function getCollectionProducts({ collection, reverse, sortKey }) {
   return reshapeProducts(removeEdgesAndNodes(res.body.data.collection.products))
 }
 
-export async function getCollections() {
-  const res = await shopifyFetch({
+export async function getCollections(): Promise<Collection[]> {
+  const res = await shopifyFetch<{ collections: EdgeNode<Collection> }>({
     query: getCollectionsQuery,
     tags: [TAGS.collections],
   })
-  const shopifyCollections = removeEdgesAndNodes(res.body?.data?.collections)
-  const collections = [
+  const shopifyCollections = removeEdgesAndNodes(res.body.data.collections)
+  const collections: Collection[] = [
     {
       handle: '',
       title: 'All',
@@ -285,8 +419,15 @@ export async function getCollections() {
   return collections
 }
 
-export async function getMenu(handle) {
-  const res = await shopifyFetch({
+interface MenuItem {
+  title: string
+  path: string
+}
+
+export async function getMenu(handle: string): Promise<MenuItem[]> {
+  const res = await shopifyFetch<{
+    menu: { items: Array<{ title: string; url: string }> } | null
+  }>({
     query: getMenuQuery,
     tags: [TAGS.collections],
     variables: {
@@ -295,7 +436,7 @@ export async function getMenu(handle) {
   })
 
   return (
-    res.body?.data?.menu?.items.map((item) => ({
+    res.body.data.menu?.items.map((item) => ({
       title: item.title,
       path: item.url
         .replace(domain, '')
@@ -305,8 +446,8 @@ export async function getMenu(handle) {
   )
 }
 
-export async function getPage(handle) {
-  const res = await shopifyFetch({
+export async function getPage(handle: string): Promise<unknown> {
+  const res = await shopifyFetch<{ pageByHandle: unknown }>({
     query: getPageQuery,
     variables: { handle },
   })
@@ -314,16 +455,16 @@ export async function getPage(handle) {
   return res.body.data.pageByHandle
 }
 
-export async function getPages() {
-  const res = await shopifyFetch({
+export async function getPages(): Promise<unknown[]> {
+  const res = await shopifyFetch<{ pages: EdgeNode<unknown> }>({
     query: getPagesQuery,
   })
 
   return removeEdgesAndNodes(res.body.data.pages)
 }
 
-export async function getProduct(handle) {
-  const res = await shopifyFetch({
+export async function getProduct(handle: string): Promise<Product | undefined> {
+  const res = await shopifyFetch<{ product: ShopifyProduct | null }>({
     query: getProductQuery,
     tags: [TAGS.products],
     cache: 'no-store',
@@ -335,8 +476,10 @@ export async function getProduct(handle) {
   return reshapeProduct(res.body.data.product, false)
 }
 
-export async function getProductRecommendations(productId) {
-  const res = await shopifyFetch({
+export async function getProductRecommendations(
+  productId: string
+): Promise<Product[]> {
+  const res = await shopifyFetch<{ productRecommendations: ShopifyProduct[] }>({
     query: getProductRecommendationsQuery,
     tags: [TAGS.products],
     variables: {
@@ -347,8 +490,18 @@ export async function getProductRecommendations(productId) {
   return reshapeProducts(res.body.data.productRecommendations)
 }
 
-export async function getProducts({ query, reverse, sortKey }) {
-  const res = await shopifyFetch({
+interface GetProductsOptions {
+  query?: string
+  reverse?: boolean
+  sortKey?: string
+}
+
+export async function getProducts({
+  query,
+  reverse,
+  sortKey,
+}: GetProductsOptions): Promise<Product[]> {
+  const res = await shopifyFetch<{ products: EdgeNode<ShopifyProduct> }>({
     query: getProductsQuery,
     tags: [TAGS.products],
     variables: {
@@ -362,7 +515,7 @@ export async function getProducts({ query, reverse, sortKey }) {
 }
 
 // This is called from `app/api/revalidate.ts` so providers can control revalidation logic.
-export async function revalidate(req) {
+export async function revalidate(req: NextRequest): Promise<NextResponse> {
   // We always need to respond with a 200 status code to Shopify,
   // otherwise it will continue to retry the request.
   const collectionWebhooks = [
@@ -375,7 +528,8 @@ export async function revalidate(req) {
     'products/delete',
     'products/update',
   ]
-  const topic = headers().get('x-shopify-topic') || 'unknown'
+  const headersList = await headers()
+  const topic = headersList.get('x-shopify-topic') || 'unknown'
   const secret = req.nextUrl.searchParams.get('secret')
   const isCollectionUpdate = collectionWebhooks.includes(topic)
   const isProductUpdate = productWebhooks.includes(topic)

@@ -4,8 +4,8 @@ import {
   Vector2,
   type WebGLProgramParametersWithUniforms,
 } from 'three'
-import type { Flowmap } from '~/webgl/utils/flowmap'
-import type { Fluid } from '~/webgl/utils/fluid'
+import type { Flowmap } from '~/webgl/utils/flowmaps/flowmap-sim'
+import type { Fluid } from '~/webgl/utils/fluid/fluid-sim'
 import { NOISE } from '~/webgl/utils/noise'
 
 export class AnimatedGradientMaterial extends MeshBasicMaterial {

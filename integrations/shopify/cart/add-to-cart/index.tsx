@@ -6,7 +6,31 @@ import { useCartContext } from '../cart-context'
 import { useCartModal } from '../modal'
 import s from './add-to-cart.module.css'
 
-export function AddToCart({ product, variant, quantity = 1, className }) {
+interface ProductVariant {
+  id: string
+  price: {
+    amount: string
+    currencyCode: string
+  }
+}
+
+interface Product {
+  availableForSale: boolean
+}
+
+interface AddToCartProps {
+  product: Product
+  variant?: ProductVariant
+  quantity?: number
+  className?: string
+}
+
+export function AddToCart({
+  product,
+  variant,
+  quantity = 1,
+  className,
+}: AddToCartProps) {
   const { addCartItem } = useCartContext()
   const { openCart } = useCartModal()
 
@@ -22,11 +46,11 @@ export function AddToCart({ product, variant, quantity = 1, className }) {
     // Need to force priority
     setTimeout(() => {
       addCartItem(variant, product, quantity)
-      openCart('add')
+      openCart()
     }, 0)
 
     await addItem(null, {
-      variantId: variant?.id,
+      variantId: variant?.id || '',
       quantity,
     })
   }

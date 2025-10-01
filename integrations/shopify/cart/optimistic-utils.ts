@@ -1,6 +1,77 @@
 import { isEmptyArray } from '~/libs/utils'
 
-export function cartReconciler(state, action) {
+interface Money {
+  amount: string
+  currencyCode: string
+}
+
+interface CartCost {
+  subtotalAmount: Money
+  totalAmount: Money
+  totalTaxAmount: Money
+}
+
+interface ProductVariant {
+  id: string
+  title: string
+  selectedOptions: Array<{ name: string; value: string }>
+  price: Money
+}
+
+interface Product {
+  id: string
+  handle: string
+  title: string
+  featuredImage: unknown
+}
+
+interface Merchandise {
+  id: string
+  title: string
+  selectedOptions: Array<{ name: string; value: string }>
+  product: Product
+}
+
+interface CartLine {
+  id?: string
+  quantity: number
+  cost: {
+    totalAmount: Money
+  }
+  merchandise: Merchandise
+}
+
+interface Cart {
+  id?: string
+  checkoutUrl: string
+  totalQuantity: number
+  lines: CartLine[]
+  cost: CartCost
+}
+
+interface UpdateItemAction {
+  type: 'UPDATE_ITEM'
+  payload: {
+    merchandiseId: string
+    updateType: 'plus' | 'minus' | 'delete'
+  }
+}
+
+interface AddItemAction {
+  type: 'ADD_ITEM'
+  payload: {
+    variant: ProductVariant
+    product: Product
+    quantity: number
+  }
+}
+
+export type CartAction = UpdateItemAction | AddItemAction
+
+export function cartReconciler(
+  state: Cart | undefined,
+  action: CartAction
+): Cart {
   const currentCart = state || createEmptyCart()
   const reconcilingAction = reconcilingActions[action.type]
 
@@ -11,7 +82,7 @@ export function cartReconciler(state, action) {
   return currentCart
 }
 
-function createEmptyCart() {
+function createEmptyCart(): Cart {
   return {
     id: undefined,
     checkoutUrl: '',
@@ -25,12 +96,15 @@ function createEmptyCart() {
   }
 }
 
-const reconcilingActions = {
-  UPDATE_ITEM: (state, action) => updateItem(state, action),
-  ADD_ITEM: (state, action) => addItem(state, action),
+const reconcilingActions: Record<
+  string,
+  (state: Cart, action: CartAction) => Cart
+> = {
+  UPDATE_ITEM: (state, action) => updateItem(state, action as UpdateItemAction),
+  ADD_ITEM: (state, action) => addItem(state, action as AddItemAction),
 }
 
-function updateItem(state, action) {
+function updateItem(state: Cart, action: UpdateItemAction): Cart {
   const { merchandiseId, updateType } = action.payload
   const updatedLines = state.lines
     .map((item) =>
@@ -38,7 +112,7 @@ function updateItem(state, action) {
         ? updateCartItem(item, updateType)
         : item
     )
-    .filter(Boolean)
+    .filter(Boolean) as CartLine[]
 
   if (isEmptyArray(updatedLines)) {
     return {
@@ -55,7 +129,7 @@ function updateItem(state, action) {
   return { ...state, ...updateCartTotals(updatedLines), lines: updatedLines }
 }
 
-function addItem(state, action) {
+function addItem(state: Cart, action: AddItemAction): Cart {
   const { variant, product, quantity } = action.payload
   const existingItem = state.lines.find(
     (item) => item.merchandise.id === variant.id
@@ -80,12 +154,15 @@ function addItem(state, action) {
   }
 }
 
-const quantityAction = {
+const quantityAction: Record<'minus' | 'plus', number> = {
   minus: -1,
   plus: 1,
 }
 
-function updateCartItem(item, updateType) {
+function updateCartItem(
+  item: CartLine,
+  updateType: 'plus' | 'minus' | 'delete'
+): CartLine | null {
   if (updateType === 'delete') return null
 
   const newQuantity = Math.max(1, item.quantity + quantityAction[updateType])
@@ -109,7 +186,12 @@ function updateCartItem(item, updateType) {
   }
 }
 
-function createOrUpdateCartItem(existingItem, variant, product, newQuantity) {
+function createOrUpdateCartItem(
+  existingItem: CartLine | undefined,
+  variant: ProductVariant,
+  product: Product,
+  newQuantity: number
+): CartLine {
   const quantity = existingItem
     ? existingItem.quantity + newQuantity
     : newQuantity
@@ -138,11 +220,11 @@ function createOrUpdateCartItem(existingItem, variant, product, newQuantity) {
   }
 }
 
-function calculateItemCost(quantity, price) {
+function calculateItemCost(quantity: number, price: string): string {
   return (Number(price) * quantity).toString()
 }
 
-function updateCartTotals(lines) {
+function updateCartTotals(lines: CartLine[]): Partial<Cart> {
   const totalQuantity = lines.reduce((sum, item) => sum + item.quantity, 0)
   const totalAmount = lines.reduce(
     (sum, item) => sum + Number(item.cost.totalAmount.amount),

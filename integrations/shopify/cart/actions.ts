@@ -11,7 +11,21 @@ import {
   updateCart,
 } from '../index'
 
-export async function removeItem(_prevState, merchandiseId) {
+interface CartLine {
+  id?: string
+  merchandise: {
+    id: string
+  }
+}
+
+interface CartData {
+  lines: CartLine[]
+}
+
+export async function removeItem(
+  _prevState: unknown,
+  merchandiseId: string
+): Promise<string | undefined> {
   const _cookies = await cookies()
   const cartId = _cookies.get('cartId')?.value
 
@@ -20,7 +34,7 @@ export async function removeItem(_prevState, merchandiseId) {
   }
 
   try {
-    const cart = await getCart(cartId)
+    const cart = (await getCart(cartId)) as CartData | undefined
 
     if (!cart) {
       return 'Error fetching cart'
@@ -33,24 +47,33 @@ export async function removeItem(_prevState, merchandiseId) {
     if (lineItem?.id) {
       await removeFromCart(cartId, [lineItem.id])
       revalidateTag(TAGS.cart)
-    } else {
-      return 'Item not found in cart'
+      return undefined
     }
+
+    return 'Item not found in cart'
   } catch (_e) {
     return 'Error removing item from cart'
   }
 }
 
-export async function addItem(_prevState, { variantId, quantity = 1 }) {
+interface AddItemPayload {
+  variantId: string
+  quantity?: number
+}
+
+export async function addItem(
+  _prevState: unknown,
+  { variantId, quantity = 1 }: AddItemPayload
+): Promise<string> {
   const _cookies = await cookies()
   let cartId = _cookies.get('cartId')?.value
-  let cart
+  let cart: unknown
 
   // This is here beacuse cookie can only be set server side
   // and useFormState executes the addItem action in the server
   if (!cartId) {
     cart = await createCart()
-    cartId = cart.id
+    cartId = (cart as { id: string }).id
     _cookies.set('cartId', cartId)
   }
 
@@ -68,10 +91,15 @@ export async function addItem(_prevState, { variantId, quantity = 1 }) {
   }
 }
 
+interface UpdateItemQuantityPayload {
+  merchandiseId: string
+  quantity: number
+}
+
 export async function updateItemQuantity(
-  _prevState,
-  payload = { merchandiseId: '', quantity: '' }
-) {
+  _prevState: unknown,
+  payload: UpdateItemQuantityPayload = { merchandiseId: '', quantity: 0 }
+): Promise<string | undefined> {
   const _cookies = await cookies()
   const cartId = _cookies.get('cartId')?.value
 
@@ -80,7 +108,7 @@ export async function updateItemQuantity(
   }
 
   try {
-    const cart = await getCart(cartId)
+    const cart = (await getCart(cartId)) as CartData | undefined
 
     if (!cart) {
       return 'Error fetching cart'
@@ -92,6 +120,10 @@ export async function updateItemQuantity(
       (line) => line.merchandise.id === merchandiseId
     )
 
+    if (!lineItem?.id) {
+      return 'Item not found in cart'
+    }
+
     await updateCart(cartId, [
       {
         id: lineItem.id,
@@ -100,16 +132,17 @@ export async function updateItemQuantity(
       },
     ])
     revalidateTag(TAGS.cart)
+    return undefined
   } catch (_e) {
     return 'Error updating item quantity'
   }
 }
 
-export async function fetchCart() {
+export async function fetchCart(): Promise<unknown> {
   const _cookies = await cookies()
   const cartId = _cookies.get('cartId')?.value
 
-  let cart
+  let cart: unknown
 
   if (cartId) {
     cart = await getCart(cartId)

@@ -1,6 +1,7 @@
 'use client'
 
 import cn from 'clsx'
+import type { KeyboardEvent, ReactNode } from 'react'
 import { createContext, useContext, useState } from 'react'
 import { Image } from '~/components/image'
 import { Link } from '~/components/link'
@@ -8,13 +9,31 @@ import { removeItem, updateItemQuantity } from '../actions'
 import { useCartContext } from '../cart-context'
 import s from './modal.module.css'
 
-const ModalContext = createContext()
+interface ModalContextType {
+  isOpen: boolean
+  openCart: () => void
+  closeCart: () => void
+}
 
-export function useCartModal() {
+const ModalContext = createContext<ModalContextType>({
+  isOpen: false,
+  openCart: () => {
+    /* Default empty implementation */
+  },
+  closeCart: () => {
+    /* Default empty implementation */
+  },
+})
+
+export function useCartModal(): ModalContextType {
   return useContext(ModalContext)
 }
 
-export function CartModal({ children }) {
+interface CartModalProps {
+  children: ReactNode
+}
+
+export function CartModal({ children }: CartModalProps) {
   const [isOpen, setIsOpen] = useState(false)
   const { cart } = useCartContext()
   const openCart = () => setIsOpen(true)
@@ -27,7 +46,7 @@ export function CartModal({ children }) {
         <button
           className={s['catch-click']}
           onClick={closeCart}
-          onKeyDown={(e) => {
+          onKeyDown={(e: KeyboardEvent) => {
             if (e.key === 'Enter' || e.key === ' ') {
               closeCart()
             }
@@ -66,10 +85,22 @@ function InnerCart() {
           <div className={s.line} key={`${idx}-${id}`}>
             <div className={s.media}>
               <Image
-                src={merchandise?.product?.featuredImage?.url}
-                alt={merchandise?.product?.featuredImage?.altText ?? ''}
-                width={merchandise?.product?.featuredImage?.width}
-                height={merchandise?.product?.featuredImage?.height}
+                src={
+                  (merchandise?.product?.featuredImage as { url?: string })
+                    ?.url || ''
+                }
+                alt={
+                  (merchandise?.product?.featuredImage as { altText?: string })
+                    ?.altText ?? ''
+                }
+                width={
+                  (merchandise?.product?.featuredImage as { width?: number })
+                    ?.width
+                }
+                height={
+                  (merchandise?.product?.featuredImage as { height?: number })
+                    ?.height
+                }
               />
             </div>
 
@@ -114,15 +145,25 @@ function InnerCart() {
   )
 }
 
-const quantityAction = {
+const quantityAction: Record<'minus' | 'plus', number> = {
   minus: -1,
   plus: 1,
 }
 
-function Quantity({ className, payload }) {
+interface QuantityPayload {
+  merchandiseId: string
+  quantity: number
+}
+
+interface QuantityProps {
+  className?: string
+  payload: QuantityPayload
+}
+
+function Quantity({ className, payload }: QuantityProps) {
   const { updateCartItem } = useCartContext()
 
-  async function formAction(type) {
+  async function formAction(type: 'minus' | 'plus') {
     const updatePayload = {
       ...payload,
       quantity: Math.max(1, payload.quantity + quantityAction[type]),
@@ -141,7 +182,17 @@ function Quantity({ className, payload }) {
   )
 }
 
-function QuantityButton({ formAction, className, children }) {
+interface QuantityButtonProps {
+  formAction: () => void
+  className?: string
+  children: ReactNode
+}
+
+function QuantityButton({
+  formAction,
+  className,
+  children,
+}: QuantityButtonProps) {
   return (
     <form action={formAction} className={className}>
       <button type="submit" className="p1" aria-label="Remove cart item">
@@ -151,7 +202,12 @@ function QuantityButton({ formAction, className, children }) {
   )
 }
 
-function RemoveButton({ merchandiseId, className }) {
+interface RemoveButtonProps {
+  merchandiseId: string
+  className?: string
+}
+
+function RemoveButton({ merchandiseId, className }: RemoveButtonProps) {
   const { updateCartItem } = useCartContext()
 
   async function formAction() {

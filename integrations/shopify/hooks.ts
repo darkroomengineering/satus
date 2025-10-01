@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 
-export const useBeforeUnload = (stop) => {
+export const useBeforeUnload = (stop: boolean): void => {
   useEffect(() => {
-    const handleBeforeUnload = (e) => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent): void => {
       if (!stop) return
       e.preventDefault()
     }

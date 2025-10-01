@@ -9,12 +9,26 @@ import {
 } from '../mutations/customer'
 import { getCustomerQuery } from '../queries/customer'
 
-export async function LoginCustomerAction(_prevState, formData) {
+interface ActionResult {
+  error?: string
+  success?: boolean
+  customer?: unknown
+}
+
+export async function LoginCustomerAction(
+  _prevState: unknown,
+  formData: FormData
+): Promise<ActionResult> {
   const email = formData.get('email')
   const password = formData.get('password')
 
   try {
-    const res = await shopifyFetch({
+    const res = await shopifyFetch<{
+      customerAccessTokenCreate: {
+        customerAccessToken: { accessToken: string; expiresAt: string } | null
+        customerUserErrors: Array<{ message: string }>
+      }
+    }>({
       query: customerAccessTokenCreateMutation,
       variables: {
         input: {
@@ -47,7 +61,7 @@ export async function LoginCustomerAction(_prevState, formData) {
   }
 }
 
-export async function LogoutCustomerAction() {
+export async function LogoutCustomerAction(): Promise<ActionResult> {
   const _cookies = await cookies()
   const customerAccessToken = _cookies.get('customerAccessToken')?.value
 
@@ -69,14 +83,22 @@ export async function LogoutCustomerAction() {
   return { success: true }
 }
 
-export async function CreateCustomerAction(_prevState, formData) {
+export async function CreateCustomerAction(
+  _prevState: unknown,
+  formData: FormData
+): Promise<ActionResult> {
   const firstName = formData.get('firstName')
   const lastName = formData.get('lastName')
   const email = formData.get('email')
   const password = formData.get('password')
 
   try {
-    const res = await shopifyFetch({
+    const res = await shopifyFetch<{
+      customerCreate: {
+        customer: unknown
+        customerUserErrors: Array<{ message: string }>
+      }
+    }>({
       query: customerCreateMutation,
       variables: {
         input: {
@@ -101,7 +123,7 @@ export async function CreateCustomerAction(_prevState, formData) {
   }
 }
 
-export async function getCustomer() {
+export async function getCustomer(): Promise<unknown> {
   const _cookies = await cookies()
   const customerAccessToken = _cookies.get('customerAccessToken')?.value
 
@@ -110,7 +132,7 @@ export async function getCustomer() {
   }
 
   try {
-    const res = await shopifyFetch({
+    const res = await shopifyFetch<{ customer: unknown }>({
       query: getCustomerQuery,
       variables: {
         customerAccessToken,

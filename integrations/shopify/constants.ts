@@ -1,11 +1,18 @@
-export const defaultSort = {
+export interface SortOption {
+  title: string
+  slug: string | null
+  sortKey: string
+  reverse: boolean
+}
+
+export const defaultSort: SortOption = {
   title: 'Relevance',
   slug: null,
   sortKey: 'RELEVANCE',
   reverse: false,
 }
 
-export const sorting = [
+export const sorting: SortOption[] = [
   defaultSort,
   {
     title: 'Trending',
@@ -37,7 +44,7 @@ export const TAGS = {
   collections: 'collections',
   products: 'products',
   cart: 'cart',
-}
+} as const
 
 export const HIDDEN_PRODUCT_TAG = 'nextjs-frontend-hidden'
 export const SHOPIFY_GRAPHQL_API_ENDPOINT = '/api/2023-01/graphql.json'

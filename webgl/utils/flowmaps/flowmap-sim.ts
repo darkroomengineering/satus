@@ -9,7 +9,7 @@ import {
   type WebGLRenderer,
   WebGLRenderTarget,
 } from 'three'
-import Program from './program'
+import Program from '../program'
 
 export class Flowmap {
   renderer: WebGLRenderer

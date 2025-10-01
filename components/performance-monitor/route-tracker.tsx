@@ -12,9 +12,7 @@ export function RoutePerformanceTracker() {
     if (startTime.current > 0) {
       const duration = performance.now() - startTime.current
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`Route change to ${pathname} took ${duration.toFixed(2)}ms`)
-      }
+      console.log(`Route change to ${pathname} took ${duration.toFixed(2)}ms`)
 
       // Send to analytics
       if (window?.gtag) {

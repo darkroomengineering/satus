@@ -6,6 +6,8 @@ A modern, high-performance React application starter with Next.js 15, React 19, 
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/darkroomengineering/satus)
 
+> **Note**: This README is for developers working on the Satūs template. For client/team handoff documentation, see [PROD-README.md](PROD-README.md) (replace this README in production projects).
+
 ## Quick Start
 
 ```bash
@@ -92,61 +94,17 @@ satus/
 - **Shopify** - E-commerce with cart functionality
 - **HubSpot** - Forms and marketing automation
 
-## Modular Integrations
+## Managing Integrations
 
-This template includes optional integrations that can be easily removed if not needed for your project:
+Check which integrations are configured:
 
-### Removing an Integration
-1. Delete the integration directory from `integrations/` (e.g., `integrations/shopify/`)
-2. Remove the corresponding page directory from `app/(pages)/` (e.g., `app/(pages)/shopify/`)
-3. Remove any related imports or references in other files
-4. Update documentation and environment variables as needed
-
-This keeps the template lightweight and customized to your needs.
-
-## Sanity Integration Setup
-
-### Overview
-Sanity is integrated as a headless CMS with support for visual editing in the Next.js App Router. It uses React Server Components for server-side data fetching and client-side visual editing overlays.
-
-### Configuration
-- **Dependencies**: Managed via `next-sanity`, `@sanity/presentation`, `@sanity/visual-editing`.
-- **Studio**: Mounted at `/studio` using `NextStudio`.
-- **Visual Editing**: Enabled via `presentationTool` in `sanity.config.ts` with draft mode routes `/api/draft-mode/enable` and `/api/draft-mode/disable`.
-- **Client**: Configured in `integrations/sanity/client.ts` with stega for visual editing.
-- **Queries**: Server-side fetches in page components check `draftMode()` to fetch draft content with `previewDrafts` perspective.
-- **RSC Compatibility**: Data fetching occurs on the server, with `<VisualEditing />` component used client-side in layout.
-
-### Environment Variables
-Set these in `.env.local` (based on `.env.example`):
-```
-NEXT_PUBLIC_SANITY_PROJECT_ID="your-project-id"
-NEXT_PUBLIC_SANITY_DATASET="production"
-NEXT_PUBLIC_SANITY_STUDIO_URL="http://localhost:3000/studio"
-SANITY_API_WRITE_TOKEN="your-write-token"
+```bash
+bun validate:env              # Check environment setup
+bun cleanup:integrations      # List unused integrations
 ```
 
-### Visual Editing Features
-- **Real-time editing**: Changes in Studio sidebar reflect instantly in preview
-- **Draft mode**: Toggle between published and draft content
-- **Disable draft mode**: UI component to exit draft mode when not in Studio
-- **Proper targeting**: Components use `data-sanity` attributes for editing overlay
+Remove unused integrations to reduce bundle size (~250-400KB potential savings). See [Integrations Documentation](integrations/README.md) for detailed removal instructions.
 
-### Future Enhancement: Live Content API
-For production applications, consider implementing Sanity's Live Content API with `defineLive`, `sanityFetch`, and `SanityLive` components for optimal real-time performance and cache management.
-
-### Replication for New Projects
-1. Create a new Sanity project at sanity.io.
-2. Update env vars with your project ID and dataset.
-3. Configure schemas in `sanity/schemaTypes/`.
-4. Set up webhooks for revalidation at `/api/revalidate`.
-5. To enable visual editing:
-   - Install Sanity Presentation tool.
-   - Ensure draft mode is configured.
-   - Add `data-sanity` attributes to editable elements.
-6. Test by enabling draft mode and using the visual editor.
-
-For detailed guidelines, refer to [Sanity Integration Guide](integrations/sanity/README.md).
 
 ## 🎨 Styling System
 
@@ -193,19 +151,21 @@ CSS variables for consistent theming:
 
 ```bash
 # Development
-bun dev              # Start dev server with Turbopack
-
-# Building
-bun build            # Production build
-bun analyze          # Bundle analysis
+bun dev                     # Start dev server with Turbopack
+bun build                   # Production build
+bun start                   # Start production server
 
 # Code Quality
-bun lint             # Run Biome linter
-bun typecheck        # TypeScript checking
+bun lint                    # Run Biome linter
+bun lint:fix                # Fix linting issues
+bun typecheck               # TypeScript validation
 
-# Styling
-bun setup:styles     # Generate style files
-bun watch:styles     # Watch style changes
+# Utilities
+bun setup:styles            # Generate style files
+bun watch:styles            # Watch style changes
+bun validate:env            # Check environment variables
+bun cleanup:integrations    # List unused integrations
+bun analyze                 # Bundle analysis
 ```
 
 ## 🌐 Environment Variables
@@ -234,74 +194,56 @@ NEXT_PUBLIC_BASE_URL="http://localhost:3000"
 
 ## 📚 Documentation
 
-- [Sanity CMS Integration Guide](integrations/sanity/README.md)
-- [Integrations Overview](integrations/README.md)
-- [Components](components/README.md)
-- [GSAP](components/gsap/README.md)
-- [Image](components/image/README.md)
-- [Styles System](styles/README.md)
-- [WebGL](webgl/README.md)
-- [Orchestra Debug Tools](orchestra/README.md)
-- [Hooks](hooks/README.md)
-- [Utility Libraries](libs/README.md)
+- [App](app/README.md) - Next.js structure and routing
+- [Integrations](integrations/README.md) - Third-party integrations
+- [Components](components/README.md) - UI components
+- [Hooks](hooks/README.md) - Custom React hooks
+- [Libs](libs/README.md) - Utility libraries
+- [Styles](styles/README.md) - Styling system
+  - [Scripts](styles/scripts/README.md) - Style generation
+- [WebGL](webgl/README.md) - 3D graphics
+- [Orchestra](orchestra/README.md) - Debug tools
 
 ## Deployment
 
-### Vercel (Recommended)
+Deploy to Vercel (recommended):
+
 ```bash
 vercel
 ```
 
-### Production Checks
-1. Environment variables are set in Vercel
-2. Sanity webhooks are configured
-3. GSAP license is valid (if using premium features)
-4. SSL certificates are valid
-5. Performance metrics are within acceptable ranges
-
-### Monitoring
-- Vercel Analytics Dashboard
-- Lighthouse CI Reports
-- Performance monitoring with hooks/use-performance.ts
-
-### Content Updates
-1. Content changes through Sanity will automatically update via webhooks
-2. For code changes, follow the standard Vercel deployment flow
-3. Clear cache if needed: `https://your-domain.com/api/revalidate`
-
-## Support & Maintenance
-
-### Common Issues
-1. **Sanity Visual Editor Not Working**
-   - Check environment variables
-   - Verify draft mode configuration
-   - Ensure presentation tool is properly configured
-
-2. **Style Updates Not Reflecting**
-   - Run `bun setup:styles`
-   - Clear browser cache
-   - Check deployment status
-
-3. **Performance Issues**
-   - Check Theatre.js sequences
-   - Verify GSAP animations
-   - Monitor WebGL performance
+### Pre-deployment Checklist
+- [ ] Environment variables configured
+- [ ] Sanity webhooks set up
+- [ ] GSAP license valid (if using premium)
+- [ ] SSL certificates configured
+- [ ] Performance metrics validated
 
 ### Other Platforms
-The project supports deployment to any platform that supports Next.js:
-- Netlify
-- AWS Amplify
-- Google Cloud Run
-- Self-hosted with Node.js
+Supports any Next.js-compatible platform: Vercel, Netlify, AWS Amplify, Google Cloud Run, or self-hosted.
 
-## ⚠️ Architectural Gotchas
+## Important Notes
 
-- Use `~/components/link` for all navigation; it auto-detects external links and smart-prefetches on fast connections.
-- Use `~/components/image` for DOM images and `~/webgl/components/image` in WebGL contexts; do not import `next/image` directly.
-- Add `<GSAPRuntime />` in `app/layout.tsx` to wire GSAP to Tempus and enable ScrollTrigger + Lenis; no manual ticker setup needed.
-- Sanity Presentation requires `/api/draft-mode/enable` and `/api/draft-mode/disable` plus `NEXT_PUBLIC_BASE_URL` for preview resolution.
-- Orchestra tools toggle with `Cmd/Ctrl + O` and persist state in `localStorage` across tabs.
-- Shopify requires `SHOPIFY_STORE_DOMAIN` and `SHOPIFY_STOREFRONT_ACCESS_TOKEN`; older var names won't work.
+**Images & Links**
+- ✅ Always use `~/components/link` (auto-detects external, smart prefetch)
+- ✅ Always use `~/components/image` for DOM (never `next/image`)
+- ✅ Use `~/webgl/components/image` in WebGL contexts
+
+**GSAP & Animation**
+- Add `<GSAPRuntime />` in `app/layout.tsx` for ScrollTrigger + Lenis
+- No manual ticker setup needed
+
+**Sanity**
+- Requires draft mode routes: `/api/draft-mode/enable` and `/api/draft-mode/disable`
+- Must set `NEXT_PUBLIC_BASE_URL` for preview resolution
+
+**Orchestra**
+- Toggle debug tools with `Cmd/Ctrl + O`
+- State persists in `localStorage` and syncs across tabs
+- Automatically excluded from production builds
+
+**Shopify**
+- Use exact env var names: `SHOPIFY_STORE_DOMAIN`, `SHOPIFY_STOREFRONT_ACCESS_TOKEN`
 
 ## 🤝 Contributing
 

@@ -6,6 +6,8 @@
  * - Perfect for terminal aesthetics
  */
 
+import { fetchWithTimeout } from '~/libs/fetch-with-timeout'
+
 export interface TurnstileValidationResult {
   isValid: boolean
   errors: string[]
@@ -28,7 +30,7 @@ export async function validateTurnstile(
       return { isValid: true, errors: [] } // Fail open in development
     }
 
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       'https://challenges.cloudflare.com/turnstile/v0/siteverify',
       {
         method: 'POST',
@@ -39,6 +41,7 @@ export async function validateTurnstile(
           secret,
           response: token,
         }),
+        timeout: 5000, // 5 second timeout for Turnstile verification
       }
     )
 

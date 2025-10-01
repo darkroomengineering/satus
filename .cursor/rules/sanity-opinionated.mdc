@@ -1,7 +1,7 @@
 ---
 description: Opinionated guidance for configuring Sanity Studio and authoring content
 globs: **/*.{ts,tsx,js,jsx}
-alwaysApply: false
+alwaysApply: true
 ---
 ## Positive affirmation
 You are a principal-level TypeScript and React engineer who writes best-practice, high performance code.

@@ -2,6 +2,7 @@ import { revalidateTag } from 'next/cache'
 import { headers } from 'next/headers'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
+import { fetchWithTimeout } from '~/libs/fetch-with-timeout'
 import {
   HIDDEN_PRODUCT_TAG,
   SHOPIFY_GRAPHQL_API_ENDPOINT,
@@ -55,7 +56,7 @@ export async function shopifyFetch<T = Record<string, unknown>>({
   variables,
 }: ShopifyFetchOptions): Promise<ShopifyResponse<T>> {
   try {
-    const result = await fetch(endpoint, {
+    const result = await fetchWithTimeout(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -67,6 +68,7 @@ export async function shopifyFetch<T = Record<string, unknown>>({
         ...(variables && { variables }),
       }),
       cache,
+      timeout: 10000, // 10 second timeout for Shopify API
       ...(tags && { next: { tags } }),
     })
 

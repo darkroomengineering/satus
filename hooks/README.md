@@ -1,14 +1,14 @@
-# Custom React Hooks
+# Hooks
 
-This directory contains reusable React hooks that provide common functionality across the application. These hooks encapsulate complex logic and state management to simplify component implementation.
+Custom React hooks for common functionality.
 
 ## Available Hooks
 
-- `use-device-detection.ts` - Hook for detecting device type and characteristics
-- `use-performance.ts` - Hook for tracking Core Web Vitals and performance metrics
-- `use-prefetch.ts` - Hook for prefetching routes when elements become visible
-- `use-scroll-trigger.ts` - Hook for detecting and responding to scroll-based triggers and animations
-- `use-transform.tsx` - Hook for handling element transformations with GSAP
+- `use-device-detection.ts` - Device type and characteristics detection
+- `use-performance.ts` - Core Web Vitals tracking
+- `use-prefetch.ts` - Route prefetching on visibility
+- `use-scroll-trigger.ts` - Scroll-based animations (GSAP + Lenis)
+- `use-transform.tsx` - Element transformations with GSAP
 
 ## Detailed Usage
 

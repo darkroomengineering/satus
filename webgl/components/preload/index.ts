@@ -16,7 +16,6 @@ export function Preload() {
 
     async function load() {
       console.log('WebGL: Preloading...')
-
       console.time('WebGL: Preload took:')
 
       const invisible: THREE.Object3D[] = []

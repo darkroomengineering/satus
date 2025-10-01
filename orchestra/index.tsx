@@ -36,10 +36,10 @@ export function OrchestraTools() {
     document.documentElement.classList.toggle('screenshot', Boolean(screenshot))
   }, [screenshot])
 
-  // Only render debug tools in development
-  // if (process.env.NODE_ENV !== 'development') {
-  //   return <Cmdo />
-  // }
+  // Only render debug tools in development to reduce production bundle size
+  if (process.env.NODE_ENV !== 'development') {
+    return null
+  }
 
   return (
     <>

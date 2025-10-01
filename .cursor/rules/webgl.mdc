@@ -1,7 +1,8 @@
 ---
-description: 
-globs: 
-alwaysApply: false
+alwaysApply: true
+---
+description: Component creation guidelines
+globs: *.tsx, *.jsx, *.css, *.js, *.ts
 ---
 ---
 description: WebGL and 3D guidelines
@@ -67,6 +68,9 @@ globs: *.tsx, *.jsx, *.css, *.js, *.ts
        }
      })
      
+     // Simple logs are auto-stripped in production by Next.js
+     console.log('SceneWebGL rendered')
+     
      return (
        <mesh ref={meshRef}>
          <boxGeometry args={[1, 1, 1]} />
@@ -93,11 +97,15 @@ globs: *.tsx, *.jsx, *.css, *.js, *.ts
 2. **Loading Assets**
    - Preload assets using Drei hooks
    - Implement proper loading states
+   - Log preload timing for performance monitoring (auto-stripped in production)
    ```tsx
    // Preload in separate component
    function Preload() {
+     const start = performance.now()
      useGLTF.preload('/models/model.glb')
      useTexture.preload('/textures/texture.jpg')
+     // Console logs auto-stripped in production by Next.js
+     console.log(`Preload took ${performance.now() - start}ms`)
      return null
    }
    ```
@@ -193,19 +201,38 @@ globs: *.tsx, *.jsx, *.css, *.js, *.ts
 ## Best Practices
 
 1. **Memory Management**
-   - Dispose of geometries and materials
-   - Clean up in useEffect return
+   - Dispose of geometries and materials when components unmount
+   - Clean up in useEffect return for complex resources
+   - React Compiler handles most cleanup automatically
    ```tsx
    useEffect(() => {
+     // Only for complex resources that need explicit disposal
      return () => {
        geometry.dispose()
        material.dispose()
        texture.dispose()
      }
-   }, [])
+   }, [geometry, material, texture])
    ```
 
-2. **Responsive Design**
+2. **Performance Optimization**
+   - React Compiler optimizes most component re-renders automatically
+   - **DO NOT use `useMemo` or `useCallback` unless absolutely necessary**
+   - Let the compiler handle optimization for you
+   ```tsx
+   // ❌ DON'T: Manual memoization (compiler handles this)
+   const flowmap = useMemo(() => new Flowmap(), [])
+   const handleMouse = useCallback((e) => update(e), [])
+   
+   // ✅ DO: Let React Compiler optimize
+   const flowmap = new Flowmap()
+   const handleMouse = (e) => update(e)
+   
+   // Note: React Compiler comment for clarity
+   // React Compiler handles memoization automatically
+   ```
+
+3. **Responsive Design**
    - Handle window resizing
    - Adjust quality based on device capabilities
    ```tsx
@@ -213,12 +240,21 @@ globs: *.tsx, *.jsx, *.css, *.js, *.ts
    // Use viewport.width, viewport.height for responsive sizing
    ```
 
-3. **Debugging**
+4. **Debugging**
    - Use Theatre.js for animation debugging
    - Enable WebGL inspector in development
-   - Use `<Stats />` component for performance monitoring
+   - **Always gate debug UI components** - these are NOT auto-removed
+   - Simple console logs are auto-stripped in production by Next.js
+   ```tsx
+   // Simple logs: Auto-stripped in production
+   console.log('WebGL state:', { fps, drawCalls, triangles })
+   
+   // Debug components: MUST be gated (not auto-removed)
+   {process.env.NODE_ENV === 'development' && <Stats />}
+   {process.env.NODE_ENV === 'development' && <Perf />}
+   ```
 
-4. **Mobile Optimization**
+5. **Mobile Optimization**
    - Reduce polygon count for mobile
    - Use simpler shaders
    - Implement touch controls
@@ -226,4 +262,4 @@ globs: *.tsx, *.jsx, *.css, *.js, *.ts
    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
    ```
 
-Last updated: 2025-05-23
+Last updated: 2025-06-01 

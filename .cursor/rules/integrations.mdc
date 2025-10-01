@@ -1,3 +1,11 @@
+---
+alwaysApply: true
+---
+---
+description: Component creation guidelines
+globs: *.tsx, *.jsx, *.css, *.js, *.ts
+---
+
 Third party integration guidelines
 
 ## Sanity CMS Integration
@@ -83,9 +91,11 @@ Third party integration guidelines
    - Implement caching strategies for performance
    - Handle errors gracefully with try-catch
    - Import from `/integrations/sanity` directory
+   - **Use `~/libs/metadata` helpers for SEO optimization**
    ```typescript
    // In integrations/sanity/queries.ts
    import { client } from './client'
+   import { generateSanityMetadata } from '~/libs/metadata'
    
    export async function fetchSanityPage(slug: string, isDraftMode = false) {
      try {
@@ -107,6 +117,12 @@ Third party integration guidelines
        console.error('fetchSanityPage error:', error)
        return { data: null, error }
      }
+   }
+   
+   // In page.tsx for SEO
+   export async function generateMetadata({ params }) {
+     const { data } = await fetchSanityPage(params.slug)
+     return generateSanityMetadata(data)
    }
    ```
 
@@ -136,14 +152,27 @@ Third party integration guidelines
    - Implement proper cache invalidation via webhooks
    - Optimize images with proper sizing
    - Use consolidated imports for better tree-shaking
+   - **Use metadata helpers for consistent SEO**
    ```typescript
    import { urlForImage } from '~/integrations/sanity'
+   import { generateSanityMetadata } from '~/libs/metadata'
    
    // Use ISR for published content
    export const revalidate = 3600
    
    // Optimize images
    <SanityImage image={document.image} maxWidth={1200} />
+   
+   // Generate SEO metadata
+   export async function generateMetadata({ params }) {
+     const page = await fetchSanityPage(params.slug)
+     return generateSanityMetadata(page, {
+       title: page.seo?.title || page.title,
+       description: page.seo?.description,
+       image: page.seo?.image || page.image,
+       noIndex: page.seo?.noIndex,
+     })
+   }
    ```
 
  7. **Project Structure**
@@ -223,13 +252,46 @@ Third party integration guidelines
    - Never commit API keys
    - Use `.env.local` for development
    - Document required variables in `.env.example`
+   - Use `~/libs/validate-env` for runtime validation
+   ```typescript
+   import { validateEnv } from '~/libs/validate-env'
+   
+   // Validate required env vars on startup
+   validateEnv(['NEXT_PUBLIC_API_KEY', 'API_SECRET'])
+   ```
 
-2. **Error Handling**
-   - Implement retry logic for API calls
+2. **API Resilience**
+   - **Always use `fetchWithTimeout` for external API calls**
+   - Standard timeouts: 8-10 seconds for most integrations
+   - Implement proper error handling and retry logic
+   ```typescript
+   import { fetchWithTimeout } from '~/libs/fetch-with-timeout'
+   
+   // HubSpot: 8 seconds
+   const response = await fetchWithTimeout(url, options, 8000)
+   
+   // Mailchimp: 10 seconds
+   const response = await fetchWithTimeout(url, options, 10000)
+   
+   // Turnstile verification: 5 seconds
+   const response = await fetchWithTimeout(verifyUrl, options, 5000)
+   ```
+
+3. **Error Handling**
+   - Implement timeout handling for all API calls
    - Provide user-friendly error messages
-   - Log errors for debugging
+   - Log errors for debugging with context
+   ```typescript
+   try {
+     const response = await fetchWithTimeout(url, options, 10000)
+     return { data: await response.json(), error: null }
+   } catch (error) {
+     console.error('API call failed:', error)
+     return { data: null, error: error.message }
+   }
+   ```
 
-3. **Type Safety**
+4. **Type Safety**
    - Generate TypeScript types from APIs when possible
    - Use proper validation (e.g., Zod schemas)
    ```typescript
@@ -242,15 +304,20 @@ Third party integration guidelines
    })
    ```
 
-4. **Performance**
+5. **Performance**
    - Cache API responses appropriately
    - Use ISR (Incremental Static Regeneration) for dynamic content
    - Implement proper loading states
 
-5. **Security**
+6. **Security**
    - Validate all user inputs
    - Use server-side API calls for sensitive operations
    - Implement rate limiting where necessary
+
+7. **Integration Management**
+   - Use `~/libs/cleanup-integrations` to remove unused integration code
+   - Check integration usage with `~/integrations/check-integration`
+   - Keep only active integrations to optimize bundle size
 
 ## Webhook Handling
 
@@ -271,8 +338,5 @@ Third party integration guidelines
    - Implement idempotency
    - Return 200 status quickly
 
-Last updated: 2025-01-08
 
-
-   - Implement idempotency
-   - Return 200 status quickly
+Last updated: 2025-06-01 

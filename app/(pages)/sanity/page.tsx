@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { sanityFetch } from '~/integrations/sanity/live'
 import { pageQuery } from '~/integrations/sanity/queries'
+import { generateSanityMetadata } from '~/libs/metadata'
 import { Wrapper } from '../(components)/wrapper'
 import { SanityTutorial } from './(component)/tutorial'
 
@@ -30,55 +31,11 @@ export async function generateMetadata() {
     params: { slug: SLUG },
   })
 
-  const metadata = data?.metadata
+  if (!data) return
 
-  if (!metadata) return
-
-  const baseUrl = `${process.env.NEXT_PUBLIC_BASE_URL}`
-  const pageUrl = `${baseUrl}/sanity`
-
-  return {
-    metadataBase: baseUrl ? new URL(baseUrl) : undefined,
-    title: metadata?.title,
-    description: metadata?.description,
-    alternates: {
-      canonical: '/',
-      languages: {
-        'en-US': '/en-US',
-      },
-    },
-    keywords: metadata?.keywords,
-    openGraph: {
-      title: metadata?.title,
-      description: metadata?.description,
-      images: [
-        {
-          url: metadata?.image?.asset?.url || '/og-image.png',
-          width: 1200,
-          height: 630,
-          alt: metadata?.title,
-        },
-      ],
-      url: pageUrl,
-      siteName: 'Satūs',
-      locale: 'en_US',
-      type: 'website',
-    },
-    twitter: {
-      title: metadata?.title,
-      description: metadata?.description,
-      card: 'summary_large_image',
-      images: [
-        {
-          url: metadata?.image?.asset?.url || '/og-image.png',
-          width: 1200,
-          height: 630,
-          alt: metadata?.title,
-        },
-      ],
-    },
-    other: {
-      'fb:app_id': process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '',
-    },
-  }
+  return generateSanityMetadata({
+    document: data,
+    url: '/sanity',
+    type: 'website',
+  })
 }

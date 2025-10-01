@@ -1,5 +1,7 @@
 'use server'
 
+import { fetchWithTimeout } from '~/libs/fetch-with-timeout'
+
 export async function HubspotNewsletterAction(_: unknown, formData: FormData) {
   const portalId = process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID
   const formId = formData.get('formId')
@@ -16,12 +18,13 @@ export async function HubspotNewsletterAction(_: unknown, formData: FormData) {
   const url = `https://api.hsforms.com/submissions/v3/integration/submit/${portalId}/${formId}`
 
   try {
-    const response = await fetch(url, {
+    const response = await fetchWithTimeout(url, {
       method: 'POST',
       body: JSON.stringify(body),
       headers: {
         'Content-Type': 'application/json',
       },
+      timeout: 8000, // 8 second timeout for HubSpot API
     })
 
     if (!response.ok) {

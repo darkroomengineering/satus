@@ -1,6 +1,6 @@
 import type { Route } from 'next'
 import { useRouter } from 'next/navigation'
-import { useCallback, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 
 /**
  * Hook to prefetch a route when an element becomes visible in the viewport
@@ -15,21 +15,26 @@ export function usePrefetch<T extends HTMLElement = HTMLElement>(
   const ref = useRef<T>(null)
   const router = useRouter()
   const prefetchedRef = useRef(false)
-  const connectionRef = useRef<NetworkInformation | null>(null)
 
-  // Memoize the observer callback to avoid recreating on every render
-  // Note: With React 19 compiler, this might be auto-optimized, but it's still good practice
-  const handleIntersection = useCallback(
-    (entries: IntersectionObserverEntry[]) => {
+  useEffect(() => {
+    // Early return if no href or already prefetched
+    if (!href || prefetchedRef.current) return
+
+    const element = ref.current
+    if (!element) return
+
+    // Reset prefetched state when href changes
+    prefetchedRef.current = false
+
+    const handleIntersection = (entries: IntersectionObserverEntry[]) => {
       const [entry] = entries
-      if (entry?.isIntersecting && !prefetchedRef.current && href) {
+      if (entry?.isIntersecting && !prefetchedRef.current) {
         // Check network conditions before prefetching
         const connection = (
           navigator as Navigator & {
             connection?: NetworkInformation
           }
         ).connection
-        connectionRef.current = connection || null
 
         const shouldPrefetch =
           !connection ||
@@ -42,19 +47,7 @@ export function usePrefetch<T extends HTMLElement = HTMLElement>(
           prefetchedRef.current = true
         }
       }
-    },
-    [href, router]
-  )
-
-  useEffect(() => {
-    // Early return if no href or already prefetched
-    if (!href || prefetchedRef.current) return
-
-    const element = ref.current
-    if (!element) return
-
-    // Reset prefetched state when href changes
-    prefetchedRef.current = false
+    }
 
     const observer = new IntersectionObserver(handleIntersection, {
       rootMargin: '50px',
@@ -66,7 +59,7 @@ export function usePrefetch<T extends HTMLElement = HTMLElement>(
     return () => {
       observer.disconnect()
     }
-  }, [href, handleIntersection, options])
+  }, [href, options, router])
 
   // Return null ref if href is not provided
   return href ? ref : { current: null }

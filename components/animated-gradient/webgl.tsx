@@ -1,6 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { useObjectFit, useWindowSize } from 'hamo'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CanvasTexture, LinearFilter, type Mesh } from 'three'
 import { useFlowmap } from '~/webgl/components/flowmap-provider'
 import { useWebGLRect } from '~/webgl/hooks/use-webgl-rect'
@@ -10,13 +10,14 @@ import { AnimatedGradientMaterial } from './material'
 
 function useGradient(colors: string[]) {
   const [canvas] = useState(() => document.createElement('canvas'))
-  const texture = useMemo(() => {
+  // React Compiler handles memoization automatically
+  const [texture] = useState(() => {
     const texture = new CanvasTexture(canvas)
     texture.minFilter = LinearFilter
     texture.magFilter = LinearFilter
 
     return texture
-  }, [canvas])
+  })
 
   useEffect(() => {
     const ctx = canvas.getContext('2d')

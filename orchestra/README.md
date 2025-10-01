@@ -1,51 +1,67 @@
-# Orchestra Debug Tools
+# Orchestra
 
-Orchestra is a suite of debugging and development tools for Satūs. It provides visual aids, performance monitoring, and interactive tools to assist developers during the development process.
+Debug and development tools suite for Satūs.
 
 ## Features
 
-- **Theatre.js Integration**: Animation debugging and sequencing tools
-- **Grid Debugger**: Visualize and debug layout grids
-- **Stats**: Performance metrics and FPS monitoring
-- **Minimap**: Navigation and viewport visualization
-- **Command Center**: Quick access to debug features
+Toggle with `Cmd/Ctrl + O`:
+
+- **Theatre.js Studio** (⚙️) - Animation debugging and sequencing
+- **Stats** (📈) - FPS and performance metrics
+- **Grid** (🌐) - Layout grid visualization
+- **Minimap** (🗺️) - Page navigation overview
+- **Dev Mode** (🚧) - Development mode toggle
+- **Screenshot Mode** (📸) - Clean screenshots without UI
 
 ## Components
 
-- `grid/` - Layout grid visualization tools
-- `minimap/` - Navigation and viewport visualization
-- `stats/` - Performance metrics and monitoring
-- `theatre/` - Theatre.js integration for animation debugging
-- `toggle.tsx` - Toggle UI for enabling/disabling debug features
-- `cmdo.tsx` - Command center for quick access to debug features
-- `orchestra.ts` - Core orchestration module for debug tools
+- `cmdo.tsx` - Command center (Cmd+O)
+- `grid/` - Layout grid debugger
+- `minimap/` - Viewport minimap
+- `stats/` - Performance monitoring
+- `theatre/` - Theatre.js integration
+- `toggle.tsx` - Tool toggles
+- `orchestra.ts` - Core module
 
 ## Usage
-
-Toggle the command panel with `Cmd/Ctrl + O`. You can enable/disable tools from there. Tools are dynamically imported and state is persisted in `localStorage` and synchronized across tabs.
 
 ```tsx
 import { OrchestraTools } from '~/orchestra'
 
-// Add once in app/layout.tsx inside <body>
+// Add to app/layout.tsx inside <body>
 <OrchestraTools />
 ```
 
-### Grid Debugger
+Tool state persists in `localStorage` and syncs across tabs.
 
-Visualizes the layout grid system to assist with component positioning and alignment.
+## Theatre.js Integration
 
-### Performance Monitoring
+Use Theatre.js for complex animation sequences:
 
-Monitor frame rates and performance metrics.
+```tsx
+import { SheetProvider } from '~/orchestra/theatre'
+import { useTheatreValue } from '~/orchestra/theatre/hooks/use-theatre-value'
 
-### Theatre.js Animation Tools
-
-Access Theatre.js for animation debugging and sequencing.
+function AnimatedComponent() {
+  const opacity = useTheatreValue('opacity', 1)
+  
+  return (
+    <SheetProvider id="scene">
+      <div style={{ opacity }}>Animated content</div>
+    </SheetProvider>
+  )
+}
+```
 
 ## Best Practices
 
-1. Only use Orchestra tools in development environments
-2. Disable debug tools before production builds
-3. Use Theatre.js for complex animation sequences
-4. Leverage the grid debugger for layout troubleshooting 
+- Orchestra tools are excluded from production builds
+- Use Theatre.js for complex animation choreography
+- Enable Grid for layout debugging
+- Monitor Stats for performance issues
+- Use Minimap for long pages
+
+## Related Documentation
+
+- [Theatre.js](https://www.theatrejs.com/)
+- [Components](../components/README.md)

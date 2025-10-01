@@ -13,10 +13,7 @@ export function usePerformance() {
     webVitalsInitialized = true
 
     const reportWebVitals = (metric: Metric) => {
-      // Log to console in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log(metric)
-      }
+      console.log(metric)
 
       // Send to analytics in production
       if (window.gtag) {

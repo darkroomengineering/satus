@@ -1,6 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { CopyPass, EffectComposer, RenderPass } from 'postprocessing'
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 import { HalfFloatType } from 'three'
 
 export function PostProcessing() {
@@ -18,21 +18,13 @@ export function PostProcessing() {
   const maxSamples = gl.capabilities.maxSamples
   const needsAA = dpr < 2
 
-  const composer = useMemo(
-    () =>
-      new EffectComposer(gl, {
-        multisampling: isWebgl2 && needsAA ? maxSamples : 0,
-        frameBufferType: HalfFloatType,
-      }),
-    [gl, needsAA, isWebgl2, maxSamples]
-  )
+  const composer = new EffectComposer(gl, {
+    multisampling: isWebgl2 && needsAA ? maxSamples : 0,
+    frameBufferType: HalfFloatType,
+  })
 
-  const renderPass = useMemo(
-    () => new RenderPass(scene, camera),
-    [scene, camera]
-  )
-
-  const copyPass = useMemo(() => new CopyPass(), [])
+  const renderPass = new RenderPass(scene, camera)
+  const copyPass = new CopyPass()
 
   useEffect(() => {
     composer.addPass(renderPass)

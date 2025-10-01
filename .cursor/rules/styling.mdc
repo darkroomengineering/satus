@@ -1,7 +1,5 @@
 ---
-description: Styling guidelines for Satūs
-globs: "**/*.css,**/*.module.css"
-alwaysApply: false
+alwaysApply: true
 ---
 ---
 description: Styling guidelines

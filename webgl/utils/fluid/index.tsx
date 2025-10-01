@@ -1,6 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { types } from '@theatre/core'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useCurrentSheet } from '~/orchestra/theatre'
 import { useTheatre } from '~/orchestra/theatre/hooks/use-theatre'
 import { Fluid } from '~/webgl/utils/fluid/fluid-sim'
@@ -9,11 +9,12 @@ export function useFluidSim() {
   const sheet = useCurrentSheet()
   const gl = useThree((state) => state.gl)
   const size = useThree((state) => state.size)
-  const fluid = useMemo(() => new Fluid(gl, { size: 128 }), [gl])
+  const fluid = new Fluid(gl, { size: 128 })
   const lastMouseRef = useRef({ x: 0, y: 0, isInit: false })
 
-  const updateMouse = useCallback(
-    (event: MouseEvent | TouchEvent) => {
+  // Setup mouse event listeners
+  useEffect(() => {
+    const updateMouse = (event: MouseEvent | TouchEvent) => {
       let clientX: number
       let clientY: number
 
@@ -52,12 +53,8 @@ export function useFluidSim() {
         // Add splat to fluid simulation
         fluid.addSplat(normalizedX, normalizedY, deltaX * 5, deltaY * -5)
       }
-    },
-    [fluid, size.width, size.height]
-  )
+    }
 
-  // Setup mouse event listeners
-  useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => updateMouse(event)
     const handleTouchMove = (event: TouchEvent) => updateMouse(event)
 
@@ -70,7 +67,7 @@ export function useFluidSim() {
       window.removeEventListener('mousemove', handleMouseMove, false)
       window.removeEventListener('touchmove', handleTouchMove, false)
     }
-  }, [updateMouse])
+  }, [fluid, size.width, size.height])
 
   // Update aspect ratio when viewport size changes
   useEffect(() => {

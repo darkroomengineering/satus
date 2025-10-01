@@ -1,4 +1,5 @@
 import type { Client } from '@hubspot/api-client'
+import { fetchWithTimeout } from '~/libs/fetch-with-timeout'
 
 type HubspotFormResponse = Awaited<
   ReturnType<Client['marketing']['forms']['formsApi']['getById']>
@@ -28,12 +29,16 @@ interface HubSpotLegalConsentOptions {
 
 // TODO: If only server side maybe use api-client
 async function hubspotFormApi(id: string | null) {
-  const resp = await fetch(`https://api.hubapi.com/marketing/v3/forms/${id}`, {
-    headers: {
-      accept: 'application/json',
-      authorization: `Bearer ${process.env.HUBSPOT_ACCESS_TOKEN}`,
-    },
-  })
+  const resp = await fetchWithTimeout(
+    `https://api.hubapi.com/marketing/v3/forms/${id}`,
+    {
+      headers: {
+        accept: 'application/json',
+        authorization: `Bearer ${process.env.HUBSPOT_ACCESS_TOKEN}`,
+      },
+      timeout: 8000, // 8 second timeout for HubSpot API
+    }
+  )
   if (!resp.ok) {
     throw new Error(`Failed to fetch form data: ${resp.status}`)
   }

@@ -504,22 +504,31 @@ export async function fetchSanityPage(slug: string): Promise<{
 
 #### 4. SEO Optimization
 
-```typescript
-export async function generateMetadata({ params }) {
-  const { data } = await fetchSanityPage(params.slug)
-  const metadata = data?.metadata
+Use the metadata helper for consistent SEO across pages:
 
-  return {
-    title: metadata?.title || data?.title,
-    description: metadata?.description,
-    openGraph: {
-      title: metadata?.title || data?.title,
-      description: metadata?.description,
-      images: metadata?.image?.asset?.url ? [metadata.image.asset.url] : [],
-    },
-  }
+```typescript
+import { generateSanityMetadata } from '~/libs/metadata'
+
+export async function generateMetadata({ params }) {
+  const { data } = await sanityFetch({ query: pageQuery, params })
+  
+  if (!data) return
+  
+  return generateSanityMetadata({
+    document: data,
+    url: `/page/${params.slug}`,
+    type: 'article', // or 'website'
+  })
 }
 ```
+
+The helper automatically handles:
+- Title and description
+- OpenGraph and Twitter cards
+- Image optimization
+- noIndex flag from Sanity
+- Canonical URLs
+- Published/modified times
 
 ---
 

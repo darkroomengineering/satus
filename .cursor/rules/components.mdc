@@ -1,7 +1,5 @@
 ---
-description: Component creation rules for Satūs
-globs: "**/*.tsx,**/*.jsx"
-alwaysApply: false
+alwaysApply: true
 ---
 ---
 description: Component creation guidelines
@@ -175,9 +173,48 @@ globs: *.tsx, *.jsx, *.css, *.js, *.ts
    ```
 
 3. **Memoization and React Compiler**
-   - The React Compiler is enabled in this project and automatically optimizes most component re-renders and memoization.
-   - **Avoid manual use of `useMemo`, `useCallback`, and `React.memo` unless you have a proven edge case** (e.g., non-serializable dependencies, refs, or when the compiler cannot optimize).
-   - Refer to the [React Compiler documentation](mdc:https:/react.dev/reference/react/compiler) for best practices and up-to-date guidance.
+   - **React Compiler is enabled and handles ALL optimization automatically.**
+   - **DO NOT use `useMemo`, `useCallback`, or `React.memo` in new code.**
+   - The compiler optimizes all component re-renders, memoization, and dependencies automatically.
+   - Only use manual memoization if you encounter a proven edge case where the compiler cannot optimize (extremely rare).
+   - If you see these in existing code, they can likely be removed safely.
+   - Refer to the [React Compiler documentation](mdc:https:/react.dev/reference/react/compiler) for edge cases.
+   
+   ```tsx
+   // ❌ DON'T: Manual memoization (compiler handles this)
+   const memoizedValue = useMemo(() => computeExpensive(a, b), [a, b])
+   const memoizedCallback = useCallback(() => doSomething(a), [a])
+   
+   // ✅ DO: Let React Compiler optimize automatically
+   const value = computeExpensive(a, b)
+   const handleClick = () => doSomething(a)
+   ```
+
+## Development vs Production
+
+1. **Development-Only Features**
+   - **Console logs are automatically stripped in production** by Next.js compiler (except `console.error` and `console.warn`)
+   - **Always gate debug UI components** - these are NOT automatically removed
+   - **Gate expensive debug computations** - avoid running heavy operations in production
+   ```tsx
+   // ✅ Simple logs: Optional to gate (Next.js strips them automatically)
+   console.log('Debug info:', data)
+   
+   // ✅ Better: Gate expensive operations to avoid computation overhead
+   if (process.env.NODE_ENV === 'development') {
+     console.log('Heavy computation:', expensiveDebugCalculation())
+   }
+   
+   // ⚠️ REQUIRED: Always gate debug UI components (not auto-removed)
+   {process.env.NODE_ENV === 'development' && <DebugPanel />}
+   {process.env.NODE_ENV === 'development' && <Stats />}
+   ```
+
+2. **Bundle Size Optimization**
+   - Keep production bundles minimal by excluding dev-only code
+   - Use tree-shaking friendly imports
+   - Check bundle size impact of new dependencies
+   - Debug UI components must be gated (Next.js won't remove them automatically)
 
 ## Error Handling
 
@@ -189,4 +226,4 @@ globs: *.tsx, *.jsx, *.css, *.js, *.ts
    - Always handle loading states
    - Use Suspense boundaries where appropriate
 
-Last updated: 2025-05-23 
+Last updated: 2025-06-01 

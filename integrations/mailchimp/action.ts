@@ -1,6 +1,7 @@
 'use server'
 
 import type { ErrorField, FormState } from '~/components/form/types'
+import { fetchWithTimeout } from '~/libs/fetch-with-timeout'
 import { validateFormWithTurnstile } from './turnstile'
 
 // Type declarations for Node.js globals in Next.js server environment
@@ -73,13 +74,14 @@ async function makeMailchimpRequest(
   const url = `https://${serverPrefix}.api.mailchimp.com/3.0${endpoint}`
   const auth = Buffer.from(`anystring:${apiKey}`, 'utf8').toString('base64')
 
-  return fetch(url, {
+  return fetchWithTimeout(url, {
     ...options,
     headers: {
       Authorization: `Basic ${auth}`,
       'Content-Type': 'application/json',
       ...options.headers,
     },
+    timeout: 10000, // 10 second timeout for Mailchimp API
   })
 }
 

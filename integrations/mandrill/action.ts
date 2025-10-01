@@ -1,6 +1,7 @@
 'use server'
 
 import type { ErrorField, FormState } from '~/components/form/types'
+import { fetchWithTimeout } from '~/libs/fetch-with-timeout'
 import { validateFormWithTurnstile } from '../mailchimp/turnstile'
 
 export interface ContactData {
@@ -86,7 +87,7 @@ async function sendContactEmail(
       async: false,
     }
 
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       'https://mandrillapp.com/api/1.0/messages/send.json',
       {
         method: 'POST',
@@ -94,6 +95,7 @@ async function sendContactEmail(
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(emailContent),
+        timeout: 10000, // 10 second timeout for Mandrill API
       }
     )
 

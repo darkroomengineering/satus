@@ -69,7 +69,12 @@ globs: *.tsx, *.jsx, *.css, *.js, *.ts
 ├── hooks/                # Custom React hooks
 ├── integrations/         # Third-party integrations
 ├── libs/                 # Utility libraries
-├── orchestra/            # Debug tools
+│   ├── cleanup-integrations.ts  # Remove unused integrations
+│   ├── fetch-with-timeout.ts    # API resilience
+│   ├── metadata.ts              # SEO/metadata helpers
+│   ├── validate-env.ts          # Environment validation
+│   └── ...
+├── orchestra/            # Debug tools (dev-only)
 ├── styles/               # Styling configuration
 └── webgl/                # WebGL and 3D graphics
 ```
@@ -81,6 +86,7 @@ globs: *.tsx, *.jsx, *.css, *.js, *.ts
    - Import styles as `s` (e.g., `import s from './component.module.css'`)
    - Use `cn` from `clsx` for conditional classes
    - Implement responsive design with custom viewport functions
+   - **DO NOT use manual memoization** - React Compiler handles optimization
 
 2. **State Management**
    - Prefer React's built-in state for component state
@@ -91,6 +97,7 @@ globs: *.tsx, *.jsx, *.css, *.js, *.ts
    - Use Next.js App Router conventions
    - Implement proper loading and error states
    - Use `next/link` for internal navigation
+   - Use `~/libs/metadata` for SEO optimization
 
 4. **Styling**
    - Follow Tailwind CSS v4 conventions
@@ -98,12 +105,50 @@ globs: *.tsx, *.jsx, *.css, *.js, *.ts
    - Implement responsive design with breakpoints
    - Use custom viewport units (mobile-vw, desktop-vw)
 
+5. **API Integration**
+   - **Always use `fetchWithTimeout` for external API calls**
+   - Standard timeouts: 8-10 seconds for most integrations
+   - Handle errors gracefully with try-catch
+   - Import from `~/libs/fetch-with-timeout`
+
+6. **Environment & Configuration**
+   - Use `~/libs/validate-env` to validate required environment variables
+   - Use `~/libs/cleanup-integrations` to remove unused integration code
+   - Gate debug features to development with `process.env.NODE_ENV === 'development'`
+
+## Core Utility Libraries
+
+### New Utilities (2025)
+- **`~/libs/validate-env`** - Validate required environment variables at runtime
+- **`~/libs/cleanup-integrations`** - Remove unused integration code to optimize bundle size
+- **`~/libs/fetch-with-timeout`** - Resilient API calls with configurable timeouts (5-10s standard)
+- **`~/libs/metadata`** - Centralized SEO and metadata generation for consistent OpenGraph, Twitter cards, etc.
+
+### Usage Examples
+```typescript
+// Validate environment variables
+import { validateEnv } from '~/libs/validate-env'
+validateEnv(['NEXT_PUBLIC_API_KEY', 'DATABASE_URL'])
+
+// Fetch with timeout
+import { fetchWithTimeout } from '~/libs/fetch-with-timeout'
+const response = await fetchWithTimeout(url, options, 10000)
+
+// Generate metadata
+import { generateSanityMetadata } from '~/libs/metadata'
+export async function generateMetadata({ params }) {
+  const page = await fetchPage(params.slug)
+  return generateSanityMetadata(page)
+}
+```
+
 ## Getting Started
 
 1. Review relevant best practices before starting work in a specific area
 2. Follow the project structure guidelines
 3. Use the provided development tools and debugging features
 4. Consult the documentation for specific implementation details
+5. Use utility libraries for common patterns (API calls, env validation, metadata)
 
 ## Updates
 
@@ -113,4 +158,4 @@ These best practices are regularly updated to reflect:
 - Community feedback and learnings
 - Project-specific requirements
 
-Last updated: 2025-05-23 
+Last updated: 2025-06-01 

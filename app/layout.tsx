@@ -14,6 +14,7 @@ import { themes } from '~/styles/colors'
 import '~/styles/css/index.css'
 
 import { GSAPRuntime } from '~/components/gsap/runtime'
+import { isSanityConfigured } from '~/integrations/check-integration'
 import { SanityLive } from '~/integrations/sanity/live'
 import { fontsVariable } from '~/styles/fonts'
 
@@ -91,6 +92,7 @@ export const viewport: Viewport = {
 
 export default async function Layout({ children }: PropsWithChildren) {
   const isDraftMode = (await draftMode()).isEnabled
+  const sanityConfigured = isSanityConfigured()
 
   return (
     <html
@@ -122,15 +124,16 @@ export default async function Layout({ children }: PropsWithChildren) {
         {/* RAF management - lightweight, but don't patch in draft mode to avoid conflicts */}
         <ReactTempus patch={!isDraftMode} />
 
-        {/* Visual editing - only in draft mode */}
-        {isDraftMode && (
+        {/* Visual editing - only in draft mode and if Sanity is configured */}
+        {sanityConfigured && isDraftMode && (
           <>
             <VisualEditing />
             <DisableDraftMode />
           </>
         )}
 
-        <SanityLive />
+        {/* Sanity Live - only if Sanity is configured */}
+        {sanityConfigured && <SanityLive />}
 
         {/* Analytics - loads async, non-blocking */}
         {GA_ID && <GoogleAnalytics gaId={GA_ID} />}

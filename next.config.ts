@@ -1,5 +1,6 @@
 import bundleAnalyzer from '@next/bundle-analyzer'
 import type { NextConfig } from 'next'
+import './libs/validate-env.ts'
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -70,7 +71,6 @@ const nextConfig: NextConfig = {
     reactRemoveProperties: true,
   },
   experimental: {
-    nextScriptWorkers: true,
     optimizePackageImports: [
       '@react-three/drei',
       '@react-three/fiber',
@@ -81,9 +81,9 @@ const nextConfig: NextConfig = {
     ],
   },
   devIndicators: false,
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  // typescript: {
+  //   ignoreBuildErrors: true,
+  // },
   images: {
     dangerouslyAllowSVG: true,
     remotePatterns: [
@@ -100,6 +100,7 @@ const nextConfig: NextConfig = {
         hostname: 'cdn.sanity.io',
       },
     ],
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
     qualities: [90],
     formats: ['image/avif', 'image/webp'],
   },
@@ -122,6 +123,14 @@ const nextConfig: NextConfig = {
         {
           key: 'X-XSS-Protection',
           value: '1; mode=block',
+        },
+        {
+          key: 'X-DNS-Prefetch-Control',
+          value: 'on',
+        },
+        {
+          key: 'Strict-Transport-Security',
+          value: 'max-age=63072000; includeSubDomains; preload',
         },
       ],
     },

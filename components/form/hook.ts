@@ -3,7 +3,6 @@ import {
   type FocusEventHandler,
   type FormEvent,
   useActionState,
-  useCallback,
   useEffect,
   useRef,
   useState,
@@ -51,7 +50,8 @@ export function useForm({
     })
   }
 
-  const setToActiveInput = useCallback((value: string, index: number) => {
+  // React Compiler handles memoization automatically
+  const setToActiveInput = (value: string, index: number) => {
     if (value.length === 0) {
       setIsActive((prev) =>
         prev.map((state, i) => (i === index ? false : state))
@@ -61,9 +61,9 @@ export function useForm({
     }
 
     setIsActive((prev) => prev.map((state, i) => (i === index ? true : state)))
-  }, [])
+  }
 
-  const validate = useCallback((value: string, index: number) => {
+  const validate = (value: string, index: number) => {
     const element = inputsRefs.current[index]
     if (!element) return
 
@@ -88,7 +88,7 @@ export function useForm({
           : state
       )
     )
-  }, [])
+  }
 
   function register(index: number) {
     return {

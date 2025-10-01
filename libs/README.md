@@ -4,12 +4,22 @@ This directory contains utility functions, type definitions, and shared librarie
 
 ## Available Files
 
+### Core Utilities
 - `utils.ts` - General utility functions for common operations
 - `store.ts` - Zustand-based state management utilities
 - `tempus-queue.ts` - Queue utilities for Tempus animation library
+- `easings.ts` - Easing functions for animations
+
+### Type Definitions
 - `augment.d.ts` - TypeScript type augmentations for third-party libraries
 - `css.d.ts` - TypeScript definitions for CSS modules
 - `reset.d.ts` - TypeScript reset type definitions
+
+### Development Tools
+- `validate-env.ts` - Environment variable validation (importable + executable)
+- `cleanup-integrations.ts` - Integration cleanup utilities (importable + executable)
+- `fetch-with-timeout.ts` - Fetch wrapper with timeout protection
+- `metadata.ts` - Metadata generation helpers for SEO
 
 ## Utility Functions (utils.ts)
 
@@ -134,11 +144,111 @@ const found: string | undefined = ['a', 'b'].find(x => x === 'c')
    - Provide comprehensive type definitions
    - Use generics for flexible, type-safe functions
 
+## Development Tools
+
+### Environment Validation (validate-env.ts)
+
+Validates environment variables and shows which integrations are configured:
+
+```bash
+# Run as CLI script
+bun libs/validate-env.ts
+# or via package.json script
+bun validate:env
+```
+
+```typescript
+// Import and use in code
+import { validateEnv } from '~/libs/validate-env'
+
+const result = validateEnv({ silent: false })
+if (!result.valid) {
+  console.error('Missing required environment variables')
+}
+```
+
+### Integration Cleanup (cleanup-integrations.ts)
+
+Identifies unused integrations and provides removal instructions:
+
+```bash
+# Run as CLI script
+bun libs/cleanup-integrations.ts
+# or via package.json script
+bun cleanup:integrations
+```
+
+```typescript
+// Import and use in code
+import { 
+  getRemovalGuide, 
+  printCleanupInstructions,
+  REMOVAL_GUIDE 
+} from '~/libs/cleanup-integrations'
+
+// Get specific integration removal guide
+const sanityGuide = getRemovalGuide('Sanity')
+
+// Print all cleanup instructions
+printCleanupInstructions()
+```
+
+### Fetch with Timeout (fetch-with-timeout.ts)
+
+Prevent hanging requests with automatic timeout protection:
+
+```typescript
+import { fetchWithTimeout, fetchJSON } from '~/libs/fetch-with-timeout'
+
+// Basic fetch with 10s timeout
+const response = await fetchWithTimeout('https://api.example.com/data', {
+  timeout: 10000, // optional, defaults to 10000ms
+  method: 'POST',
+})
+
+// JSON fetch with automatic parsing
+const data = await fetchJSON<{ name: string }>('https://api.example.com/user', {
+  timeout: 5000
+})
+```
+
+### Metadata Helpers (metadata.ts)
+
+Generate consistent metadata for SEO:
+
+```typescript
+import { generatePageMetadata, generateSanityMetadata } from '~/libs/metadata'
+
+// For custom pages
+export async function generateMetadata({ params }) {
+  return generatePageMetadata({
+    title: 'My Page',
+    description: 'Page description',
+    url: `/page/${params.slug}`,
+    image: { url: '/og-image.jpg' },
+  })
+}
+
+// For Sanity CMS pages
+export async function generateMetadata({ params }) {
+  const { data } = await sanityFetch({ query: pageQuery, params })
+  
+  return generateSanityMetadata({
+    document: data,
+    url: `/sanity/${params.slug}`,
+  })
+}
+```
+
 ## Usage
 
 Import utilities directly from their respective files:
 
 ```typescript
 import { slugify, numberWithCommas, clamp, mapRange  } from '~/libs/utils'
-import { store } from '~/libs/store'
+import { useStore } from '~/libs/store'
+import { validateEnv } from '~/libs/validate-env'
+import { getRemovalGuide } from '~/libs/cleanup-integrations'
+import { fetchWithTimeout } from '~/libs/fetch-with-timeout'
+import { generatePageMetadata } from '~/libs/metadata'
 ```

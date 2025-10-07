@@ -30,13 +30,56 @@ bun start
 ## 🛠 Tech Stack
 
 - **[Next.js](https://nextjs.org)** - React framework with App Router and Turbopack
-- **[React 19.1.1](https://react.dev)** - Latest React with simplified ref handling
+- **[React 19.2.0](https://react.dev)** - Latest React with `<Activity />`, `useEffectEvent`, and `cacheSignal`
 - **[TypeScript](https://www.typescriptlang.org)** - Type-safe development
 - **[Tailwind CSS](https://tailwindcss.com)** - CSS-first configuration
 - **[React Three Fiber](https://docs.pmnd.rs/react-three-fiber)** - React renderer for Three.js
 - **[GSAP](https://greensock.com/gsap/)** - Timeline-based animations
 - **[Biome](https://biomejs.dev)** - Fast formatter and linter
 - **[Bun](https://bun.sh)** - All-in-one JavaScript runtime
+
+## ⚛️ React 19.2 Features
+
+### `<Activity />` Component
+Manages off-screen component visibility and defers updates for better performance:
+
+```tsx
+import { Activity } from 'react'
+
+<Activity mode={isVisible ? 'visible' : 'hidden'}>
+  <ExpensiveComponent />
+</Activity>
+```
+
+**Use Cases:** Tab systems, accordions, off-screen WebGL scenes
+
+### `useEffectEvent` Hook
+Separates event logic from effect dependencies to prevent unnecessary re-runs:
+
+```tsx
+import { useEffect, useEffectEvent } from 'react'
+
+const onConnected = useEffectEvent(() => {
+  showNotification('Connected!', theme) // Theme changes won't trigger reconnect
+})
+
+useEffect(() => {
+  // Only reconnect when url changes
+}, [url])
+```
+
+### `cacheSignal` (Server Components)
+Provides automatic request cleanup when cache scope expires:
+
+```tsx
+import { cacheSignal } from 'react'
+
+async function fetchUserData(id: string) {
+  const signal = cacheSignal() // Auto-aborts on cache expiry
+  const response = await fetch(`/api/users/${id}`, { signal })
+  return response.json()
+}
+```
 
 ## 📁 Project Structure
 
@@ -65,6 +108,7 @@ satus/
 ### Performance Optimized
 - **Turbopack** for lightning-fast HMR in development
 - **React Server Components** by default
+- **React 19.2 `<Activity />`** for off-screen component optimization
 - **Dynamic imports** for code splitting
 - **Image optimization** with a custom thin wrapper around Next.js Image
 - **Font optimization** with Next.js Font
@@ -86,6 +130,7 @@ satus/
 - **TypeScript** with strict mode
 - **Biome** for consistent code style
 - **Hot Module Replacement** with Turbopack
+- **React 19.2 Performance Tracks** in Chrome DevTools
 - **Git hooks** with Lefthook
 - **Debug tools** accessible with `CMD+O`
 

@@ -100,7 +100,7 @@ This directory contains consolidated Cursor AI rules for the Satus project. The 
 
 - **Start a new feature** → Read `main.mdc` for overview, then `architecture.mdc` for patterns
 - **Build a React component** → `components.mdc`
-- **Add WebGL/Three.js** → `components.mdc` § WebGL Components
+- **Add WebGL/Three.js** → `components.mdc` § WebGL Components & Activity Integration
 - **Style with CSS Modules** → `styling.mdc` § CSS Modules
 - **Style with Tailwind** → `styling.mdc` § Tailwind CSS v4
 - **Use custom utilities** → `styling.mdc` § Project-Specific Custom Utilities
@@ -198,17 +198,17 @@ When adding new guidelines:
 
 | File | Purpose | Lines | Key Topics |
 |------|---------|-------|------------|
-| `main.mdc` | Overview & Cross-cutting | ~350 | Tech stack, React 19.2, React Compiler, Images, Dev/Prod |
-| `components.mdc` | React & WebGL | ~400 | Components, Forms, WebGL, Three.js, Shaders |
-| `styling.mdc` | All Styling | ~600 | CSS Modules, Tailwind v4, Responsive, Custom utilities |
-| `integrations.mdc` | Third-party Services | ~500 | Sanity, Shopify, HubSpot, Best practices |
-| `architecture.mdc` | Patterns & Quality | ~400 | State, Routing, Performance, Security, Testing |
+| `main.mdc` | Overview & Cross-cutting | 244 | Tech stack, React 19.2, React Compiler, Images, Dev/Prod |
+| `components.mdc` | React & WebGL | 467 | Components, Forms, WebGL, Three.js, Shaders, Activity |
+| `styling.mdc` | All Styling | 467 | CSS Modules, Tailwind v4, Responsive, Custom utilities |
+| `integrations.mdc` | Third-party Services | 451 | Sanity, Shopify, HubSpot, Best practices |
+| `architecture.mdc` | Patterns & Quality | 391 | State, Routing, Performance, Security, Testing |
 
-**Total**: ~2,250 lines of consolidated, focused guidelines
+**Total**: 2,020 lines of consolidated, focused guidelines
 
 ---
 
-Last updated: 2025-10-07
+Last updated: 2025-10-08
 
 For questions or suggestions about these rules, contact the development team.
 

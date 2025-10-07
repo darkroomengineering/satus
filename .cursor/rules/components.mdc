@@ -396,6 +396,50 @@ const { viewport } = useThree()
 // Use viewport.width, viewport.height for responsive sizing
 ```
 
+## React 19.2 Activity Integration
+
+Use `<Activity />` to optimize WebGL performance by deferring off-screen scenes:
+
+```tsx
+import { Activity, useEffect, useRef, useState } from 'react'
+import { useRect } from 'hamo'
+import { WebGLTunnel } from '~/webgl/components/tunnel'
+
+export function WebGLScene({ className }) {
+  const [setRectRef, rect] = useRect()
+  const [isVisible, setIsVisible] = useState(true)
+  const elementRef = useRef<HTMLDivElement | null>(null)
+
+  // Intersection Observer with 200px margin for pre-activation
+  useEffect(() => {
+    const element = elementRef.current
+    if (!element) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsVisible(entry.isIntersecting),
+      { rootMargin: '200px' }
+    )
+
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    // Wrap DOM container - defers rect tracking when off-screen
+    <Activity mode={isVisible ? 'visible' : 'hidden'}>
+      <div ref={(el) => { setRectRef(el); elementRef.current = el }} className={className}>
+        {/* WebGL content goes in WebGLTunnel (no Activity wrapper needed) */}
+        <WebGLTunnel>
+          <WebGLComponent rect={rect} />
+        </WebGLTunnel>
+      </div>
+    </Activity>
+  )
+}
+```
+
+**Pattern**: `<Activity />` → DOM container → `WebGLTunnel` → WebGL content
+
 ### Debugging
 - Use Theatre.js for animation debugging
 - Enable WebGL inspector in development

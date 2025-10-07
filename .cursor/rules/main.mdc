@@ -34,9 +34,10 @@ import { Activity } from 'react'
 
 **Use Cases:**
 - Tab systems or carousels
-- Off-screen WebGL scenes  
+- Off-screen WebGL scenes (3D graphics, shaders)
 - Accordion components
 - Drawer/modal systems
+- Image galleries and carousels
 
 **Benefits:**
 - Pre-render content without performance impact

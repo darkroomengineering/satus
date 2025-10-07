@@ -3,7 +3,7 @@
 import gsap from 'gsap'
 import { ScrollTrigger as GSAPScrollTrigger } from 'gsap/all'
 import { useLenis } from 'lenis/react'
-import { useEffect } from 'react'
+import { useEffect, useEffectEvent } from 'react'
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(GSAPScrollTrigger)
@@ -14,9 +14,22 @@ if (typeof window !== 'undefined') {
 }
 
 export function ScrollTrigger() {
-  const lenis = useLenis(GSAPScrollTrigger.update)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: no time to type
-  useEffect(() => GSAPScrollTrigger.refresh(), [lenis])
+  const handleUpdate = useEffectEvent(() => {
+    GSAPScrollTrigger.update()
+  })
+
+  const handleRefresh = useEffectEvent(() => {
+    GSAPScrollTrigger.refresh()
+  })
+
+  const lenis = useLenis(handleUpdate)
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: handleRefresh is useEffectEvent
+  useEffect(() => {
+    if (lenis) {
+      handleRefresh()
+    }
+  }, [lenis])
 
   return null
 }

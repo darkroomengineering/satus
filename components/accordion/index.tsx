@@ -3,6 +3,7 @@
 import cn from 'clsx'
 import { useResizeObserver } from 'hamo'
 import {
+  Activity,
   createContext,
   type Dispatch,
   type HTMLAttributes,
@@ -118,7 +119,10 @@ function Body({
       }}
     >
       <div ref={setRectRef}>
-        <div className={className}>{children}</div>
+        {/* Activity defers updates when closed and cleans up effects automatically */}
+        <Activity mode={isOpen ? 'visible' : 'hidden'}>
+          <div className={className}>{children}</div>
+        </Activity>
       </div>
     </div>
   )

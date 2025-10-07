@@ -2,7 +2,7 @@
 
 import { type Rect, useLazyState, useWindowSize } from 'hamo'
 import { useLenis } from 'lenis/react'
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
 import { useTransform } from '~/hooks/use-transform'
 import { clamp, mapRange } from '~/libs/utils'
 import { useOrchestra } from '~/orchestra'
@@ -136,22 +136,19 @@ export type UseScrollTriggerOptions = {
   steps?: number
 }
 
-export function useScrollTrigger(
-  {
-    rect,
-    start = 'bottom bottom', // bottom of the element meets the bottom of the viewport
-    end = 'top top', // top of the element meets the top of the viewport
-    id = '',
-    offset = 0,
-    disabled = false,
-    markers,
-    onEnter,
-    onLeave,
-    onProgress,
-    steps = 1,
-  }: UseScrollTriggerOptions,
-  deps = [] as unknown[]
-) {
+export function useScrollTrigger({
+  rect,
+  start = 'bottom bottom', // bottom of the element meets the bottom of the viewport
+  end = 'top top', // top of the element meets the top of the viewport
+  id = '',
+  offset = 0,
+  disabled = false,
+  markers,
+  onEnter,
+  onLeave,
+  onProgress,
+  steps = 1,
+}: UseScrollTriggerOptions) {
   const getTransform = useTransform()
   const lenis = useLenis()
 
@@ -223,12 +220,11 @@ export function useScrollTrigger(
   const startValue = elementStart - viewportStart
   const endValue = elementEnd - viewportEnd
 
-  const onProgressRef = useRef(onProgress)
-  onProgressRef.current = onProgress
-
-  const onUpdate = useCallback(
+  // Use useEffectEvent for callback handlers to avoid re-running effects
+  // when callback dependencies change
+  const handleProgress = useEffectEvent(
     (progress: number, lastProgress: number) => {
-      onProgressRef.current?.({
+      onProgress?.({
         height: endValue - startValue,
         isActive: progress >= 0 && progress <= 1,
         progress: clamp(0, progress, 1),
@@ -237,9 +233,16 @@ export function useScrollTrigger(
           clamp(0, mapRange(i / steps, (i + 1) / steps, progress, 0, 1), 1)
         ),
       })
-    },
-    [endValue, startValue, steps, ...deps]
+    }
   )
+
+  const handleEnter = useEffectEvent((progress: number) => {
+    onEnter?.({ progress: clamp(0, progress, 1) })
+  })
+
+  const handleLeave = useEffectEvent((progress: number) => {
+    onLeave?.({ progress: clamp(0, progress, 1) })
+  })
 
   // eslint-disable-next-line no-unused-vars
   const [setProgress, _getProgress] = useLazyState(
@@ -252,31 +255,26 @@ export function useScrollTrigger(
         (progress >= 0 && lastProgress < 0) ||
         (progress <= 1 && lastProgress > 1)
       ) {
-        onEnter?.({ progress: clamp(0, progress, 1) })
+        handleEnter(progress)
       }
 
       if (!(clamp(0, progress, 1) === clamp(0, lastProgress, 1))) {
-        onUpdate(progress, lastProgress)
+        handleProgress(progress, lastProgress)
       }
 
       if (
         (progress < 0 && lastProgress >= 0) ||
         (progress > 1 && lastProgress <= 1)
       ) {
-        onLeave?.({ progress: clamp(0, progress, 1) })
+        handleLeave(progress)
       }
     },
-    [endValue, startValue, steps, onUpdate, ...deps]
+    [endValue, startValue, steps] // Cleaner - callbacks not in deps
   )
 
-  // useEffect(() => {
-  //   const progress = getProgress()
-  //   if (Number.isNaN(progress)) return
-
-  //   onUpdate(progress, progress)
-  // }, [getProgress, onUpdate, ...deps])
-
-  const update = useCallback(() => {
+  // Use useEffectEvent for the update callback to avoid re-registering
+  // when values like viewportStart, elementStart, etc. change
+  const update = useEffectEvent(() => {
     if (disabled) return
 
     let scroll: number
@@ -300,26 +298,11 @@ export function useScrollTrigger(
     const progress = mapRange(startValue, endValue, scroll - translate.y, 0, 1)
 
     setProgress(progress)
-  }, [
-    lenis,
-    viewportMarkerStart,
-    viewportMarkerEnd,
-    viewportStart,
-    viewportEnd,
-    elementMarkerStart,
-    elementMarkerEnd,
-    elementStart,
-    elementEnd,
-    startValue,
-    endValue,
-    getTransform,
-    setProgress,
-    disabled,
-    ...deps,
-  ])
+  })
 
-  useLenis(update, [update])
+  useLenis(update)
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: update is useEffectEvent
   useEffect(() => {
     if (lenis) return
 
@@ -329,7 +312,7 @@ export function useScrollTrigger(
     return () => {
       window.removeEventListener('scroll', update, false)
     }
-  }, [lenis, update])
+  }, [lenis]) // Effect only re-runs when lenis changes
 
-  useTransform(update, [update])
+  useTransform(update)
 }

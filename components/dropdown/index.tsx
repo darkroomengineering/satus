@@ -1,7 +1,7 @@
 'use client'
 
 import cn from 'clsx'
-import { useEffect, useState } from 'react'
+import { Activity, useEffect, useState } from 'react'
 import s from './dropdown.module.css'
 
 type DropdownProps = {
@@ -51,10 +51,11 @@ export function Dropdown({
       >
         <span>{selected && !isOpened ? options[selected] : placeholder}</span>
       </button>
-      {isOpened && (
+      {/* Activity pre-renders options for instant first open */}
+      <Activity mode={isOpened ? 'visible' : 'hidden'}>
         <div
           className={s.options}
-          aria-hidden={isOpened ? undefined : true}
+          aria-hidden={!isOpened}
           onClick={(e) => e.stopPropagation()}
         >
           {options.map((value, i) => (
@@ -72,7 +73,7 @@ export function Dropdown({
             </button>
           ))}
         </div>
-      )}
+      </Activity>
     </div>
   )
 }

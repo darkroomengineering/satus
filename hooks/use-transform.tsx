@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useEffectEvent,
   useImperativeHandle,
   useRef,
 } from 'react'
@@ -94,9 +95,6 @@ export const TransformContext = createContext<TransformContextType>({
   },
 })
 
-// TODO: batch updates
-// TODO: update only when needed (if values have changed)
-
 type TransformProviderProps = {
   children: ReactNode
   ref?: Ref<TransformRef>
@@ -141,11 +139,11 @@ export function TransformProvider({ children, ref }: TransformProviderProps) {
     )
   }, [])
 
-  const update = useCallback(() => {
+  const update = useEffectEvent(() => {
     for (const callback of callbacksRefs.current) {
       callback(getTransform())
     }
-  }, [getTransform])
+  })
 
   const setTranslate = useCallback(
     (x = 0, y = 0, z = 0) => {
@@ -201,13 +199,10 @@ export function TransformProvider({ children, ref }: TransformProviderProps) {
     [update]
   )
 
-  useTransform(
-    (transform) => {
-      parentTransformRef.current = structuredClone(transform)
-      update()
-    },
-    [update]
-  )
+  useTransform((transform) => {
+    parentTransformRef.current = structuredClone(transform)
+    update()
+  })
 
   useImperativeHandle(ref, () => ({
     setTranslate,

@@ -2,6 +2,7 @@ import { revalidateTag } from 'next/cache'
 import { headers } from 'next/headers'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
+import { cacheSignal } from 'react'
 import { fetchWithTimeout } from '~/libs/fetch-with-timeout'
 import {
   HIDDEN_PRODUCT_TAG,
@@ -56,6 +57,9 @@ export async function shopifyFetch<T = Record<string, unknown>>({
   variables,
 }: ShopifyFetchOptions): Promise<ShopifyResponse<T>> {
   try {
+    // Use cacheSignal for automatic request cleanup on cache expiry
+    const signal = cacheSignal()
+
     const result = await fetchWithTimeout(endpoint, {
       method: 'POST',
       headers: {
@@ -69,6 +73,9 @@ export async function shopifyFetch<T = Record<string, unknown>>({
       }),
       cache,
       timeout: 10000, // 10 second timeout for Shopify API
+      // Only pass signal if cacheSignal returns a non-null value
+      // Cast to AbortSignal for type compatibility
+      ...(signal && { signal: signal as AbortSignal }),
       ...(tags && { next: { tags } }),
     })
 
@@ -86,6 +93,11 @@ export async function shopifyFetch<T = Record<string, unknown>>({
       body,
     }
   } catch (e) {
+    // Handle both cache expiry aborts and timeouts
+    if (e instanceof Error && e.name === 'AbortError') {
+      console.log('Shopify request aborted (cache expired or timeout)')
+    }
+
     throw {
       error: e,
       query,

@@ -2,6 +2,10 @@ const colors = {
   black: '#000000',
   white: '#ffffff',
   red: '#e30613',
+  blue: '#0070f3',
+  green: '#00ff88',
+  purple: '#7928ca',
+  pink: '#ff0080',
 } as const
 
 const themeNames = ['light', 'dark', 'red'] as const

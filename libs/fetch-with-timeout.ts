@@ -37,10 +37,15 @@ export async function fetchWithTimeout(
   url: string,
   options: FetchWithTimeoutOptions = {}
 ): Promise<Response> {
-  const { timeout = 10000, ...fetchOptions } = options
+  const { timeout = 10000, signal: externalSignal, ...fetchOptions } = options
 
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), timeout)
+
+  // If an external signal is provided, listen to it and abort our controller
+  if (externalSignal) {
+    externalSignal.addEventListener('abort', () => controller.abort())
+  }
 
   try {
     const response = await fetch(url, {

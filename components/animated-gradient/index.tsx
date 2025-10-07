@@ -3,6 +3,7 @@
 import { useRect } from 'hamo'
 import dynamic from 'next/dynamic'
 import type { ComponentProps, CSSProperties } from 'react'
+import { Activity, useEffect, useRef, useState } from 'react'
 import { WebGLTunnel } from '~/webgl/components/tunnel'
 
 const WebGLAnimatedGradient = dynamic(
@@ -58,12 +59,46 @@ export function AnimatedGradient({
   ...props
 }: AnimatedGradientProps) {
   const [setRectRef, rect] = useRect()
+  const [isVisible, setIsVisible] = useState(true)
+  const elementRef = useRef<HTMLDivElement | null>(null)
+
+  // Combined ref callback
+  const setRefs = (element: HTMLDivElement | null) => {
+    setRectRef(element)
+    elementRef.current = element
+  }
+
+  // Use Intersection Observer to detect viewport visibility
+  useEffect(() => {
+    const element = elementRef.current
+    if (!element) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting)
+      },
+      {
+        rootMargin: '200px', // Pre-activate before visible
+      }
+    )
+
+    observer.observe(element)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [])
 
   return (
-    <div ref={setRectRef} className={className} style={style}>
-      <WebGLTunnel>
-        <WebGLAnimatedGradient rect={toDOMRect(rect)} {...props} />
-      </WebGLTunnel>
-    </div>
+    // Wrap the entire DOM container with Activity
+    // This defers rect tracking and tunnel updates when off-screen
+    <Activity mode={isVisible ? 'visible' : 'hidden'}>
+      <div ref={setRefs} className={className} style={style}>
+        {/* WebGLTunnel content renders inside R3F Canvas (no Activity there) */}
+        <WebGLTunnel>
+          <WebGLAnimatedGradient rect={toDOMRect(rect)} {...props} />
+        </WebGLTunnel>
+      </div>
+    </Activity>
   )
 }

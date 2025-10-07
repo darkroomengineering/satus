@@ -1,65 +1,109 @@
 ---
-description: Main index of best practices for Satūs
-globs: **/*
-alwaysApply: false
+alwaysApply: true
 ---
 ---
-description: Global rules
+description: Project overview and cross-cutting concerns
 globs: *.tsx, *.jsx, *.css, *.js, *.ts
 ---
 
-1. **Type Safety**
-   - Use TypeScript for all new code
-   - Maintain strict type checking
-   - Avoid `any` types unless absolutely necessary
-   - Use proper type imports (`import type` when importing only types)
-
-2. **Performance**
-   - Use React Server Components by default
-   - Enable Turbopack for development (`bun dev` uses `--turbopack`)
-   - Implement proper code splitting with `next/dynamic`
-   - Follow recommended caching strategies
-   - Optimize assets and bundles
-   - **Always use the custom `Image` component (`~/components/image`) for all images. Do not use `next/image` directly.**
-   - **In WebGL contexts, use `webgl/components/image`, which wraps the custom `Image` component for DOM fallback and WebGL texture integration.**
-
-3. **Code Quality**
-   - Follow Biome linting rules
-   - Maintain consistent code style
-   - Write meaningful comments and documentation
-   - Use meaningful variable and function names
-   - Prefer named exports for components
-
-4. **Testing & Debugging**
-   - Write unit tests for critical functionality
-   - Use Orchestra tools for debugging (CMD+O)
-   - Implement proper error boundaries
-   - Follow error handling best practices
-   - Use Theatre.js Studio for animation debugging
-
-5. **Security**
-   - Follow security best practices
-   - Properly handle environment variables
-   - Implement proper authentication
-   - Follow CSP guidelines
-   - Use server-side validation for forms
-
-6. **Architecture**
-   - Follow the defined project structure
-   - Maintain separation of concerns
-   - Use proper state management (Zustand when needed)
-   - Follow component composition patterns
-   - Keep client/server boundaries clear
+# Satus Project Guidelines
 
 ## Technology Stack
 
-- **Next.js 15.3.2** - App Router with Turbopack support
-- **React 19.1.0** - Latest features including simplified ref handling
+- **Next.js 15.6.0** - App Router with Turbopack support
+- **React 19.2.0** - Latest features including `<Activity />`, `useEffectEvent`, and `cacheSignal`
 - **React Compiler enabled** - Automatically optimizes most component re-renders and memoization; manual memoization is rarely needed
 - **TypeScript** - Strict mode enabled
-- **Tailwind CSS 4.1.7** - CSS-first configuration
-- **Biome 1.9.4** - Linting and formatting
+- **Tailwind CSS 4.1.14** - CSS-first configuration
+- **Biome 2.2.5** - Linting and formatting
 - **Bun** - JavaScript runtime and package manager
+
+## React 19.2 New Features
+
+### 1. `<Activity />` Component
+Manage off-screen component visibility and defer updates for better performance.
+
+```tsx
+import { Activity } from 'react'
+
+// Hide tab content when not visible
+<Activity mode={isActive ? 'visible' : 'hidden'}>
+  <ExpensiveComponent />
+</Activity>
+```
+
+**Use Cases:**
+- Tab systems or carousels
+- Off-screen WebGL scenes  
+- Accordion components
+- Drawer/modal systems
+
+**Benefits:**
+- Pre-render content without performance impact
+- Automatic effect cleanup when hidden
+- Better resource management for complex UIs
+
+### 2. `useEffectEvent` Hook
+Separate event logic from effect dependencies to prevent unnecessary re-runs.
+
+```tsx
+import { useEffect, useEffectEvent } from 'react'
+
+function Component({ url, theme }) {
+  const onConnected = useEffectEvent(() => {
+    showNotification('Connected!', theme) // theme changes won't trigger reconnect
+  })
+
+  useEffect(() => {
+    const connection = createConnection(url)
+    connection.on('connected', onConnected)
+    connection.connect()
+    return () => connection.disconnect()
+  }, [url]) // Only reconnect when url changes
+}
+```
+
+**Use Cases:**
+- Complex event handlers with multiple dependencies
+- Scroll/transform callbacks
+- WebGL mouse/interaction handlers
+- Animation callbacks
+
+**Benefits:**
+- Reduces unnecessary effect re-runs
+- Cleaner dependency arrays
+- Better separation of concerns
+
+### 3. `cacheSignal` (Server Components Only)
+Provides an `AbortSignal` that triggers when the component's cache scope expires.
+
+```tsx
+import { cacheSignal } from 'react'
+
+async function fetchUserData(id: string) {
+  const signal = cacheSignal() // Auto-aborts on cache expiry
+  const response = await fetch(`/api/users/${id}`, { signal })
+  return response.json()
+}
+```
+
+**Use Cases:**
+- Sanity CMS queries
+- Shopify API calls
+- Any server component data fetching
+- Replace custom timeout logic with automatic cleanup
+
+**Benefits:**
+- Automatic cleanup of stale requests
+- Better resource management
+- Simpler than manual AbortController
+
+### 4. Performance Tracks in Chrome DevTools
+React 19.2 integrates custom performance tracks into Chrome DevTools:
+- **Scheduler Track:** Displays React's workload prioritization
+- **Components Track:** Shows component hierarchy and timing
+
+**Usage:** Open Chrome DevTools → Performance tab → Record a profile → Look for React-specific tracks
 
 ## File Organization
 
@@ -79,52 +123,91 @@ globs: *.tsx, *.jsx, *.css, *.js, *.ts
 └── webgl/                # WebGL and 3D graphics
 ```
 
-## Development Guidelines
+## Cross-Cutting Concerns
 
-1. **Component Development**
-   - Use CSS modules for component styling
-   - Import styles as `s` (e.g., `import s from './component.module.css'`)
-   - Use `cn` from `clsx` for conditional classes
-   - Implement responsive design with custom viewport functions
-   - **DO NOT use manual memoization** - React Compiler handles optimization
+### React Compiler & Memoization
 
-2. **State Management**
-   - Prefer React's built-in state for component state
-   - Use Zustand for global state when needed
-   - Keep state as close to where it's used as possible
+**React Compiler is enabled and handles ALL optimization automatically.**
 
-3. **Routing & Navigation**
-   - Use Next.js App Router conventions
-   - Implement proper loading and error states
-   - Use `next/link` for internal navigation
-   - Use `~/libs/metadata` for SEO optimization
+- **DO NOT use `useMemo`, `useCallback`, or `React.memo` in new code.**
+- The compiler optimizes all component re-renders, memoization, and dependencies automatically.
+- Only use manual memoization if you encounter a proven edge case where the compiler cannot optimize (extremely rare).
+- If you see these in existing code, they can likely be removed safely.
+- **CRITICAL EXCEPTION: Use `useRef` for object instantiation** - Creating new object instances on every render creates new references that trigger effects, causing infinite loops.
+- Refer to the [React Compiler documentation](https://react.dev/reference/react/compiler) for edge cases.
 
-4. **Styling**
-   - Follow Tailwind CSS v4 conventions
-   - Use CSS variables for theming
-   - Implement responsive design with breakpoints
-   - Use custom viewport units (mobile-vw, desktop-vw)
+```tsx
+// ❌ DON'T: Manual memoization for simple calculations (compiler handles this)
+const memoizedValue = useMemo(() => computeExpensive(a, b), [a, b])
+const memoizedCallback = useCallback(() => doSomething(a), [a])
 
-5. **API Integration**
-   - **Always use `fetchWithTimeout` for external API calls**
-   - Standard timeouts: 8-10 seconds for most integrations
-   - Handle errors gracefully with try-catch
-   - Import from `~/libs/fetch-with-timeout`
+// ✅ DO: Let React Compiler optimize automatically
+const value = computeExpensive(a, b)
+const handleClick = () => doSomething(a)
 
-6. **Environment & Configuration**
-   - Use `~/libs/validate-env` to validate required environment variables
-   - Use `~/libs/cleanup-integrations` to remove unused integration code
-   - Gate debug features to development with `process.env.NODE_ENV === 'development'`
+// ⚠️ EXCEPTION: Object instantiation MUST use useRef
+// ❌ DON'T: This causes infinite re-renders when passed to effects/deps
+const instance = new SomeClass()
+
+// ✅ DO: Use useRef for object instantiation
+const instanceRef = useRef<SomeClass | null>(null)
+if (!instanceRef.current) {
+  instanceRef.current = new SomeClass(params)
+}
+const instance = instanceRef.current
+```
+
+### Image Optimization
+
+**Always use the custom Image component for all images.**
+
+- **DO NOT use `next/image` directly**
+- Use `~/components/image` for standard images
+- **In WebGL contexts, use `~/webgl/components/image`** which wraps the custom Image component for DOM fallback and WebGL texture integration
+
+```tsx
+import { Image } from '~/components/image'
+// For WebGL:
+import { Image as WebGLImage } from '~/webgl/components/image'
+```
+
+### Development vs Production
+
+**Console logs are automatically stripped in production** by Next.js compiler (except `console.error` and `console.warn`)
+
+- **Always gate debug UI components** - these are NOT automatically removed
+- **Gate expensive debug computations** - avoid running heavy operations in production
+
+```tsx
+// ✅ Simple logs: Optional to gate (Next.js strips them automatically)
+console.log('Debug info:', data)
+
+// ✅ Better: Gate expensive operations to avoid computation overhead
+if (process.env.NODE_ENV === 'development') {
+  console.log('Heavy computation:', expensiveDebugCalculation())
+}
+
+// ⚠️ REQUIRED: Always gate debug UI components (not auto-removed)
+{process.env.NODE_ENV === 'development' && <DebugPanel />}
+{process.env.NODE_ENV === 'development' && <Stats />}
+```
+
+**Bundle Size Optimization:**
+- Keep production bundles minimal by excluding dev-only code
+- Use tree-shaking friendly imports
+- Check bundle size impact of new dependencies
+- Debug UI components must be gated (Next.js won't remove them automatically)
 
 ## Core Utility Libraries
 
-### New Utilities (2025)
+### Available Utilities
 - **`~/libs/validate-env`** - Validate required environment variables at runtime
 - **`~/libs/cleanup-integrations`** - Remove unused integration code to optimize bundle size
 - **`~/libs/fetch-with-timeout`** - Resilient API calls with configurable timeouts (5-10s standard)
 - **`~/libs/metadata`** - Centralized SEO and metadata generation for consistent OpenGraph, Twitter cards, etc.
 
 ### Usage Examples
+
 ```typescript
 // Validate environment variables
 import { validateEnv } from '~/libs/validate-env'
@@ -158,4 +241,4 @@ These best practices are regularly updated to reflect:
 - Community feedback and learnings
 - Project-specific requirements
 
-Last updated: 2025-06-01 
+Last updated: 2025-10-07

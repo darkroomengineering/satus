@@ -1,0 +1,391 @@
+---
+alwaysApply: true
+---
+---
+description: Architecture patterns, state management, routing, and best practices
+globs: *.tsx, *.jsx, *.css, *.js, *.ts
+---
+
+# Architecture Guidelines
+
+## Type Safety
+
+### TypeScript Configuration
+- Use TypeScript for all new code
+- Maintain strict type checking
+- Avoid `any` types unless absolutely necessary
+- Use proper type imports (`import type` when importing only types)
+
+```tsx
+import type { ComponentProps } from 'react'
+
+interface ButtonProps extends ComponentProps<'button'> {
+  variant?: 'primary' | 'secondary'
+}
+```
+
+## State Management
+
+### React Built-in State
+Prefer React's built-in state for component state. Keep state as close to where it's used as possible.
+
+```tsx
+function Component() {
+  const [count, setCount] = useState(0)
+  return <button onClick={() => setCount(count + 1)}>{count}</button>
+}
+```
+
+### Zustand for Global State
+Use Zustand for global state when needed. Define stores in `~/libs/store.ts` or dedicated store files.
+
+```tsx
+import { create } from 'zustand'
+
+interface CartStore {
+  items: CartItem[]
+  addItem: (item: CartItem) => void
+  removeItem: (id: string) => void
+}
+
+export const useCartStore = create<CartStore>((set) => ({
+  items: [],
+  addItem: (item) => set((state) => ({ items: [...state.items, item] })),
+  removeItem: (id) => set((state) => ({ 
+    items: state.items.filter(item => item.id !== id) 
+  })),
+}))
+```
+
+### State Management Best Practices
+- Keep state minimal and derived values computed
+- Use context for shared UI state (theme, modals)
+- Use Zustand for complex global state (cart, user)
+- Avoid prop drilling with composition patterns
+
+## Routing & Navigation
+
+### Next.js App Router
+Use Next.js App Router conventions. Follow the file-based routing structure.
+
+```
+app/
+  (pages)/
+    home/
+      page.tsx
+    about/
+      page.tsx
+```
+
+### Navigation
+Use the custom Link component for internal navigation. It automatically handles external links.
+
+```tsx
+import Link from '~/components/link'
+
+function Navigation() {
+  return (
+    <>
+      {/* Internal link - uses next/link */}
+      <Link href="/about">About</Link>
+      
+      {/* External link - uses <a> */}
+      <Link href="https://example.com">External</Link>
+    </>
+  )
+}
+```
+
+### Metadata & SEO
+Use `~/libs/metadata` for SEO optimization. Generate metadata for all pages.
+
+```tsx
+import { generateMetadata as generateBaseMetadata } from '~/libs/metadata'
+
+export async function generateMetadata({ params }) {
+  const page = await fetchPage(params.slug)
+  
+  return generateBaseMetadata({
+    title: page.title,
+    description: page.description,
+    image: page.image,
+    url: `/pages/${params.slug}`,
+  })
+}
+```
+
+### Loading and Error States
+Implement proper loading and error states for all routes.
+
+```tsx
+// loading.tsx
+export default function Loading() {
+  return <div>Loading...</div>
+}
+
+// error.tsx
+'use client'
+
+export default function Error({ error, reset }) {
+  return (
+    <div>
+      <h2>Something went wrong!</h2>
+      <button onClick={() => reset()}>Try again</button>
+    </div>
+  )
+}
+```
+
+## Performance
+
+### Server Components
+Use React Server Components by default. Only add 'use client' when needed.
+
+```tsx
+// Server Component (default)
+async function ServerComponent() {
+  const data = await fetchData()
+  return <div>{data.title}</div>
+}
+
+// Client Component (when needed)
+'use client'
+
+function ClientComponent() {
+  const [state, setState] = useState(0)
+  return <button onClick={() => setState(state + 1)}>{state}</button>
+}
+```
+
+### Code Splitting
+Use `next/dynamic` for heavy components. Implement proper loading states.
+
+```tsx
+import dynamic from 'next/dynamic'
+
+const HeavyComponent = dynamic(() => import('./HeavyComponent'), {
+  loading: () => <div>Loading...</div>,
+  ssr: false // if needed
+})
+```
+
+### Caching Strategies
+Follow Next.js recommended caching strategies. Use appropriate revalidation times.
+
+```tsx
+// Static generation with revalidation
+export const revalidate = 3600 // 1 hour
+
+// Dynamic with specific cache tags
+export async function fetchData() {
+  const res = await fetch('https://api.example.com/data', {
+    next: { 
+      revalidate: 3600,
+      tags: ['data']
+    }
+  })
+  return res.json()
+}
+```
+
+### Asset Optimization
+- Always use the custom `Image` component (`~/components/image`)
+- Optimize bundles with tree-shaking
+- Check bundle size impact of new dependencies
+- Use `bun lint` to check for linting issues
+
+## Security
+
+### Environment Variables
+- Never commit API keys
+- Use `.env.local` for development
+- Document required variables in `.env.example`
+- Validate environment variables at runtime
+
+```typescript
+import { validateEnv } from '~/libs/validate-env'
+
+validateEnv([
+  'NEXT_PUBLIC_API_KEY',
+  'DATABASE_URL',
+  'SANITY_API_TOKEN'
+])
+```
+
+### Input Validation
+Validate all user inputs. Use server-side validation for forms.
+
+```tsx
+async function submitForm(formData: FormData) {
+  'use server'
+  
+  const email = formData.get('email')
+  
+  // Validate
+  if (!email || typeof email !== 'string') {
+    return { error: 'Invalid email' }
+  }
+  
+  // Process
+  // ...
+}
+```
+
+### Authentication & Authorization
+- Implement proper authentication
+- Use server-side API calls for sensitive operations
+- Implement rate limiting where necessary
+- Follow CSP guidelines
+
+## Testing & Debugging
+
+### Unit Testing
+Write unit tests for critical functionality.
+
+```tsx
+import { render, screen } from '@testing-library/react'
+import Button from './Button'
+
+test('renders button with text', () => {
+  render(<Button>Click me</Button>)
+  expect(screen.getByText('Click me')).toBeInTheDocument()
+})
+```
+
+### Debugging Tools
+- Use Orchestra tools for debugging (CMD+O)
+- Use Theatre.js Studio for animation debugging
+- Enable WebGL inspector in development (for WebGL)
+- Use React DevTools for component inspection
+
+### Error Boundaries
+Implement error boundaries for critical sections. Provide meaningful fallback UI.
+
+```tsx
+'use client'
+
+import { Component } from 'react'
+
+class ErrorBoundary extends Component {
+  state = { hasError: false }
+  
+  static getDerivedStateFromError(error) {
+    return { hasError: true }
+  }
+  
+  componentDidCatch(error, errorInfo) {
+    console.error('ErrorBoundary caught:', error, errorInfo)
+  }
+  
+  render() {
+    if (this.state.hasError) {
+      return <div>Something went wrong.</div>
+    }
+    
+    return this.props.children
+  }
+}
+```
+
+### Logging Best Practices
+- Use console.log for simple debugging (auto-stripped in production)
+- Use console.error and console.warn for important issues (kept in production)
+- Gate expensive debug operations with `process.env.NODE_ENV === 'development'`
+- Log errors with context for better debugging
+
+## Code Quality
+
+### Linting & Formatting
+- Follow Biome linting rules
+- Run `bun lint` before committing
+- Maintain consistent code style
+- Fix linting errors immediately
+
+### Code Organization
+- Follow the defined project structure
+- Maintain separation of concerns
+- Use meaningful variable and function names
+- Write meaningful comments and documentation
+- Prefer named exports for utilities
+
+### Component Composition
+Follow component composition patterns. Keep components focused and reusable.
+
+```tsx
+// Good: Composable components
+function Card({ children, className }) {
+  return <div className={cn(s.card, className)}>{children}</div>
+}
+
+function CardHeader({ children }) {
+  return <div className={s.header}>{children}</div>
+}
+
+function CardBody({ children }) {
+  return <div className={s.body}>{children}</div>
+}
+
+// Usage
+<Card>
+  <CardHeader>Title</CardHeader>
+  <CardBody>Content</CardBody>
+</Card>
+```
+
+## Development Workflow
+
+### Package Manager
+Use Bun as the JavaScript runtime and package manager.
+
+```bash
+# Install dependencies
+bun install
+
+# Run development server (with Turbopack)
+bun dev
+
+# Build for production
+bun run build
+
+# Run linting
+bun lint
+```
+
+### Git Workflow
+- Write meaningful commit messages
+- Use conventional commits when possible
+- Review changes before committing
+- DO NOT use `git push --force` without permission
+- DO NOT skip hooks (--no-verify) unless explicitly requested
+
+### Client/Server Boundaries
+Keep client/server boundaries clear. Understand when code runs where.
+
+```tsx
+// Server Component
+async function ServerComponent() {
+  'use server' // Optional annotation
+  const data = await fetchData() // Runs on server
+  return <ClientComponent data={data} />
+}
+
+// Client Component
+'use client'
+
+function ClientComponent({ data }) {
+  const [state, setState] = useState(data) // Runs on client
+  return <div>{state}</div>
+}
+```
+
+## Best Practices Summary
+
+1. **Type Safety**: Use TypeScript everywhere, avoid `any`
+2. **State Management**: React state first, Zustand for global needs
+3. **Performance**: Server components by default, code splitting for heavy components
+4. **Security**: Validate inputs, secure environment variables, server-side sensitive operations
+5. **Testing**: Write tests for critical paths, use debugging tools effectively
+6. **Code Quality**: Follow linting rules, maintain consistent style, write meaningful documentation
+7. **Development**: Use Bun, follow git best practices, understand client/server boundaries
+
+Last updated: 2025-10-07

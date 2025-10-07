@@ -9,7 +9,14 @@ export function useFluidSim() {
   const sheet = useCurrentSheet()
   const gl = useThree((state) => state.gl)
   const size = useThree((state) => state.size)
-  const fluid = new Fluid(gl, { size: 128 })
+
+  // Use ref to ensure fluid is only created once
+  const fluidRef = useRef<Fluid | null>(null)
+  if (!fluidRef.current) {
+    fluidRef.current = new Fluid(gl, { size: 128 })
+  }
+  const fluid = fluidRef.current
+
   const lastMouseRef = useRef({ x: 0, y: 0, isInit: false })
 
   // Setup mouse event listeners

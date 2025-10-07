@@ -1,5 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { types } from '@theatre/core'
+import { useRef } from 'react'
 import { useCurrentSheet } from '~/orchestra/theatre'
 import { useTheatre } from '~/orchestra/theatre/hooks/use-theatre'
 import { Flowmap } from '~/webgl/utils/flowmaps/flowmap-sim'
@@ -7,8 +8,13 @@ import { Flowmap } from '~/webgl/utils/flowmaps/flowmap-sim'
 export function useFlowmapSim() {
   const sheet = useCurrentSheet()
   const gl = useThree((state) => state.gl)
-  // React Compiler handles memoization automatically
-  const flowmap = new Flowmap(gl, { size: 128 })
+
+  // Use ref to ensure flowmap is only created once
+  const flowmapRef = useRef<Flowmap | null>(null)
+  if (!flowmapRef.current) {
+    flowmapRef.current = new Flowmap(gl, { size: 128 })
+  }
+  const flowmap = flowmapRef.current
 
   useTheatre(
     sheet,

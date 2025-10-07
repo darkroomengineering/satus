@@ -2,228 +2,422 @@
 alwaysApply: true
 ---
 ---
-description: Component creation guidelines
-globs: *.tsx, *.jsx, *.css, *.js, *.ts
+description: React component patterns and WebGL integration
+globs: *.tsx, *.jsx, *.js, *.ts
 ---
+
+# Component Guidelines
 
 ## Imports and Dependencies
 
-1. **Utility Functions**
-   - Always use `cn` from `clsx` for className conditionals
-   ```tsx
-   import cn from 'clsx'
-   
-   function MyComponent({ className }) {
-     return <div className={cn(s.component, className)} />
-   }
-   ```
+### Utility Functions
+Always use `cn` from `clsx` for className conditionals
 
-2. **Base UI Components**
-   - Use components from `@base-ui-components/react` when available
-   ```tsx
-   import { Select } from '@base-ui-components/react/select'
-   ```
+```tsx
+import cn from 'clsx'
 
-3. **Animation Libraries**
-   - Use `gsap` for complex animations
-   - Use `lenis` for smooth scrolling
-   - Use `tempus` for timing utilities
-   - Use `hamo` for DOM utilities
+function MyComponent({ className }) {
+  return <div className={cn(s.component, className)} />
+}
+```
+
+### Base UI Components
+Use components from `@base-ui-components/react` when available
+
+```tsx
+import { Select } from '@base-ui-components/react/select'
+```
+
+### Animation Libraries
+- Use `gsap` for complex animations
+- Use `lenis` for smooth scrolling
+- Use `tempus` for timing utilities
+- Use `hamo` for DOM utilities
 
 ## Component Structure
 
-1. **CSS Modules**
-   - Use CSS modules for component styling
-   - Import styles as `s`
-   ```tsx
-   import s from './component-name.module.css'
-   ```
+### CSS Modules
+Use CSS modules for component styling. Import styles as `s`
 
-2. **Client Components**
-   - Add 'use client' directive for client components
-   ```tsx
-   'use client'
-   
-   import { useState } from 'react'
-   ```
+```tsx
+import s from './component-name.module.css'
+```
 
-3. **Props Interface**
-   - Define props interface at the top of the file
-   - Extend HTML attributes when appropriate
-   - Use proper type imports
-   ```tsx
-   import type { ComponentProps } from 'react'
-   
-   interface ButtonProps extends ComponentProps<'button'> {
-     variant?: 'primary' | 'secondary'
-     size?: 'sm' | 'md' | 'lg'
-   }
-   ```
+### Client Components
+Add 'use client' directive for client components
 
-4. **React 19 Ref Handling**
-   - In React 19, ref is passed as a regular prop (no forwardRef needed)
-   ```tsx
-   // Old pattern (React 18)
-   // const Button = forwardRef<HTMLButtonElement, ButtonProps>(...)
-   
-   // New pattern (React 19)
-   function Button({ ref, variant = 'primary', ...props }: ButtonProps & { ref?: React.Ref<HTMLButtonElement> }) {
-     return <button ref={ref} {...props} />
-   }
-   ```
+```tsx
+'use client'
 
-5. **Default Exports**
-   - Use named function declarations for components
-   - Export the component as default
-   ```tsx
-   function Button({ variant = 'primary', size = 'md', ...props }: ButtonProps) {
-     // component logic
-   }
-   
-   export default Button
-   ```
+import { useState } from 'react'
+```
 
-## WebGL Components
+### Props Interface
+Define props interface at the top of the file. Extend HTML attributes when appropriate.
 
-1. **Three.js Integration**
-   - Use React Three Fiber for Three.js integration
-   - Import components from `@react-three/drei` for common 3D needs
-   ```tsx
-   import { Canvas } from '~/webgl/components/canvas'
-   import { useThree } from '@react-three/fiber'
-   import { OrbitControls } from '@react-three/drei'
-   ```
+```tsx
+import type { ComponentProps } from 'react'
 
-2. **WebGL Structure**
-   - Separate Three.js components from React components
-   - Use a `.webgl.tsx` file for Three.js specific logic
-   ```tsx
-   // component.tsx
-   import WebGL from './component.webgl'
-   
-   // component.webgl.tsx
-   export default function WebGL() {
-     // Three.js specific code
-   }
-   ```
+interface ButtonProps extends ComponentProps<'button'> {
+  variant?: 'primary' | 'secondary'
+  size?: 'sm' | 'md' | 'lg'
+}
+```
+
+### React 19 Ref Handling
+In React 19, ref is passed as a regular prop (no forwardRef needed)
+
+```tsx
+// Old pattern (React 18)
+// const Button = forwardRef<HTMLButtonElement, ButtonProps>(...)
+
+// New pattern (React 19)
+function Button({ ref, variant = 'primary', ...props }: ButtonProps & { ref?: React.Ref<HTMLButtonElement> }) {
+  return <button ref={ref} {...props} />
+}
+```
+
+### Default Exports
+Use named function declarations for components. Export the component as default.
+
+```tsx
+function Button({ variant = 'primary', size = 'md', ...props }: ButtonProps) {
+  // component logic
+}
+
+export default Button
+```
 
 ## Form Components
 
-1. **Form Handling**
-   - Use custom form hooks when appropriate
-   - Connect to integrations for external services
-   - Implement proper validation
-   ```tsx
-   import { useForm } from '~/components/form/hook'
-   import { HubspotNewsletterAction } from '~/integrations/hubspot/action'
-   ```
+### Form Handling
+- Use custom form hooks when appropriate
+- Connect to integrations for external services
+- Implement proper validation
 
-2. **Server Actions**
-   - Use Server Actions for form submissions when possible
-   - Implement proper error handling
-   ```tsx
-   async function submitForm(formData: FormData) {
-     'use server'
-     // server-side logic
-   }
-   ```
+```tsx
+import { useForm } from '~/components/form/hook'
+import { HubspotNewsletterAction } from '~/integrations/hubspot/action'
+```
+
+### Server Actions
+Use Server Actions for form submissions when possible. Implement proper error handling.
+
+```tsx
+async function submitForm(formData: FormData) {
+  'use server'
+  // server-side logic
+}
+```
 
 ## Responsive Design
 
-1. **Device Detection**
-   - Use `useDeviceDetection` hook from `~/hooks` for responsive logic
-   ```tsx
-   import { useDeviceDetection } from '~/hooks/use-device-detection'
-   
-   function ResponsiveComponent() {
-     const { isMobile } = useDeviceDetection()
-     return isMobile ? <MobileVersion /> : <DesktopVersion />
-   }
-   ```
+### Device Detection
+Use `useDeviceDetection` hook from `~/hooks` for responsive logic
 
-2. **Viewport Units**
-   - Use custom viewport units for responsive values
-   ```css
-   .element {
-     width: mobile-vw(150);
-     margin-top: desktop-vh(100);
-   }
-   ```
+```tsx
+import { useDeviceDetection } from '~/hooks/use-device-detection'
+
+function ResponsiveComponent() {
+  const { isMobile } = useDeviceDetection()
+  return isMobile ? <MobileVersion /> : <DesktopVersion />
+}
+```
+
+### Viewport Units
+Use custom viewport units for responsive values (see styling.mdc for details)
+
+```css
+.element {
+  width: mobile-vw(150);
+  margin-top: desktop-vh(100);
+}
+```
 
 ## Performance Best Practices
 
-1. **Code Splitting**
-   - Use `next/dynamic` for heavy components
-   ```tsx
-   import dynamic from 'next/dynamic'
-   
-   const HeavyComponent = dynamic(() => import('./HeavyComponent'), {
-     loading: () => <div>Loading...</div>,
-     ssr: false // if needed
-   })
-   ```
+### Code Splitting
+Use `next/dynamic` for heavy components
 
-2. **Image Optimization**
-   - **Always use the custom `Image` component (`~/components/image`) for all images. Do not use `next/image` directly.**
-   - **In WebGL contexts, use `webgl/components/image`, which wraps the custom `Image` component for DOM fallback and WebGL texture integration.**
-   ```tsx
-   import { Image } from '~/components/image'
-   // For WebGL:
-   import { Image as WebGLImage } from '~/webgl/components/image'
-   ```
+```tsx
+import dynamic from 'next/dynamic'
 
-3. **Memoization and React Compiler**
-   - **React Compiler is enabled and handles ALL optimization automatically.**
-   - **DO NOT use `useMemo`, `useCallback`, or `React.memo` in new code.**
-   - The compiler optimizes all component re-renders, memoization, and dependencies automatically.
-   - Only use manual memoization if you encounter a proven edge case where the compiler cannot optimize (extremely rare).
-   - If you see these in existing code, they can likely be removed safely.
-   - Refer to the [React Compiler documentation](mdc:https:/react.dev/reference/react/compiler) for edge cases.
-   
-   ```tsx
-   // ❌ DON'T: Manual memoization (compiler handles this)
-   const memoizedValue = useMemo(() => computeExpensive(a, b), [a, b])
-   const memoizedCallback = useCallback(() => doSomething(a), [a])
-   
-   // ✅ DO: Let React Compiler optimize automatically
-   const value = computeExpensive(a, b)
-   const handleClick = () => doSomething(a)
-   ```
+const HeavyComponent = dynamic(() => import('./HeavyComponent'), {
+  loading: () => <div>Loading...</div>,
+  ssr: false // if needed
+})
+```
 
-## Development vs Production
-
-1. **Development-Only Features**
-   - **Console logs are automatically stripped in production** by Next.js compiler (except `console.error` and `console.warn`)
-   - **Always gate debug UI components** - these are NOT automatically removed
-   - **Gate expensive debug computations** - avoid running heavy operations in production
-   ```tsx
-   // ✅ Simple logs: Optional to gate (Next.js strips them automatically)
-   console.log('Debug info:', data)
-   
-   // ✅ Better: Gate expensive operations to avoid computation overhead
-   if (process.env.NODE_ENV === 'development') {
-     console.log('Heavy computation:', expensiveDebugCalculation())
-   }
-   
-   // ⚠️ REQUIRED: Always gate debug UI components (not auto-removed)
-   {process.env.NODE_ENV === 'development' && <DebugPanel />}
-   {process.env.NODE_ENV === 'development' && <Stats />}
-   ```
-
-2. **Bundle Size Optimization**
-   - Keep production bundles minimal by excluding dev-only code
-   - Use tree-shaking friendly imports
-   - Check bundle size impact of new dependencies
-   - Debug UI components must be gated (Next.js won't remove them automatically)
+### Memoization
+See main.mdc for React Compiler guidance - manual memoization is rarely needed.
 
 ## Error Handling
 
-1. **Error Boundaries**
-   - Implement error boundaries for critical sections
-   - Provide meaningful fallback UI
+### Error Boundaries
+Implement error boundaries for critical sections. Provide meaningful fallback UI.
 
-2. **Loading States**
-   - Always handle loading states
-   - Use Suspense boundaries where appropriate
+### Loading States
+Always handle loading states. Use Suspense boundaries where appropriate.
 
-Last updated: 2025-06-01 
+---
+
+# WebGL Components
+
+## React Three Fiber Setup
+
+### Canvas Component
+Use the custom Canvas wrapper from `~/webgl/components/canvas`
+
+```tsx
+import { Canvas } from '~/webgl/components/canvas'
+
+function Scene() {
+  return (
+    <Canvas
+      camera={{ position: [0, 0, 5], fov: 50 }}
+      gl={{ antialias: true, alpha: true }}
+    >
+      {/* 3D content */}
+    </Canvas>
+  )
+}
+```
+
+### Performance Optimization
+- Use `frameloop="demand"` for static scenes
+- Implement LOD (Level of Detail) for complex models
+- Use instancing for repeated geometries
+
+```tsx
+<Canvas frameloop="demand">
+  <PerformanceMonitor onDecline={() => setDpr(0.5)} />
+</Canvas>
+```
+
+## WebGL File Organization
+
+Separate WebGL logic into `webgl.tsx` files. Keep React logic in main component files.
+
+```
+components/
+  scene/
+    index.tsx         # React component
+    webgl.tsx         # Three.js logic
+    scene.module.css  # Styles
+```
+
+### WebGL Component Pattern
+
+```tsx
+// scene/webgl.tsx
+import { useFrame } from '@react-three/fiber'
+import { useRef } from 'react'
+import type { Mesh } from 'three'
+
+export default function SceneWebGL() {
+  const meshRef = useRef<Mesh>(null)
+  
+  useFrame((state, delta) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.y += delta
+    }
+  })
+  
+  // Simple logs are auto-stripped in production by Next.js
+  console.log('SceneWebGL rendered')
+  
+  return (
+    <mesh ref={meshRef}>
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial color="hotpink" />
+    </mesh>
+  )
+}
+```
+
+## Drei Components
+
+### Common Helpers
+Use Drei components for common functionality
+
+```tsx
+import {
+  OrbitControls,
+  PerspectiveCamera,
+  Environment,
+  useGLTF,
+  useTexture
+} from '@react-three/drei'
+```
+
+### Loading Assets
+Preload assets using Drei hooks. Implement proper loading states.
+
+```tsx
+// Preload in separate component
+function Preload() {
+  const start = performance.now()
+  useGLTF.preload('/models/model.glb')
+  useTexture.preload('/textures/texture.jpg')
+  // Console logs auto-stripped in production by Next.js
+  console.log(`Preload took ${performance.now() - start}ms`)
+  return null
+}
+```
+
+## Custom Shaders
+
+### Shader Materials
+Use template literals for GLSL. Implement proper uniforms.
+
+```tsx
+import { shaderMaterial } from '@react-three/drei'
+import { extend } from '@react-three/fiber'
+
+const CustomMaterial = shaderMaterial(
+  { uTime: 0, uColor: new THREE.Color(0.0, 0.0, 0.0) },
+  vertexShader,
+  fragmentShader
+)
+
+extend({ CustomMaterial })
+```
+
+### GLSL Best Practices
+- Keep shaders in separate files when complex
+- Use proper precision qualifiers
+- Comment complex calculations
+
+```glsl
+precision mediump float;
+
+uniform float uTime;
+varying vec2 vUv;
+
+void main() {
+  // Shader logic
+}
+```
+
+## Animation & Interaction
+
+### Animation Loops
+Use `useFrame` for frame-based animations. Consider performance impact.
+
+```tsx
+useFrame((state, delta) => {
+  // Animation logic
+}, priority) // Lower priority = runs first
+```
+
+### Interaction
+Use Drei's interaction helpers. Implement proper hover/click states.
+
+```tsx
+import { useCursor } from '@react-three/drei'
+
+function InteractiveObject() {
+  const [hovered, setHovered] = useState(false)
+  useCursor(hovered)
+  
+  return (
+    <mesh
+      onPointerOver={() => setHovered(true)}
+      onPointerOut={() => setHovered(false)}
+    >
+      {/* geometry and material */}
+    </mesh>
+  )
+}
+```
+
+## Post-Processing
+
+### Effect Composer
+Use postprocessing library for effects. Chain effects efficiently.
+
+```tsx
+import { EffectComposer, Bloom, ChromaticAberration } from '@react-three/postprocessing'
+
+function Effects() {
+  return (
+    <EffectComposer>
+      <Bloom intensity={1.5} />
+      <ChromaticAberration offset={[0.002, 0.002]} />
+    </EffectComposer>
+  )
+}
+```
+
+### Performance Considerations
+- Limit number of passes
+- Use lower resolution for effects when possible
+- Profile performance impact
+
+## WebGL Best Practices
+
+### Memory Management
+Dispose of geometries and materials when components unmount. Clean up in useEffect return for complex resources. React Compiler handles most cleanup automatically.
+
+```tsx
+useEffect(() => {
+  // Only for complex resources that need explicit disposal
+  return () => {
+    geometry.dispose()
+    material.dispose()
+    texture.dispose()
+  }
+}, [geometry, material, texture])
+```
+
+### Performance Optimization
+See main.mdc for React Compiler guidance. For WebGL-specific object instantiation, always use `useRef`:
+
+```tsx
+// ⚠️ EXCEPTION: Object instantiation MUST use useRef to prevent infinite loops
+// Creating new objects on every render creates new references that trigger effects
+
+// ❌ DON'T: This causes infinite re-renders
+const flowmap = new Flowmap()
+
+// ✅ DO: Use useRef for object instantiation
+const flowmapRef = useRef<Flowmap | null>(null)
+if (!flowmapRef.current) {
+  flowmapRef.current = new Flowmap(gl, { size: 128 })
+}
+const flowmap = flowmapRef.current
+```
+
+### Responsive Design
+Handle window resizing. Adjust quality based on device capabilities.
+
+```tsx
+const { viewport } = useThree()
+// Use viewport.width, viewport.height for responsive sizing
+```
+
+### Debugging
+- Use Theatre.js for animation debugging
+- Enable WebGL inspector in development
+- **Always gate debug UI components** - these are NOT auto-removed
+- Simple console logs are auto-stripped in production by Next.js
+
+```tsx
+// Simple logs: Auto-stripped in production
+console.log('WebGL state:', { fps, drawCalls, triangles })
+
+// Debug components: MUST be gated (not auto-removed)
+{process.env.NODE_ENV === 'development' && <Stats />}
+{process.env.NODE_ENV === 'development' && <Perf />}
+```
+
+### Mobile Optimization
+- Reduce polygon count for mobile
+- Use simpler shaders
+- Implement touch controls
+
+```tsx
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+```
+
+Last updated: 2025-10-07

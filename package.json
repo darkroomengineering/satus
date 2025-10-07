@@ -49,7 +49,6 @@
     "postprocessing": "^6.37.8",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "sanity-plugin-link-field": "^1.4.2",
     "server-only": "^0.0.1",
     "tempus": "1.0.0-dev.12",
     "three": "^0.180.0",

@@ -1,5 +1,4 @@
 import { defineField, defineType } from 'sanity'
-import { extendedLinkField } from '../objects/link'
 
 export const navigation = defineType({
   name: 'navigation',
@@ -27,12 +26,10 @@ export const navigation = defineType({
               type: 'image',
               title: 'Logo',
             }),
-            extendedLinkField({
+            defineField({
               name: 'socialMedia',
               title: 'Social Media',
-              options: {
-                enableText: false,
-              },
+              type: 'link',
             }),
           ],
         },

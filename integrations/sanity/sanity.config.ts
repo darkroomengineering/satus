@@ -10,7 +10,6 @@ import {
   presentationTool,
 } from 'sanity/presentation'
 import { structureTool } from 'sanity/structure'
-import { linkField } from 'sanity-plugin-link-field'
 import { apiVersion, dataset, previewURL, projectId } from './env'
 import { schema } from './schemaTypes'
 import { structure } from './structure'
@@ -91,9 +90,5 @@ export default defineConfig({
     // Vision is for querying with GROQ from inside the Studio
     // https://www.sanity.io/docs/the-vision-plugin
     visionTool({ defaultApiVersion: apiVersion }),
-    linkField({
-      // Optional: customize the link field behavior
-      linkableSchemaTypes: ['page', 'article'],
-    }),
   ],
 })

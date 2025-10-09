@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -24,7 +28,9 @@
       }
     ],
     "paths": {
-      "~/*": ["./*"]
+      "~/*": [
+        "./*"
+      ]
     }
   },
   "include": [
@@ -34,9 +40,13 @@
     "**/*.jsx",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
-, "app/(pages)/r3f/(components)/box/webgl.tsx"  ],
-  "exclude": ["node_modules"],
+    ".next/types/**/*.ts",
+    "app/(pages)/r3f/(components)/box/webgl.tsx",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
   "ts-node": {
     "esm": true
   }

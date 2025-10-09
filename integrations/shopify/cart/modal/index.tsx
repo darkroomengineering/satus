@@ -15,6 +15,27 @@ interface ModalContextType {
   closeCart: () => void
 }
 
+interface QuantityPayload {
+  merchandiseId: string
+  quantity: number
+}
+
+interface QuantityProps {
+  className?: string
+  payload: QuantityPayload
+}
+
+interface QuantityButtonProps {
+  formAction: () => void
+  className?: string
+  children: ReactNode
+}
+
+interface RemoveButtonProps {
+  merchandiseId: string
+  className?: string
+}
+
 const ModalContext = createContext<ModalContextType>({
   isOpen: false,
   openCart: () => {
@@ -150,16 +171,6 @@ const quantityAction: Record<'minus' | 'plus', number> = {
   plus: 1,
 }
 
-interface QuantityPayload {
-  merchandiseId: string
-  quantity: number
-}
-
-interface QuantityProps {
-  className?: string
-  payload: QuantityPayload
-}
-
 function Quantity({ className, payload }: QuantityProps) {
   const { updateCartItem } = useCartContext()
 
@@ -182,12 +193,6 @@ function Quantity({ className, payload }: QuantityProps) {
   )
 }
 
-interface QuantityButtonProps {
-  formAction: () => void
-  className?: string
-  children: ReactNode
-}
-
 function QuantityButton({
   formAction,
   className,
@@ -200,11 +205,6 @@ function QuantityButton({
       </button>
     </form>
   )
-}
-
-interface RemoveButtonProps {
-  merchandiseId: string
-  className?: string
 }
 
 function RemoveButton({ merchandiseId, className }: RemoveButtonProps) {

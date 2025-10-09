@@ -29,12 +29,19 @@ import { InputField } from '~/components/form/fields'
 export function LoginForm() {
   return (
     <Form action={'LoginCustomerAction'}>
-      <InputField type="email" id="email" placeholder="Email" required={true} />
+      <InputField
+        type="email"
+        id="email"
+        placeholder="Email"
+        required={true}
+        idx={0}
+      />
       <InputField
         type="password"
         id="password"
         placeholder="Password"
         required={true}
+        idx={1}
       />
       <SubmitButton defaultText="Login" />
     </Form>
@@ -49,19 +56,28 @@ export function RegisterForm() {
         id="firstName"
         placeholder="First Name"
         required={true}
+        idx={0}
       />
       <InputField
         type="text"
         id="lastName"
         placeholder="Last Name"
         required={true}
+        idx={1}
       />
-      <InputField type="email" id="email" placeholder="Email" required={true} />
+      <InputField
+        type="email"
+        id="email"
+        placeholder="Email"
+        required={true}
+        idx={2}
+      />
       <InputField
         type="password"
         id="password"
         placeholder="Password"
         required={true}
+        idx={3}
       />
       <SubmitButton defaultText="Register" />
     </Form>

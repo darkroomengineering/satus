@@ -2,8 +2,15 @@
 
 import cn from 'clsx'
 import { Messages, SubmitButton, useFormContext } from '~/components/form'
+import type { HubSpotParsedForm } from '~/integrations/hubspot/fetch-form'
 
-export const Subscribe = ({ idx = 0, form }) => {
+export const Subscribe = ({
+  idx = 0,
+  form,
+}: {
+  idx: number
+  form: HubSpotParsedForm
+}) => {
   const { errors, isActive, register } = useFormContext()
 
   return (
@@ -23,7 +30,7 @@ export const Subscribe = ({ idx = 0, form }) => {
           'border-2 border-black dr-rounded-6 dt:dr-rounded-8',
           'dr-px-19 dr-py-18 dr-pr-136 dt:py-0 dt:dr-px-18 dt:dr-pr-115'
         )}
-        placeholder={form?.inputs[idx]?.placeHolder ?? 'email'}
+        placeholder={form?.inputs[idx]?.placeholder ?? 'email'}
         required
         {...register(idx)}
       />

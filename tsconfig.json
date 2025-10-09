@@ -35,7 +35,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-  ],
+, "app/(pages)/r3f/(components)/box/webgl.tsx"  ],
   "exclude": ["node_modules"],
   "ts-node": {
     "esm": true

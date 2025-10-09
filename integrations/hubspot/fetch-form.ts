@@ -27,6 +27,41 @@ interface HubSpotLegalConsentOptions {
   consentToProcessText?: string
 }
 
+export interface HubSpotParsedForm {
+  portalId: string | undefined
+  id: string | null
+  inputs: Array<{
+    name: string
+    label: string
+    placeholder: string
+    required: boolean
+    hubspotType: string
+    type: string
+    hidden: boolean | undefined
+    helpText: string
+    options: string[]
+  }>
+  submitButton: {
+    text: string
+  }
+  legalConsent: {
+    required: boolean
+    subscriptionTypeId?: string
+    label?: string
+    disclaimer?: string[]
+  }
+  actions: {
+    redirect: boolean
+    redirectValue: any
+  }
+}
+
+// Also export the result type from getForm
+export interface HubSpotFormResult {
+  form?: HubSpotParsedForm
+  error?: string
+}
+
 // TODO: If only server side maybe use api-client
 async function hubspotFormApi(id: string | null) {
   const resp = await fetchWithTimeout(

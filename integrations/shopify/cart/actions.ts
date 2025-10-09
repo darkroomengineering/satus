@@ -10,17 +10,12 @@ import {
   removeFromCart,
   updateCart,
 } from '../index'
-
-interface CartLine {
-  id?: string
-  merchandise: {
-    id: string
-  }
-}
-
-interface CartData {
-  lines: CartLine[]
-}
+import type {
+  AddItemPayload,
+  Cart,
+  CartData,
+  UpdateItemQuantityPayload,
+} from '../types'
 
 export async function removeItem(
   _prevState: unknown,
@@ -56,11 +51,6 @@ export async function removeItem(
   }
 }
 
-interface AddItemPayload {
-  variantId: string
-  quantity?: number
-}
-
 export async function addItem(
   _prevState: unknown,
   { variantId, quantity = 1 }: AddItemPayload
@@ -89,11 +79,6 @@ export async function addItem(
   } catch (_e) {
     return 'Error adding item to cart'
   }
-}
-
-interface UpdateItemQuantityPayload {
-  merchandiseId: string
-  quantity: number
 }
 
 export async function updateItemQuantity(
@@ -138,11 +123,11 @@ export async function updateItemQuantity(
   }
 }
 
-export async function fetchCart(): Promise<unknown> {
+export async function fetchCart(): Promise<Cart | undefined> {
   const _cookies = await cookies()
   const cartId = _cookies.get('cartId')?.value
 
-  let cart: unknown
+  let cart: Cart | undefined
 
   if (cartId) {
     cart = await getCart(cartId)

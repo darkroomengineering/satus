@@ -2,59 +2,24 @@
 
 import type { ReactNode } from 'react'
 import { createContext, useContext, useOptimistic } from 'react'
+import type { Cart } from '../types'
 import { CartModal } from './modal'
 import type { CartAction } from './optimistic-utils'
 import { cartReconciler } from './optimistic-utils'
 
-export interface Cart {
-  id?: string
-  checkoutUrl: string
-  totalQuantity: number
-  lines: Array<{
-    id?: string
-    quantity: number
-    cost: {
-      totalAmount: {
-        amount: string
-        currencyCode: string
-      }
-    }
-    merchandise: {
-      id: string
-      title: string
-      selectedOptions: Array<{ name: string; value: string }>
-      product: {
-        id: string
-        handle: string
-        title: string
-        featuredImage: unknown
-      }
-    }
-  }>
-  cost: {
-    subtotalAmount: {
-      amount: string
-      currencyCode: string
-    }
-    totalAmount: {
-      amount: string
-      currencyCode: string
-    }
-    totalTaxAmount: {
-      amount: string
-      currencyCode: string
-    }
-  }
-}
-
 interface CartContextType {
-  cart?: Cart
+  cart?: Cart | undefined
   updateCartItem: (
     merchandiseId: string,
     updateType: 'plus' | 'minus' | 'delete'
   ) => void
   addCartItem: (variant: unknown, product: unknown, quantity?: number) => void
   totalQuantity: () => number
+}
+
+interface CartProviderProps {
+  children: ReactNode
+  cart?: Cart
 }
 
 const CartContext = createContext<CartContextType>({
@@ -69,11 +34,6 @@ const CartContext = createContext<CartContextType>({
 
 export function useCartContext(): CartContextType {
   return useContext(CartContext)
-}
-
-interface CartProviderProps {
-  children: ReactNode
-  cart?: Cart
 }
 
 export function CartProvider({ children, cart }: CartProviderProps) {

@@ -16,7 +16,7 @@ export default async function Hubspot() {
           formId={form?.id}
           action={'HubspotNewsletterAction'}
         >
-          <Subscribe form={form} />
+          <Subscribe form={form} idx={0} />
         </Form>
       </div>
     </Wrapper>

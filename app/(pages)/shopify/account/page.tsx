@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { Wrapper } from '~/app/(pages)/(components)/wrapper'
 import { getCustomer } from '~/integrations/shopify/customer/actions'
+import type { Customer } from '~/integrations/shopify/types'
 import { LoginForm, LogoutButton, RegisterForm } from '../(components)/customer'
 
 export default async function AccountPage() {
@@ -12,7 +13,7 @@ export default async function AccountPage() {
         <h1 className="p">My Account</h1>
         {customer ? (
           <Suspense fallback={<div>Loading...</div>}>
-            <CustomerInfo customer={customer} />
+            <CustomerInfo customer={customer as Customer} />
             <LogoutButton />
           </Suspense>
         ) : (
@@ -28,7 +29,7 @@ export default async function AccountPage() {
   )
 }
 
-function CustomerInfo({ customer }) {
+function CustomerInfo({ customer }: { customer: Customer }) {
   return (
     <>
       <h2>Welcome, {customer.firstName}!</h2>

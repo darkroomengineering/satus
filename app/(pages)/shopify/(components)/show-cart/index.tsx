@@ -3,7 +3,7 @@
 import cn from 'clsx'
 import { useCartModal } from '~/integrations/shopify/cart/modal'
 
-export const ShowCart = ({ className }) => {
+export const ShowCart = ({ className }: { className: string }) => {
   const { openCart } = useCartModal()
 
   return (

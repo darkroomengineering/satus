@@ -6,19 +6,19 @@ import { Activity, useEffect, useRef, useState } from 'react'
 import { WebGLTunnel } from '~/webgl/components/tunnel'
 
 const WebGLBox = dynamic(
-  () => import('./webgl').then(({ WebGLBox }) => WebGLBox),
+  () => import('./webgl.tsx').then(({ WebGLBox }) => WebGLBox),
   {
     ssr: false,
   }
 )
 
-export function Box({ className }) {
+export function Box({ className }: { className: string }) {
   const [setRectRef, rect] = useRect()
   const [isVisible, setIsVisible] = useState(true)
-  const elementRef = useRef(null)
+  const elementRef = useRef<HTMLDivElement | null>(null)
 
   // Combined ref callback
-  const setRefs = (element) => {
+  const setRefs = (element: HTMLDivElement | null) => {
     setRectRef(element)
     elementRef.current = element
   }

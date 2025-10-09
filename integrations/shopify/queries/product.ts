@@ -1,11 +1,11 @@
 import productFragment from '../fragments/product'
 
 export const getProductQuery = /* GraphQL */ `
-  query getProduct($handle: String!) {
-    product(handle: $handle) {
-      ...product
-    }
+query getProduct($handle: String, $id: ID) {
+  product(handle: $handle, id: $id) {
+    ...product
   }
+}
   ${productFragment}
 `
 

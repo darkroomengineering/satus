@@ -1,53 +1,14 @@
+import type {
+  Cart,
+  Product,
+  ProductVariant,
+} from '~/integrations/shopify/types'
 import { isEmptyArray } from '~/libs/utils'
 
-interface Money {
-  amount: string
-  currencyCode: string
-}
-
-interface CartCost {
-  subtotalAmount: Money
-  totalAmount: Money
-  totalTaxAmount: Money
-}
-
-interface ProductVariant {
-  id: string
-  title: string
-  selectedOptions: Array<{ name: string; value: string }>
-  price: Money
-}
-
-interface Product {
-  id: string
-  handle: string
-  title: string
-  featuredImage: unknown
-}
-
-interface Merchandise {
-  id: string
-  title: string
-  selectedOptions: Array<{ name: string; value: string }>
-  product: Product
-}
-
-interface CartLine {
-  id?: string
-  quantity: number
-  cost: {
-    totalAmount: Money
-  }
-  merchandise: Merchandise
-}
-
-interface Cart {
-  id?: string
-  checkoutUrl: string
-  totalQuantity: number
-  lines: CartLine[]
-  cost: CartCost
-}
+type CartLine = Pick<
+  Cart['lines'][number],
+  'id' | 'quantity' | 'cost' | 'merchandise'
+>
 
 interface UpdateItemAction {
   type: 'UPDATE_ITEM'

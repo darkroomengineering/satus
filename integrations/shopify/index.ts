@@ -28,26 +28,24 @@ import {
   getProductRecommendationsQuery,
   getProductsQuery,
 } from './queries/product'
+import type {
+  Cart,
+  CartLineInput,
+  Collection,
+  EdgeNode,
+  Image,
+  Product,
+  ProductVariant,
+  ShopifyCart,
+  ShopifyFetchOptions,
+  ShopifyImage,
+  ShopifyProduct,
+  ShopifyResponse,
+} from './types'
 
 const endpoint = `${process.env.SHOPIFY_STORE_DOMAIN || ''}${SHOPIFY_GRAPHQL_API_ENDPOINT}`
 const key = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN || ''
 const domain = process.env.SHOPIFY_STORE_DOMAIN || ''
-
-interface ShopifyFetchOptions {
-  cache?: RequestCache
-  headers?: HeadersInit
-  query: string
-  tags?: string[]
-  variables?: Record<string, unknown>
-}
-
-interface ShopifyResponse<T = Record<string, unknown>> {
-  status: number
-  body: {
-    data: T
-    errors?: Array<{ message: string }>
-  }
-}
 
 export async function shopifyFetch<T = Record<string, unknown>>({
   cache = 'force-cache',
@@ -105,37 +103,8 @@ export async function shopifyFetch<T = Record<string, unknown>>({
   }
 }
 
-interface EdgeNode<T> {
-  edges: Array<{ node: T }>
-}
-
 const removeEdgesAndNodes = <T>(array: EdgeNode<T>): T[] => {
   return array.edges.map((edge) => edge?.node)
-}
-
-interface Money {
-  amount: string
-  currencyCode: string
-}
-
-interface ShopifyCart {
-  cost: {
-    totalTaxAmount?: Money
-    subtotalAmount: Money
-    totalAmount: Money
-  }
-  lines: EdgeNode<unknown>
-  [key: string]: unknown
-}
-
-interface Cart {
-  cost: {
-    totalTaxAmount: Money
-    subtotalAmount: Money
-    totalAmount: Money
-  }
-  lines: unknown[]
-  [key: string]: unknown
 }
 
 const reshapeCart = (cart: ShopifyCart): Cart => {
@@ -150,20 +119,8 @@ const reshapeCart = (cart: ShopifyCart): Cart => {
       ...cart.cost,
       totalTaxAmount,
     },
-    lines: removeEdgesAndNodes(cart.lines),
+    lines: removeEdgesAndNodes(cart.lines) as Cart['lines'],
   }
-}
-
-interface Collection {
-  handle: string
-  title: string
-  description?: string
-  seo?: {
-    title: string
-    description: string
-  }
-  path?: string
-  updatedAt?: string
 }
 
 const reshapeCollection = (
@@ -197,17 +154,6 @@ const reshapeCollections = (
   return reshapedCollections
 }
 
-interface ShopifyImage {
-  url: string
-  altText?: string
-  width?: number
-  height?: number
-}
-
-interface Image extends ShopifyImage {
-  altText: string
-}
-
 const reshapeImages = (
   images: EdgeNode<ShopifyImage>,
   productTitle: string
@@ -221,22 +167,6 @@ const reshapeImages = (
       altText: image.altText || `${productTitle} - ${filename}`,
     }
   })
-}
-
-interface ShopifyProduct {
-  title: string
-  tags: string[]
-  images: EdgeNode<ShopifyImage>
-  variants: EdgeNode<unknown>
-  [key: string]: unknown
-}
-
-interface Product {
-  title: string
-  tags: string[]
-  images: Image[]
-  variants: unknown[]
-  [key: string]: unknown
 }
 
 const reshapeProduct = (
@@ -255,7 +185,7 @@ const reshapeProduct = (
   return {
     ...rest,
     images: reshapeImages(images, product.title),
-    variants: removeEdgesAndNodes(variants),
+    variants: removeEdgesAndNodes(variants) as ProductVariant[],
   }
 }
 
@@ -282,11 +212,6 @@ export async function createCart(): Promise<Cart> {
   })
 
   return reshapeCart(res.body.data.cartCreate.cart)
-}
-
-interface CartLineInput {
-  merchandiseId: string
-  quantity: number
 }
 
 export async function addToCart(
@@ -477,13 +402,19 @@ export async function getPages(): Promise<unknown[]> {
   return removeEdgesAndNodes(res.body.data.pages)
 }
 
-export async function getProduct(handle: string): Promise<Product | undefined> {
+export async function getProduct({
+  handle,
+  id,
+}: { handle: string; id?: string } | { id: string; handle?: string }): Promise<
+  Product | undefined
+> {
   const res = await shopifyFetch<{ product: ShopifyProduct | null }>({
     query: getProductQuery,
     tags: [TAGS.products],
     cache: 'no-store',
     variables: {
       handle,
+      id,
     },
   })
 

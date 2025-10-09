@@ -1,22 +1,11 @@
 'use client'
 
 import cn from 'clsx'
+import type { Product, ProductVariant } from '~/integrations/shopify/types'
 import { addItem } from '../actions'
 import { useCartContext } from '../cart-context'
 import { useCartModal } from '../modal'
 import s from './add-to-cart.module.css'
-
-interface ProductVariant {
-  id: string
-  price: {
-    amount: string
-    currencyCode: string
-  }
-}
-
-interface Product {
-  availableForSale: boolean
-}
 
 interface AddToCartProps {
   product: Product

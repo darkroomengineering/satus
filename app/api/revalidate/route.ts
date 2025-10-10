@@ -18,11 +18,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Revalidate the specific document type
-    revalidateTag(body._type)
+    revalidateTag(body._type, {})
 
     // If there's a slug, revalidate the specific page
     if (body.slug?.current) {
-      revalidateTag(`${body._type}:${body.slug.current}`)
+      revalidateTag(`${body._type}:${body.slug.current}`, {})
     }
 
     return NextResponse.json({

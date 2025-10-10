@@ -41,7 +41,7 @@ export async function removeItem(
 
     if (lineItem?.id) {
       await removeFromCart(cartId, [lineItem.id])
-      revalidateTag(TAGS.cart)
+      revalidateTag(TAGS.cart, {})
       return undefined
     }
 
@@ -73,7 +73,7 @@ export async function addItem(
 
   try {
     await addToCart(cartId, [{ merchandiseId: variantId, quantity }])
-    revalidateTag(TAGS.cart)
+    revalidateTag(TAGS.cart, {})
 
     return 'success'
   } catch (_e) {
@@ -116,7 +116,7 @@ export async function updateItemQuantity(
         quantity,
       },
     ])
-    revalidateTag(TAGS.cart)
+    revalidateTag(TAGS.cart, {})
     return undefined
   } catch (_e) {
     return 'Error updating item quantity'

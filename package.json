@@ -29,7 +29,7 @@
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-beta.4",
     "@hubspot/api-client": "^13.4.0",
-    "@next/third-parties": "^15.6.0-canary.54",
+    "@next/third-parties": "16.0.0-canary.0",
     "@portabletext/react": "^4.0.3",
     "@react-three/drei": "^10.7.6",
     "@react-three/fiber": "^9.3.0",
@@ -43,12 +43,12 @@
     "hamo": "1.0.0-dev.6",
     "just-debounce-it": "^3.2.0",
     "lenis": "^1.3.11",
-    "next": "^15.6.0-canary.54",
+    "next": "16.0.0-canary.0",
     "next-sanity": "^11.4.2",
     "postprocessing": "^6.37.8",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "tempus": "1.0.0-dev.12",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "tempus": "1.0.0-dev.15",
     "three": "^0.180.0",
     "tunnel-rat": "^0.1.2",
     "web-vitals": "^5.1.0",
@@ -57,16 +57,16 @@
   "devDependencies": {
     "@biomejs/biome": "2.2.5",
     "@csstools/postcss-global-data": "^3.1.0",
-    "@next/bundle-analyzer": "^15.6.0-canary.54",
+    "@next/bundle-analyzer": "16.0.0-canary.0",
     "@sanity/vision": "^4.10.2",
     "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4.1.14",
     "@theatre/core": "^0.7.2",
     "@theatre/studio": "^0.7.2",
     "@total-typescript/ts-reset": "^0.6.1",
-    "@types/bun": "^1.2.23",
-    "@types/node": "^24.7.0",
-    "@types/react": "^19.2.2",
+    "@types/bun": "^1.3.0",
+    "@types/node": "^24.7.1",
+    "@types/react": "19.2.2",
     "@types/three": "^0.180.0",
     "cross-env": "^10.1.0",
     "cssnano": "^7.1.1",
@@ -84,5 +84,8 @@
     "esbuild",
     "lefthook",
     "sharp"
-  ]
+  ],
+  "overrides": {
+    "@types/react": "19.2.2"
+  }
 }

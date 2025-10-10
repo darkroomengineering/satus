@@ -71,6 +71,8 @@ const nextConfig: NextConfig = {
     reactRemoveProperties: true,
   },
   experimental: {
+    turbopackFileSystemCacheForDev: true,
+    cacheComponents: true,
     optimizePackageImports: [
       '@react-three/drei',
       '@react-three/fiber',
@@ -81,9 +83,6 @@ const nextConfig: NextConfig = {
     ],
   },
   devIndicators: false,
-  // typescript: {
-  //   ignoreBuildErrors: true,
-  // },
   images: {
     dangerouslyAllowSVG: true,
     remotePatterns: [

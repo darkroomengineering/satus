@@ -72,7 +72,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     turbopackFileSystemCacheForDev: true,
-    cacheComponents: true,
+    // cacheComponents: true,
     optimizePackageImports: [
       '@react-three/drei',
       '@react-three/fiber',

@@ -54,7 +54,6 @@ app/
 - Includes global providers (RealViewport, GSAPRuntime, ReactTempus)
 - Conditionally loads Sanity visual editing in draft mode
 - Loads Orchestra debug tools (dev only)
-- Includes analytics (GTM, GA)
 
 **`loading.tsx`** - Global loading UI
 - Shows during page transitions

@@ -1,11 +1,8 @@
-import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google'
 import type { Metadata, Viewport } from 'next'
 import { draftMode } from 'next/headers'
 import { VisualEditing } from 'next-sanity/visual-editing'
 import type { PropsWithChildren } from 'react'
 import { ReactTempus } from 'tempus/react'
-import { PerformanceMonitor } from '~/components/performance-monitor'
-import { RoutePerformanceTracker } from '~/components/performance-monitor/route-tracker'
 import { RealViewport } from '~/components/real-viewport'
 import { DisableDraftMode } from '~/integrations/sanity/components/disable-draft-mode'
 import { OrchestraTools } from '~/orchestra'
@@ -24,9 +21,6 @@ const APP_TITLE_TEMPLATE = '%s - Satūs'
 const APP_DESCRIPTION = AppData.description
 const APP_BASE_URL =
   process.env.NEXT_PUBLIC_BASE_URL ?? 'https://localhost:3000'
-
-const GTM_ID = process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID
-const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_BASE_URL),
@@ -102,18 +96,12 @@ export default async function Layout({ children }: PropsWithChildren) {
       // NOTE: This is due to the data-theme attribute being set which causes hydration errors
       suppressHydrationWarning
     >
-      {/* Google Tag Manager - loads in <head> for optimal performance */}
-      {GTM_ID && <GoogleTagManager gtmId={GTM_ID} />}
       <body>
         {/* Critical: CSS custom properties needed for layout */}
         <RealViewport />
 
         {/* Main app content */}
         {children}
-
-        {/* Non-critical: Performance monitoring (singleton, lightweight) */}
-        <PerformanceMonitor />
-        <RoutePerformanceTracker />
 
         {/* Development tools - dynamically imported */}
         <OrchestraTools />
@@ -134,9 +122,6 @@ export default async function Layout({ children }: PropsWithChildren) {
 
         {/* Sanity Live - only if Sanity is configured */}
         {sanityConfigured && <SanityLive />}
-
-        {/* Analytics - loads async, non-blocking */}
-        {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
       </body>
     </html>
   )

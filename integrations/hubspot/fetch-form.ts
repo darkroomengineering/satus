@@ -52,7 +52,7 @@ export interface HubSpotParsedForm {
   }
   actions: {
     redirect: boolean
-    redirectValue: any
+    redirectValue: string | null
   }
 }
 

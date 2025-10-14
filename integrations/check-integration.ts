@@ -101,7 +101,6 @@ export function getConfiguredIntegrations(): string[] {
   if (isHubSpotConfigured()) integrations.push('HubSpot')
   if (isMailchimpConfigured()) integrations.push('Mailchimp')
   if (isMandrillConfigured()) integrations.push('Mandrill')
-  if (isAnalyticsConfigured()) integrations.push('Analytics')
   if (isTurnstileConfigured()) integrations.push('Turnstile')
 
   return integrations
@@ -118,7 +117,6 @@ export function getUnconfiguredIntegrations(): string[] {
   if (!isHubSpotConfigured()) integrations.push('HubSpot')
   if (!isMailchimpConfigured()) integrations.push('Mailchimp')
   if (!isMandrillConfigured()) integrations.push('Mandrill')
-  if (!isAnalyticsConfigured()) integrations.push('Analytics')
   if (!isTurnstileConfigured()) integrations.push('Turnstile')
 
   return integrations

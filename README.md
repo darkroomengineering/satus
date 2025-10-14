@@ -207,7 +207,6 @@ bun typecheck               # TypeScript validation
 
 # Utilities
 bun setup:styles            # Generate style files
-bun watch:styles            # Watch style changes
 bun validate:env            # Check environment variables
 bun cleanup:integrations    # List unused integrations
 bun analyze                 # Bundle analysis

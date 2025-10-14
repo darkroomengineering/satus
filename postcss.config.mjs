@@ -36,8 +36,6 @@ const postcssConfig = {
     'postcss-functions': { functions },
     // NOTE: This has to be last config
     'postcss-preset-env': presetEnvConfig,
-    // NOTE: This has to be last plugin as it minifies the css
-    cssnano: process.env.NODE_ENV === 'production' ? {} : false,
   },
 }
 

@@ -117,8 +117,7 @@ We use several PostCSS plugins to enhance our CSS capabilities:
 - `@csstools/postcss-global-data`: Global CSS context
 - `postcss-extend-rule`: CSS extension capabilities
 - Custom PostCSS functions
-- `postcss-preset-env`: Modern CSS features
-- `cssnano`: CSS optimization (production only)
+- `postcss-preset-env`: Modern CSS features (includes autoprefixer)
 
 ## Best Practices
 

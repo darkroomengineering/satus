@@ -1,10 +1,18 @@
 'use client'
 
-import debounce from 'just-debounce-it'
 import { useLayoutEffect } from 'react'
 import { mutate } from '~/libs/tempus-queue'
 
-//https://css-tricks.com/the-trick-to-viewport-units-on-mobile/
+function debounce<T extends (...args: unknown[]) => void>(
+  fn: T,
+  delay: number
+): T {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null
+  return ((...args: unknown[]) => {
+    if (timeoutId) clearTimeout(timeoutId)
+    timeoutId = setTimeout(() => fn(...args), delay)
+  }) as T
+}
 
 let cachedScrollbarWidth: number | null = null
 

@@ -72,7 +72,11 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     turbopackFileSystemCacheForDev: true,
-    // cacheComponents: true,
+    cacheComponents: true,
+    clientSegmentCache: true,
+    taint: true,
+    browserDebugInfoInTerminal: true,
+    // isolatedDevBuild: true,
     optimizePackageImports: [
       '@react-three/drei',
       '@react-three/fiber',

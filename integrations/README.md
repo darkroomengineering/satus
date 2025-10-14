@@ -263,9 +263,8 @@ Typical bundle size reductions when removing integrations:
 | HubSpot | ~30-50KB (API client) |
 | Mailchimp | ~10-20KB |
 | Mandrill | ~10-20KB |
-| Analytics | ~20-40KB (Google tag scripts) |
 
-**Total potential savings**: 250-400KB+ depending on which integrations you remove.
+**Total potential savings**: 250-360KB+ depending on which integrations you remove.
 
 ### Programmatic Usage
 

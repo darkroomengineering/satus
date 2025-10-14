@@ -183,17 +183,6 @@ function Scene() {
 }
 ```
 
-### Performance Optimization
-- Use `frameloop="demand"` for static scenes
-- Implement LOD (Level of Detail) for complex models
-- Use instancing for repeated geometries
-
-```tsx
-<Canvas frameloop="demand">
-  <PerformanceMonitor onDecline={() => setDpr(0.5)} />
-</Canvas>
-```
-
 ## WebGL File Organization
 
 Separate WebGL logic into `webgl.tsx` files. Keep React logic in main component files.

@@ -34,6 +34,10 @@ export function Theme({
 
   const [currentTheme, setCurrentTheme] = useState(theme)
 
+  useEffect(() => {
+    setCurrentTheme(theme)
+  }, [theme])
+
   // biome-ignore lint/correctness/useExhaustiveDependencies: we need to trigger on path change
   useEffect(() => {
     if (global) {

@@ -40,7 +40,9 @@ export function Studio() {
           if (!studio) return
 
           const id = window.THEATRE_PROJECT_ID
-          const json = studio.createContentOfSaveFile(window.THEATRE_PROJECT_ID)
+          if (!id) return
+
+          const json = studio.createContentOfSaveFile(id)
 
           const file = new File([JSON.stringify(json)], 'config.json', {
             type: 'application/json',

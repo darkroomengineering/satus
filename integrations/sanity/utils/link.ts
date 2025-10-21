@@ -10,13 +10,13 @@ export const urlForReference = (link: Link): string => {
   if (!link) return '#'
 
   // External URL
-  if (link.type === 'external' && link.url) {
-    return link.url
+  if (link.linkType === 'external' && link.externalUrl) {
+    return link.externalUrl
   }
 
   // Internal path (manual URL entry)
-  if (link.type === 'internal' && link.url) {
-    return link.url
+  if (link.linkType === 'internal' && link.internalLink) {
+    return link.internalLink._ref
   }
 
   // Internal reference (dereferenced document)
@@ -27,16 +27,6 @@ export const urlForReference = (link: Link): string => {
   ) {
     const ref = link.internalLink as InternalReference
     return resolveDocumentUrl(ref._type, ref.slug?.current)
-  }
-
-  // Email
-  if (link.email) {
-    return `mailto:${link.email}`
-  }
-
-  // Phone
-  if (link.phone) {
-    return `tel:${link.phone}`
   }
 
   return '#'
@@ -60,11 +50,12 @@ export const getLinkAttributes = (link: Link | null) => {
 
   const href = urlForReference(link)
   const isExternal =
-    link.type === 'external' || (link.url && !link.url.startsWith('/'))
+    link.linkType === 'external' ||
+    (link.externalUrl && !link.externalUrl.startsWith('/'))
 
   return {
     href,
-    target: isExternal && link.blank ? '_blank' : undefined,
-    rel: isExternal && link.blank ? 'noopener noreferrer' : undefined,
+    target: isExternal && link.openInNewTab ? '_blank' : undefined,
+    rel: isExternal && link.openInNewTab ? 'noopener noreferrer' : undefined,
   }
 }

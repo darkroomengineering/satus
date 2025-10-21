@@ -95,8 +95,7 @@ export type Page = {
 
 export type Link = {
   _type: 'link'
-  text?: string
-  type?: string
+  linkType?: 'internal' | 'external'
   internalLink?:
     | {
         _ref: string
@@ -110,13 +109,9 @@ export type Link = {
         _weak?: boolean
         [internalGroqTypeReferenceTo]?: 'article'
       }
-  url?: string
-  email?: string
-  phone?: string
-  value?: string
-  blank?: boolean
-  parameters?: string
-  anchor?: string
+  externalUrl?: string
+  text?: string
+  openInNewTab?: boolean
 }
 
 export type Metadata = {

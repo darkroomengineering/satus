@@ -5,7 +5,6 @@ import type { PropsWithChildren } from 'react'
 import { ReactTempus } from 'tempus/react'
 import { RealViewport } from '~/components/real-viewport'
 import { DisableDraftMode } from '~/integrations/sanity/components/disable-draft-mode'
-import { OrchestraTools } from '~/orchestra'
 import AppData from '~/package.json'
 import { themes } from '~/styles/colors'
 import '~/styles/css/index.css'
@@ -13,6 +12,7 @@ import '~/styles/css/index.css'
 import { GSAPRuntime } from '~/components/gsap/runtime'
 import { isSanityConfigured } from '~/integrations/check-integration'
 import { SanityLive } from '~/integrations/sanity/live'
+import { OrchestraTools } from '~/orchestra'
 import { fontsVariable } from '~/styles/fonts'
 
 const APP_NAME = AppData.name
@@ -41,9 +41,7 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
     title: APP_DEFAULT_TITLE,
   },
-  formatDetection: {
-    telephone: false,
-  },
+  formatDetection: { telephone: false },
   openGraph: {
     type: 'website',
     siteName: APP_NAME,
@@ -85,7 +83,7 @@ export const viewport: Viewport = {
 }
 
 export default async function Layout({ children }: PropsWithChildren) {
-  const isDraftMode = (await draftMode()).isEnabled
+  const { isEnabled: isDraftMode } = await draftMode()
   const sanityConfigured = isSanityConfigured()
 
   return (
@@ -117,11 +115,9 @@ export default async function Layout({ children }: PropsWithChildren) {
           <>
             <VisualEditing />
             <DisableDraftMode />
+            <SanityLive />
           </>
         )}
-
-        {/* Sanity Live - only if Sanity is configured */}
-        {sanityConfigured && <SanityLive />}
       </body>
     </html>
   )

@@ -70,9 +70,9 @@ const nextConfig: NextConfig = {
         : false,
     reactRemoveProperties: true,
   },
+  cacheComponents: true,
   experimental: {
     turbopackFileSystemCacheForDev: true,
-    cacheComponents: true,
     clientSegmentCache: true,
     taint: true,
     browserDebugInfoInTerminal: true,

@@ -10,12 +10,12 @@ globs: *.tsx, *.jsx, *.css, *.js, *.ts
 
 ## Technology Stack
 
-- **Next.js 15.6.0** - App Router with Turbopack support
+- **Next.js 16.0.1** - App Router with Turbopack support and Cache Components
 - **React 19.2.0** - Latest features including `<Activity />`, `useEffectEvent`, and `cacheSignal`
 - **React Compiler enabled** - Automatically optimizes most component re-renders and memoization; manual memoization is rarely needed
 - **TypeScript** - Strict mode enabled
-- **Tailwind CSS 4.1.14** - CSS-first configuration
-- **Biome 2.2.5** - Linting and formatting
+- **Tailwind CSS 4.1.16** - CSS-first configuration
+- **Biome 2.3.3** - Linting and formatting
 - **Bun** - JavaScript runtime and package manager
 
 ## React 19.2 New Features
@@ -216,7 +216,7 @@ validateEnv(['NEXT_PUBLIC_API_KEY', 'DATABASE_URL'])
 
 // Fetch with timeout
 import { fetchWithTimeout } from '~/libs/fetch-with-timeout'
-const response = await fetchWithTimeout(url, options, 10000)
+const response = await fetchWithTimeout(url, { timeout: 10000, ...options })
 
 // Generate metadata
 import { generateSanityMetadata } from '~/libs/metadata'
@@ -241,5 +241,40 @@ These best practices are regularly updated to reflect:
 - Improved patterns and practices
 - Community feedback and learnings
 - Project-specific requirements
+
+## Next.js 16 Cache Components
+
+Cache Components are enabled globally (`cacheComponents: true` in `next.config.ts`). This provides advanced caching strategies for Server Components.
+
+### Important Gotchas
+
+**1. Server Components Only**
+- Cache Components work only in Server Components
+- Client Components (`'use client'`) cannot use Cache Components
+- Move data fetching to Server Components, pass props to Client Components
+
+**2. Suspense Boundaries Required**
+- Cached components must be wrapped in Suspense boundaries
+- Use proper loading fallbacks for better UX
+
+**3. User-Specific Data**
+- ❌ **Never cache** personalized data (user profiles, cart contents, private content)
+- ✅ **Always use** `cache: 'no-store'` for user-specific requests
+- Example: Shopping carts, user accounts, private content
+
+**4. Real-Time Data**
+- Live feeds, stock prices, chat messages should use `cache: 'no-store'`
+- Only cache data that doesn't change frequently
+
+**5. Testing Caching**
+- Hard refresh (`Cmd+Shift+R`) bypasses router cache
+- Normal navigation uses router cache
+- Test both behaviors, especially with dynamic routes
+- Development and production behave differently
+
+**6. Cache Invalidation**
+- Use `revalidateTag()` or `revalidatePath()` in webhook handlers
+- Set proper cache tags: `next: { tags: ['products'] }`
+- Dynamic routes require careful cache tag management
 
 Last updated: 2025-10-07

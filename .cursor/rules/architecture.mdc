@@ -170,7 +170,7 @@ const HeavyComponent = dynamic(() => import('./HeavyComponent'), {
 ```
 
 ### Caching Strategies
-Follow Next.js recommended caching strategies. Use appropriate revalidation times.
+Follow Next.js 16 recommended caching strategies. Use appropriate revalidation times.
 
 ```tsx
 // Static generation with revalidation
@@ -186,7 +186,51 @@ export async function fetchData() {
   })
   return res.json()
 }
+
+// User-specific data - NEVER cache
+export async function fetchUserCart(userId: string) {
+  const res = await fetch(`https://api.example.com/cart/${userId}`, {
+    cache: 'no-store' // Required for user-specific data
+  })
+  return res.json()
+}
 ```
+
+### Cache Components (Next.js 16)
+
+Cache Components are enabled globally (`cacheComponents: true`). Key considerations:
+
+**Suspense Boundaries:**
+```tsx
+import { Suspense } from 'react'
+
+export default async function Page() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <DataComponent />
+    </Suspense>
+  )
+}
+```
+
+**Cache Invalidation:**
+```tsx
+import { revalidateTag, revalidatePath } from 'next/cache'
+
+// In webhook handlers
+export async function POST(request: Request) {
+  revalidateTag('products')
+  // or
+  revalidatePath('/products/[slug]', 'page')
+  return Response.json({ revalidated: true })
+}
+```
+
+**⚠️ Critical Rules:**
+- User-specific data: Always use `cache: 'no-store'`
+- Real-time data: Always use `cache: 'no-store'`
+- Test with hard refresh AND navigation
+- Wrap data fetching in Suspense boundaries
 
 ### Asset Optimization
 - Always use the custom `Image` component (`~/components/image`)

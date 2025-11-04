@@ -8,8 +8,9 @@ This directory contains consolidated Cursor AI rules for the Satus project. The 
 **Purpose**: High-level overview and concerns that apply across the entire project
 
 **Contents**:
-- Technology stack (Next.js 15.6, React 19.2, Tailwind v4, Bun)
+- Technology stack (Next.js 16.0.1, React 19.2, Tailwind 4.1.16, Biome 2.3.3, Bun)
 - React 19.2 new features (`<Activity />`, `useEffectEvent`, `cacheSignal`)
+- Next.js 16 Cache Components gotchas and best practices
 - File organization
 - React Compiler & memoization guidelines (single source of truth)
 - Image optimization guidelines (single source of truth)
@@ -64,10 +65,11 @@ This directory contains consolidated Cursor AI rules for the Satus project. The 
 **Purpose**: Guidelines for all third-party service integrations
 
 **Contents**:
-- **Sanity CMS**: Configuration, schema management, GROQ queries, visual editing, TypeScript generation
-- **Shopify**: API configuration, product management, cart operations
+- **Sanity CMS**: Configuration, schema management, GROQ queries, visual editing, TypeScript generation, cacheSignal integration
+- **Shopify**: API configuration, product management, cart operations, cacheSignal integration
 - **HubSpot**: Form integration, newsletter subscriptions
 - General best practices (environment variables, API resilience, error handling)
+- Cache Components gotchas for integrations (user-specific data, real-time data)
 - Type safety and performance
 - Security and integration management
 - Webhook handling
@@ -85,6 +87,7 @@ This directory contains consolidated Cursor AI rules for the Satus project. The 
 - Routing & navigation (Next.js App Router, Link component)
 - Metadata & SEO
 - Performance (server components, code splitting, caching)
+- Cache Components (Next.js 16) - Suspense, invalidation, gotchas
 - Security (environment variables, input validation, authentication)
 - Testing & debugging (unit tests, debugging tools, error boundaries)
 - Code quality (linting, formatting, code organization)
@@ -198,17 +201,17 @@ When adding new guidelines:
 
 | File | Purpose | Lines | Key Topics |
 |------|---------|-------|------------|
-| `main.mdc` | Overview & Cross-cutting | 244 | Tech stack, React 19.2, React Compiler, Images, Dev/Prod |
+| `main.mdc` | Overview & Cross-cutting | ~270 | Tech stack (Next.js 16), React 19.2, Cache Components, React Compiler, Images, Dev/Prod |
 | `components.mdc` | React & WebGL | 467 | Components, Forms, WebGL, Three.js, Shaders, Activity |
 | `styling.mdc` | All Styling | 467 | CSS Modules, Tailwind v4, Responsive, Custom utilities |
-| `integrations.mdc` | Third-party Services | 451 | Sanity, Shopify, HubSpot, Best practices |
-| `architecture.mdc` | Patterns & Quality | 391 | State, Routing, Performance, Security, Testing |
+| `integrations.mdc` | Third-party Services | ~470 | Sanity, Shopify, HubSpot, Cache Components gotchas, cacheSignal |
+| `architecture.mdc` | Patterns & Quality | ~420 | State, Routing, Performance, Cache Components, Security, Testing |
 
 **Total**: 2,020 lines of consolidated, focused guidelines
 
 ---
 
-Last updated: 2025-10-08
+Last updated: 2025-10-07
 
 For questions or suggestions about these rules, contact the development team.
 

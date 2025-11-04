@@ -129,33 +129,27 @@ export function MyComponent() {
 ```
 
 ### Data Fetching
-Use proper perspective for draft vs published content. Implement caching strategies for performance. Handle errors gracefully with try-catch. Import from `/integrations/sanity` directory. Use `~/libs/metadata` helpers for SEO optimization.
+Use proper perspective for draft vs published content. Implement caching strategies for performance. Handle errors gracefully with try-catch. Import from `/integrations/sanity` directory. Use `~/libs/metadata` helpers for SEO optimization. All `sanityFetch` calls automatically use `cacheSignal()` for request cleanup.
 
 ```typescript
 // In integrations/sanity/queries.ts
-import { client } from './client'
+import { sanityFetch } from './live'
 import { generateSanityMetadata } from '~/libs/metadata'
 
+// Use sanityFetch (automatically includes cacheSignal)
 export async function fetchSanityPage(slug: string, isDraftMode = false) {
-  try {
-    const page = await client.fetch(
-      pageQuery,
-      { slug },
-      isDraftMode
-        ? {
-            perspective: 'drafts',
-            stega: true,
-            cache: 'no-store',
-          }
-        : {
-            next: { revalidate: 3600, tags: ['page', `page:${slug}`] },
-          }
-    )
-    return { data: page, error: null }
-  } catch (error) {
+  const { data, error } = await sanityFetch({
+    query: pageQuery,
+    params: { slug },
+    isDraftMode
+  })
+  
+  if (error) {
     console.error('fetchSanityPage error:', error)
     return { data: null, error }
   }
+  
+  return { data, error: null }
 }
 
 // In page.tsx for SEO
@@ -164,6 +158,12 @@ export async function generateMetadata({ params }) {
   return generateSanityMetadata(data)
 }
 ```
+
+**Cache Components Notes:**
+- Draft mode automatically uses `cache: 'no-store'` ✅
+- Published content uses ISR with revalidation ✅
+- All queries use `cacheSignal()` for automatic cleanup ✅
+- Wrap in Suspense boundaries for proper loading states ✅
 
 ### GROQ Queries
 
@@ -376,18 +376,31 @@ validateEnv(['NEXT_PUBLIC_API_KEY', 'API_SECRET'])
 
 - Standard timeouts: 8-10 seconds for most integrations
 - Implement proper error handling and retry logic
+- Use `cacheSignal()` for automatic request cleanup (React 19.2)
 
 ```typescript
 import { fetchWithTimeout } from '~/libs/fetch-with-timeout'
+import { cacheSignal } from 'react'
 
 // HubSpot: 8 seconds
-const response = await fetchWithTimeout(url, options, 8000)
+const response = await fetchWithTimeout(url, { 
+  timeout: 8000,
+  ...options 
+})
 
 // Mailchimp: 10 seconds
-const response = await fetchWithTimeout(url, options, 10000)
+const response = await fetchWithTimeout(url, { 
+  timeout: 10000,
+  ...options 
+})
 
-// Turnstile verification: 5 seconds
-const response = await fetchWithTimeout(verifyUrl, options, 5000)
+// With cacheSignal for automatic cleanup
+const signal = cacheSignal()
+const response = await fetchWithTimeout(url, {
+  timeout: 10000,
+  signal: signal as AbortSignal,
+  ...options
+})
 ```
 
 ### Error Handling
@@ -417,9 +430,17 @@ const ProductSchema = z.object({
 ```
 
 ### Performance
-- Cache API responses appropriately
+- Cache API responses appropriately (except user-specific data)
 - Use ISR (Incremental Static Regeneration) for dynamic content
-- Implement proper loading states
+- Implement proper loading states with Suspense boundaries
+- Use `cacheSignal()` for automatic request cleanup
+
+**⚠️ Cache Components Gotchas:**
+- **User-specific data**: Never cache (carts, accounts, private content)
+- **Real-time data**: Use `cache: 'no-store'` for live feeds
+- **Suspense boundaries**: Required for cached data fetching
+- **Cache invalidation**: Use `revalidateTag()` or `revalidatePath()` in webhooks
+- **Testing**: Test with hard refresh AND navigation (different cache layers)
 
 ### Security
 - Validate all user inputs

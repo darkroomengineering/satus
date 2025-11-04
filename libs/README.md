@@ -136,8 +136,9 @@ const found: string | undefined = ['a', 'b'].find(x => x === 'c')
 
 2. **Performance**
    - Optimize computationally expensive operations
-   - Memoize pure functions when appropriate
+   - React Compiler handles most memoization automatically
    - Use correct data structures for operations
+   - Use `useRef` for object instantiation (prevents infinite loops)
 
 3. **Type Safety**
    - Leverage TypeScript for type checking
@@ -200,17 +201,30 @@ Prevent hanging requests with automatic timeout protection:
 ```typescript
 import { fetchWithTimeout, fetchJSON } from '~/libs/fetch-with-timeout'
 
-// Basic fetch with 10s timeout
+// Basic fetch with 10s timeout (default)
 const response = await fetchWithTimeout('https://api.example.com/data', {
-  timeout: 10000, // optional, defaults to 10000ms
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(data),
+})
+
+// Custom timeout (5 seconds)
+const response = await fetchWithTimeout('https://api.example.com/data', {
+  timeout: 5000, // 5 seconds
   method: 'POST',
 })
 
 // JSON fetch with automatic parsing
 const data = await fetchJSON<{ name: string }>('https://api.example.com/user', {
-  timeout: 5000
+  timeout: 10000 // optional, defaults to 10000ms
 })
 ```
+
+**Standard timeout recommendations:**
+- HubSpot: 8-10 seconds
+- Mailchimp: 10 seconds
+- Shopify: 10 seconds
+- Turnstile verification: 5 seconds
 
 ### Metadata Helpers (metadata.ts)
 

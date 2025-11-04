@@ -132,5 +132,5 @@ rm -rf app/\(pages\)/test
 
 **Last Updated:** October 7, 2025  
 **React Version:** 19.2.0  
-**Next.js Version:** 15.6.0-canary.49
+**Next.js Version:** 16.0.1
 

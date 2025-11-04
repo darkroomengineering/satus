@@ -143,9 +143,10 @@ These hooks are designed to work seamlessly with:
 ## Best Practices
 
 1. **Performance**
-   - Use memoization to prevent unnecessary recalculations
+   - React Compiler automatically optimizes component re-renders and memoization
+   - Avoid manual `useMemo`, `useCallback`, or `React.memo` unless you encounter a proven edge case
    - Implement cleanup functions to prevent memory leaks
-   - Use `useCallback` and `useMemo` for optimization
+   - Use `useRef` for object instantiation (prevents infinite loops)
 
 2. **Reusability**
    - Keep hooks focused on a single responsibility

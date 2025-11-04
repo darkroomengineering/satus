@@ -174,6 +174,13 @@ All queries and mutations use Shopify's Storefront GraphQL API:
 - Test checkout flow in Shopify admin
 - Configure webhooks for revalidation
 
+**⚠️ Cache Components Gotchas (Next.js 16):**
+- **Cart Data**: Cart contents are user-specific - **never cache** cart queries
+- **Product Data**: Products can be cached - use `revalidateTag('products')` for updates
+- **Collections**: Collection data can be cached - invalidate with webhooks
+- **Customer Data**: Customer account pages must use `cache: 'no-store'` to prevent data leakage
+- **Suspense**: Wrap data fetching in Suspense boundaries for proper loading states
+
 ## Webhooks
 
 Configure these webhooks in Shopify Admin → Settings → Notifications → Webhooks:

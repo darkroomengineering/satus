@@ -58,7 +58,8 @@
         "useExhaustiveDependencies": "warn",
         "noUnknownMediaFeatureName": "off",
         "noUndeclaredVariables": "error",
-        "noInvalidUseBeforeDeclaration": "error"
+        "noInvalidUseBeforeDeclaration": "error",
+        "noUnusedFunctionParameters": "warn"
       },
       "style": {
         "noNonNullAssertion": "off",

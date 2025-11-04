@@ -455,6 +455,10 @@ defineField({
 // Use ISR for published content
 export const revalidate = 3600
 
+// Automatic request cleanup with cacheSignal (React 19.2)
+// The fetchSanity function automatically uses cacheSignal for request cleanup
+const { data } = await sanityFetch({ query: pageQuery, params: { slug } })
+
 // Use proper caching strategies
 const cacheOptions = isDraftMode
   ? {
@@ -466,6 +470,19 @@ const cacheOptions = isDraftMode
       next: { revalidate: 3600, tags: ['page', `page:${slug}`] },
     }
 ```
+
+**React 19.2 cacheSignal Integration:**
+- All `sanityFetch` calls automatically use `cacheSignal()` for request cleanup
+- Requests are automatically aborted when cache scope expires
+- Prevents zombie requests and memory leaks
+- No manual cleanup needed
+
+**⚠️ Cache Components Gotchas:**
+- **Draft Mode**: Draft mode automatically uses `cache: 'no-store'` - no caching issues
+- **Published Content**: Uses ISR with revalidation - ensure proper cache tags for invalidation
+- **User-Specific Content**: If serving personalized content, use `cache: 'no-store'` to prevent data leakage
+- **Suspense Boundaries**: Wrap `sanityFetch` calls in Suspense boundaries for proper loading states
+- **Revalidation**: Use `revalidateTag()` or `revalidatePath()` in webhooks to invalidate cached content
 
 #### 2. Error Handling
 

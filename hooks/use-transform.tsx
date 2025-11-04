@@ -1,3 +1,5 @@
+'use client'
+
 import {
   createContext,
   type ReactNode,
@@ -145,38 +147,29 @@ export function TransformProvider({ children, ref }: TransformProviderProps) {
     }
   })
 
-  const setTranslate = useCallback(
-    (x = 0, y = 0, z = 0) => {
-      if (!Number.isNaN(x)) transformRef.current.translate.x = Number(x)
-      if (!Number.isNaN(y)) transformRef.current.translate.y = Number(y)
-      if (!Number.isNaN(z)) transformRef.current.translate.z = Number(z)
+  const setTranslate = useCallback((x = 0, y = 0, z = 0) => {
+    if (!Number.isNaN(x)) transformRef.current.translate.x = Number(x)
+    if (!Number.isNaN(y)) transformRef.current.translate.y = Number(y)
+    if (!Number.isNaN(z)) transformRef.current.translate.z = Number(z)
 
-      update()
-    },
-    [update]
-  )
+    update()
+  }, [])
 
-  const setRotate = useCallback(
-    (x = 0, y = 0, z = 0) => {
-      if (!Number.isNaN(x)) transformRef.current.rotate.x = Number(x)
-      if (!Number.isNaN(y)) transformRef.current.rotate.y = Number(y)
-      if (!Number.isNaN(z)) transformRef.current.rotate.z = Number(z)
+  const setRotate = useCallback((x = 0, y = 0, z = 0) => {
+    if (!Number.isNaN(x)) transformRef.current.rotate.x = Number(x)
+    if (!Number.isNaN(y)) transformRef.current.rotate.y = Number(y)
+    if (!Number.isNaN(z)) transformRef.current.rotate.z = Number(z)
 
-      update()
-    },
-    [update]
-  )
+    update()
+  }, [])
 
-  const setScale = useCallback(
-    (x = 1, y = 1, z = 1) => {
-      if (!Number.isNaN(x)) transformRef.current.scale.x = Number(x)
-      if (!Number.isNaN(y)) transformRef.current.scale.y = Number(y)
-      if (!Number.isNaN(z)) transformRef.current.scale.z = Number(z)
+  const setScale = useCallback((x = 1, y = 1, z = 1) => {
+    if (!Number.isNaN(x)) transformRef.current.scale.x = Number(x)
+    if (!Number.isNaN(y)) transformRef.current.scale.y = Number(y)
+    if (!Number.isNaN(z)) transformRef.current.scale.z = Number(z)
 
-      update()
-    },
-    [update]
-  )
+    update()
+  }, [])
 
   const setClip = useCallback(
     ({ top = 0, right = 0, bottom = 0, left = 0 } = {}) => {
@@ -188,16 +181,13 @@ export function TransformProvider({ children, ref }: TransformProviderProps) {
 
       update()
     },
-    [update]
+    []
   )
 
-  const setUserData = useCallback(
-    (key: string | number, value: unknown) => {
-      transformRef.current.userData[key] = value
-      update()
-    },
-    [update]
-  )
+  const setUserData = useCallback((key: string | number, value: unknown) => {
+    transformRef.current.userData[key] = value
+    update()
+  }, [])
 
   useTransform((transform) => {
     parentTransformRef.current = structuredClone(transform)

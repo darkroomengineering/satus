@@ -29,13 +29,14 @@ bun start
 
 ## 🛠 Tech Stack
 
-- **[Next.js](https://nextjs.org)** - React framework with App Router and Turbopack
+- **[Next.js 16.0.1](https://nextjs.org)** - React framework with App Router, Turbopack, and Cache Components
 - **[React 19.2.0](https://react.dev)** - Latest React with `<Activity />`, `useEffectEvent`, and `cacheSignal`
+- **[React Compiler](https://react.dev/reference/react/compiler)** - Automatic optimization enabled
 - **[TypeScript](https://www.typescriptlang.org)** - Type-safe development
-- **[Tailwind CSS](https://tailwindcss.com)** - CSS-first configuration
+- **[Tailwind CSS 4.1.16](https://tailwindcss.com)** - CSS-first configuration
 - **[React Three Fiber](https://docs.pmnd.rs/react-three-fiber)** - React renderer for Three.js
 - **[GSAP](https://greensock.com/gsap/)** - Timeline-based animations
-- **[Biome](https://biomejs.dev)** - Fast formatter and linter
+- **[Biome 2.3.3](https://biomejs.dev)** - Fast formatter and linter
 - **[Bun](https://bun.sh)** - All-in-one JavaScript runtime
 
 ## ⚛️ React 19.2 Features
@@ -108,13 +109,15 @@ satus/
 ### Performance Optimized
 - **Turbopack** for lightning-fast HMR in development
 - **React Server Components** by default
+- **React Compiler** automatically optimizes re-renders and memoization
+- **Next.js 16 Cache Components** for advanced caching strategies
 - **React 19.2 `<Activity />`** for off-screen component optimization
 - **Dynamic imports** for code splitting
 - **Image optimization** with a custom thin wrapper around Next.js Image
 - **Font optimization** with Next.js Font
 
 ### Modern Styling
-- **Tailwind CSS v4** with CSS-first configuration
+- **Tailwind CSS 4.1.16** with CSS-first configuration
 - **CSS Modules** for component styles
 - **Custom viewport units** (`mobile-vw`, `desktop-vw`)
 - **Theme support** with CSS variables
@@ -128,7 +131,8 @@ satus/
 
 ### Developer Experience
 - **TypeScript** with strict mode
-- **Biome** for consistent code style
+- **Biome 2.3.3** for consistent code style
+- **React Compiler** - automatic optimization (no manual memoization needed)
 - **Hot Module Replacement** with Turbopack
 - **React 19.2 Performance Tracks** in Chrome DevTools
 - **Git hooks** with Lefthook
@@ -277,6 +281,11 @@ Supports any Next.js-compatible platform: Vercel, Netlify, AWS Amplify, Google C
 - Add `<GSAPRuntime />` in `app/layout.tsx` for ScrollTrigger + Lenis
 - No manual ticker setup needed
 
+**React Compiler**
+- Enabled automatically in `next.config.ts` (`reactCompiler: true`)
+- No need for manual `useMemo`, `useCallback`, or `React.memo`
+- Exception: Use `useRef` for object instantiation to prevent infinite loops
+
 **Sanity**
 - Requires draft mode routes: `/api/draft-mode/enable` and `/api/draft-mode/disable`
 - Must set `NEXT_PUBLIC_BASE_URL` for preview resolution
@@ -288,6 +297,21 @@ Supports any Next.js-compatible platform: Vercel, Netlify, AWS Amplify, Google C
 
 **Shopify**
 - Use exact env var names: `SHOPIFY_STORE_DOMAIN`, `SHOPIFY_STOREFRONT_ACCESS_TOKEN`
+
+**Next.js 16 Features**
+- Cache Components enabled (`cacheComponents: true`)
+- Typed routes enabled for better TypeScript support
+- Advanced caching strategies available
+
+**⚠️ Cache Components Gotchas:**
+- **Server Components Only**: Cache Components work only in Server Components, not Client Components
+- **Suspense Boundaries Required**: Cached components must be wrapped in Suspense boundaries
+- **User-Specific Data**: Never cache personalized/user-specific data (risk of data leakage between users)
+- **Real-Time Data**: Opt out of caching for live data (stock prices, live feeds) using `cache: 'no-store'`
+- **Development vs Production**: Caching behavior differs - test in both environments
+- **Router Cache vs Data Cache**: Next.js has multiple caching layers - test with hard refresh and navigation
+- **"use cache" Directive**: Use `'use cache'` directive explicitly when you need component-level caching
+- **Dynamic Routes**: Cache invalidation works differently for dynamic routes - use `revalidateTag` or `revalidatePath`
 
 ## 🤝 Contributing
 

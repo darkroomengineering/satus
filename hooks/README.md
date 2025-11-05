@@ -144,7 +144,7 @@ These hooks are designed to work seamlessly with:
 
 1. **Performance**
    - React Compiler automatically optimizes component re-renders and memoization
-   - Avoid manual `useMemo`, `useCallback`, or `React.memo` unless you encounter a proven edge case
+   - See [root README](../../README.md#react-compiler--memoization) for details
    - Implement cleanup functions to prevent memory leaks
    - Use `useRef` for object instantiation (prevents infinite loops)
 

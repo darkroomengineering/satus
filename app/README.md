@@ -150,65 +150,12 @@ Configured in `next.config.ts`:
 
 ## Cache Components (Next.js 16)
 
-Cache Components are enabled globally (`cacheComponents: true` in `next.config.ts`). This provides advanced caching strategies for Server Components.
+Cache Components are enabled globally (`cacheComponents: true` in `next.config.ts`). See the [root README](../../README.md#cache-components-gotchas) for comprehensive gotchas and best practices.
 
-### Important Gotchas
-
-**1. Suspense Boundaries Required**
-```tsx
-import { Suspense } from 'react'
-
-export default async function Page() {
-  return (
-    <Suspense fallback={<Loading />}>
-      <CachedComponent />
-    </Suspense>
-  )
-}
-```
-
-**2. Server Components Only**
-- Cache Components work only in Server Components
-- Client Components (`'use client'`) cannot use Cache Components
-- Move data fetching to Server Components, pass props to Client Components
-
-**3. User-Specific Data**
-- ❌ **Never cache** personalized data (user profiles, cart contents, private content)
-- ✅ **Always use** `cache: 'no-store'` for user-specific requests
-- Example: User shopping carts should never be cached
-
-**4. Real-Time Data**
-```tsx
-// ❌ DON'T: Cache real-time data
-const data = await fetch('https://api.example.com/live-prices')
-
-// ✅ DO: Opt out of caching
-const data = await fetch('https://api.example.com/live-prices', {
-  cache: 'no-store'
-})
-```
-
-**5. Testing Caching**
-- **Hard Refresh** (`Cmd+Shift+R` / `Ctrl+Shift+R`) bypasses router cache
-- **Navigation** uses router cache
-- Test both behaviors to understand caching
-- Development and production behave differently
-
-**6. Cache Invalidation**
-```tsx
-import { revalidateTag, revalidatePath } from 'next/cache'
-
-// Invalidate by tag
-revalidateTag('products')
-
-// Invalidate by path
-revalidatePath('/products/[slug]')
-```
-
-**7. Dynamic Routes**
-- Dynamic routes (`[slug]`) require careful cache tag management
-- Use `next: { tags: [...] }` in fetch options
-- Invalidate specific routes with `revalidatePath('/products/[slug]', 'page')`
+**Quick Reference:**
+- Wrap cached components in Suspense boundaries
+- Use `cache: 'no-store'` for user-specific data
+- Use `revalidateTag()` or `revalidatePath()` for cache invalidation
 
 ## Related Documentation
 

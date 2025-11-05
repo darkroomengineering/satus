@@ -135,8 +135,9 @@ const found: string | undefined = ['a', 'b'].find(x => x === 'c')
    - Maintain clear naming conventions
 
 2. **Performance**
-   - Optimize computationally expensive operations
    - React Compiler handles most memoization automatically
+   - See [root README](../../README.md#react-compiler--memoization) for details
+   - Optimize computationally expensive operations
    - Use correct data structures for operations
    - Use `useRef` for object instantiation (prevents infinite loops)
 

@@ -18,6 +18,8 @@ HUBSPOT_ACCESS_TOKEN=your-access-token
 NEXT_PUBLIC_HUBSPOT_PORTAL_ID=your-portal-id
 ```
 
+See [integrations/README.md](../README.md#environment-variables) for complete environment variable documentation.
+
 ### Getting Credentials
 
 1. **Access Token**: HubSpot Account → Settings → Integrations → Private Apps → Create
@@ -137,4 +139,3 @@ All styles use responsive viewport units (`mobile-vw()`, `desktop-vw()`).
 - [HubSpot Forms API](https://developers.hubspot.com/docs/api/marketing/forms)
 - [Components Guide](../../components/README.md)
 - [Form Components](../../components/form/index.tsx)
-

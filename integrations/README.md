@@ -120,34 +120,14 @@ NEXT_PUBLIC_FACEBOOK_APP_ID=your-fb-app-id
 
 ---
 
-## Cache Components Gotchas (Next.js 16)
+## Cache Components (Next.js 16)
 
-This project uses Next.js 16 Cache Components (`cacheComponents: true`). When integrating with external APIs, be aware of these important gotchas:
+This project uses Next.js 16 Cache Components (`cacheComponents: true`). See the [root README](../../README.md#cache-components-gotchas) for comprehensive gotchas and best practices.
 
-**⚠️ User-Specific Data:**
-- **Never cache** personalized data (user carts, accounts, private content)
-- Always use `cache: 'no-store'` for user-specific API calls
-- Example: Shopify cart queries already use `cache: 'no-store'` ✅
-
-**⚠️ Real-Time Data:**
-- Live feeds, stock prices, chat messages should use `cache: 'no-store'`
-- Only cache data that doesn't change frequently
-
-**⚠️ Cache Invalidation:**
-- Use `revalidateTag()` or `revalidatePath()` in webhook handlers
-- Set proper cache tags in fetch options: `next: { tags: ['products'] }`
-- Webhooks should invalidate specific tags, not everything
-
-**✅ Safe to Cache:**
-- Public product catalogs (with revalidation)
-- CMS content (with ISR and revalidation)
-- Static marketing content
-- Public API responses that don't change frequently
-
-**Testing:**
-- Hard refresh (`Cmd+Shift+R`) bypasses router cache
-- Normal navigation uses router cache
-- Test both behaviors, especially with dynamic routes
+**Integration-Specific Notes:**
+- **User-Specific Data**: Never cache personalized data (user carts, accounts, private content)
+- **Real-Time Data**: Use `cache: 'no-store'` for live feeds, stock prices, chat messages
+- **Cache Invalidation**: Use `revalidateTag()` or `revalidatePath()` in webhook handlers
 
 ---
 

@@ -28,14 +28,14 @@ This comprehensive guide covers everything you need to know about using Sanity C
 
 ### Environment Variables
 
-Add these to your `.env.local` file:
-
 ```env
 NEXT_PUBLIC_SANITY_PROJECT_ID="your-project-id"
 NEXT_PUBLIC_SANITY_DATASET="production"
 NEXT_PUBLIC_SANITY_STUDIO_URL="http://localhost:3000/studio"
 SANITY_API_WRITE_TOKEN="your-write-token"
 ```
+
+See [integrations/README.md](../README.md#environment-variables) for complete environment variable documentation.
 
 ### Quick Setup
 
@@ -477,12 +477,10 @@ const cacheOptions = isDraftMode
 - Prevents zombie requests and memory leaks
 - No manual cleanup needed
 
-**⚠️ Cache Components Gotchas:**
-- **Draft Mode**: Draft mode automatically uses `cache: 'no-store'` - no caching issues
+**⚠️ Cache Components:** See the [root README](../../../README.md#cache-components-gotchas) for comprehensive gotchas. Sanity-specific notes:
+- **Draft Mode**: Automatically uses `cache: 'no-store'` - no caching issues ✅
 - **Published Content**: Uses ISR with revalidation - ensure proper cache tags for invalidation
-- **User-Specific Content**: If serving personalized content, use `cache: 'no-store'` to prevent data leakage
 - **Suspense Boundaries**: Wrap `sanityFetch` calls in Suspense boundaries for proper loading states
-- **Revalidation**: Use `revalidateTag()` or `revalidatePath()` in webhooks to invalidate cached content
 
 #### 2. Error Handling
 

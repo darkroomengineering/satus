@@ -51,9 +51,9 @@ import { Accordion } from '~/components/accordion'
 
 ## Best Practices
 
-- **Images**: Always use `~/components/image`, never `next/image`
+- **Images**: Always use `~/components/image`, never `next/image` directly. See [Image Component documentation](image/README.md) for details.
 - **Links**: Use `~/components/link` for smart prefetching
-- **GSAP**: Add `<GSAPRuntime />` in layout for ScrollTrigger + Lenis
+- **GSAP**: Add `<GSAPRuntime />` in layout for ScrollTrigger + Lenis. See [GSAP documentation](gsap/README.md)
 - **Styling**: Use CSS modules (import as `s`) + Tailwind utilities
 
 ## Related Documentation

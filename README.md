@@ -109,7 +109,7 @@ satus/
 ### Performance Optimized
 - **Turbopack** for lightning-fast HMR in development
 - **React Server Components** by default
-- **React Compiler** automatically optimizes re-renders and memoization
+- **React Compiler** automatically optimizes re-renders and memoization (see [React Compiler section](#react-compiler))
 - **Next.js 16 Cache Components** for advanced caching strategies
 - **React 19.2 `<Activity />`** for off-screen component optimization
 - **Dynamic imports** for code splitting
@@ -218,27 +218,7 @@ bun analyze                 # Bundle analysis
 
 ## 🌐 Environment Variables
 
-Create a `.env.local` file with:
-
-```env
-# Sanity CMS
-NEXT_PUBLIC_SANITY_PROJECT_ID="your-project-id"
-NEXT_PUBLIC_SANITY_DATASET="production"
-NEXT_PUBLIC_SANITY_STUDIO_URL="http://localhost:3000/studio"
-SANITY_API_WRITE_TOKEN="your-write-token"
-
-# Shopify
-SHOPIFY_STORE_DOMAIN="your-store.myshopify.com"
-SHOPIFY_STOREFRONT_ACCESS_TOKEN="your-storefront-token"
-SHOPIFY_REVALIDATION_SECRET="your-random-secret"
-
-# HubSpot
-HUBSPOT_ACCESS_TOKEN="your-access-token"
-NEXT_PUBLIC_HUBSPOT_PORTAL_ID="your-portal-id"
-
-# App Base URL
-NEXT_PUBLIC_BASE_URL="http://localhost:3000"
-```
+Create a `.env.local` file with your required variables. See [integrations/README.md](integrations/README.md#environment-variables) for the complete list of all available environment variables.
 
 ## 📚 Documentation
 
@@ -274,16 +254,18 @@ Supports any Next.js-compatible platform: Vercel, Netlify, AWS Amplify, Google C
 
 **Images & Links**
 - ✅ Always use `~/components/link` (auto-detects external, smart prefetch)
-- ✅ Always use `~/components/image` for DOM (never `next/image`)
+- ✅ Always use `~/components/image` for DOM (never `next/image` directly)
 - ✅ Use `~/webgl/components/image` in WebGL contexts
+- See [Image Component documentation](components/image/README.md) for details
 
 **GSAP & Animation**
 - Add `<GSAPRuntime />` in `app/layout.tsx` for ScrollTrigger + Lenis
 - No manual ticker setup needed
+- See [GSAP documentation](components/gsap/README.md) for setup details
 
-**React Compiler**
+**React Compiler** {#react-compiler}
 - Enabled automatically in `next.config.ts` (`reactCompiler: true`)
-- No need for manual `useMemo`, `useCallback`, or `React.memo`
+- No need for manual `useMemo`, `useCallback`, or `React.memo` - compiler handles optimization automatically
 - Exception: Use `useRef` for object instantiation to prevent infinite loops
 
 **Sanity**
@@ -303,7 +285,7 @@ Supports any Next.js-compatible platform: Vercel, Netlify, AWS Amplify, Google C
 - Typed routes enabled for better TypeScript support
 - Advanced caching strategies available
 
-**⚠️ Cache Components Gotchas:**
+**⚠️ Cache Components Gotchas:** {#cache-components-gotchas}
 - **Server Components Only**: Cache Components work only in Server Components, not Client Components
 - **Suspense Boundaries Required**: Cached components must be wrapped in Suspense boundaries
 - **User-Specific Data**: Never cache personalized/user-specific data (risk of data leakage between users)

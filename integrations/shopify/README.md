@@ -19,6 +19,8 @@ SHOPIFY_STOREFRONT_ACCESS_TOKEN="your-storefront-token"
 SHOPIFY_REVALIDATION_SECRET="your-random-secret"
 ```
 
+See [integrations/README.md](../README.md#environment-variables) for complete environment variable documentation.
+
 ### Getting Credentials
 
 1. **Store Domain**: Your Shopify store URL (e.g., `mystore.myshopify.com`)
@@ -174,12 +176,11 @@ All queries and mutations use Shopify's Storefront GraphQL API:
 - Test checkout flow in Shopify admin
 - Configure webhooks for revalidation
 
-**⚠️ Cache Components Gotchas (Next.js 16):**
-- **Cart Data**: Cart contents are user-specific - **never cache** cart queries
+**⚠️ Cache Components:** See the [root README](../../../README.md#cache-components-gotchas) for comprehensive gotchas. Shopify-specific notes:
+- **Cart Data**: Cart contents are user-specific - **never cache** cart queries (already uses `cache: 'no-store'` ✅)
 - **Product Data**: Products can be cached - use `revalidateTag('products')` for updates
 - **Collections**: Collection data can be cached - invalidate with webhooks
 - **Customer Data**: Customer account pages must use `cache: 'no-store'` to prevent data leakage
-- **Suspense**: Wrap data fetching in Suspense boundaries for proper loading states
 
 ## Webhooks
 

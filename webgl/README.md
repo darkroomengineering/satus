@@ -69,7 +69,7 @@ export default function Page() {
 
 ## Best Practices
 
-- **Images**: Use `~/webgl/components/image` in WebGL contexts (not `~/components/image`)
+- **Images**: Use `~/webgl/components/image` in WebGL contexts (wraps `~/components/image` for DOM fallback and WebGL texture integration). See [Image Component documentation](../components/image/README.md) for details.
 - **Performance**: Enable postprocessing only when needed
 - **Mobile**: Test performance on mobile devices
 - **Shaders**: Use GLSL files for complex shaders

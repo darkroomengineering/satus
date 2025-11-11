@@ -42,7 +42,7 @@
     "postprocessing": "^6.37.8",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "tempus": "1.0.0-dev.15",
+    "tempus": "1.0.0-dev.16",
     "three": "^0.181.0",
     "tunnel-rat": "^0.1.2",
     "zustand": "^5.0.8"

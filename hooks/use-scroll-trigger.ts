@@ -178,6 +178,9 @@ export function useScrollTrigger({
 
   const { height: windowHeight = 0 } = useWindowSize()
 
+  // rect is not defined in the initial render, just wait for it to be defined
+  const isReady = rect?.top !== undefined
+
   const [elementStartKeyword, viewportStartKeyword] =
     typeof start === 'string' ? start.split(' ') : [start]
   const [elementEndKeyword, viewportEndKeyword] =
@@ -276,6 +279,7 @@ export function useScrollTrigger({
   // when values like viewportStart, elementStart, etc. change
   const update = useEffectEvent(() => {
     if (disabled) return
+    if (!isReady) return
 
     let scroll: number
 
@@ -302,7 +306,6 @@ export function useScrollTrigger({
 
   useLenis(update)
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: update is useEffectEvent
   useEffect(() => {
     if (lenis) return
 

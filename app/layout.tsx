@@ -9,6 +9,7 @@ import AppData from '~/package.json'
 import { themes } from '~/styles/colors'
 import '~/styles/css/index.css'
 
+import Script from 'next/script'
 import { GSAPRuntime } from '~/components/gsap/runtime'
 import { isSanityConfigured } from '~/integrations/check-integration'
 import { SanityLive } from '~/integrations/sanity/live'
@@ -94,6 +95,8 @@ export default async function Layout({ children }: PropsWithChildren) {
       // NOTE: This is due to the data-theme attribute being set which causes hydration errors
       suppressHydrationWarning
     >
+      {/* this helps to track Satus usage thanks to Wappalyzer */}
+      <Script async>{`window.satusVersion = '${AppData.version}';`}</Script>
       <body>
         {/* Critical: CSS custom properties needed for layout */}
         <RealViewport />

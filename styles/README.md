@@ -85,7 +85,7 @@ There are custom utilities for all tailwind classes that are related to sizing, 
 
 Example:
 ```css
-<div className="sw-150">
+<div className="dr-w-150">
   <!-- This will be 150px relative to the current viewport off mobile or desktop -->
 </div>
 ```
@@ -94,7 +94,7 @@ Special utilities for column-based sizes ending in -col-* are available. They wi
 
 Example:
 ```css
-<div className="w-col-4">
+<div className="dr-w-col-4">
   <!-- This will be 4 columns wide relative to the current viewport off mobile or desktop -->
 </div>
 ```

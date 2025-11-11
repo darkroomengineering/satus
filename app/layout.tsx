@@ -99,11 +99,10 @@ export default async function Layout({ children }: PropsWithChildren) {
       <Script async>{`window.satusVersion = '${AppData.version}';`}</Script>
       <body>
         {/* Critical: CSS custom properties needed for layout */}
-        <RealViewport />
-
-        {/* Main app content */}
-        {children}
-
+        <RealViewport>
+          {/* Main app content */}
+          {children}
+        </RealViewport>
         {/* Development tools - dynamically imported */}
         <OrchestraTools />
 

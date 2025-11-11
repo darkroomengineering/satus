@@ -76,13 +76,22 @@ function createOnWindowResize(
       const scrollbarWidth = getScrollbarWidth()
 
       // Set CSS custom properties
-      document.documentElement.style.setProperty('--vw', `${vw}px`)
-      document.documentElement.style.setProperty('--dvh', `${dvh}px`)
-      document.documentElement.style.setProperty('--svh', `${svh}px`)
+      document.documentElement.style.setProperty(
+        '--vw',
+        `${Math.round(vw * 100) / 100}px`
+      )
+      document.documentElement.style.setProperty(
+        '--dvh',
+        `${Math.round(dvh * 100) / 100}px`
+      )
+      document.documentElement.style.setProperty(
+        '--svh',
+        `${Math.round(svh * 100) / 100}px`
+      )
       document.documentElement.style.setProperty('--lvh', '1vh')
       document.documentElement.style.setProperty(
         '--scrollbar-width',
-        `${scrollbarWidth}px`
+        `${Math.round(scrollbarWidth * 100) / 100}px`
       )
 
       // Update React state synchronously

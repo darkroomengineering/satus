@@ -3,7 +3,7 @@ import { Wrapper } from '~/app/(pages)/_components/wrapper'
 import { sanityFetch } from '~/integrations/sanity/live'
 import { articleQuery } from '~/integrations/sanity/queries'
 import { generateSanityMetadata } from '~/libs/metadata'
-import { SanityArticle } from './(component)/article'
+import { SanityArticle } from './_components/article'
 
 // export async function generateStaticParams() {
 //   const { data } = await sanityFetch({

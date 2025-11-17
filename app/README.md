@@ -7,7 +7,7 @@ Next.js App Router pages, layouts, and API routes.
 ```
 app/
 ├── (pages)/               # Page routes (grouped)
-│   ├── (components)/     # Shared page components
+│   ├── _components/     # Shared page components
 │   │   ├── footer/       # Site footer
 │   │   ├── lenis/        # Smooth scroll provider
 │   │   ├── navigation/   # Site navigation
@@ -42,7 +42,7 @@ app/
 - Allows shared layout/components without affecting URLs
 - Contains all main pages of the site
 
-**`(components)`** - Shared components for pages
+**`_components`** - Shared components for pages
 - Used across multiple pages
 - Includes layout wrappers, navigation, footer
 
@@ -97,7 +97,7 @@ export default async function ExamplePage() {
 
 **Client Components (When Needed)**
 ```tsx
-// app/(pages)/example/(components)/interactive.tsx
+// app/(pages)/example/_components/interactive.tsx
 'use client'
 
 export function InteractiveComponent() {
@@ -111,7 +111,7 @@ export function InteractiveComponent() {
 The `wrapper/` component provides common layout:
 
 ```tsx
-import { Wrapper } from '~/app/(pages)/(components)/wrapper'
+import { Wrapper } from '~/app/(pages)/_components/wrapper'
 
 export default function Page() {
   return (
@@ -141,7 +141,7 @@ Configured in `next.config.ts`:
 ## Best Practices
 
 - **Use Server Components by default** - Only use `'use client'` when needed
-- **Colocation** - Keep page-specific components in `(components)/` folder
+- **Colocation** - Keep page-specific components in `_components/` folder
 - **Shared Components** - Move to `/components` if used across pages
 - **Route Groups** - Use `(folder)` syntax to organize without affecting URLs
 - **Dynamic Routes** - Use `[param]` for dynamic segments

@@ -1,7 +1,7 @@
-import { Wrapper } from '~/app/(pages)/(components)/wrapper'
+import { Wrapper } from '~/app/(pages)/_components/wrapper'
 import { Form } from '~/components/form'
 import { getForm } from '~/integrations/hubspot/fetch-form'
-import { Subscribe } from './(components)/subscribe'
+import { Subscribe } from './_components/subscribe'
 
 export default async function Hubspot() {
   // @ts-expect-error Server Component

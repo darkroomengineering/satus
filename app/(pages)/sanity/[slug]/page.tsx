@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { Wrapper } from '~/app/(pages)/(components)/wrapper'
+import { Wrapper } from '~/app/(pages)/_components/wrapper'
 import { sanityFetch } from '~/integrations/sanity/live'
 import { articleQuery } from '~/integrations/sanity/queries'
 import { generateSanityMetadata } from '~/libs/metadata'

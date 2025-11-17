@@ -40,7 +40,7 @@ export default function Scene() {
 }
 
 // With wrapper component
-import { Wrapper } from '~/app/(pages)/(components)/wrapper'
+import { Wrapper } from '~/app/(pages)/_components/wrapper'
 
 export default function Page() {
   return (

@@ -1,6 +1,6 @@
-import { Wrapper } from '~/app/(pages)/(components)/wrapper'
+import { Wrapper } from '~/app/(pages)/_components/wrapper'
 import { TheatreProjectProvider } from '~/orchestra/theatre'
-import { Box } from './(components)/box'
+import { Box } from './_components/box'
 
 export default function Home() {
   return (

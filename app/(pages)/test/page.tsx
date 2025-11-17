@@ -1,4 +1,4 @@
-import { Wrapper } from '~/app/(pages)/(components)/wrapper'
+import { Wrapper } from '~/app/(pages)/_components/wrapper'
 import {
   AccordionTest,
   ActivitySimpleTest,

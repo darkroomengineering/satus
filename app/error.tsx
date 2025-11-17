@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { Link } from '~/components/link'
-import { Wrapper } from './(pages)/(components)/wrapper'
+import { Wrapper } from './(pages)/_components/wrapper'
 
 interface ErrorPageProps {
   error: Error & { digest?: string }

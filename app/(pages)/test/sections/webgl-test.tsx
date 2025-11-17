@@ -1,6 +1,6 @@
 'use client'
 
-import { Box } from '~/app/(pages)/r3f/(components)/box'
+import { Box } from '~/app/(pages)/r3f/_components/box'
 import { AnimatedGradient } from '~/components/animated-gradient'
 
 export function WebGLTest() {

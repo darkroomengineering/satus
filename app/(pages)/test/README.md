@@ -33,7 +33,7 @@ Visit: **http://localhost:3000/test**
 - ✅ 3D Box scene with viewport detection
 - ✅ Animated gradients with visibility optimization
 - ✅ Multiple scenes performance test
-- Files: `app/(pages)/r3f/(components)/box/index.jsx`, `components/animated-gradient/index.tsx`
+- Files: `app/(pages)/r3f/_components/box/index.jsx`, `components/animated-gradient/index.tsx`
 
 ## Testing Instructions
 

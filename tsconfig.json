@@ -37,7 +37,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "app/(pages)/r3f/(components)/box/webgl.tsx",
+    "app/(pages)/r3f/_components/box/webgl.tsx",
     ".next/dev/types/**/*.ts"
   ],
   "exclude": ["node_modules"],

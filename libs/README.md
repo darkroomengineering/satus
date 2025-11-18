@@ -13,7 +13,6 @@ This directory contains utility functions, type definitions, and shared librarie
 ### Type Definitions
 - `augment.d.ts` - TypeScript type augmentations for third-party libraries
 - `css.d.ts` - TypeScript definitions for CSS modules
-- `reset.d.ts` - TypeScript reset type definitions
 
 ### Development Tools
 - `validate-env.ts` - Environment variable validation (importable + executable)
@@ -114,17 +113,6 @@ declare module 'some-library' {
     newOption: string
   }
 }
-```
-
-### reset.d.ts
-
-TypeScript reset definitions that improve type safety:
-
-```tsx
-// Based on @total-typescript/ts-reset
-// Improves array methods type safety
-const found: string | undefined = ['a', 'b'].find(x => x === 'c')
-// Correctly typed as possibly undefined
 ```
 
 ## Best Practices

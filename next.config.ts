@@ -75,7 +75,6 @@ const nextConfig: NextConfig = {
   compress: true,
   experimental: {
     turbopackFileSystemCacheForDev: true,
-    clientSegmentCache: true,
     taint: true,
     browserDebugInfoInTerminal: true,
     // isolatedDevBuild: true,

@@ -134,6 +134,7 @@ export type UseScrollTriggerOptions = {
     steps: number[]
   }) => void
   steps?: number
+  deps?: unknown[]
 }
 
 export function useScrollTrigger({
@@ -148,6 +149,7 @@ export function useScrollTrigger({
   onLeave,
   onProgress,
   steps = 1,
+  deps = [],
 }: UseScrollTriggerOptions) {
   const getTransform = useTransform()
   const lenis = useLenis()
@@ -315,7 +317,10 @@ export function useScrollTrigger({
     return () => {
       window.removeEventListener('scroll', update, false)
     }
-  }, [lenis]) // Effect only re-runs when lenis changes
+  }, [lenis, ...deps]) // Effect only re-runs when lenis changes
 
   useTransform(update)
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: necessary to run update on deps change
+  useEffect(update, [update, ...deps])
 }

@@ -134,23 +134,24 @@ export type UseScrollTriggerOptions = {
     steps: number[]
   }) => void
   steps?: number
-  deps?: unknown[]
 }
 
-export function useScrollTrigger({
-  rect,
-  start = 'bottom bottom', // bottom of the element meets the bottom of the viewport
-  end = 'top top', // top of the element meets the top of the viewport
-  id = '',
-  offset = 0,
-  disabled = false,
-  markers,
-  onEnter,
-  onLeave,
-  onProgress,
-  steps = 1,
-  deps = [],
-}: UseScrollTriggerOptions) {
+export function useScrollTrigger(
+  {
+    rect,
+    start = 'bottom bottom', // bottom of the element meets the bottom of the viewport
+    end = 'top top', // top of the element meets the top of the viewport
+    id = '',
+    offset = 0,
+    disabled = false,
+    markers,
+    onEnter,
+    onLeave,
+    onProgress,
+    steps = 1,
+  }: UseScrollTriggerOptions,
+  deps: unknown[] = []
+) {
   const getTransform = useTransform()
   const lenis = useLenis()
 

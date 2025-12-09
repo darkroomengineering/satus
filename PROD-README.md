@@ -115,9 +115,8 @@ project/
 ### Pre-deployment Checklist
 1. ✅ Environment variables set in Vercel
 2. ✅ Sanity webhooks configured
-3. ✅ GSAP license valid (if using premium)
-4. ✅ SSL certificates configured
-5. ✅ Performance metrics validated
+3. ✅ SSL certificates configured
+4. ✅ Performance metrics validated
 
 ### Monitoring
 - Vercel Analytics Dashboard

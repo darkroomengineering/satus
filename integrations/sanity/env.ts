@@ -36,7 +36,6 @@ export const previewURL = assertValue(
 function assertValue<T>(v: T | undefined, errorMessage: string): T {
   if (v === undefined) {
     console.error(errorMessage)
-    // throw new Error(errorMessage)
     return undefined as T
   }
 

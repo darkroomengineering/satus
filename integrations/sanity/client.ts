@@ -2,8 +2,16 @@ import { createClient } from 'next-sanity'
 import { isSanityConfigured } from '../check-integration'
 import { apiVersion, dataset, privateToken, projectId, studioUrl } from './env'
 
-export const client = isSanityConfigured()
-  ? createClient({
+let _client: ReturnType<typeof createClient> | null = null
+
+export function getClient() {
+  if (!isSanityConfigured()) {
+    console.error('Sanity is not configured')
+    return null
+  }
+
+  if (!_client) {
+    _client = createClient({
       projectId,
       dataset,
       apiVersion,
@@ -16,9 +24,13 @@ export const client = isSanityConfigured()
           if (props.sourcePath.at(-1) === 'title') {
             return true
           }
-
           return props.filterDefault(props)
         },
       },
     })
-  : null
+  }
+
+  return _client
+}
+
+export const client = getClient()

@@ -27,6 +27,10 @@ export async function fetchSanity<T>(
 ): Promise<T> {
   const signal = cacheSignal()
 
+  if (!client) {
+    throw new Error('Sanity is not configured')
+  }
+
   return client.fetch<T>(query, params, {
     // Only pass signal if cacheSignal returns a non-null value
     // Cast to AbortSignal for type compatibility

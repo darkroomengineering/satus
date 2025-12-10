@@ -18,6 +18,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (isSanityConfigured()) {
     try {
       const { client } = await import('~/integrations/sanity')
+
+      if (!client) {
+        return baseRoutes
+      }
+
       const { groq } = await import('next-sanity')
 
       // Fetch all published pages and articles

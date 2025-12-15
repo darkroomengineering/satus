@@ -2,7 +2,7 @@
 
 import cn from 'clsx'
 import { Messages, SubmitButton, useFormContext } from '~/components/form'
-import type { HubSpotParsedForm } from '~/lib/lib/integrations/hubspot/fetch-form'
+import type { HubSpotParsedForm } from '~/lib/integrations/hubspot/fetch-form'
 
 export const Subscribe = ({
   idx = 0,

@@ -1,6 +1,6 @@
 import { Wrapper } from '~/app/(pages)/_components/wrapper'
 import { Form } from '~/components/form'
-import { getForm } from '~/lib/lib/integrations/hubspot/fetch-form'
+import { getForm } from '~/lib/integrations/hubspot/fetch-form'
 import { Subscribe } from './_components/subscribe'
 
 export default async function Hubspot() {

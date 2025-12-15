@@ -27,8 +27,8 @@ WebGL and 3D graphics components built on Three.js and React Three Fiber.
 ## Usage
 
 ```tsx
-import { Canvas } from '~/lib/lib/webgl/components/canvas'
-import { Image } from '~/lib/lib/webgl/components/image'
+import { Canvas } from '~/lib/webgl/components/canvas'
+import { Image } from '~/lib/webgl/components/image'
 
 // Basic setup
 export default function Scene() {

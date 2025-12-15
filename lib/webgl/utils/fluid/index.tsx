@@ -3,7 +3,7 @@ import { types } from '@theatre/core'
 import { useEffect, useRef } from 'react'
 import { useCurrentSheet } from '~/lib/dev/theatre'
 import { useTheatre } from '~/lib/dev/theatre/hooks/use-theatre'
-import { Fluid } from '~/lib/lib/webgl/utils/fluid/fluid-sim'
+import { Fluid } from '~/lib/webgl/utils/fluid/fluid-sim'
 
 export function useFluidSim() {
   const sheet = useCurrentSheet()

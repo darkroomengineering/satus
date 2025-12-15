@@ -6,7 +6,7 @@ import { useRef } from 'react'
 import type { Mesh } from 'three'
 import { useCurrentSheet } from '~/lib/dev/theatre'
 import { useTheatre } from '~/lib/dev/theatre/hooks/use-theatre'
-import { useWebGLRect } from '~/lib/lib/webgl/hooks/use-webgl-rect'
+import { useWebGLRect } from '~/lib/webgl/hooks/use-webgl-rect'
 
 export function WebGLBox({
   theatreKey = 'box',

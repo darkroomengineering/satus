@@ -2,8 +2,8 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useObjectFit, useWindowSize } from 'hamo'
 import { useEffect, useRef, useState } from 'react'
 import { CanvasTexture, LinearFilter, type Mesh } from 'three'
-import { useFlowmap } from '~/lib/lib/webgl/components/flowmap-provider'
-import { useWebGLRect } from '~/lib/lib/webgl/hooks/use-webgl-rect'
+import { useFlowmap } from '~/lib/webgl/components/flowmap-provider'
+import { useWebGLRect } from '~/lib/webgl/hooks/use-webgl-rect'
 import { AnimatedGradientMaterial } from './material'
 
 // @refresh reset

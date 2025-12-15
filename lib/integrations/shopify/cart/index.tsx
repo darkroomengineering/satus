@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { Cart as CartData } from '~/lib/lib/integrations/shopify/types'
+import type { Cart as CartData } from '~/lib/integrations/shopify/types'
 import { fetchCart } from './actions'
 import { CartProvider } from './cart-context'
 

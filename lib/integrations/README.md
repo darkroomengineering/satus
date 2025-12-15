@@ -17,7 +17,7 @@ Form handling and marketing automation. [Full Documentation →](hubspot/README.
 
 **Quick Example:**
 ```tsx
-import { EmbedHubspotForm } from '~/lib/lib/integrations/hubspot/embed'
+import { EmbedHubspotForm } from '~/lib/integrations/hubspot/embed'
 
 <EmbedHubspotForm formId="your-form-id" />
 ```
@@ -28,8 +28,8 @@ Headless CMS with visual editing. [Full Documentation →](sanity/README.md)
 
 **Quick Example:**
 ```tsx
-import { sanityFetch } from '~/lib/lib/integrations/sanity/live'
-import { RichText } from '~/lib/lib/integrations/sanity'
+import { sanityFetch } from '~/lib/integrations/sanity/live'
+import { RichText } from '~/lib/integrations/sanity'
 
 const { data } = await sanityFetch({ query: pageQuery })
 return <RichText content={data.content} />
@@ -41,8 +41,8 @@ E-commerce with cart and checkout. [Full Documentation →](shopify/README.md)
 
 **Quick Example:**
 ```tsx
-import { Cart } from '~/lib/lib/integrations/shopify/cart'
-import { AddToCart } from '~/lib/lib/integrations/shopify/cart/add-to-cart'
+import { Cart } from '~/lib/integrations/shopify/cart'
+import { AddToCart } from '~/lib/integrations/shopify/cart/add-to-cart'
 
 <Cart>
   <AddToCart product={product} variant={variant} />
@@ -55,7 +55,7 @@ Email marketing and audience building. [Full Documentation →](mailchimp/README
 
 **Quick Example:**
 ```tsx
-import { mailchimpSubscriptionAction } from '~/lib/lib/integrations/mailchimp/action'
+import { mailchimpSubscriptionAction } from '~/lib/integrations/mailchimp/action'
 
 <Form action={mailchimpSubscriptionAction}>
   <Input name="email" type="email" required />
@@ -69,7 +69,7 @@ Transactional emails via Mandrill. [Full Documentation →](mandrill/README.md)
 
 **Quick Example:**
 ```tsx
-import { combinedContactAction } from '~/lib/lib/integrations/mandrill/action'
+import { combinedContactAction } from '~/lib/integrations/mandrill/action'
 
 <Form action={combinedContactAction}>
   <Input name="name" required />
@@ -160,12 +160,12 @@ The template automatically detects which integrations are configured via environ
 Instead of removing integrations entirely, you can conditionally load them based on configuration:
 
 ```tsx
-import { isShopifyConfigured } from '~/lib/lib/integrations/check-integration'
+import { isShopifyConfigured } from '~/lib/integrations/check-integration'
 
 export default function Page() {
   if (isShopifyConfigured()) {
     // Only import Shopify components when configured
-    const { ShopifyCart } = await import('~/lib/lib/integrations/shopify/cart')
+    const { ShopifyCart } = await import('~/lib/integrations/shopify/cart')
     return <ShopifyCart />
   }
   
@@ -194,8 +194,8 @@ rm -rf lib/integrations/sanity app/studio app/(pages)/sanity
 
 # Remove from app/layout.tsx:
 # - import { VisualEditing } from 'next-sanity/visual-editing'
-# - import { DisableDraftMode } from '~/lib/lib/integrations/sanity/components/disable-draft-mode'
-# - import { SanityLive } from '~/lib/lib/integrations/sanity/live'
+# - import { DisableDraftMode } from '~/lib/integrations/sanity/components/disable-draft-mode'
+# - import { SanityLive } from '~/lib/integrations/sanity/live'
 # - The related JSX components
 
 # Uninstall dependencies
@@ -291,7 +291,7 @@ import {
 import { 
   getConfiguredIntegrations,
   getUnconfiguredIntegrations 
-} from '~/lib/lib/integrations/check-integration'
+} from '~/lib/integrations/check-integration'
 
 // Check environment
 const result = validateEnv()

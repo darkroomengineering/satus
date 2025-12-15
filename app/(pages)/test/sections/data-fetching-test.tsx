@@ -5,13 +5,13 @@ export async function DataFetchingTest() {
 
   try {
     const { isSanityConfigured } = await import(
-      '~/lib/lib/integrations/check-integration'
+      '~/lib/integrations/check-integration'
     )
 
     if (isSanityConfigured()) {
       sanityStatus = 'Configured ✓ (using cacheSignal)'
       // You can test an actual fetch here if needed
-      // const { fetchPage } = await import('~/lib/lib/integrations/sanity')
+      // const { fetchPage } = await import('~/lib/integrations/sanity')
       // await fetchPage('test')
     }
   } catch {

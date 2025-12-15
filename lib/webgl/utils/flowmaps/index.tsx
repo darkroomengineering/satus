@@ -3,7 +3,7 @@ import { types } from '@theatre/core'
 import { useRef } from 'react'
 import { useCurrentSheet } from '~/lib/dev/theatre'
 import { useTheatre } from '~/lib/dev/theatre/hooks/use-theatre'
-import { Flowmap } from '~/lib/lib/webgl/utils/flowmaps/flowmap-sim'
+import { Flowmap } from '~/lib/webgl/utils/flowmaps/flowmap-sim'
 
 export function useFlowmapSim() {
   const sheet = useCurrentSheet()

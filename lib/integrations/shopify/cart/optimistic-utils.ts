@@ -2,7 +2,7 @@ import type {
   Cart,
   Product,
   ProductVariant,
-} from '~/lib/lib/integrations/shopify/types'
+} from '~/lib/integrations/shopify/types'
 import { isEmptyArray } from '~/lib/utils'
 
 type CartLine = Pick<

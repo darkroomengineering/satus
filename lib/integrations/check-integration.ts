@@ -6,11 +6,11 @@
  *
  * Usage:
  * ```ts
- * import { isShopifyConfigured } from '~/lib/lib/integrations/check-integration'
+ * import { isShopifyConfigured } from '~/lib/integrations/check-integration'
  *
  * if (isShopifyConfigured()) {
  *   // Only import and use Shopify code if configured
- *   const { ShopifyCart } = await import('~/lib/lib/integrations/shopify/cart')
+ *   const { ShopifyCart } = await import('~/lib/integrations/shopify/cart')
  * }
  * ```
  */

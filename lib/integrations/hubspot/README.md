@@ -32,7 +32,7 @@ See [lib/integrations/README.md](../README.md#environment-variables) for complet
 Uses HubSpot's form builder and embeds the form with custom styling:
 
 ```tsx
-import { EmbedHubspotForm } from '~/lib/lib/integrations/hubspot/embed'
+import { EmbedHubspotForm } from '~/lib/integrations/hubspot/embed'
 
 function NewsletterSection() {
   return (
@@ -50,7 +50,7 @@ For simple newsletter forms using HubSpot's Forms API:
 
 ```tsx
 import { Form, Input, SubmitButton } from '~/components/form'
-import { HubspotNewsletterAction } from '~/lib/lib/integrations/hubspot/action'
+import { HubspotNewsletterAction } from '~/lib/integrations/hubspot/action'
 
 function NewsletterForm() {
   return (
@@ -67,7 +67,7 @@ function NewsletterForm() {
 For custom form rendering:
 
 ```tsx
-import { getForm } from '~/lib/lib/integrations/hubspot/fetch-form'
+import { getForm } from '~/lib/integrations/hubspot/fetch-form'
 
 export default async function CustomFormPage() {
   const { form, error } = await getForm('your-form-id')

@@ -5,7 +5,7 @@
  * to reduce bundle size and maintenance overhead.
  */
 
-import { getUnconfiguredIntegrations } from '~/lib/lib/integrations/check-integration'
+import { getUnconfiguredIntegrations } from '~/lib/integrations/check-integration'
 
 interface RemovalGuide {
   dirs: string[]

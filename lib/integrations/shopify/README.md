@@ -34,7 +34,7 @@ See [lib/integrations/README.md](../README.md#environment-variables) for complet
 Wrap your app with the Cart provider:
 
 ```tsx
-import { Cart } from '~/lib/lib/integrations/shopify/cart'
+import { Cart } from '~/lib/integrations/shopify/cart'
 
 export default async function Layout({ children }) {
   return (
@@ -48,7 +48,7 @@ export default async function Layout({ children }) {
 ### Add to Cart
 
 ```tsx
-import { AddToCart } from '~/lib/lib/integrations/shopify/cart/add-to-cart'
+import { AddToCart } from '~/lib/integrations/shopify/cart/add-to-cart'
 
 function ProductCard({ product, variant }) {
   return (
@@ -68,7 +68,7 @@ Access cart state in any component:
 ```tsx
 'use client'
 
-import { useCartContext } from '~/lib/lib/integrations/shopify/cart/cart-context'
+import { useCartContext } from '~/lib/integrations/shopify/cart/cart-context'
 
 function CartButton() {
   const { cart, totalQuantity } = useCartContext()
@@ -88,7 +88,7 @@ Toggle cart modal:
 ```tsx
 'use client'
 
-import { useCartModal } from '~/lib/lib/integrations/shopify/cart/modal'
+import { useCartModal } from '~/lib/integrations/shopify/cart/modal'
 
 function OpenCartButton() {
   const { openCart } = useCartModal()
@@ -100,8 +100,8 @@ function OpenCartButton() {
 ### Customer Authentication
 
 ```tsx
-import { LoginCustomerAction, LogoutCustomerAction, CreateCustomerAction } from '~/lib/lib/integrations/shopify/customer/actions'
-import { getCustomer } from '~/lib/lib/integrations/shopify/customer/actions'
+import { LoginCustomerAction, LogoutCustomerAction, CreateCustomerAction } from '~/lib/integrations/shopify/customer/actions'
+import { getCustomer } from '~/lib/integrations/shopify/customer/actions'
 
 // Server component
 export default async function AccountPage() {
@@ -118,7 +118,7 @@ export default async function AccountPage() {
 ### Fetching Products
 
 ```tsx
-import { getProducts, getProduct, getCollections } from '~/lib/lib/integrations/shopify'
+import { getProducts, getProduct, getCollections } from '~/lib/integrations/shopify'
 
 // Get all products
 const products = await getProducts({ sortKey: 'CREATED_AT', reverse: true })

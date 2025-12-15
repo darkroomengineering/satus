@@ -58,7 +58,7 @@ The visual editor is already configured in this project. Here's how it works:
 **1. Layout Integration (`app/layout.tsx`)**
 ```tsx
 import { VisualEditing } from 'next-sanity/visual-editing'
-import { DisableDraftMode } from '~/lib/lib/integrations/sanity/components/disable-draft-mode'
+import { DisableDraftMode } from '~/lib/integrations/sanity/components/disable-draft-mode'
 
 export default async function Layout({ children }) {
   const isDraftMode = (await draftMode()).isEnabled
@@ -82,8 +82,8 @@ export default async function Layout({ children }) {
 **2. Data Fetching with Draft Mode / Live**
 ```tsx
 import { draftMode } from 'next/headers'
-import { sanityFetch } from '~/lib/lib/integrations/sanity/live'
-import { pageQuery } from '~/lib/lib/integrations/sanity/queries'
+import { sanityFetch } from '~/lib/integrations/sanity/live'
+import { pageQuery } from '~/lib/integrations/sanity/queries'
 
 export default async function Page() {
   const { data } = await sanityFetch({ query: pageQuery, params: { slug: 'home' } })
@@ -93,7 +93,7 @@ export default async function Page() {
 
 **3. Context Provider**
 ```tsx
-import { SanityContextProvider } from '~/lib/lib/integrations/sanity'
+import { SanityContextProvider } from '~/lib/integrations/sanity'
 
 export default function Page({ data }) {
   return (
@@ -249,7 +249,7 @@ export async function fetchSanityLanding(slug: string, isDraftMode = false) {
 // app/(pages)/landing/[slug]/page.tsx
 import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
-import { fetchSanityLanding, SanityContextProvider } from '~/lib/lib/integrations/sanity'
+import { fetchSanityLanding, SanityContextProvider } from '~/lib/integrations/sanity'
 import { LandingComponent } from './landing-component'
 
 export default async function LandingPage({ params }) {
@@ -276,7 +276,7 @@ export const dynamic = 'force-dynamic'
 // app/(pages)/landing/[slug]/landing-component.tsx
 'use client'
 
-import { useSanityContext, RichText } from '~/lib/lib/integrations/sanity'
+import { useSanityContext, RichText } from '~/lib/integrations/sanity'
 import { SanityImage } from '~/components/sanity-image'
 
 export function LandingComponent() {

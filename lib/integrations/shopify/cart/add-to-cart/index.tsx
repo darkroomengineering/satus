@@ -1,10 +1,7 @@
 'use client'
 
 import cn from 'clsx'
-import type {
-  Product,
-  ProductVariant,
-} from '~/lib/lib/integrations/shopify/types'
+import type { Product, ProductVariant } from '~/lib/integrations/shopify/types'
 import { addItem } from '../actions'
 import { useCartContext } from '../cart-context'
 import { useCartModal } from '../modal'

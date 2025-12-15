@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useLayoutEffect, useState } from 'react'
-import { mutate } from '~/libs/tempus-queue'
+import { mutate } from '~/lib/tempus-queue'
 
 type ViewportValues = {
   vw: number

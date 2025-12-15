@@ -3,16 +3,15 @@ import type { Metadata, Viewport } from 'next'
 import type { PropsWithChildren } from 'react'
 import { ReactTempus } from 'tempus/react'
 import { RealViewport } from '~/components/real-viewport'
-
+import { themes } from '~/lib/styles/colors'
 import AppData from '~/package.json'
-import { themes } from '~/styles/colors'
-import '~/styles/css/index.css'
+import '~/lib/styles/css/index.css'
 
 import Script from 'next/script'
 import { GSAPRuntime } from '~/components/gsap/runtime'
 
-import { OrchestraTools } from '~/orchestra'
-import { fontsVariable } from '~/styles/fonts'
+import { OrchestraTools } from '~/lib/dev'
+import { fontsVariable } from '~/lib/styles/fonts'
 
 const APP_NAME = AppData.name
 const APP_DEFAULT_TITLE = 'Satūs'

@@ -60,4 +60,4 @@ import { Accordion } from '~/components/accordion'
 
 - [GSAP Integration](gsap/README.md)
 - [Image Component](image/README.md)
-- [Styling System](../styles/README.md)
+- [Styling System](../lib/styles/README.md)

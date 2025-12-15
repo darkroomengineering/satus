@@ -131,7 +131,7 @@ With these optimizations:
 Use the performance hook to track component render time:
 
 ```tsx
-import { useRenderTime } from '~/hooks/use-performance'
+import { useRenderTime } from '~/lib/hooks/use-performance'
 
 function MyImageComponent() {
   useRenderTime('MyImageComponent')

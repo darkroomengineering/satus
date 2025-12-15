@@ -1,4 +1,4 @@
-import { functions } from './styles/scripts/postcss-functions.mjs'
+import { functions } from './lib/styles/scripts/postcss-functions.mjs'
 
 /**
  * PostCSS preset-env config
@@ -25,7 +25,7 @@ const presetEnvConfig = {
  * @type {import('@csstools/postcss-global-data').pluginOptions}
  */
 const globalDataConfig = {
-  files: ['./styles/css/root.css'],
+  files: ['./lib/styles/css/root.css'],
 }
 
 const postcssConfig = {

@@ -3,8 +3,11 @@
 import cn from 'clsx'
 import { useState } from 'react'
 import { Dropdown } from '~/components/dropdown'
-import { AddToCart } from '~/integrations/shopify/cart/add-to-cart'
-import type { Product, ProductVariant } from '~/integrations/shopify/types'
+import { AddToCart } from '~/lib/lib/integrations/shopify/cart/add-to-cart'
+import type {
+  Product,
+  ProductVariant,
+} from '~/lib/lib/integrations/shopify/types'
 import s from './size-and-buy.module.css'
 
 export function SizeAndBuy({ product }: { product: Product }) {

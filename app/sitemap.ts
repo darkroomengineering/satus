@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import { isSanityConfigured } from '~/integrations/check-integration'
+import { isSanityConfigured } from '~/lib/lib/integrations/check-integration'
 
 const APP_BASE_URL =
   process.env.NEXT_PUBLIC_BASE_URL ?? 'https://localhost:3000'
@@ -17,7 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Only fetch Sanity pages if Sanity is configured
   if (isSanityConfigured()) {
     try {
-      const { client } = await import('~/integrations/sanity')
+      const { client } = await import('~/lib/lib/integrations/sanity')
       const { groq } = await import('next-sanity')
 
       // Fetch all published pages and articles

@@ -129,12 +129,12 @@ export function MyComponent() {
 ```
 
 ### Data Fetching
-Use proper perspective for draft vs published content. Implement caching strategies for performance. Handle errors gracefully with try-catch. Import from `/integrations/sanity` directory. Use `~/libs/metadata` helpers for SEO optimization. All `sanityFetch` calls automatically use `cacheSignal()` for request cleanup.
+Use proper perspective for draft vs published content. Implement caching strategies for performance. Handle errors gracefully with try-catch. Import from `/integrations/sanity` directory. Use `~/lib/metadata` helpers for SEO optimization. All `sanityFetch` calls automatically use `cacheSignal()` for request cleanup.
 
 ```typescript
 // In integrations/sanity/queries.ts
 import { sanityFetch } from './live'
-import { generateSanityMetadata } from '~/libs/metadata'
+import { generateSanityMetadata } from '~/lib/metadata'
 
 // Use sanityFetch (automatically includes cacheSignal)
 export async function fetchSanityPage(slug: string, isDraftMode = false) {
@@ -212,7 +212,7 @@ Use ISR for static content with revalidation. Implement proper cache invalidatio
 
 ```typescript
 import { urlForImage } from '~/integrations/sanity'
-import { generateSanityMetadata } from '~/libs/metadata'
+import { generateSanityMetadata } from '~/lib/metadata'
 
 // Use ISR for published content
 export const revalidate = 3600
@@ -362,10 +362,10 @@ import { HubspotNewsletterAction } from '~/integrations/hubspot/action'
 - Never commit API keys
 - Use `.env.local` for development
 - Document required variables in `.env.example`
-- Use `~/libs/validate-env` for runtime validation
+- Use `~/lib/validate-env` for runtime validation
 
 ```typescript
-import { validateEnv } from '~/libs/validate-env'
+import { validateEnv } from '~/lib/validate-env'
 
 // Validate required env vars on startup
 validateEnv(['NEXT_PUBLIC_API_KEY', 'API_SECRET'])
@@ -379,7 +379,7 @@ validateEnv(['NEXT_PUBLIC_API_KEY', 'API_SECRET'])
 - Use `cacheSignal()` for automatic request cleanup (React 19.2)
 
 ```typescript
-import { fetchWithTimeout } from '~/libs/fetch-with-timeout'
+import { fetchWithTimeout } from '~/lib/fetch-with-timeout'
 import { cacheSignal } from 'react'
 
 // HubSpot: 8 seconds
@@ -448,7 +448,7 @@ const ProductSchema = z.object({
 - Implement rate limiting where necessary
 
 ### Integration Management
-- Use `~/libs/cleanup-integrations` to remove unused integration code
+- Use `~/lib/cleanup-integrations` to remove unused integration code
 - Check integration usage with `~/integrations/check-integration`
 - Keep only active integrations to optimize bundle size
 

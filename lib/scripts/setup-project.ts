@@ -1,0 +1,390 @@
+#!/usr/bin/env bun
+/**
+ * Interactive Project Setup Script
+ *
+ * Run after cloning the template: `bun run setup:project`
+ *
+ * This script helps you:
+ * 1. Choose which integrations to keep
+ * 2. Remove unused code and dependencies
+ * 3. Clean up configuration files
+ */
+
+import * as p from '@clack/prompts'
+import { getIntegrationNames, INTEGRATION_BUNDLES } from './integration-bundles'
+
+interface SetupOptions {
+  dryRun: boolean
+  keepIntegrations: string[]
+}
+
+/**
+ * Remove a directory recursively
+ */
+const removeDir = async (path: string, dryRun: boolean): Promise<boolean> => {
+  try {
+    const fullPath = `${process.cwd()}/${path}`
+
+    // Check if path exists by trying to scan it
+    const entries = await Array.fromAsync(
+      new Bun.Glob('**/*').scan({ cwd: fullPath, onlyFiles: false })
+    ).catch(() => null)
+
+    if (entries === null) {
+      return false // Doesn't exist
+    }
+
+    if (!dryRun) {
+      await Bun.$`rm -rf ${fullPath}`.quiet()
+    }
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Remove a file
+ */
+const removeFile = async (path: string, dryRun: boolean): Promise<boolean> => {
+  try {
+    const fullPath = `${process.cwd()}/${path}`
+    const file = Bun.file(fullPath)
+    const exists = await file.exists()
+
+    if (!exists) return false
+
+    if (!dryRun) {
+      await Bun.$`rm -f ${fullPath}`.quiet()
+    }
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Update package.json to remove dependencies
+ */
+const updatePackageJson = async (
+  depsToRemove: string[],
+  devDepsToRemove: string[],
+  dryRun: boolean
+): Promise<{ deps: string[]; devDeps: string[] }> => {
+  const pkgPath = `${process.cwd()}/package.json`
+  const pkg = await Bun.file(pkgPath).json()
+
+  const removedDeps: string[] = []
+  const removedDevDeps: string[] = []
+
+  for (const dep of depsToRemove) {
+    if (pkg.dependencies?.[dep]) {
+      if (!dryRun) {
+        delete pkg.dependencies[dep]
+      }
+      removedDeps.push(dep)
+    }
+  }
+
+  for (const dep of devDepsToRemove) {
+    if (pkg.devDependencies?.[dep]) {
+      if (!dryRun) {
+        delete pkg.devDependencies[dep]
+      }
+      removedDevDeps.push(dep)
+    }
+  }
+
+  if ((removedDeps.length > 0 || removedDevDeps.length > 0) && !dryRun) {
+    await Bun.write(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
+  }
+
+  return { deps: removedDeps, devDeps: removedDevDeps }
+}
+
+/**
+ * Update next.config.ts to remove integration-specific config
+ */
+const updateNextConfig = async (
+  patterns: string[],
+  dryRun: boolean
+): Promise<number> => {
+  if (patterns.length === 0) return 0
+
+  const configPath = `${process.cwd()}/next.config.ts`
+  let content = await Bun.file(configPath).text()
+  let changes = 0
+
+  // Remove image remote patterns for removed integrations
+  for (const pattern of patterns) {
+    if (pattern.includes('.')) {
+      // It's a hostname pattern - remove from remotePatterns
+      const regex = new RegExp(
+        `\\s*\\{[^}]*hostname:\\s*['"]${pattern.replace('.', '\\.')}['"][^}]*\\},?`,
+        'g'
+      )
+      const newContent = content.replace(regex, '')
+      if (newContent !== content) {
+        content = newContent
+        changes++
+      }
+    }
+  }
+
+  // Remove optimizePackageImports entries
+  for (const pattern of patterns) {
+    if (pattern.startsWith('@')) {
+      const regex = new RegExp(
+        `\\s*['"]${pattern.replace('/', '\\/')}['"],?`,
+        'g'
+      )
+      const newContent = content.replace(regex, '')
+      if (newContent !== content) {
+        content = newContent
+        changes++
+      }
+    }
+  }
+
+  if (changes > 0 && !dryRun) {
+    await Bun.write(configPath, content)
+  }
+
+  return changes
+}
+
+/**
+ * Clean up .env.example
+ */
+const updateEnvExample = async (
+  envVars: string[],
+  dryRun: boolean
+): Promise<number> => {
+  if (envVars.length === 0) return 0
+
+  const envPath = `${process.cwd()}/.env.example`
+  const file = Bun.file(envPath)
+
+  if (!(await file.exists())) return 0
+
+  let content = await file.text()
+  let changes = 0
+
+  for (const envVar of envVars) {
+    const regex = new RegExp(`^${envVar}=.*$\\n?`, 'gm')
+    const newContent = content.replace(regex, '')
+    if (newContent !== content) {
+      content = newContent
+      changes++
+    }
+  }
+
+  if (changes > 0 && !dryRun) {
+    await Bun.write(envPath, content)
+  }
+
+  return changes
+}
+
+/**
+ * Main setup function
+ */
+const setup = async (options: SetupOptions): Promise<void> => {
+  const { dryRun, keepIntegrations } = options
+  const integrationNames = getIntegrationNames()
+
+  // Determine what to remove
+  const toRemove = integrationNames.filter(
+    (name) => !keepIntegrations.includes(name)
+  )
+
+  if (toRemove.length === 0) {
+    p.log.success('No integrations to remove. All done!')
+    return
+  }
+
+  const s = p.spinner()
+
+  // Process each integration
+  for (const name of toRemove) {
+    const bundle = INTEGRATION_BUNDLES[name]
+    if (!bundle) continue
+
+    s.start(`Removing ${bundle.name}...`)
+
+    const removed: string[] = []
+
+    // Remove folders
+    for (const folder of bundle.folders) {
+      if (await removeDir(folder, dryRun)) {
+        removed.push(folder)
+      }
+    }
+
+    // Remove files
+    for (const file of bundle.files) {
+      if (await removeFile(file, dryRun)) {
+        removed.push(file)
+      }
+    }
+
+    if (removed.length > 0) {
+      s.stop(`Removed ${bundle.name} (${removed.length} items)`)
+    } else {
+      s.stop(`${bundle.name} - nothing to remove`)
+    }
+  }
+
+  // Collect all deps to remove
+  const allDeps: string[] = []
+  const allDevDeps: string[] = []
+  const allConfigPatterns: string[] = []
+  const allEnvVars: string[] = []
+
+  for (const name of toRemove) {
+    const bundle = INTEGRATION_BUNDLES[name]
+    if (!bundle) continue
+    allDeps.push(...bundle.dependencies)
+    allDevDeps.push(...bundle.devDependencies)
+    allConfigPatterns.push(...bundle.configPatterns)
+    allEnvVars.push(...bundle.envVars)
+  }
+
+  // Update package.json
+  if (allDeps.length > 0 || allDevDeps.length > 0) {
+    s.start('Updating package.json...')
+    const { deps, devDeps } = await updatePackageJson(
+      allDeps,
+      allDevDeps,
+      dryRun
+    )
+    const total = deps.length + devDeps.length
+    s.stop(
+      total > 0
+        ? `Removed ${total} dependencies from package.json`
+        : 'No dependencies to remove'
+    )
+  }
+
+  // Update next.config.ts
+  if (allConfigPatterns.length > 0) {
+    s.start('Updating next.config.ts...')
+    const changes = await updateNextConfig(allConfigPatterns, dryRun)
+    s.stop(
+      changes > 0
+        ? `Updated next.config.ts (${changes} changes)`
+        : 'No config changes needed'
+    )
+  }
+
+  // Update .env.example
+  if (allEnvVars.length > 0) {
+    s.start('Updating .env.example...')
+    const changes = await updateEnvExample(allEnvVars, dryRun)
+    s.stop(
+      changes > 0
+        ? `Removed ${changes} env vars from .env.example`
+        : 'No env changes needed'
+    )
+  }
+
+  // Run bun install to update lockfile
+  if (!dryRun) {
+    s.start('Updating lockfile...')
+    await Bun.$`bun install`.quiet()
+    s.stop('Dependencies updated')
+  }
+}
+
+/**
+ * CLI entry point
+ */
+const main = async (): Promise<void> => {
+  const args = process.argv.slice(2)
+  const dryRun = args.includes('--dry-run') || args.includes('-d')
+
+  console.clear()
+
+  p.intro('Satūs Project Setup')
+
+  if (dryRun) {
+    p.log.warn('Dry run mode - no files will be modified')
+  }
+
+  // Build options for multiselect
+  const integrationOptions = getIntegrationNames().map((key) => ({
+    value: key,
+    label: INTEGRATION_BUNDLES[key].name,
+    hint: INTEGRATION_BUNDLES[key].description,
+  }))
+
+  // Ask which integrations to keep
+  const keepIntegrations = await p.multiselect({
+    message: 'Which integrations do you want to KEEP?',
+    options: integrationOptions,
+    required: false,
+  })
+
+  // Handle cancellation
+  if (p.isCancel(keepIntegrations)) {
+    p.cancel('Setup cancelled')
+    process.exit(0)
+  }
+
+  const toRemove = getIntegrationNames().filter(
+    (name) => !keepIntegrations.includes(name)
+  )
+
+  if (toRemove.length === 0) {
+    p.log.success('Keeping all integrations. No changes needed!')
+    p.outro('Run: bun dev')
+    return
+  }
+
+  // Show summary
+  p.log.step('Summary:')
+
+  if (keepIntegrations.length > 0) {
+    p.log.message(
+      `  Keep: ${keepIntegrations.map((k) => INTEGRATION_BUNDLES[k]?.name).join(', ')}`
+    )
+  }
+
+  p.log.message(
+    `  Remove: ${toRemove.map((k) => INTEGRATION_BUNDLES[k]?.name).join(', ')}`
+  )
+
+  // Confirm
+  const proceed = await p.confirm({
+    message: dryRun ? 'Preview changes?' : 'Proceed with setup?',
+  })
+
+  if (p.isCancel(proceed) || !proceed) {
+    p.cancel('Setup cancelled')
+    process.exit(0)
+  }
+
+  // Run setup
+  await setup({ dryRun, keepIntegrations: keepIntegrations as string[] })
+
+  // Done
+  if (dryRun) {
+    p.outro('Dry run complete. Run without --dry-run to apply changes.')
+  } else {
+    p.note(
+      'Next steps:\n' +
+        '  1. Review the changes\n' +
+        '  2. Update README.md with your project info\n' +
+        '  3. Copy .env.example to .env.local\n' +
+        '  4. Run: bun dev',
+      'Setup complete!'
+    )
+    p.outro('Happy coding! 🚀')
+  }
+}
+
+// Run
+main().catch((err) => {
+  p.log.error(`Setup failed: ${err.message}`)
+  process.exit(1)
+})

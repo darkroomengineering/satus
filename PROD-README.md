@@ -39,7 +39,7 @@ GSAP_AUTH_TOKEN="your-gsap-token"
 ### Content Management
 - **Sanity Studio**: Access at `/studio`
 - **Revalidation Webhook**: `https://your-domain.com/api/revalidate`
-- [Sanity Documentation](integrations/sanity/README.md)
+- [Sanity Documentation](lib/integrations/sanity/README.md)
 
 ### Animation
 - **GSAP**: General animations and timeline sequences
@@ -94,21 +94,23 @@ bun analyze          # Bundle analysis
 ```
 project/
 ├── app/                # Next.js pages and routes
-│   └── (pages)/       # Page components
-├── components/         # Reusable UI components
-├── integrations/       # Third-party integrations (Sanity, HubSpot, Shopify)
-├── libs/              # Utilities and helpers
-├── styles/            # Styling system
-└── webgl/             # 3D graphics and WebGL
+├── components/         # Shared UI components
+├── lib/                # Everything non-UI
+│   ├── integrations/  # Sanity, Shopify, HubSpot
+│   ├── webgl/         # 3D graphics
+│   ├── dev/           # Debug tools (CMD+O)
+│   ├── scripts/       # CLI tools
+│   └── styles/        # CSS & Tailwind
+└── public/            # Static assets
 ```
 
 ## Documentation
 
-- [Integrations](integrations/README.md) - All third-party integrations
-- [Styles System](styles/README.md) - Styling and theming
-- [Components Guide](components/README.md) - UI components
-- [Hooks Documentation](hooks/README.md) - Custom React hooks
-- [WebGL Components](webgl/README.md) - 3D graphics
+- [Lib](lib/README.md) - Utilities, hooks, and features
+- [Integrations](lib/integrations/README.md) - Third-party integrations
+- [Styles](lib/styles/README.md) - CSS & Tailwind system
+- [Components](components/README.md) - UI components
+- [WebGL Components](lib/webgl/README.md) - 3D graphics
 
 ## Deployment
 

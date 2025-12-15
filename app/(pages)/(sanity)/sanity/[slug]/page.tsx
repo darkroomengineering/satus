@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation'
 import { Wrapper } from '~/app/(pages)/_components/wrapper'
-import { sanityFetch } from '~/integrations/sanity/live'
-import { articleQuery } from '~/integrations/sanity/queries'
-import { generateSanityMetadata } from '~/libs/metadata'
+import { sanityFetch } from '~/lib/lib/integrations/sanity/live'
+import { articleQuery } from '~/lib/lib/integrations/sanity/queries'
+import { generateSanityMetadata } from '~/lib/metadata'
 import { SanityArticle } from './_components/article'
 
 // export async function generateStaticParams() {

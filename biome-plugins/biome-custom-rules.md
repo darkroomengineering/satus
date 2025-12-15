@@ -5,7 +5,7 @@ After enabling the rules, the following violations were found and fixed:
 ### Nested Ternary Violations Fixed:
 1. **components/dropdown/index.tsx** (line 53)
    - Changed from nested ternary to IIFE with if/else
-2. **integrations/shopify/cart/add-to-cart/index.js** (lines 13-17)
+2. **lib/integrations/shopify/cart/add-to-cart/index.js** (lines 13-17)
    - Extracted to `getButtonState()` function
 
 ## Prepared Plugin Files

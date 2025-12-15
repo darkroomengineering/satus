@@ -110,19 +110,19 @@ React 19.2 integrates custom performance tracks into Chrome DevTools:
 
 ```
 ├── app/                  # Next.js pages and routes
-├── components/           # Reusable UI components
-├── hooks/                # Custom React hooks
-├── integrations/         # Third-party integrations
-├── libs/                 # Utility libraries
-│   ├── cleanup-integrations.ts  # Remove unused integrations
-│   ├── fetch-with-timeout.ts    # API resilience
-│   ├── metadata.ts              # SEO/metadata helpers
-│   ├── validate-env.ts          # Environment validation
-│   └── ...
-├── orchestra/            # Debug tools (dev-only)
-├── styles/               # Styling configuration
-└── webgl/                # WebGL and 3D graphics
+├── components/           # Shared UI components
+├── lib/                  # Everything non-UI
+│   ├── hooks/           # Custom React hooks
+│   ├── integrations/    # Sanity, Shopify, HubSpot, etc.
+│   ├── webgl/           # 3D graphics (optional)
+│   ├── dev/             # Debug tools - CMD+O (optional)
+│   ├── scripts/         # CLI tools (dev, setup)
+│   ├── styles/          # CSS config & Tailwind
+│   └── *.ts             # Utils, store, metadata...
+└── public/               # Static assets
 ```
+
+> **Mental model:** "If it renders UI, it's in `components/`. Everything else is in `lib/`."
 
 ## Cross-Cutting Concerns
 
@@ -202,24 +202,24 @@ if (process.env.NODE_ENV === 'development') {
 ## Core Utility Libraries
 
 ### Available Utilities
-- **`~/libs/validate-env`** - Validate required environment variables at runtime
-- **`~/libs/cleanup-integrations`** - Remove unused integration code to optimize bundle size
-- **`~/libs/fetch-with-timeout`** - Resilient API calls with configurable timeouts (5-10s standard)
-- **`~/libs/metadata`** - Centralized SEO and metadata generation for consistent OpenGraph, Twitter cards, etc.
+- **`~/lib/validate-env`** - Validate required environment variables at runtime
+- **`~/lib/cleanup-integrations`** - Remove unused integration code to optimize bundle size
+- **`~/lib/fetch-with-timeout`** - Resilient API calls with configurable timeouts (5-10s standard)
+- **`~/lib/metadata`** - Centralized SEO and metadata generation for consistent OpenGraph, Twitter cards, etc.
 
 ### Usage Examples
 
 ```typescript
 // Validate environment variables
-import { validateEnv } from '~/libs/validate-env'
+import { validateEnv } from '~/lib/validate-env'
 validateEnv(['NEXT_PUBLIC_API_KEY', 'DATABASE_URL'])
 
 // Fetch with timeout
-import { fetchWithTimeout } from '~/libs/fetch-with-timeout'
+import { fetchWithTimeout } from '~/lib/fetch-with-timeout'
 const response = await fetchWithTimeout(url, { timeout: 10000, ...options })
 
 // Generate metadata
-import { generateSanityMetadata } from '~/libs/metadata'
+import { generateSanityMetadata } from '~/lib/metadata'
 export async function generateMetadata({ params }) {
   const page = await fetchPage(params.slug)
   return generateSanityMetadata(page)

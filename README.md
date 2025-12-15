@@ -10,21 +10,35 @@ A modern, high-performance React application starter with Next.js 15, React 19, 
 
 ## Quick Start
 
+### Using this Template
+
+1. Click **"Use this template"** on GitHub
+2. Clone your new repository
+3. Run the setup:
+
 ```bash
 # Install dependencies
 bun install
 
+# Interactive setup - choose which integrations to keep
+bun run setup:project
+
 # Create .env.local (see Environment Variables below)
-# touch .env.local
+cp .env.example .env.local
 
-# Start development server with Turbopack
+# Start development server
 bun dev
+```
 
-# Build for production
-bun build
+The setup script will remove unused integrations and their dependencies, keeping your project lean.
 
-# Start production server
-bun start
+### Manual Setup
+
+```bash
+bun install
+bun dev        # Development with Turbopack
+bun build      # Production build
+bun start      # Start production server
 ```
 
 ## 🛠 Tech Stack
@@ -87,22 +101,19 @@ async function fetchUserData(id: string) {
 ```
 satus/
 ├── app/                    # Next.js App Router pages and layouts
-├── components/             # Reusable UI components
-├── hooks/                  # Custom React hooks
-├── integrations/           # Third-party service integrations
-│   ├── hubspot/           # HubSpot forms integration
-│   ├── shopify/           # E-commerce functionality
-│   └── sanity/            # Headless CMS
-├── libs/                   # Utility functions and helpers
-├── orchestra/              # Debug and development tools
-│   ├── grid/              # Grid overlay
-│   ├── minimap/           # Page minimap
-│   ├── stats/             # Performance stats
-│   └── theatre/           # Animation tools
-├── styles/                 # Global styles and configuration
-├── webgl/                  # 3D graphics and WebGL components
+├── components/             # Shared UI components
+├── lib/                    # Everything non-UI
+│   ├── hooks/             # Custom React hooks
+│   ├── integrations/      # Sanity, Shopify, HubSpot, etc.
+│   ├── webgl/             # 3D graphics (optional)
+│   ├── dev/               # Debug tools - CMD+O (optional)
+│   ├── scripts/           # CLI tools (dev, setup)
+│   ├── styles/            # CSS config & Tailwind
+│   └── *.ts               # Utils, store, metadata...
 └── public/                 # Static assets
 ```
+
+> **Mental model:** "If it renders UI, it's in `components/`. Everything else is in `lib/`."
 
 ## Key Features
 
@@ -152,7 +163,7 @@ bun validate:env              # Check environment setup
 bun cleanup:integrations      # List unused integrations
 ```
 
-Remove unused integrations to reduce bundle size (~250-400KB potential savings). See [Integrations Documentation](integrations/README.md) for detailed removal instructions.
+Remove unused integrations to reduce bundle size (~250-400KB potential savings). See [Integrations Documentation](lib/integrations/README.md) for detailed removal instructions.
 
 
 ## 🎨 Styling System
@@ -209,7 +220,8 @@ bun lint                    # Run Biome linter
 bun lint:fix                # Fix linting issues
 bun typecheck               # TypeScript validation
 
-# Utilities
+# Setup & Utilities
+bun run setup:project       # Interactive project setup (choose integrations)
 bun setup:styles            # Generate style files
 bun validate:env            # Check environment variables
 bun cleanup:integrations    # List unused integrations
@@ -218,19 +230,17 @@ bun analyze                 # Bundle analysis
 
 ## 🌐 Environment Variables
 
-Create a `.env.local` file with your required variables. See [integrations/README.md](integrations/README.md#environment-variables) for the complete list of all available environment variables.
+Create a `.env.local` file with your required variables. See [lib/integrations/README.md](lib/integrations/README.md#environment-variables) for the complete list of all available environment variables.
 
 ## 📚 Documentation
 
 - [App](app/README.md) - Next.js structure and routing
-- [Integrations](integrations/README.md) - Third-party integrations
 - [Components](components/README.md) - UI components
-- [Hooks](hooks/README.md) - Custom React hooks
-- [Libs](libs/README.md) - Utility libraries
-- [Styles](styles/README.md) - Styling system
-  - [Scripts](styles/scripts/README.md) - Style generation
-- [WebGL](webgl/README.md) - 3D graphics
-- [Orchestra](orchestra/README.md) - Debug tools
+- [Lib](lib/README.md) - Utilities, hooks, and features
+  - [Integrations](lib/integrations/README.md) - Third-party services
+  - [Styles](lib/styles/README.md) - CSS & Tailwind system
+  - [WebGL](lib/webgl/README.md) - 3D graphics
+  - [Dev Tools](lib/dev/README.md) - Debug tools (CMD+O)
 
 ## Deployment
 
@@ -255,7 +265,7 @@ Supports any Next.js-compatible platform: Vercel, Netlify, AWS Amplify, Google C
 **Images & Links**
 - ✅ Always use `~/components/link` (auto-detects external, smart prefetch)
 - ✅ Always use `~/components/image` for DOM (never `next/image` directly)
-- ✅ Use `~/webgl/components/image` in WebGL contexts
+- ✅ Use `~/lib/lib/webgl/components/image` in WebGL contexts
 - See [Image Component documentation](components/image/README.md) for details
 
 **GSAP & Animation**

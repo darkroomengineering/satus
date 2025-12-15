@@ -13,7 +13,7 @@ Visit: **http://localhost:3000/test**
 **Data Fetching Section**
 - ✅ Sanity integration with automatic request cleanup
 - ✅ Shopify integration with timeout + cacheSignal
-- Files: `integrations/sanity/fetch.ts`, `integrations/shopify/index.ts`
+- Files: `lib/integrations/sanity/fetch.ts`, `lib/integrations/shopify/index.ts`
 
 **Accordion with Activity**
 - ✅ Accordion panels wrapped with `<Activity />`

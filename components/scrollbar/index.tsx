@@ -3,7 +3,7 @@
 import { useRect } from 'hamo'
 import { useLenis } from 'lenis/react'
 import { useEffect, useRef } from 'react'
-import { mapRange } from '~/libs/utils'
+import { mapRange } from '~/lib/utils'
 import s from './scrollbar.module.css'
 
 export function Scrollbar() {

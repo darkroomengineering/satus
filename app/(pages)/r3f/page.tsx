@@ -1,5 +1,5 @@
 import { Wrapper } from '~/app/(pages)/_components/wrapper'
-import { TheatreProjectProvider } from '~/orchestra/theatre'
+import { TheatreProjectProvider } from '~/lib/dev/theatre'
 import { Box } from './_components/box'
 
 export default function Home() {

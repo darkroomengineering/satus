@@ -1,6 +1,6 @@
 import bundleAnalyzer from '@next/bundle-analyzer'
 import type { NextConfig } from 'next'
-import './libs/validate-env.ts'
+import './lib/validate-env.ts'
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,

@@ -2,7 +2,7 @@
 
 import { useRect } from 'hamo'
 import { useState } from 'react'
-import { useScrollTrigger } from '~/hooks/use-scroll-trigger'
+import { useScrollTrigger } from '~/lib/hooks/use-scroll-trigger'
 
 function ScrollItem({ index }: { index: number }) {
   const [setRectRef, rect] = useRect()

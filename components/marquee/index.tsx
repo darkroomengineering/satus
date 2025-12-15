@@ -5,7 +5,7 @@ import { useIntersectionObserver, useResizeObserver } from 'hamo'
 import { useLenis } from 'lenis/react'
 import { type HTMLAttributes, useRef } from 'react'
 import { useTempus } from 'tempus/react'
-import { modulo } from '~/libs/utils'
+import { modulo } from '~/lib/utils'
 import s from './marquee.module.css'
 
 interface MarqueeProps extends HTMLAttributes<HTMLElement> {

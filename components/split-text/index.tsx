@@ -3,7 +3,7 @@
 import cn from 'clsx'
 import { SplitText as GSAPSplitText } from 'gsap/SplitText'
 import { useEffect, useImperativeHandle, useRef, useState } from 'react'
-// import { useIsVisualEditor } from '~/integrations/storyblok/use-is-visual-editor'
+// import { useIsVisualEditor } from '~/lib/lib/integrations/storyblok/use-is-visual-editor'
 import s from './split-text.module.css'
 
 // @refresh reset

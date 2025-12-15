@@ -116,7 +116,7 @@ async function submitForm(formData: FormData) {
 Use `useDeviceDetection` hook from `~/hooks` for responsive logic
 
 ```tsx
-import { useDeviceDetection } from '~/hooks/use-device-detection'
+import { useDeviceDetection } from '~/lib/hooks/use-device-detection'
 
 function ResponsiveComponent() {
   const { isMobile } = useDeviceDetection()

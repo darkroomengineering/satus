@@ -161,5 +161,5 @@ Cache Components are enabled globally (`cacheComponents: true` in `next.config.t
 
 - [Next.js App Router](https://nextjs.org/docs/app)
 - [Components](../components/README.md)
-- [Integrations](../integrations/README.md)
+- [Integrations](../lib/integrations/README.md)
 

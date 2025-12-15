@@ -238,7 +238,7 @@
       }
     },
     {
-      "includes": ["styles/css/root.css"],
+      "includes": ["lib/styles/css/root.css"],
       "linter": {
         "rules": {
           "suspicious": {

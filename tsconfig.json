@@ -31,7 +31,7 @@
   },
   "include": [
     "next-env.d.ts",
-    "libs/css.d.ts",
+    "lib/css.d.ts",
     "**/*.js",
     "**/*.jsx",
     "**/*.ts",

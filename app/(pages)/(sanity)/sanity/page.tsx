@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation'
 import { Wrapper } from '~/app/(pages)/_components/wrapper'
-import { sanityFetch } from '~/integrations/sanity/live'
-import { pageQuery } from '~/integrations/sanity/queries'
-import { generateSanityMetadata } from '~/libs/metadata'
+import { sanityFetch } from '~/lib/lib/integrations/sanity/live'
+import { pageQuery } from '~/lib/lib/integrations/sanity/queries'
+import { generateSanityMetadata } from '~/lib/metadata'
 import { SanityTutorial } from './_components/tutorial'
 
 const SLUG = 'sanity'

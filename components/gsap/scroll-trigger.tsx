@@ -24,7 +24,6 @@ export function ScrollTrigger() {
 
   const lenis = useLenis(handleUpdate)
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: handleRefresh is useEffectEvent
   useEffect(() => {
     if (lenis) {
       handleRefresh()

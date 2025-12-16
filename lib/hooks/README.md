@@ -5,7 +5,6 @@ Custom React hooks for common functionality.
 ## Available Hooks
 
 - `use-device-detection.ts` - Device type and characteristics detection
-- `use-performance.ts` - Core Web Vitals tracking
 - `use-prefetch.ts` - Route prefetching on visibility
 - `use-scroll-trigger.ts` - Scroll-based animations (GSAP + Lenis)
 - `use-transform.tsx` - Element transformations with GSAP
@@ -35,20 +34,6 @@ function ResponsiveComponent() {
       )}
     </div>
   )
-}
-```
-
-### usePerformance
-
-Automatically tracks and reports Core Web Vitals metrics to analytics services (Google Analytics if available, and Vercel Analytics if installed).
-
-```tsx
-import { usePerformance } from '~/lib/hooks/use-performance'
-
-// Add to your root layout or app component
-function App() {
-  usePerformance()
-  return <>{/* Your app */}</>
 }
 ```
 
@@ -162,7 +147,6 @@ These hooks are designed to work seamlessly with:
 ## Features
 
 - Device detection and responsive behavior
-- Performance monitoring with Core Web Vitals
 - Route prefetching for improved navigation
 - Scroll-based animations and triggers
 - Element transformations with GSAP integration
@@ -174,7 +158,6 @@ Import hooks directly from this directory:
 
 ```typescript
 import { useDeviceDetection } from '~/lib/hooks/use-device-detection'
-import { usePerformance } from '~/lib/hooks/use-performance'
 import { usePrefetch } from '~/lib/hooks/use-prefetch'
 import { useScrollTrigger } from '~/lib/hooks/use-scroll-trigger'
 import { useTransform } from '~/lib/hooks/use-transform'

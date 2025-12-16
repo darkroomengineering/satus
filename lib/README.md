@@ -1,305 +1,237 @@
-# Lib - Utilities, Hooks & Features
+# Lib
 
-Central directory for all non-UI code: utilities, hooks, integrations, and optional features.
+Non-UI code: hooks, integrations, styles, and utilities.
 
-> **Mental model:** "If it renders UI, it's in `components/`. Everything else is in `lib/`."
+> **Where does X go?**
+> - Renders UI → `components/`
+> - Everything else → `lib/`
+
+---
+
+## Quick Import Reference
+
+| Need | Import |
+|------|--------|
+| Custom hook | `import { useScrollTrigger } from '~/hooks'` |
+| Global state | `import { useStore } from '~/hooks'` |
+| Styles/config | `import { colors, themes } from '~/styles'` |
+| WebGL | `import { Canvas, WebGLTunnel } from '~/webgl'` |
+| Integration | `import { sanityFetch } from '~/integrations/sanity'` |
+| Utility | `import { clamp, lerp, slugify } from '~/utils'` |
+| Metadata/SEO | `import { generatePageMetadata } from '~/utils'` |
+| Dev tools | `import { useOrchestra } from '~/dev'` |
+
+---
 
 ## Structure
 
 ```
 lib/
-├── hooks/                    # Custom React hooks
-├── integrations/             # Third-party services (optional)
-│   ├── sanity/              # Headless CMS
-│   ├── shopify/             # E-commerce
-│   ├── hubspot/             # Marketing forms
-│   ├── mailchimp/           # Email marketing
-│   └── mandrill/            # Transactional email
-├── webgl/                    # 3D graphics (optional)
-├── dev/                      # Debug tools (optional)
-├── scripts/                  # CLI tools
-│   ├── dev.ts               # Dev server runner
-│   ├── setup-project.ts     # Project setup wizard
-│   └── integration-bundles.ts
-├── styles/                   # CSS & Tailwind system
-│   ├── css/                 # Generated CSS
-│   ├── scripts/             # Style generation
-│   └── *.ts                 # Config (colors, fonts, etc.)
-├── utils.ts                  # General utilities
-├── store.ts                  # Zustand state management
-├── fetch-with-timeout.ts     # API resilience
-├── metadata.ts               # SEO helpers
-├── validate-env.ts           # Environment validation
-└── *.d.ts                    # Type definitions
+├── hooks/           # Custom React hooks + Zustand store
+├── styles/          # CSS & Tailwind system  
+├── utils/           # Consolidated utilities
+│   ├── animation.ts # Math, easings, RAF queue
+│   ├── strings.ts   # String/object helpers
+│   ├── metadata.ts  # SEO helpers
+│   ├── performance.ts # Core Web Vitals
+│   ├── fetch.ts     # Timeout-protected fetch
+│   └── types.d.ts   # Type definitions
+├── integrations/    # Third-party services (optional)
+├── webgl/           # 3D graphics (optional)
+├── dev/             # Debug tools (optional)
+└── scripts/         # CLI tools
 ```
 
-## Subdirectories
+| Directory | Optional? | Delete if... |
+|-----------|-----------|--------------|
+| `hooks/` | ❌ Core | — |
+| `styles/` | ❌ Core | — |
+| `utils/` | ❌ Core | — |
+| `integrations/` | ✅ Yes | Not using any CMS/CRM |
+| `webgl/` | ✅ Yes | DOM-only project |
+| `dev/` | ✅ Yes | Don't need debug tools |
 
-| Directory | Purpose | Optional? |
-|-----------|---------|-----------|
-| `hooks/` | Custom React hooks | ❌ Core |
-| `scripts/` | CLI tools | ❌ Core |
-| `styles/` | CSS & Tailwind | ❌ Core |
-| `integrations/` | Third-party services | ✅ Yes |
-| `webgl/` | 3D graphics | ✅ Yes |
-| `dev/` | Debug tools (CMD+O) | ✅ Yes |
+---
 
-See individual READMEs:
-- [Styles](./styles/README.md)
-- [Integrations](./integrations/README.md)
-- [WebGL](./webgl/README.md)
-- [Dev Tools](./dev/README.md)
-
-## Custom Hooks
-
-Import hooks from `~/lib/hooks`:
+## Hooks
 
 ```tsx
-import { useDeviceDetection } from '~/lib/hooks/use-device-detection'
-import { usePrefetch } from '~/lib/hooks/use-prefetch'
-import { useScrollTrigger } from '~/lib/hooks/use-scroll-trigger'
-import { useTransform } from '~/lib/hooks/use-transform'
+// Barrel import (recommended)
+import { useScrollTrigger, useTransform, useDeviceDetection, useStore } from '~/hooks'
+
+// Individual import (also works)
+import { useScrollTrigger } from '~/hooks/use-scroll-trigger'
 ```
 
-### Available Hooks
+| Hook | Purpose |
+|------|---------|
+| `useDeviceDetection` | Detect mobile/desktop/tablet |
+| `usePrefetch` | Prefetch routes on hover |
+| `useScrollTrigger` | Scroll-based animations |
+| `useTransform` | Element transformations |
+| `useStore` | Global Zustand store |
 
-- **`useDeviceDetection`** - Detect device type (mobile/desktop/tablet)
-- **`usePrefetch`** - Prefetch routes on hover/focus
-- **`useScrollTrigger`** - GSAP ScrollTrigger integration
-- **`useTransform`** - Transform values based on scroll position
+---
 
-## Utility Functions (utils.ts)
-
-Common utility functions for general-purpose operations:
+## Styles
 
 ```tsx
+// Barrel import
+import { colors, themes, breakpoints, fontsVariable } from '~/styles'
+
+// Individual imports
+import { colors, themes } from '~/styles/colors'
+import { breakpoints, screens } from '~/styles/config'
+```
+
+| Export | Purpose |
+|--------|---------|
+| `colors` | Color palette |
+| `themes` | Theme definitions (light/dark/red) |
+| `breakpoints` | Responsive breakpoints |
+| `fontsVariable` | Font CSS variables |
+| `typography` | Type scale |
+| `easings` | CSS easing functions |
+
+---
+
+## Utilities
+
+```tsx
+// Import everything from barrel
 import { 
-  slugify,
-  numberWithCommas,
-  clamp,
-  mapRange
-} from '~/lib/utils'
+  clamp, mapRange, lerp, slugify, mergeRefs,
+  fetchWithTimeout, generatePageMetadata, easings 
+} from '~/utils'
 
-// Convert string to URL-friendly slug
-const slug = slugify('Hello World') // 'hello-world'
-
-// Add thousands separators
-const formatted = numberWithCommas(1234567) // '1,234,567'
+// Or import specific modules
+import { easings } from '~/utils/animation'
+import { generateSanityMetadata } from '~/utils/metadata'
 ```
 
-## Mathematical Utilities (utils.ts)
+### Animation & Math (`~/utils/animation`)
 
-Mathematical functions for calculations and transformations:
+| Function | Purpose |
+|----------|---------|
+| `clamp(min, value, max)` | Limit value to range |
+| `mapRange(inMin, inMax, value, outMin, outMax)` | Scale between ranges |
+| `lerp(start, end, t)` | Linear interpolation |
+| `modulo(n, d)` | Negative-safe modulo |
+| `stagger(index, total, progress, staggerAmount)` | Staggered animation timing |
+| `ease(progress, easeName)` | Apply easing function |
+| `fromTo(elements, from, to, progress, options)` | Animate multiple elements |
+| `easings` | All easing functions (easeOutExpo, etc.) |
+| `measure(fn)` | Queue DOM read (prevents thrashing) |
+| `mutate(fn)` | Queue DOM write (prevents thrashing) |
+
+### Strings & Objects (`~/utils/strings`)
+
+| Function | Purpose |
+|----------|---------|
+| `slugify(text)` | URL-friendly strings |
+| `capitalizeFirstLetter(str)` | Capitalize first letter |
+| `twoDigits(number)` | Pad to 2 digits (01, 02...) |
+| `isEmptyObject(obj)` | Check if object is empty |
+| `isEmptyArray(arr)` | Check if array is empty |
+| `mergeRefs(...refs)` | Combine multiple refs |
+
+### Metadata/SEO (`~/utils/metadata`)
+
+| Function | Purpose |
+|----------|---------|
+| `generatePageMetadata(options)` | Generate full metadata object |
+| `generateSanityMetadata(options)` | Metadata for Sanity CMS pages |
+
+### Fetch (`~/utils/fetch`)
+
+| Function | Purpose |
+|----------|---------|
+| `fetchWithTimeout(url, options)` | Fetch with timeout protection |
+| `fetchJSON<T>(url, options)` | Fetch + parse JSON |
+
+### Performance (`~/utils/performance`)
+
+| Function | Purpose |
+|----------|---------|
+| `getCLS`, `getFID`, `getFCP`, `getLCP`, `getTTFB` | Individual vitals |
+| `reportWebVitals(onReport)` | Report all vitals |
+
+---
+
+## WebGL
 
 ```tsx
-import { 
-  clamp, 
-  mapRange, 
-  lerp,
-  random,
-  modulo
-} from '~/lib/utils'
+// Barrel import
+import { Canvas, WebGLTunnel, useCanvas } from '~/webgl'
 
-// Clamp a value between min and max
-const clamped = clamp(150, 0, 100) // 100
-
-// Map a value from one range to another
-const mapped = mapRange(0.5, 0, 1, 0, 100) // 50
-
-// Linear interpolation between two values
-const interpolated = lerp(0, 100, 0.5) // 50
-
-// Generate random number in range
-const rand = random(10, 20) // Random number between 10-20
-
-// Modulo that works correctly with negative numbers
-const mod = modulo(-1, 5) // 4
+// Individual imports
+import { Canvas } from '~/webgl/components/canvas'
+import { Flowmap } from '~/webgl/utils/flowmaps'
 ```
 
-## State Management (store.ts)
+| Export | Purpose |
+|--------|---------|
+| `Canvas` | R3F canvas wrapper |
+| `WebGLTunnel` / `DOMTunnel` | Portal between DOM and WebGL |
+| `FlowmapProvider` | Mouse flowmap effects |
+| `WebGLImage` | GPU-accelerated images |
+| `useWebGLRect` | Element rect for WebGL |
 
-Zustand-based state management utilities:
+---
+
+## Integrations
 
 ```tsx
-import { createStore } from '~/lib/store'
+// Sanity CMS
+import { sanityFetch, RichText } from '~/integrations/sanity'
 
-// Create a type-safe store
-const useCounterStore = createStore(
-  'counter', // Unique identifier
-  {
-    count: 0,
-    increment: (state) => ({ count: state.count + 1 }),
-    decrement: (state) => ({ count: state.count - 1 }),
-    reset: () => ({ count: 0 })
-  }
-)
+// Shopify
+import { Cart, AddToCart } from '~/integrations/shopify/cart'
 
-// Use in component
-function Counter() {
-  const { count, increment, decrement } = useCounterStore()
-  
-  return (
-    <div>
-      <p>Count: {count}</p>
-      <button onClick={increment}>+</button>
-      <button onClick={decrement}>-</button>
-    </div>
-  )
-}
+// HubSpot
+import { EmbedHubspotForm } from '~/integrations/hubspot/embed'
+
+// Cleanup utility
+import { printCleanupInstructions } from '~/integrations/cleanup'
 ```
 
-## Type Definitions
+See [Integrations README](./integrations/README.md) for full docs.
 
-### augment.d.ts
+---
 
-Type augmentations for third-party libraries:
+## When to Use What
+
+| Need | Use |
+|------|-----|
+| Element size/position | `hamo` → `useRect` |
+| Window dimensions | `hamo` → `useWindowSize` |
+| Scroll position | `lenis` → `useLenis` |
+| Frame loop | `tempus` → `useTempus` |
+| Math operations | `~/utils` → `clamp`, `lerp`, etc. |
+| JS easing functions | `~/utils` → `easings` |
+| CSS easing strings | `~/styles` → `easings` |
+| DOM read/write batching | `~/utils` → `measure`, `mutate` |
+| Fetch with timeout | `~/utils` → `fetchWithTimeout` |
+
+---
+
+## Dev Tools
 
 ```tsx
-// Example of augmented types in augment.d.ts
-declare module 'some-library' {
-  export interface Options {
-    newOption: string
-  }
-}
+import { useOrchestra, OrchestraTools } from '~/dev'
+import { TheatreProjectProvider } from '~/dev/theatre'
 ```
 
-## Best Practices
+Toggle with `Cmd/Ctrl + O`. Auto-excluded from production.
 
-1. **Code Organization**
-   - Keep utilities focused on a single responsibility
-   - Group related functions together
-   - Maintain clear naming conventions
+---
 
-2. **Performance**
-   - React Compiler handles most memoization automatically
-   - See [root README](../../README.md#react-compiler--memoization) for details
-   - Optimize computationally expensive operations
-   - Use correct data structures for operations
-   - Use `useRef` for object instantiation (prevents infinite loops)
-
-3. **Type Safety**
-   - Leverage TypeScript for type checking
-   - Provide comprehensive type definitions
-   - Use generics for flexible, type-safe functions
-
-## Development Tools
-
-### Environment Validation (validate-env.ts)
-
-Validates environment variables and shows which integrations are configured:
+## CLI Scripts
 
 ```bash
-# Run as CLI script
-bun lib/validate-env.ts
-# or via package.json script
-bun validate:env
-```
-
-```typescript
-// Import and use in code
-import { validateEnv } from '~/lib/validate-env'
-
-const result = validateEnv({ silent: false })
-if (!result.valid) {
-  console.error('Missing required environment variables')
-}
-```
-
-### Integration Cleanup (cleanup-integrations.ts)
-
-Identifies unused integrations and provides removal instructions:
-
-```bash
-# Run as CLI script
-bun lib/cleanup-integrations.ts
-# or via package.json script
-bun cleanup:integrations
-```
-
-```typescript
-// Import and use in code
-import { 
-  getRemovalGuide, 
-  printCleanupInstructions,
-  REMOVAL_GUIDE 
-} from '~/lib/cleanup-integrations'
-
-// Get specific integration removal guide
-const sanityGuide = getRemovalGuide('Sanity')
-
-// Print all cleanup instructions
-printCleanupInstructions()
-```
-
-### Fetch with Timeout (fetch-with-timeout.ts)
-
-Prevent hanging requests with automatic timeout protection:
-
-```typescript
-import { fetchWithTimeout, fetchJSON } from '~/lib/fetch-with-timeout'
-
-// Basic fetch with 10s timeout (default)
-const response = await fetchWithTimeout('https://api.example.com/data', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(data),
-})
-
-// Custom timeout (5 seconds)
-const response = await fetchWithTimeout('https://api.example.com/data', {
-  timeout: 5000, // 5 seconds
-  method: 'POST',
-})
-
-// JSON fetch with automatic parsing
-const data = await fetchJSON<{ name: string }>('https://api.example.com/user', {
-  timeout: 10000 // optional, defaults to 10000ms
-})
-```
-
-**Standard timeout recommendations:**
-- HubSpot: 8-10 seconds
-- Mailchimp: 10 seconds
-- Shopify: 10 seconds
-- Turnstile verification: 5 seconds
-
-### Metadata Helpers (metadata.ts)
-
-Generate consistent metadata for SEO:
-
-```typescript
-import { generatePageMetadata, generateSanityMetadata } from '~/lib/metadata'
-
-// For custom pages
-export async function generateMetadata({ params }) {
-  return generatePageMetadata({
-    title: 'My Page',
-    description: 'Page description',
-    url: `/page/${params.slug}`,
-    image: { url: '/og-image.jpg' },
-  })
-}
-
-// For Sanity CMS pages
-export async function generateMetadata({ params }) {
-  const { data } = await sanityFetch({ query: pageQuery, params })
-  
-  return generateSanityMetadata({
-    document: data,
-    url: `/sanity/${params.slug}`,
-  })
-}
-```
-
-## Usage
-
-Import utilities directly from their respective files:
-
-```typescript
-import { slugify, numberWithCommas, clamp, mapRange  } from '~/lib/utils'
-import { useStore } from '~/lib/store'
-import { validateEnv } from '~/lib/validate-env'
-import { getRemovalGuide } from '~/lib/cleanup-integrations'
-import { fetchWithTimeout } from '~/lib/fetch-with-timeout'
-import { generatePageMetadata } from '~/lib/metadata'
+bun dev              # Start dev server
+bun build            # Production build
+bun lint             # Run linter
+bun typecheck        # Type check
+bun cleanup:integrations  # Find unused integrations
 ```

@@ -1,15 +1,15 @@
 import { Suspense } from 'react'
 import { Wrapper } from '~/app/(pages)/_components/wrapper'
-import { getCustomer } from '~/lib/integrations/shopify/customer/actions'
-import type { Customer } from '~/lib/integrations/shopify/types'
+import { getCustomer } from '~/integrations/shopify/customer/actions'
+import type { Customer } from '~/integrations/shopify/types'
 import { LoginForm, LogoutButton, RegisterForm } from '../_components/customer'
 
 export default async function AccountPage() {
   const customer = await getCustomer()
 
   return (
-    <Wrapper theme="red" className="font-mono uppercase overflow-clip">
-      <section className="flex flex-col items-center justify-center grow max-dt:px-safe">
+    <Wrapper theme="red" className="overflow-clip font-mono uppercase">
+      <section className="flex grow flex-col items-center justify-center max-dt:px-safe">
         <h1 className="p">My Account</h1>
         {customer ? (
           <Suspense fallback={<div>Loading...</div>}>

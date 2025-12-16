@@ -1,4 +1,8 @@
-// Custom performance monitoring utilities to replace web-vitals
+/**
+ * Performance Monitoring
+ *
+ * Custom utilities to measure Core Web Vitals (CLS, FID, FCP, LCP, TTFB).
+ */
 
 export interface PerformanceMetric {
   name: string
@@ -170,7 +174,7 @@ export function getTTFB(onReport?: (metric: PerformanceMetric) => void): void {
   }
 }
 
-// Report all web vitals
+/** Report all Core Web Vitals */
 export function reportWebVitals(
   onReport?: (metric: PerformanceMetric) => void
 ): void {

@@ -5,7 +5,7 @@ import {
   Image as DRImage,
   type ImageProps as DRImageProps,
 } from '~/components/image'
-import { useDeviceDetection } from '~/lib/hooks/use-device-detection'
+import { useDeviceDetection } from '~/hooks'
 import { WebGLTunnel } from '../tunnel'
 
 const WebGLImage = dynamic(

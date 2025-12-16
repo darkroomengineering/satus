@@ -22,7 +22,7 @@ function CustomSelect({
       {!!label && label}
       <Select.Trigger
         className={cn(
-          'flex h-10 min-w-36 items-center justify-between gap-3 rounded-md border pr-3 pl-3.5 select-none',
+          'flex h-10 min-w-36 select-none items-center justify-between gap-3 rounded-md border pr-3 pl-3.5',
           className
         )}
       >
@@ -41,7 +41,7 @@ function CustomSelect({
             {options?.map(({ value, label }) => (
               <Select.Item
                 className={cn(
-                  'grid items-center gap-2 py-2 pr-4 pl-2.5 outline-none select-none',
+                  'grid select-none items-center gap-2 py-2 pr-4 pl-2.5 outline-none',
                   s.item
                 )}
                 value={value}

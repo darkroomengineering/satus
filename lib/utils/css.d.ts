@@ -1,4 +1,5 @@
-// CSS module type declarations
+// CSS module type declarations (ambient - no imports allowed)
+
 declare module '*.module.css' {
   const classes: { [key: string]: string }
   export default classes

@@ -21,7 +21,7 @@ export function DisableDraftMode() {
     <Link
       href="/api/draft-mode/disable"
       scroll={false}
-      className="fixed right-safe top-safe bg-red text-primary uppercase dr-p-4 font-mono text-sm z-50"
+      className="dr-p-4 fixed top-safe right-safe z-50 bg-red font-mono text-primary text-sm uppercase"
     >
       Disable Draft Mode
     </Link>

@@ -9,7 +9,7 @@ import {
   useContext,
   useRef,
 } from 'react'
-import { useScrollTrigger } from '~/lib/hooks/use-scroll-trigger'
+import { useScrollTrigger } from '~/hooks'
 import s from './fold.module.css'
 
 const FoldContext = createContext(false)

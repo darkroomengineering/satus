@@ -2,7 +2,7 @@
 
 # Satūs
 
-A modern, high-performance React application starter with Next.js 15, React 19, Tailwind CSS v4, and advanced WebGL capabilities. Satūs means "start" or "beginning" in Latin, serving as a foundation for new projects.
+A modern, high-performance React application starter with Next.js 16, React 19, Tailwind CSS v4, and advanced WebGL capabilities. Satūs means "start" or "beginning" in Latin, serving as a foundation for new projects.
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/darkroomengineering/satus)
 
@@ -159,7 +159,6 @@ satus/
 Check which integrations are configured:
 
 ```bash
-bun validate:env              # Check environment setup
 bun cleanup:integrations      # List unused integrations
 ```
 
@@ -223,7 +222,6 @@ bun typecheck               # TypeScript validation
 # Setup & Utilities
 bun run setup:project       # Interactive project setup (choose integrations)
 bun setup:styles            # Generate style files
-bun validate:env            # Check environment variables
 bun cleanup:integrations    # List unused integrations
 bun analyze                 # Bundle analysis
 ```

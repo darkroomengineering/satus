@@ -2,7 +2,7 @@
 
 import cn from 'clsx'
 import { Messages, SubmitButton, useFormContext } from '~/components/form'
-import type { HubSpotParsedForm } from '~/lib/integrations/hubspot/fetch-form'
+import type { HubSpotParsedForm } from '~/integrations/hubspot/fetch-form'
 
 export const Subscribe = ({
   idx = 0,
@@ -16,7 +16,7 @@ export const Subscribe = ({
   return (
     <div
       className={cn(
-        'flex relative',
+        'relative flex',
         isActive[idx] && '',
         errors[idx]?.state && ''
       )}
@@ -27,8 +27,8 @@ export const Subscribe = ({
         name={form?.inputs[idx]?.name}
         className={cn(
           'dr-w-303 dt:dr-w-400 dr-text-14 dt:dr-text-16 dt:aspect-[330/60]',
-          'border-2 border-black dr-rounded-6 dt:dr-rounded-8',
-          'dr-px-19 dr-py-18 dr-pr-136 dt:py-0 dt:dr-px-18 dt:dr-pr-115'
+          'dr-rounded-6 dt:dr-rounded-8 border-2 border-black',
+          'dr-px-19 dr-py-18 dr-pr-136 dt:dr-px-18 dt:dr-pr-115 dt:py-0'
         )}
         placeholder={form?.inputs[idx]?.placeholder ?? 'email'}
         required
@@ -37,12 +37,12 @@ export const Subscribe = ({
       <SubmitButton
         className={cn(
           '!absolute -right-[5%] h-full',
-          'border-2 border-black dr-rounded-6 dt:dr-rounded-8',
+          'dr-rounded-6 dt:dr-rounded-8 border-2 border-black',
           'dr-px-18 dt:dr-px-24'
         )}
         defaultText={form?.submitButton?.text}
       />
-      <Messages className="absolute -sbottom-20" />
+      <Messages className="-sbottom-20 absolute" />
     </div>
   )
 }

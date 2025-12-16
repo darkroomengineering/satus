@@ -1,6 +1,6 @@
 import { Wrapper } from '~/app/(pages)/_components/wrapper'
 import { Form } from '~/components/form'
-import { getForm } from '~/lib/integrations/hubspot/fetch-form'
+import { getForm } from '~/integrations/hubspot/fetch-form'
 import { Subscribe } from './_components/subscribe'
 
 export default async function Hubspot() {
@@ -9,7 +9,7 @@ export default async function Hubspot() {
 
   return (
     <Wrapper theme="red" className="font-mono uppercase">
-      <div className="flex flex-col items-center justify-center flex-grow max-dt:spx-16">
+      <div className="max-dt:spx-16 flex grow flex-col items-center justify-center">
         <p className="dr-mb-19 dt:dr-mb-15">subscribe for more Satūs</p>
         <Form
           className="dr-mb-32 dr-px-15"

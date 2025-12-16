@@ -1,3 +1,6 @@
+// Type augmentations and module declarations
+
+// React CSS custom properties support
 import 'react'
 
 declare module 'react' {
@@ -6,6 +9,7 @@ declare module 'react' {
   }
 }
 
+// Global window extensions
 declare global {
   interface Window {
     hbspt?: {

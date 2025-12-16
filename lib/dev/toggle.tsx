@@ -48,7 +48,7 @@ export function OrchestraToggle({
       style={{
         backgroundColor: active ? 'rgba(0, 255, 0, 0.5)' : '',
       }}
-      className="text-[64px] grid place-items-center size-20 rounded-[8px]"
+      className="grid size-20 place-items-center rounded-[8px] text-[64px]"
       title={id}
     >
       {children}

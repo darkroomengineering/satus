@@ -137,18 +137,10 @@ This template includes several optional integrations. You can check which ones a
 
 ### Quick Status Check
 
-Run this command to see which integrations are configured:
-
-```bash
-bun validate:env
-# or directly: bun libs/validate-env.ts
-```
-
 Run the cleanup helper to identify unused integrations:
 
 ```bash
 bun cleanup:integrations
-# or directly: bun libs/cleanup-integrations.ts
 ```
 
 ### Automatic Detection
@@ -282,21 +274,15 @@ Typical bundle size reductions when removing integrations:
 You can use these utilities in your own scripts:
 
 ```typescript
-import { validateEnv } from '~/lib/validate-env'
 import { 
   getRemovalGuide, 
   printCleanupInstructions,
   REMOVAL_GUIDE 
-} from '~/lib/cleanup-integrations'
+} from '~/integrations/cleanup'
 import { 
   getConfiguredIntegrations,
   getUnconfiguredIntegrations 
-} from '~/lib/integrations/check-integration'
-
-// Check environment
-const result = validateEnv()
-console.log('Valid:', result.valid)
-console.log('Configured:', result.integrationStatus)
+} from '~/integrations/check-integration'
 
 // Get configured/unconfigured integrations
 const configured = getConfiguredIntegrations()

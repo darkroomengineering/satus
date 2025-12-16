@@ -1,7 +1,7 @@
 import type { PortableTextBlock } from 'next-sanity'
 import { Image } from '~/components/image'
-import { RichText, urlForImage } from '~/lib/integrations/sanity'
-import type { Article } from '~/lib/integrations/sanity/sanity.types'
+import { RichText, urlForImage } from '~/integrations/sanity'
+import type { Article } from '~/integrations/sanity/sanity.types'
 
 type SanityArticleProps = NonNullable<Article>
 
@@ -37,7 +37,7 @@ export function SanityArticle({ data }: { data: SanityArticleProps }) {
           {data.categories.map((category) => (
             <span
               key={category}
-              className="text-sm bg-gray-100 px-2 py-1 rounded"
+              className="rounded bg-gray-100 px-2 py-1 text-sm"
             >
               {category}
             </span>
@@ -47,7 +47,7 @@ export function SanityArticle({ data }: { data: SanityArticleProps }) {
       {data.tags && data.tags.length > 0 && (
         <div className="flex gap-2" data-sanity="tags">
           {data.tags.map((tag) => (
-            <span key={tag} className="text-xs bg-gray-200 px-2 py-1 rounded">
+            <span key={tag} className="rounded bg-gray-200 px-2 py-1 text-xs">
               #{tag}
             </span>
           ))}

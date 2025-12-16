@@ -16,7 +16,7 @@ export function Navigation() {
   const pathname = usePathname()
 
   return (
-    <nav className="fixed top-safe left-safe z-2 flex flex-col uppercase font-mono">
+    <nav className="fixed top-safe left-safe z-2 flex flex-col font-mono uppercase">
       <div className="inline-flex">
         <h1>Satūs</h1>
         <span>{pathname}</span>
@@ -31,7 +31,7 @@ export function Navigation() {
                 'link',
                 'relative',
                 pathname === link.href &&
-                  "before:content-['■'] before:absolute before:left-[-16px]"
+                  "before:absolute before:left-[-16px] before:content-['■']"
               )}
             >
               {link.label}

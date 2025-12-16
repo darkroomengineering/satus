@@ -522,7 +522,7 @@ export async function fetchSanityPage(slug: string): Promise<{
 Use the metadata helper for consistent SEO across pages:
 
 ```typescript
-import { generateSanityMetadata } from '~/lib/metadata'
+import { generateSanityMetadata } from '~/utils'
 
 export async function generateMetadata({ params }) {
   const { data } = await sanityFetch({ query: pageQuery, params })

@@ -25,7 +25,7 @@ export function GridDebugger({
   )
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-10000">
+    <div className="pointer-events-none fixed inset-0 z-10000">
       <div className={cn(gridClassName, 'absolute inset-0', s.debugger)}>
         {Array.from({ length: columns }).map((_, index) => (
           <span

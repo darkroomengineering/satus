@@ -3,11 +3,8 @@
 import cn from 'clsx'
 import { useRect } from 'hamo'
 import { type CSSProperties, Fragment, type ReactNode, useRef } from 'react'
-import {
-  type UseScrollTriggerOptions,
-  useScrollTrigger,
-} from '~/lib/hooks/use-scroll-trigger'
-import { slugify } from '~/lib/utils'
+import { type UseScrollTriggerOptions, useScrollTrigger } from '~/hooks'
+import { slugify } from '~/utils'
 import s from './progress-text.module.css'
 
 // TODO: add support for children as an array of strings and objects

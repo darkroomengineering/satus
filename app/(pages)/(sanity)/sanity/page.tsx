@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation'
 import { Wrapper } from '~/app/(pages)/_components/wrapper'
-import { sanityFetch } from '~/lib/integrations/sanity/live'
-import { pageQuery } from '~/lib/integrations/sanity/queries'
-import { generateSanityMetadata } from '~/lib/metadata'
+import { sanityFetch } from '~/integrations/sanity/live'
+import { pageQuery } from '~/integrations/sanity/queries'
+import { generateSanityMetadata } from '~/utils'
 import { SanityTutorial } from './_components/tutorial'
 
 const SLUG = 'sanity'
@@ -16,8 +16,8 @@ export default async function SanityPage() {
   if (!data) return notFound()
 
   return (
-    <Wrapper theme="red" className="uppercase font-mono">
-      <div className="flex items-center justify-center grow max-dt:dr-px-16">
+    <Wrapper theme="red" className="font-mono uppercase">
+      <div className="max-dt:dr-px-16 flex grow items-center justify-center">
         <SanityTutorial data={data} />
       </div>
     </Wrapper>

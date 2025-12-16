@@ -1,14 +1,28 @@
+# Lefthook configuration for git hooks
+# Cross-platform compatible (Windows, macOS, Linux)
+# https://github.com/evilmartians/lefthook
+
 pre-commit:
   parallel: true
   commands:
     biome:
       glob: '*.{js,mjs,ts,jsx,tsx,css,scss}'
       run: bun biome check --max-diagnostics=200 --write {staged_files}
-      
+      stage_fixed: true
+    typecheck:
+      glob: '*.{ts,tsx}'
+      run: bun tsc --noEmit --incremental false
+      stage_fixed: false
+
+pre-push:
+  commands:
+    build-check:
+      run: bun run build
+      skip:
+        - merge
+        - rebase
+
 post-merge:
   commands:
-    update-env:
-      run: bunx vercel env pull
     install-deps:
       run: bun i
-

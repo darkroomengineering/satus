@@ -130,7 +130,13 @@
         "noImgElement": "error"
       },
       "nursery": {
-        "useSortedClasses": "off"
+        "useSortedClasses": {
+          "level": "warn",
+          "options": {
+            "attributes": ["class", "className"],
+            "functions": ["cn", "clsx"]
+          }
+        }
       }
     }
   },

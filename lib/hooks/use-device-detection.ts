@@ -1,6 +1,6 @@
 import { useMediaQuery } from 'hamo'
 import { useEffect, useState } from 'react'
-import { breakpoints } from '~/lib/styles/config'
+import { breakpoints } from '~/styles/config'
 
 export function useDeviceDetection() {
   const breakpoint = breakpoints.dt

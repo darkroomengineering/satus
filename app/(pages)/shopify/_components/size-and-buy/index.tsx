@@ -3,8 +3,8 @@
 import cn from 'clsx'
 import { useState } from 'react'
 import { Dropdown } from '~/components/dropdown'
-import { AddToCart } from '~/lib/integrations/shopify/cart/add-to-cart'
-import type { Product, ProductVariant } from '~/lib/integrations/shopify/types'
+import { AddToCart } from '~/integrations/shopify/cart/add-to-cart'
+import type { Product, ProductVariant } from '~/integrations/shopify/types'
 import s from './size-and-buy.module.css'
 
 export function SizeAndBuy({ product }: { product: Product }) {
@@ -17,7 +17,7 @@ export function SizeAndBuy({ product }: { product: Product }) {
       <Dropdown
         className={cn(
           s.size,
-          'flex items-center justify-center dr-w-64 dt:dr-w-67'
+          'dr-w-64 dt:dr-w-67 flex items-center justify-center'
         )}
         placeholder="size"
         options={
@@ -37,7 +37,7 @@ export function SizeAndBuy({ product }: { product: Product }) {
         variant={selectedVariant ?? undefined}
         className={cn(
           s.add,
-          'relative col-span-full flex border-2 border-black dr-rounded-8 overflow-hidden cursor-pointer dt:col-start-4 dt:-col-end-4'
+          'dr-rounded-8 relative col-span-full dt:col-start-4 dt:-col-end-4 flex cursor-pointer overflow-hidden border-2 border-black'
         )}
       />
     </>

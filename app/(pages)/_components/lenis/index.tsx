@@ -6,7 +6,7 @@ import type { LenisRef, LenisProps as ReactLenisProps } from 'lenis/react'
 import { ReactLenis } from 'lenis/react'
 import { useEffect, useRef } from 'react'
 import { useTempus } from 'tempus/react'
-import { useStore } from '~/lib/store'
+import { useStore } from '~/hooks'
 
 interface LenisProps extends Omit<ReactLenisProps, 'ref'> {
   root: boolean

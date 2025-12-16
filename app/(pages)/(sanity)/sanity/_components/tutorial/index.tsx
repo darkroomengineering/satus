@@ -1,7 +1,7 @@
 import type { PortableTextBlock } from 'next-sanity'
 import { Link } from '~/components/link'
-import { RichText } from '~/lib/integrations/sanity'
-import type { Page } from '~/lib/integrations/sanity/sanity.types'
+import { RichText } from '~/integrations/sanity'
+import type { Page } from '~/integrations/sanity/sanity.types'
 
 type SanityTutorialProps = NonNullable<Page>
 

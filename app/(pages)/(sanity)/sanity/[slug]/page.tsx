@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation'
 import { Wrapper } from '~/app/(pages)/_components/wrapper'
-import { sanityFetch } from '~/lib/integrations/sanity/live'
-import { articleQuery } from '~/lib/integrations/sanity/queries'
-import { generateSanityMetadata } from '~/lib/metadata'
+import { sanityFetch } from '~/integrations/sanity/live'
+import { articleQuery } from '~/integrations/sanity/queries'
+import { generateSanityMetadata } from '~/utils'
 import { SanityArticle } from './_components/article'
 
 // export async function generateStaticParams() {
@@ -27,8 +27,8 @@ export default async function SanityArticlePage({
   if (!data) return notFound()
 
   return (
-    <Wrapper theme="red" className="uppercase font-mono">
-      <div className="flex items-center justify-center grow max-dt:dr-px-16">
+    <Wrapper theme="red" className="font-mono uppercase">
+      <div className="max-dt:dr-px-16 flex grow items-center justify-center">
         <SanityArticle data={data} />
       </div>
     </Wrapper>

@@ -1,7 +1,7 @@
 import cn from 'clsx'
 import { Image } from '~/components/image'
-import { getCollectionProducts } from '~/lib/integrations/shopify'
-import type { Product as ProductType } from '~/lib/integrations/shopify/types'
+import { getCollectionProducts } from '~/integrations/shopify'
+import type { Product as ProductType } from '~/integrations/shopify/types'
 import { SizeAndBuy } from '../size-and-buy'
 import s from './product.module.css'
 
@@ -12,11 +12,11 @@ export async function Product() {
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center dr-gap-y-24',
+        'dr-gap-y-24 flex flex-col items-center justify-center',
         s.product
       )}
     >
-      <div className="relative col-span-full aspect-[320/357] h-[40vh] dt:col-start-3 dt:-col-end-3">
+      <div className="relative col-span-full dt:col-start-3 dt:-col-end-3 aspect-320/357 h-[40vh]">
         <Image
           src={product?.images[0].url as string}
           alt={product?.altText as string}
@@ -24,7 +24,7 @@ export async function Product() {
           fill
         />
       </div>
-      <aside className="flex flex-col text-center dr-gap-16 dt:dr-w-col-6">
+      <aside className="dr-gap-16 dt:dr-w-col-6 flex flex-col text-center">
         <h1>{product?.title}</h1>
         <p>{product?.description as string}</p>
       </aside>

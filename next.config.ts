@@ -1,6 +1,5 @@
 import bundleAnalyzer from '@next/bundle-analyzer'
 import type { NextConfig } from 'next'
-import './lib/validate-env.ts'
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -9,6 +8,11 @@ const nextConfig: NextConfig = {
   productionBrowserSourceMaps:
     process.env.SOURCE_MAPS === 'true' && typeof Bun === 'undefined',
   typedRoutes: true,
+  logging: {
+    fetches: {
+      fullUrl: true,
+    },
+  },
   turbopack: {
     rules: {
       '*.svg': {
@@ -143,6 +147,10 @@ const nextConfig: NextConfig = {
         {
           key: 'Strict-Transport-Security',
           value: 'max-age=63072000; includeSubDomains; preload',
+        },
+        {
+          key: 'Permissions-Policy',
+          value: 'camera=(), microphone=(), geolocation=()',
         },
       ],
     },

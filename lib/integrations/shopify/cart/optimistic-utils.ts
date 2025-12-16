@@ -2,8 +2,8 @@ import type {
   Cart,
   Product,
   ProductVariant,
-} from '~/lib/integrations/shopify/types'
-import { isEmptyArray } from '~/lib/utils'
+} from '~/integrations/shopify/types'
+import { isEmptyArray } from '~/utils'
 
 type CartLine = Pick<
   Cart['lines'][number],

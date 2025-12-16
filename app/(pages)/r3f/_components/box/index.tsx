@@ -3,7 +3,7 @@
 import { useRect } from 'hamo'
 import dynamic from 'next/dynamic'
 import { Activity, useEffect, useRef, useState } from 'react'
-import { WebGLTunnel } from '~/lib/webgl/components/tunnel'
+import { WebGLTunnel } from '~/webgl/components/tunnel'
 
 const WebGLBox = dynamic(
   () => import('./webgl.tsx').then(({ WebGLBox }) => WebGLBox),

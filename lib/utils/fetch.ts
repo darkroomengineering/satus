@@ -1,5 +1,5 @@
 /**
- * Fetch with Timeout Utility
+ * Fetch Utilities
  *
  * Wrapper around fetch that adds timeout protection to prevent hanging requests.
  * Use this for all external API calls to improve reliability.

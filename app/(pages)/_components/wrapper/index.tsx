@@ -4,9 +4,9 @@ import cn from 'clsx'
 import type { LenisOptions } from 'lenis'
 import { usePathname } from 'next/navigation'
 import type { ComponentProps } from 'react'
-import { TransformProvider } from '~/lib/hooks/use-transform'
-import type { ThemeName } from '~/lib/styles/config'
-import { Canvas } from '~/lib/webgl/components/canvas'
+import { TransformProvider } from '~/hooks/use-transform'
+import type { ThemeName } from '~/styles/config'
+import { Canvas } from '~/webgl/components/canvas'
 import { Footer } from '../footer'
 import { Lenis } from '../lenis'
 import { Navigation } from '../navigation'
@@ -38,7 +38,7 @@ export function Wrapper({
         />
       )}
       <Navigation />
-      <main className={cn('relative flex flex-col grow', className)} {...props}>
+      <main className={cn('relative flex grow flex-col', className)} {...props}>
         {children}
       </main>
       <Footer />

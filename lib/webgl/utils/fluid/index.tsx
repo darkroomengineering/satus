@@ -1,9 +1,9 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { types } from '@theatre/core'
 import { useEffect, useRef } from 'react'
-import { useCurrentSheet } from '~/lib/dev/theatre'
-import { useTheatre } from '~/lib/dev/theatre/hooks/use-theatre'
-import { Fluid } from '~/lib/webgl/utils/fluid/fluid-sim'
+import { useCurrentSheet } from '~/dev/theatre'
+import { useTheatre } from '~/dev/theatre/hooks/use-theatre'
+import { Fluid } from '~/webgl/utils/fluid/fluid-sim'
 
 export function useFluidSim() {
   const sheet = useCurrentSheet()

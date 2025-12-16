@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "target": "ES2023",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -26,12 +30,51 @@
       }
     ],
     "paths": {
-      "~/*": ["./*"]
+      "~/*": [
+        "./*"
+      ],
+      "~/hooks": [
+        "./lib/hooks"
+      ],
+      "~/hooks/*": [
+        "./lib/hooks/*"
+      ],
+      "~/styles": [
+        "./lib/styles"
+      ],
+      "~/styles/*": [
+        "./lib/styles/*"
+      ],
+      "~/integrations/*": [
+        "./lib/integrations/*"
+      ],
+      "~/webgl": [
+        "./lib/webgl"
+      ],
+      "~/webgl/*": [
+        "./lib/webgl/*"
+      ],
+      "~/dev": [
+        "./lib/dev"
+      ],
+      "~/dev/*": [
+        "./lib/dev/*"
+      ],
+      "~/utils": [
+        "./lib/utils"
+      ],
+      "~/utils/*": [
+        "./lib/utils/*"
+      ],
+      "~/config": [
+        "./lib/styles/config.ts"
+      ]
     }
   },
   "include": [
     "next-env.d.ts",
-    "lib/css.d.ts",
+    "lib/utils/types.d.ts",
+    "lib/utils/css.d.ts",
     "**/*.js",
     "**/*.jsx",
     "**/*.ts",
@@ -39,8 +82,7 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"],
-  "ts-node": {
-    "esm": true
-  }
+  "exclude": [
+    "node_modules"
+  ]
 }

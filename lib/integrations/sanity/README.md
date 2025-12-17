@@ -246,7 +246,7 @@ export async function fetchSanityLanding(slug: string, isDraftMode = false) {
 #### Step 4: Create Page Component
 
 ```tsx
-// app/(pages)/landing/[slug]/page.tsx
+// app/landing/[slug]/page.tsx
 import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { fetchSanityLanding, SanityContextProvider } from '~/lib/integrations/sanity'
@@ -273,11 +273,11 @@ export const dynamic = 'force-dynamic'
 #### Step 5: Create Component with Visual Editing
 
 ```tsx
-// app/(pages)/landing/[slug]/landing-component.tsx
+// app/landing/[slug]/landing-component.tsx
 'use client'
 
 import { useSanityContext, RichText } from '~/lib/integrations/sanity'
-import { SanityImage } from '~/components/sanity-image'
+import { SanityImage } from '~/components/ui/sanity-image'
 
 export function LandingComponent() {
   const { document } = useSanityContext()

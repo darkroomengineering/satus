@@ -1,6 +1,6 @@
 import { PortableText, type PortableTextBlock } from '@portabletext/react'
-import { Link } from '~/components/link'
-import { SanityImage } from '~/components/sanity-image'
+import { Link } from '~/components/ui/link'
+import { SanityImage } from '~/components/ui/sanity-image'
 
 interface RichTextProps {
   content: PortableTextBlock[]

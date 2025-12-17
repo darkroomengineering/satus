@@ -1,6 +1,6 @@
 'use server'
 
-import type { ErrorField, FormState } from '~/components/form/types'
+import type { ErrorField, FormState } from '~/components/ui/form/types'
 import { fetchWithTimeout } from '~/utils'
 import { validateFormWithTurnstile } from '../mailchimp/turnstile'
 

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import {
   Image as DRImage,
   type ImageProps as DRImageProps,
-} from '~/components/image'
+} from '~/components/ui/image'
 import { useDeviceDetection } from '~/hooks'
 import { WebGLTunnel } from '../tunnel'
 
@@ -36,7 +36,7 @@ export function Image({ className, ...props }: DRImageProps) {
       >
         <DRImage
           {...props}
-          onLoad={(img) => {
+          onLoad={(img: React.SyntheticEvent<HTMLImageElement>) => {
             setSrc(img.currentTarget.currentSrc)
           }}
           fill

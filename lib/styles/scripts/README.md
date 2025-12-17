@@ -33,11 +33,11 @@ Scripts for generating and managing the styling system.
 ## Usage
 
 ```bash
-# Generate all styles once
+# Generate styles once
 bun setup:styles
 
-# Watch for changes and regenerate
-bun watch:styles
+# Watch for changes (already included in bun dev)
+bun --watch ./lib/styles/scripts/setup-styles.ts
 ```
 
 ## How It Works
@@ -97,9 +97,9 @@ TypeScript Config → Generation Scripts → CSS Variables → PostCSS → Outpu
 
 ## Best Practices
 
-- Always run `setup:styles` after changing config
-- Use `watch:styles` during active development
-- Don't manually edit generated files
+- Always run `bun setup:styles` after changing config
+- Use `bun dev` for development (includes style watching)
+- Don't manually edit generated files (`css/root.css`, `css/tailwind.css`)
 - Keep config in TypeScript for type safety
 - Use viewport functions for responsive values
 

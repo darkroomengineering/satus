@@ -16,17 +16,17 @@ interface RemovalGuide {
 export const REMOVAL_GUIDE: Record<string, RemovalGuide> = {
   Sanity: {
     dirs: ['lib/integrations/sanity', 'app/studio'],
-    pages: ['app/(pages)/sanity'],
+    pages: ['app/(examples)/sanity'],
     notes: 'Also remove Sanity imports from app/layout.tsx',
   },
   Shopify: {
     dirs: ['lib/integrations/shopify'],
-    pages: ['app/(pages)/shopify'],
+    pages: ['app/(examples)/shopify'],
     notes: 'Uninstall: @shopify/* packages',
   },
   HubSpot: {
     dirs: ['lib/integrations/hubspot'],
-    pages: ['app/(pages)/hubspot'],
+    pages: ['app/(examples)/hubspot'],
     notes: 'Uninstall: @hubspot/api-client',
   },
   Mailchimp: {

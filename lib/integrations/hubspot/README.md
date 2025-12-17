@@ -49,7 +49,7 @@ function NewsletterSection() {
 For simple newsletter forms using HubSpot's Forms API:
 
 ```tsx
-import { Form, Input, SubmitButton } from '~/components/form'
+import { Form, Input, SubmitButton } from '~/components/ui/form'
 import { HubspotNewsletterAction } from '~/lib/integrations/hubspot/action'
 
 function NewsletterForm() {

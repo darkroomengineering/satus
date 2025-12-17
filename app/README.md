@@ -6,45 +6,61 @@ Next.js App Router pages, layouts, and API routes.
 
 ```
 app/
-├── (pages)/               # Page routes (grouped)
-│   ├── _components/     # Shared page components
-│   │   ├── footer/       # Site footer
-│   │   ├── lenis/        # Smooth scroll provider
-│   │   ├── navigation/   # Site navigation
-│   │   ├── theme/        # Theme provider
-│   │   └── wrapper/      # Page wrapper (combines theme, lenis, webgl)
-│   ├── home/             # Homepage (/home → rewritten to /)
-│   ├── hubspot/          # HubSpot demo page
+├── page.tsx              # Homepage
+├── layout.tsx            # Root layout (providers, fonts, styles)
+├── (examples)/           # 🗑️ DELETE THIS FOLDER to clean template
 │   ├── r3f/              # React Three Fiber demo
 │   ├── sanity/           # Sanity CMS pages
-│   │   └── [slug]/       # Dynamic article pages
-│   └── shopify/          # Shopify e-commerce pages
-│       └── account/      # Customer account
+│   ├── shopify/          # Shopify e-commerce pages
+│   └── hubspot/          # HubSpot demo page
 ├── api/                  # API routes
 │   ├── draft-mode/       # Sanity draft mode toggle
-│   │   ├── enable/
-│   │   └── disable/
 │   └── revalidate/       # Webhook revalidation endpoint
 ├── studio/               # Sanity Studio
-│   └── [[...tool]]/
-├── layout.tsx            # Root layout
 ├── loading.tsx           # Global loading state
 ├── error.tsx             # Error boundary
-├── global-error.tsx      # Critical error boundary
-├── manifest.ts           # PWA manifest
-├── robots.ts             # Robots.txt
-└── actions.ts            # Server actions
+├── not-found.tsx         # 404 page
+└── manifest.ts           # PWA manifest
 ```
 
-## Route Groups
+## Getting Started
 
-**`(pages)`** - Route group for pages (doesn't affect URL structure)
-- Allows shared layout/components without affecting URLs
-- Contains all main pages of the site
+### 1. Clean Template (When Starting New Project)
 
-**`_components`** - Shared components for pages
-- Used across multiple pages
-- Includes layout wrappers, navigation, footer
+```bash
+# Delete all example pages
+rm -rf app/(examples)
+```
+
+Then customize `/app/page.tsx` and `/components/layout/navigation` for your project.
+
+### 2. Add New Pages
+
+Create new routes directly in `/app`:
+
+```
+app/
+├── page.tsx          # Homepage
+├── about/
+│   └── page.tsx      # /about
+├── blog/
+│   ├── page.tsx      # /blog
+│   └── [slug]/
+│       └── page.tsx  # /blog/[slug]
+```
+
+### 3. Page-Specific Components
+
+For page-specific components, use `_components` folder inside the route:
+
+```
+app/
+└── about/
+    ├── page.tsx
+    └── _components/
+        └── team-section/
+            └── index.tsx
+```
 
 ## Key Files
 
@@ -52,8 +68,11 @@ app/
 - Imports global styles
 - Sets up fonts, metadata, viewport
 - Includes global providers (RealViewport, GSAPRuntime, ReactTempus)
-- Conditionally loads Sanity visual editing in draft mode
 - Loads Orchestra debug tools (dev only)
+
+**`page.tsx`** - Homepage
+- Uses the `Wrapper` component from `~/components/layout`
+- Customize this for your project's homepage
 
 **`loading.tsx`** - Global loading UI
 - Shows during page transitions
@@ -63,55 +82,10 @@ app/
 - Catches and displays errors gracefully
 - Provides retry functionality
 
-**`global-error.tsx`** - Critical error handler
-- Fallback for layout.tsx errors
-- Must include `<html>` and `<body>`
-
-## API Routes
-
-**`/api/draft-mode/enable`**
-- Enables Sanity draft mode
-- Sets draft mode cookie
-- Redirects to preview URL
-
-**`/api/draft-mode/disable`**
-- Disables Sanity draft mode
-- Clears draft mode cookie
-- Redirects to current page
-
-**`/api/revalidate`**
-- Webhook endpoint for content revalidation
-- Used by Sanity and Shopify
-- Requires secret parameter
-
-## Page Components Pattern
-
-**Server Components (Default)**
-```tsx
-// app/(pages)/example/page.tsx
-export default async function ExamplePage() {
-  const data = await fetchData()
-  return <ExampleComponent data={data} />
-}
-```
-
-**Client Components (When Needed)**
-```tsx
-// app/(pages)/example/_components/interactive.tsx
-'use client'
-
-export function InteractiveComponent() {
-  const [state, setState] = useState()
-  return <div onClick={() => setState(...)}>...</div>
-}
-```
-
-## Wrapper Component
-
-The `wrapper/` component provides common layout:
+## Page Pattern
 
 ```tsx
-import { Wrapper } from '~/app/(pages)/_components/wrapper'
+import { Wrapper } from '~/components/layout/wrapper'
 
 export default function Page() {
   return (
@@ -120,46 +94,49 @@ export default function Page() {
       lenis={true} 
       webgl={{ postprocessing: true }}
     >
-      {/* Page content */}
+      {/* Your page content */}
     </Wrapper>
   )
 }
 ```
 
-**Props:**
-- `theme` - Color theme ('dark' | 'light')
+**Wrapper Props:**
+- `theme` - Color theme ('dark' | 'light' | 'red')
 - `lenis` - Enable smooth scrolling (boolean or config object)
 - `webgl` - Enable WebGL canvas (boolean or config object)
 
-## URL Rewrites
+## API Routes
 
-Configured in `next.config.ts`:
+**`/api/draft-mode/enable`** / **`/api/draft-mode/disable`**
+- Toggle Sanity draft mode
 
-- `/` → rewrites to `/home`
-- `/home` → redirects to `/` (permanent)
+**`/api/revalidate`**
+- Webhook endpoint for content revalidation
+- Used by Sanity and Shopify
+
+## Examples Folder
+
+The `(examples)` folder contains demo pages showcasing integrations:
+
+| Route | Demo |
+|-------|------|
+| `/r3f` | React Three Fiber + Theatre.js |
+| `/sanity` | Sanity CMS content |
+| `/shopify` | E-commerce product + cart |
+| `/hubspot` | Form integration |
+
+**Delete this folder** when starting a real project - it's only for reference.
 
 ## Best Practices
 
 - **Use Server Components by default** - Only use `'use client'` when needed
 - **Colocation** - Keep page-specific components in `_components/` folder
-- **Shared Components** - Move to `/components` if used across pages
+- **Shared Components** - Use `~/components` for reusable UI
 - **Route Groups** - Use `(folder)` syntax to organize without affecting URLs
 - **Dynamic Routes** - Use `[param]` for dynamic segments
-- **Loading States** - Add `loading.tsx` to routes with data fetching
-- **Error Handling** - Add `error.tsx` to routes that might fail
-
-## Cache Components (Next.js 16)
-
-Cache Components are enabled globally (`cacheComponents: true` in `next.config.ts`). See the [root README](../../README.md#cache-components-gotchas) for comprehensive gotchas and best practices.
-
-**Quick Reference:**
-- Wrap cached components in Suspense boundaries
-- Use `cache: 'no-store'` for user-specific data
-- Use `revalidateTag()` or `revalidatePath()` for cache invalidation
 
 ## Related Documentation
 
-- [Next.js App Router](https://nextjs.org/docs/app)
 - [Components](../components/README.md)
-- [Integrations](../lib/integrations/README.md)
-
+- [Lib (hooks, integrations, utils)](../lib/README.md)
+- [Next.js App Router](https://nextjs.org/docs/app)

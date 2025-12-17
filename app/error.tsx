@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect } from 'react'
-import { Link } from '~/components/link'
-import { Wrapper } from './(pages)/_components/wrapper'
+import { Wrapper } from '~/components/layout/wrapper'
+import { Link } from '~/components/ui/link'
 
 interface ErrorPageProps {
   error: Error & { digest?: string }

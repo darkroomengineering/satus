@@ -261,15 +261,15 @@ Supports any Next.js-compatible platform: Vercel, Netlify, AWS Amplify, Google C
 ## Important Notes
 
 **Images & Links**
-- ✅ Always use `~/components/link` (auto-detects external, smart prefetch)
-- ✅ Always use `~/components/image` for DOM (never `next/image` directly)
-- ✅ Use `~/lib/lib/webgl/components/image` in WebGL contexts
-- See [Image Component documentation](components/image/README.md) for details
+- ✅ Always use `~/components/ui/link` (auto-detects external, smart prefetch)
+- ✅ Always use `~/components/ui/image` for DOM (never `next/image` directly)
+- ✅ Use `~/webgl/components/image` in WebGL contexts
+- See [Image Component documentation](components/ui/image/README.md) for details
 
 **GSAP & Animation**
 - Add `<GSAPRuntime />` in `app/layout.tsx` for ScrollTrigger + Lenis
 - No manual ticker setup needed
-- See [GSAP documentation](components/gsap/README.md) for setup details
+- See [GSAP documentation](components/effects/gsap/README.md) for setup details
 
 **React Compiler** {#react-compiler}
 - Enabled automatically in `next.config.ts` (`reactCompiler: true`)

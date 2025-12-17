@@ -2,13 +2,13 @@ import type { Metadata, Viewport } from 'next'
 
 import type { PropsWithChildren } from 'react'
 import { ReactTempus } from 'tempus/react'
-import { RealViewport } from '~/components/real-viewport'
+import { RealViewport } from '~/components/ui/real-viewport'
 import AppData from '~/package.json'
 import { fontsVariable, themes } from '~/styles'
 import '~/styles/css/index.css'
 
 import Script from 'next/script'
-import { GSAPRuntime } from '~/components/gsap/runtime'
+import { GSAPRuntime } from '~/components/effects/gsap/runtime'
 
 import { OrchestraTools } from '~/dev'
 

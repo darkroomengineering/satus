@@ -166,7 +166,7 @@ Uses both Mailchimp and Mandrill simultaneously:
 
 ```tsx
 import { combinedContactAction } from '~/lib/integrations/mandrill'
-import { Form, Input, Textarea, SubmitButton } from '~/components/form'
+import { Form, Input, Textarea, SubmitButton } from '~/components/ui/form'
 import { Turnstile } from '~/components/turnstile'
 
 function ContactForm() {

@@ -182,7 +182,7 @@ If you're not using certain integrations, you can remove them to reduce bundle s
 
 ```bash
 # Remove directories
-rm -rf lib/integrations/sanity app/studio app/(pages)/sanity
+rm -rf lib/integrations/sanity app/studio app/(examples)/sanity
 
 # Remove from app/layout.tsx:
 # - import { VisualEditing } from 'next-sanity/visual-editing'
@@ -198,7 +198,7 @@ bun remove @sanity/asset-utils @sanity/image-url @sanity/visual-editing next-san
 
 ```bash
 # Remove directories
-rm -rf lib/integrations/shopify app/(pages)/shopify
+rm -rf lib/integrations/shopify app/(examples)/shopify
 
 # No specific packages to uninstall (uses GraphQL)
 ```
@@ -207,7 +207,7 @@ rm -rf lib/integrations/shopify app/(pages)/shopify
 
 ```bash
 # Remove directories
-rm -rf lib/integrations/hubspot app/(pages)/hubspot
+rm -rf lib/integrations/hubspot app/(examples)/hubspot
 
 # Uninstall dependencies
 bun remove @hubspot/api-client

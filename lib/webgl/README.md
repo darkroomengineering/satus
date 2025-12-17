@@ -7,7 +7,7 @@ WebGL and 3D graphics components built on Three.js and React Three Fiber.
 **Components**
 - `canvas/` - Main Three.js canvas and scene setup
 - `flowmap-provider/` - Fluid simulations and flow effects
-- `image/` - WebGL-enhanced images (wraps `~/components/image`)
+- `image/` - WebGL-enhanced images (wraps `~/components/ui/image`)
 - `postprocessing/` - Post-processing effects and shaders
 - `preload/` - Asset preloading utilities
 - `raf/` - RequestAnimationFrame management
@@ -27,8 +27,8 @@ WebGL and 3D graphics components built on Three.js and React Three Fiber.
 ## Usage
 
 ```tsx
-import { Canvas } from '~/lib/webgl/components/canvas'
-import { Image } from '~/lib/webgl/components/image'
+import { Canvas } from '~/webgl/components/canvas'
+import { Image } from '~/webgl/components/image'
 
 // Basic setup
 export default function Scene() {
@@ -40,7 +40,7 @@ export default function Scene() {
 }
 
 // With wrapper component
-import { Wrapper } from '~/app/(pages)/_components/wrapper'
+import { Wrapper } from '~/components/layout/wrapper'
 
 export default function Page() {
   return (
@@ -69,7 +69,7 @@ export default function Page() {
 
 ## Best Practices
 
-- **Images**: Use `~/lib/lib/webgl/components/image` in WebGL contexts (wraps `~/components/image` for DOM fallback and WebGL texture integration). See [Image Component documentation](../components/image/README.md) for details.
+- **Images**: Use `~/webgl/components/image` in WebGL contexts (wraps `~/components/ui/image` for DOM fallback and WebGL texture integration). See [Image Component documentation](../../components/ui/image/README.md) for details.
 - **Performance**: Enable postprocessing only when needed
 - **Mobile**: Test performance on mobile devices
 - **Shaders**: Use GLSL files for complex shaders

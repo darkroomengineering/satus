@@ -1,4 +1,4 @@
-import { Link } from '~/components/link'
+import { Link } from '~/components/ui/link'
 
 export default function NotFound() {
   return (

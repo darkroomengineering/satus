@@ -6,9 +6,9 @@
     "useIgnoreFile": true
   },
   "plugins": [
-    "./biome-plugins/no-anchor-element.grit",
-    "./biome-plugins/no-unnecessary-forwardref.grit",
-    "./biome-plugins/no-relative-parent-imports.grit"
+    "./.biome/plugins/no-anchor-element.grit",
+    "./.biome/plugins/no-unnecessary-forwardref.grit",
+    "./.biome/plugins/no-relative-parent-imports.grit"
   ],
   "files": {
     "ignoreUnknown": true,

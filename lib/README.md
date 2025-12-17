@@ -29,8 +29,12 @@ Non-UI code: hooks, integrations, styles, and utilities.
 lib/
 ├── hooks/           # Custom React hooks + Zustand store
 ├── styles/          # CSS & Tailwind system  
-├── utils/           # Consolidated utilities
-│   ├── animation.ts # Math, easings, RAF queue
+├── utils/           # Consolidated utilities (see ~/utils/README.md)
+│   ├── math.ts      # Pure math: clamp, lerp, mapRange
+│   ├── easings.ts   # Easing curves
+│   ├── animation.ts # High-level animation helpers
+│   ├── raf.ts       # DOM batching: measure, mutate
+│   ├── viewport.ts  # Responsive scaling
 │   ├── strings.ts   # String/object helpers
 │   ├── metadata.ts  # SEO helpers
 │   ├── performance.ts # Core Web Vitals
@@ -97,32 +101,62 @@ import { breakpoints, screens } from '~/styles/config'
 
 ## Utilities
 
-```tsx
-// Import everything from barrel
-import { 
-  clamp, mapRange, lerp, slugify, mergeRefs,
-  fetchWithTimeout, generatePageMetadata, easings 
-} from '~/utils'
+Organized by concern. See [~/utils/README.md](./utils/README.md) for full docs.
 
-// Or import specific modules
-import { easings } from '~/utils/animation'
-import { generateSanityMetadata } from '~/utils/metadata'
+```tsx
+// Barrel import (quick)
+import { clamp, lerp, slugify, fetchWithTimeout } from '~/utils'
+
+// Module imports (recommended for clarity)
+import { clamp, lerp, mapRange } from '~/utils/math'
+import { easings, type EasingName } from '~/utils/easings'
+import { fromTo, stagger } from '~/utils/animation'
+import { measure, mutate } from '~/utils/raf'
+import { desktopVW, mobileVW } from '~/utils/viewport'
 ```
 
-### Animation & Math (`~/utils/animation`)
+### Math (`~/utils/math`) — Pure mathematical functions
 
 | Function | Purpose |
 |----------|---------|
-| `clamp(min, value, max)` | Limit value to range |
+| `clamp(min, value, max)` | Constrain value to range |
 | `mapRange(inMin, inMax, value, outMin, outMax)` | Scale between ranges |
 | `lerp(start, end, t)` | Linear interpolation |
-| `modulo(n, d)` | Negative-safe modulo |
-| `stagger(index, total, progress, staggerAmount)` | Staggered animation timing |
-| `ease(progress, easeName)` | Apply easing function |
+| `modulo(n, d)` | True modulo (negative-safe) |
+| `normalize(min, max, value)` | Normalize to 0–1 |
+| `distance(x1, y1, x2, y2)` | 2D distance |
+| `degToRad(deg)` / `radToDeg(rad)` | Angle conversion |
+
+### Easings (`~/utils/easings`) — Animation curves
+
+| Export | Purpose |
+|--------|---------|
+| `easings` | All easing functions (easeOutCubic, etc.) |
+| `EasingName` | Type for easing names |
+
+### Animation (`~/utils/animation`) — High-level helpers
+
+| Function | Purpose |
+|----------|---------|
 | `fromTo(elements, from, to, progress, options)` | Animate multiple elements |
-| `easings` | All easing functions (easeOutExpo, etc.) |
-| `measure(fn)` | Queue DOM read (prevents thrashing) |
-| `mutate(fn)` | Queue DOM write (prevents thrashing) |
+| `stagger(index, total, progress, staggerAmount)` | Staggered timing |
+| `ease(progress, easeName)` | Apply easing function |
+| `spring(current, target, velocity, ...)` | Spring physics |
+
+### RAF (`~/utils/raf`) — DOM batching
+
+| Function | Purpose |
+|----------|---------|
+| `measure(fn)` | Queue DOM read |
+| `mutate(fn)` | Queue DOM write |
+| `batch(reads, write)` | Batch multiple operations |
+
+### Viewport (`~/utils/viewport`) — Responsive scaling
+
+| Function | Purpose |
+|----------|---------|
+| `desktopVW(px, width)` | Scale to desktop design |
+| `mobileVW(px, width)` | Scale to mobile design |
 
 ### Strings & Objects (`~/utils/strings`)
 
@@ -207,11 +241,13 @@ See [Integrations README](./integrations/README.md) for full docs.
 | Window dimensions | `hamo` → `useWindowSize` |
 | Scroll position | `lenis` → `useLenis` |
 | Frame loop | `tempus` → `useTempus` |
-| Math operations | `~/utils` → `clamp`, `lerp`, etc. |
-| JS easing functions | `~/utils` → `easings` |
+| Math operations | `~/utils/math` → `clamp`, `lerp`, etc. |
+| JS easing functions | `~/utils/easings` → `easings` |
 | CSS easing strings | `~/styles` → `easings` |
-| DOM read/write batching | `~/utils` → `measure`, `mutate` |
-| Fetch with timeout | `~/utils` → `fetchWithTimeout` |
+| Animation helpers | `~/utils/animation` → `fromTo`, `stagger` |
+| DOM read/write batching | `~/utils/raf` → `measure`, `mutate` |
+| Responsive JS scaling | `~/utils/viewport` → `desktopVW`, `mobileVW` |
+| Fetch with timeout | `~/utils/fetch` → `fetchWithTimeout` |
 
 ---
 

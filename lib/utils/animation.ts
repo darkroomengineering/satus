@@ -1,181 +1,160 @@
 /**
  * Animation Utilities
  *
- * Math functions, easing curves, and timing utilities for animations.
- * Consolidates easings, math helpers, and RAF queue management.
+ * High-level animation helpers that combine math, easings, and timing.
+ * For lower-level utilities, see:
+ * - `~/utils/math` - clamp, lerp, mapRange, etc.
+ * - `~/utils/easings` - easing functions
+ * - `~/utils/raf` - DOM batching (measure, mutate)
+ *
+ * @example
+ * ```ts
+ * import { fromTo, stagger, ease } from '~/utils/animation'
+ *
+ * // Animate elements with stagger
+ * fromTo(elements, { opacity: 0, y: 20 }, { opacity: 1, y: 0 }, progress, {
+ *   ease: 'easeOutCubic',
+ *   stagger: 0.1,
+ *   render: (el, values) => {
+ *     el.style.opacity = values.opacity
+ *     el.style.transform = `translateY(${values.y}px)`
+ *   }
+ * })
+ * ```
  */
 
-import Tempus from 'tempus'
-import { screens } from '~/styles/config'
+import { type EasingName, easings } from './easings'
+import { clamp, mapRange } from './math'
 
-// =============================================================================
-// EASING FUNCTIONS
-// https://github.com/ai/easings.net/blob/master/src/easings/easingsFunctions.ts
-// =============================================================================
+// Re-export for convenience
+export { type EasingName, easings } from './easings'
+export { clamp, lerp, mapRange, modulo, truncate } from './math'
+export { batch, measure, mutate } from './raf'
+export { desktopVH, desktopVW, mobileVH, mobileVW } from './viewport'
 
-const pow = Math.pow
-const sqrt = Math.sqrt
-const sin = Math.sin
-const cos = Math.cos
-const PI = Math.PI
-const c1 = 1.70158
-const c2 = c1 * 1.525
-const c3 = c1 + 1
-const c4 = (2 * PI) / 3
-const c5 = (2 * PI) / 4.5
-
-const bounceOut = (x: number) => {
-  const n1 = 7.5625
-  const d1 = 2.75
-
-  if (x < 1 / d1) {
-    return n1 * x * x
-  }
-  if (x < 2 / d1) {
-    return n1 * (x - 1.5 / d1) * x + 0.75
-  }
-  if (x < 2.5 / d1) {
-    return n1 * (x - 2.25 / d1) * x + 0.9375
-  }
-  return n1 * (x - 2.625 / d1) * x + 0.984375
-}
-
-export const easings = {
-  linear: (x: number) => x,
-  easeInQuad: (x: number) => x * x,
-  easeOutQuad: (x: number) => 1 - (1 - x) * (1 - x),
-  easeInOutQuad: (x: number) =>
-    x < 0.5 ? 2 * x * x : 1 - pow(-2 * x + 2, 2) / 2,
-  easeInCubic: (x: number) => x * x * x,
-  easeOutCubic: (x: number) => 1 - pow(1 - x, 3),
-  easeInOutCubic: (x: number) =>
-    x < 0.5 ? 4 * x * x * x : 1 - pow(-2 * x + 2, 3) / 2,
-  easeInQuart: (x: number) => x * x * x * x,
-  easeOutQuart: (x: number) => 1 - pow(1 - x, 4),
-  easeInOutQuart: (x: number) =>
-    x < 0.5 ? 8 * x * x * x * x : 1 - pow(-2 * x + 2, 4) / 2,
-  easeInQuint: (x: number) => x * x * x * x * x,
-  easeOutQuint: (x: number) => 1 - pow(1 - x, 5),
-  easeInOutQuint: (x: number) =>
-    x < 0.5 ? 16 * x * x * x * x * x : 1 - pow(-2 * x + 2, 5) / 2,
-  easeInSine: (x: number) => 1 - cos((x * PI) / 2),
-  easeOutSine: (x: number) => sin((x * PI) / 2),
-  easeInOutSine: (x: number) => -(cos(PI * x) - 1) / 2,
-  easeInExpo: (x: number) => (x === 0 ? 0 : pow(2, 10 * x - 10)),
-  easeOutExpo: (x: number) => (x === 1 ? 1 : 1 - pow(2, -10 * x)),
-  easeInOutExpo: (x: number) => {
-    if (x === 0) return 0
-    if (x === 1) return 1
-    if (x < 0.5) return pow(2, 20 * x - 10) / 2
-    return (2 - pow(2, -20 * x + 10)) / 2
-  },
-  easeInCirc: (x: number) => 1 - sqrt(1 - pow(x, 2)),
-  easeOutCirc: (x: number) => sqrt(1 - pow(x - 1, 2)),
-  easeInOutCirc: (x: number) =>
-    x < 0.5
-      ? (1 - sqrt(1 - pow(2 * x, 2))) / 2
-      : (sqrt(1 - pow(-2 * x + 2, 2)) + 1) / 2,
-  easeInBack: (x: number) => c3 * x * x * x - c1 * x * x,
-  easeOutBack: (x: number) => 1 + c3 * pow(x - 1, 3) + c1 * pow(x - 1, 2),
-  easeInOutBack: (x: number) =>
-    x < 0.5
-      ? (pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2
-      : (pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2,
-  easeInElastic: (x: number) => {
-    if (x === 0) return 0
-    if (x === 1) return 1
-    return -pow(2, 10 * x - 10) * sin((x * 10 - 10.75) * c4)
-  },
-  easeOutElastic: (x: number) => {
-    if (x === 0) return 0
-    if (x === 1) return 1
-    return pow(2, -10 * x) * sin((x * 10 - 0.75) * c4) + 1
-  },
-  easeInOutElastic: (x: number) => {
-    if (x === 0) return 0
-    if (x === 1) return 1
-    if (x < 0.5) return -(pow(2, 20 * x - 10) * sin((20 * x - 11.125) * c5)) / 2
-    return (pow(2, -20 * x + 10) * sin((20 * x - 11.125) * c5)) / 2 + 1
-  },
-  easeInBounce: (x: number) => 1 - bounceOut(1 - x),
-  easeOutBounce: bounceOut,
-  easeInOutBounce: (x: number) =>
-    x < 0.5 ? (1 - bounceOut(1 - 2 * x)) / 2 : (1 + bounceOut(2 * x - 1)) / 2,
-}
-
-// =============================================================================
-// MATH UTILITIES
-// =============================================================================
-
-export function clamp(min: number, input: number, max: number) {
-  return Math.max(min, Math.min(input, max))
-}
-
-export function mapRange(
-  inMin: number,
-  inMax: number,
-  input: number,
-  outMin: number,
-  outMax: number,
-  shouldClamp = false
-) {
-  const result =
-    ((input - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin
-
-  const isInverted = outMin > outMax
-
-  if (isInverted) {
-    return shouldClamp ? clamp(outMax, result, outMin) : result
-  }
-
-  return shouldClamp ? clamp(outMin, result, outMax) : result
-}
-
-export function lerp(start: number, end: number, amount: number) {
-  return (1 - amount) * start + amount * end
-}
-
-export function truncate(value: number, decimals: number) {
-  return Number.parseFloat(value.toFixed(decimals))
-}
-
-export function modulo(n: number, d: number) {
-  if (d === 0) return n
-  if (d < 0) return Number.NaN
-  return ((n % d) + d) % d
-}
-
+/**
+ * Calculates staggered progress for an element in a sequence.
+ *
+ * Use this to create wave/cascade effects where elements animate sequentially.
+ *
+ * @param index - Element index in the sequence (0-based)
+ * @param total - Total number of elements
+ * @param progress - Overall animation progress (0-1)
+ * @param staggerAmount - Delay between elements (0-1, typically 0.05-0.2)
+ * @returns Individual element progress (0-1)
+ *
+ * @example
+ * ```ts
+ * // 5 elements with 0.1 stagger
+ * // At progress 0.3:
+ * // - Element 0: fully visible
+ * // - Element 2: starting to show
+ * // - Element 4: not yet visible
+ *
+ * elements.forEach((el, i) => {
+ *   const elementProgress = stagger(i, elements.length, scrollProgress, 0.1)
+ *   el.style.opacity = elementProgress
+ * })
+ * ```
+ */
 export function stagger(
   index: number,
   total: number,
   progress: number,
   staggerAmount: number
-) {
+): number {
   const start = index * staggerAmount
   const end = 1 - (total - index) * staggerAmount
   return clamp(0, mapRange(start, end, progress, 0, 1), 1)
 }
 
-export function ease(progress: number, easeName: keyof typeof easings) {
+/**
+ * Applies an easing function to a progress value.
+ *
+ * @param progress - Linear progress (0-1)
+ * @param easeName - Name of the easing function
+ * @returns Eased progress value
+ *
+ * @example
+ * ```ts
+ * const linear = 0.5
+ * const eased = ease(linear, 'easeOutCubic') // ~0.875
+ * ```
+ */
+export function ease(progress: number, easeName: EasingName): number {
   return easings[easeName](progress)
 }
 
-// =============================================================================
-// VIEWPORT UTILITIES
-// =============================================================================
-
-export function desktopVW(value: number, width: number) {
-  return (value * width) / screens.desktop.width
+/** Options for the fromTo animation helper */
+export interface FromToOptions {
+  /** Easing function name (default: 'linear') */
+  ease?: EasingName
+  /** Stagger amount between elements (default: 0) */
+  stagger?: number
+  /** Render callback for each element */
+  render?: (
+    element: HTMLElement | number | Element,
+    values: Record<string, number>
+  ) => void
 }
 
-export function mobileVW(value: number, width: number) {
-  return (value * width) / screens.mobile.width
-}
+/** Value type for fromTo - can be a number or a function returning a number */
+export type FromToValue =
+  | number
+  | Record<string, number | ((index: number) => number)>
 
-// =============================================================================
-// ANIMATION HELPERS
-// =============================================================================
-
+/**
+ * Animates elements from one state to another based on progress.
+ *
+ * This is a declarative animation helper - you provide the progress value
+ * (from scroll, time, or any source) and it calculates interpolated values.
+ *
+ * @param entries - Element(s) to animate, or numbers for calculations only
+ * @param from - Starting values (number or object of values)
+ * @param to - Ending values (number or object of values)
+ * @param progress - Animation progress (0-1)
+ * @param options - Animation options (ease, stagger, render)
+ *
+ * @example
+ * ```ts
+ * // Simple opacity animation
+ * fromTo(element, 0, 1, scrollProgress, {
+ *   ease: 'easeOutCubic',
+ *   render: (el, { value }) => {
+ *     el.style.opacity = value
+ *   }
+ * })
+ *
+ * // Multiple properties with stagger
+ * fromTo(
+ *   elements,
+ *   { opacity: 0, y: 50, scale: 0.9 },
+ *   { opacity: 1, y: 0, scale: 1 },
+ *   progress,
+ *   {
+ *     ease: 'easeOutQuart',
+ *     stagger: 0.08,
+ *     render: (el, { opacity, y, scale }) => {
+ *       el.style.opacity = opacity
+ *       el.style.transform = `translateY(${y}px) scale(${scale})`
+ *     }
+ *   }
+ * )
+ *
+ * // Dynamic values based on index
+ * fromTo(
+ *   elements,
+ *   { rotation: (i) => i * 10 },
+ *   { rotation: (i) => i * 10 + 360 },
+ *   progress,
+ *   {
+ *     render: (el, { rotation }) => {
+ *       el.style.transform = `rotate(${rotation}deg)`
+ *     }
+ *   }
+ * )
+ * ```
+ */
 export function fromTo(
   entries:
     | number
@@ -184,25 +163,19 @@ export function fromTo(
     | Element
     | null
     | undefined,
-  from: number | Record<string, number | ((index: number) => number)> = 0,
-  to: number | Record<string, number | ((index: number) => number)> = 1,
+  from: FromToValue = 0,
+  to: FromToValue = 1,
   progress = 0,
-  options: {
-    ease?: keyof typeof easings
-    stagger?: number
-    render?: (
-      element: HTMLElement | number | Element,
-      value: Record<string, number>
-    ) => void
-  } = {}
-) {
+  options: FromToOptions = {}
+): void {
   if (!entries) return
 
-  if (typeof options?.stagger === 'undefined') options.stagger = 0
-  if (typeof options?.ease === 'undefined') options.ease = 'linear'
-
+  const {
+    stagger: staggerAmount = 0,
+    ease: easeName = 'linear',
+    render,
+  } = options
   const keys = typeof from === 'object' ? Object.keys(from) : ['value']
-
   const elements = Array.isArray(entries) ? entries : [entries]
 
   for (const [index, element] of elements.entries()) {
@@ -210,10 +183,10 @@ export function fromTo(
       index,
       elements.length,
       progress,
-      options.stagger!
+      staggerAmount
     )
 
-    const easedProgress = ease(staggeredProgress, options.ease!)
+    const easedProgress = ease(staggeredProgress, easeName)
 
     const values = Object.fromEntries(
       keys.map((key) => {
@@ -231,41 +204,58 @@ export function fromTo(
       })
     )
 
-    if (options.render && element) options.render(element, values)
+    if (render && element) render(element, values)
   }
 }
 
-// =============================================================================
-// RAF QUEUE (Tempus integration)
-// Batches DOM reads and writes to prevent layout thrashing
-// =============================================================================
+/**
+ * Creates a spring-based animation value.
+ *
+ * For CSS springs, use the Motion MCP tool instead.
+ * This is for JavaScript-driven spring animations.
+ *
+ * @param current - Current value
+ * @param target - Target value
+ * @param velocity - Current velocity (mutated)
+ * @param stiffness - Spring stiffness (higher = faster)
+ * @param damping - Damping ratio (higher = less bounce)
+ * @param deltaTime - Time step in seconds
+ * @returns New value and velocity
+ *
+ * @example
+ * ```ts
+ * let position = 0
+ * let velocity = 0
+ * const target = 100
+ *
+ * function animate() {
+ *   const result = spring(position, target, velocity, 200, 20, 1/60)
+ *   position = result.value
+ *   velocity = result.velocity
+ *
+ *   element.style.transform = `translateX(${position}px)`
+ *
+ *   if (Math.abs(target - position) > 0.01 || Math.abs(velocity) > 0.01) {
+ *     requestAnimationFrame(animate)
+ *   }
+ * }
+ * ```
+ */
+export function spring(
+  current: number,
+  target: number,
+  velocity: number,
+  stiffness = 200,
+  damping = 20,
+  deltaTime = 1 / 60
+): { value: number; velocity: number } {
+  const displacement = current - target
+  const springForce = -stiffness * displacement
+  const dampingForce = -damping * velocity
+  const acceleration = springForce + dampingForce
 
-const readQueue: Array<() => unknown> = []
-const writeQueue: Array<() => unknown> = []
+  const newVelocity = velocity + acceleration * deltaTime
+  const newValue = current + newVelocity * deltaTime
 
-Tempus.add(
-  () => {
-    // Process all reads first
-    for (const fn of readQueue) fn()
-    readQueue.length = 0
-
-    // Then process all writes
-    for (const fn of writeQueue) fn()
-    writeQueue.length = 0
-  },
-  { priority: 1000 }
-)
-
-/** Queue a DOM measurement (read) */
-export function measure<T>(fn: () => T): Promise<T> {
-  return new Promise((resolve) => {
-    readQueue.push(() => resolve(fn()))
-  })
-}
-
-/** Queue a DOM mutation (write) */
-export function mutate<T>(fn: () => T): Promise<T> {
-  return new Promise((resolve) => {
-    writeQueue.push(() => resolve(fn()))
-  })
+  return { value: newValue, velocity: newVelocity }
 }

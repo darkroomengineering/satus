@@ -1,46 +1,85 @@
 /**
  * Utils - Consolidated utilities for the Satus starter
  *
- * Import from '~/utils' for most common utilities:
- * import { clamp, lerp, slugify, fetchWithTimeout } from '~/utils'
+ * ## Quick Import
  *
- * Or import specific modules:
- * import { easings } from '~/utils/animation'
- * import { generateSanityMetadata } from '~/utils/metadata'
+ * ```ts
+ * import { clamp, lerp, slugify, fetchWithTimeout } from '~/utils'
+ * ```
+ *
+ * ## Module Imports (recommended for clarity)
+ *
+ * ```ts
+ * import { clamp, lerp, mapRange } from '~/utils/math'
+ * import { easings, type EasingName } from '~/utils/easings'
+ * import { fromTo, stagger } from '~/utils/animation'
+ * import { measure, mutate } from '~/utils/raf'
+ * import { desktopVW, mobileVW } from '~/utils/viewport'
+ * import { fetchWithTimeout } from '~/utils/fetch'
+ * import { slugify } from '~/utils/strings'
+ * ```
+ *
+ * ## Available Modules
+ *
+ * | Module | Purpose |
+ * |--------|---------|
+ * | `math` | Pure math: clamp, lerp, mapRange, modulo, etc. |
+ * | `easings` | Easing curves: easeOutCubic, easeInOutQuart, etc. |
+ * | `animation` | Animation helpers: fromTo, stagger, spring |
+ * | `raf` | DOM batching: measure, mutate |
+ * | `viewport` | Viewport scaling: desktopVW, mobileVW |
+ * | `fetch` | HTTP utilities: fetchWithTimeout, fetchJSON |
+ * | `strings` | String/object helpers: slugify, mergeRefs |
+ * | `metadata` | SEO: generatePageMetadata, generateSanityMetadata |
+ * | `performance` | Web Vitals: reportWebVitals, getLCP, etc. |
  */
 
-// Animation & Math
+// ─────────────────────────────────────────────────────────────────────────────
+// Animation (high-level animation helpers)
+// ─────────────────────────────────────────────────────────────────────────────
 export {
-  // Math utilities
-  clamp,
-  // Viewport
-  desktopVW,
   ease,
-  // Easings
-  easings,
-  // Animation helpers
+  type FromToOptions,
+  type FromToValue,
   fromTo,
-  lerp,
-  mapRange,
-  // RAF queue
-  measure,
-  mobileVW,
-  modulo,
-  mutate,
+  spring,
   stagger,
-  truncate,
 } from './animation'
-// Fetch utilities
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Easings (animation curves)
+// ─────────────────────────────────────────────────────────────────────────────
+export { type EasingFunction, type EasingName, easings } from './easings'
+// ─────────────────────────────────────────────────────────────────────────────
+// Fetch (HTTP utilities with timeout support)
+// ─────────────────────────────────────────────────────────────────────────────
 export {
   type FetchWithTimeoutOptions,
   fetchJSON,
   fetchWithTimeout,
 } from './fetch'
-
-// Metadata/SEO
+// ─────────────────────────────────────────────────────────────────────────────
+// Math (pure mathematical functions)
+// ─────────────────────────────────────────────────────────────────────────────
+export {
+  clamp,
+  degToRad,
+  distance,
+  lerp,
+  mapRange,
+  modulo,
+  normalize,
+  radToDeg,
+  roundTo,
+  truncate,
+} from './math'
+// ─────────────────────────────────────────────────────────────────────────────
+// Metadata/SEO (page metadata generation)
+// ─────────────────────────────────────────────────────────────────────────────
 export { generatePageMetadata, generateSanityMetadata } from './metadata'
-
-// Performance monitoring
+// ─────────────────────────────────────────────────────────────────────────────
+// Performance (Web Vitals monitoring)
+// ─────────────────────────────────────────────────────────────────────────────
 export {
   getCLS,
   getFCP,
@@ -50,7 +89,13 @@ export {
   type PerformanceMetric,
   reportWebVitals,
 } from './performance'
-// String & Object utilities
+// ─────────────────────────────────────────────────────────────────────────────
+// RAF Queue (DOM batching to prevent layout thrashing)
+// ─────────────────────────────────────────────────────────────────────────────
+export { batch, measure, mutate } from './raf'
+// ─────────────────────────────────────────────────────────────────────────────
+// Strings & Objects (utility functions)
+// ─────────────────────────────────────────────────────────────────────────────
 export {
   arraytoObject,
   capitalizeFirstLetter,
@@ -66,3 +111,7 @@ export {
   slugify,
   twoDigits,
 } from './strings'
+// ─────────────────────────────────────────────────────────────────────────────
+// Viewport (responsive scaling utilities)
+// ─────────────────────────────────────────────────────────────────────────────
+export { desktopVH, desktopVW, mobileVH, mobileVW } from './viewport'

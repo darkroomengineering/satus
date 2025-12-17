@@ -320,7 +320,8 @@ const main = async (): Promise<void> => {
 
   // Ask which integrations to keep
   const keepIntegrations = await p.multiselect({
-    message: 'Which integrations do you want to KEEP?',
+    message:
+      'Which integrations do you want to KEEP? (space to select, enter to confirm)',
     options: integrationOptions,
     required: false,
   })

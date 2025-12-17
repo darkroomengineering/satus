@@ -103,11 +103,11 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'cdn.shopify.com',
+        hostname: 'assets.darkroom.engineering',
       },
       {
         protocol: 'https',
-        hostname: 'assets.darkroom.engineering',
+        hostname: 'cdn.shopify.com',
       },
       {
         protocol: 'https',

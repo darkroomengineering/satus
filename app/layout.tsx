@@ -8,7 +8,7 @@ import { fontsVariable, themes } from '~/styles'
 import '~/styles/css/index.css'
 
 import Script from 'next/script'
-import { GSAPRuntime } from '~/components/effects/gsap/runtime'
+import { GSAPRuntime } from '~/components/effects/gsap'
 
 import { OrchestraTools } from '~/dev'
 

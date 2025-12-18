@@ -2,8 +2,8 @@
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "biomejs.biome",
   "editor.codeActionsOnSave": {
-    "source.fixAll.biome": "explicit",
-    "source.organizeImports.biome": "explicit"
+    "source.fixAll.biome": "always",
+    "source.organizeImports.biome": "always"
   },
   "typescript.suggest.autoImports": true,
   "javascript.suggest.autoImports": true,

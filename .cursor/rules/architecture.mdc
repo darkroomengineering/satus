@@ -81,7 +81,7 @@ app/
 Use the custom Link component for internal navigation. It automatically handles external links.
 
 ```tsx
-import Link from '~/components/link'
+import { Link } from '~/components/ui'
 
 function Navigation() {
   return (
@@ -89,7 +89,7 @@ function Navigation() {
       {/* Internal link - uses next/link */}
       <Link href="/about">About</Link>
       
-      {/* External link - uses <a> */}
+      {/* External link - uses <a> with target="_blank" */}
       <Link href="https://example.com">External</Link>
     </>
   )
@@ -97,18 +97,18 @@ function Navigation() {
 ```
 
 ### Metadata & SEO
-Use `~/lib/metadata` for SEO optimization. Generate metadata for all pages.
+Use `~/utils/metadata` for SEO optimization. Generate metadata for all pages.
 
 ```tsx
-import { generateMetadata as generateBaseMetadata } from '~/lib/metadata'
+import { generatePageMetadata } from '~/utils'
 
 export async function generateMetadata({ params }) {
   const page = await fetchPage(params.slug)
   
-  return generateBaseMetadata({
+  return generatePageMetadata({
     title: page.title,
     description: page.description,
-    image: page.image,
+    image: { url: page.image },
     url: `/pages/${params.slug}`,
   })
 }
@@ -233,7 +233,7 @@ export async function POST(request: Request) {
 - Wrap data fetching in Suspense boundaries
 
 ### Asset Optimization
-- Always use the custom `Image` component (`~/components/image`)
+- Always use the custom `Image` component (`~/components/ui/image`)
 - Optimize bundles with tree-shaking
 - Check bundle size impact of new dependencies
 - Use `bun lint` to check for linting issues
@@ -244,16 +244,21 @@ export async function POST(request: Request) {
 - Never commit API keys
 - Use `.env.local` for development
 - Document required variables in `.env.example`
-- Validate environment variables at runtime
+- Validate environment variables are set before use
 
 ```typescript
-import { validateEnv } from '~/lib/validate-env'
-
-validateEnv([
+// Check required env vars at module load
+const requiredEnvVars = [
   'NEXT_PUBLIC_API_KEY',
   'DATABASE_URL',
   'SANITY_API_TOKEN'
-])
+] as const
+
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    throw new Error(`Missing required environment variable: ${envVar}`)
+  }
+}
 ```
 
 ### Input Validation
@@ -432,4 +437,4 @@ function ClientComponent({ data }) {
 6. **Code Quality**: Follow linting rules, maintain consistent style, write meaningful documentation
 7. **Development**: Use Bun, follow git best practices, understand client/server boundaries
 
-Last updated: 2025-10-07
+Last updated: 2025-12-18

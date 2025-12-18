@@ -96,8 +96,8 @@ export default Button
 - Implement proper validation
 
 ```tsx
-import { useForm } from '~/components/form/hook'
-import { HubspotNewsletterAction } from '~/integrations/hubspot/action'
+import { useForm } from '~/components/ui/form/hook'
+import { HubspotNewsletterAction } from '~/lib/integrations/hubspot/action'
 ```
 
 ### Server Actions
@@ -116,7 +116,7 @@ async function submitForm(formData: FormData) {
 Use `useDeviceDetection` hook from `~/hooks` for responsive logic
 
 ```tsx
-import { useDeviceDetection } from '~/lib/hooks/use-device-detection'
+import { useDeviceDetection } from '~/hooks'
 
 function ResponsiveComponent() {
   const { isMobile } = useDeviceDetection()
@@ -166,10 +166,10 @@ Always handle loading states. Use Suspense boundaries where appropriate.
 ## React Three Fiber Setup
 
 ### Canvas Component
-Use the custom Canvas wrapper from `~/webgl/components/canvas`
+Use the custom Canvas wrapper from `~/lib/webgl/components/canvas`
 
 ```tsx
-import { Canvas } from '~/webgl/components/canvas'
+import { Canvas } from '~/lib/webgl/components/canvas'
 
 function Scene() {
   return (
@@ -392,7 +392,7 @@ Use `<Activity />` to optimize WebGL performance by deferring off-screen scenes:
 ```tsx
 import { Activity, useEffect, useRef, useState } from 'react'
 import { useRect } from 'hamo'
-import { WebGLTunnel } from '~/webgl/components/tunnel'
+import { WebGLTunnel } from '~/lib/webgl/components/tunnel'
 
 export function WebGLScene({ className }) {
   const [setRectRef, rect] = useRect()
@@ -453,4 +453,4 @@ console.log('WebGL state:', { fps, drawCalls, triangles })
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 ```
 
-Last updated: 2025-10-07
+Last updated: 2025-12-18

@@ -16,7 +16,7 @@ export async function Product() {
         s.product
       )}
     >
-      <div className="relative col-span-full dt:col-start-3 dt:-col-end-3 aspect-[320/357] h-[40vh]">
+      <div className="relative col-span-full dt:col-start-3 dt:-col-end-3 aspect-320/357 h-[40vh]">
         <Image
           src={product?.images[0].url as string}
           alt={product?.images[0].altText as string}

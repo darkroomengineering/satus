@@ -26,7 +26,7 @@ export const Subscribe = ({
         id={form?.inputs[idx]?.name}
         name={form?.inputs[idx]?.name}
         className={cn(
-          'dr-w-303 dt:dr-w-400 dr-text-14 dt:dr-text-16 dt:aspect-[330/60]',
+          'dr-w-303 dt:dr-w-400 dr-text-14 dt:dr-text-16 dt:aspect-330/60',
           'dr-rounded-6 dt:dr-rounded-8 border-2 border-black',
           'dr-px-19 dr-py-18 dr-pr-136 dt:dr-px-18 dt:dr-pr-115 dt:py-0'
         )}
@@ -36,7 +36,7 @@ export const Subscribe = ({
       />
       <SubmitButton
         className={cn(
-          '!absolute -right-[5%] h-full',
+          'absolute! -right-[5%] h-full',
           'dr-rounded-6 dt:dr-rounded-8 border-2 border-black',
           'dr-px-18 dt:dr-px-24'
         )}

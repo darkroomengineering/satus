@@ -7,6 +7,12 @@
 export {} // Module marker for top-level await
 
 const isHttps = process.argv.includes('--https')
+const isInspect = process.argv.includes('--inspect')
+
+// Build next dev command args
+const nextDevArgs = ['bun', 'next', 'dev']
+if (isHttps) nextDevArgs.push('--experimental-https')
+if (isInspect) nextDevArgs.push('--inspect')
 
 const processes = [
   // Style watcher
@@ -17,16 +23,11 @@ const processes = [
   }),
 
   // Next.js dev server
-  Bun.spawn(
-    isHttps
-      ? ['bun', 'next', 'dev', '--experimental-https']
-      : ['bun', 'next', 'dev'],
-    {
-      stdout: 'inherit',
-      stderr: 'inherit',
-      env: { ...process.env, FORCE_COLOR: '1' },
-    }
-  ),
+  Bun.spawn(nextDevArgs, {
+    stdout: 'inherit',
+    stderr: 'inherit',
+    env: { ...process.env, FORCE_COLOR: '1' },
+  }),
 ]
 
 // Handle graceful shutdown

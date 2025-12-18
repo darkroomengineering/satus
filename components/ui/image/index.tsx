@@ -96,14 +96,14 @@ const getFinalPlaceholder = (
  * - Automatic responsive sizes generation
  * - Smart blur placeholders with aspect ratio support
  * - Performance optimizations (lazy loading by default)
- * - Priority loading for LCP images
+ * - Preload for LCP images
  *
  * @param props - Image props extending Next.js Image
  * @param props.aspectRatio - Aspect ratio for layout stability and blur placeholder
  * @param props.mobileSize - Size on mobile (e.g., "100vw")
  * @param props.desktopSize - Size on desktop (e.g., "50vw")
  * @param props.block - Display as block element
- * @param props.priority - Enable eager loading for LCP images
+ * @param props.preload - Enable preloading for LCP images
  *
  * @example
  * ```tsx
@@ -117,12 +117,12 @@ const getFinalPlaceholder = (
  *
  * @example
  * ```tsx
- * // LCP image with priority loading
+ * // LCP image with preload
  * <Image
  *   src="/hero.jpg"
  *   alt="Hero image"
  *   aspectRatio={16/9}
- *   priority // Sets loading="eager"
+ *   preload // Preloads image for LCP
  * />
  * ```
  *
@@ -157,11 +157,11 @@ export function Image({
   ref,
   aspectRatio,
   placeholder = 'blur',
-  priority = false,
+  preload = false,
   ...props
 }: ImageProps) {
   // Determine loading strategy
-  const finalLoading = loading ?? (priority ? 'eager' : 'lazy')
+  const finalLoading = loading ?? (preload ? 'eager' : 'lazy')
 
   // Generate responsive sizes if not provided
   const finalSizes =
@@ -210,7 +210,7 @@ export function Image({
       onDragStart={(e) => e.preventDefault()}
       placeholder={finalPlaceholder}
       blurDataURL={blurDataURL}
-      priority={priority}
+      preload={preload}
       {...props}
     />
   )

@@ -70,11 +70,5 @@
   "files.eol": "\n",
   "workbench.editorAssociations": {
     "*.svg": "default"
-  },
-
-  // File nesting (cleaner explorer)
-  "explorer.fileNesting.enabled": true,
-  "explorer.fileNesting.patterns": {
-    "*.tsx": "${capture}.module.css"
   }
 }

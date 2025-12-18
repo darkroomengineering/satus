@@ -1,6 +1,7 @@
 'use client'
 
 import cn from 'clsx'
+import { useRouter } from 'next/navigation'
 import type { Product, ProductVariant } from '~/integrations/shopify/types'
 import { addItem } from '../actions'
 import { useCartContext } from '../cart-context'
@@ -22,6 +23,7 @@ export function AddToCart({
 }: AddToCartProps) {
   const { addCartItem } = useCartContext()
   const { openCart } = useCartModal()
+  const router = useRouter()
 
   let buttonState = 'Coming Soon'
 
@@ -42,6 +44,9 @@ export function AddToCart({
       variantId: variant?.id || '',
       quantity,
     })
+
+    // Refresh the router to sync server state with optimistic state
+    router.refresh()
   }
 
   return (

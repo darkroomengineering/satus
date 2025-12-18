@@ -1,6 +1,7 @@
 'use client'
 
 import cn from 'clsx'
+import { useRouter } from 'next/navigation'
 import type { KeyboardEvent, ReactNode } from 'react'
 import { createContext, useContext, useState } from 'react'
 import { Image } from '~/components/ui/image'
@@ -173,6 +174,7 @@ const quantityAction: Record<'minus' | 'plus', number> = {
 
 function Quantity({ className, payload }: QuantityProps) {
   const { updateCartItem } = useCartContext()
+  const router = useRouter()
 
   async function formAction(type: 'minus' | 'plus') {
     const updatePayload = {
@@ -182,6 +184,9 @@ function Quantity({ className, payload }: QuantityProps) {
 
     updateCartItem(payload.merchandiseId, type)
     await updateItemQuantity(null, updatePayload)
+
+    // Refresh the router to sync server state with optimistic state
+    router.refresh()
   }
 
   return (
@@ -209,10 +214,14 @@ function QuantityButton({
 
 function RemoveButton({ merchandiseId, className }: RemoveButtonProps) {
   const { updateCartItem } = useCartContext()
+  const router = useRouter()
 
   async function formAction() {
     updateCartItem(merchandiseId, 'delete')
     await removeItem(null, merchandiseId)
+
+    // Refresh the router to sync server state with optimistic state
+    router.refresh()
   }
 
   return (

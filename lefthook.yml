@@ -14,13 +14,15 @@ pre-commit:
       run: bun tsc --noEmit --incremental false
       stage_fixed: false
 
-pre-push:
-  commands:
-    build-check:
-      run: bun run build
-      skip:
-        - merge
-        - rebase
+# NOTE: Build checks happen in CI, not pre-push (too slow for dev workflow)
+# Uncomment if you want local build verification:
+# pre-push:
+#   commands:
+#     build-check:
+#       run: bun run build
+#       skip:
+#         - merge
+#         - rebase
 
 post-merge:
   commands:

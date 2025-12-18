@@ -70,6 +70,8 @@ jobs:
         if: steps.await.outcome == 'success'
         id: lighthouse
         uses: treosh/lighthouse-ci-action@v12
+        env:
+          LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
         with:
           urls: https://${{ steps.vercel_url.outputs.preview_url }}
           uploadArtifacts: true

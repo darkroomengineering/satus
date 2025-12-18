@@ -1,0 +1,107 @@
+# Lighthouse Performance Reports
+#
+# Runs Lighthouse on Vercel deployments and posts results as commit comments.
+# Our GitHub → Slack integration forwards these to Slack automatically.
+#
+# Required GitHub Secrets:
+#   VERCEL_TOKEN - Vercel API token (Settings → Tokens)
+
+name: Lighthouse
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Discover Vercel Project
+        id: vercel_info
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          project_name="${GITHUB_REPOSITORY##*/}"
+          echo "Looking for Vercel project: $project_name"
+          
+          # Get team ID for darkroom-engineering
+          teams=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v2/teams")
+          team_id=$(echo "$teams" | jq -r '.teams[] | select(.slug=="darkroom-engineering") | .id')
+          echo "Team ID: $team_id"
+          
+          # Get project ID by matching repo name
+          projects=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v9/projects?teamId=$team_id")
+          project_id=$(echo "$projects" | jq -r ".projects[] | select(.name==\"$project_name\") | .id")
+          echo "Project ID: $project_id"
+          
+          echo "team_id=$team_id" >> $GITHUB_OUTPUT
+          echo "project_id=$project_id" >> $GITHUB_OUTPUT
+
+      - name: Get Vercel Preview URL
+        id: vercel
+        uses: zentered/vercel-preview-url@v1.4.0
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        with:
+          vercel_team_id: ${{ steps.vercel_info.outputs.team_id }}
+          vercel_project_id: ${{ steps.vercel_info.outputs.project_id }}
+
+      - name: Wait for deployment
+        uses: UnlyEd/github-action-await-vercel@v2.0.0
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        with:
+          deployment-url: ${{ steps.vercel.outputs.preview_url }}
+          timeout: 300
+          poll-interval: 10
+
+      - name: Run Lighthouse
+        id: lighthouse
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: https://${{ steps.vercel.outputs.preview_url }}
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+      - name: Format results
+        id: format
+        if: success()
+        uses: actions/github-script@v7
+        env:
+          PREVIEW_URL: ${{ steps.vercel.outputs.preview_url }}
+          MANIFEST: ${{ steps.lighthouse.outputs.manifest }}
+          LINKS: ${{ steps.lighthouse.outputs.links }}
+        with:
+          script: |
+            const manifest = JSON.parse(process.env.MANIFEST);
+            const links = JSON.parse(process.env.LINKS);
+            const previewUrl = process.env.PREVIEW_URL;
+            
+            const scores = manifest[0].summary;
+            const reportUrl = Object.values(links)[0];
+            
+            const emoji = (score) => score >= 0.9 ? '🟢' : score >= 0.5 ? '🟠' : '🔴';
+            const format = (score) => Math.round(score * 100);
+            
+            const comment = [
+              `⚡️ [Lighthouse report](${reportUrl}) for this commit:`,
+              '',
+              `${emoji(scores.performance)} Performance: ${format(scores.performance)}`,
+              `${emoji(scores.accessibility)} Accessibility: ${format(scores.accessibility)}`,
+              `${emoji(scores['best-practices'])} Best Practices: ${format(scores['best-practices'])}`,
+              `${emoji(scores.seo)} SEO: ${format(scores.seo)}`,
+              '',
+              `*Tested on [${previewUrl}](https://${previewUrl})*`
+            ].join('\n');
+            
+            core.setOutput('comment', comment);
+
+      - name: Post commit comment
+        if: success()
+        uses: peter-evans/commit-comment@v3
+        with:
+          body: ${{ steps.format.outputs.comment }}

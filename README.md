@@ -251,12 +251,23 @@ Deploy to Vercel (recommended):
 vercel
 ```
 
+### GitHub Actions Setup
+
+Satus includes a Lighthouse workflow that posts performance reports as commit comments. Your existing GitHub → Slack integration forwards these automatically.
+
+**Required GitHub Secret** (Settings → Secrets → Actions):
+
+| Secret | Where to find it |
+|--------|------------------|
+| `VERCEL_TOKEN` | [Vercel Settings → Tokens](https://vercel.com/account/tokens) |
+
+The workflow auto-discovers your Vercel project by matching the repo name.
+
 ### Pre-deployment Checklist
+- [ ] GitHub Secrets configured (see above)
 - [ ] Environment variables configured
 - [ ] Sanity webhooks set up
-- [ ] GSAP license valid (if using premium)
 - [ ] SSL certificates configured
-- [ ] Performance metrics validated
 
 ### Other Platforms
 Supports any Next.js-compatible platform: Vercel, Netlify, AWS Amplify, Google Cloud Run, or self-hosted.

@@ -30,6 +30,21 @@ interface NavigationEntry extends PerformanceEntry {
   loadEventEnd: number
 }
 
+/**
+ * Measures Cumulative Layout Shift (CLS).
+ *
+ * CLS measures visual stability by quantifying unexpected layout shifts.
+ * Lower scores are better.
+ *
+ * @param onReport - Callback fired when CLS is measured
+ *
+ * @example
+ * ```ts
+ * getCLS((metric) => {
+ *   console.log(`CLS: ${metric.value} (${metric.rating})`)
+ * })
+ * ```
+ */
 export function getCLS(onReport?: (metric: PerformanceMetric) => void): void {
   if (typeof window === 'undefined') return
 
@@ -60,6 +75,21 @@ export function getCLS(onReport?: (metric: PerformanceMetric) => void): void {
   }
 }
 
+/**
+ * Measures First Input Delay (FID).
+ *
+ * FID measures the time from first user interaction to response.
+ * Lower scores are better.
+ *
+ * @param onReport - Callback fired when FID is measured
+ *
+ * @example
+ * ```ts
+ * getFID((metric) => {
+ *   console.log(`FID: ${metric.value}ms (${metric.rating})`)
+ * })
+ * ```
+ */
 export function getFID(onReport?: (metric: PerformanceMetric) => void): void {
   if (typeof window === 'undefined') return
 
@@ -89,6 +119,21 @@ export function getFID(onReport?: (metric: PerformanceMetric) => void): void {
   }
 }
 
+/**
+ * Measures First Contentful Paint (FCP).
+ *
+ * FCP measures when the browser renders the first bit of content.
+ * Lower scores are better.
+ *
+ * @param onReport - Callback fired when FCP is measured
+ *
+ * @example
+ * ```ts
+ * getFCP((metric) => {
+ *   console.log(`FCP: ${metric.value}ms (${metric.rating})`)
+ * })
+ * ```
+ */
 export function getFCP(onReport?: (metric: PerformanceMetric) => void): void {
   if (typeof window === 'undefined') return
 
@@ -119,6 +164,21 @@ export function getFCP(onReport?: (metric: PerformanceMetric) => void): void {
   }
 }
 
+/**
+ * Measures Largest Contentful Paint (LCP).
+ *
+ * LCP measures when the largest content element is rendered.
+ * Lower scores are better.
+ *
+ * @param onReport - Callback fired when LCP is measured
+ *
+ * @example
+ * ```ts
+ * getLCP((metric) => {
+ *   console.log(`LCP: ${metric.value}ms (${metric.rating})`)
+ * })
+ * ```
+ */
 export function getLCP(onReport?: (metric: PerformanceMetric) => void): void {
   if (typeof window === 'undefined') return
 
@@ -146,6 +206,21 @@ export function getLCP(onReport?: (metric: PerformanceMetric) => void): void {
   }
 }
 
+/**
+ * Measures Time to First Byte (TTFB).
+ *
+ * TTFB measures the time for the network request response.
+ * Lower scores are better.
+ *
+ * @param onReport - Callback fired when TTFB is measured
+ *
+ * @example
+ * ```ts
+ * getTTFB((metric) => {
+ *   console.log(`TTFB: ${metric.value}ms (${metric.rating})`)
+ * })
+ * ```
+ */
 export function getTTFB(onReport?: (metric: PerformanceMetric) => void): void {
   if (typeof window === 'undefined') return
 
@@ -174,7 +249,29 @@ export function getTTFB(onReport?: (metric: PerformanceMetric) => void): void {
   }
 }
 
-/** Report all Core Web Vitals */
+/**
+ * Reports all Core Web Vitals (CLS, FID, FCP, LCP, TTFB).
+ *
+ * Automatically starts monitoring all web vitals and calls the callback
+ * when each metric is measured.
+ *
+ * @param onReport - Callback fired for each measured metric
+ *
+ * @example
+ * ```ts
+ * // Report to analytics
+ * reportWebVitals((metric) => {
+ *   analytics.track('web-vital', {
+ *     name: metric.name,
+ *     value: metric.value,
+ *     rating: metric.rating
+ *   })
+ * })
+ *
+ * // Log to console
+ * reportWebVitals(console.log)
+ * ```
+ */
 export function reportWebVitals(
   onReport?: (metric: PerformanceMetric) => void
 ): void {

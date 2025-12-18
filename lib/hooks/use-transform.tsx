@@ -102,6 +102,49 @@ type TransformProviderProps = {
   ref?: Ref<TransformRef>
 }
 
+/**
+ * Provider component for managing element transforms.
+ *
+ * Provides a context for managing translation, rotation, scale, and clip transforms
+ * that can be inherited by child components. Useful for complex WebGL scenes
+ * and coordinated animations.
+ *
+ * @param props - Component props
+ * @param props.children - Child components
+ * @param props.ref - Optional ref to control transforms programmatically
+ *
+ * @example
+ * ```tsx
+ * import { TransformProvider } from '~/hooks/use-transform'
+ *
+ * function Scene() {
+ *   return (
+ *     <TransformProvider>
+ *       <div>My transformed content</div>
+ *     </TransformProvider>
+ *   )
+ * }
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // Control transforms programmatically
+ * function AnimatedScene() {
+ *   const transformRef = useRef<TransformRef>(null)
+ *
+ *   useEffect(() => {
+ *     transformRef.current?.setTranslate(100, 50, 0)
+ *     transformRef.current?.setScale(1.2, 1.2, 1)
+ *   }, [])
+ *
+ *   return (
+ *     <TransformProvider ref={transformRef}>
+ *       <div>Animated content</div>
+ *     </TransformProvider>
+ *   )
+ * }
+ * ```
+ */
 export function TransformProvider({ children, ref }: TransformProviderProps) {
   const parentTransformRef = useRef(structuredClone(DEFAULT_TRANSFORM))
   const transformRef = useRef(structuredClone(DEFAULT_TRANSFORM))
@@ -220,6 +263,50 @@ export function TransformProvider({ children, ref }: TransformProviderProps) {
   )
 }
 
+/**
+ * Hook for accessing and responding to transform changes.
+ *
+ * Use this hook to get the current transform state or register a callback
+ * that runs whenever transforms change in the TransformProvider hierarchy.
+ *
+ * @param callback - Optional callback fired when transforms change
+ * @param deps - Dependencies for the callback effect
+ * @returns Function to get current transform state
+ *
+ * @example
+ * ```tsx
+ * import { useTransform } from '~/hooks/use-transform'
+ *
+ * function AnimatedElement() {
+ *   useTransform((transform) => {
+ *     console.log('New transform:', transform.translate)
+ *     // Apply transforms to DOM or WebGL
+ *     element.style.transform = `
+ *       translate3d(${transform.translate.x}px, ${transform.translate.y}px, ${transform.translate.z}px)
+ *       rotateX(${transform.rotate.x}deg)
+ *       scale3d(${transform.scale.x}, ${transform.scale.y}, ${transform.scale.z})
+ *     `
+ *   })
+ *
+ *   return <div>Animated element</div>
+ * }
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // Get current transform without callback
+ * function CurrentTransform() {
+ *   const getTransform = useTransform()
+ *
+ *   const handleClick = () => {
+ *     const current = getTransform()
+ *     console.log('Current position:', current.translate)
+ *   }
+ *
+ *   return <button onClick={handleClick}>Log Transform</button>
+ * }
+ * ```
+ */
 export function useTransform(
   callback?: TransformCallback,
   deps = [] as unknown[]

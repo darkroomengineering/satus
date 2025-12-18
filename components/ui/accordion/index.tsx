@@ -47,12 +47,56 @@ function Group({ children }: PropsWithChildren) {
   )
 }
 
+/**
+ * Props for the Accordion Root component.
+ */
 type RootProps = {
+  /** Additional CSS classes */
   className?: string
+  /** Child components or render function with open state */
   children?: ReactNode | ((props: { isOpen: boolean }) => ReactNode)
+  /** Ref to access toggle method programmatically */
   ref?: Ref<{ toggle: () => void }>
 }
 
+/**
+ * Accordion item root component.
+ *
+ * Provides the context and state management for an individual accordion item.
+ * Must be used within an Accordion.Group component.
+ *
+ * @param props - Component props
+ * @param props.children - Accordion content or render function
+ * @param props.className - Additional CSS classes
+ * @param props.ref - Ref for programmatic control
+ *
+ * @example
+ * ```tsx
+ * import { Accordion } from '~/components/ui/accordion'
+ *
+ * <Accordion.Group>
+ *   <Accordion.Root>
+ *     <Accordion.Button>Toggle</Accordion.Button>
+ *     <Accordion.Body>Content</Accordion.Body>
+ *   </Accordion.Root>
+ * </Accordion.Group>
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // Render function with open state
+ * <Accordion.Root>
+ *   {({ isOpen }) => (
+ *     <>
+ *       <Accordion.Button>
+ *         {isOpen ? 'Close' : 'Open'}
+ *       </Accordion.Button>
+ *       <Accordion.Body>Content</Accordion.Body>
+ *     </>
+ *   )}
+ * </Accordion.Root>
+ * ```
+ */
 function Root({ children, className, ref }: RootProps) {
   const id = useId()
 

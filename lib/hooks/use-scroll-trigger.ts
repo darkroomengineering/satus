@@ -136,6 +136,72 @@ export type UseScrollTriggerOptions = {
   steps?: number
 }
 
+/**
+ * Hook for creating scroll-based animations and triggers.
+ *
+ * Provides a powerful way to trigger animations based on scroll position,
+ * with support for GSAP ScrollTrigger-like positioning and progress tracking.
+ *
+ * @param options - Configuration options
+ * @param deps - Dependencies that trigger updates (rarely needed)
+ * @returns void
+ *
+ * @example
+ * ```tsx
+ * import { useScrollTrigger } from '~/hooks/use-scroll-trigger'
+ * import { useRect } from 'hamo'
+ *
+ * function AnimatedSection() {
+ *   const [setRectRef, rect] = useRect()
+ *
+ *   useScrollTrigger({
+ *     rect,
+ *     start: 'bottom bottom',  // Start when element bottom hits viewport bottom
+ *     end: 'top top',         // End when element top hits viewport top
+ *     onProgress: ({ progress }) => {
+ *       // Animate based on scroll progress (0-1)
+ *       element.style.opacity = progress
+ *     }
+ *   })
+ *
+ *   return <div ref={setRectRef}>Animated content</div>
+ * }
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // Advanced usage with markers (dev mode only)
+ * useScrollTrigger({
+ *   rect,
+ *   start: 'center center',  // Start when centers align
+ *   end: 'center top',      // End when element center hits viewport top
+ *   markers: true,          // Show debug markers
+ *   onEnter: ({ progress }) => console.log('Entered:', progress),
+ *   onLeave: ({ progress }) => console.log('Left:', progress),
+ *   onProgress: ({ progress, isActive, steps }) => {
+ *     // progress: 0-1 animation progress
+ *     // isActive: whether element is in trigger zone
+ *     // steps: array of step progress values
+ *   }
+ * })
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // Position syntax
+ * // Format: "element-position viewport-position"
+ *
+ * useScrollTrigger({
+ *   rect,
+ *   start: 'top bottom',     // Element top meets viewport bottom
+ *   end: 'bottom top',       // Element bottom meets viewport top
+ *   // ... other options
+ * })
+ *
+ * // Available positions: 'top', 'center', 'bottom', or pixel values
+ * // Examples: 'top 100', 'center center', 'bottom bottom'
+ * ```
+ */
 export function useScrollTrigger(
   {
     rect,

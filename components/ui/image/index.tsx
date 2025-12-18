@@ -6,13 +6,26 @@ import type { CSSProperties, Ref } from 'react'
 import { breakpoints } from '~/styles/config'
 import s from './image.module.css'
 
+/**
+ * Enhanced Image component props extending Next.js Image.
+ *
+ * Adds responsive sizing, aspect ratio support, and automatic blur placeholders.
+ * Always use this component instead of next/image directly.
+ */
 export type ImageProps = Omit<NextImageProps, 'objectFit' | 'alt'> & {
+  /** CSS object-fit property for image positioning */
   objectFit?: CSSProperties['objectFit']
+  /** Display as block element (adds display: block) */
   block?: boolean
+  /** Size on mobile devices (e.g., "100vw", "50vw") */
   mobileSize?: `${number}vw`
+  /** Size on desktop devices (e.g., "33vw", "25vw") */
   desktopSize?: `${number}vw`
+  /** Ref for accessing the underlying img element */
   ref?: Ref<HTMLImageElement>
+  /** Alt text for accessibility (required for meaningful images) */
   alt?: string
+  /** Aspect ratio for automatic placeholder and layout stability */
   aspectRatio?: number
 }
 
@@ -76,6 +89,55 @@ const getFinalPlaceholder = (
   return aspectRatio || blurDataURL ? 'blur' : 'empty'
 }
 
+/**
+ * Enhanced Image component with responsive sizing and automatic optimizations.
+ *
+ * Always use this component instead of next/image directly. Provides:
+ * - Automatic responsive sizes generation
+ * - Smart blur placeholders with aspect ratio support
+ * - Performance optimizations (lazy loading by default)
+ * - Priority loading for LCP images
+ *
+ * @param props - Image props extending Next.js Image
+ * @param props.aspectRatio - Aspect ratio for layout stability and blur placeholder
+ * @param props.mobileSize - Size on mobile (e.g., "100vw")
+ * @param props.desktopSize - Size on desktop (e.g., "50vw")
+ * @param props.block - Display as block element
+ * @param props.priority - Enable eager loading for LCP images
+ *
+ * @example
+ * ```tsx
+ * // Basic usage with aspect ratio
+ * <Image
+ *   src="/hero.jpg"
+ *   alt="Hero image"
+ *   aspectRatio={16/9}
+ * />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // LCP image with priority loading
+ * <Image
+ *   src="/hero.jpg"
+ *   alt="Hero image"
+ *   aspectRatio={16/9}
+ *   priority // Sets loading="eager"
+ * />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // Responsive grid image
+ * <Image
+ *   src="/product.jpg"
+ *   alt="Product"
+ *   aspectRatio={1}
+ *   mobileSize="100vw"
+ *   desktopSize="33vw"
+ * />
+ * ```
+ */
 export function Image({
   style,
   className,

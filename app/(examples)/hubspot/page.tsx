@@ -1,9 +1,20 @@
 import { Wrapper } from '~/components/layout/wrapper'
 import { Form } from '~/components/ui/form'
+import { NotConfigured } from '~/components/ui/not-configured'
+import { isHubSpotConfigured } from '~/integrations/check-integration'
 import { getForm } from '~/integrations/hubspot/fetch-form'
 import { Subscribe } from './_components/subscribe'
 
 export default async function HubspotPage() {
+  // Show setup instructions if HubSpot is not configured
+  if (!isHubSpotConfigured()) {
+    return (
+      <Wrapper theme="red">
+        <NotConfigured integration="HubSpot" />
+      </Wrapper>
+    )
+  }
+
   // @ts-expect-error Server Component
   const { form } = await getForm(process.env.NEXT_HUBSPOT_FORM_ID)
 

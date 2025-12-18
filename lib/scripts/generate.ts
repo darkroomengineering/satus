@@ -1,17 +1,22 @@
 #!/usr/bin/env bun
 /**
- * Unified Create CLI
+ * Satūs Generator CLI
  *
- * Generate new pages or components with pre-configured templates through interactive prompts
+ * Interactive scaffolding for new pages and components.
+ * Generates pre-configured templates following project conventions.
  *
  * Usage:
- *   bun run create
+ *   bun run generate
+ *
+ * Options:
+ *   - Page: Creates route with layout, metadata, and optional integrations
+ *   - Component: Creates UI component with CSS module and barrel export
  */
 
 import * as p from '@clack/prompts'
-import { createComponent, promptComponentConfig } from './create-component'
+import { createComponent, promptComponentConfig } from './generate-component'
 // Import the existing generators
-import { createPage, promptPageConfig } from './create-page'
+import { createPage, promptPageConfig } from './generate-page'
 
 /**
  * Main CLI function
@@ -19,11 +24,11 @@ import { createPage, promptPageConfig } from './create-page'
 const main = async (): Promise<void> => {
   console.clear()
 
-  p.intro('Satūs Creator')
+  p.intro('Satūs Generator')
 
   // Ask what to create
   const createType = await p.select({
-    message: 'What would you like to create?',
+    message: 'What would you like to generate?',
     options: [
       {
         value: 'page',
@@ -39,7 +44,7 @@ const main = async (): Promise<void> => {
   })
 
   if (p.isCancel(createType)) {
-    p.cancel('Creation cancelled')
+    p.cancel('Generation cancelled')
     process.exit(0)
   }
 
@@ -58,10 +63,10 @@ const main = async (): Promise<void> => {
       await createComponent(componentPath, options)
     }
 
-    p.outro('Creation completed successfully! 🚀')
+    p.outro('Generation completed successfully! 🚀')
   } catch (error) {
     p.log.error(
-      `Creation failed: ${error instanceof Error ? error.message : String(error)}`
+      `Generation failed: ${error instanceof Error ? error.message : String(error)}`
     )
     process.exit(1)
   }

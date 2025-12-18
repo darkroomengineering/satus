@@ -1,6 +1,6 @@
 # [PROJECT NAME]
 
-Production documentation for [PROJECT NAME], built with the Satūs framework by [darkroom.engineering](https://darkroom.engineering).
+Production documentation for [PROJECT NAME].
 
 ## Quick Start
 
@@ -18,134 +18,104 @@ bun dev
 
 ## Environment Variables
 
-Required in `.env.local`:
+Required variables are configured in Vercel. For local development:
 
-```env
-# Sanity CMS
-NEXT_PUBLIC_SANITY_PROJECT_ID="your-project-id"
-NEXT_PUBLIC_SANITY_DATASET="production"
-NEXT_PUBLIC_SANITY_STUDIO_URL="http://localhost:3000/studio"
-SANITY_API_WRITE_TOKEN="your-write-token"
+```bash
+# Pull from Vercel
+vercel env pull .env.local
 
-# Base URL
-NEXT_PUBLIC_BASE_URL="https://your-domain.com"
-
-# GSAP (if using premium features)
-GSAP_AUTH_TOKEN="your-gsap-token"
+# Or copy and fill in manually
+cp .env.example .env.local
 ```
 
-## Core Technologies
-
-### Content Management
-- **Sanity Studio**: Access at `/studio`
-- **Revalidation Webhook**: `https://your-domain.com/api/revalidate`
-- [Sanity Documentation](lib/integrations/sanity/README.md)
-
-### Animation
-- **GSAP**: General animations and timeline sequences
-- **Theatre.js**: Complex animation choreography
-- [GSAP Documentation](components/gsap/README.md)
-
-### Styling
-- **Hybrid System**: Tailwind CSS v4 + PostCSS
-- **Responsive Units**: `mobile-vw()` and `desktop-vw()` functions
-- **Grid**: 4 columns (mobile) / 12 columns (desktop)
-- [Styling Documentation](styles/README.md)
+See `.env.example` for all available variables and their documentation.
 
 ## Tech Stack
 
-**Core**
-- Next.js, React, TypeScript, Bun
-
-**3D & Animation**
-- Three.js, React Three Fiber, Theatre.js, GSAP
-
-**Integrations**
-- Sanity, HubSpot, Shopify
-
-**UI & Styling**
-- CSS Modules, Tailwind CSS, Base UI
-
-**Performance**
-- Lenis, Hamo, Tempus, Zustand
+| Category | Technologies |
+|----------|--------------|
+| Framework | Next.js 16, React 19, TypeScript |
+| Styling | Tailwind CSS v4, CSS Modules, PostCSS |
+| Animation | GSAP, Lenis (smooth scroll) |
+| CMS | Sanity (if configured) |
+| Package Manager | Bun |
 
 ## Available Scripts
 
-```bash
-bun dev              # Development server
-bun build            # Production build
-bun start            # Start production server
-bun lint             # Run linter
-bun typecheck        # TypeScript validation
-bun setup:styles     # Regenerate styles
-bun analyze          # Bundle analysis
-```
-
-## Debug Tools (CMD+O)
-
-- Theatre.js Studio (⚙️)
-- Performance Stats (📈)
-- Grid Debug (🌐)
-- Development Mode (🚧)
-- Minimap (🗺️)
+| Command | Description |
+|---------|-------------|
+| `bun dev` | Start development server |
+| `bun build` | Production build |
+| `bun start` | Start production server |
+| `bun lint` | Run linter |
+| `bun typecheck` | TypeScript validation |
+| `bun setup:styles` | Regenerate CSS utilities |
 
 ## Project Structure
 
 ```
-project/
-├── app/                # Next.js pages and routes
-├── components/         # Shared UI components
-├── lib/                # Everything non-UI
-│   ├── integrations/  # Sanity, Shopify, HubSpot
-│   ├── webgl/         # 3D graphics
-│   ├── dev/           # Debug tools (CMD+O)
-│   ├── scripts/       # CLI tools
-│   └── styles/        # CSS & Tailwind
-└── public/            # Static assets
+app/                    # Next.js pages and routes
+components/             # Shared UI components
+  ├── ui/              # Base UI primitives
+  ├── layout/          # Page layout components
+  └── effects/         # Animation components
+lib/                    # Non-UI code
+  ├── integrations/    # Third-party services
+  ├── hooks/           # React hooks
+  ├── styles/          # CSS configuration
+  └── utils/           # Utility functions
+public/                 # Static assets
 ```
 
-## Documentation
+## Styling System
 
-- [Lib](lib/README.md) - Utilities, hooks, and features
-- [Integrations](lib/integrations/README.md) - Third-party integrations
-- [Styles](lib/styles/README.md) - CSS & Tailwind system
-- [Components](components/README.md) - UI components
-- [WebGL Components](lib/webgl/README.md) - 3D graphics
+**Responsive Units:**
+- `mobile-vw(px)` / `desktop-vw(px)` - Viewport-relative sizing
+- `dr-*` utilities - Custom Tailwind classes for responsive scaling
+
+**Grid:**
+- 4 columns (mobile) / 12 columns (desktop)
+- Use `dr-grid` class for grid layouts
+
+## Content Updates
+
+Content is managed through Sanity CMS at `/studio`.
+
+Changes publish automatically via webhooks. For manual cache clearing:
+```
+GET https://[your-domain]/api/revalidate
+```
 
 ## Deployment
 
+Deployed via Vercel. Push to `main` branch to deploy.
+
 ### Pre-deployment Checklist
-1. ✅ Environment variables set in Vercel
-2. ✅ Sanity webhooks configured
-3. ✅ SSL certificates configured
-4. ✅ Performance metrics validated
+- [ ] Environment variables configured
+- [ ] Domain and SSL configured
+- [ ] Build passes without errors
+- [ ] Webhooks configured (if using CMS)
 
-### Monitoring
-- Vercel Analytics Dashboard
-- Lighthouse CI Reports
-- Performance hooks (`hooks/use-performance.ts`)
+## Troubleshooting
 
-### Content Updates
-- Content changes via Sanity auto-update via webhooks
-- Code changes deploy via Vercel
-- Manual cache clear: `https://your-domain.com/api/revalidate`
+**Build Fails**
+1. Run `bun install` to ensure dependencies are current
+2. Run `bun typecheck` to check for TypeScript errors
+3. Check environment variables are set
 
-## Common Issues
+**Styles Not Updating**
+1. Run `bun setup:styles` to regenerate CSS
+2. Clear browser cache
+3. Restart development server
 
-**Sanity Visual Editor Not Working**
-- Check environment variables
-- Verify draft mode configuration (`/api/draft-mode/enable`)
-- Ensure `NEXT_PUBLIC_BASE_URL` is set
+**CMS Not Connecting**
+1. Verify Sanity environment variables
+2. Check CORS settings in Sanity dashboard
+3. Verify API tokens have correct permissions
 
-**Style Updates Not Reflecting**
-- Run `bun setup:styles`
-- Clear browser cache
-- Verify deployment status
+## Support
 
-**Performance Issues**
-- Check Theatre.js sequences
-- Monitor GSAP animations
-- Verify WebGL performance
+For technical questions, contact the development team.
 
 ---
 

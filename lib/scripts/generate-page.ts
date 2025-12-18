@@ -1,11 +1,9 @@
 #!/usr/bin/env bun
 /**
- * Page Generator CLI
+ * Generate Page Module
  *
- * Generate new pages with pre-configured templates through interactive prompts
- *
- * Usage:
- *   bun run create:page
+ * Generates new pages with pre-configured templates through interactive prompts.
+ * Used by the unified generator: `bun run generate`
  */
 
 import * as p from '@clack/prompts'
@@ -40,7 +38,7 @@ export const promptPageConfig = async (): Promise<PageConfig> => {
   })
 
   if (p.isCancel(name)) {
-    p.cancel('Page creation cancelled')
+    p.cancel('Page generation cancelled')
     process.exit(0)
   }
 
@@ -55,7 +53,7 @@ export const promptPageConfig = async (): Promise<PageConfig> => {
   })
 
   if (p.isCancel(theme)) {
-    p.cancel('Page creation cancelled')
+    p.cancel('Page generation cancelled')
     process.exit(0)
   }
 
@@ -70,7 +68,7 @@ export const promptPageConfig = async (): Promise<PageConfig> => {
   })
 
   if (p.isCancel(integrations)) {
-    p.cancel('Page creation cancelled')
+    p.cancel('Page generation cancelled')
     process.exit(0)
   }
 
@@ -80,7 +78,7 @@ export const promptPageConfig = async (): Promise<PageConfig> => {
   })
 
   if (p.isCancel(includeCss)) {
-    p.cancel('Page creation cancelled')
+    p.cancel('Page generation cancelled')
     process.exit(0)
   }
 
@@ -185,10 +183,10 @@ export const createPage = async (
       await Bun.write(`${pageDir}/${pageName}.module.css`, cssContent)
     }
 
-    s.stop(`Page "${pageName}" created successfully!`)
+    s.stop(`Page "${pageName}" generated successfully!`)
 
     // Show what was created
-    p.log.success(`Created files:`)
+    p.log.success(`Generated files:`)
     p.log.message(`  📄 ${pageDir}/page.tsx`)
     p.log.message(`  📁 ${componentsDir}/`)
     if (options.css) {
@@ -202,9 +200,9 @@ export const createPage = async (
         `  3. Visit /${pageName} to see your page`
     )
   } catch (error) {
-    s.stop(`Failed to create page "${pageName}"`)
+    s.stop(`Failed to generate page "${pageName}"`)
     throw error
   }
 }
 
-// Export functions for use by unified create script
+// Export functions for use by unified generate script

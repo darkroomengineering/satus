@@ -269,5 +269,7 @@ bun dev              # Start dev server
 bun build            # Production build
 bun lint             # Run linter
 bun typecheck        # Type check
-bun cleanup:integrations  # Find unused integrations
+bun run generate     # Generate new pages/components
+bun run setup:project  # Configure integrations
+bun run handoff      # Prepare for client delivery
 ```

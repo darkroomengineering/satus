@@ -133,15 +133,17 @@ This project uses Next.js 16 Cache Components (`cacheComponents: true`). See the
 
 ## Managing Integrations
 
-This template includes several optional integrations. You can check which ones are configured, conditionally load them, or remove unused ones to reduce bundle size.
+This template includes several optional integrations. You can choose which to keep during setup, conditionally load them, or remove unused ones to reduce bundle size.
 
-### Quick Status Check
+### Interactive Setup
 
-Run the cleanup helper to identify unused integrations:
+The easiest way to manage integrations is during project setup:
 
 ```bash
-bun cleanup:integrations
+bun run setup:project
 ```
+
+This interactively lets you choose which integrations to keep and automatically removes unused code and dependencies.
 
 ### Automatic Detection
 
@@ -275,11 +277,6 @@ You can use these utilities in your own scripts:
 
 ```typescript
 import { 
-  getRemovalGuide, 
-  printCleanupInstructions,
-  REMOVAL_GUIDE 
-} from '~/integrations/cleanup'
-import { 
   getConfiguredIntegrations,
   getUnconfiguredIntegrations 
 } from '~/integrations/check-integration'
@@ -288,15 +285,8 @@ import {
 const configured = getConfiguredIntegrations()
 const unconfigured = getUnconfiguredIntegrations()
 
-// Get removal instructions for a specific integration
-const sanityGuide = getRemovalGuide('Sanity')
-if (sanityGuide) {
-  console.log('Directories to remove:', sanityGuide.dirs)
-  console.log('Pages to remove:', sanityGuide.pages)
-}
-
-// Print all cleanup instructions
-printCleanupInstructions()
+console.log('Configured:', configured)
+console.log('Not configured:', unconfigured)
 ```
 
 ### Questions?
@@ -304,4 +294,4 @@ printCleanupInstructions()
 If you're unsure whether you need an integration:
 - Check your `.env.local` file
 - Review your project requirements
-- Run `bun cleanup:integrations` for detailed guidance
+- Run `bun run setup:project` and review the integration options

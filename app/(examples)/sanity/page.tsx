@@ -1,5 +1,7 @@
 import { notFound } from 'next/navigation'
 import { Wrapper } from '~/components/layout/wrapper'
+import { NotConfigured } from '~/components/ui/not-configured'
+import { isSanityConfigured } from '~/integrations/check-integration'
 import { sanityFetch } from '~/integrations/sanity/live'
 import { pageQuery } from '~/integrations/sanity/queries'
 import { generateSanityMetadata } from '~/utils'
@@ -8,6 +10,15 @@ import { SanityTutorial } from './_components/tutorial'
 const SLUG = 'sanity'
 
 export default async function SanityPage() {
+  // Show setup instructions if Sanity is not configured
+  if (!isSanityConfigured()) {
+    return (
+      <Wrapper theme="red">
+        <NotConfigured integration="Sanity" />
+      </Wrapper>
+    )
+  }
+
   const { data } = await sanityFetch({
     query: pageQuery,
     params: { slug: SLUG },

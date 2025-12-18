@@ -1,11 +1,9 @@
 #!/usr/bin/env bun
 /**
- * Component Generator CLI
+ * Generate Component Module
  *
- * Generate new components with pre-configured templates through interactive prompts
- *
- * Usage:
- *   bun run create:component
+ * Generates new components with pre-configured templates through interactive prompts.
+ * Used by the unified generator: `bun run generate`
  */
 
 import * as p from '@clack/prompts'
@@ -51,7 +49,7 @@ export const promptComponentConfig = async (): Promise<ComponentConfig> => {
   })
 
   if (p.isCancel(category)) {
-    p.cancel('Component creation cancelled')
+    p.cancel('Component generation cancelled')
     process.exit(0)
   }
 
@@ -68,7 +66,7 @@ export const promptComponentConfig = async (): Promise<ComponentConfig> => {
   })
 
   if (p.isCancel(name)) {
-    p.cancel('Component creation cancelled')
+    p.cancel('Component generation cancelled')
     process.exit(0)
   }
 
@@ -80,7 +78,7 @@ export const promptComponentConfig = async (): Promise<ComponentConfig> => {
   })
 
   if (p.isCancel(isClientComponent)) {
-    p.cancel('Component creation cancelled')
+    p.cancel('Component generation cancelled')
     process.exit(0)
   }
 
@@ -241,7 +239,7 @@ const updateBarrelExport = async (
 export * from './${componentName}'
 `
       await Bun.write(barrelPath, content)
-      p.log.success(`Created barrel export: ${barrelPath}`)
+      p.log.success(`Generated barrel export: ${barrelPath}`)
       return
     }
 
@@ -250,7 +248,7 @@ export * from './${componentName}'
 
     // Check if already exported
     if (content.includes(`from './${componentName}'`)) {
-      p.log.warn(`Component already exported in ${barrelPath}`)
+      p.log.warn(`Component already generated in ${barrelPath}`)
       return
     }
 
@@ -270,16 +268,16 @@ export * from './${componentName}'
     }
 
     await Bun.write(barrelPath, lines.join('\n'))
-    p.log.success(`Updated barrel export: ${barrelPath}`)
+    p.log.success(`Generated barrel export: ${barrelPath}`)
   } catch (error) {
     p.log.warn(
-      `Could not update barrel export: ${error instanceof Error ? error.message : String(error)}`
+      `Could not generate barrel export: ${error instanceof Error ? error.message : String(error)}`
     )
   }
 }
 
 /**
- * Create component files and directories
+ * Generate component files and directories
  */
 export const createComponent = async (
   componentPath: string,
@@ -301,7 +299,7 @@ export const createComponent = async (
     // Create directory structure
     const componentDir = `components/${componentPath}`
 
-    s.start(`Creating component "${componentPath}"`)
+    s.start(`Generating component "${componentPath}"`)
 
     // Create component directory
     await Bun.$`mkdir -p ${componentDir}`.quiet()
@@ -315,7 +313,7 @@ export const createComponent = async (
     await Bun.write(`${componentDir}/${componentName}.module.css`, cssContent)
     await Bun.write(`${componentDir}/README.md`, readmeContent)
 
-    s.stop(`Component "${componentPath}" created successfully!`)
+    s.stop(`Component "${componentPath}" generated successfully!`)
 
     // Show what was created
     p.log.success(`Created files:`)

@@ -23,8 +23,8 @@
     "lighthouse": "bunx @unlighthouse/cli --site http://localhost:3000",
     "setup:project": "bun ./lib/scripts/setup-project.ts",
     "setup:styles": "bun ./lib/styles/scripts/setup-styles.ts",
-    "cleanup:integrations": "bun ./lib/integrations/cleanup.ts",
-    "create": "bun ./lib/scripts/create.ts",
+    "generate": "bun ./lib/scripts/generate.ts",
+    "handoff": "bun ./lib/scripts/prepare-handoff.ts",
     "sanity:extract": "cd lib/integrations/sanity && bun --env-file ../../../.env.local sanity schema extract",
     "sanity:typegen": "cd lib/integrations/sanity && bun --env-file ../../../.env.local sanity typegen generate && bun biome check --write --unsafe",
     "sanity:mcp": "bun ./lib/scripts/copy-sanity-mcp.ts"

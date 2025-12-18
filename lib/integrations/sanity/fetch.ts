@@ -1,5 +1,6 @@
 import type { QueryParams } from 'next-sanity'
 import { cacheSignal } from 'react'
+import { isSanityConfigured } from '~/integrations/check-integration'
 import { client } from './client'
 
 /**
@@ -8,6 +9,8 @@ import { client } from './client'
  * - React has successfully completed rendering
  * - The render was aborted
  * - The render has failed
+ *
+ * Returns null if Sanity is not configured.
  *
  * @see https://react.dev/reference/react/cacheSignal
  */
@@ -24,7 +27,12 @@ export async function fetchSanity<T>(
     useCdn?: boolean
     stega?: boolean
   } = {}
-): Promise<T> {
+): Promise<T | null> {
+  // Return null if Sanity is not configured
+  if (!(isSanityConfigured() && client)) {
+    return null
+  }
+
   const signal = cacheSignal()
 
   return client.fetch<T>(query, params, {

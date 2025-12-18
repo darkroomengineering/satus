@@ -156,13 +156,13 @@ satus/
 
 ## Managing Integrations
 
-Check which integrations are configured:
+Remove unused integrations during setup:
 
 ```bash
-bun cleanup:integrations      # List unused integrations
+bun run setup:project         # Interactive setup - choose which integrations to keep
 ```
 
-Remove unused integrations to reduce bundle size (~250-400KB potential savings). See [Integrations Documentation](lib/integrations/README.md) for detailed removal instructions.
+This removes unused code and dependencies (~250-400KB potential savings). See [Integrations Documentation](lib/integrations/README.md) for detailed instructions.
 
 
 ## 🎨 Styling System
@@ -219,10 +219,13 @@ bun lint                    # Run Biome linter
 bun lint:fix                # Fix linting issues
 bun typecheck               # TypeScript validation
 
+# Generators
+bun run generate            # Generate new pages or components (interactive)
+
 # Setup & Utilities
 bun run setup:project       # Interactive project setup (choose integrations)
+bun run handoff             # Prepare project for client delivery
 bun setup:styles            # Generate style files
-bun cleanup:integrations    # List unused integrations
 bun analyze                 # Bundle analysis
 ```
 

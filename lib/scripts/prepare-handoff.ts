@@ -3,10 +3,8 @@
  * Client Handoff Preparation Script
  *
  * Prepares the codebase for delivery to clients by:
- * - Validating documentation
- * - Swapping README with production version
  * - Removing example pages
- * - Optionally removing dev tools
+ * - Swapping README with production version
  * - Generating component inventory
  * - Creating deployment checklist
  *
@@ -22,16 +20,17 @@ interface HandoffOptions {
   dryRun: boolean
   projectName: string
   removeExamples: boolean
-  removeDevTools: boolean
   swapReadme: boolean
 }
 
 /**
- * Check if a file exists
+ * Check if a file or directory exists
  */
-const fileExists = async (path: string): Promise<boolean> => {
+const pathExists = async (path: string): Promise<boolean> => {
   try {
-    return await Bun.file(path).exists()
+    const fs = await import('node:fs/promises')
+    await fs.access(path)
+    return true
   } catch {
     return false
   }
@@ -43,7 +42,7 @@ const fileExists = async (path: string): Promise<boolean> => {
 const removeDir = async (path: string, dryRun: boolean): Promise<boolean> => {
   try {
     const fullPath = `${process.cwd()}/${path}`
-    if (!(await fileExists(fullPath))) return false
+    if (!(await pathExists(fullPath))) return false
 
     if (!dryRun) {
       await Bun.$`rm -rf ${fullPath}`.quiet()
@@ -65,7 +64,7 @@ const swapReadme = async (
     const prodReadmePath = `${process.cwd()}/PROD-README.md`
     const readmePath = `${process.cwd()}/README.md`
 
-    if (!(await fileExists(prodReadmePath))) {
+    if (!(await pathExists(prodReadmePath))) {
       p.log.warn('PROD-README.md not found, skipping README swap')
       return false
     }
@@ -308,7 +307,6 @@ const runHandoff = async (options: HandoffOptions): Promise<void> => {
     dryRun,
     projectName,
     removeExamples,
-    removeDevTools,
     swapReadme: doSwapReadme,
   } = options
 
@@ -319,18 +317,6 @@ const runHandoff = async (options: HandoffOptions): Promise<void> => {
     s.start('Removing example pages...')
     const removed = await removeDir('app/(examples)', dryRun)
     s.stop(removed ? 'Removed example pages' : 'No example pages to remove')
-  }
-
-  // Remove dev tools
-  if (removeDevTools) {
-    s.start('Removing development tools...')
-    const removedDev = await removeDir('lib/dev', dryRun)
-    const removedTheatre = await removeDir('public/config', dryRun)
-    s.stop(
-      removedDev || removedTheatre
-        ? 'Removed development tools'
-        : 'No dev tools to remove'
-    )
   }
 
   // Swap README
@@ -393,11 +379,6 @@ const main = async (): Promise<void> => {
         hint: 'Removes app/(examples)/ directory',
       },
       {
-        value: 'removeDevTools',
-        label: 'Remove dev tools',
-        hint: 'Removes Orchestra/Theatre.js (lib/dev/)',
-      },
-      {
         value: 'swapReadme',
         label: 'Swap README',
         hint: 'Replace README.md with production version',
@@ -447,7 +428,6 @@ const main = async (): Promise<void> => {
     dryRun,
     projectName: projectName as string,
     removeExamples: actionsArray.includes('removeExamples'),
-    removeDevTools: actionsArray.includes('removeDevTools'),
     swapReadme: actionsArray.includes('swapReadme'),
   })
 

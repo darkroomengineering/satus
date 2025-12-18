@@ -16,11 +16,10 @@ export async function Product() {
         s.product
       )}
     >
-      <div className="relative col-span-full dt:col-start-3 dt:-col-end-3 h-[40vh]">
+      <div className="relative col-span-full dt:col-start-3 dt:-col-end-3 h-[40vh] aspect-320/357">
         <Image
           src={product?.images[0].url as string}
-          alt={product?.altText as string}
-          aspectRatio={320 / 357}
+          alt={product?.images[0].altText as string}
           fill
         />
       </div>

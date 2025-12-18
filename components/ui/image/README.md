@@ -66,7 +66,7 @@ The Image component has been optimized with the following improvements:
    - Enables automatic blur placeholder
    - Helps with responsive calculations
 
-2. **Use `priority` for LCP images**
+2. **Use `preload` for LCP images**
    - Hero images
    - Above-the-fold product images
    - Critical branding elements

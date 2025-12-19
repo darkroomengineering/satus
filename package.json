@@ -44,7 +44,7 @@
     "hamo": "1.0.0-dev.6",
     "lenis": "^1.3.16",
     "next": "16.1.0",
-    "next-sanity": "^12.0.2",
+    "next-sanity": "^12.0.5",
     "postprocessing": "^6.38.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",

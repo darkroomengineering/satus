@@ -3,10 +3,20 @@
 import cn from 'clsx'
 import { useIntersectionObserver, useResizeObserver } from 'hamo'
 import { useLenis } from 'lenis/react'
-import { type HTMLAttributes, useRef } from 'react'
+import { type HTMLAttributes, useId, useRef } from 'react'
 import { useTempus } from 'tempus/react'
 import { modulo } from '~/utils/animation'
 import s from './marquee.module.css'
+
+function getHash(input: string) {
+  let hash = 0
+
+  for (let i = 0; i < input.length; i++) {
+    hash = (hash << 5) - hash + input.charCodeAt(i)
+    hash |= 0 // to 32bit integer
+  }
+  return hash
+}
 
 interface MarqueeProps extends HTMLAttributes<HTMLElement> {
   repeat?: number
@@ -32,9 +42,10 @@ export function Marquee({
     lazy: true,
   })
 
-  // return
+  const id = useId()
+
   const elementsRef = useRef<HTMLDivElement[]>([])
-  const transformRef = useRef(Math.random() * 1000)
+  const transformRef = useRef(getHash(id) % 10000)
   const isHovered = useRef(false)
 
   const [setIntersectionRef, intersection] = useIntersectionObserver()
@@ -44,7 +55,7 @@ export function Marquee({
   useTempus((_, deltaTime) => {
     const entry = getEntry()
 
-    if (!intersection.isIntersecting) return
+    if (!intersection?.isIntersecting) return
     if (pauseOnHover && isHovered.current) return
 
     if (!entry?.borderBoxSize[0]?.inlineSize) return

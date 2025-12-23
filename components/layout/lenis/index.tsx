@@ -1,54 +1,32 @@
 'use client'
 
-import gsap from 'gsap'
-import { ScrollTrigger as GSAPScrollTrigger } from 'gsap/all'
 import type { LenisOptions } from 'lenis'
 import 'lenis/dist/lenis.css'
 import type { LenisRef, LenisProps as ReactLenisProps } from 'lenis/react'
-import { ReactLenis, useLenis } from 'lenis/react'
-import { useEffect, useEffectEvent, useRef } from 'react'
+import { ReactLenis } from 'lenis/react'
+import dynamic from 'next/dynamic'
+import { useEffect, useRef } from 'react'
 import { useTempus } from 'tempus/react'
 import { useStore } from '~/hooks/store'
 
-// Register ScrollTrigger once
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(GSAPScrollTrigger)
-  GSAPScrollTrigger.clearScrollMemory('manual')
-  GSAPScrollTrigger.defaults({
-    markers: process.env.NODE_ENV === 'development',
-  })
-}
-
-/**
- * Syncs GSAP ScrollTrigger with Lenis scroll position.
- * Must be rendered inside ReactLenis context.
- */
-function LenisScrollTriggerSync() {
-  const handleUpdate = useEffectEvent(() => {
-    GSAPScrollTrigger.update()
-  })
-
-  const handleRefresh = useEffectEvent(() => {
-    GSAPScrollTrigger.refresh()
-  })
-
-  const lenis = useLenis(handleUpdate)
-
-  useEffect(() => {
-    if (lenis) {
-      handleRefresh()
-    }
-  }, [lenis])
-
-  return null
-}
+const LenisScrollTriggerSync = dynamic(
+  () => import('./scroll-trigger').then((mod) => mod.LenisScrollTriggerSync),
+  {
+    ssr: false,
+  }
+)
 
 interface LenisProps extends Omit<ReactLenisProps, 'ref'> {
   root: boolean
   options: LenisOptions
+  syncScrollTrigger?: boolean
 }
 
-export function Lenis({ root, options }: LenisProps) {
+export function Lenis({
+  root,
+  options,
+  syncScrollTrigger = false,
+}: LenisProps) {
   const lenisRef = useRef<LenisRef>(null)
   const isNavOpened = useStore((state) => state.isNavOpened)
 
@@ -81,7 +59,7 @@ export function Lenis({ root, options }: LenisProps) {
           node?.id === 'theatrejs-studio-root',
       }}
     >
-      {root && <LenisScrollTriggerSync />}
+      {syncScrollTrigger && root && <LenisScrollTriggerSync />}
     </ReactLenis>
   )
 }

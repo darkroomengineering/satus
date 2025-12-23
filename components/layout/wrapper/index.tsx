@@ -5,8 +5,8 @@ import type { LenisOptions } from 'lenis'
 import { usePathname } from 'next/navigation'
 import type { ComponentProps } from 'react'
 import { Footer } from '~/components/layout/footer'
+import { Header } from '~/components/layout/header'
 import { Lenis } from '~/components/layout/lenis'
-import { Navigation } from '~/components/layout/navigation'
 import { Theme } from '~/components/layout/theme'
 import { TransformProvider } from '~/hooks/use-transform'
 import type { ThemeName } from '~/styles/config'
@@ -97,7 +97,7 @@ export function Wrapper({
           {...(typeof webgl === 'object' && webgl)}
         />
       )}
-      <Navigation />
+      <Header />
       <main className={cn('relative flex grow flex-col', className)} {...props}>
         {children}
       </main>

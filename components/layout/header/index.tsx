@@ -14,7 +14,7 @@ const LINKS = [
   { href: '/hubspot', label: 'hubspot' },
 ]
 
-export function Navigation() {
+export function Header() {
   const pathname = usePathname()
 
   return (

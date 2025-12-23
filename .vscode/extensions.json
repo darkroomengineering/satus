@@ -1,9 +1,20 @@
 {
   "recommendations": [
+    // Formatting & Linting
     "biomejs.biome",
-    "waderyan.gitblame",
+
+    // CSS & Styling
+    "bradlc.vscode-tailwindcss",
     "csstools.postcss",
+
+    // GraphQL (Shopify, etc.)
     "graphql.vscode-graphql-syntax",
-    "bradlc.vscode-tailwindcss"
+
+    // Sanity CMS (GROQ syntax + validation)
+    "sanity-io.vscode-sanity",
+
+    // DX Enhancements
+    "yoavbls.pretty-ts-errors",
+    "waderyan.gitblame"
   ]
 }

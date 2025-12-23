@@ -6,9 +6,9 @@
     "useIgnoreFile": true
   },
   "plugins": [
-    "./biome-plugins/no-anchor-element.grit",
-    "./biome-plugins/no-unnecessary-forwardref.grit",
-    "./biome-plugins/no-relative-parent-imports.grit"
+    "./.biome/plugins/no-anchor-element.grit",
+    "./.biome/plugins/no-unnecessary-forwardref.grit",
+    "./.biome/plugins/no-relative-parent-imports.grit"
   ],
   "files": {
     "ignoreUnknown": true,
@@ -130,7 +130,13 @@
         "noImgElement": "error"
       },
       "nursery": {
-        "useSortedClasses": "off"
+        "useSortedClasses": {
+          "level": "warn",
+          "options": {
+            "attributes": ["class", "className"],
+            "functions": ["cn", "clsx"]
+          }
+        }
       }
     }
   },
@@ -238,7 +244,7 @@
       }
     },
     {
-      "includes": ["styles/css/root.css"],
+      "includes": ["lib/styles/css/root.css"],
       "linter": {
         "rules": {
           "suspicious": {

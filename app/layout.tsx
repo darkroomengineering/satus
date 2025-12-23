@@ -2,17 +2,15 @@ import type { Metadata, Viewport } from 'next'
 
 import type { PropsWithChildren } from 'react'
 import { ReactTempus } from 'tempus/react'
-import { RealViewport } from '~/components/real-viewport'
-
+import { RealViewport } from '~/components/ui/real-viewport'
 import AppData from '~/package.json'
-import { themes } from '~/styles/colors'
+import { fontsVariable, themes } from '~/styles'
 import '~/styles/css/index.css'
 
 import Script from 'next/script'
-import { GSAPRuntime } from '~/components/gsap/runtime'
+import { GSAPRuntime } from '~/components/effects/gsap'
 
-import { OrchestraTools } from '~/orchestra'
-import { fontsVariable } from '~/styles/fonts'
+import { OrchestraTools } from '~/dev'
 
 const APP_NAME = AppData.name
 const APP_DEFAULT_TITLE = 'Satūs'

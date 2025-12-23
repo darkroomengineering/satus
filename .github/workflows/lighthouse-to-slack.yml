@@ -1,0 +1,126 @@
+# Lighthouse Performance Reports
+#
+# Runs Lighthouse on Vercel deployments and posts results as commit comments.
+# Our GitHub → Slack integration forwards these to Slack automatically.
+#
+# Required GitHub Secrets:
+#   VERCEL_TOKEN - Vercel API token (Settings → Tokens)
+
+name: Lighthouse
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Discover Vercel Project
+        id: vercel_info
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          project_name="${GITHUB_REPOSITORY##*/}"
+          echo "Looking for Vercel project: $project_name"
+          
+          # Get team ID for darkroom-engineering
+          teams=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v2/teams")
+          team_id=$(echo "$teams" | jq -r '.teams[] | select(.slug=="darkroom-engineering") | .id')
+          echo "Team ID: $team_id"
+          
+          # Get project ID by matching repo name
+          projects=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v9/projects?teamId=$team_id")
+          project_id=$(echo "$projects" | jq -r ".projects[] | select(.name==\"$project_name\") | .id")
+          echo "Project ID: $project_id"
+          
+          echo "team_id=$team_id" >> $GITHUB_OUTPUT
+          echo "project_id=$project_id" >> $GITHUB_OUTPUT
+
+      - name: Get Vercel Preview URL
+        id: vercel_url
+        uses: zentered/vercel-preview-url@v1.4.0
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        with:
+          vercel_team_id: ${{ steps.vercel_info.outputs.team_id }}
+          vercel_project_id: ${{ steps.vercel_info.outputs.project_id }}
+
+      - name: Wait for Deployment
+        id: await
+        uses: UnlyEd/github-action-await-vercel@v2.0.0
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        with:
+          deployment-url: ${{ steps.vercel_url.outputs.preview_url }}
+          timeout: 300
+          poll-interval: 10
+        continue-on-error: true
+
+      - name: Run Lighthouse
+        if: steps.await.outcome == 'success'
+        id: lighthouse
+        uses: treosh/lighthouse-ci-action@v12
+        env:
+          LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
+        with:
+          urls: https://${{ steps.vercel_url.outputs.preview_url }}
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+      - name: Format Results
+        id: format
+        uses: actions/github-script@v7
+        env:
+          DEPLOYMENT_FAILED: ${{ steps.await.outcome != 'success' }}
+          PREVIEW_URL: ${{ steps.vercel_url.outputs.preview_url }}
+          MANIFEST: ${{ steps.lighthouse.outputs.manifest }}
+          LINKS: ${{ steps.lighthouse.outputs.links }}
+        with:
+          script: |
+            if (process.env.DEPLOYMENT_FAILED === 'true') {
+              core.setOutput('comment', '⚠️ Vercel deployment failed or timed out. Lighthouse audit skipped.');
+              return;
+            }
+            
+            try {
+              const manifest = JSON.parse(process.env.MANIFEST);
+              const links = JSON.parse(process.env.LINKS);
+              const previewUrl = process.env.PREVIEW_URL;
+              
+              const scores = manifest[0].summary;
+              const reportUrl = Object.values(links)[0];
+              
+              const emoji = (score) => score >= 0.9 ? '🟢' : score >= 0.5 ? '🟠' : '🔴';
+              const format = (score) => Math.round(score * 100);
+              
+              const comment = [
+                `⚡️ [Lighthouse report](${reportUrl}) for this commit:`,
+                '',
+                `${emoji(scores.performance)} Performance: ${format(scores.performance)}`,
+                `${emoji(scores.accessibility)} Accessibility: ${format(scores.accessibility)}`,
+                `${emoji(scores['best-practices'])} Best Practices: ${format(scores['best-practices'])}`,
+                `${emoji(scores.seo)} SEO: ${format(scores.seo)}`,
+                '',
+                `*Tested on [${previewUrl}](https://${previewUrl})*`
+              ].join('\n');
+              
+              core.setOutput('comment', comment);
+            } catch (error) {
+              console.error('Error:', error);
+              core.setOutput('comment', '⚠️ Failed to generate Lighthouse report. Check workflow logs.');
+            }
+
+      - name: Post Commit Comment
+        uses: peter-evans/commit-comment@v3
+        with:
+          body: ${{ steps.format.outputs.comment }}

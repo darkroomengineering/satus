@@ -11,10 +11,10 @@ globs: *.tsx, *.jsx, *.css, *.js, *.ts
 ## Sanity CMS Integration
 
 ### Configuration & Setup
-Use CDN for performance with stega for visual editing. Store credentials securely in environment variables. All Sanity files are organized in `/integrations/sanity/` directory.
+Use CDN for performance with stega for visual editing. Store credentials securely in environment variables. All Sanity files are organized in `/lib/integrations/sanity/` directory.
 
 ```typescript
-// In integrations/sanity/client.ts
+// In lib/integrations/sanity/client.ts
 export const client = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
@@ -109,10 +109,10 @@ Every `document` and `object` schema type should:
 - Use `fieldsets` with `options: {columns: 2}` if related fields could be grouped visually together, such as `startDate` and `endDate`
 
 ### Visual Editing
-Always add `data-sanity` attributes for visual editing. Use SanityContextProvider for document access. Implement proper draft mode handling. Import from `/integrations/sanity` directory.
+Always add `data-sanity` attributes for visual editing. Use SanityContextProvider for document access. Implement proper draft mode handling. Import from `/lib/integrations/sanity` directory.
 
 ```typescript
-import { useSanityContext, RichText } from '~/integrations/sanity'
+import { useSanityContext, RichText } from '~/lib/integrations/sanity'
 
 export function MyComponent() {
   const { document } = useSanityContext()
@@ -129,12 +129,12 @@ export function MyComponent() {
 ```
 
 ### Data Fetching
-Use proper perspective for draft vs published content. Implement caching strategies for performance. Handle errors gracefully with try-catch. Import from `/integrations/sanity` directory. Use `~/libs/metadata` helpers for SEO optimization. All `sanityFetch` calls automatically use `cacheSignal()` for request cleanup.
+Use proper perspective for draft vs published content. Implement caching strategies for performance. Handle errors gracefully with try-catch. Import from `/lib/integrations/sanity` directory. Use `~/utils/metadata` helpers for SEO optimization. All `sanityFetch` calls automatically use `cacheSignal()` for request cleanup.
 
 ```typescript
-// In integrations/sanity/queries.ts
-import { sanityFetch } from './live'
-import { generateSanityMetadata } from '~/libs/metadata'
+// In lib/integrations/sanity/queries/index.ts
+import { sanityFetch } from '../fetch'
+import { generateSanityMetadata } from '~/utils'
 
 // Use sanityFetch (automatically includes cacheSignal)
 export async function fetchSanityPage(slug: string, isDraftMode = false) {
@@ -176,7 +176,7 @@ export async function generateMetadata({ params }) {
 - NEVER insert dynamic values using string interpolation
 
 ```ts
-// In integrations/sanity/queries.ts
+// In lib/integrations/sanity/queries/index.ts
 import { groq } from 'next-sanity'
 
 export const pageQuery = groq`
@@ -211,8 +211,8 @@ export const POST_QUERY = defineQuery(`*[
 Use ISR for static content with revalidation. Implement proper cache invalidation via webhooks. Optimize images with proper sizing. Use consolidated imports for better tree-shaking. Use metadata helpers for consistent SEO.
 
 ```typescript
-import { urlForImage } from '~/integrations/sanity'
-import { generateSanityMetadata } from '~/libs/metadata'
+import { urlForImage } from '~/lib/integrations/sanity'
+import { generateSanityMetadata } from '~/utils'
 
 // Use ISR for published content
 export const revalidate = 3600
@@ -233,24 +233,32 @@ export async function generateMetadata({ params }) {
 ```
 
 ### Project Structure
-All Sanity files are organized in `/integrations/sanity/` directory
+All Sanity files are organized in `/lib/integrations/sanity/` directory
 
 ```
-integrations/sanity/
+lib/integrations/sanity/
 ├── sanity.cli.ts           # CLI configuration
 ├── sanity.config.ts        # Studio configuration
 ├── env.ts                  # Environment variables
 ├── structure.ts            # Studio structure
 ├── client.ts               # Sanity client
-├── queries.ts              # GROQ queries and fetch functions
+├── fetch.ts                # Data fetching with cacheSignal
 ├── index.ts                # Main exports
 ├── README.md               # Documentation
+├── queries/
+│   └── index.ts            # GROQ queries
 ├── schemaTypes/            # Content type definitions
+│   ├── documents/          # Document types (article, page, etc.)
+│   ├── objects/            # Object types (link, metadata, richText)
+│   ├── singletons/         # Singleton types (navigation)
+│   └── index.ts
 ├── components/             # React components
 │   ├── context.tsx         # React context
-│   └── rich-text.tsx       # Rich text component
+│   ├── rich-text.tsx       # Rich text component
+│   └── disable-draft-mode.tsx
 └── utils/
-    └── image.ts            # Image utilities
+    ├── image.ts            # Image utilities
+    └── link.ts             # Link utilities
 ```
 
 ### Writing Sanity Content for Importing
@@ -320,14 +328,14 @@ const shopifyClient = createShopifyClient({
 Use fragments for reusable queries. Implement proper error handling.
 
 ```typescript
-import { PRODUCT_FRAGMENT } from '~/integrations/shopify/fragments'
+import { PRODUCT_FRAGMENT } from '~/lib/integrations/shopify/fragments/product'
 ```
 
 ### Cart Operations
 Use mutations for cart operations. Maintain cart state with Zustand.
 
 ```typescript
-import { ADD_TO_CART } from '~/integrations/shopify/mutations'
+import { ADD_TO_CART_MUTATION } from '~/lib/integrations/shopify/mutations/cart'
 ```
 
 ---
@@ -351,7 +359,7 @@ export async function submitToHubspot(formData: FormData) {
 Implement proper consent management. Handle errors gracefully.
 
 ```typescript
-import { HubspotNewsletterAction } from '~/integrations/hubspot/action'
+import { HubspotNewsletterAction } from '~/lib/integrations/hubspot/action'
 ```
 
 ---
@@ -362,13 +370,16 @@ import { HubspotNewsletterAction } from '~/integrations/hubspot/action'
 - Never commit API keys
 - Use `.env.local` for development
 - Document required variables in `.env.example`
-- Use `~/libs/validate-env` for runtime validation
+- Validate environment variables are set before use
 
 ```typescript
-import { validateEnv } from '~/libs/validate-env'
-
-// Validate required env vars on startup
-validateEnv(['NEXT_PUBLIC_API_KEY', 'API_SECRET'])
+// Check required env vars at module load
+const requiredEnvVars = ['NEXT_PUBLIC_API_KEY', 'API_SECRET'] as const
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    throw new Error(`Missing required environment variable: ${envVar}`)
+  }
+}
 ```
 
 ### API Resilience
@@ -376,10 +387,10 @@ validateEnv(['NEXT_PUBLIC_API_KEY', 'API_SECRET'])
 
 - Standard timeouts: 8-10 seconds for most integrations
 - Implement proper error handling and retry logic
-- Use `cacheSignal()` for automatic request cleanup (React 19.2)
+- Use `cacheSignal()` for automatic request cleanup (React 19+)
 
 ```typescript
-import { fetchWithTimeout } from '~/libs/fetch-with-timeout'
+import { fetchWithTimeout } from '~/utils'
 import { cacheSignal } from 'react'
 
 // HubSpot: 8 seconds
@@ -448,9 +459,9 @@ const ProductSchema = z.object({
 - Implement rate limiting where necessary
 
 ### Integration Management
-- Use `~/libs/cleanup-integrations` to remove unused integration code
-- Check integration usage with `~/integrations/check-integration`
+- Check integration usage with `~/lib/integrations/check-integration`
 - Keep only active integrations to optimize bundle size
+- Remove unused integration directories to reduce bundle size
 
 ## Webhook Handling
 
@@ -469,4 +480,4 @@ export async function verifyWebhookSignature(
 ### Processing
 Process webhooks asynchronously. Implement idempotency. Return 200 status quickly.
 
-Last updated: 2025-10-07
+Last updated: 2025-12-18

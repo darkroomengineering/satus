@@ -8,14 +8,14 @@ This directory contains consolidated Cursor AI rules for the Satus project. The 
 **Purpose**: High-level overview and concerns that apply across the entire project
 
 **Contents**:
-- Technology stack (Next.js 16.0.1, React 19.2, Tailwind 4.1.16, Biome 2.3.3, Bun)
-- React 19.2 new features (`<Activity />`, `useEffectEvent`, `cacheSignal`)
+- Technology stack (Next.js 16+, React 19+, Tailwind v4, Biome, Bun)
+- React 19+ new features (`<Activity />`, `useEffectEvent`, `cacheSignal`)
 - Next.js 16 Cache Components gotchas and best practices
 - File organization
 - React Compiler & memoization guidelines (single source of truth)
 - Image optimization guidelines (single source of truth)
 - Development vs production guidelines (single source of truth)
-- Core utility libraries
+- Core utility libraries (`~/utils`)
 
 **When to reference**: Starting a new project, understanding the tech stack, cross-cutting concerns
 
@@ -116,8 +116,9 @@ This directory contains consolidated Cursor AI rules for the Satus project. The 
 - **Handle security** → `architecture.mdc` § Security
 - **Debug issues** → `architecture.mdc` § Testing & Debugging
 - **Understand React Compiler** → `main.mdc` § React Compiler & Memoization
-- **Handle images** → `main.mdc` § Image Optimization
+- **Handle images** → `main.mdc` § Image Optimization (`~/components/ui/image`)
 - **Dev vs prod differences** → `main.mdc` § Development vs Production
+- **Use utility functions** → `main.mdc` § Core Utility Libraries (`~/utils`)
 
 ---
 
@@ -199,19 +200,17 @@ When adding new guidelines:
 
 ## 📊 File Statistics
 
-| File | Purpose | Lines | Key Topics |
-|------|---------|-------|------------|
-| `main.mdc` | Overview & Cross-cutting | ~270 | Tech stack (Next.js 16), React 19.2, Cache Components, React Compiler, Images, Dev/Prod |
-| `components.mdc` | React & WebGL | 467 | Components, Forms, WebGL, Three.js, Shaders, Activity |
-| `styling.mdc` | All Styling | 467 | CSS Modules, Tailwind v4, Responsive, Custom utilities |
-| `integrations.mdc` | Third-party Services | ~470 | Sanity, Shopify, HubSpot, Cache Components gotchas, cacheSignal |
-| `architecture.mdc` | Patterns & Quality | ~420 | State, Routing, Performance, Cache Components, Security, Testing |
-
-**Total**: 2,020 lines of consolidated, focused guidelines
+| File | Purpose | Key Topics |
+|------|---------|------------|
+| `main.mdc` | Overview & Cross-cutting | Tech stack, React 19+ features, Cache Components, React Compiler, Images, Dev/Prod |
+| `components.mdc` | React & WebGL | Components, Forms, WebGL, Three.js, Shaders, Activity |
+| `styling.mdc` | All Styling | CSS Modules, Tailwind v4, Responsive, Custom utilities |
+| `integrations.mdc` | Third-party Services | Sanity, Shopify, HubSpot, Cache Components, cacheSignal |
+| `architecture.mdc` | Patterns & Quality | State, Routing, Performance, Cache Components, Security, Testing |
 
 ---
 
-Last updated: 2025-10-07
+Last updated: 2025-12-18
 
 For questions or suggestions about these rules, contact the development team.
 

@@ -36,18 +36,19 @@ This module provides WebGL rendering using React Three Fiber with a **lazy Globa
 
 ### 1. Setup (already done in Satus)
 
-The `LazyGlobalCanvas` is automatically mounted in `app/layout.tsx`:
+The `LazyGlobalCanvas` is conditionally mounted via `OptionalFeatures` in `app/layout.tsx` only when WebGL is enabled:
 
 ```tsx
 // app/layout.tsx
-import { LazyGlobalCanvas } from '~/webgl/components/global-canvas'
+import { OptionalFeatures } from '~/lib/features'
 
 export default function Layout({ children }) {
   return (
     <html>
       <body>
         {children}
-        <LazyGlobalCanvas />
+        {/* Conditionally loads WebGL, dev tools, and GSAP based on configuration */}
+        <OptionalFeatures />
       </body>
     </html>
   )

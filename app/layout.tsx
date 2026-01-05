@@ -9,9 +9,7 @@ import { fontsVariable, themes } from '~/styles'
 import '~/styles/css/index.css'
 
 import Script from 'next/script'
-import { GSAPRuntime } from '~/components/effects/gsap'
-import { OrchestraTools } from '~/dev'
-import { LazyGlobalCanvas } from '~/webgl/components/global-canvas'
+import { OptionalFeatures } from '~/lib/features'
 
 const APP_NAME = AppData.name
 const APP_DEFAULT_TITLE = 'Satūs'
@@ -99,14 +97,8 @@ export default async function Layout({ children }: PropsWithChildren) {
             {children}
           </TransformProvider>
         </RealViewport>
-        {/* Global WebGL Canvas - lazy loaded, mounts only when needed */}
-        <LazyGlobalCanvas />
-
-        {/* Development tools - dynamically imported */}
-        <OrchestraTools />
-
-        {/* Animation framework */}
-        <GSAPRuntime />
+        {/* Optional features - conditionally loaded based on configuration */}
+        <OptionalFeatures />
 
         {/* RAF management - lightweight, but don't patch in draft mode to avoid conflicts */}
         <ReactTempus

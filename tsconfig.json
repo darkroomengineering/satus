@@ -2,7 +2,11 @@
   "compilerOptions": {
     "target": "ES2023",
     // "lib": ["dom", "dom.iterable", "esnext"],
-    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2023",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -13,7 +17,7 @@
     "verbatimModuleSyntax": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     // "allowImportingTsExtensions": true,
     "noImplicitOverride": true,
@@ -30,19 +34,45 @@
       }
     ],
     "paths": {
-      "~/*": ["./*"],
-      "~/hooks": ["./lib/hooks"],
-      "~/hooks/*": ["./lib/hooks/*"],
-      "~/styles": ["./lib/styles"],
-      "~/styles/*": ["./lib/styles/*"],
-      "~/integrations/*": ["./lib/integrations/*"],
-      "~/webgl": ["./lib/webgl"],
-      "~/webgl/*": ["./lib/webgl/*"],
-      "~/dev": ["./lib/dev"],
-      "~/dev/*": ["./lib/dev/*"],
-      "~/utils": ["./lib/utils"],
-      "~/utils/*": ["./lib/utils/*"],
-      "~/config": ["./lib/styles/config.ts"]
+      "~/*": [
+        "./*"
+      ],
+      "~/hooks": [
+        "./lib/hooks"
+      ],
+      "~/hooks/*": [
+        "./lib/hooks/*"
+      ],
+      "~/styles": [
+        "./lib/styles"
+      ],
+      "~/styles/*": [
+        "./lib/styles/*"
+      ],
+      "~/integrations/*": [
+        "./lib/integrations/*"
+      ],
+      "~/webgl": [
+        "./lib/webgl"
+      ],
+      "~/webgl/*": [
+        "./lib/webgl/*"
+      ],
+      "~/dev": [
+        "./lib/dev"
+      ],
+      "~/dev/*": [
+        "./lib/dev/*"
+      ],
+      "~/utils": [
+        "./lib/utils"
+      ],
+      "~/utils/*": [
+        "./lib/utils/*"
+      ],
+      "~/config": [
+        "./lib/styles/config.ts"
+      ]
     }
   },
   "include": [
@@ -56,5 +86,7 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

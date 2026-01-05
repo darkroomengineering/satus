@@ -21,6 +21,9 @@ interface HandoffOptions {
   projectName: string
   removeExamples: boolean
   swapReadme: boolean
+  removeBranding: boolean
+  updatePackageJson: boolean
+  cleanupEnvVars: boolean
 }
 
 /**
@@ -49,6 +52,171 @@ const removeDir = async (path: string, dryRun: boolean): Promise<boolean> => {
     }
     return true
   } catch {
+    return false
+  }
+}
+
+/**
+ * Remove Satūs-specific branding and assets
+ */
+const removeBranding = async (dryRun: boolean): Promise<boolean> => {
+  const brandingFiles = [
+    'components/ui/darkroom.svg',
+    'public/opengraph-image.jpg',
+    'public/twitter-image.jpg',
+    'app/opengraph-image.jpg',
+    'app/twitter-image.jpg',
+    'app/apple-icon.png',
+    'app/icon.png',
+  ]
+
+  let removedCount = 0
+
+  for (const file of brandingFiles) {
+    const fullPath = `${process.cwd()}/${file}`
+    if (await pathExists(fullPath)) {
+      if (!dryRun) {
+        try {
+          await Bun.$`rm -f ${fullPath}`.quiet()
+          removedCount++
+        } catch {
+          // Continue if file removal fails
+        }
+      } else {
+        removedCount++
+      }
+    }
+  }
+
+  return removedCount > 0
+}
+
+/**
+ * Update package.json with project-specific information
+ */
+const updatePackageJson = async (
+  projectName: string,
+  dryRun: boolean
+): Promise<boolean> => {
+  try {
+    const pkgPath = `${process.cwd()}/package.json`
+    const pkg = await Bun.file(pkgPath).json()
+
+    // Generate a slug from project name
+    const slug = projectName
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+
+    // Update package.json fields
+    const updates: Record<string, string> = {
+      name: slug,
+      description: `${projectName} - Built with Next.js`,
+    }
+
+    let hasChanges = false
+    for (const [key, value] of Object.entries(updates)) {
+      if (pkg[key] !== value) {
+        pkg[key] = value
+        hasChanges = true
+      }
+    }
+
+    if (hasChanges && !dryRun) {
+      await Bun.write(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
+    }
+
+    return hasChanges
+  } catch (error) {
+    p.log.error(`Failed to update package.json: ${error}`)
+    return false
+  }
+}
+
+/**
+ * Clean up unused environment variables from .env.example
+ */
+const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
+  try {
+    const envExamplePath = `${process.cwd()}/.env.example`
+
+    if (!(await pathExists(envExamplePath))) {
+      return false
+    }
+
+    const configuredIntegrations = getConfiguredIntegrations()
+    const content = await Bun.file(envExamplePath).text()
+
+    // Keep only variables for configured integrations
+    const keepPatterns: Record<string, RegExp[]> = {
+      Sanity: [/^NEXT_PUBLIC_SANITY_/, /^SANITY_/],
+      Shopify: [/^SHOPIFY_/],
+      HubSpot: [/^HUBSPOT_/, /^NEXT_PUBLIC_HUBSPOT_/],
+      Mailchimp: [/^MAILCHIMP_/],
+      Mandrill: [/^MANDRILL_/],
+    }
+
+    // Always keep these core variables
+    const alwaysKeep = [
+      /^NEXT_PUBLIC_BASE_URL$/,
+      /^NEXT_PUBLIC_GOOGLE_/,
+      /^NEXT_PUBLIC_FACEBOOK_/,
+      /^CLOUDFLARE_/,
+      /^SOURCE_MAPS$/,
+    ]
+
+    const lines = content.split('\n')
+    const filteredLines: string[] = []
+
+    for (const line of lines) {
+      const trimmed = line.trim()
+      if (!trimmed || trimmed.startsWith('#')) {
+        filteredLines.push(line)
+        continue
+      }
+
+      // Check if this variable should be kept
+      let shouldKeep = false
+
+      // Always keep core variables
+      for (const pattern of alwaysKeep) {
+        if (pattern.test(trimmed.split('=')[0])) {
+          shouldKeep = true
+          break
+        }
+      }
+
+      if (!shouldKeep) {
+        // Check integration-specific variables
+        for (const integration of configuredIntegrations) {
+          const patterns = keepPatterns[integration]
+          if (patterns) {
+            for (const pattern of patterns) {
+              if (pattern.test(trimmed.split('=')[0])) {
+                shouldKeep = true
+                break
+              }
+            }
+            if (shouldKeep) break
+          }
+        }
+      }
+
+      if (shouldKeep) {
+        filteredLines.push(line)
+      }
+    }
+
+    const newContent = filteredLines.join('\n')
+
+    if (newContent !== content && !dryRun) {
+      await Bun.write(envExamplePath, newContent)
+    }
+
+    return newContent !== content
+  } catch (error) {
+    p.log.error(`Failed to cleanup environment variables: ${error}`)
     return false
   }
 }
@@ -308,9 +476,35 @@ const runHandoff = async (options: HandoffOptions): Promise<void> => {
     projectName,
     removeExamples,
     swapReadme: doSwapReadme,
+    removeBranding: doRemoveBranding,
+    updatePackageJson: doUpdatePackageJson,
+    cleanupEnvVars: doCleanupEnvVars,
   } = options
 
   const s = p.spinner()
+
+  // Remove branding
+  if (doRemoveBranding) {
+    s.start('Removing Satūs branding...')
+    const removed = await removeBranding(dryRun)
+    s.stop(removed ? 'Removed branding assets' : 'No branding assets to remove')
+  }
+
+  // Update package.json
+  if (doUpdatePackageJson) {
+    s.start('Updating package.json...')
+    const updated = await updatePackageJson(projectName, dryRun)
+    s.stop(updated ? 'Updated package.json' : 'No package.json changes needed')
+  }
+
+  // Cleanup environment variables
+  if (doCleanupEnvVars) {
+    s.start('Cleaning up environment variables...')
+    const cleaned = await cleanupEnvVars(dryRun)
+    s.stop(
+      cleaned ? 'Cleaned up environment variables' : 'No env vars to clean'
+    )
+  }
 
   // Remove examples
   if (removeExamples) {
@@ -374,6 +568,21 @@ const main = async (): Promise<void> => {
     message: 'What would you like to do?',
     options: [
       {
+        value: 'removeBranding',
+        label: 'Remove Satūs branding',
+        hint: 'Remove logos, default images, and Satūs references',
+      },
+      {
+        value: 'updatePackageJson',
+        label: 'Update package.json',
+        hint: 'Update name and description for the project',
+      },
+      {
+        value: 'cleanupEnvVars',
+        label: 'Clean environment variables',
+        hint: 'Remove unused integration env vars from .env.example',
+      },
+      {
         value: 'removeExamples',
         label: 'Remove example pages',
         hint: 'Removes app/(examples)/ directory',
@@ -395,6 +604,9 @@ const main = async (): Promise<void> => {
       },
     ],
     initialValues: [
+      'removeBranding',
+      'updatePackageJson',
+      'cleanupEnvVars',
       'removeExamples',
       'swapReadme',
       'generateInventory',
@@ -429,6 +641,9 @@ const main = async (): Promise<void> => {
     projectName: projectName as string,
     removeExamples: actionsArray.includes('removeExamples'),
     swapReadme: actionsArray.includes('swapReadme'),
+    removeBranding: actionsArray.includes('removeBranding'),
+    updatePackageJson: actionsArray.includes('updatePackageJson'),
+    cleanupEnvVars: actionsArray.includes('cleanupEnvVars'),
   })
 
   // Done

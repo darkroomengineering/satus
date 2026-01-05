@@ -26,10 +26,11 @@ Toggle with `Cmd/Ctrl + O`:
 ## Usage
 
 ```tsx
-import { OrchestraTools } from '~/lib/dev'
+import { OptionalFeatures } from '~/lib/features'
 
-// Add to app/layout.tsx inside <body>
-<OrchestraTools />
+// OrchestraTools are automatically included in OptionalFeatures
+// in app/layout.tsx - they only load in development mode
+<OptionalFeatures />
 ```
 
 Tool state persists in `localStorage` and syncs across tabs.

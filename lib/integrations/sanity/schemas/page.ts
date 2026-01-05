@@ -1,5 +1,5 @@
 import { defineField, defineType } from 'sanity'
-import { linkFieldWithLabelAndRequired } from '../objects/link'
+import { linkFieldWithLabelAndRequired } from './link'
 
 const pageFields = [
   defineField({

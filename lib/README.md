@@ -15,6 +15,7 @@ Non-UI code: hooks, integrations, styles, and utilities.
 | Custom hook | `import { useScrollTrigger } from '~/hooks'` |
 | Global state | `import { useStore } from '~/hooks'` |
 | Styles/config | `import { colors, themes } from '~/styles'` |
+| Feature detection | `import { features } from '~/config/features'` |
 | WebGL | `import { Canvas, WebGLTunnel } from '~/webgl'` |
 | Integration | `import { sanityFetch } from '~/integrations/sanity'` |
 | Utility | `import { clamp, lerp, slugify } from '~/utils'` |
@@ -27,8 +28,9 @@ Non-UI code: hooks, integrations, styles, and utilities.
 
 ```
 lib/
+├── config/          # Feature detection and configuration
 ├── hooks/           # Custom React hooks + Zustand store
-├── styles/          # CSS & Tailwind system  
+├── styles/          # CSS & Tailwind system
 ├── utils/           # Consolidated utilities (see ~/utils/README.md)
 │   ├── math.ts      # Pure math: clamp, lerp, mapRange
 │   ├── easings.ts   # Easing curves

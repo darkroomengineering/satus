@@ -119,6 +119,38 @@ We use several PostCSS plugins to enhance our CSS capabilities:
 - Custom PostCSS functions
 - `postcss-preset-env`: Modern CSS features (includes autoprefixer)
 
+## When to Use What: Styling Decision Tree
+
+Need responsive sizing?
+├─ **In CSS** → Use `mobile-vw(px)` / `desktop-vw(px)` functions for pixel-perfect viewport scaling
+├─ **In JS** → Use `desktopVW()` / `mobileVW()` from `~/utils/viewport` for runtime calculations
+└─ **In Tailwind** → Use `dr-w-*` / `dr-h-*` utilities for common responsive sizing
+
+Need grid-based layout?
+├─ **Quick start** → Use `dr-grid` class for standard grid layouts
+├─ **Custom columns** → Use `columns(n)` PostCSS function for specific column spans
+└─ **Full control** → Use Tailwind grid utilities (`grid-cols-*`, `col-span-*`)
+
+Need animations?
+├─ **CSS transitions** → Use `ease-*` classes or CSS `transition` with our easing variables
+├─ **Complex sequences** → Use GSAP with `~/components/effects/gsap`
+├─ **WebGL shaders** → Use `~/webgl/utils/functions` for GLSL easing
+
+Need component styling?
+├─ **Simple components** → Use Tailwind utilities + `clsx` for conditional classes
+├─ **Complex components** → Use CSS Modules (`.module.css`) for isolation
+├─ **Theme-aware** → Use CSS custom properties from `~/styles/colors`
+
+Need typography?
+├─ **Standard text** → Use Tailwind text utilities (`text-sm`, `font-medium`)
+├─ **Custom sizing** → Use `dr-text-*` utilities for design-system text scales
+└─ **Rich content** → Use `~/components/ui/rich-text` with Sanity Portable Text
+
+Need spacing?
+├─ **Standard spacing** → Use Tailwind spacing utilities (`p-4`, `m-2`)
+├─ **Grid-based** → Use `dr-p-col-*` / `dr-m-col-*` for column-relative spacing
+└─ **Custom values** → Use PostCSS functions or CSS custom properties
+
 ## Best Practices
 
 1. **Use Tailwind First**: Start with Tailwind utilities for common styles. Only create custom CSS when needed for specific designs or components.

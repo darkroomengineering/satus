@@ -11,7 +11,7 @@ import {
 } from 'sanity/presentation'
 import { structureTool } from 'sanity/structure'
 import { apiVersion, dataset, previewURL, projectId } from './env'
-import { schema } from './schemaTypes'
+import { schema } from './schemas'
 import { structure } from './structure'
 
 // Helper function for URL resolution

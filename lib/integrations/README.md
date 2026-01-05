@@ -149,6 +149,21 @@ This interactively lets you choose which integrations to keep and automatically 
 
 The template automatically detects which integrations are configured via environment variables. Unconfigured integrations will be flagged during development startup.
 
+For centralized feature detection in your code, use the feature configuration:
+
+```typescript
+import { features } from '~/config/features'
+
+// Check if specific features are enabled
+if (features.sanity) {
+  // Load Sanity components
+}
+
+if (features.shopify) {
+  // Load Shopify components
+}
+```
+
 ### Conditional Loading
 
 Instead of removing integrations entirely, you can conditionally load them based on configuration:

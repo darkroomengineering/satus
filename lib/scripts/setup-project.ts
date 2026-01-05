@@ -13,6 +13,45 @@
 import * as p from '@clack/prompts'
 import { getIntegrationNames, INTEGRATION_BUNDLES } from './integration-bundles'
 
+/**
+ * Preset project modes with pre-selected integrations
+ */
+const PROJECT_PRESETS = {
+  full: {
+    name: 'Full Stack',
+    description:
+      'Complete feature set - Sanity CMS, Shopify, WebGL, HubSpot, and development tools',
+    integrations: [
+      'sanity',
+      'shopify',
+      'hubspot',
+      'mailchimp',
+      'mandrill',
+      'webgl',
+      'theatre',
+    ],
+  },
+  marketing: {
+    name: 'Marketing Site',
+    description:
+      'Content-focused site with Sanity CMS and HubSpot forms (no WebGL or e-commerce)',
+    integrations: ['sanity', 'hubspot', 'mailchimp'],
+  },
+  ecommerce: {
+    name: 'E-commerce',
+    description:
+      'Shopify-powered store with minimal WebGL for product showcases',
+    integrations: ['sanity', 'shopify', 'webgl'],
+  },
+  minimal: {
+    name: 'Minimal',
+    description: 'Just Next.js, styling system, and essential components',
+    integrations: [],
+  },
+} as const
+
+type PresetKey = keyof typeof PROJECT_PRESETS
+
 interface SetupOptions {
   dryRun: boolean
   keepIntegrations: string[]
@@ -311,20 +350,67 @@ const main = async (): Promise<void> => {
     p.log.warn('Dry run mode - no files will be modified')
   }
 
-  // Build options for multiselect
-  const integrationOptions = getIntegrationNames().map((key) => ({
-    value: key,
-    label: INTEGRATION_BUNDLES[key].name,
-    hint: INTEGRATION_BUNDLES[key].description,
-  }))
+  // Build preset options
+  const presetOptions = [
+    ...Object.entries(PROJECT_PRESETS).map(([key, preset]) => ({
+      value: key,
+      label: preset.name,
+      hint: preset.description,
+    })),
+    {
+      value: 'custom',
+      label: 'Custom',
+      hint: 'Choose individual integrations manually',
+    },
+  ]
 
-  // Ask which integrations to keep
-  const keepIntegrations = await p.multiselect({
-    message:
-      'Which integrations do you want to KEEP? (space to select, enter to confirm)',
-    options: integrationOptions,
-    required: false,
+  // Ask what kind of project to start
+  const selectedPreset = await p.select({
+    message: 'What kind of project are you starting?',
+    options: presetOptions,
   })
+
+  // Handle cancellation
+  if (p.isCancel(selectedPreset)) {
+    p.cancel('Setup cancelled')
+    process.exit(0)
+  }
+
+  let keepIntegrations: string[] = []
+
+  if (selectedPreset === 'custom') {
+    // Build options for multiselect
+    const integrationOptions = getIntegrationNames().map((key) => ({
+      value: key,
+      label: INTEGRATION_BUNDLES[key].name,
+      hint: INTEGRATION_BUNDLES[key].description,
+    }))
+
+    // Ask which integrations to keep
+    const customIntegrations = await p.multiselect({
+      message:
+        'Which integrations do you want to KEEP? (space to select, enter to confirm)',
+      options: integrationOptions,
+      required: false,
+    })
+
+    // Handle cancellation
+    if (p.isCancel(customIntegrations)) {
+      p.cancel('Setup cancelled')
+      process.exit(0)
+    }
+
+    keepIntegrations = customIntegrations as string[]
+  } else {
+    // Use preset integrations
+    const preset = PROJECT_PRESETS[selectedPreset as PresetKey]
+    keepIntegrations = [...preset.integrations]
+
+    p.log.step(`Selected preset: ${preset.name}`)
+    p.log.message(
+      `  Includes: ${keepIntegrations.length > 0 ? keepIntegrations.map((k) => INTEGRATION_BUNDLES[k]?.name).join(', ') : 'None'}`
+    )
+  }
 
   // Handle cancellation
   if (p.isCancel(keepIntegrations)) {

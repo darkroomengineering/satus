@@ -20,7 +20,7 @@ A modern, high-performance React application starter with Next.js 16, React 19, 
 # Install dependencies
 bun install
 
-# Interactive setup - choose which integrations to keep
+# Interactive setup - choose project type and integrations
 bun run setup:project
 
 # Create .env.local (see Environment Variables below)
@@ -30,7 +30,7 @@ cp .env.example .env.local
 bun dev
 ```
 
-The setup script will remove unused integrations and their dependencies, keeping your project lean.
+The setup script offers preset project modes (Full Stack, Marketing Site, E-commerce, Minimal, or Custom) and removes unused integrations and their dependencies, keeping your project lean.
 
 ### Manual Setup
 
@@ -43,14 +43,14 @@ bun start      # Start production server
 
 ## 🛠 Tech Stack
 
-- **[Next.js 16.0.1](https://nextjs.org)** - React framework with App Router, Turbopack, and Cache Components
-- **[React 19.2.0](https://react.dev)** - Latest React with `<Activity />`, `useEffectEvent`, and `cacheSignal`
+- **[Next.js 16](https://nextjs.org)** - React framework with App Router, Turbopack, and Cache Components
+- **[React 19.2](https://react.dev)** - Latest React with `<Activity />`, `useEffectEvent`, and `cacheSignal`
 - **[React Compiler](https://react.dev/reference/react/compiler)** - Automatic optimization enabled
 - **[TypeScript](https://www.typescriptlang.org)** - Type-safe development
-- **[Tailwind CSS 4.1.16](https://tailwindcss.com)** - CSS-first configuration
+- **[Tailwind v4](https://tailwindcss.com)** - CSS-first configuration
 - **[React Three Fiber](https://docs.pmnd.rs/react-three-fiber)** - React renderer for Three.js
 - **[GSAP](https://greensock.com/gsap/)** - Timeline-based animations
-- **[Biome 2.3.3](https://biomejs.dev)** - Fast formatter and linter
+- **[Biome](https://biomejs.dev)** - Fast formatter and linter
 - **[Bun](https://bun.sh)** - All-in-one JavaScript runtime
 
 ## ⚛️ React 19.2 Features

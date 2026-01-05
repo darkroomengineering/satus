@@ -195,6 +195,60 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
           },
         ],
       },
+      {
+        file: 'components/layout/wrapper/index.tsx',
+        patterns: [
+          // Remove Canvas import
+          {
+            regex: "import \\{ Canvas \\} from '~/webgl/components/canvas'\\n",
+            flags: 'gm',
+          },
+          // Remove webgl prop JSDoc comment
+          {
+            regex:
+              '\\n  /\\*\\*\\n   \\* Enable WebGL for this page\\.[\\s\\S]*?\\*/\\n  webgl\\?: boolean',
+            flags: 'gm',
+          },
+          // Remove webgl param from function
+          {
+            regex: '\\n  webgl = false,',
+            flags: 'gm',
+          },
+          // Replace <Canvas root={webgl}> with nothing (keep children)
+          {
+            regex: '<Canvas root=\\{webgl\\}>',
+            flags: 'gm',
+          },
+          // Replace </Canvas> with nothing
+          {
+            regex: '</Canvas>',
+            flags: 'gm',
+          },
+          // Remove WebGL example from JSDoc
+          {
+            regex:
+              '\\n \\* @example\\n \\* ```tsx\\n \\* // With WebGL content[\\s\\S]*?\\* ```',
+            flags: 'gm',
+          },
+          // Remove @param webgl line
+          {
+            regex:
+              '\\n \\* @param props\\.webgl - Whether to activate WebGL for this page',
+            flags: 'gm',
+          },
+          // Remove WebGL benefits documentation block
+          {
+            regex:
+              "\\n \\* When `webgl` is true[\\s\\S]*?\\* - \\*\\*Zero overhead\\*\\*: Non-WebGL pages don't trigger any WebGL code",
+            flags: 'gm',
+          },
+          // Clean up JSDoc title (remove ", and WebGL")
+          {
+            regex: ', and WebGL',
+            flags: 'gm',
+          },
+        ],
+      },
     ],
   },
 

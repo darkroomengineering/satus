@@ -34,12 +34,16 @@ The setup script offers preset project modes (Full Stack, Marketing Site, E-comm
 
 ### Manual Setup
 
+Skip the interactive setup if you want everything included:
+
 ```bash
 bun install
 bun dev        # Development with Turbopack
 bun build      # Production build
 bun start      # Start production server
 ```
+
+This gives you the complete template with **all integrations** (Sanity, Shopify, HubSpot, Mailchimp, Mandrill), WebGL/R3F support, and debug tools. You can manually remove unused integrations later following the [Integrations Documentation](lib/integrations/README.md).
 
 ## 🛠 Tech Stack
 

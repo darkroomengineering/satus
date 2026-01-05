@@ -1,0 +1,75 @@
+.list {
+  display: flex;
+  gap: mobile-vw(4px);
+  border-bottom: 1px solid var(--color-secondary);
+  padding-bottom: mobile-vw(1px);
+  position: relative;
+
+  @media (--desktop) {
+    gap: desktop-vw(4px);
+    padding-bottom: desktop-vw(1px);
+  }
+}
+
+.tab {
+  padding: mobile-vw(8px) mobile-vw(16px);
+  background: transparent;
+  border: none;
+  color: var(--color-secondary);
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
+  opacity: 0.6;
+  transition:
+    opacity 150ms ease,
+    color 150ms ease;
+  position: relative;
+
+  @media (--desktop) {
+    padding: desktop-vw(8px) desktop-vw(16px);
+  }
+
+  @media (--hover) {
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-contrast);
+    outline-offset: 2px;
+  }
+
+  &[data-selected] {
+    opacity: 1;
+    color: var(--color-contrast);
+  }
+
+  &[data-disabled] {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+}
+
+.indicator {
+  position: absolute;
+  bottom: 0;
+  height: 2px;
+  background-color: var(--color-contrast);
+  transition:
+    left 200ms ease-out,
+    width 200ms ease-out;
+}
+
+.panel {
+  padding: mobile-vw(16px) 0;
+
+  @media (--desktop) {
+    padding: desktop-vw(16px) 0;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-contrast);
+    outline-offset: 2px;
+  }
+}

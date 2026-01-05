@@ -2,17 +2,14 @@ import type { Metadata, Viewport } from 'next'
 
 import type { PropsWithChildren } from 'react'
 import { ReactTempus } from 'tempus/react'
-import { RealViewport } from '~/components/real-viewport'
-
+import { RealViewport } from '~/components/ui/real-viewport'
+import { TransformProvider } from '~/hooks/use-transform'
 import AppData from '~/package.json'
-import { themes } from '~/styles/colors'
+import { fontsVariable, themes } from '~/styles'
 import '~/styles/css/index.css'
 
 import Script from 'next/script'
-import { GSAPRuntime } from '~/components/gsap/runtime'
-
-import { OrchestraTools } from '~/orchestra'
-import { fontsVariable } from '~/styles/fonts'
+import { OptionalFeatures } from '~/lib/features'
 
 const APP_NAME = AppData.name
 const APP_DEFAULT_TITLE = 'Satūs'
@@ -95,14 +92,13 @@ export default async function Layout({ children }: PropsWithChildren) {
       <body>
         {/* Critical: CSS custom properties needed for layout */}
         <RealViewport>
-          {/* Main app content */}
-          {children}
+          <TransformProvider>
+            {/* Main app content */}
+            {children}
+          </TransformProvider>
         </RealViewport>
-        {/* Development tools - dynamically imported */}
-        <OrchestraTools />
-
-        {/* Animation framework */}
-        <GSAPRuntime />
+        {/* Optional features - conditionally loaded based on configuration */}
+        <OptionalFeatures />
 
         {/* RAF management - lightweight, but don't patch in draft mode to avoid conflicts */}
         <ReactTempus

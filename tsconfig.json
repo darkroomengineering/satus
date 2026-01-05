@@ -1,7 +1,12 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "target": "ES2023",
+    // "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "ES2023",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -14,7 +19,10 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
-    "allowImportingTsExtensions": true,
+    // "allowImportingTsExtensions": true,
+    "noImplicitOverride": true,
+    "exactOptionalPropertyTypes": true,
+    "useUnknownInCatchVariables": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
     "noUncheckedSideEffectImports": true,
@@ -26,12 +34,51 @@
       }
     ],
     "paths": {
-      "~/*": ["./*"]
+      "~/*": [
+        "./*"
+      ],
+      "~/hooks": [
+        "./lib/hooks"
+      ],
+      "~/hooks/*": [
+        "./lib/hooks/*"
+      ],
+      "~/styles": [
+        "./lib/styles"
+      ],
+      "~/styles/*": [
+        "./lib/styles/*"
+      ],
+      "~/integrations/*": [
+        "./lib/integrations/*"
+      ],
+      "~/webgl": [
+        "./lib/webgl"
+      ],
+      "~/webgl/*": [
+        "./lib/webgl/*"
+      ],
+      "~/dev": [
+        "./lib/dev"
+      ],
+      "~/dev/*": [
+        "./lib/dev/*"
+      ],
+      "~/utils": [
+        "./lib/utils"
+      ],
+      "~/utils/*": [
+        "./lib/utils/*"
+      ],
+      "~/config": [
+        "./lib/styles/config.ts"
+      ]
     }
   },
   "include": [
     "next-env.d.ts",
-    "libs/css.d.ts",
+    "lib/utils/types.d.ts",
+    "lib/utils/css.d.ts",
     "**/*.js",
     "**/*.jsx",
     "**/*.ts",
@@ -39,8 +86,7 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"],
-  "ts-node": {
-    "esm": true
-  }
+  "exclude": [
+    "node_modules"
+  ]
 }

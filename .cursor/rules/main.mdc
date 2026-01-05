@@ -10,12 +10,12 @@ globs: *.tsx, *.jsx, *.css, *.js, *.ts
 
 ## Technology Stack
 
-- **Next.js 16.0.1** - App Router with Turbopack support and Cache Components
-- **React 19.2.0** - Latest features including `<Activity />`, `useEffectEvent`, and `cacheSignal`
-- **React Compiler enabled** - Automatically optimizes most component re-renders and memoization; manual memoization is rarely needed
+- **Next.js 16+** - App Router with Turbopack support and Cache Components
+- **React 19+** - Latest features including `<Activity />`, `useEffectEvent`, and `cacheSignal`
+- **React Compiler** - Automatically optimizes component re-renders and memoization
 - **TypeScript** - Strict mode enabled
-- **Tailwind CSS 4.1.16** - CSS-first configuration
-- **Biome 2.3.3** - Linting and formatting
+- **Tailwind CSS v4** - CSS-first configuration
+- **Biome** - Linting and formatting
 - **Bun** - JavaScript runtime and package manager
 
 ## React 19.2 New Features
@@ -110,19 +110,19 @@ React 19.2 integrates custom performance tracks into Chrome DevTools:
 
 ```
 ├── app/                  # Next.js pages and routes
-├── components/           # Reusable UI components
-├── hooks/                # Custom React hooks
-├── integrations/         # Third-party integrations
-├── libs/                 # Utility libraries
-│   ├── cleanup-integrations.ts  # Remove unused integrations
-│   ├── fetch-with-timeout.ts    # API resilience
-│   ├── metadata.ts              # SEO/metadata helpers
-│   ├── validate-env.ts          # Environment validation
-│   └── ...
-├── orchestra/            # Debug tools (dev-only)
-├── styles/               # Styling configuration
-└── webgl/                # WebGL and 3D graphics
+├── components/           # Shared UI components
+├── lib/                  # Everything non-UI
+│   ├── hooks/           # Custom React hooks
+│   ├── integrations/    # Sanity, Shopify, HubSpot, etc.
+│   ├── webgl/           # 3D graphics (optional)
+│   ├── dev/             # Debug tools - CMD+O (optional)
+│   ├── scripts/         # CLI tools (dev, setup)
+│   ├── styles/          # CSS config & Tailwind
+│   └── *.ts             # Utils, store, metadata...
+└── public/               # Static assets
 ```
+
+> **Mental model:** "If it renders UI, it's in `components/`. Everything else is in `lib/`."
 
 ## Cross-Cutting Concerns
 
@@ -163,13 +163,13 @@ const instance = instanceRef.current
 **Always use the custom Image component for all images.**
 
 - **DO NOT use `next/image` directly**
-- Use `~/components/image` for standard images
-- **In WebGL contexts, use `~/webgl/components/image`** which wraps the custom Image component for DOM fallback and WebGL texture integration
+- Use `~/components/ui/image` for standard images
+- **In WebGL contexts, use `~/lib/webgl/components/image`** which wraps the custom Image component for DOM fallback and WebGL texture integration
 
 ```tsx
-import { Image } from '~/components/image'
+import { Image } from '~/components/ui'
 // For WebGL:
-import { Image as WebGLImage } from '~/webgl/components/image'
+import { Image as WebGLImage } from '~/lib/webgl/components/image'
 ```
 
 ### Development vs Production
@@ -202,28 +202,29 @@ if (process.env.NODE_ENV === 'development') {
 ## Core Utility Libraries
 
 ### Available Utilities
-- **`~/libs/validate-env`** - Validate required environment variables at runtime
-- **`~/libs/cleanup-integrations`** - Remove unused integration code to optimize bundle size
-- **`~/libs/fetch-with-timeout`** - Resilient API calls with configurable timeouts (5-10s standard)
-- **`~/libs/metadata`** - Centralized SEO and metadata generation for consistent OpenGraph, Twitter cards, etc.
+- **`~/utils/fetch`** - Resilient API calls with `fetchWithTimeout` (default 10s timeout)
+- **`~/utils/metadata`** - Centralized SEO and metadata generation for consistent OpenGraph, Twitter cards, etc.
+- **`~/utils/math`** - Pure math functions: clamp, lerp, mapRange, etc.
+- **`~/utils/animation`** - Animation helpers: fromTo, stagger, spring
+- **`~/utils/strings`** - String utilities: slugify, mergeRefs, etc.
 
 ### Usage Examples
 
 ```typescript
-// Validate environment variables
-import { validateEnv } from '~/libs/validate-env'
-validateEnv(['NEXT_PUBLIC_API_KEY', 'DATABASE_URL'])
-
 // Fetch with timeout
-import { fetchWithTimeout } from '~/libs/fetch-with-timeout'
+import { fetchWithTimeout } from '~/utils'
 const response = await fetchWithTimeout(url, { timeout: 10000, ...options })
 
 // Generate metadata
-import { generateSanityMetadata } from '~/libs/metadata'
+import { generatePageMetadata, generateSanityMetadata } from '~/utils'
 export async function generateMetadata({ params }) {
   const page = await fetchPage(params.slug)
-  return generateSanityMetadata(page)
+  return generateSanityMetadata({ document: page, url: `/page/${params.slug}` })
 }
+
+// Math utilities
+import { clamp, lerp, mapRange } from '~/utils'
+const value = clamp(input, 0, 100)
 ```
 
 ## Getting Started
@@ -277,4 +278,4 @@ Cache Components are enabled globally (`cacheComponents: true` in `next.config.t
 - Set proper cache tags: `next: { tags: ['products'] }`
 - Dynamic routes require careful cache tag management
 
-Last updated: 2025-10-07
+Last updated: 2025-12-18

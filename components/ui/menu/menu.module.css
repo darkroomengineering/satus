@@ -1,0 +1,118 @@
+.trigger {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: mobile-vw(8px);
+  padding: mobile-vw(8px) mobile-vw(12px);
+  border-radius: mobile-vw(2px);
+  border: 1px solid currentColor;
+  background-color: var(--color-primary);
+  color: var(--color-secondary);
+  cursor: pointer;
+
+  @media (--desktop) {
+    gap: desktop-vw(8px);
+    padding: desktop-vw(8px) desktop-vw(12px);
+    border-radius: desktop-vw(2px);
+  }
+}
+
+.popup {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: var(--anchor-width);
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-secondary);
+  border-radius: mobile-vw(2px);
+  overflow: clip;
+  padding: mobile-vw(4px);
+  outline: none;
+  z-index: 50;
+
+  /* Base UI animation states */
+  transform-origin: var(--transform-origin);
+  transition:
+    transform 150ms ease-out,
+    opacity 150ms ease-out;
+  opacity: 1;
+  transform: scale(1);
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  @media (--desktop) {
+    border-radius: desktop-vw(2px);
+    padding: desktop-vw(4px);
+  }
+}
+
+.item {
+  color: var(--color-secondary);
+  padding: mobile-vw(8px) mobile-vw(12px);
+  position: relative;
+  text-align: left;
+  white-space: nowrap;
+  display: block;
+  width: 100%;
+  border-radius: mobile-vw(2px);
+  cursor: pointer;
+  outline: none;
+  background: transparent;
+  border: none;
+
+  @media (--desktop) {
+    padding: desktop-vw(8px) desktop-vw(12px);
+    border-radius: desktop-vw(2px);
+  }
+
+  @media (--hover) {
+    &:hover,
+    &[data-highlighted] {
+      background-color: var(--color-contrast);
+      color: var(--color-primary);
+    }
+  }
+
+  &:focus-visible {
+    background-color: var(--color-contrast);
+    color: var(--color-primary);
+  }
+
+  &[data-disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.separator {
+  height: 1px;
+  border: none;
+  background-color: var(--color-secondary);
+  opacity: 0.2;
+  margin: mobile-vw(4px) 0;
+
+  @media (--desktop) {
+    margin: desktop-vw(4px) 0;
+  }
+}
+
+.arrow {
+  transition: transform 150ms ease-out;
+
+  [data-open] & {
+    transform: rotate(180deg);
+  }
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1em;
+  height: 1em;
+}

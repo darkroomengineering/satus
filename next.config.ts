@@ -1,6 +1,5 @@
 import bundleAnalyzer from '@next/bundle-analyzer'
 import type { NextConfig } from 'next'
-import './libs/validate-env.ts'
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -9,6 +8,11 @@ const nextConfig: NextConfig = {
   productionBrowserSourceMaps:
     process.env.SOURCE_MAPS === 'true' && typeof Bun === 'undefined',
   typedRoutes: true,
+  logging: {
+    fetches: {
+      fullUrl: true,
+    },
+  },
   turbopack: {
     rules: {
       '*.svg': {
@@ -74,17 +78,15 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   compress: true,
   experimental: {
-    turbopackFileSystemCacheForDev: true,
     taint: true,
     browserDebugInfoInTerminal: true,
-    // isolatedDevBuild: true,
     optimizePackageImports: [
       '@react-three/drei',
       '@react-three/fiber',
       'gsap',
       'three',
       'postprocessing',
-      '@base-ui-components/react',
+      '@base-ui/react',
       'lenis',
       'zustand',
       '@sanity/client',
@@ -99,11 +101,11 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'cdn.shopify.com',
+        hostname: 'assets.darkroom.engineering',
       },
       {
         protocol: 'https',
-        hostname: 'assets.darkroom.engineering',
+        hostname: 'cdn.shopify.com',
       },
       {
         protocol: 'https',
@@ -143,6 +145,10 @@ const nextConfig: NextConfig = {
         {
           key: 'Strict-Transport-Security',
           value: 'max-age=63072000; includeSubDomains; preload',
+        },
+        {
+          key: 'Permissions-Policy',
+          value: 'camera=(), microphone=(), geolocation=()',
         },
       ],
     },

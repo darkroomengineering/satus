@@ -1,0 +1,133 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(4px);
+
+  @media (--desktop) {
+    gap: desktop-vw(4px);
+  }
+
+  &.error {
+    .input,
+    .textarea {
+      border-color: #dc2626;
+    }
+  }
+
+  &.active {
+    .label {
+      color: var(--color-contrast);
+    }
+  }
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-secondary);
+  transition: color 150ms ease;
+}
+
+.input,
+.textarea {
+  padding: mobile-vw(10px) mobile-vw(12px);
+  border: 1px solid var(--color-secondary);
+  border-radius: mobile-vw(4px);
+  background-color: transparent;
+  color: var(--color-secondary);
+  font-size: inherit;
+  font-family: inherit;
+  transition: border-color 150ms ease;
+  width: 100%;
+
+  @media (--desktop) {
+    padding: desktop-vw(10px) desktop-vw(12px);
+    border-radius: desktop-vw(4px);
+  }
+
+  &::placeholder {
+    color: var(--color-secondary);
+    opacity: 0.5;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-contrast);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.errorMessage {
+  font-size: 0.75rem;
+  color: #dc2626;
+  margin-top: mobile-vw(2px);
+
+  @media (--desktop) {
+    margin-top: desktop-vw(2px);
+  }
+}
+
+/* Checkbox group */
+.checkboxGroup {
+  gap: mobile-vw(8px);
+
+  @media (--desktop) {
+    gap: desktop-vw(8px);
+  }
+}
+
+.groupLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-secondary);
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: mobile-vw(8px);
+
+  @media (--desktop) {
+    gap: desktop-vw(8px);
+  }
+}
+
+.option {
+  padding: mobile-vw(6px) mobile-vw(12px);
+  border: 1px solid var(--color-secondary);
+  border-radius: mobile-vw(4px);
+  background-color: transparent;
+  color: var(--color-secondary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease;
+
+  @media (--desktop) {
+    padding: desktop-vw(6px) desktop-vw(12px);
+    border-radius: desktop-vw(4px);
+  }
+
+  @media (--hover) {
+    &:hover {
+      border-color: var(--color-contrast);
+    }
+  }
+
+  &.selected {
+    background-color: var(--color-contrast);
+    border-color: var(--color-contrast);
+    color: var(--color-primary);
+  }
+}

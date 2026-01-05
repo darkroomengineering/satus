@@ -1,0 +1,63 @@
+/**
+ * Optional Features for Root Layout
+ *
+ * Conditionally loads optional features based on project configuration.
+ * This prevents unused features from being mounted in the root layout.
+ */
+
+'use client'
+
+import dynamic from 'next/dynamic'
+import { useMemo } from 'react'
+
+// Lazy imports to avoid loading unused features
+const LazyGlobalCanvas = dynamic(
+  () =>
+    import('~/webgl/components/global-canvas').then((mod) => ({
+      default: mod.LazyGlobalCanvas,
+    })),
+  { ssr: false }
+)
+
+const OrchestraTools = dynamic(
+  () => import('~/dev').then((mod) => ({ default: mod.OrchestraTools })),
+  { ssr: false }
+)
+
+const GSAPRuntime = dynamic(
+  () =>
+    import('~/components/effects/gsap').then((mod) => ({
+      default: mod.GSAPRuntime,
+    })),
+  { ssr: false }
+)
+
+// Feature detection
+const hasWebGL = Boolean(process.env.NEXT_PUBLIC_ENABLE_WEBGL !== 'false')
+const isDevelopment = process.env.NODE_ENV === 'development'
+
+/**
+ * Conditionally loads optional root layout features
+ */
+export function OptionalFeatures() {
+  const features = useMemo(() => {
+    const components = []
+
+    // GSAP Runtime - always included (lightweight)
+    components.push(<GSAPRuntime key="gsap" />)
+
+    // WebGL Canvas - only if WebGL is enabled
+    if (hasWebGL) {
+      components.push(<LazyGlobalCanvas key="webgl" />)
+    }
+
+    // Development tools - only in development
+    if (isDevelopment) {
+      components.push(<OrchestraTools key="orchestra" />)
+    }
+
+    return components
+  }, [])
+
+  return <>{features}</>
+}

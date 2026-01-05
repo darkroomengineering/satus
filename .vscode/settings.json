@@ -1,24 +1,50 @@
 {
+  // Formatting
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "biomejs.biome",
   "editor.codeActionsOnSave": {
-    "source.fixAll.biome": "explicit",
-    "source.organizeImports.biome": "explicit"
+    "source.fixAll.biome": "always",
+    "source.organizeImports.biome": "always"
   },
+
+  // TypeScript
   "typescript.suggest.autoImports": true,
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "typescript.tsdk": "node_modules/typescript/lib",
+  // "typescript.experimental.useTsgo": true, // Disabled: tsgo doesn't support Next.js plugin
   "javascript.suggest.autoImports": true,
+
+  // Editor labels (fixed for .tsx files)
   "workbench.editor.customLabels.patterns": {
-    "**/app/**/page.js": "${dirname(1)}/${dirname} <page>",
-    "**/app/**/layout.js": "${dirname(1)}/${dirname} <layout>",
-    "**/app/api/**/route.js": "${dirname(1)}/${dirname} <route>"
+    "**/app/**/page.tsx": "${dirname(1)}/${dirname} <page>",
+    "**/app/**/layout.tsx": "${dirname(1)}/${dirname} <layout>",
+    "**/app/api/**/route.ts": "${dirname(1)}/${dirname} <route>",
+    "**/components/**/index.tsx": "${dirname} <component>"
   },
+
+  // File associations
   "files.associations": {
-    "*.json": "jsonc",
-    "*.css": "css"
+    "*.json": "jsonc"
   },
+
+  // CSS (Tailwind v4)
   "css.lint.validProperties": ["user-drag"],
   "css.lint.unknownAtRules": "ignore",
+  "tailwindCSS.experimental.configFile": "lib/styles/css/tailwind.css",
+  "tailwindCSS.includeLanguages": {
+    "typescriptreact": "html"
+  },
 
+  // Search exclusions (performance)
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/bun.lock": true,
+    "**/.vercel": true,
+    "**/lib/integrations/sanity/sanity.types.ts": true
+  },
+
+  // Language-specific formatters
   "[css]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
@@ -34,6 +60,14 @@
   "[typescriptreact]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
+  "[json]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+
+  // General
   "files.eol": "\n",
   "workbench.editorAssociations": {
     "*.svg": "default"

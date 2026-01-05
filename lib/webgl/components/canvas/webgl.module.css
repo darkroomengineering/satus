@@ -4,6 +4,7 @@
   max-height: 100vh;
   max-width: 100vw;
   pointer-events: none;
+  z-index: -1;
 
   canvas {
     /* biome-ignore lint: idk ask Clement */

@@ -1,14 +1,16 @@
 .submit {
   position: relative;
-  background-color: var(--color-red);
+  background-color: var(--color-secondary);
+  color: var(--color-primary);
   display: flex;
   justify-content: center;
   align-items: center;
 
   &.disabled {
     pointer-events: none;
-    background-color: var(--color-red);
-    color: rgba(0, 0, 0, 0.75);
+    background-color: var(--color-secondary);
+    color: rgba(0, 0, 0, 0.25);
+    opacity: 0.5;
   }
 
   &.submitted {

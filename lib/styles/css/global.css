@@ -75,6 +75,10 @@ img {
 
 button {
   cursor: pointer;
+  /* Fix vertical text centering by trimming font metric space */
+  text-box-trim: both;
+  text-box-edge: cap alphabetic;
+  user-select: none;
 }
 
 html.screenshot {

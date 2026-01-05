@@ -38,7 +38,7 @@ export function SizeAndBuy({ product }: { product: Product }) {
         {...(selectedVariant && { variant: selectedVariant })}
         className={cn(
           s.add,
-          'dr-rounded-8 relative col-span-full dt:col-start-4 dt:-col-end-4 flex cursor-pointer overflow-hidden border-2 border-black'
+          'dr-rounded-8 relative col-span-full dt:col-start-4 dt:-col-end-4 flex cursor-pointer overflow-hidden border-2 border-secondary'
         )}
       />
     </>

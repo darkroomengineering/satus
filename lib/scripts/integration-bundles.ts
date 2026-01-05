@@ -12,6 +12,18 @@ export interface BarrelExport {
   pattern: string
 }
 
+export interface CodeTransform {
+  /** Path to the file to transform */
+  file: string
+  /** Regex patterns to remove from the file (with flags) */
+  patterns: Array<{
+    /** The regex pattern as a string */
+    regex: string
+    /** Regex flags (e.g., 'gm' for global multiline) */
+    flags: string
+  }>
+}
+
 export interface IntegrationBundle {
   name: string
   description: string
@@ -29,6 +41,8 @@ export interface IntegrationBundle {
   envVars: string[]
   /** Barrel exports to update when this integration is removed */
   barrelExports: BarrelExport[]
+  /** Code transformations to apply when this integration is removed */
+  codeTransforms: CodeTransform[]
 }
 
 export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
@@ -60,6 +74,7 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
     barrelExports: [
       { file: 'components/ui/index.ts', pattern: 'sanity-image' },
     ],
+    codeTransforms: [],
   },
 
   shopify: {
@@ -77,6 +92,7 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
       'SHOPIFY_CUSTOMER_ACCOUNT_API_URL',
     ],
     barrelExports: [],
+    codeTransforms: [],
   },
 
   hubspot: {
@@ -89,6 +105,7 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
     configPatterns: [],
     envVars: ['HUBSPOT_ACCESS_TOKEN', 'NEXT_PUBLIC_HUBSPOT_PORTAL_ID'],
     barrelExports: [],
+    codeTransforms: [],
   },
 
   mailchimp: {
@@ -105,6 +122,7 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
       'MAILCHIMP_AUDIENCE_ID',
     ],
     barrelExports: [],
+    codeTransforms: [],
   },
 
   mandrill: {
@@ -117,6 +135,7 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
     configPatterns: [],
     envVars: ['MANDRILL_API_KEY'],
     barrelExports: [],
+    codeTransforms: [],
   },
 
   webgl: {
@@ -141,6 +160,42 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
     barrelExports: [
       { file: 'components/effects/index.ts', pattern: 'animated-gradient' },
     ],
+    codeTransforms: [
+      {
+        file: 'lib/features/index.tsx',
+        patterns: [
+          // Remove the LazyGlobalCanvas import
+          {
+            regex:
+              'const LazyGlobalCanvas = dynamic\\([\\s\\S]*?\\{ ssr: false \\}\\s*\\)\\s*',
+            flags: 'gm',
+          },
+          // Remove the hasWebGL constant
+          {
+            regex:
+              "const hasWebGL = Boolean\\(process\\.env\\.NEXT_PUBLIC_ENABLE_WEBGL !== 'false'\\)\\n",
+            flags: 'gm',
+          },
+          // Remove the WebGL component push block (with surrounding newlines)
+          {
+            regex:
+              '\\n\\s*// WebGL Canvas - only if WebGL is enabled\\n\\s*if \\(hasWebGL\\) \\{\\n\\s*components\\.push\\(<LazyGlobalCanvas key="webgl" />\\)\\n\\s*\\}',
+            flags: 'gm',
+          },
+        ],
+      },
+      {
+        file: 'lib/dev/cmdo.tsx',
+        patterns: [
+          // Remove the webgl toggle
+          {
+            regex:
+              '\\s*<OrchestraToggle id="webgl" defaultValue=\\{true\\}>\\s*🧊\\s*</OrchestraToggle>',
+            flags: 'gm',
+          },
+        ],
+      },
+    ],
   },
 
   theatre: {
@@ -153,6 +208,34 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
     configPatterns: [],
     envVars: [],
     barrelExports: [],
+    codeTransforms: [
+      {
+        file: 'lib/dev/index.tsx',
+        patterns: [
+          // Remove the Studio import
+          {
+            regex:
+              '// Dynamically load debug tools\\s*const Studio = dynamic\\([\\s\\S]*?\\{ ssr: false \\}\\s*\\)\\s*',
+            flags: 'gm',
+          },
+          // Remove the Studio render
+          {
+            regex: '\\s*\\{studio && <Studio />\\}',
+            flags: 'gm',
+          },
+        ],
+      },
+      {
+        file: 'lib/dev/cmdo.tsx',
+        patterns: [
+          // Remove the studio toggle
+          {
+            regex: '\\s*<OrchestraToggle id="studio">⚙️</OrchestraToggle>',
+            flags: 'gm',
+          },
+        ],
+      },
+    ],
   },
 }
 

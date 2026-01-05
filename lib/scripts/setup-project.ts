@@ -11,16 +11,27 @@
  */
 
 import * as p from '@clack/prompts'
-import { getIntegrationNames, INTEGRATION_BUNDLES } from './integration-bundles'
+import {
+  type CodeTransform,
+  getIntegrationNames,
+  INTEGRATION_BUNDLES,
+} from './integration-bundles'
 
 /**
  * Preset project modes with pre-selected integrations
+ *
+ * Naming inspired by the darkroom/studio creative aesthetic
  */
 const PROJECT_PRESETS = {
-  full: {
-    name: 'Full Stack',
+  editorial: {
+    name: 'Editorial',
+    description: 'Content-driven site with Sanity CMS and HubSpot forms',
+    integrations: ['sanity', 'hubspot', 'mailchimp'],
+  },
+  studio: {
+    name: 'Studio',
     description:
-      'Complete feature set - Sanity CMS, Shopify, WebGL, HubSpot, and development tools',
+      'Full creative suite with WebGL, CMS, animations, and all integrations',
     integrations: [
       'sanity',
       'shopify',
@@ -31,20 +42,26 @@ const PROJECT_PRESETS = {
       'theatre',
     ],
   },
-  marketing: {
-    name: 'Marketing Site',
-    description:
-      'Content-focused site with Sanity CMS and HubSpot forms (no WebGL or e-commerce)',
-    integrations: ['sanity', 'hubspot', 'mailchimp'],
+  boutique: {
+    name: 'Boutique',
+    description: 'Shopify storefront with HubSpot marketing tools',
+    integrations: ['shopify', 'hubspot', 'mailchimp'],
   },
-  ecommerce: {
-    name: 'E-commerce',
+  gallery: {
+    name: 'Gallery',
     description:
-      'Shopify-powered store with minimal WebGL for product showcases',
-    integrations: ['sanity', 'shopify', 'webgl'],
+      'Immersive e-commerce experience with 3D product showcases and CMS',
+    integrations: [
+      'sanity',
+      'shopify',
+      'hubspot',
+      'mailchimp',
+      'webgl',
+      'theatre',
+    ],
   },
-  minimal: {
-    name: 'Minimal',
+  blank: {
+    name: 'Blank',
     description: 'Just Next.js, styling system, and essential components',
     integrations: [],
   },
@@ -100,6 +117,50 @@ const removeFile = async (path: string, dryRun: boolean): Promise<boolean> => {
   } catch {
     return false
   }
+}
+
+/**
+ * Apply code transformations to a file
+ */
+const applyCodeTransforms = async (
+  transforms: CodeTransform[],
+  dryRun: boolean
+): Promise<number> => {
+  let totalChanges = 0
+
+  for (const transform of transforms) {
+    try {
+      const fullPath = `${process.cwd()}/${transform.file}`
+      const file = Bun.file(fullPath)
+
+      if (!(await file.exists())) continue
+
+      let content = await file.text()
+      let fileChanged = false
+
+      for (const { regex, flags } of transform.patterns) {
+        const pattern = new RegExp(regex, flags)
+        const newContent = content.replace(pattern, '')
+
+        if (newContent !== content) {
+          content = newContent
+          fileChanged = true
+        }
+      }
+
+      if (fileChanged) {
+        if (!dryRun) {
+          await Bun.write(fullPath, content)
+        }
+        totalChanges++
+      }
+    } catch (error) {
+      // Log but continue on error
+      console.error(`Failed to transform ${transform.file}:`, error)
+    }
+  }
+
+  return totalChanges
 }
 
 /**
@@ -281,6 +342,29 @@ const setup = async (options: SetupOptions): Promise<void> => {
 
   const s = p.spinner()
 
+  // Collect all code transforms first
+  const allCodeTransforms: CodeTransform[] = []
+  for (const name of toRemove) {
+    const bundle = INTEGRATION_BUNDLES[name]
+    if (bundle?.codeTransforms) {
+      allCodeTransforms.push(...bundle.codeTransforms)
+    }
+  }
+
+  // Apply code transformations BEFORE removing folders
+  if (allCodeTransforms.length > 0) {
+    s.start('Applying code transformations...')
+    const transformChanges = await applyCodeTransforms(
+      allCodeTransforms,
+      dryRun
+    )
+    s.stop(
+      transformChanges > 0
+        ? `Applied ${transformChanges} code transformations`
+        : 'No code transformations needed'
+    )
+  }
+
   // Process each integration
   for (const name of toRemove) {
     const bundle = INTEGRATION_BUNDLES[name]
@@ -416,7 +500,7 @@ const main = async (): Promise<void> => {
 
   // Ask what kind of project to start
   const selectedPreset = await p.select({
-    message: 'What kind of project are you starting?',
+    message: 'What kind of project are you building?',
     options: presetOptions,
   })
 

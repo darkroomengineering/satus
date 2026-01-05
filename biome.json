@@ -1,15 +1,18 @@
 {
   "$schema": "node_modules/@biomejs/biome/configuration_schema.json",
+
   "vcs": {
     "enabled": true,
     "clientKind": "git",
     "useIgnoreFile": true
   },
+
   "plugins": [
     "./.biome/plugins/no-anchor-element.grit",
     "./.biome/plugins/no-unnecessary-forwardref.grit",
     "./.biome/plugins/no-relative-parent-imports.grit"
   ],
+
   "files": {
     "ignoreUnknown": true,
     "includes": [
@@ -29,13 +32,15 @@
       "!**/*.grit"
     ]
   },
+
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
-    "lineEnding": "lf",
     "indentWidth": 2,
+    "lineEnding": "lf",
     "lineWidth": 80
   },
+
   "assist": {
     "actions": {
       "source": {
@@ -43,6 +48,7 @@
       }
     }
   },
+
   "linter": {
     "enabled": true,
     "domains": {
@@ -51,16 +57,15 @@
       "project": "recommended"
     },
     "rules": {
-      "recommended": true,
       "correctness": {
         "noUnusedImports": "error",
-        "noUnusedVariables": "warn",
+        "noUnusedVariables": "error",
+        "noUnusedFunctionParameters": "warn",
         "useExhaustiveDependencies": "warn",
         "noUnknownMediaFeatureName": "off",
-        "noUndeclaredVariables": "error",
-        "noInvalidUseBeforeDeclaration": "error",
-        "noUnusedFunctionParameters": "warn"
+        "noInvalidUseBeforeDeclaration": "error"
       },
+
       "style": {
         "noNonNullAssertion": "off",
         "noUnusedTemplateLiteral": "off",
@@ -89,6 +94,7 @@
         },
         "noNestedTernary": "error"
       },
+
       "suspicious": {
         "noExplicitAny": "warn",
         "noEmptyBlockStatements": "warn",
@@ -102,16 +108,19 @@
         "noSparseArray": "error",
         "useAwait": "off"
       },
+
       "complexity": {
         "noForEach": "off",
         "useSimplifiedLogicExpression": "warn",
         "useFlatMap": "warn"
       },
+
       "security": {
         "noGlobalEval": "error",
         "noDangerouslySetInnerHtml": "warn",
         "noDangerouslySetInnerHtmlWithChildren": "error"
       },
+
       "a11y": {
         "useKeyWithClickEvents": "warn",
         "useValidAnchor": "warn",
@@ -126,12 +135,14 @@
         "noRedundantAlt": "error",
         "useSemanticElements": "warn"
       },
+
       "performance": {
         "noImgElement": "error"
       },
+
       "nursery": {
         "useSortedClasses": {
-          "level": "warn",
+          "level": "error",
           "options": {
             "attributes": ["class", "className"],
             "functions": ["cn", "clsx"]
@@ -149,11 +160,13 @@
       "trailingCommas": "es5"
     }
   },
+
   "json": {
     "parser": {
       "allowComments": true
     }
   },
+
   "css": {
     "linter": {
       "enabled": true
@@ -165,6 +178,7 @@
       "cssModules": true
     }
   },
+
   "overrides": [
     {
       "includes": ["**/*.css"],
@@ -180,9 +194,6 @@
       "includes": ["**/*.tsx", "**/*.jsx"],
       "linter": {
         "rules": {
-          "style": {
-            "useImportType": "error"
-          },
           "correctness": {
             "useJsxKeyInIterable": "error"
           },

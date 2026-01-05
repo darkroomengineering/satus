@@ -11,6 +11,7 @@
   "typescript.suggest.autoImports": true,
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.experimental.useTsgo": true,
   "javascript.suggest.autoImports": true,
 
   // Editor labels (fixed for .tsx files)

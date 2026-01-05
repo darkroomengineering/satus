@@ -7,7 +7,7 @@ pre-commit:
   commands:
     biome:
       glob: '*.{js,mjs,ts,jsx,tsx,css,scss}'
-      run: bun biome check --max-diagnostics=200 --write {staged_files}
+      run: bun biome check --max-diagnostics=200 --write --unsafe {staged_files}
       stage_fixed: true
     typecheck:
       glob: '*.{ts,tsx}'

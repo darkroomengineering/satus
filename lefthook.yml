@@ -11,7 +11,7 @@ pre-commit:
       stage_fixed: true
     typecheck:
       glob: '*.{ts,tsx}'
-      run: bun tsc --noEmit --incremental false
+      run: bunx tsgo --noEmit --incremental false
       stage_fixed: false
 
 # NOTE: Build checks happen in CI, not pre-push (too slow for dev workflow)

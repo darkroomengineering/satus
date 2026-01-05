@@ -5,6 +5,13 @@
  * Used by the setup script to selectively remove unused integrations.
  */
 
+export interface BarrelExport {
+  /** Path to the barrel export file (e.g., 'components/ui/index.ts') */
+  file: string
+  /** Pattern to match export lines to remove (e.g., 'sanity-image') */
+  pattern: string
+}
+
 export interface IntegrationBundle {
   name: string
   description: string
@@ -20,6 +27,8 @@ export interface IntegrationBundle {
   configPatterns: string[]
   /** Environment variables this integration uses */
   envVars: string[]
+  /** Barrel exports to update when this integration is removed */
+  barrelExports: BarrelExport[]
 }
 
 export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
@@ -34,14 +43,22 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
       'next-sanity',
     ],
     devDependencies: ['@sanity/vision', 'sanity'],
-    folders: ['lib/integrations/sanity', 'app/studio', 'app/(examples)/sanity'],
-    files: ['components/ui/sanity-image/index.tsx'],
+    folders: [
+      'lib/integrations/sanity',
+      'app/studio',
+      'app/(examples)/sanity',
+      'components/ui/sanity-image',
+    ],
+    files: [],
     configPatterns: ['cdn.sanity.io', '@sanity'],
     envVars: [
       'NEXT_PUBLIC_SANITY_PROJECT_ID',
       'NEXT_PUBLIC_SANITY_DATASET',
       'NEXT_PUBLIC_SANITY_STUDIO_URL',
       'SANITY_API_WRITE_TOKEN',
+    ],
+    barrelExports: [
+      { file: 'components/ui/index.ts', pattern: 'sanity-image' },
     ],
   },
 
@@ -59,6 +76,7 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
       'SHOPIFY_CUSTOMER_ACCOUNT_API_CLIENT_ID',
       'SHOPIFY_CUSTOMER_ACCOUNT_API_URL',
     ],
+    barrelExports: [],
   },
 
   hubspot: {
@@ -70,6 +88,7 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
     files: [],
     configPatterns: [],
     envVars: ['HUBSPOT_ACCESS_TOKEN', 'NEXT_PUBLIC_HUBSPOT_PORTAL_ID'],
+    barrelExports: [],
   },
 
   mailchimp: {
@@ -85,6 +104,7 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
       'MAILCHIMP_SERVER_PREFIX',
       'MAILCHIMP_AUDIENCE_ID',
     ],
+    barrelExports: [],
   },
 
   mandrill: {
@@ -96,6 +116,7 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
     files: [],
     configPatterns: [],
     envVars: ['MANDRILL_API_KEY'],
+    barrelExports: [],
   },
 
   webgl: {
@@ -109,10 +130,17 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
       'tunnel-rat',
     ],
     devDependencies: ['@types/three'],
-    folders: ['lib/webgl', 'app/(examples)/r3f'],
-    files: ['components/effects/animated-gradient/webgl.tsx'],
+    folders: [
+      'lib/webgl',
+      'app/(examples)/r3f',
+      'components/effects/animated-gradient',
+    ],
+    files: [],
     configPatterns: ['@react-three', 'three', 'postprocessing'],
     envVars: [],
+    barrelExports: [
+      { file: 'components/effects/index.ts', pattern: 'animated-gradient' },
+    ],
   },
 
   theatre: {
@@ -124,6 +152,7 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
     files: [],
     configPatterns: [],
     envVars: [],
+    barrelExports: [],
   },
 }
 

@@ -92,6 +92,26 @@ export const promptComponentConfig = async (): Promise<ComponentConfig> => {
 }
 
 /**
+ * Convert kebab-case to PascalCase
+ */
+const toPascalCase = (str: string): string =>
+  str
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('')
+
+/**
+ * Convert kebab-case to camelCase
+ */
+const toCamelCase = (str: string): string =>
+  str
+    .split('-')
+    .map((word, index) =>
+      index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)
+    )
+    .join('')
+
+/**
  * Generate component index.tsx content
  */
 const generateComponentContent = (
@@ -99,31 +119,31 @@ const generateComponentContent = (
   options: ComponentOptions
 ): string => {
   const { client } = options
-
-  // Convert kebab-case to PascalCase
-  const pascalName = componentName
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join('')
-
-  // Get CSS class name (camelCase)
-  const cssClassName = componentName
-    .split('-')
-    .map((word, index) =>
-      index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)
-    )
-    .join('')
-
-  const directive = client ? "'use client'\n\n" : ''
+  const pascalName = toPascalCase(componentName)
+  const cssClassName = toCamelCase(componentName)
+  const directive = client ? `'use client'\n\n` : ''
 
   return `${directive}import cn from 'clsx'
-import type { HTMLAttributes } from 'react'
+import type { HTMLAttributes, ReactNode } from 'react'
 import s from './${componentName}.module.css'
 
 interface ${pascalName}Props extends HTMLAttributes<HTMLDivElement> {
-  children?: React.ReactNode
+  /** Component content */
+  children?: ReactNode
 }
 
+/**
+ * ${pascalName} component.
+ *
+ * @example
+ * \`\`\`tsx
+ * import { ${pascalName} } from '~/components/${options.category}/${componentName}'
+ *
+ * <${pascalName}>
+ *   Content here
+ * </${pascalName}>
+ * \`\`\`
+ */
 export function ${pascalName}({
   children,
   className,
@@ -142,76 +162,13 @@ export function ${pascalName}({
  * Generate CSS module content
  */
 const generateCssContent = (componentName: string): string => {
-  // Convert kebab-case to camelCase for CSS class
-  const cssClassName = componentName
-    .split('-')
-    .map((word, index) =>
-      index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)
-    )
-    .join('')
+  const cssClassName = toCamelCase(componentName)
 
   return `/* ${componentName}.module.css */
 
 .${cssClassName} {
   /* Add your component styles here */
 }
-`
-}
-
-/**
- * Generate README.md content
- */
-const generateReadmeContent = (
-  componentName: string,
-  componentPath: string
-): string => {
-  // Convert kebab-case to PascalCase
-  const pascalName = componentName
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join('')
-
-  return `# ${pascalName}
-
-## Overview
-
-Brief description of the ${componentName} component.
-
-## Usage
-
-\`\`\`tsx
-import { ${pascalName} } from '~/components/${componentPath}'
-
-<${pascalName}>
-  Your content here
-</${pascalName}>
-\`\`\`
-
-## Props
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| \`children\` | \`React.ReactNode\` | - | Component content |
-| \`className\` | \`string\` | - | Additional CSS classes |
-
-## Examples
-
-### Basic Usage
-
-\`\`\`tsx
-<${pascalName}>
-  <h2>Title</h2>
-  <p>Description</p>
-</${pascalName}>
-\`\`\`
-
-### With Custom Styling
-
-\`\`\`tsx
-<${pascalName} className="custom-class">
-  Custom styled content
-</${pascalName}>
-\`\`\`
 `
 }
 
@@ -225,6 +182,7 @@ const updateBarrelExport = async (
   const pathParts = componentPath.split('/')
   const category = pathParts[0]
   const barrelPath = `components/${category}/index.ts`
+  const pascalName = toPascalCase(componentName)
 
   try {
     // Check if barrel file exists
@@ -232,14 +190,23 @@ const updateBarrelExport = async (
     const exists = await file.exists()
 
     if (!exists) {
-      // Create new barrel file
-      const content = `// ${category.charAt(0).toUpperCase() + category.slice(1)} Components
+      // Create new barrel file with header comment based on category
+      const categoryTitles: Record<string, string> = {
+        ui: 'UI Primitives - Reusable across any project',
+        layout: 'Layout Components - Site chrome (customize per project)',
+        effects: 'Effects Components - Animations and visual enhancements',
+        blocks: 'Block Components - Pre-built page sections',
+      }
+
+      const header =
+        categoryTitles[category] || `${toPascalCase(category)} Components`
+      const content = `// ${header}
 // Import from '~/components/${category}' or '~/components/${category}/[component]'
 
-export * from './${componentName}'
+export { ${pascalName} } from './${componentName}'
 `
       await Bun.write(barrelPath, content)
-      p.log.success(`Generated barrel export: ${barrelPath}`)
+      p.log.success(`Created barrel export: ${barrelPath}`)
       return
     }
 
@@ -248,30 +215,34 @@ export * from './${componentName}'
 
     // Check if already exported
     if (content.includes(`from './${componentName}'`)) {
-      p.log.warn(`Component already generated in ${barrelPath}`)
+      p.log.warn(`Component already exported in ${barrelPath}`)
       return
     }
 
-    // Add export (find a good place to insert)
+    // Add export at the end, maintaining the file's style
     const lines = content.split('\n')
-    const exportLines = lines.filter((line) => line.includes('export'))
 
-    if (exportLines.length > 0) {
-      // Insert after the last export
-      const lastExportIndex = lines.lastIndexOf(
-        exportLines[exportLines.length - 1]
-      )
-      lines.splice(lastExportIndex + 1, 0, `export * from './${componentName}'`)
-    } else {
-      // Append at end
-      lines.push(`export * from './${componentName}'`)
+    // Find the last non-empty line to append after
+    let insertIndex = lines.length
+    for (let i = lines.length - 1; i >= 0; i--) {
+      if (lines[i].trim()) {
+        insertIndex = i + 1
+        break
+      }
     }
 
+    // Insert the new export
+    lines.splice(
+      insertIndex,
+      0,
+      `export { ${pascalName} } from './${componentName}'`
+    )
+
     await Bun.write(barrelPath, lines.join('\n'))
-    p.log.success(`Generated barrel export: ${barrelPath}`)
+    p.log.success(`Updated barrel export: ${barrelPath}`)
   } catch (error) {
     p.log.warn(
-      `Could not generate barrel export: ${error instanceof Error ? error.message : String(error)}`
+      `Could not update barrel export: ${error instanceof Error ? error.message : String(error)}`
     )
   }
 }
@@ -307,11 +278,9 @@ export const createComponent = async (
     // Generate and write files
     const componentContent = generateComponentContent(componentName, options)
     const cssContent = generateCssContent(componentName)
-    const readmeContent = generateReadmeContent(componentName, componentPath)
 
     await Bun.write(`${componentDir}/index.tsx`, componentContent)
     await Bun.write(`${componentDir}/${componentName}.module.css`, cssContent)
-    await Bun.write(`${componentDir}/README.md`, readmeContent)
 
     s.stop(`Component "${componentPath}" generated successfully!`)
 
@@ -319,31 +288,22 @@ export const createComponent = async (
     p.log.success(`Created files:`)
     p.log.message(`  📄 ${componentDir}/index.tsx`)
     p.log.message(`  🎨 ${componentDir}/${componentName}.module.css`)
-    p.log.message(`  📚 ${componentDir}/README.md`)
 
     // Try to update barrel exports
     await updateBarrelExport(componentPath, componentName)
 
-    const pascalName = componentName
-      .split('-')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join('')
+    const pascalName = toPascalCase(componentName)
 
     p.note(
       `Next steps:\n` +
         `  1. Customize ${componentDir}/index.tsx\n` +
         `  2. Style in ${componentDir}/${componentName}.module.css\n` +
-        `  3. Update ${componentDir}/README.md\n` +
-        `  4. Import: \`import { ${pascalName} } from '~/components/${componentPath}'\``
+        `  3. Import: \`import { ${pascalName} } from '~/components/${componentPath}'\``
     )
   } catch (error) {
     s.stop(`Failed to create component "${componentPath}"`)
     throw error instanceof Error ? error : new Error(String(error))
   }
 }
-
-/**
- * Main CLI function
- */
 
 // Export functions for use by unified create script

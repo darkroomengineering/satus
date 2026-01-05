@@ -106,44 +106,193 @@ const generatePageContent = (
   // Capitalize first letter for title
   const title = pageName.charAt(0).toUpperCase() + pageName.slice(1)
 
-  let imports = `import { Wrapper } from '~/components/layout/wrapper'`
-  let content = `<section className="dr-py-100">\n  <div className="container">\n    <h1>${title}</h1>\n    {/* Your content here */}\n  </div>\n</section>`
+  // Build imports
+  const imports: string[] = []
+  imports.push(`import type { Metadata } from 'next'`)
+  imports.push(`import { Wrapper } from '~/components/layout/wrapper'`)
 
-  // Add conditional imports and content based on options
+  // Integration-specific imports
+  if (sanity || shopify) {
+    imports.push(
+      `import { NotConfigured } from '~/components/ui/not-configured'`
+    )
+  }
+
   if (sanity) {
-    imports += `\nimport { sanityFetch } from '~/integrations/sanity/live'`
-    imports += `\nimport { RichText } from '~/integrations/sanity'`
-    content += `\n\n{/* Sanity CMS content */}\n{/* const { data } = await sanityFetch({ query: pageQuery }) */}`
+    imports.push(
+      `import { isSanityConfigured } from '~/integrations/check-integration'`
+    )
+    imports.push(`import { sanityFetch } from '~/integrations/sanity/live'`)
+    imports.push(`import { pageQuery } from '~/integrations/sanity/queries'`)
+    imports.push(
+      `import type { Page } from '~/integrations/sanity/sanity.types'`
+    )
+    imports.push(`import { generateSanityMetadata } from '~/utils'`)
   }
 
   if (shopify) {
-    imports += `\nimport { Cart } from '~/integrations/shopify/cart'`
-    content += `\n\n{/* Shopify integration */}\n{/* <Cart /> */}`
+    imports.push(
+      `import { isShopifyConfigured } from '~/integrations/check-integration'`
+    )
+    imports.push(`import { Cart } from '~/integrations/shopify/cart'`)
   }
 
-  const wrapperProps = []
-  wrapperProps.push(`theme="${theme}"`)
-
+  // Build wrapper props
+  const wrapperProps: string[] = [`theme="${theme}"`]
   if (webgl) {
     wrapperProps.push('webgl')
   }
 
-  const wrapperPropsStr = wrapperProps.join(' ')
+  // Build component body based on integrations
+  let componentBody: string
 
-  return `import type { Metadata } from 'next'
-${imports}
+  if (sanity && shopify) {
+    // Both integrations
+    componentBody = `  // Show setup instructions if integrations are not configured
+  if (!isSanityConfigured()) {
+    return (
+      <Wrapper theme="${theme}">
+        <NotConfigured integration="Sanity" />
+      </Wrapper>
+    )
+  }
 
+  if (!isShopifyConfigured()) {
+    return (
+      <Wrapper theme="${theme}">
+        <NotConfigured integration="Shopify" />
+      </Wrapper>
+    )
+  }
+
+  const { data } = await sanityFetch({
+    query: pageQuery,
+    params: { slug: '${pageName}' },
+  })
+
+  return (
+    <Wrapper ${wrapperProps.join(' ')}>
+      <Cart>
+        <section className="dr-py-100">
+          <div className="container">
+            <h1>${title}</h1>
+            {/* Your content here */}
+            {/* Use data from Sanity: {data?.title} */}
+          </div>
+        </section>
+      </Cart>
+    </Wrapper>
+  )`
+  } else if (sanity) {
+    // Sanity only
+    componentBody = `  // Show setup instructions if Sanity is not configured
+  if (!isSanityConfigured()) {
+    return (
+      <Wrapper theme="${theme}">
+        <NotConfigured integration="Sanity" />
+      </Wrapper>
+    )
+  }
+
+  const { data } = await sanityFetch({
+    query: pageQuery,
+    params: { slug: '${pageName}' },
+  })
+
+  return (
+    <Wrapper ${wrapperProps.join(' ')}>
+      <section className="dr-py-100">
+        <div className="container">
+          <h1>${title}</h1>
+          {/* Your content here */}
+          {/* Use data from Sanity: {data?.title} */}
+        </div>
+      </section>
+    </Wrapper>
+  )`
+  } else if (shopify) {
+    // Shopify only
+    componentBody = `  // Show setup instructions if Shopify is not configured
+  if (!isShopifyConfigured()) {
+    return (
+      <Wrapper theme="${theme}">
+        <NotConfigured integration="Shopify" />
+      </Wrapper>
+    )
+  }
+
+  return (
+    <Wrapper ${wrapperProps.join(' ')}>
+      <Cart>
+        <section className="dr-py-100">
+          <div className="container">
+            <h1>${title}</h1>
+            {/* Your content here */}
+          </div>
+        </section>
+      </Cart>
+    </Wrapper>
+  )`
+  } else {
+    // No integrations
+    componentBody = `  return (
+    <Wrapper ${wrapperProps.join(' ')}>
+      <section className="dr-py-100">
+        <div className="container">
+          <h1>${title}</h1>
+          {/* Your content here */}
+        </div>
+      </section>
+    </Wrapper>
+  )`
+  }
+
+  // Build metadata export
+  let metadataExport: string
+  if (sanity) {
+    metadataExport = `
+export async function generateMetadata(): Promise<Metadata> {
+  if (!isSanityConfigured()) {
+    return {
+      title: '${title}',
+      description: '${title} page description',
+    }
+  }
+
+  const { data } = await sanityFetch({
+    query: pageQuery,
+    params: { slug: '${pageName}' },
+  })
+
+  if (!data) {
+    return {
+      title: '${title}',
+      description: '${title} page description',
+    }
+  }
+
+  return generateSanityMetadata({
+    document: data,
+    url: '/${pageName}',
+    type: 'website',
+  })
+}`
+  } else {
+    metadataExport = `
 export const metadata: Metadata = {
   title: '${title}',
   description: '${title} page description',
-}
+}`
+  }
 
-export default function ${title}Page() {
-  return (
-    <Wrapper ${wrapperPropsStr}>
-      ${content}
-    </Wrapper>
-  )
+  // Determine if component should be async
+  const isAsync = sanity || shopify
+
+  return `${imports.join('\n')}
+${metadataExport}
+
+export default ${isAsync ? 'async ' : ''}function ${title}Page() {
+${componentBody}
 }
 `
 }
@@ -179,7 +328,12 @@ export const createPage = async (
 
     // Create CSS module if requested
     if (options.css) {
-      const cssContent = `/* ${pageName}.module.css */\n\n.container {\n  /* Add your styles here */\n}\n`
+      const cssContent = `/* ${pageName}.module.css */
+
+.container {
+  /* Add your styles here */
+}
+`
       await Bun.write(`${pageDir}/${pageName}.module.css`, cssContent)
     }
 
@@ -193,12 +347,23 @@ export const createPage = async (
       p.log.message(`  🎨 ${pageDir}/${pageName}.module.css`)
     }
 
-    p.note(
-      `Next steps:\n` +
-        `  1. Customize ${pageDir}/page.tsx\n` +
-        `  2. Add components to ${componentsDir}/\n` +
-        `  3. Visit /${pageName} to see your page`
+    // Build next steps message
+    const nextSteps = [`1. Customize ${pageDir}/page.tsx`]
+
+    if (options.sanity) {
+      nextSteps.push(
+        `2. Create a "${pageName}" page in Sanity Studio at /studio`
+      )
+    }
+
+    nextSteps.push(
+      `${nextSteps.length + 1}. Add components to ${componentsDir}/`
     )
+    nextSteps.push(
+      `${nextSteps.length + 1}. Visit /${pageName} to see your page`
+    )
+
+    p.note(`Next steps:\n  ${nextSteps.join('\n  ')}`)
   } catch (error) {
     s.stop(`Failed to generate page "${pageName}"`)
     throw error

@@ -226,6 +226,43 @@ const updateEnvExample = async (
 }
 
 /**
+ * Update barrel exports to remove references to deleted components
+ */
+const updateBarrelExports = async (
+  barrelExports: Array<{ file: string; pattern: string }>,
+  dryRun: boolean
+): Promise<number> => {
+  let totalChanges = 0
+
+  for (const { file, pattern } of barrelExports) {
+    try {
+      const fullPath = `${process.cwd()}/${file}`
+      const barrelFile = Bun.file(fullPath)
+
+      if (!(await barrelFile.exists())) continue
+
+      const content = await barrelFile.text()
+      const lines = content.split('\n')
+      const filteredLines = lines.filter(
+        (line) =>
+          !(line.includes(`'${pattern}'`) || line.includes(`'./${pattern}'`))
+      )
+
+      if (filteredLines.length !== lines.length) {
+        if (!dryRun) {
+          await Bun.write(fullPath, filteredLines.join('\n'))
+        }
+        totalChanges++
+      }
+    } catch {
+      // Continue if file update fails
+    }
+  }
+
+  return totalChanges
+}
+
+/**
  * Main setup function
  */
 const setup = async (options: SetupOptions): Promise<void> => {
@@ -279,6 +316,7 @@ const setup = async (options: SetupOptions): Promise<void> => {
   const allDevDeps: string[] = []
   const allConfigPatterns: string[] = []
   const allEnvVars: string[] = []
+  const allBarrelExports: Array<{ file: string; pattern: string }> = []
 
   for (const name of toRemove) {
     const bundle = INTEGRATION_BUNDLES[name]
@@ -287,6 +325,7 @@ const setup = async (options: SetupOptions): Promise<void> => {
     allDevDeps.push(...bundle.devDependencies)
     allConfigPatterns.push(...bundle.configPatterns)
     allEnvVars.push(...bundle.envVars)
+    allBarrelExports.push(...bundle.barrelExports)
   }
 
   // Update package.json
@@ -324,6 +363,17 @@ const setup = async (options: SetupOptions): Promise<void> => {
       changes > 0
         ? `Removed ${changes} env vars from .env.example`
         : 'No env changes needed'
+    )
+  }
+
+  // Update barrel exports
+  if (allBarrelExports.length > 0) {
+    s.start('Updating component exports...')
+    const changes = await updateBarrelExports(allBarrelExports, dryRun)
+    s.stop(
+      changes > 0
+        ? `Updated ${changes} barrel export files`
+        : 'No export updates needed'
     )
   }
 

@@ -28,7 +28,7 @@ export default async function SanityArticlePage({
   if (!data) return notFound()
 
   return (
-    <Wrapper theme="red" className="font-mono uppercase">
+    <Wrapper theme="light" className="font-mono uppercase">
       <div className="max-dt:dr-px-16 flex grow items-center justify-center">
         <SanityArticle data={data as Article} />
       </div>

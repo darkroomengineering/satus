@@ -18,7 +18,7 @@ export const metadata = {
 
 export default function DemoPage() {
   return (
-    <Wrapper theme="dark" className="font-mono">
+    <Wrapper theme="evil" className="font-mono">
       {/* Header outside Fold */}
       <section className="m-auto w-1/2">
         <div className="dr-layout-block dr-py-64 dt:dr-py-100">

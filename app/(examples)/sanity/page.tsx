@@ -14,7 +14,7 @@ export default async function SanityPage() {
   // Show setup instructions if Sanity is not configured
   if (!isSanityConfigured()) {
     return (
-      <Wrapper theme="red">
+      <Wrapper theme="light">
         <NotConfigured integration="Sanity" />
       </Wrapper>
     )
@@ -28,7 +28,7 @@ export default async function SanityPage() {
   if (!data) return notFound()
 
   return (
-    <Wrapper theme="red" className="font-mono uppercase">
+    <Wrapper theme="light" className="font-mono uppercase">
       <div className="max-dt:dr-px-16 flex grow items-center justify-center">
         <SanityTutorial data={data as Page} />
       </div>

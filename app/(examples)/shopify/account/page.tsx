@@ -8,7 +8,7 @@ export default async function AccountPage() {
   const customer = await getCustomer()
 
   return (
-    <Wrapper theme="red" className="overflow-clip font-mono uppercase">
+    <Wrapper theme="dark" className="overflow-clip font-mono uppercase">
       <section className="flex grow flex-col items-center justify-center max-dt:px-safe">
         <h1 className="p">My Account</h1>
         {customer ? (

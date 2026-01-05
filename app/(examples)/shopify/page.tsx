@@ -9,14 +9,14 @@ export default async function ShopifyPage() {
   // Show setup instructions if Shopify is not configured
   if (!isShopifyConfigured()) {
     return (
-      <Wrapper theme="red">
+      <Wrapper theme="dark">
         <NotConfigured integration="Shopify" />
       </Wrapper>
     )
   }
 
   return (
-    <Wrapper theme="red" className="overflow-clip font-mono uppercase">
+    <Wrapper theme="dark" className="overflow-clip font-mono uppercase">
       <Cart>
         <ShowCart className="fixed top-safe right-safe" />
         <Product />

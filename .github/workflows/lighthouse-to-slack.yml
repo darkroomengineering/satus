@@ -121,6 +121,6 @@ jobs:
             }
 
       - name: Post Commit Comment
-        uses: peter-evans/commit-comment@v3
+        uses: peter-evans/commit-comment@v4
         with:
           body: ${{ steps.format.outputs.comment }}

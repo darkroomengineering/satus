@@ -45,7 +45,6 @@ export function cartReconciler(
 
 function createEmptyCart(): Cart {
   return {
-    id: undefined,
     checkoutUrl: '',
     totalQuantity: 0,
     lines: [],
@@ -159,7 +158,7 @@ function createOrUpdateCartItem(
   const totalAmount = calculateItemCost(quantity, variant.price.amount)
 
   return {
-    id: existingItem?.id,
+    ...(existingItem?.id && { id: existingItem.id }),
     quantity,
     cost: {
       totalAmount: {

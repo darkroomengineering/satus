@@ -18,7 +18,7 @@ export function SelectDemo() {
     <div className="flex flex-col gap-4">
       <Select
         options={fruits}
-        value={value}
+        value={value ?? ''}
         onValueChange={setValue}
         placeholder="Choose a fruit..."
       />

@@ -10,6 +10,31 @@ import {
   useState,
 } from 'react'
 
+// Helper to extract props safe for button elements
+function getButtonProps(props: Record<string, unknown>) {
+  const {
+    href,
+    target,
+    rel,
+    'data-external': _dataExternal,
+    ...buttonProps
+  } = props
+  return buttonProps
+}
+
+// Helper to extract props safe for div elements
+function getDivProps(props: Record<string, unknown>) {
+  const {
+    href,
+    target,
+    rel,
+    onClick,
+    'data-external': _dataExternal,
+    ...divProps
+  } = props
+  return divProps
+}
+
 // import { usePageTransitionNavigate } from '../page-transition/context'
 
 type CustomLinkProps = Omit<
@@ -66,7 +91,7 @@ export function Link({
       <button
         onClick={(e: MouseEvent<HTMLButtonElement>) => onClick(e)}
         type="button"
-        {...(props as React.ComponentProps<'button'>)}
+        {...getButtonProps(props)}
       >
         {children}
       </button>
@@ -75,7 +100,7 @@ export function Link({
 
   // If no href and no onClick, render a div
   if (!href) {
-    return <div {...(props as React.ComponentProps<'div'>)}>{children}</div>
+    return <div {...getDivProps(props)}>{children}</div>
   }
 
   const isActive = pathname === href
@@ -105,7 +130,7 @@ export function Link({
       prefetch={shouldPrefetch}
       scroll={scroll}
       data-active={isActive || undefined}
-      onClick={onClick}
+      {...(onClick && { onClick })}
       {...props}
     >
       {children}

@@ -24,7 +24,7 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
     uDpr: { value: number }
   }
 
-  defines: {
+  override defines: {
     USE_RADIAL: boolean
     USE_FLOWMAP: boolean
     USE_UV: boolean
@@ -79,7 +79,7 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
     this.aspect = this.uniforms.uAspect.value
   }
 
-  onBeforeCompile(parameters: WebGLProgramParametersWithUniforms) {
+  override onBeforeCompile(parameters: WebGLProgramParametersWithUniforms) {
     parameters.uniforms = {
       ...parameters.uniforms,
       ...this.uniforms,

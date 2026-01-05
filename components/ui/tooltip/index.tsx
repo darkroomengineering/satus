@@ -80,7 +80,7 @@ const Positioner = ({
   ...props
 }: ComponentProps<typeof BaseTooltip.Positioner>) => (
   <BaseTooltip.Positioner
-    className={className}
+    {...(className && { className })}
     sideOffset={sideOffset}
     {...props}
   />

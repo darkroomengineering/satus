@@ -21,7 +21,8 @@ export function SizeAndBuy({ product }: { product: Product }) {
         )}
         placeholder="size"
         options={
-          product.options?.find((option) => option.name === 'Size')?.values
+          product.options?.find((option) => option.name === 'Size')?.values ??
+          []
         }
         onChange={(value) => {
           const selected = product.variants?.[value]?.title
@@ -34,7 +35,7 @@ export function SizeAndBuy({ product }: { product: Product }) {
       />
       <AddToCart
         product={product}
-        variant={selectedVariant ?? undefined}
+        {...(selectedVariant && { variant: selectedVariant })}
         className={cn(
           s.add,
           'dr-rounded-8 relative col-span-full dt:col-start-4 dt:-col-end-4 flex cursor-pointer overflow-hidden border-2 border-black'

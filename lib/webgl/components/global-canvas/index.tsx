@@ -121,9 +121,9 @@ export function GlobalCanvas({
         frameloop="never"
         linear
         flat
-        eventSource={
-          typeof document !== 'undefined' ? document.documentElement : undefined
-        }
+        {...(typeof document !== 'undefined' && {
+          eventSource: document.documentElement,
+        })}
         eventPrefix="client"
         resize={{ scroll: false, debounce: 500 }}
         style={{ pointerEvents: isActive ? 'all' : 'none' }}

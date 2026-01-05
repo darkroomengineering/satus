@@ -75,7 +75,7 @@ function Positioner({ sideOffset = 4, className, ...props }: PositionerProps) {
   return (
     <BaseMenu.Positioner
       sideOffset={sideOffset}
-      className={className}
+      {...(className && { className })}
       {...props}
     />
   )

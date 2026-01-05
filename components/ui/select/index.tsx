@@ -113,9 +113,9 @@ function Select<T extends string = string>({
           onValueChange(val as T)
         }
       }}
-      disabled={disabled}
-      name={name}
-      required={required}
+      {...(disabled !== undefined && { disabled })}
+      {...(name && { name })}
+      {...(required !== undefined && { required })}
     >
       {label && (
         <span className={s.label}>
@@ -148,7 +148,7 @@ function Select<T extends string = string>({
                 )}
                 value={value}
                 key={value}
-                disabled={disabled}
+                {...(disabled !== undefined && { disabled })}
               >
                 <BaseSelect.ItemIndicator className="col-start-1">
                   ✓

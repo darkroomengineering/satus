@@ -14,7 +14,7 @@ export class GenericMaterial extends MeshBasicMaterial {
   uniforms: {
     uTime: { value: number }
   }
-  defines?: Record<string, string>
+  override defines?: Record<string, string>
   options?: OptionsType
 
   constructor({ ...props }: OptionsType = {}) {
@@ -32,7 +32,7 @@ export class GenericMaterial extends MeshBasicMaterial {
       (process.env.NODE_ENV === 'development' && RANDOM) // allow HMR
   }
 
-  onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
+  override onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
     console.log(`WebGL: compiling ${this.constructor.name}`)
 
     // uniforms

@@ -28,7 +28,11 @@ export function EmbedHubspotForm({
   const createForm = useCallback(() => {
     if (formCreatedRef.current) return
 
-    if (window.hbspt && isScriptLoaded) {
+    if (
+      window.hbspt &&
+      isScriptLoaded &&
+      process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID
+    ) {
       formCreatedRef.current = true
       window.hbspt.forms.create({
         portalId: process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID,
@@ -40,7 +44,7 @@ export function EmbedHubspotForm({
         onFormReady: () => {
           console.log(`Form ${formId} ready in target ${target}`)
         },
-        onFormSubmitted: onSubmit,
+        ...(onSubmit && { onFormSubmitted: onSubmit }),
       })
     }
   }, [formId, target, onSubmit])

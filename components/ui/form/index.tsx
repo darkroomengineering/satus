@@ -74,10 +74,10 @@ export function Form<T = unknown>({
       key={key}
       setKey={setKey}
       action={action}
-      formId={formId}
-      onSuccess={onSuccess}
-      onError={onError}
-      className={className}
+      formId={formId ?? ''}
+      {...(onSuccess && { onSuccess })}
+      {...(onError && { onError })}
+      className={className ?? ''}
       {...props}
     >
       {children}
@@ -112,7 +112,7 @@ function FormProvider<T = unknown>({
     register,
   } = useForm({
     action: action as FormAction<unknown>,
-    formId,
+    ...(formId && { formId }),
     initialState: null,
   })
 

@@ -63,7 +63,7 @@ export function SplitText({
 
     const split = GSAPSplitText.create(findDeepestElement(splitRef.current), {
       type,
-      mask: mask ? type : undefined,
+      ...(mask && { mask: type }),
       autoSplit: true,
       wordsClass: 'word',
       linesClass: 'line',

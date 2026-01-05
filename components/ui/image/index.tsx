@@ -193,8 +193,8 @@ export function Image({
     <NextImage
       ref={ref}
       fill={!block}
-      width={width}
-      height={height}
+      {...(width !== undefined && { width })}
+      {...(height !== undefined && { height })}
       loading={finalLoading}
       quality={quality}
       alt={alt}
@@ -208,8 +208,8 @@ export function Image({
       unoptimized={unoptimized || isSvg}
       draggable={false}
       onDragStart={(e) => e.preventDefault()}
-      placeholder={finalPlaceholder}
-      blurDataURL={blurDataURL}
+      {...(finalPlaceholder && { placeholder: finalPlaceholder })}
+      {...(blurDataURL && { blurDataURL })}
       preload={preload}
       {...props}
     />

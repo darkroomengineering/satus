@@ -5,7 +5,7 @@ import { WebGLTunnel } from '~/webgl/components/tunnel'
 import { useWebGLElement } from '~/webgl/hooks/use-webgl-element'
 
 const WebGLBox = dynamic(
-  () => import('./webgl.tsx').then(({ WebGLBox }) => WebGLBox),
+  () => import('./webgl').then(({ WebGLBox }) => WebGLBox),
   {
     ssr: false,
   }

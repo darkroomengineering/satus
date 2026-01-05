@@ -115,14 +115,19 @@ function InnerCart() {
                   (merchandise?.product?.featuredImage as { altText?: string })
                     ?.altText ?? ''
                 }
-                width={
-                  (merchandise?.product?.featuredImage as { width?: number })
-                    ?.width
-                }
-                height={
-                  (merchandise?.product?.featuredImage as { height?: number })
-                    ?.height
-                }
+                {...((merchandise?.product?.featuredImage as { width?: number })
+                  ?.width && {
+                  width: (
+                    merchandise.product.featuredImage as { width: number }
+                  ).width,
+                })}
+                {...((
+                  merchandise?.product?.featuredImage as { height?: number }
+                )?.height && {
+                  height: (
+                    merchandise.product.featuredImage as { height: number }
+                  ).height,
+                })}
               />
             </div>
 
@@ -159,9 +164,11 @@ function InnerCart() {
           <p>sub total</p>
           <p>$ {Number(cart?.cost?.subtotalAmount?.amount).toFixed(2)}</p>
         </div>
-        <Link className={s.action} href={cart?.checkoutUrl}>
-          <span> checkout</span>
-        </Link>
+        {cart?.checkoutUrl && (
+          <Link className={s.action} href={cart.checkoutUrl}>
+            <span> checkout</span>
+          </Link>
+        )}
       </div>
     </>
   )

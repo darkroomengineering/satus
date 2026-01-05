@@ -216,7 +216,9 @@ export const InputSelector = {
     className?: string
     idx: number
   }) => {
-    return <InputField {...props} idx={idx} key={idx} className={className} />
+    return (
+      <InputField {...props} idx={idx} key={idx} className={className ?? ''} />
+    )
   },
   multipleOption: ({
     props,
@@ -228,7 +230,12 @@ export const InputSelector = {
     idx: number
   }) => {
     return (
-      <CheckboxesField {...props} idx={idx} key={idx} className={className} />
+      <CheckboxesField
+        {...props}
+        idx={idx}
+        key={idx}
+        className={className ?? ''}
+      />
     )
   },
 }

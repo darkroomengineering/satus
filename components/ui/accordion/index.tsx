@@ -155,10 +155,15 @@ function Root({ children, className, ref, defaultOpen = false }: RootProps) {
 function Button({
   children,
   className,
+  style,
   ...props
 }: HTMLAttributes<HTMLButtonElement>) {
   return (
-    <Collapsible.Trigger className={cn(s.button, className)} {...props}>
+    <Collapsible.Trigger
+      className={cn(s.button, className)}
+      {...(style && { style })}
+      {...props}
+    >
       {children}
     </Collapsible.Trigger>
   )

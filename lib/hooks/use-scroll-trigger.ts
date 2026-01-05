@@ -224,25 +224,25 @@ export function useScrollTrigger(
   const elementMarkerStart = useMarker({
     id,
     type: 'start',
-    visible: markers,
+    visible: markers ?? false,
   })
   const elementMarkerEnd = useMarker({
     id,
     type: 'end',
-    visible: markers,
+    visible: markers ?? false,
   })
 
   const viewportMarkerStart = useMarker({
     id,
     type: 'start',
     fixed: true,
-    visible: markers,
+    visible: markers ?? false,
   })
   const viewportMarkerEnd = useMarker({
     id,
     type: 'end',
     fixed: true,
-    visible: markers,
+    visible: markers ?? false,
   })
 
   const { height: windowHeight = 0 } = useWindowSize()

@@ -11,7 +11,7 @@
   "typescript.suggest.autoImports": true,
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "typescript.tsdk": "node_modules/typescript/lib",
-  "typescript.experimental.useTsgo": true,
+  // "typescript.experimental.useTsgo": true, // Disabled: tsgo doesn't support Next.js plugin
   "javascript.suggest.autoImports": true,
 
   // Editor labels (fixed for .tsx files)

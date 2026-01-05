@@ -162,23 +162,27 @@ export function generateSanityMetadata(options: {
   if (!metadata) {
     // Fallback to basic metadata if none provided
     return generatePageMetadata({
-      title: document.title,
-      url,
+      ...(document.title && { title: document.title }),
+      ...(url && { url }),
       type,
     })
   }
 
   return generatePageMetadata({
-    title: metadata.title || document.title,
-    description: metadata.description,
-    keywords: metadata.keywords,
-    image: {
-      url: metadata.image?.asset?.url,
-    },
-    url,
-    noIndex: metadata.noIndex,
+    ...(metadata.title || document.title
+      ? { title: metadata.title || document.title }
+      : {}),
+    ...(metadata.description && { description: metadata.description }),
+    ...(metadata.keywords && { keywords: metadata.keywords }),
+    ...(metadata.image?.asset?.url && {
+      image: {
+        url: metadata.image.asset.url,
+      },
+    }),
+    ...(url && { url }),
+    ...(metadata.noIndex !== undefined && { noIndex: metadata.noIndex }),
     type,
-    publishedTime: document.publishedAt,
-    modifiedTime: document._updatedAt,
+    ...(document.publishedAt && { publishedTime: document.publishedAt }),
+    ...(document._updatedAt && { modifiedTime: document._updatedAt }),
   })
 }

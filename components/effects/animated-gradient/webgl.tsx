@@ -83,7 +83,7 @@ export function WebGLAnimatedGradient({
         colorFrequency,
         quantize,
         radial,
-        flowmap: hasFlowmap ? flowmap : undefined,
+        ...(hasFlowmap && { flowmap }),
       })
   )
 

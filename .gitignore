@@ -13,6 +13,9 @@
 /.next/
 /out/
 
+# TypeScript
+*.tsbuildinfo
+
 # production
 /build
 /public/sw.js

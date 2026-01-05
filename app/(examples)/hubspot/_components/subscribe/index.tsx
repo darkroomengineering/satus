@@ -42,7 +42,7 @@ export const Subscribe = ({
         )}
         defaultText={form?.submitButton?.text}
       />
-      <Messages className="-sbottom-20 absolute" />
+      <Messages className="absolute -bottom-20" />
     </div>
   )
 }

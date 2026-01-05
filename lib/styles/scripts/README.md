@@ -1,111 +1,29 @@
 # Style Generation Scripts
 
-Scripts for generating and managing the styling system.
+Generate CSS from TypeScript config. Run with `bun setup:styles`.
 
 ## Scripts
 
-**`setup-styles.ts`** - Main style generation
-- Generates `css/root.css` with CSS custom properties
-- Creates Tailwind configuration
-- Runs all generation scripts
+| Script | Output |
+|--------|--------|
+| `setup-styles.ts` | Orchestrates all generation |
+| `generate-root.ts` | → `css/root.css` |
+| `generate-tailwind.ts` | → `css/tailwind.css` |
+| `generate-scale.ts` | Scale utilities |
+| `postcss-functions.mjs` | `mobile-vw()`, `columns()`, etc. |
 
-**`generate-root.ts`** - CSS variables
-- Creates CSS custom properties from TypeScript config
-- Outputs to `css/root.css`
-
-**`generate-tailwind.ts`** - Tailwind config
-- Generates Tailwind configuration from style config
-- Creates theme tokens and utilities
-
-**`generate-scale.ts`** - Scale utilities
-- Generates responsive scale utilities
-- Creates viewport unit helpers
-
-**`postcss-functions.mjs`** - PostCSS functions
-- Implements `mobile-vw()`, `desktop-vw()` functions
-- Implements `mobile-vh()`, `desktop-vh()` functions
-- Implements `columns()` grid function
-
-**`utils.ts`** - Shared utilities
-- Helper functions for script generation
-- Common parsing and formatting
-
-## Usage
-
-```bash
-# Generate styles once
-bun setup:styles
-
-# Watch for changes (already included in bun dev)
-bun --watch ./lib/styles/scripts/setup-styles.ts
-```
-
-## How It Works
-
-1. **Source**: TypeScript config files (`colors.ts`, `typography.ts`, `layout.mjs`, etc.)
-2. **Generation**: Scripts read config and generate CSS/Tailwind
-3. **Output**: `css/root.css` and Tailwind configuration
-4. **Build**: PostCSS processes with custom functions
-
-## Custom PostCSS Functions
-
-### Viewport Units
-
-```css
-.element {
-  width: mobile-vw(375);    /* 375px at mobile viewport */
-  height: desktop-vh(100);  /* 100px at desktop viewport */
-}
-```
-
-### Grid Columns
-
-```css
-.element {
-  width: columns(3);         /* Spans 3 columns + gaps */
-  margin-left: columns(1);   /* Offset by 1 column */
-}
-```
-
-## Configuration Files
-
-Located in `styles/`:
-- `colors.ts` - Color palettes and themes
-- `typography.ts` - Font sizes, line heights, weights
-- `layout.mjs` - Grid, breakpoints, spacing
-- `easings.ts` - Animation easing functions
-- `fonts.ts` - Font loading and configuration
-
-## Customization
-
-To modify styles:
-
-1. Edit config files in `styles/`
-2. Run `bun setup:styles` to regenerate
-3. Styles are automatically applied
-
-## Build Process
+## Build Flow
 
 ```
 TypeScript Config → Generation Scripts → CSS Variables → PostCSS → Output
 ```
 
 1. Edit `colors.ts`, `typography.ts`, etc.
-2. Run generation scripts
-3. PostCSS processes custom functions
-4. Final CSS output to `styles/css/`
+2. Run `bun setup:styles`
+3. Generated CSS is used by PostCSS
 
 ## Best Practices
 
-- Always run `bun setup:styles` after changing config
+- Always run `bun setup:styles` after config changes
+- Never edit `css/root.css` or `css/tailwind.css` directly
 - Use `bun dev` for development (includes style watching)
-- Don't manually edit generated files (`css/root.css`, `css/tailwind.css`)
-- Keep config in TypeScript for type safety
-- Use viewport functions for responsive values
-
-## Related Documentation
-
-- [Styling System](../README.md)
-- [PostCSS Configuration](../../postcss.config.mjs)
-- [Tailwind Configuration](../../next.config.ts)
-

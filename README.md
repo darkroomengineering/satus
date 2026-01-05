@@ -2,339 +2,84 @@
 
 # Satūs
 
-A modern, high-performance React application starter with Next.js 16, React 19, Tailwind CSS v4, and advanced WebGL capabilities. Satūs means "start" or "beginning" in Latin, serving as a foundation for new projects.
+A modern Next.js 16 starter with React 19, Tailwind CSS v4, and optional WebGL. *Satūs* means "beginning" in Latin.
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/darkroomengineering/satus)
 
-> **Note**: This README is for developers working on the Satūs template. For client/team handoff documentation, see [PROD-README.md](PROD-README.md) (replace this README in production projects).
+> **Note**: This README is for template developers. For client handoff, see [PROD-README.md](PROD-README.md).
 
 ## Quick Start
 
-### Using this Template
-
-1. Click **"Use this template"** on GitHub
-2. Clone your new repository
-3. Run the setup:
-
 ```bash
-# Install dependencies
 bun install
-
-# Interactive setup - choose project type and integrations
-bun run setup:project
-
-# Create .env.local (see Environment Variables below)
+bun run setup:project    # Interactive setup - choose integrations
 cp .env.example .env.local
-
-# Start development server
 bun dev
 ```
 
-The setup script offers preset project modes (Full Stack, Marketing Site, E-commerce, Minimal, or Custom) and removes unused integrations and their dependencies, keeping your project lean.
+Or skip setup and keep everything: `bun install && bun dev`
 
-### Manual Setup
+## Tech Stack
 
-Skip the interactive setup if you want everything included:
+| Category | Technologies |
+|----------|--------------|
+| Framework | Next.js 16, React 19.2, TypeScript |
+| Styling | Tailwind CSS v4, CSS Modules |
+| Optional | React Three Fiber, GSAP, Sanity, Shopify, HubSpot |
+| Tooling | Bun, Biome, Turbopack |
+
+## Project Structure
+
+```
+app/                    # Next.js pages and routes
+components/             # UI components
+lib/                    # Everything non-UI
+  ├── hooks/           # Custom React hooks
+  ├── integrations/    # Third-party services
+  ├── styles/          # CSS & Tailwind
+  ├── webgl/           # 3D graphics (optional)
+  └── dev/             # Debug tools (optional)
+```
+
+> **Mental model:** UI → `components/`, everything else → `lib/`
+
+## Documentation
+
+| Area | Documentation |
+|------|---------------|
+| Architecture | [ARCHITECTURE.md](ARCHITECTURE.md) — Key decisions & patterns |
+| App Router | [app/README.md](app/README.md) — Pages, layouts, routing |
+| Components | [components/README.md](components/README.md) — UI reference |
+| Library | [lib/README.md](lib/README.md) — Hooks, utils, integrations |
+| Integrations | [lib/integrations/README.md](lib/integrations/README.md) — Sanity, Shopify, etc. |
+
+## Scripts
 
 ```bash
-bun install
-bun dev        # Development with Turbopack
-bun build      # Production build
-bun start      # Start production server
+bun dev              # Development server
+bun build            # Production build
+bun lint             # Biome linter
+bun run generate     # Generate pages/components
+bun run setup:project  # Configure integrations
 ```
 
-This gives you the complete template with **all integrations** (Sanity, Shopify, HubSpot, Mailchimp, Mandrill), WebGL/R3F support, and debug tools. You can manually remove unused integrations later following the [Integrations Documentation](lib/integrations/README.md).
+## Key Conventions
 
-## 🛠 Tech Stack
-
-- **[Next.js 16](https://nextjs.org)** - React framework with App Router, Turbopack, and Cache Components
-- **[React 19.2](https://react.dev)** - Latest React with `<Activity />`, `useEffectEvent`, and `cacheSignal`
-- **[React Compiler](https://react.dev/reference/react/compiler)** - Automatic optimization enabled
-- **[TypeScript](https://www.typescriptlang.org)** - Type-safe development
-- **[Tailwind v4](https://tailwindcss.com)** - CSS-first configuration
-- **[React Three Fiber](https://docs.pmnd.rs/react-three-fiber)** - React renderer for Three.js
-- **[GSAP](https://greensock.com/gsap/)** - Timeline-based animations
-- **[Biome](https://biomejs.dev)** - Fast formatter and linter
-- **[Bun](https://bun.sh)** - All-in-one JavaScript runtime
-
-## ⚛️ React 19.2 Features
-
-### `<Activity />` Component
-Manages off-screen component visibility and defers updates for better performance:
-
-```tsx
-import { Activity } from 'react'
-
-<Activity mode={isVisible ? 'visible' : 'hidden'}>
-  <ExpensiveComponent />
-</Activity>
-```
-
-**Use Cases:** Tab systems, accordions, off-screen WebGL scenes
-
-### `useEffectEvent` Hook
-Separates event logic from effect dependencies to prevent unnecessary re-runs:
-
-```tsx
-import { useEffect, useEffectEvent } from 'react'
-
-const onConnected = useEffectEvent(() => {
-  showNotification('Connected!', theme) // Theme changes won't trigger reconnect
-})
-
-useEffect(() => {
-  // Only reconnect when url changes
-}, [url])
-```
-
-### `cacheSignal` (Server Components)
-Provides automatic request cleanup when cache scope expires:
-
-```tsx
-import { cacheSignal } from 'react'
-
-async function fetchUserData(id: string) {
-  const signal = cacheSignal() // Auto-aborts on cache expiry
-  const response = await fetch(`/api/users/${id}`, { signal })
-  return response.json()
-}
-```
-
-## 📁 Project Structure
-
-```
-satus/
-├── app/                    # Next.js App Router pages and layouts
-├── components/             # Shared UI components
-├── lib/                    # Everything non-UI
-│   ├── hooks/             # Custom React hooks
-│   ├── integrations/      # Sanity, Shopify, HubSpot, etc.
-│   ├── webgl/             # 3D graphics (optional)
-│   ├── dev/               # Debug tools - CMD+O (optional)
-│   ├── scripts/           # CLI tools (dev, setup)
-│   ├── styles/            # CSS config & Tailwind
-│   └── *.ts               # Utils, store, metadata...
-└── public/                 # Static assets
-```
-
-> **Mental model:** "If it renders UI, it's in `components/`. Everything else is in `lib/`."
-
-## Key Features
-
-### Performance Optimized
-- **Turbopack** for lightning-fast HMR in development
-- **React Server Components** by default
-- **React Compiler** automatically optimizes re-renders and memoization (see [React Compiler section](#react-compiler))
-- **Next.js 16 Cache Components** for advanced caching strategies
-- **React 19.2 `<Activity />`** for off-screen component optimization
-- **Dynamic imports** for code splitting
-- **Image optimization** with a custom thin wrapper around Next.js Image
-- **Font optimization** with Next.js Font
-
-### Modern Styling
-- **Tailwind CSS 4.1.16** with CSS-first configuration
-- **CSS Modules** for component styles
-- **Custom viewport units** (`mobile-vw`, `desktop-vw`)
-- **Theme support** with CSS variables
-
-### Advanced Graphics
-- **WebGL/Three.js** integration with React Three Fiber
-- **Post-processing effects** pipeline
-- **Shader support** with GLSL
-- **Theatre.js** for animation debugging
-- **Optimized 3D performance**
-
-### Developer Experience
-- **TypeScript** with strict mode
-- **Biome 2.3.3** for consistent code style
-- **React Compiler** - automatic optimization (no manual memoization needed)
-- **Hot Module Replacement** with Turbopack
-- **React 19.2 Performance Tracks** in Chrome DevTools
-- **Git hooks** with Lefthook
-- **Debug tools** accessible with `CMD+O`
-
-### Third-Party Integrations
-- **Sanity** - Headless CMS with visual editing
-- **Shopify** - E-commerce with cart functionality
-- **HubSpot** - Forms and marketing automation
-
-## Managing Integrations
-
-Remove unused integrations during setup:
-
-```bash
-bun run setup:project         # Interactive setup - choose which integrations to keep
-```
-
-This removes unused code and dependencies (~250-400KB potential savings). See [Integrations Documentation](lib/integrations/README.md) for detailed instructions.
-
-
-## 🎨 Styling System
-
-### CSS Modules
-Components use CSS modules with the `s` import convention:
-
-```tsx
-import s from './component.module.css'
-
-function Component() {
-  return <div className={s.wrapper} />
-}
-```
-
-### Responsive Design
-Custom viewport functions for responsive sizing:
-
-```css
-.element {
-  width: mobile-vw(150);    /* 150px at mobile viewport */
-  height: desktop-vh(100);  /* 100px at desktop viewport */
-}
-```
-
-### Theme Variables
-CSS variables for consistent theming:
-
-```css
-.element {
-  color: var(--color-text);
-  background-color: var(--color-background);
-}
-```
-
-## 🔧 Development Tools
-
-### Debug Panel (CMD+O)
-- **Theatre.js Studio** - Visual animation editor
-- **FPS Meter** - Performance monitoring
-- **Grid Overlay** - Layout debugging
-- **Minimap** - Page overview
-
-### Available Scripts
-
-```bash
-# Development
-bun dev                     # Start dev server with Turbopack
-bun build                   # Production build
-bun start                   # Start production server
-
-# Code Quality
-bun lint                    # Run Biome linter
-bun lint:fix                # Fix linting issues
-bun typecheck               # TypeScript validation
-
-# Generators
-bun run generate            # Generate new pages or components (interactive)
-
-# Setup & Utilities
-bun run setup:project       # Interactive project setup (choose integrations)
-bun run handoff             # Prepare project for client delivery
-bun setup:styles            # Generate style files
-bun analyze                 # Bundle analysis
-```
-
-## 🌐 Environment Variables
-
-Create a `.env.local` file with your required variables. See [lib/integrations/README.md](lib/integrations/README.md#environment-variables) for the complete list of all available environment variables.
-
-## 📚 Documentation
-
-- [App](app/README.md) - Next.js structure and routing
-- [Components](components/README.md) - UI components
-- [Lib](lib/README.md) - Utilities, hooks, and features
-  - [Integrations](lib/integrations/README.md) - Third-party services
-  - [Styles](lib/styles/README.md) - CSS & Tailwind system
-  - [WebGL](lib/webgl/README.md) - 3D graphics
-  - [Dev Tools](lib/dev/README.md) - Debug tools (CMD+O)
+- **Images**: Use `~/components/ui/image` (never `next/image` directly)
+- **Links**: Use `~/components/ui/link` (auto-handles external links)
+- **CSS Modules**: Import as `s` → `import s from './component.module.css'`
+- **Debug Tools**: Toggle with `Cmd/Ctrl + O`
 
 ## Deployment
-
-Deploy to Vercel (recommended):
 
 ```bash
 vercel
 ```
 
-### GitHub Actions Setup
+**Required GitHub Secret**: `VERCEL_TOKEN` for Lighthouse CI workflow.
 
-Satus includes a Lighthouse workflow that posts performance reports as commit comments. Your existing GitHub → Slack integration forwards these automatically.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for deployment checklist and cache strategies.
 
-**Required GitHub Secret** (Settings → Secrets → Actions):
+## License
 
-| Secret | Where to find it |
-|--------|------------------|
-| `VERCEL_TOKEN` | [Vercel Settings → Tokens](https://vercel.com/account/tokens) |
-
-The workflow auto-discovers your Vercel project by matching the repo name.
-
-### Pre-deployment Checklist
-- [ ] GitHub Secrets configured (see above)
-- [ ] Environment variables configured
-- [ ] Sanity webhooks set up
-- [ ] SSL certificates configured
-
-### Other Platforms
-Supports any Next.js-compatible platform: Vercel, Netlify, AWS Amplify, Google Cloud Run, or self-hosted.
-
-## Important Notes
-
-**Images & Links**
-- ✅ Always use `~/components/ui/link` (auto-detects external, smart prefetch)
-- ✅ Always use `~/components/ui/image` for DOM (never `next/image` directly)
-- ✅ Use `~/webgl/components/image` in WebGL contexts
-- See [Image Component documentation](components/ui/image/README.md) for details
-
-**GSAP & Animation**
-- Add `<GSAPRuntime />` in `app/layout.tsx` for ScrollTrigger + Lenis
-- No manual ticker setup needed
-- See [GSAP documentation](components/effects/gsap/README.md) for setup details
-
-**React Compiler** {#react-compiler}
-- Enabled automatically in `next.config.ts` (`reactCompiler: true`)
-- No need for manual `useMemo`, `useCallback`, or `React.memo` - compiler handles optimization automatically
-- Exception: Use `useRef` for object instantiation to prevent infinite loops
-
-**Sanity**
-- Requires draft mode routes: `/api/draft-mode/enable` and `/api/draft-mode/disable`
-- Must set `NEXT_PUBLIC_BASE_URL` for preview resolution
-
-**Orchestra**
-- Toggle debug tools with `Cmd/Ctrl + O`
-- State persists in `localStorage` and syncs across tabs
-- Automatically excluded from production builds
-
-**Shopify**
-- Use exact env var names: `SHOPIFY_STORE_DOMAIN`, `SHOPIFY_STOREFRONT_ACCESS_TOKEN`
-
-**Next.js 16 Features**
-- Cache Components enabled (`cacheComponents: true`)
-- Typed routes enabled for better TypeScript support
-- Advanced caching strategies available
-
-**⚠️ Cache Components Gotchas:** {#cache-components-gotchas}
-- **Server Components Only**: Cache Components work only in Server Components, not Client Components
-- **Suspense Boundaries Required**: Cached components must be wrapped in Suspense boundaries
-- **User-Specific Data**: Never cache personalized/user-specific data (risk of data leakage between users)
-- **Real-Time Data**: Opt out of caching for live data (stock prices, live feeds) using `cache: 'no-store'`
-- **Development vs Production**: Caching behavior differs - test in both environments
-- **Router Cache vs Data Cache**: Next.js has multiple caching layers - test with hard refresh and navigation
-- **"use cache" Directive**: Use `'use cache'` directive explicitly when you need component-level caching
-- **Dynamic Routes**: Cache invalidation works differently for dynamic routes - use `revalidateTag` or `revalidatePath`
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/fix-everything`)
-3. Commit your changes (`git commit -m 'Add fix everything feature'`)
-4. Push to the branch (`git push origin feature/fix-everything`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Built by [darkroom.engineering](https://darkroom.engineering)
-- Inspired by modern web development best practices
-- Community contributions and feedback
+MIT — Built by [darkroom.engineering](https://darkroom.engineering)

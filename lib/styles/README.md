@@ -1,402 +1,57 @@
-# Styles System Documentation
+# Styles
 
-This document outlines our hybrid styling approach using Tailwind CSS and PostCSS, with custom functions and utilities ported from our previous SASS setup.
+Hybrid styling with Tailwind CSS v4 and custom PostCSS functions.
 
-## Overview
+## PostCSS Functions
 
-Our styling system combines the utility-first approach of Tailwind CSS with custom PostCSS functions and configuration to maintain pixel-perfect designs across different viewport sizes. The system is designed to be responsive, maintainable, and developer-friendly.
-
-## Directory Structure
-
-```
-lib/styles/
-├── css/          # Base CSS files including root variables
-├── scripts/      # Style generation and PostCSS function scripts
-├── colors.ts     # Color definitions and themes
-├── config.ts     # Central configuration export
-├── easings.ts    # Animation easing functions
-├── fonts.ts      # Typography configurations
-├── layout.mjs    # Layout and breakpoint definitions
-└── typography.ts # Typography system settings
-```
-
-## Key Features
-
-### 1. Responsive Units
-
-We provide custom PostCSS functions for converting pixel values to viewport units:
-
-- `mobile-vw(pixels)`: Converts pixels to vw units for mobile viewports
-- `mobile-vh(pixels)`: Converts pixels to vh units for mobile viewports
-- `desktop-vw(pixels)`: Converts pixels to vw units for desktop viewports
-- `desktop-vh(pixels)`: Converts pixels to vh units for desktop viewports
-
-Example usage in CSS:
 ```css
+/* Viewport-relative sizing */
 .element {
-  width: mobile-vw(375);
-  height: mobile-vh(100);
+  width: mobile-vw(375);    /* 375px at mobile viewport */
+  height: desktop-vh(100);  /* 100px at desktop viewport */
+}
+
+/* Grid columns */
+.sidebar {
+  width: columns(3);        /* Spans 3 columns + gaps */
 }
 ```
 
-### 2. Grid System
+## Custom Utilities (`dr-*`)
 
-We implement a custom column-based grid system using CSS custom properties:
+```tsx
+// Responsive sizing (scales with viewport)
+<div className="dr-w-150 dr-h-100" />
 
-- Mobile: 4-column grid (depending on layout.mjs config)
-- Desktop: 12-column grid (depending on layout.mjs config)
+// Column-based sizing
+<div className="dr-w-col-4" />  {/* 4 columns wide */}
 
-The `columns()` function helps calculate widths based on the number of columns:
+// Grid layout
+<div className="dr-grid" />     {/* 4 cols mobile, 12 cols desktop */}
+```
+
+## Breakpoints
 
 ```css
-.element {
-  width: columns(3); /* Spans 3 columns + gaps */
-}
+@media (--mobile) { /* <= 799px */ }
+@media (--desktop) { /* >= 800px */ }
 ```
 
-### 3. Breakpoints
+## Configuration
 
-We use custom media queries for responsive design:
+| File | Purpose |
+|------|---------|
+| `colors.ts` | Color palette & themes |
+| `typography.ts` | Font sizes & weights |
+| `layout.mjs` | Grid, breakpoints, spacing |
+| `easings.ts` | Animation curves |
+| `fonts.ts` | Font loading |
 
-```css
-@custom-media --mobile (width <= 799.98px);
-@custom-media --desktop (width >= 800px);
-```
+After changing config: `bun setup:styles`
 
-Usage:
-```css
-.element {
-  @media (--mobile) {
-    /* Mobile styles */
-  }
-  
-  @media (--desktop) {
-    /* Desktop styles */
-  }
-}
-```
+## Generated Files (Don't Edit)
 
-### 4. Custom Tailwind utilities
+- `css/root.css` — CSS custom properties
+- `css/tailwind.css` — Tailwind utilities
 
-We use the Tailwind v4 @utility directive to create our own custom utilities.
-The basic gist is that you can prefix classic Tailwind classes with an "s" to make it a scaling utility based on the current viewport.
-The number after the dash is the value in pixels for the current viewport.
-There are custom utilities for all tailwind classes that are related to sizing, spacing, etc.
-
-Example:
-```css
-<div className="dr-w-150">
-  <!-- This will be 150px relative to the current viewport off mobile or desktop -->
-</div>
-```
-
-Special utilities for column-based sizes ending in -col-* are available. They will set a value based on the number of columns and the current viewport.
-
-Example:
-```css
-<div className="dr-w-col-4">
-  <!-- This will be 4 columns wide relative to the current viewport off mobile or desktop -->
-</div>
-```
-
-### 5. CSS Custom Properties
-
-Our root.css defines various CSS custom properties for:
-- Viewport dimensions
-- Grid configuration
-- Spacing
-- Header heights
-- Easing functions
-
-These variables automatically adjust based on viewport size.
-
-### 6. PostCSS Configuration
-
-We use several PostCSS plugins to enhance our CSS capabilities:
-- `@tailwindcss/postcss`: Tailwind CSS processing
-- `@csstools/postcss-global-data`: Global CSS context
-- `postcss-extend-rule`: CSS extension capabilities
-- Custom PostCSS functions
-- `postcss-preset-env`: Modern CSS features (includes autoprefixer)
-
-## When to Use What: Styling Decision Tree
-
-Need responsive sizing?
-├─ **In CSS** → Use `mobile-vw(px)` / `desktop-vw(px)` functions for pixel-perfect viewport scaling
-├─ **In JS** → Use `desktopVW()` / `mobileVW()` from `~/utils/viewport` for runtime calculations
-└─ **In Tailwind** → Use `dr-w-*` / `dr-h-*` utilities for common responsive sizing
-
-Need grid-based layout?
-├─ **Quick start** → Use `dr-grid` class for standard grid layouts
-├─ **Custom columns** → Use `columns(n)` PostCSS function for specific column spans
-└─ **Full control** → Use Tailwind grid utilities (`grid-cols-*`, `col-span-*`)
-
-Need animations?
-├─ **CSS transitions** → Use `ease-*` classes or CSS `transition` with our easing variables
-├─ **Complex sequences** → Use GSAP with `~/components/effects/gsap`
-├─ **WebGL shaders** → Use `~/webgl/utils/functions` for GLSL easing
-
-Need component styling?
-├─ **Simple components** → Use Tailwind utilities + `clsx` for conditional classes
-├─ **Complex components** → Use CSS Modules (`.module.css`) for isolation
-├─ **Theme-aware** → Use CSS custom properties from `~/styles/colors`
-
-Need typography?
-├─ **Standard text** → Use Tailwind text utilities (`text-sm`, `font-medium`)
-├─ **Custom sizing** → Use `dr-text-*` utilities for design-system text scales
-└─ **Rich content** → Use `~/components/ui/rich-text` with Sanity Portable Text
-
-Need spacing?
-├─ **Standard spacing** → Use Tailwind spacing utilities (`p-4`, `m-2`)
-├─ **Grid-based** → Use `dr-p-col-*` / `dr-m-col-*` for column-relative spacing
-└─ **Custom values** → Use PostCSS functions or CSS custom properties
-
-## Best Practices
-
-1. **Use Tailwind First**: Start with Tailwind utilities for common styles. Only create custom CSS when needed for specific designs or components.
-
-2. **Responsive Design**:
-   - Use our custom viewport functions for pixel-perfect conversions
-   - Leverage the built-in breakpoint system
-   - Test designs at both mobile and desktop breakpoints
-
-3. **Custom Properties**:
-   - Access theme values through CSS custom properties
-   - Use the columns() function for grid-based layouts
-   - Leverage predefined easing functions for animations
-
-4. **Performance**:
-   - Minimize custom CSS where possible
-   - Use @apply for frequently repeated utility combinations
-   - Leverage CSS composition over inheritance
-
-## Core Directories
-
-### CSS Directory (`/styles/css`)
-
-The CSS directory contains the core stylesheets of the system:
-
-- `global.css`: Global styles and base layer customizations
-- `index.css`: Main entry point that imports and orders all CSS files
-- `reset.css`: CSS reset and normalization
-- `root.css`: Generated CSS custom properties (DO NOT EDIT DIRECTLY)
-- `tailwind.css`: Generated Tailwind utilities (DO NOT EDIT DIRECTLY)
-
-Note: Files marked with "DO NOT EDIT DIRECTLY" are automatically generated by the setup scripts. Make changes to the source configuration files instead.
-
-### Scripts Directory (`/styles/scripts`)
-
-The scripts directory contains the build and generation tools:
-
-- `generate-root.ts`: Generates CSS custom properties from your configuration files
-  - Creates CSS variables for colors, typography, spacing, etc.
-  - Outputs to `root.css`
-
-- `generate-scale.ts`: Creates consistent scaling utilities
-  - Generates size scales for spacing, typography, etc.
-  - Used in combination with Tailwind's configuration
-
-- `generate-tailwind.ts`: Configures Tailwind CSS
-  - Merges your custom configuration with Tailwind's defaults
-  - Sets up custom utilities, variants, and themes
-
-- `postcss-functions.mjs`: Custom PostCSS functions for responsive units
-  - Implements `mobile-vw()`, `desktop-vw()`, etc.
-  - Handles viewport-based calculations
-
-- `setup-styles.ts`: Main orchestration script
-  - Runs all generation scripts in the correct order
-  - Creates the final CSS output files
-  - Updates necessary configurations
-
-When customizing the styling system:
-1. Modify the source configuration files (`colors.ts`, `typography.ts`, etc.)
-2. Run `bun setup:styles` to regenerate the CSS files
-3. Never edit the generated files directly as changes will be lost
-
-## Examples
-
-### Responsive Component
-```css
-.component {
-  width: mobile-vw(335);
-  margin: 0 auto;
-  
-  @media (--desktop) {
-    width: desktop-vw(1200);
-  }
-}
-```
-
-### Grid Usage
-```css
-.grid-element {
-  width: columns(2);
-  margin-right: var(--gap);
-  
-  @media (--desktop) {
-    width: columns(4);
-  }
-}
-```
-
-## Tools and Scripts
-
-The `styles/lib/scripts/` directory contains various utilities:
-- `generate-root.ts`: Generates CSS custom properties
-- `generate-scale.ts`: Creates consistent scaling utilities
-- `generate-tailwind.ts`: Configures Tailwind settings
-- `postcss-functions.mjs`: Custom PostCSS functions
-- `setup-styles.ts`: Style system initialization
-
-## Contributing
-
-When adding new styles:
-1. Check if Tailwind utilities can achieve the desired effect
-2. Use custom PostCSS functions for viewport-specific measurements
-3. Add new variables to the appropriate configuration file
-4. Update this documentation for significant changes
-
-For questions or clarification, consult the team lead or reference this documentation.
-
-## Customizing the Template
-
-Since this is a template repository, you'll likely need to adjust various aspects of the styling system to match your project's design requirements. Here's how to customize key components:
-
-### Typography System (`typography.ts`)
-
-The typography system is defined in `typography.ts`. To customize:
-
-1. Define your font families in the `fonts` object:
-```typescript
-const fonts = {
-  sans: '--font-sans',
-  mono: '--font-mono',
-  display: '--font-display',
-  // Add your custom font variables
-} as const
-```
-
-2. Define typography styles in the `typography` object:
-```typescript
-const typography = {
-  'heading-1': {
-    'font-family': fonts.sans,
-    'font-style': 'normal',
-    'font-weight': 700,
-    'line-height': '120%',
-    'letter-spacing': -0.5,
-    'font-size': 48,
-  },
-  // Add more typography styles
-} as const
-```
-
-### Layout System (`layout.mjs`)
-
-The layout system controls breakpoints, grid settings, and spacing. Customize in `layout.mjs`:
-
-1. Adjust breakpoints:
-```javascript
-const breakpoints = {
-  dt: 800, // Desktop breakpoint
-  // Add more breakpoints if needed
-}
-```
-
-2. Modify viewport sizes:
-```javascript
-const screens = {
-  mobile: { width: 375, height: 650 },   // Default mobile viewport
-  desktop: { width: 1440, height: 816 }, // Default desktop viewport
-}
-```
-
-3. Customize grid settings:
-```javascript
-const layout = {
-  columns: { 
-    mobile: 4,     // Number of columns for mobile
-    desktop: 12,   // Number of columns for desktop
-  },
-  gap: { 
-    mobile: 16,    // Gap between columns (mobile)
-    desktop: 16,   // Gap between columns (desktop)
-  },
-  space: { 
-    mobile: 16,    // Page margin (mobile)
-    desktop: 16,   // Page margin (desktop)
-  },
-}
-```
-
-### Colors and Themes (`colors.ts`)
-
-To customize the color system:
-
-1. Define your color palette
-2. Set up themes for light/dark mode
-3. Add any additional color variants
-
-Example:
-```typescript
-const colors = {
-  primary: '#000000',
-  secondary: '#FFFFFF',
-  // Add your color palette
-} as const
-
-const themes = {
-  light: {
-    background: colors.white,
-    text: colors.black,
-    // Define light theme colors
-  },
-  dark: {
-    background: colors.black,
-    text: colors.white,
-    // Define dark theme colors
-  },
-} as const
-```
-
-### Animation System (`easings.ts`)
-
-Customize animation timing functions in `easings.ts`:
-
-```typescript
-const easings = {
-  'ease-in-out': 'cubic-bezier(0.4, 0, 0.2, 1)',
-  'bounce': 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-  // Add custom easing functions
-} as const
-```
-
-### Updating Generated Files
-
-After customizing these configurations:
-
-1. Run the style generation script:
-```bash
-bun setup:styles
-# or
-npm run setup:styles
-```
-
-This will:
-- Update root CSS variables
-- Regenerate Tailwind configuration
-- Update type definitions
-
-Note: This project uses Bun as the JavaScript runtime. Make sure you have Bun installed (see https://bun.sh).
-
-### Testing Your Changes
-
-After customization:
-
-1. Check responsive layouts at different breakpoints
-2. Verify typography scales across viewports
-3. Test color themes and transitions
-4. Validate grid system with example components
-
-Remember to update any existing components that might be affected by your customizations. 
+See [scripts/README.md](scripts/README.md) for generation details.

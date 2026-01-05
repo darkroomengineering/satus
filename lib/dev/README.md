@@ -1,68 +1,33 @@
-# Orchestra
+# Orchestra (Dev Tools)
 
-Debug and development tools suite for Satūs.
+Debug tools suite. Toggle with `Cmd/Ctrl + O`.
 
 ## Features
 
-Toggle with `Cmd/Ctrl + O`:
-
-- **Theatre.js Studio** (⚙️) - Animation debugging and sequencing
-- **Stats** (📈) - FPS and performance metrics
-- **Grid** (🌐) - Layout grid visualization
-- **Minimap** (🗺️) - Page navigation overview
-- **Dev Mode** (🚧) - Development mode toggle
-- **Screenshot Mode** (📸) - Clean screenshots without UI
-
-## Components
-
-- `cmdo.tsx` - Command center (Cmd+O)
-- `grid/` - Layout grid debugger
-- `minimap/` - Viewport minimap
-- `stats/` - Performance monitoring
-- `theatre/` - Theatre.js integration
-- `toggle.tsx` - Tool toggles
-- `orchestra.ts` - Core module
+| Tool | Description |
+|------|-------------|
+| Theatre.js (⚙️) | Animation debugging |
+| Stats (📈) | FPS and performance |
+| Grid (🌐) | Layout grid overlay |
+| Minimap (🗺️) | Page navigation |
+| Dev Mode (🚧) | Development toggle |
+| Screenshot (📸) | Clean UI captures |
 
 ## Usage
 
-```tsx
-import { OptionalFeatures } from '~/lib/features'
+Automatically included via `OptionalFeatures` in `app/layout.tsx`. Only loads in development.
 
-// OrchestraTools are automatically included in OptionalFeatures
-// in app/layout.tsx - they only load in development mode
-<OptionalFeatures />
-```
+State persists in `localStorage` and syncs across tabs.
 
-Tool state persists in `localStorage` and syncs across tabs.
-
-## Theatre.js Integration
-
-Use Theatre.js for complex animation sequences:
+## Theatre.js
 
 ```tsx
-import { SheetProvider } from '~/lib/dev/theatre'
-import { useTheatreValue } from '~/lib/dev/theatre/hooks/use-theatre-value'
+import { SheetProvider, useTheatreValue } from '~/lib/dev/theatre'
 
 function AnimatedComponent() {
   const opacity = useTheatreValue('opacity', 1)
-  
-  return (
-    <SheetProvider id="scene">
-      <div style={{ opacity }}>Animated content</div>
-    </SheetProvider>
-  )
+  return <div style={{ opacity }}>...</div>
 }
 ```
 
-## Best Practices
-
-- Orchestra tools are excluded from production builds
-- Use Theatre.js for complex animation choreography
-- Enable Grid for layout debugging
-- Monitor Stats for performance issues
-- Use Minimap for long pages
-
-## Related Documentation
-
-- [Theatre.js](https://www.theatrejs.com/)
-- [Components](../components/README.md)
+Production builds automatically exclude all dev tools.

@@ -9,7 +9,7 @@ export function AlertDialogDemo() {
         trigger={
           <button
             type="button"
-            className="dr-rounded-8 bg-white/10 dr-px-16 dr-py-10 hover:bg-white/20"
+            className="dr-rounded-8 dr-px-16 dr-py-10 bg-white/10 hover:bg-white/20"
           >
             Confirm Action
           </button>
@@ -24,7 +24,7 @@ export function AlertDialogDemo() {
         trigger={
           <button
             type="button"
-            className="dr-rounded-8 bg-red-500/20 text-red-400 dr-px-16 dr-py-10 hover:bg-red-500/30"
+            className="dr-rounded-8 dr-px-16 dr-py-10 bg-red-500/20 text-red-400 hover:bg-red-500/30"
           >
             Delete Item
           </button>

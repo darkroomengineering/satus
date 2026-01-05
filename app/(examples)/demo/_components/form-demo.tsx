@@ -38,7 +38,7 @@ export function FormDemo() {
         />
         <Messages />
         <SubmitButton
-          className="dr-rounded-8 bg-white/10 dr-px-16 dr-py-10 hover:bg-white/20 disabled:opacity-50"
+          className="dr-rounded-8 dr-px-16 dr-py-10 bg-white/10 hover:bg-white/20 disabled:opacity-50"
           defaultText="Send Message"
           pendingText="Sending..."
           successText="Sent!"

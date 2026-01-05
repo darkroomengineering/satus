@@ -5,7 +5,7 @@ import { Menu } from '~/components/ui/menu'
 export function MenuDemo() {
   return (
     <Menu.Root>
-      <Menu.Trigger className="dr-rounded-8 bg-white/10 dr-px-16 dr-py-10 hover:bg-white/20">
+      <Menu.Trigger className="dr-rounded-8 dr-px-16 dr-py-10 bg-white/10 hover:bg-white/20">
         Open Menu
         <Menu.Arrow />
       </Menu.Trigger>

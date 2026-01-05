@@ -7,10 +7,10 @@ export function AccordionDemo() {
   return (
     <div className="w-full max-w-md">
       <Accordion.Group>
-        <Accordion.Root className="border-b border-white/20">
+        <Accordion.Root className="border-white/20 border-b">
           {({ isOpen }) => (
             <>
-              <Accordion.Button className="flex w-full justify-between dr-py-12 text-left">
+              <Accordion.Button className="dr-py-12 flex w-full justify-between text-left">
                 <span>What is Satūs?</span>
                 <span
                   className={cn('transition-transform', isOpen && 'rotate-180')}
@@ -27,10 +27,10 @@ export function AccordionDemo() {
           )}
         </Accordion.Root>
 
-        <Accordion.Root className="border-b border-white/20">
+        <Accordion.Root className="border-white/20 border-b">
           {({ isOpen }) => (
             <>
-              <Accordion.Button className="flex w-full justify-between dr-py-12 text-left">
+              <Accordion.Button className="dr-py-12 flex w-full justify-between text-left">
                 <span>Why Base UI?</span>
                 <span
                   className={cn('transition-transform', isOpen && 'rotate-180')}
@@ -47,10 +47,10 @@ export function AccordionDemo() {
           )}
         </Accordion.Root>
 
-        <Accordion.Root className="border-b border-white/20">
+        <Accordion.Root className="border-white/20 border-b">
           {({ isOpen }) => (
             <>
-              <Accordion.Button className="flex w-full justify-between dr-py-12 text-left">
+              <Accordion.Button className="dr-py-12 flex w-full justify-between text-left">
                 <span>How does Activity work?</span>
                 <span
                   className={cn('transition-transform', isOpen && 'rotate-180')}

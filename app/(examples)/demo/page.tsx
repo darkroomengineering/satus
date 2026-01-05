@@ -20,7 +20,7 @@ export default function DemoPage() {
   return (
     <Wrapper theme="dark" className="font-mono">
       {/* Header outside Fold */}
-      <section className="w-1/2 m-auto">
+      <section className="m-auto w-1/2">
         <div className="dr-layout-block dr-py-64 dt:dr-py-100">
           <header className="dr-mb-48 dt:dr-mb-64">
             <h1 className="dr-text-32 dt:dr-text-48 font-bold">Components</h1>
@@ -113,8 +113,8 @@ export default function DemoPage() {
 
       {/* Notes Section - outside Fold container with z-index to sit above */}
       <footer className="relative z-10 bg-black">
-        <div className="m-auto w-1/2 dr-py-64 dt:dr-py-100 h-svh">
-          <div className="border-t border-white/20 dr-pt-32">
+        <div className="dr-py-64 dt:dr-py-100 m-auto h-svh w-1/2">
+          <div className="dr-pt-32 border-white/20 border-t">
             <h3 className="dr-text-18 font-semibold">Additional Components</h3>
             <p className="dr-mt-8 text-sm opacity-60">
               These components are available but not demoed here:
@@ -161,8 +161,8 @@ function Section({
   children: React.ReactNode
 }) {
   return (
-    <section className="flex h-svh items-center justify-center ">
-      <div className="dr-rounded-12 dt:dr-rounded-16 w-full max-w-3xl border border-white/20 bg-zinc-900 dr-p-24 dt:dr-p-32 bg-black">
+    <section className="flex h-svh items-center justify-center">
+      <div className="dr-rounded-12 dt:dr-rounded-16 dr-p-24 dt:dr-p-32 w-full max-w-3xl border border-white/20 bg-black bg-zinc-900">
         <div className="dr-mb-16 dt:dr-mb-24">
           <h3 className="dr-text-18 dt:dr-text-24 font-semibold">{title}</h3>
           <p className="dr-mt-4 text-sm opacity-60">{description}</p>

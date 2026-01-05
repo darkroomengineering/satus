@@ -1,6 +1,6 @@
 'use client'
 
-import { Menu as BaseMenu } from '@base-ui-components/react/menu'
+import { Menu as BaseMenu } from '@base-ui/react/menu'
 import cn from 'clsx'
 import type { ComponentProps, ReactNode } from 'react'
 import s from './menu.module.css'

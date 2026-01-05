@@ -1,6 +1,6 @@
 'use client'
 
-import { Select as BaseSelect } from '@base-ui-components/react/select'
+import { Select as BaseSelect } from '@base-ui/react/select'
 import cn from 'clsx'
 import type { ComponentProps } from 'react'
 import s from './select.module.css'

@@ -1,6 +1,6 @@
 'use client'
 
-import { Dialog } from '@base-ui-components/react/dialog'
+import { Dialog } from '@base-ui/react/dialog'
 import { useEffect, useState } from 'react'
 import Orchestra from './orchestra'
 import { OrchestraToggle } from './toggle'

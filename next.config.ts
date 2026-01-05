@@ -86,7 +86,7 @@ const nextConfig: NextConfig = {
       'gsap',
       'three',
       'postprocessing',
-      '@base-ui-components/react',
+      '@base-ui/react',
       'lenis',
       'zustand',
       '@sanity/client',

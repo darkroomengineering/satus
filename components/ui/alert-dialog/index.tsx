@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertDialog as BaseAlertDialog } from '@base-ui-components/react/alert-dialog'
+import { AlertDialog as BaseAlertDialog } from '@base-ui/react/alert-dialog'
 import cn from 'clsx'
 import type { ComponentProps, ReactNode } from 'react'
 import s from './alert-dialog.module.css'

@@ -22,10 +22,10 @@ function MyComponent({ className }) {
 ```
 
 ### Base UI Components
-Use components from `@base-ui-components/react` when available
+Use components from `@base-ui/react` when available
 
 ```tsx
-import { Select } from '@base-ui-components/react/select'
+import { Select } from '@base-ui/react/select'
 ```
 
 ### Animation Libraries

@@ -1,0 +1,131 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0 0 0 / 0.5);
+  z-index: 100;
+  backdrop-filter: blur(2px);
+
+  /* Base UI animation states */
+  transition: opacity 150ms ease-out;
+  opacity: 1;
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+  }
+}
+
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 101;
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-secondary);
+  border-radius: mobile-vw(8px);
+  padding: mobile-vw(24px);
+  max-width: min(400px, 90vw);
+  width: 100%;
+  box-shadow: 0 8px 32px rgba(0 0 0 / 0.2);
+
+  /* Base UI animation states */
+  transition:
+    transform 150ms ease-out,
+    opacity 150ms ease-out;
+  opacity: 1;
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+
+  @media (--desktop) {
+    border-radius: desktop-vw(8px);
+    padding: desktop-vw(24px);
+  }
+}
+
+.title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-secondary);
+  margin: 0 0 mobile-vw(8px);
+
+  @media (--desktop) {
+    margin: 0 0 desktop-vw(8px);
+  }
+}
+
+.description {
+  color: var(--color-secondary);
+  opacity: 0.7;
+  margin: 0 0 mobile-vw(20px);
+  line-height: 1.5;
+
+  @media (--desktop) {
+    margin: 0 0 desktop-vw(20px);
+  }
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: mobile-vw(8px);
+
+  @media (--desktop) {
+    gap: desktop-vw(8px);
+  }
+}
+
+.cancel,
+.confirm {
+  padding: mobile-vw(8px) mobile-vw(16px);
+  border-radius: mobile-vw(4px);
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+
+  @media (--desktop) {
+    padding: desktop-vw(8px) desktop-vw(16px);
+    border-radius: desktop-vw(4px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-contrast);
+    outline-offset: 2px;
+  }
+}
+
+.cancel {
+  background-color: transparent;
+  color: var(--color-secondary);
+  border: 1px solid var(--color-secondary);
+
+  @media (--hover) {
+    &:hover {
+      background-color: var(--color-secondary);
+      color: var(--color-primary);
+    }
+  }
+}
+
+.confirm {
+  background-color: var(--color-contrast);
+  color: var(--color-primary);
+
+  @media (--hover) {
+    &:hover {
+      opacity: 0.9;
+    }
+  }
+
+  &.destructive {
+    background-color: #dc2626;
+  }
+}

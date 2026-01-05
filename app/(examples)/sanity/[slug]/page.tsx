@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { Wrapper } from '~/components/layout/wrapper'
 import { sanityFetch } from '~/integrations/sanity/live'
 import { articleQuery } from '~/integrations/sanity/queries'
+import type { Article } from '~/integrations/sanity/sanity.types'
 import { generateSanityMetadata } from '~/utils'
 import { SanityArticle } from './_components/article'
 
@@ -29,7 +30,7 @@ export default async function SanityArticlePage({
   return (
     <Wrapper theme="red" className="font-mono uppercase">
       <div className="max-dt:dr-px-16 flex grow items-center justify-center">
-        <SanityArticle data={data} />
+        <SanityArticle data={data as Article} />
       </div>
     </Wrapper>
   )

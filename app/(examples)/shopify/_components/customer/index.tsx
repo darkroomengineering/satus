@@ -2,33 +2,15 @@
 
 import { Form, SubmitButton } from '~/components/ui/form'
 import { InputField } from '~/components/ui/form/fields'
-
-// import {
-//   LoginCustomerAction,
-//   LogoutCustomerAction,
-//   CreateCustomerAction,
-// } from 'libs/shopify/customer/actions'
-
-// function InputField({ type, id, placeholder, required, value, onChange }) {
-//   return (
-//     <div className="field">
-//       <input
-//         type={type}
-//         id={id}
-//         name={id}
-//         required={required}
-//         placeholder={placeholder}
-//         className="input"
-//         value={value}
-//         onChange={onChange}
-//       />
-//     </div>
-//   )
-// }
+import {
+  CreateCustomerAction,
+  LoginCustomerAction,
+  LogoutCustomerAction,
+} from '~/integrations/shopify/customer/actions'
 
 export function LoginForm() {
   return (
-    <Form action={'LoginCustomerAction'}>
+    <Form action={LoginCustomerAction}>
       <InputField
         type="email"
         id="email"
@@ -50,7 +32,7 @@ export function LoginForm() {
 
 export function RegisterForm() {
   return (
-    <Form action={'CreateCustomerAction'}>
+    <Form action={CreateCustomerAction}>
       <InputField
         type="text"
         id="firstName"
@@ -86,7 +68,7 @@ export function RegisterForm() {
 
 export function LogoutButton() {
   return (
-    <Form action={'LogoutCustomerAction'}>
+    <Form action={LogoutCustomerAction}>
       <SubmitButton defaultText="Logout" />
     </Form>
   )

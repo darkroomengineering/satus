@@ -14,19 +14,26 @@ const nextDevArgs = ['bun', 'next', 'dev']
 if (isHttps) nextDevArgs.push('--experimental-https')
 if (isInspect) nextDevArgs.push('--inspect')
 
+// Build environment with FORCE_COLOR, removing NO_COLOR to prevent warning
+const devEnv = { ...process.env, FORCE_COLOR: '1' } as Record<
+  string,
+  string | undefined
+>
+delete devEnv.NO_COLOR
+
 const processes = [
   // Style watcher
   Bun.spawn(['bun', '--watch', './lib/styles/scripts/setup-styles.ts'], {
     stdout: 'inherit',
     stderr: 'inherit',
-    env: { ...process.env, FORCE_COLOR: '1' },
+    env: devEnv,
   }),
 
   // Next.js dev server
   Bun.spawn(nextDevArgs, {
     stdout: 'inherit',
     stderr: 'inherit',
-    env: { ...process.env, FORCE_COLOR: '1' },
+    env: devEnv,
   }),
 ]
 

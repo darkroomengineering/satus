@@ -1,90 +1,152 @@
 'use client'
 
 import cn from 'clsx'
-import {
-  createContext,
-  type Dispatch,
-  type HTMLAttributes,
-  type SetStateAction,
-  useContext,
-  useEffect,
-  useState,
-} from 'react'
-import { HubspotNewsletterAction } from '~/integrations/hubspot/action'
-import {
-  CreateCustomerAction,
-  LoginCustomerAction,
-  LogoutCustomerAction,
-} from '~/integrations/shopify/customer/actions'
+import { createContext, useContext, useEffect, useState } from 'react'
 import { mutate } from '~/utils'
 import s from './form.module.css'
 import { useForm } from './hook'
+import type {
+  FormAction,
+  FormContextValue,
+  FormProps,
+  FormState,
+  MessagesProps,
+  SubmitButtonProps,
+} from './types'
 
-type FormProps = HTMLAttributes<HTMLFormElement> & {
-  formId?: string
-  action: keyof typeof formsActions
+/**
+ * Form component with built-in state management and server action support.
+ *
+ * @example
+ * ```tsx
+ * // Basic usage with any server action
+ * async function submitAction(prevState: FormState | null, formData: FormData) {
+ *   'use server'
+ *   const email = formData.get('email')
+ *   // Process form...
+ *   return { status: 200, message: 'Success!' }
+ * }
+ *
+ * <Form action={submitAction}>
+ *   <Input id="email" type="email" label="Email" />
+ *   <SubmitButton>Subscribe</SubmitButton>
+ * </Form>
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // With success callback
+ * <Form
+ *   action={contactAction}
+ *   onSuccess={(state) => console.log('Submitted:', state)}
+ *   onError={(state) => console.log('Error:', state)}
+ * >
+ *   {children}
+ * </Form>
+ * ```
+ */
+
+// Context
+const FormContext = createContext<FormContextValue | null>(null)
+
+export function useFormContext() {
+  const context = useContext(FormContext)
+  if (!context) {
+    throw new Error('useFormContext must be used within a Form')
+  }
+  return context
 }
 
-export function Form({ children, ...props }: FormProps) {
+// Main Form component
+export function Form<T = unknown>({
+  children,
+  action,
+  formId,
+  onSuccess,
+  onError,
+  className,
+  ...props
+}: FormProps<T>) {
   const [key, setKey] = useState<string | null>(null)
 
   return (
-    <FormProvider key={key} setKey={setKey} {...props}>
+    <FormProvider
+      key={key}
+      setKey={setKey}
+      action={action}
+      formId={formId}
+      onSuccess={onSuccess}
+      onError={onError}
+      className={className}
+      {...props}
+    >
       {children}
     </FormProvider>
   )
 }
 
-type FormContextValue = Omit<
-  ReturnType<typeof useForm>,
-  'formAction' | 'onSubmit'
->
-
-const FormContext = createContext<FormContextValue>(null!)
-
-export function useFormContext() {
-  return useContext(FormContext)
+// Provider
+type FormProviderProps<T> = FormProps<T> & {
+  setKey: (key: string | null) => void
 }
 
-type FormProviderProps = FormProps & {
-  setKey: Dispatch<SetStateAction<string | null>>
-}
-
-export function FormProvider({
+function FormProvider<T = unknown>({
   children,
   setKey,
   formId,
   action,
+  onSuccess,
+  onError,
   className,
   ...props
-}: FormProviderProps) {
-  const { formAction, onSubmit, ...helpers } = useForm({
-    // TODO: Fix useForm overloads
-    // @ts-expect-error - no time to type, this usage works
-    action: formsActions[action],
+}: FormProviderProps<T>) {
+  const {
+    formAction,
+    onSubmit,
+    formState,
+    isPending,
+    isReady,
+    isActive,
+    isValid,
+    errors,
+    register,
+  } = useForm({
+    action: action as FormAction<unknown>,
     formId,
     initialState: null,
-    dependencies: [],
   })
 
+  // Handle success/error callbacks
   useEffect(() => {
-    // TODO: Fix useForm overloads
-    // @ts-expect-error - no time to type, this usage works
-    if (helpers?.formState?.status) {
+    if (!formState) return
+
+    if (formState.status === 200) {
+      onSuccess?.(formState as FormState<T>)
+      // Reset form after success
       mutate(() => {
         setTimeout(() => {
           setKey(crypto.randomUUID())
         }, 2000)
       })
+    } else if (formState.status >= 400) {
+      onError?.(formState as FormState<T>)
     }
-    // TODO: Fix useForm overloads
-    // @ts-expect-error - no time to type, this usage works
-  }, [helpers?.formState?.status, setKey])
+  }, [formState, onSuccess, onError, setKey])
+
+  const contextValue: FormContextValue = {
+    formState,
+    isPending,
+    isReady,
+    isActive,
+    isValid,
+    errors,
+    register,
+  }
 
   return (
-    <FormContext.Provider value={helpers}>
+    <FormContext.Provider value={contextValue}>
       <form
-        className={className}
+        className={cn(s.form, className)}
         action={formAction}
         onSubmit={onSubmit}
         {...props}
@@ -95,35 +157,42 @@ export function FormProvider({
   )
 }
 
-type SubmitButtonProps = {
-  className?: string
-  defaultText?: string
-}
-
+// Submit Button
 export function SubmitButton({
   className,
-  defaultText = 'submit',
+  children,
+  defaultText = 'Submit',
+  pendingText = 'Submitting...',
+  successText = 'Success!',
+  errorText = 'Error',
+  ...props
 }: SubmitButtonProps) {
-  const [buttonText, setButtonText] = useState(defaultText)
   const { isReady, isPending, formState } = useFormContext()
-  // TODO: Fix useForm overloads
-  // @ts-expect-error - no time to type, this usage works
-  const submitted = formState?.status === 200
-  // TODO: Fix useForm overloads
-  // @ts-expect-error - no time to type, this usage works
-  const error = formState?.status === 500
+  const [buttonText, setButtonText] = useState(defaultText)
+
+  const isSuccess = formState?.status === 200
+  const isError = formState?.status && formState.status >= 400
 
   useEffect(() => {
-    if (submitted) {
-      setButtonText('success')
+    if (isSuccess) {
+      setButtonText(successText)
+    } else if (isError) {
+      setButtonText(errorText)
+    } else if (isPending) {
+      setButtonText(pendingText)
+    } else {
+      setButtonText(children?.toString() ?? defaultText)
     }
-    if (error) {
-      setButtonText('error')
-    }
-    if (isPending) {
-      setButtonText('pending')
-    }
-  }, [isPending, submitted, error])
+  }, [
+    isPending,
+    isSuccess,
+    isError,
+    successText,
+    errorText,
+    pendingText,
+    defaultText,
+    children,
+  ])
 
   return (
     <button
@@ -139,32 +208,40 @@ export function SubmitButton({
         s.submit,
         !isReady && s.disabled,
         isPending && s.pending,
-        submitted && s.submitted,
-        error && s.error
+        isSuccess && s.submitted,
+        isError && s.error
       )}
+      {...props}
     >
       <span>{buttonText}</span>
     </button>
   )
 }
 
-export function Messages({ className }: { className?: string }) {
-  const { errors } = useFormContext()
+// Messages (error display)
+export function Messages({ className, ...props }: MessagesProps) {
+  const { errors, formState } = useFormContext()
+
+  const allErrors = [
+    ...errors.filter((e) => e.state).map((e) => e.message),
+    ...(formState?.status && formState.status >= 400
+      ? [formState.message]
+      : []),
+  ]
+
+  if (allErrors.length === 0) return null
 
   return (
-    <div className={cn(s.messages, className)}>
-      {errors.map((error) => (
-        <p className={cn('p-xs', s.error)} key={error.message}>
-          {error.message}
+    <div className={cn(s.messages, className)} {...props}>
+      {allErrors.map((message) => (
+        <p className={cn('p-xs', s.error)} key={message}>
+          {message}
         </p>
       ))}
     </div>
   )
 }
 
-const formsActions = {
-  HubspotNewsletterAction: HubspotNewsletterAction,
-  LoginCustomerAction: LoginCustomerAction,
-  LogoutCustomerAction: LogoutCustomerAction,
-  CreateCustomerAction: CreateCustomerAction,
-}
+export { useForm } from './hook'
+// Re-export types
+export type { FormAction, FormState } from './types'

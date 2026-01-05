@@ -1,6 +1,7 @@
 'use server'
 
 import { cookies } from 'next/headers'
+import type { FormState } from '~/components/ui/form/types'
 import { shopifyFetch } from '../index'
 import {
   customerAccessTokenCreateMutation,
@@ -9,16 +10,10 @@ import {
 } from '../mutations/customer'
 import { getCustomerQuery } from '../queries/customer'
 
-interface ActionResult {
-  error?: string
-  success?: boolean
-  customer?: unknown
-}
-
 export async function LoginCustomerAction(
-  _prevState: unknown,
+  _prevState: FormState | null,
   formData: FormData
-): Promise<ActionResult> {
+): Promise<FormState> {
   const email = formData.get('email')
   const password = formData.get('password')
 
@@ -43,7 +38,7 @@ export async function LoginCustomerAction(
       res.body.data.customerAccessTokenCreate
 
     if (customerUserErrors.length) {
-      return { error: customerUserErrors[0].message }
+      return { status: 400, message: customerUserErrors[0].message }
     }
 
     if (customerAccessToken) {
@@ -55,13 +50,19 @@ export async function LoginCustomerAction(
       })
     }
 
-    return { success: true }
+    return { status: 200, message: 'Login successful' }
   } catch (_error) {
-    return { error: 'An unexpected error occurred. Please try again.' }
+    return {
+      status: 500,
+      message: 'An unexpected error occurred. Please try again.',
+    }
   }
 }
 
-export async function LogoutCustomerAction(): Promise<ActionResult> {
+export async function LogoutCustomerAction(
+  _prevState: FormState | null,
+  _formData: FormData
+): Promise<FormState> {
   const _cookies = await cookies()
   const customerAccessToken = _cookies.get('customerAccessToken')?.value
 
@@ -80,13 +81,13 @@ export async function LogoutCustomerAction(): Promise<ActionResult> {
     _cookies.delete('customerAccessToken')
   }
 
-  return { success: true }
+  return { status: 200, message: 'Logged out successfully' }
 }
 
 export async function CreateCustomerAction(
-  _prevState: unknown,
+  _prevState: FormState | null,
   formData: FormData
-): Promise<ActionResult> {
+): Promise<FormState> {
   const firstName = formData.get('firstName')
   const lastName = formData.get('lastName')
   const email = formData.get('email')
@@ -114,12 +115,19 @@ export async function CreateCustomerAction(
     const { customer, customerUserErrors } = res.body.data.customerCreate
 
     if (customerUserErrors.length) {
-      return { error: customerUserErrors[0].message }
+      return { status: 400, message: customerUserErrors[0].message }
     }
 
-    return { success: true, customer }
+    return {
+      status: 200,
+      message: 'Account created successfully',
+      data: customer,
+    }
   } catch (_error) {
-    return { error: 'An unexpected error occurred. Please try again.' }
+    return {
+      status: 500,
+      message: 'An unexpected error occurred. Please try again.',
+    }
   }
 }
 

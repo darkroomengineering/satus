@@ -1,10 +1,10 @@
 import type { QueryParams } from 'next-sanity'
-import { cacheSignal } from 'react'
+import { cache, cacheSignal } from 'react'
 import { isSanityConfigured } from '~/integrations/check-integration'
 import { client } from './client'
 
 /**
- * Fetch helper for Sanity queries with automatic cache signal integration.
+ * Internal fetch helper for Sanity queries with automatic cache signal integration.
  * The cacheSignal automatically aborts the request when:
  * - React has successfully completed rendering
  * - The render was aborted
@@ -14,7 +14,7 @@ import { client } from './client'
  *
  * @see https://react.dev/reference/react/cacheSignal
  */
-export async function fetchSanity<T>(
+async function fetchSanityInternal<T>(
   query: string,
   params: QueryParams = {},
   options: {
@@ -48,12 +48,22 @@ export async function fetchSanity<T>(
 }
 
 /**
- * Fetch a page by slug with cacheSignal integration
+ * Public fetch helper wrapped with React cache() for request deduplication.
+ * Multiple calls with the same query + params in the same render will only
+ * make one actual request.
+ *
+ * @see https://react.dev/reference/react/cache
  */
-export async function fetchPage(slug: string) {
+export const fetchSanity = cache(fetchSanityInternal)
+
+/**
+ * Fetch a page by slug with request deduplication.
+ * Uses React cache() to ensure generateMetadata() and page() share the same request.
+ */
+export const fetchPage = cache(async (slug: string) => {
   const { pageQuery } = await import('./queries')
 
-  return fetchSanity(
+  return fetchSanityInternal(
     pageQuery,
     { slug },
     {
@@ -63,15 +73,15 @@ export async function fetchPage(slug: string) {
       },
     }
   )
-}
+})
 
 /**
- * Fetch a page by ID with cacheSignal integration
+ * Fetch a page by ID with request deduplication.
  */
-export async function fetchPageById(id: string) {
+export const fetchPageById = cache(async (id: string) => {
   const { pageByIdQuery } = await import('./queries')
 
-  return fetchSanity(
+  return fetchSanityInternal(
     pageByIdQuery,
     { id },
     {
@@ -81,15 +91,15 @@ export async function fetchPageById(id: string) {
       },
     }
   )
-}
+})
 
 /**
- * Fetch an article by slug with cacheSignal integration
+ * Fetch an article by slug with request deduplication.
  */
-export async function fetchArticle(slug: string) {
+export const fetchArticle = cache(async (slug: string) => {
   const { articleQuery } = await import('./queries')
 
-  return fetchSanity(
+  return fetchSanityInternal(
     articleQuery,
     { slug },
     {
@@ -99,15 +109,15 @@ export async function fetchArticle(slug: string) {
       },
     }
   )
-}
+})
 
 /**
- * Fetch an article by ID with cacheSignal integration
+ * Fetch an article by ID with request deduplication.
  */
-export async function fetchArticleById(id: string) {
+export const fetchArticleById = cache(async (id: string) => {
   const { articleByIdQuery } = await import('./queries')
 
-  return fetchSanity(
+  return fetchSanityInternal(
     articleByIdQuery,
     { id },
     {
@@ -117,15 +127,15 @@ export async function fetchArticleById(id: string) {
       },
     }
   )
-}
+})
 
 /**
- * Fetch all articles with cacheSignal integration
+ * Fetch all articles with request deduplication.
  */
-export async function fetchAllArticles() {
+export const fetchAllArticles = cache(async () => {
   const { allArticlesQuery } = await import('./queries')
 
-  return fetchSanity(
+  return fetchSanityInternal(
     allArticlesQuery,
     {},
     {
@@ -135,4 +145,4 @@ export async function fetchAllArticles() {
       },
     }
   )
-}
+})

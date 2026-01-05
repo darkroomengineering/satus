@@ -3,145 +3,190 @@ import {
   type FocusEventHandler,
   type FormEvent,
   useActionState,
-  useEffect,
+  useCallback,
   useRef,
   useState,
   useTransition,
 } from 'react'
+import type {
+  FieldError,
+  FormAction,
+  FormState,
+  UseFormOptions,
+  UseFormReturn,
+} from './types'
 
-// TODO: Create function overloads to keep the generic nature of useActionState
-type UseFormOptions = {
-  action: Parameters<typeof useActionState>[0]
-  initialState: Parameters<typeof useActionState>[1]
-  onBlur?: boolean
-  formId?: string
-}
-
-export function useForm({
+/**
+ * Form hook that integrates with React 19's useActionState for server actions.
+ *
+ * @example
+ * ```tsx
+ * const { formAction, onSubmit, register, isPending, isReady, errors } = useForm({
+ *   action: myServerAction,
+ * })
+ *
+ * return (
+ *   <form action={formAction} onSubmit={onSubmit}>
+ *     <input {...register(0)} />
+ *     <button disabled={!isReady || isPending}>Submit</button>
+ *   </form>
+ * )
+ * ```
+ */
+export function useForm<T = unknown>({
   action,
-  initialState,
+  initialState = null,
   onBlur = false,
   formId = '',
-}: UseFormOptions) {
-  const [formState, formAction] = useActionState(action, initialState)
-  const [isPending, startTransition] = useTransition()
-  const [isActive, setIsActive] = useState([] as boolean[])
-  const [isValid, setIsValid] = useState([] as boolean[])
-  const [errors, setErrors] = useState(
-    [] as { state: boolean; message: string }[]
+}: UseFormOptions<T>): UseFormReturn<T> {
+  const [formState, formAction] = useActionState(
+    action as FormAction<unknown>,
+    initialState as FormState<unknown> | null
   )
-  const inputsRefs = useRef([] as (HTMLInputElement | null)[])
+  const [isPending, startTransition] = useTransition()
+  const [isActive, setIsActive] = useState<boolean[]>([])
+  const [isValid, setIsValid] = useState<boolean[]>([])
+  const [errors, setErrors] = useState<FieldError[]>([])
+  const inputsRefs = useRef<(HTMLInputElement | null)[]>([])
+  const registeredCount = useRef(0)
 
-  useEffect(() => {
-    if (!inputsRefs.current) return
+  // Initialize state for a specific input when it registers
+  const initializeInput = useCallback(
+    (index: number, input: HTMLInputElement | null) => {
+      setIsActive((prev) => {
+        const next = [...prev]
+        next[index] = false
+        return next
+      })
+      setIsValid((prev) => {
+        const next = [...prev]
+        // Hidden inputs are always valid, others start as invalid until validated
+        next[index] = input?.id === 'hidden' || input?.type === 'hidden'
+        return next
+      })
+      setErrors((prev) => {
+        const next = [...prev]
+        next[index] = { state: false, message: '' }
+        return next
+      })
+    },
+    []
+  )
 
-    setIsActive(inputsRefs.current.map(() => false))
-    setIsValid(inputsRefs.current.map((input) => input?.id === 'hidden'))
-    setErrors(inputsRefs.current.map(() => ({ state: false, message: '' })))
-  }, [])
-
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
-    formId && formData.append('formId', formId)
+    if (formId) {
+      formData.append('formId', formId)
+    }
 
     startTransition(async () => {
       await formAction(formData)
     })
   }
 
-  // React Compiler handles memoization automatically
-  const setToActiveInput = (value: string, index: number) => {
-    if (value.length === 0) {
-      setIsActive((prev) =>
-        prev.map((state, i) => (i === index ? false : state))
-      )
+  const setToActiveInput = useCallback((value: string, index: number) => {
+    setIsActive((prev) => {
+      const next = [...prev]
+      next[index] = value.length > 0
+      return next
+    })
+  }, [])
 
-      return
-    }
-
-    setIsActive((prev) => prev.map((state, i) => (i === index ? true : state)))
-  }
-
-  const validate = (value: string, index: number) => {
+  const validate = useCallback((value: string, index: number) => {
     const element = inputsRefs.current[index]
     if (!element) return
 
-    const validate = validators[element.id]
-    if (!validate) return
+    const validator = validators[element.id] || validators[element.type]
 
-    const validation = value === '' ? false : validators[element.id](value)
+    // If no custom validator, field is valid if it has a value (for required) or always valid (for optional)
+    const isRequired = element.required
+    let isValidValue: boolean
 
-    if (validation) {
-      setIsValid((prev) =>
-        prev.map((state, i) => (i === index ? validation : state))
-      )
+    if (validator) {
+      // Use custom validator
+      isValidValue = value === '' ? false : validator(value)
+    } else {
+      // No custom validator - valid if has value or not required
+      isValidValue = value !== '' || !isRequired
     }
 
-    setErrors((prev) =>
-      prev.map((state, i) =>
-        i === index
-          ? {
-              state: !validation,
-              message: validation ? '' : `Invalid ${element.id}`,
-            }
-          : state
-      )
-    )
-  }
+    setIsValid((prev) => {
+      const next = [...prev]
+      next[index] = isValidValue
+      return next
+    })
 
-  function register(index: number) {
-    return {
+    setErrors((prev) => {
+      const next = [...prev]
+      next[index] = {
+        state: !isValidValue && value !== '',
+        message: isValidValue ? '' : `Invalid ${element.id || element.name}`,
+      }
+      return next
+    })
+  }, [])
+
+  const register = useCallback(
+    (index: number) => ({
       ref: (node: HTMLInputElement | null) => {
+        const isNewRegistration = !inputsRefs.current[index] && node
         inputsRefs.current[index] = node
+        if (isNewRegistration) {
+          registeredCount.current++
+          initializeInput(index, node)
+        }
       },
       onChange: ({
         target,
       }: Parameters<ChangeEventHandler<HTMLInputElement>>[0]) => {
         setToActiveInput(target.value, index)
-        if (onBlur) return
-        validate(target.value, index)
+        if (!onBlur) {
+          validate(target.value, index)
+        }
       },
       onBlur: ({
         target,
       }: Parameters<FocusEventHandler<HTMLInputElement>>[0]) => {
-        if (!onBlur) return
-        validate(target.value, index)
+        if (onBlur) {
+          validate(target.value, index)
+        }
       },
-    }
-  }
+    }),
+    [onBlur, initializeInput, setToActiveInput, validate]
+  )
 
   return {
-    formState,
+    formState: formState as FormState<T> | null,
     formAction,
     onSubmit,
     register,
     isActive,
     isValid,
     isPending,
-    isReady:
-      isValid.every((state) => state) && errors.every(({ state }) => !state),
+    isReady: isValid.every(Boolean) && errors.every(({ state }) => !state),
     errors,
   }
 }
 
-function validatePhoneNumber(phone: string) {
-  // This regular expression allows '+', numbers, spaces, and '-'.
+// Built-in validators
+function validatePhoneNumber(phone: string): boolean {
   const re = /^[0-9+\-\s]+$/
   return re.test(String(phone))
 }
 
-function validateEmail(email: string) {
+function validateEmail(email: string): boolean {
   const re =
     /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
   return re.test(String(email).toLowerCase())
 }
 
 const validators: Record<string, (value: string) => boolean> = {
-  email: (value) => {
-    return validateEmail(value)
-  },
-  phone: (value) => {
-    return validatePhoneNumber(value)
-  },
+  email: validateEmail,
+  phone: validatePhoneNumber,
+}
+
+// Allow extending validators
+export function addValidator(id: string, fn: (value: string) => boolean) {
+  validators[id] = fn
 }

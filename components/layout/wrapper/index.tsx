@@ -2,13 +2,10 @@
 
 import cn from 'clsx'
 import type { LenisOptions } from 'lenis'
-import { usePathname } from 'next/navigation'
-import type { ComponentProps } from 'react'
 import { Footer } from '~/components/layout/footer'
 import { Header } from '~/components/layout/header'
 import { Lenis } from '~/components/layout/lenis'
 import { Theme } from '~/components/layout/theme'
-import { TransformProvider } from '~/hooks/use-transform'
 import type { ThemeName } from '~/styles/config'
 import { Canvas } from '~/webgl/components/canvas'
 
@@ -20,21 +17,35 @@ interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
   theme?: ThemeName
   /** Enable smooth scrolling. Can be boolean or Lenis configuration object. Defaults to true. */
   lenis?: boolean | LenisOptions
-  /** Enable WebGL canvas. Can be boolean or Canvas component props. */
-  webgl?: boolean | Omit<ComponentProps<typeof Canvas>, 'children'>
+  /**
+   * Enable WebGL for this page.
+   * Activates the GlobalCanvas and provides tunnel context for WebGLTunnel content.
+   * The GlobalCanvas must be mounted in your root layout for this to work.
+   */
+  webgl?: boolean
 }
 
 /**
- * Main page wrapper component providing theme, WebGL canvas, and smooth scrolling.
+ * Main page wrapper component providing theme, smooth scrolling, and WebGL.
  *
  * This component serves as the root container for pages, automatically handling
- * theme application, WebGL initialization, smooth scrolling, and layout structure.
- * It includes navigation, footer, and optional WebGL canvas.
+ * theme application, smooth scrolling, and layout structure.
+ * It includes navigation and footer.
+ *
+ * When `webgl` is true, the GlobalCanvas is activated and WebGLTunnel content
+ * is rendered. The GlobalCanvas must be mounted in your root layout.
+ *
+ * Benefits of GlobalCanvas (vs local canvas):
+ * - **No context recreation**: WebGL context persists across route navigation
+ * - **Seamless transitions**: No flicker or delay when navigating WebGL routes
+ * - **Shared textures**: Preloaded assets stay loaded across routes
+ * - **CSS visibility + RAF pausing**: Zero overhead when not visible
+ * - **Zero overhead**: Non-WebGL pages don't trigger any WebGL code
  *
  * @param props - Component props
  * @param props.theme - Color theme to apply to the page
  * @param props.lenis - Whether to enable smooth scrolling with Lenis
- * @param props.webgl - Whether to initialize WebGL canvas for 3D content
+ * @param props.webgl - Whether to activate WebGL for this page
  * @param props.children - Page content
  * @param props.className - Additional CSS classes
  *
@@ -52,15 +63,14 @@ interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
  *
  * @example
  * ```tsx
- * // With WebGL and custom Lenis options
+ * // With WebGL content (requires GlobalCanvas in root layout)
  * export default function WebGLPage() {
  *   return (
- *     <Wrapper
- *       theme="light"
- *       webgl={{ postprocessing: true }}
- *       lenis={{ duration: 1.2, easing: (t) => t }}
- *     >
- *       <section>3D content here</section>
+ *     <Wrapper theme="light" webgl>
+ *       <WebGLTunnel>
+ *         <My3DScene />
+ *       </WebGLTunnel>
+ *       <section>Content overlaying 3D</section>
  *     </Wrapper>
  *   )
  * }
@@ -83,32 +93,22 @@ export function Wrapper({
   theme = 'dark',
   className,
   lenis = true,
-  webgl,
+  webgl = false,
   ...props
 }: WrapperProps) {
-  const pathname = usePathname()
-
-  const content = (
-    <>
-      {webgl && (
-        <Canvas
-          key={webgl ? `canvas-${pathname}` : undefined}
-          root
-          {...(typeof webgl === 'object' && webgl)}
-        />
-      )}
-      <Header />
-      <main className={cn('relative flex grow flex-col', className)} {...props}>
-        {children}
-      </main>
-      <Footer />
-      {lenis && <Lenis root options={typeof lenis === 'object' ? lenis : {}} />}
-    </>
-  )
-
   return (
     <Theme theme={theme} global>
-      {webgl ? <TransformProvider>{content}</TransformProvider> : content}
+      <Header />
+      <Canvas root={webgl}>
+        <main
+          className={cn('relative flex grow flex-col', className)}
+          {...props}
+        >
+          {children}
+        </main>
+      </Canvas>
+      <Footer />
+      {lenis && <Lenis root options={typeof lenis === 'object' ? lenis : {}} />}
     </Theme>
   )
 }

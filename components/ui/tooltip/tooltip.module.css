@@ -1,0 +1,49 @@
+.popup {
+  background-color: var(--color-secondary);
+  color: var(--color-primary);
+  padding: mobile-vw(6px) mobile-vw(10px);
+  border-radius: mobile-vw(4px);
+  font-size: 0.875rem;
+  max-width: 280px;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0 0 0 / 0.15);
+
+  /* Base UI animation states */
+  transform-origin: var(--transform-origin);
+  transition:
+    transform 150ms ease-out,
+    opacity 150ms ease-out;
+  opacity: 1;
+  transform: scale(1);
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  @media (--desktop) {
+    padding: desktop-vw(6px) desktop-vw(10px);
+    border-radius: desktop-vw(4px);
+  }
+}
+
+.arrow {
+  fill: var(--color-secondary);
+
+  &[data-side="top"] {
+    bottom: -8px;
+  }
+
+  &[data-side="bottom"] {
+    top: -8px;
+  }
+
+  &[data-side="left"] {
+    right: -8px;
+  }
+
+  &[data-side="right"] {
+    left: -8px;
+  }
+}

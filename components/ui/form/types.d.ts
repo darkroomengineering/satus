@@ -1,126 +1,125 @@
-import type { ComponentPropsWithoutRef, ReactNode, RefObject } from 'react'
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 
-export type InputRefData = {
-  node: HTMLElement
-  required: boolean
+// Form state returned by server actions
+export type FormState<T = unknown> = {
+  status: number
   message: string
+  data?: T
+  fieldErrors?: Record<string, string>
+  /** Legacy: For backward compatibility with existing integrations (mailchimp, mandrill) */
+  errors?: ErrorField
+  /** Legacy: For backward compatibility with existing integrations */
+  inputs?: Record<string, string>
 }
 
-export type FieldState = {
+// Legacy error field type (Map-based) for backward compatibility with mailchimp/mandrill
+export type ErrorField = Map<string, FieldError>
+
+// Server action type
+export type FormAction<T = unknown> = (
+  prevState: FormState<T> | null,
+  formData: FormData
+) => Promise<FormState<T>>
+
+// Internal state tracking
+export type FieldError = {
   state: boolean
   message: string
 }
 
-export type InputRef = Map<string, InputRefData>
-export type ActiveField = Map<string, Pick<FieldState, 'state'>>
-export type ErrorField = Map<string, FieldState>
-
-// Core Form State & Props
-export type FormState = {
-  status: number
-  message: string
-  inputs?: Record<string, string> // For server-side validation
-  errors?: ErrorField // For server-side validation
-}
-
-export interface UseFormProps {
-  action: (
-    prevState: FormState<TFieldValues>,
-    formData: FormData
-  ) => Promise<FormState<TFieldValues>>
-  initialState: FormState<TFieldValues>
-  onBlur?: boolean
-  resetTime?: number
-}
-
-export interface FormProps
-  extends Omit<
-    ComponentPropsWithoutRef<'form'>,
-    'action' | 'children' | 'className' | 'onSubmit'
-  > {
-  children: ReactNode
-  className?: string
-  refreshTime?: number
-  action: (
-    prevState: FormState<TFieldValues>,
-    formData: FormData
-  ) => Promise<FormState<TFieldValues>>
-  onSuccess?: (formState: FormState<TFieldValues>) => void
-}
-
 export type RegisterParams = {
   id: string
-  required: boolean
+  required?: boolean
   message?: string
   validation?: (value: string) => boolean
 }
 
-export type ValidationParams = {
-  id: string
-  value: string
-  validation: (value: string) => boolean
+// Form hook options
+export interface UseFormOptions<T = unknown> {
+  action: FormAction<T>
+  initialState?: FormState<T> | null
+  onBlur?: boolean
+  formId?: string
 }
 
-export type OnActivityParams = {
-  id: string
-  value: string
+// Form hook return value
+export interface UseFormReturn<T = unknown> {
+  formState: FormState<T> | null
+  formAction: (formData: FormData) => void
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void
+  register: (index: number) => {
+    ref: (node: HTMLInputElement | null) => void
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+    onBlur: (e: React.FocusEvent<HTMLInputElement>) => void
+  }
+  isActive: boolean[]
+  isValid: boolean[]
+  isPending: boolean
+  isReady: boolean
+  errors: FieldError[]
 }
 
-export type SetRefParams = {
-  id: string
-  data: InputRefData
-}
-
-export interface FormContextValue {
-  ref: RefObject<HTMLFormElement | null>
-  activeFields: ActiveField
-  errors: ErrorField
-  isFormReady: boolean
-  isFormPending: boolean
-  isFormSuccess: boolean
-  isFormError: boolean
-  formState: FormState
-  register: (params: RegisterParams) => Record<string, unknown>
-  setRef: (params: SetRefParams) => void
-  onValidation: (params: ValidationParams) => void
-}
-
-export interface FormProviderProps extends FormProps {
-  children: ReactNode
-}
-
-// Component-Specific Props
-export interface SubmitButtonProps
-  extends Omit<ComponentPropsWithoutRef<'button'>, 'children'> {
+// Form component props
+export interface FormProps<T = unknown>
+  extends Omit<ComponentPropsWithoutRef<'form'>, 'action'> {
   children: ReactNode
   className?: string
-  textStates?: {
-    error: string
-    pending: string
-    success: string
-    already_subscribed?: string
-    message_received?: string
-  }
+  action: FormAction<T>
+  formId?: string
+  onSuccess?: (state: FormState<T>) => void
+  onError?: (state: FormState<T>) => void
 }
 
-export interface MessagesProps extends ComponentPropsWithoutRef<'div'> {}
+// Form context value
+export interface FormContextValue<T = unknown> {
+  formState: FormState<T> | null
+  isPending: boolean
+  isReady: boolean
+  isActive: boolean[]
+  isValid: boolean[]
+  errors: FieldError[]
+  register: UseFormReturn<T>['register']
+}
 
-interface BaseFieldProps {
+// Submit button props
+export interface SubmitButtonProps
+  extends Omit<ComponentPropsWithoutRef<'button'>, 'children'> {
+  children?: ReactNode
+  className?: string
+  defaultText?: string
+  pendingText?: string
+  successText?: string
+  errorText?: string
+}
+
+// Messages component props
+export interface MessagesProps extends ComponentPropsWithoutRef<'div'> {
+  className?: string
+}
+
+// Field base props
+export interface BaseFieldProps {
   className?: string
   id: string
   name?: string
-  label: ReactNode
+  label?: ReactNode
   defaultValue?: string
   placeholder?: string
   required?: boolean
+  disabled?: boolean
   validation?: (value: string) => boolean
-  triggerFocus?: boolean
 }
 
 export interface InputProps extends BaseFieldProps {
-  type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search'
+  type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search'
 }
 
 export interface TextareaProps extends BaseFieldProps {
   rows?: number
+}
+
+export interface CheckboxFieldProps
+  extends Omit<BaseFieldProps, 'placeholder'> {
+  checked?: boolean
+  onCheckedChange?: (checked: boolean) => void
 }

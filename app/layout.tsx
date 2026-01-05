@@ -3,14 +3,15 @@ import type { Metadata, Viewport } from 'next'
 import type { PropsWithChildren } from 'react'
 import { ReactTempus } from 'tempus/react'
 import { RealViewport } from '~/components/ui/real-viewport'
+import { TransformProvider } from '~/hooks/use-transform'
 import AppData from '~/package.json'
 import { fontsVariable, themes } from '~/styles'
 import '~/styles/css/index.css'
 
 import Script from 'next/script'
 import { GSAPRuntime } from '~/components/effects/gsap'
-
 import { OrchestraTools } from '~/dev'
+import { LazyGlobalCanvas } from '~/webgl/components/global-canvas'
 
 const APP_NAME = AppData.name
 const APP_DEFAULT_TITLE = 'Satūs'
@@ -93,9 +94,14 @@ export default async function Layout({ children }: PropsWithChildren) {
       <body>
         {/* Critical: CSS custom properties needed for layout */}
         <RealViewport>
-          {/* Main app content */}
-          {children}
+          <TransformProvider>
+            {/* Main app content */}
+            {children}
+          </TransformProvider>
         </RealViewport>
+        {/* Global WebGL Canvas - lazy loaded, mounts only when needed */}
+        <LazyGlobalCanvas />
+
         {/* Development tools - dynamically imported */}
         <OrchestraTools />
 

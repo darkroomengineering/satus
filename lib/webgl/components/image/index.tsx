@@ -1,4 +1,5 @@
-import { useRect } from 'hamo'
+'use client'
+
 import dynamic from 'next/dynamic'
 import { useState } from 'react'
 import {
@@ -6,6 +7,7 @@ import {
   type ImageProps as DRImageProps,
 } from '~/components/ui/image'
 import { useDeviceDetection } from '~/hooks'
+import { useWebGLElement } from '~/webgl/hooks/use-webgl-element'
 import { WebGLTunnel } from '../tunnel'
 
 const WebGLImage = dynamic(
@@ -15,33 +17,36 @@ const WebGLImage = dynamic(
   }
 )
 
+/**
+ * WebGL-enhanced Image component with visibility optimizations.
+ *
+ * Uses useWebGLElement for unified rect + visibility tracking.
+ * Falls back to standard image on non-WebGL devices.
+ */
 export function Image({ className, ...props }: DRImageProps) {
   const [src, setSrc] = useState<string>()
-  const [setRectRef, rect] = useRect()
-
+  const { setRef, rect, isVisible } = useWebGLElement<HTMLDivElement>()
   const { isWebGL } = useDeviceDetection()
 
   return (
-    <>
+    <div
+      className={className}
+      style={{
+        opacity: src && isWebGL ? 0 : 1,
+        position: 'relative',
+      }}
+      ref={setRef}
+    >
       <WebGLTunnel>
-        <WebGLImage rect={rect} src={src} />
+        <WebGLImage rect={rect} src={src} visible={isVisible} />
       </WebGLTunnel>
-      <div
-        className={className}
-        style={{
-          opacity: src && isWebGL ? 0 : 1,
-          position: 'relative',
+      <DRImage
+        {...props}
+        onLoad={(img: React.SyntheticEvent<HTMLImageElement>) => {
+          setSrc(img.currentTarget.currentSrc)
         }}
-        ref={setRectRef}
-      >
-        <DRImage
-          {...props}
-          onLoad={(img: React.SyntheticEvent<HTMLImageElement>) => {
-            setSrc(img.currentTarget.currentSrc)
-          }}
-          fill
-        />
-      </div>
-    </>
+        fill
+      />
+    </div>
   )
 }

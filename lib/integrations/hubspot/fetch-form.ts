@@ -63,7 +63,14 @@ export interface HubSpotFormResult {
 }
 
 // TODO: If only server side maybe use api-client
-async function hubspotFormApi(id: string | null) {
+async function hubspotFormApi(id: string | null | undefined) {
+  // Guard against null/undefined form ID
+  if (!id) {
+    throw new Error(
+      'HubSpot form ID is not configured. Set NEXT_HUBSPOT_FORM_ID in your environment variables.'
+    )
+  }
+
   const resp = await fetchWithTimeout(
     `https://api.hubapi.com/marketing/v3/forms/${id}`,
     {

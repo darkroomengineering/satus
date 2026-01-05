@@ -1,10 +1,9 @@
 'use client'
 
-import { useRect } from 'hamo'
 import dynamic from 'next/dynamic'
 import type { ComponentProps, CSSProperties } from 'react'
-import { Activity, useEffect, useRef, useState } from 'react'
 import { WebGLTunnel } from '~/webgl/components/tunnel'
+import { useWebGLElement } from '~/webgl/hooks/use-webgl-element'
 
 const WebGLAnimatedGradient = dynamic(
   () =>
@@ -51,54 +50,30 @@ const toDOMRect = (
 type AnimatedGradientProps = {
   className?: string
   style?: CSSProperties
-} & Omit<ComponentProps<typeof WebGLAnimatedGradient>, 'rect'>
+} & Omit<ComponentProps<typeof WebGLAnimatedGradient>, 'rect' | 'visible'>
 
+/**
+ * Animated gradient effect with WebGL rendering.
+ *
+ * Uses useWebGLElement for unified rect + visibility tracking.
+ * The visible prop is passed to WebGL component for performance optimization.
+ */
 export function AnimatedGradient({
   className,
   style,
   ...props
 }: AnimatedGradientProps) {
-  const [setRectRef, rect] = useRect()
-  const [isVisible, setIsVisible] = useState(true)
-  const elementRef = useRef<HTMLDivElement | null>(null)
-
-  // Combined ref callback
-  const setRefs = (element: HTMLDivElement | null) => {
-    setRectRef(element)
-    elementRef.current = element
-  }
-
-  // Use Intersection Observer to detect viewport visibility
-  useEffect(() => {
-    const element = elementRef.current
-    if (!element) return
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsVisible(entry.isIntersecting)
-      },
-      {
-        rootMargin: '200px', // Pre-activate before visible
-      }
-    )
-
-    observer.observe(element)
-
-    return () => {
-      observer.disconnect()
-    }
-  }, [])
+  const { setRef, rect, isVisible } = useWebGLElement<HTMLDivElement>()
 
   return (
-    // Wrap the entire DOM container with Activity
-    // This defers rect tracking and tunnel updates when off-screen
-    <Activity mode={isVisible ? 'visible' : 'hidden'}>
-      <div ref={setRefs} className={className} style={style}>
-        {/* WebGLTunnel content renders inside R3F Canvas (no Activity there) */}
-        <WebGLTunnel>
-          <WebGLAnimatedGradient rect={toDOMRect(rect)} {...props} />
-        </WebGLTunnel>
-      </div>
-    </Activity>
+    <div ref={setRef} className={className} style={style}>
+      <WebGLTunnel>
+        <WebGLAnimatedGradient
+          rect={toDOMRect(rect)}
+          visible={isVisible}
+          {...props}
+        />
+      </WebGLTunnel>
+    </div>
   )
 }

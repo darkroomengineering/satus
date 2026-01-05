@@ -7,9 +7,14 @@ import { useWebGLRect } from '~/webgl/hooks/use-webgl-rect'
 type WebGLImageProps = {
   src: string | undefined
   rect: Rect
+  /** Whether the element is visible in the viewport */
+  visible?: boolean
 }
 
-export function WebGLImage({ src, rect }: WebGLImageProps) {
+/**
+ * WebGL image mesh with visibility-aware optimizations.
+ */
+export function WebGLImage({ src, rect, visible = true }: WebGLImageProps) {
   const meshRef = useRef<Mesh>(null!)
   const [material] = useState(() => new MeshBasicMaterial())
 
@@ -23,6 +28,7 @@ export function WebGLImage({ src, rect }: WebGLImageProps) {
     material.needsUpdate = true
   })
 
+  // Pass visibility to skip computations when off-screen
   useWebGLRect(
     rect,
     ({
@@ -35,8 +41,10 @@ export function WebGLImage({ src, rect }: WebGLImageProps) {
       meshRef.current.position.set(position.x, position.y, position.z)
       meshRef.current.scale.set(scale.x, scale.y, scale.z)
       meshRef.current.updateMatrix()
-    }
+    },
+    { visible }
   )
+
   return (
     <mesh ref={meshRef} matrixAutoUpdate={false}>
       <planeGeometry />

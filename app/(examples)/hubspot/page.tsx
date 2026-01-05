@@ -2,6 +2,7 @@ import { Wrapper } from '~/components/layout/wrapper'
 import { Form } from '~/components/ui/form'
 import { NotConfigured } from '~/components/ui/not-configured'
 import { isHubSpotConfigured } from '~/integrations/check-integration'
+import { HubspotNewsletterAction } from '~/integrations/hubspot/action'
 import { getForm } from '~/integrations/hubspot/fetch-form'
 import { Subscribe } from './_components/subscribe'
 
@@ -25,7 +26,7 @@ export default async function HubspotPage() {
         <Form
           className="dr-mb-32 dr-px-15"
           formId={form?.id}
-          action={'HubspotNewsletterAction'}
+          action={HubspotNewsletterAction}
         >
           <Subscribe form={form} idx={0} />
         </Form>

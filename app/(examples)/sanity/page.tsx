@@ -4,6 +4,7 @@ import { NotConfigured } from '~/components/ui/not-configured'
 import { isSanityConfigured } from '~/integrations/check-integration'
 import { sanityFetch } from '~/integrations/sanity/live'
 import { pageQuery } from '~/integrations/sanity/queries'
+import type { Page } from '~/integrations/sanity/sanity.types'
 import { generateSanityMetadata } from '~/utils'
 import { SanityTutorial } from './_components/tutorial'
 
@@ -29,7 +30,7 @@ export default async function SanityPage() {
   return (
     <Wrapper theme="red" className="font-mono uppercase">
       <div className="max-dt:dr-px-16 flex grow items-center justify-center">
-        <SanityTutorial data={data} />
+        <SanityTutorial data={data as Page} />
       </div>
     </Wrapper>
   )

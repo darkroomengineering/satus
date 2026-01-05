@@ -116,6 +116,29 @@ function AnimatedElement() {
 }
 ```
 
+## WebGL Hooks
+
+For WebGL-specific hooks, see `~/webgl/hooks/`:
+
+- `useWebGLElement` - Unified rect + visibility tracking for WebGL components
+- `useWebGLRect` - DOM-to-WebGL position synchronization
+
+```tsx
+import { useWebGLElement } from '~/webgl/hooks/use-webgl-element'
+
+function WebGLComponent({ className }: { className: string }) {
+  const { setRef, rect, isVisible } = useWebGLElement<HTMLDivElement>()
+
+  return (
+    <div ref={setRef} className={className}>
+      <WebGLTunnel>
+        <ExpensiveScene rect={rect} visible={isVisible} />
+      </WebGLTunnel>
+    </div>
+  )
+}
+```
+
 ## Integration with Other Libraries
 
 These hooks are designed to work seamlessly with:
@@ -157,8 +180,19 @@ These hooks are designed to work seamlessly with:
 Import hooks directly from this directory:
 
 ```typescript
-import { useDeviceDetection } from '~/lib/hooks/use-device-detection'
-import { usePrefetch } from '~/lib/hooks/use-prefetch'
-import { useScrollTrigger } from '~/lib/hooks/use-scroll-trigger'
-import { useTransform } from '~/lib/hooks/use-transform'
+import { useDeviceDetection } from '~/hooks/use-device-detection'
+import { usePrefetch } from '~/hooks/use-prefetch'
+import { useScrollTrigger } from '~/hooks/use-scroll-trigger'
+import { useTransform } from '~/hooks/use-transform'
+```
+
+Or import from the barrel:
+
+```typescript
+import {
+  useDeviceDetection,
+  usePrefetch,
+  useScrollTrigger,
+  useTransform,
+} from '~/hooks'
 ```

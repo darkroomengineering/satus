@@ -1,8 +1,211 @@
+'use client'
+
+import { Field } from '@base-ui-components/react/field'
 import cn from 'clsx'
-import { useCallback, useRef, useState } from 'react'
+import { useState } from 'react'
 import { useFormContext } from '..'
 import s from './fields.module.css'
 
+/**
+ * Form field components built on Base UI Field for accessibility.
+ *
+ * @example
+ * ```tsx
+ * <Form action={myAction}>
+ *   <InputField
+ *     id="email"
+ *     type="email"
+ *     label="Email address"
+ *     placeholder="you@example.com"
+ *     required
+ *   />
+ *   <TextareaField
+ *     id="message"
+ *     label="Message"
+ *     rows={4}
+ *   />
+ *   <SubmitButton>Send</SubmitButton>
+ * </Form>
+ * ```
+ */
+
+type InputFieldProps = {
+  className?: string
+  type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search'
+  id: string
+  name?: string
+  label?: string
+  placeholder?: string
+  required?: boolean
+  disabled?: boolean
+  idx: number
+}
+
+export function InputField({
+  className,
+  type = 'text',
+  id,
+  name,
+  label,
+  placeholder,
+  required = false,
+  disabled = false,
+  idx,
+}: InputFieldProps) {
+  const { errors, isActive, register } = useFormContext()
+  const error = errors[idx]
+
+  return (
+    <Field.Root
+      className={cn(
+        s.field,
+        isActive[idx] && s.active,
+        error?.state && s.error,
+        className
+      )}
+      disabled={disabled}
+    >
+      {label && (
+        <Field.Label className={s.label}>
+          {label}
+          {required && <span aria-hidden="true"> *</span>}
+        </Field.Label>
+      )}
+      <Field.Control
+        type={type}
+        id={id}
+        name={name ?? id}
+        required={required}
+        placeholder={placeholder}
+        className={s.input}
+        {...register(idx)}
+        render={<input />}
+      />
+      {error?.state && error.message && (
+        <Field.Error className={s.errorMessage}>{error.message}</Field.Error>
+      )}
+    </Field.Root>
+  )
+}
+
+type TextareaFieldProps = {
+  className?: string
+  id: string
+  name?: string
+  label?: string
+  placeholder?: string
+  required?: boolean
+  disabled?: boolean
+  rows?: number
+  idx: number
+}
+
+export function TextareaField({
+  className,
+  id,
+  name,
+  label,
+  placeholder,
+  required = false,
+  disabled = false,
+  rows = 4,
+  idx,
+}: TextareaFieldProps) {
+  const { errors, isActive, register } = useFormContext()
+  const error = errors[idx]
+  const reg = register(idx)
+
+  return (
+    <Field.Root
+      className={cn(
+        s.field,
+        isActive[idx] && s.active,
+        error?.state && s.error,
+        className
+      )}
+      disabled={disabled}
+    >
+      {label && (
+        <Field.Label className={s.label}>
+          {label}
+          {required && <span aria-hidden="true"> *</span>}
+        </Field.Label>
+      )}
+      <textarea
+        id={id}
+        name={name ?? id}
+        required={required}
+        placeholder={placeholder}
+        rows={rows}
+        className={s.textarea}
+        ref={reg.ref as React.Ref<HTMLTextAreaElement>}
+        onChange={(e) =>
+          reg.onChange(e as unknown as React.ChangeEvent<HTMLInputElement>)
+        }
+        onBlur={(e) =>
+          reg.onBlur(e as unknown as React.FocusEvent<HTMLInputElement>)
+        }
+      />
+      {error?.state && error.message && (
+        <Field.Error className={s.errorMessage}>{error.message}</Field.Error>
+      )}
+    </Field.Root>
+  )
+}
+
+type CheckboxesFieldProps = {
+  className?: string
+  options: { label: string; value: string }[]
+  idx: number
+  name?: string
+  label?: string
+}
+
+export function CheckboxesField({
+  className,
+  options,
+  idx,
+  name = 'interests',
+  label = 'Select topics of interest',
+}: CheckboxesFieldProps) {
+  const { register } = useFormContext()
+  const [selected, setSelected] = useState<string[]>(['all'])
+
+  const handleToggle = (value: string) => {
+    setSelected((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+    )
+  }
+
+  const reg = register(idx)
+
+  return (
+    <Field.Root className={cn(s.field, s.checkboxGroup, className)}>
+      {label && <Field.Label className={s.groupLabel}>{label}</Field.Label>}
+      <input
+        type="hidden"
+        name={name}
+        id="hidden"
+        value={JSON.stringify(selected)}
+        ref={reg.ref}
+      />
+      <div className={s.options}>
+        {options.map(({ label, value }) => (
+          <button
+            key={value}
+            className={cn(s.option, selected.includes(value) && s.selected)}
+            type="button"
+            onClick={() => handleToggle(value)}
+          >
+            <span>{label}</span>
+          </button>
+        ))}
+      </div>
+    </Field.Root>
+  )
+}
+
+// For backward compatibility
 export const InputSelector = {
   inputType: ({
     props,
@@ -28,113 +231,4 @@ export const InputSelector = {
       <CheckboxesField {...props} idx={idx} key={idx} className={className} />
     )
   },
-}
-
-type InputFieldProps = {
-  className?: string
-  type: string
-  id: string
-  placeholder?: string
-  required?: boolean
-  idx: number
-}
-
-export function InputField({
-  className,
-  type,
-  id,
-  placeholder,
-  required = true,
-  idx,
-}: InputFieldProps) {
-  const { errors, isActive, register } = useFormContext()
-
-  return (
-    <div
-      className={cn(
-        s.field,
-        s.single,
-        isActive[idx] && s.active,
-        errors[idx]?.state && s.error,
-        className
-      )}
-    >
-      <input
-        type={type}
-        id={id}
-        name={id}
-        required={required}
-        placeholder={placeholder}
-        className="label"
-        {...register(idx)}
-      />
-    </div>
-  )
-}
-
-type CheckboxesFieldProps = {
-  className?: string
-  options: CheckboxesFieldOption[]
-  idx: number
-}
-
-type CheckboxesFieldOption = {
-  label: string
-  value: string
-}
-
-export function CheckboxesField({
-  className,
-  options,
-  idx,
-}: CheckboxesFieldProps) {
-  const { register } = useFormContext()
-  const optionsRef = useRef<HTMLInputElement | null>(null)
-  const [inputs, setInputs] = useState(JSON.stringify(['all']))
-
-  const handleList = useCallback((value: string) => {
-    if (!optionsRef.current) return
-    let update = ''
-    const tmp = JSON.parse(optionsRef.current.value) as string[]
-
-    if (tmp.includes(value)) {
-      const rm = tmp.filter((item) => item !== value)
-      update = JSON.stringify([...rm])
-    } else {
-      update = JSON.stringify([...tmp, value])
-    }
-
-    optionsRef.current.value = update
-    setInputs(update)
-  }, [])
-
-  return (
-    <div className={cn(s.field, s.multiple, className)}>
-      <p className={cn('label', s.header)}>select topics of interest</p>
-      <input
-        type="hidden"
-        name="interests"
-        id="hidden"
-        value={inputs}
-        {...register(idx)}
-        ref={(node) => {
-          register(idx).ref(node)
-          optionsRef.current = node
-        }}
-      />
-      {options.map(({ label, value }) => (
-        <button
-          key={value}
-          className={cn(s.option, 'label', value === 'all' && s.selected)}
-          type="button"
-          onClick={({ currentTarget }) => {
-            handleList(value)
-            currentTarget.classList.toggle(s.selected)
-          }}
-        >
-          <span>{label}</span>
-        </button>
-      ))}
-    </div>
-  )
 }

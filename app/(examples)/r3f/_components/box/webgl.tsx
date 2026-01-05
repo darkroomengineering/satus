@@ -8,22 +8,35 @@ import { useCurrentSheet } from '~/dev/theatre'
 import { useTheatre } from '~/dev/theatre/hooks/use-theatre'
 import { useWebGLRect } from '~/webgl/hooks/use-webgl-rect'
 
+interface WebGLBoxProps {
+  theatreKey?: string
+  rect: Rect
+  /** Whether the element is visible in the viewport */
+  visible?: boolean
+}
+
+/**
+ * WebGL box component with visibility-aware optimizations.
+ *
+ * When visible is false:
+ * - useWebGLRect skips position computations
+ * - useFrame skips rotation updates
+ * - Component still mounts (preserves state) but does minimal work
+ */
 export function WebGLBox({
   theatreKey = 'box',
   rect,
-}: {
-  theatreKey?: string
-  rect: Rect
-}) {
+  visible = true,
+}: WebGLBoxProps) {
   const meshRef = useRef<Mesh | null>(null)
 
   useFrame(({ clock }) => {
-    if (!meshRef.current) return
-    const time = clock.getElapsedTime()
+    // Skip expensive updates when off-screen
+    if (!(visible && meshRef.current)) return
 
+    const time = clock.getElapsedTime()
     meshRef.current.rotation.x = time
     meshRef.current.rotation.y = time
-
     meshRef.current.updateMatrix()
   })
 
@@ -43,12 +56,17 @@ export function WebGLBox({
     }
   )
 
-  useWebGLRect(rect, ({ scale, position, rotation }) => {
-    meshRef.current?.position.set(position.x, position.y, position.z)
-    meshRef.current?.rotation.set(rotation.x, rotation.y, rotation.z)
-    meshRef.current?.scale.setScalar(scale.x)
-    meshRef.current?.updateMatrix()
-  })
+  // Pass visibility to skip computations when off-screen
+  useWebGLRect(
+    rect,
+    ({ scale, position, rotation }) => {
+      meshRef.current?.position.set(position.x, position.y, position.z)
+      meshRef.current?.rotation.set(rotation.x, rotation.y, rotation.z)
+      meshRef.current?.scale.setScalar(scale.x)
+      meshRef.current?.updateMatrix()
+    },
+    { visible }
+  )
 
   return (
     <mesh

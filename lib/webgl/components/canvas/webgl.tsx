@@ -3,13 +3,13 @@
 import { OrthographicCamera } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import cn from 'clsx'
-import { Suspense } from 'react'
+import { Suspense, useContext } from 'react'
 import { SheetProvider } from '~/lib/dev/theatre'
 import { FlowmapProvider } from '~/webgl/components/flowmap-provider'
 import { PostProcessing } from '~/webgl/components/postprocessing'
 import { Preload } from '~/webgl/components/preload'
 import { RAF } from '~/webgl/components/raf'
-import { useCanvas } from './'
+import { CanvasContext } from './'
 import s from './webgl.module.css'
 
 type WebGLCanvasProps = React.HTMLAttributes<HTMLDivElement> & {
@@ -19,6 +19,12 @@ type WebGLCanvasProps = React.HTMLAttributes<HTMLDivElement> & {
   className?: string
 }
 
+/**
+ * Local WebGLCanvas component for legacy (local) canvas mode.
+ * Used when Canvas is mounted with local={true}.
+ *
+ * For GlobalCanvas, see ~/webgl/components/global-canvas
+ */
 export function WebGLCanvas({
   render = true,
   postprocessing = false,
@@ -26,7 +32,12 @@ export function WebGLCanvas({
   className,
   ...props
 }: WebGLCanvasProps) {
-  const { WebGLTunnel, DOMTunnel } = useCanvas()
+  // Use context directly for local tunnels
+  const { WebGLTunnel, DOMTunnel } = useContext(CanvasContext)
+
+  if (!(WebGLTunnel && DOMTunnel)) {
+    return null
+  }
 
   return (
     <div className={cn(s.webgl, className)} {...props}>

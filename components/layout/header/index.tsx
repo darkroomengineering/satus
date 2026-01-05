@@ -12,6 +12,7 @@ const LINKS = [
   { href: '/sanity', label: 'sanity' },
   { href: '/shopify', label: 'shopify' },
   { href: '/hubspot', label: 'hubspot' },
+  { href: '/demo', label: 'demo' },
 ]
 
 export function Header() {

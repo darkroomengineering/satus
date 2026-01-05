@@ -43,6 +43,8 @@ function useGradient(colors: string[]) {
 
 type WebGLAnimatedGradientProps = {
   rect: DOMRect
+  /** Whether the element is visible in the viewport */
+  visible?: boolean
   amplitude?: number
   frequency?: number
   colorAmplitude?: number
@@ -54,8 +56,12 @@ type WebGLAnimatedGradientProps = {
   speed?: number
 }
 
+/**
+ * WebGL animated gradient mesh with visibility-aware optimizations.
+ */
 export function WebGLAnimatedGradient({
   rect,
+  visible = true,
   amplitude = 2,
   frequency = 0.33,
   colorAmplitude = 2,
@@ -127,14 +133,21 @@ export function WebGLAnimatedGradient({
 
   const meshRef = useRef<Mesh>(null!)
 
-  useWebGLRect(rect, ({ scale, position, rotation }) => {
-    meshRef.current.position.set(position.x, position.y, position.z)
-    meshRef.current.rotation.set(rotation.x, rotation.y, rotation.z)
-    meshRef.current.scale.set(scale.x, scale.y, scale.z)
-    meshRef.current.updateMatrix()
-  })
+  // Pass visibility to skip computations when off-screen
+  useWebGLRect(
+    rect,
+    ({ scale, position, rotation }) => {
+      meshRef.current.position.set(position.x, position.y, position.z)
+      meshRef.current.rotation.set(rotation.x, rotation.y, rotation.z)
+      meshRef.current.scale.set(scale.x, scale.y, scale.z)
+      meshRef.current.updateMatrix()
+    },
+    { visible }
+  )
 
   useFrame(({ clock }) => {
+    // Skip expensive updates when off-screen
+    if (!visible) return
     material.time = clock.getElapsedTime() * speed * 0.05
   })
 

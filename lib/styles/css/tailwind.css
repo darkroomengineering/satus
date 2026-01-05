@@ -62,6 +62,11 @@
 	--color-secondary: #ffffff;
 	--color-contrast: #e30613;
 }
+[data-theme=evil] {
+  --color-primary: #000000;
+	--color-secondary: #e30613;
+	--color-contrast: #ffffff;
+}
 [data-theme=red] {
   --color-primary: #e30613;
 	--color-secondary: #000000;
@@ -119,6 +124,7 @@
 /** Custom variants **/
 @custom-variant light (&:where([data-theme=light], [data-theme=light] *));
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+@custom-variant evil (&:where([data-theme=evil], [data-theme=evil] *));
 @custom-variant red (&:where([data-theme=red], [data-theme=red] *));
 
 /** Custom function utilities **/

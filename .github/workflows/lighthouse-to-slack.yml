@@ -79,7 +79,7 @@ jobs:
 
       - name: Format Results
         id: format
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           DEPLOYMENT_FAILED: ${{ steps.await.outcome != 'success' }}
           PREVIEW_URL: ${{ steps.vercel_url.outputs.preview_url }}

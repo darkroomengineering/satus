@@ -12,6 +12,18 @@ type WebGLImageProps = {
 }
 
 /**
+ * Check if rect has valid measurements (not initial empty state)
+ */
+function isRectValid(rect: Rect): boolean {
+  return (
+    rect.width !== undefined &&
+    rect.height !== undefined &&
+    rect.top !== undefined &&
+    rect.left !== undefined
+  )
+}
+
+/**
  * WebGL image mesh with visibility-aware optimizations.
  */
 export function WebGLImage({ src, rect, visible = true }: WebGLImageProps) {
@@ -28,6 +40,9 @@ export function WebGLImage({ src, rect, visible = true }: WebGLImageProps) {
     material.needsUpdate = true
   })
 
+  // Check if rect is valid (has been measured)
+  const rectIsValid = isRectValid(rect)
+
   // Pass visibility to skip computations when off-screen
   useWebGLRect(
     rect,
@@ -42,8 +57,11 @@ export function WebGLImage({ src, rect, visible = true }: WebGLImageProps) {
       meshRef.current.scale.set(scale.x, scale.y, scale.z)
       meshRef.current.updateMatrix()
     },
-    { visible }
+    { visible: visible && rectIsValid }
   )
+
+  // Don't render until rect is measured
+  if (!rectIsValid) return null
 
   return (
     <mesh ref={meshRef} matrixAutoUpdate={false}>

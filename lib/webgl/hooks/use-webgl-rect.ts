@@ -77,7 +77,7 @@ export function useWebGLRect(
       rect.left === undefined ||
       rect.width === undefined
     ) {
-      console.warn('useWebGLRect: rect is missing required properties', rect)
+      // Expected during initial render before DOM measurement completes
       return
     }
 

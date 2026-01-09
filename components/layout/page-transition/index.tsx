@@ -93,10 +93,12 @@ export function PageTransition({
 }: PageTransitionProps) {
   const overlayRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
-  const prevPathname = useRef(pathname)
+  // Track if enter animation has been triggered for current transition
+  const hasAnimatedEnter = useRef(false)
 
   const {
     phase,
+    targetHref,
     exitType,
     enterType,
     duration,
@@ -117,6 +119,9 @@ export function PageTransition({
 
     const overlay = overlayRef.current
     if (!overlay) return
+
+    // Reset enter animation flag for new transition
+    hasAnimatedEnter.current = false
 
     onTransitionStart?.()
 
@@ -159,14 +164,18 @@ export function PageTransition({
     // Only animate if we're in entering phase
     if (phase !== 'entering') return
 
-    // Only animate if pathname actually changed
-    if (pathname === prevPathname.current) return
+    // Prevent double animations - only animate once per transition
+    if (hasAnimatedEnter.current) return
+
+    // Wait for navigation to complete - pathname should match targetHref
+    // This check ensures we don't animate before the route change is complete
+    if (targetHref && pathname !== targetHref) return
 
     const overlay = overlayRef.current
     if (!overlay) return
 
-    // Update prevPathname only after all checks pass
-    prevPathname.current = pathname
+    // Mark as animated to prevent re-runs
+    hasAnimatedEnter.current = true
 
     const type = enterType || defaultType
     const animDuration = duration || defaultDuration
@@ -186,6 +195,7 @@ export function PageTransition({
   }, [
     pathname,
     phase,
+    targetHref,
     enterType,
     duration,
     defaultType,

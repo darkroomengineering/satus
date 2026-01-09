@@ -54,8 +54,11 @@ function Checkbox({
   ...props
 }: CheckboxProps) {
   const checkboxElement = (
-    <BaseCheckbox.Root className={cn(s.root, className)} {...props}>
-      <BaseCheckbox.Indicator className={s.indicator}>
+    <BaseCheckbox.Root
+      {...(cn(s.root, className) && { className: cn(s.root, className) })}
+      {...props}
+    >
+      <BaseCheckbox.Indicator {...(s.indicator && { className: s.indicator })}>
         <CheckIcon />
       </BaseCheckbox.Indicator>
     </BaseCheckbox.Root>

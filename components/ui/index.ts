@@ -6,7 +6,8 @@ export * from './accordion'
 export { Accordion } from './accordion'
 export { AlertDialog } from './alert-dialog'
 export { Checkbox } from './checkbox'
-export * from './dropdown' // @deprecated - Use Menu instead
+/** @deprecated Use Menu instead */
+export * from './dropdown'
 export * from './fold'
 export * from './form'
 export { Image } from './image'

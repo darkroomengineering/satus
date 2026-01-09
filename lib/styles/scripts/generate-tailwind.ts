@@ -20,13 +20,15 @@ export function generateTailwind({
   | 'typography'
 >) {
   // Theme
+  const themeEntries = Object.entries(themes)
+  const firstTheme = themeEntries[0]?.[1] ?? {}
   const theme = `/** Custom theme **/
 @theme {
 	--breakpoint-*: initial;
 	${formatObject(breakpoints, ([name, value]) => `--breakpoint-${name}: ${value}px;`)}
 
   --color-*: initial;
-	${formatObject(Object.entries(themes)[0][1], ([key, value]) => `--color-${key}: ${value};`)}
+	${formatObject(firstTheme, ([key, value]) => `--color-${key}: ${value};`)}
   ${formatObject(colors, ([key, value]) => `--color-${key}: ${value};`)}
     
   --spacing-*: initial;

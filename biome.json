@@ -96,7 +96,7 @@
       },
 
       "suspicious": {
-        "noExplicitAny": "warn",
+        "noExplicitAny": "error",
         "noEmptyBlockStatements": "warn",
         "noDoubleEquals": "error",
         "noDebugger": "warn",

@@ -144,9 +144,11 @@ export function isEmptyArray(arr: string | unknown[]) {
 }
 
 export function arraytoObject(array: Record<string, unknown>[]) {
-  return array.reduce((acc, currentObj) => {
+  return array.reduce((acc: Record<string, unknown>, currentObj) => {
     const key = Object.keys(currentObj)[0]
-    acc[key] = currentObj[key]
+    if (key !== undefined) {
+      acc[key] = currentObj[key]
+    }
     return acc
   }, {})
 }
@@ -160,7 +162,7 @@ export function shortenObjectKeys(
   for (const key in obj) {
     const match = key.match(regex)
 
-    if (match) {
+    if (match?.[1]) {
       const newKey = convertToCamelCase(match[1])
       obj[newKey] = obj[key]
       delete obj[key]

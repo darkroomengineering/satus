@@ -27,8 +27,8 @@ export function useFluidSim() {
 
       // Handle both mouse and touch events
       if ('changedTouches' in event && event.changedTouches?.length) {
-        clientX = event.changedTouches[0].clientX
-        clientY = event.changedTouches[0].clientY
+        clientX = event.changedTouches[0]?.clientX ?? 0
+        clientY = event.changedTouches[0]?.clientY ?? 0
       } else if ('clientX' in event) {
         clientX = event.clientX
         clientY = event.clientY
@@ -78,7 +78,7 @@ export function useFluidSim() {
 
   // Update aspect ratio when viewport size changes
   useEffect(() => {
-    fluid.splatMaterial.uniforms.uAspect.value = size.width / size.height
+    fluid.splatMaterial.uniforms.uAspect!.value = size.width / size.height
   }, [size, fluid])
 
   // Theatre.js controls for fluid parameters

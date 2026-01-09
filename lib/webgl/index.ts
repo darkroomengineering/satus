@@ -37,9 +37,12 @@ export { useWebGLElement } from './hooks/use-webgl-element'
 export { useWebGLRect } from './hooks/use-webgl-rect'
 // Store
 export { useWebGLStore } from './store'
-
+export * from './utils/blend'
 // Utils
 export { useFlowmapSim } from './utils/flowmaps'
 export { Flowmap } from './utils/flowmaps/flowmap-sim'
 export { useFluidSim } from './utils/fluid'
 export { Fluid } from './utils/fluid/fluid-sim'
+export * from './utils/functions'
+export * from './utils/noise'
+export { default as Program } from './utils/program'

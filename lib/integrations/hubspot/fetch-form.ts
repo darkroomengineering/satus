@@ -130,7 +130,7 @@ function apiParser(id: string | null, data: HubspotFormResponse) {
     submitButton: {
       text: data.displayOptions.submitButtonText || 'LFG',
     },
-    legalConsent: legalConsentOptions
+    legalConsent: legalConsentOptions?.[0]
       ? {
           required: true,
           subscriptionTypeId: legalConsentOptions[0].subscriptionTypeId,
@@ -154,19 +154,21 @@ function apiParser(id: string | null, data: HubspotFormResponse) {
   }
 }
 
+type GetFormSuccess = { form: HubSpotParsedForm; error?: never }
+type GetFormError = { form?: never; error: string }
+type GetFormResult = GetFormSuccess | GetFormError
+
 export async function getForm(
-  formId = null,
-  handler = (async () => {
-    // Default no-op handler
-  }) as (form: { form: Awaited<ReturnType<typeof apiParser>> }) => Promise<void>
-) {
+  formId: string | null | undefined = null,
+  handler?: (result: GetFormSuccess) => Promise<void>
+): Promise<GetFormResult> {
   try {
-    const form = {
+    const result: GetFormSuccess = {
       form: await hubspotFormApi(formId),
     }
 
-    await handler(form)
-    return form
+    await handler?.(result)
+    return result
   } catch (err) {
     if (err instanceof Error) {
       return { error: err.message }

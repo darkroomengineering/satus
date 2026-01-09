@@ -4,12 +4,16 @@ import { useTempus } from 'tempus/react'
 import s from './stats.module.css'
 
 export function Stats() {
-  const stats = useMemo(() => new _Stats({ minimal: false }), [])
+  const stats = useMemo(
+    () =>
+      new _Stats({ minimal: false } as ConstructorParameters<typeof _Stats>[0]),
+    []
+  )
 
   useEffect(() => {
     const domElement = (stats as unknown as { dom: HTMLElement }).dom
     document.body.appendChild(domElement)
-    domElement.classList.add(s.stats)
+    if (s.stats) domElement.classList.add(s.stats)
 
     return () => {
       domElement.remove()

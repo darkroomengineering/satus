@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 
 import type { PropsWithChildren } from 'react'
 import { ReactTempus } from 'tempus/react'
+import { Link } from '~/components/ui/link'
 import { RealViewport } from '~/components/ui/real-viewport'
 import { TransformProvider } from '~/hooks/use-transform'
 import AppData from '~/package.json'
@@ -90,6 +91,13 @@ export default async function Layout({ children }: PropsWithChildren) {
       {/* this helps to track Satus usage thanks to Wappalyzer */}
       <Script async>{`window.satusVersion = '${AppData.version}';`}</Script>
       <body>
+        {/* Skip link for keyboard navigation accessibility */}
+        <Link
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:rounded focus:bg-black focus:px-4 focus:py-2 focus:text-white focus:outline-none focus:ring-2 focus:ring-white"
+        >
+          Skip to main content
+        </Link>
         {/* Critical: CSS custom properties needed for layout */}
         <RealViewport>
           <TransformProvider>

@@ -81,6 +81,7 @@ describe('Integration Bundle Configuration', () => {
 
 describe('Theatre.js Code Transforms', () => {
   const theatreBundle = INTEGRATION_BUNDLES.theatre
+  if (!theatreBundle) throw new Error('Theatre bundle not found')
 
   describe('lib/dev/index.tsx transforms', () => {
     const file = 'lib/dev/index.tsx'
@@ -155,6 +156,7 @@ describe('Theatre.js Code Transforms', () => {
 
 describe('WebGL Code Transforms', () => {
   const webglBundle = INTEGRATION_BUNDLES.webgl
+  if (!webglBundle) throw new Error('WebGL bundle not found')
 
   describe('lib/features/index.tsx transforms', () => {
     const file = 'lib/features/index.tsx'
@@ -407,6 +409,7 @@ describe('Combined Transforms (Multiple Integrations Removed)', () => {
 
     const webglBundle = INTEGRATION_BUNDLES.webgl
     const theatreBundle = INTEGRATION_BUNDLES.theatre
+    if (!(webglBundle && theatreBundle)) return
 
     for (const file of filesToTransform) {
       let content = sourceFiles[file]

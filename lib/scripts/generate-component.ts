@@ -180,7 +180,7 @@ const updateBarrelExport = async (
   componentName: string
 ): Promise<void> => {
   const pathParts = componentPath.split('/')
-  const category = pathParts[0]
+  const category = pathParts[0] ?? 'components'
   const barrelPath = `components/${category}/index.ts`
   const pascalName = toPascalCase(componentName)
 
@@ -225,7 +225,7 @@ export { ${pascalName} } from './${componentName}'
     // Find the last non-empty line to append after
     let insertIndex = lines.length
     for (let i = lines.length - 1; i >= 0; i--) {
-      if (lines[i].trim()) {
+      if (lines[i]?.trim()) {
         insertIndex = i + 1
         break
       }
@@ -258,7 +258,7 @@ export const createComponent = async (
 
   try {
     const pathParts = componentPath.split('/')
-    const componentName = pathParts[pathParts.length - 1]
+    const componentName = pathParts[pathParts.length - 1] ?? ''
 
     // Validate component name
     if (!/^[a-z][a-z0-9-]*$/.test(componentName)) {

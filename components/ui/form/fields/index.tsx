@@ -66,7 +66,7 @@ export function InputField({
       disabled={disabled}
     >
       {label && (
-        <Field.Label className={s.label}>
+        <Field.Label {...(s.label && { className: s.label })}>
           {label}
           {required && <span aria-hidden="true"> *</span>}
         </Field.Label>
@@ -77,12 +77,14 @@ export function InputField({
         name={name ?? id}
         required={required}
         placeholder={placeholder}
-        className={s.input}
+        {...(s.input && { className: s.input })}
         {...register(idx)}
         render={<input />}
       />
       {error?.state && error.message && (
-        <Field.Error className={s.errorMessage}>{error.message}</Field.Error>
+        <Field.Error {...(s.errorMessage && { className: s.errorMessage })}>
+          {error.message}
+        </Field.Error>
       )}
     </Field.Root>
   )
@@ -126,7 +128,7 @@ export function TextareaField({
       disabled={disabled}
     >
       {label && (
-        <Field.Label className={s.label}>
+        <Field.Label {...(s.label && { className: s.label })}>
           {label}
           {required && <span aria-hidden="true"> *</span>}
         </Field.Label>
@@ -147,7 +149,9 @@ export function TextareaField({
         }
       />
       {error?.state && error.message && (
-        <Field.Error className={s.errorMessage}>{error.message}</Field.Error>
+        <Field.Error {...(s.errorMessage && { className: s.errorMessage })}>
+          {error.message}
+        </Field.Error>
       )}
     </Field.Root>
   )
@@ -180,8 +184,16 @@ export function CheckboxesField({
   const reg = register(idx)
 
   return (
-    <Field.Root className={cn(s.field, s.checkboxGroup, className)}>
-      {label && <Field.Label className={s.groupLabel}>{label}</Field.Label>}
+    <Field.Root
+      {...(cn(s.field, s.checkboxGroup, className) && {
+        className: cn(s.field, s.checkboxGroup, className),
+      })}
+    >
+      {label && (
+        <Field.Label {...(s.groupLabel && { className: s.groupLabel })}>
+          {label}
+        </Field.Label>
+      )}
       <input
         type="hidden"
         name={name}

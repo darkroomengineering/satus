@@ -200,7 +200,10 @@ export function fromTo(
         const toValue =
           typeof toPreValue === 'function' ? toPreValue(index) : toPreValue
 
-        return [key, mapRange(0, 1, easedProgress, fromValue, toValue)]
+        return [
+          key,
+          mapRange(0, 1, easedProgress, fromValue ?? 0, toValue ?? 0),
+        ]
       })
     )
 

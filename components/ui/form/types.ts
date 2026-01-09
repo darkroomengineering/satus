@@ -61,7 +61,7 @@ export interface UseFormReturn<T = unknown> {
 
 // Form component props
 export interface FormProps<T = unknown>
-  extends Omit<ComponentPropsWithoutRef<'form'>, 'action'> {
+  extends Omit<ComponentPropsWithoutRef<'form'>, 'action' | 'onError'> {
   children: ReactNode
   className?: string
   action: FormAction<T>

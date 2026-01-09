@@ -30,7 +30,7 @@ function useGradient(colors: string[]) {
       })
       ctx.fillStyle = gradient
     } else {
-      ctx.fillStyle = colors[0]
+      ctx.fillStyle = colors[0] ?? '#000000'
     }
 
     ctx.fillRect(0, 0, canvas.width, canvas.height)
@@ -116,7 +116,7 @@ export function WebGLAnimatedGradient({
   const aspect = useObjectFit(rect.width, rect.height, 1, 1, 'contain')
 
   useEffect(() => {
-    material.aspect.set(aspect[0], aspect[1])
+    material.aspect.set(aspect[0] ?? 1, aspect[1] ?? 1)
   }, [material, aspect])
 
   const { width: windowWidth = 0, height: windowHeight = 0 } = useWindowSize()

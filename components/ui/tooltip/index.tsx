@@ -58,8 +58,12 @@ function Tooltip({ content, children, side = 'top', className }: TooltipProps) {
         />
         <BaseTooltip.Portal>
           <BaseTooltip.Positioner side={side} sideOffset={8}>
-            <BaseTooltip.Popup className={cn(s.popup, className)}>
-              <BaseTooltip.Arrow className={s.arrow} />
+            <BaseTooltip.Popup
+              {...(cn(s.popup, className) && {
+                className: cn(s.popup, className),
+              })}
+            >
+              <BaseTooltip.Arrow {...(s.arrow && { className: s.arrow })} />
               {content}
             </BaseTooltip.Popup>
           </BaseTooltip.Positioner>

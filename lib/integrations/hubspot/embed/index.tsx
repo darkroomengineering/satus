@@ -38,9 +38,9 @@ export function EmbedHubspotForm({
         portalId: process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID,
         formId,
         target: `#${target}`,
-        submitButtonClass: s.submit,
-        errorMessageClass: s.error,
-        cssClass: s['custom-form'],
+        ...(s.submit && { submitButtonClass: s.submit }),
+        ...(s.error && { errorMessageClass: s.error }),
+        ...(s['custom-form'] && { cssClass: s['custom-form'] }),
         onFormReady: () => {
           console.log(`Form ${formId} ready in target ${target}`)
         },

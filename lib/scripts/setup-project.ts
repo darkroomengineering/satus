@@ -516,8 +516,8 @@ const main = async (): Promise<void> => {
     // Build options for multiselect
     const integrationOptions = getIntegrationNames().map((key) => ({
       value: key,
-      label: INTEGRATION_BUNDLES[key].name,
-      hint: INTEGRATION_BUNDLES[key].description,
+      label: INTEGRATION_BUNDLES[key]?.name ?? key,
+      hint: INTEGRATION_BUNDLES[key]?.description ?? '',
     }))
 
     // Ask which integrations to keep

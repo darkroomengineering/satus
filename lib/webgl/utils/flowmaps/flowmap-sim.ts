@@ -85,23 +85,27 @@ export class Flowmap {
     }
   }
 
-  // @ts-expect-error
-  updateMouse = (e) => {
-    if (e.changedTouches?.length) {
-      e.x = e.changedTouches[0].pageX
-      e.y = e.changedTouches[0].pageY
-    }
-    if (e.x === undefined) {
-      e.x = e.pageX
-      e.y = e.pageY
+  updateMouse = (e: MouseEvent | TouchEvent) => {
+    // Normalize touch and mouse events to get x/y coordinates
+    let pageX: number
+    let pageY: number
+
+    if ('changedTouches' in e && e.changedTouches.length) {
+      pageX = e.changedTouches[0]?.pageX ?? 0
+      pageY = e.changedTouches[0]?.pageY ?? 0
+    } else if ('pageX' in e) {
+      pageX = e.pageX
+      pageY = e.pageY
+    } else {
+      return
     }
 
     const viewportSize = this.renderer.getSize(new Vector2())
     this.aspect = viewportSize.width / viewportSize.height
-    this.material.uniforms.uAspect.value = this.aspect
+    this.material.uniforms.uAspect!.value = this.aspect
 
-    const x = e.x / viewportSize.width
-    const y = 1 - e.y / viewportSize.height
+    const x = pageX / viewportSize.width
+    const y = 1 - pageY / viewportSize.height
 
     this.targetMouse.set(x, y)
   }
@@ -123,7 +127,9 @@ export class Flowmap {
 
     const oldAutoClear = this.renderer.autoClear
     this.renderer.autoClear = false
-    this.renderer.setRenderTarget(this.mask.write)
+    if (this.mask.write) {
+      this.renderer.setRenderTarget(this.mask.write)
+    }
 
     this.program.render(this.renderer)
     this.mask.swap()
@@ -133,19 +139,19 @@ export class Flowmap {
   }
 
   set falloff(value) {
-    this.material.uniforms.uFalloff.value = value
+    this.material.uniforms.uFalloff!.value = value
   }
 
   get falloff() {
-    return this.material.uniforms.uFalloff.value
+    return this.material.uniforms.uFalloff!.value
   }
 
   set dissipation(value) {
-    this.material.uniforms.uDissipation.value = value
+    this.material.uniforms.uDissipation!.value = value
   }
 
   get dissipation() {
-    return this.material.uniforms.uDissipation.value
+    return this.material.uniforms.uDissipation!.value
   }
 }
 

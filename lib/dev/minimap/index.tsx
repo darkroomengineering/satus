@@ -52,6 +52,7 @@ export function Minimap() {
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver(([entry]) => {
+      if (!entry) return
       const aspectRatio = entry.contentRect.width / entry.contentRect.height
 
       setAspectRatio(aspectRatio.toFixed(2))

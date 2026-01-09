@@ -178,10 +178,11 @@ const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
 
       // Check if this variable should be kept
       let shouldKeep = false
+      const varName = trimmed.split('=')[0] ?? ''
 
       // Always keep core variables
       for (const pattern of alwaysKeep) {
-        if (pattern.test(trimmed.split('=')[0])) {
+        if (pattern.test(varName)) {
           shouldKeep = true
           break
         }
@@ -193,7 +194,7 @@ const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
           const patterns = keepPatterns[integration]
           if (patterns) {
             for (const pattern of patterns) {
-              if (pattern.test(trimmed.split('=')[0])) {
+              if (pattern.test(varName)) {
                 shouldKeep = true
                 break
               }

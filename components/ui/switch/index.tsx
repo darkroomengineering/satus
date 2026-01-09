@@ -45,8 +45,11 @@ type SwitchProps = Omit<ComponentProps<typeof BaseSwitch.Root>, 'children'> & {
 
 function Switch({ label, className, labelClassName, ...props }: SwitchProps) {
   const switchElement = (
-    <BaseSwitch.Root className={cn(s.root, className)} {...props}>
-      <BaseSwitch.Thumb className={s.thumb} />
+    <BaseSwitch.Root
+      {...(cn(s.root, className) && { className: cn(s.root, className) })}
+      {...props}
+    >
+      <BaseSwitch.Thumb {...(s.thumb && { className: s.thumb })} />
     </BaseSwitch.Root>
   )
 

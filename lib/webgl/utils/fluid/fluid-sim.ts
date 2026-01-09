@@ -578,18 +578,20 @@ export class Fluid {
 
     // Render all of the inputs since the last frame
     for (let i = this.splats.length - 1; i >= 0; i--) {
-      const { x, y, dx, dy } = this.splats.splice(i, 1)[0]
+      const splat = this.splats.splice(i, 1)[0]
+      if (!splat) continue
+      const { x, y, dx, dy } = splat
 
-      this.splatMaterial.uniforms.uTarget.value = this.velocity.read.texture
-      this.splatMaterial.uniforms.point.value.set(x, y)
-      this.splatMaterial.uniforms.color.value.set(dx, dy, 1)
-      this.splatMaterial.uniforms.radius.value = radius / 100
+      this.splatMaterial.uniforms.uTarget!.value = this.velocity.read.texture
+      this.splatMaterial.uniforms.point!.value.set(x, y)
+      this.splatMaterial.uniforms.color!.value.set(dx, dy, 1)
+      this.splatMaterial.uniforms.radius!.value = radius / 100
       this.screen.material = this.splatMaterial
       renderer.setRenderTarget(this.velocity.write)
       renderer.render(this.screen, this.screenCamera)
       this.velocity.swap()
 
-      this.splatMaterial.uniforms.uTarget.value = this.density.read.texture
+      this.splatMaterial.uniforms.uTarget!.value = this.density.read.texture
       this.screen.material = this.splatMaterial
       renderer.setRenderTarget(this.density.write)
       renderer.render(this.screen, this.screenCamera)
@@ -597,36 +599,37 @@ export class Fluid {
     }
 
     // Perform all of the fluid simulation renders
-    this.curlMaterial.uniforms.uVelocity.value = this.velocity.read.texture
+    this.curlMaterial.uniforms.uVelocity!.value = this.velocity.read.texture
     this.screen.material = this.curlMaterial
     renderer.setRenderTarget(this.curl)
     renderer.render(this.screen, this.screenCamera)
 
-    this.vorticityMaterial.uniforms.uVelocity.value = this.velocity.read.texture
-    this.vorticityMaterial.uniforms.uCurl.value = this.curl.texture
-    this.vorticityMaterial.uniforms.curl.value = curlStrength
+    this.vorticityMaterial.uniforms.uVelocity!.value =
+      this.velocity.read.texture
+    this.vorticityMaterial.uniforms.uCurl!.value = this.curl.texture
+    this.vorticityMaterial.uniforms.curl!.value = curlStrength
     this.screen.material = this.vorticityMaterial
     renderer.setRenderTarget(this.velocity.write)
     renderer.render(this.screen, this.screenCamera)
     this.velocity.swap()
 
-    this.divergenceMaterial.uniforms.uVelocity.value =
+    this.divergenceMaterial.uniforms.uVelocity!.value =
       this.velocity.read.texture
     this.screen.material = this.divergenceMaterial
     renderer.setRenderTarget(this.divergence)
     renderer.render(this.screen, this.screenCamera)
 
-    this.clearMaterial.uniforms.uTexture.value = this.pressure.read.texture
-    this.clearMaterial.uniforms.value.value = pressureDissipation
+    this.clearMaterial.uniforms.uTexture!.value = this.pressure.read.texture
+    this.clearMaterial.uniforms.value!.value = pressureDissipation
     this.screen.material = this.clearMaterial
     renderer.setRenderTarget(this.pressure.write)
     renderer.render(this.screen, this.screenCamera)
     this.pressure.swap()
 
-    this.pressureMaterial.uniforms.uDivergence.value = this.divergence.texture
+    this.pressureMaterial.uniforms.uDivergence!.value = this.divergence.texture
 
     for (let i = 0; i < iterations; i++) {
-      this.pressureMaterial.uniforms.uPressure.value =
+      this.pressureMaterial.uniforms.uPressure!.value =
         this.pressure.read.texture
       this.screen.material = this.pressureMaterial
       renderer.setRenderTarget(this.pressure.write)
@@ -634,34 +637,36 @@ export class Fluid {
       this.pressure.swap()
     }
 
-    this.gradientSubtractMaterial.uniforms.uPressure.value =
+    this.gradientSubtractMaterial.uniforms.uPressure!.value =
       this.pressure.read.texture
-    this.gradientSubtractMaterial.uniforms.uVelocity.value =
+    this.gradientSubtractMaterial.uniforms.uVelocity!.value =
       this.velocity.read.texture
     this.screen.material = this.gradientSubtractMaterial
     renderer.setRenderTarget(this.velocity.write)
     renderer.render(this.screen, this.screenCamera)
     this.velocity.swap()
 
-    this.advectionMaterial.uniforms.dyeTexelSize.value.set(
+    this.advectionMaterial.uniforms.dyeTexelSize!.value.set(
       1 / simRes,
       1 / simRes
     )
-    this.advectionMaterial.uniforms.uVelocity.value = this.velocity.read.texture
-    this.advectionMaterial.uniforms.uSource.value = this.velocity.read.texture
-    this.advectionMaterial.uniforms.dissipation.value = velocityDissipation
+    this.advectionMaterial.uniforms.uVelocity!.value =
+      this.velocity.read.texture
+    this.advectionMaterial.uniforms.uSource!.value = this.velocity.read.texture
+    this.advectionMaterial.uniforms.dissipation!.value = velocityDissipation
     this.screen.material = this.advectionMaterial
     renderer.setRenderTarget(this.velocity.write)
     renderer.render(this.screen, this.screenCamera)
     this.velocity.swap()
 
-    this.advectionMaterial.uniforms.dyeTexelSize.value.set(
+    this.advectionMaterial.uniforms.dyeTexelSize!.value.set(
       1 / dyeRes,
       1 / dyeRes
     )
-    this.advectionMaterial.uniforms.uVelocity.value = this.velocity.read.texture
-    this.advectionMaterial.uniforms.uSource.value = this.density.read.texture
-    this.advectionMaterial.uniforms.dissipation.value = densityDissipation
+    this.advectionMaterial.uniforms.uVelocity!.value =
+      this.velocity.read.texture
+    this.advectionMaterial.uniforms.uSource!.value = this.density.read.texture
+    this.advectionMaterial.uniforms.dissipation!.value = densityDissipation
     this.screen.material = this.advectionMaterial
     renderer.setRenderTarget(this.density.write)
     renderer.render(this.screen, this.screenCamera)

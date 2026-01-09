@@ -16,8 +16,17 @@ export default async function HubspotPage() {
     )
   }
 
-  // @ts-expect-error Server Component
-  const { form } = await getForm(process.env.NEXT_HUBSPOT_FORM_ID)
+  const result = await getForm(process.env.NEXT_HUBSPOT_FORM_ID)
+
+  if ('error' in result) {
+    return (
+      <Wrapper theme="dark">
+        <NotConfigured integration="HubSpot" />
+      </Wrapper>
+    )
+  }
+
+  const { form } = result
 
   return (
     <Wrapper theme="dark" className="font-mono uppercase">
@@ -25,7 +34,7 @@ export default async function HubspotPage() {
         <p className="dr-mb-19 dt:dr-mb-15">subscribe for more Satūs</p>
         <Form
           className="dr-mb-32 dr-px-15"
-          formId={form?.id}
+          {...(form.id && { formId: form.id })}
           action={HubspotNewsletterAction}
         >
           <Subscribe form={form} idx={0} />

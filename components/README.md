@@ -13,7 +13,7 @@ components/
 
 ```tsx
 import { Image, Link, Menu, Select, Tabs, Toast } from '~/components/ui'
-import { Wrapper, Navigation, Footer } from '~/components/layout'
+import { Wrapper, Header, Footer } from '~/components/layout'
 import { Marquee, GSAPRuntime } from '~/components/effects'
 ```
 
@@ -44,7 +44,7 @@ Built on [Base UI](https://base-ui.com/) for accessibility.
 | Component | Purpose |
 |-----------|---------|
 | `wrapper/` | Page wrapper (theme, WebGL, Lenis) |
-| `navigation/` | Site navigation |
+| `header/` | Site header/navigation |
 | `footer/` | Site footer |
 | `lenis/` | Smooth scrolling |
 

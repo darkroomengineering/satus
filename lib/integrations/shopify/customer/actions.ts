@@ -38,7 +38,10 @@ export async function LoginCustomerAction(
       res.body.data.customerAccessTokenCreate
 
     if (customerUserErrors.length) {
-      return { status: 400, message: customerUserErrors[0].message }
+      return {
+        status: 400,
+        message: customerUserErrors[0]?.message ?? 'Unknown error',
+      }
     }
 
     if (customerAccessToken) {
@@ -115,7 +118,10 @@ export async function CreateCustomerAction(
     const { customer, customerUserErrors } = res.body.data.customerCreate
 
     if (customerUserErrors.length) {
-      return { status: 400, message: customerUserErrors[0].message }
+      return {
+        status: 400,
+        message: customerUserErrors[0]?.message ?? 'Unknown error',
+      }
     }
 
     return {

@@ -78,7 +78,7 @@ export function useWebGLElement<T extends HTMLElement = HTMLElement>({
     if (element) {
       observerRef.current = new IntersectionObserver(
         ([entry]) => {
-          setIsVisible(entry.isIntersecting)
+          if (entry) setIsVisible(entry.isIntersecting)
         },
         { rootMargin, threshold: threshold ?? 0 }
       )
@@ -102,7 +102,7 @@ export function useWebGLElement<T extends HTMLElement = HTMLElement>({
     observerRef.current?.disconnect()
     observerRef.current = new IntersectionObserver(
       ([entry]) => {
-        setIsVisible(entry.isIntersecting)
+        if (entry) setIsVisible(entry.isIntersecting)
       },
       { rootMargin, threshold: threshold ?? 0 }
     )

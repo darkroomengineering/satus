@@ -139,7 +139,7 @@ function Select<T extends string = string>({
       </BaseSelect.Trigger>
       <BaseSelect.Portal>
         <BaseSelect.Positioner className="outline-none" sideOffset={8}>
-          <BaseSelect.Popup className={s.popup}>
+          <BaseSelect.Popup {...(s.popup && { className: s.popup })}>
             {options.map(({ value, label, disabled }) => (
               <BaseSelect.Item
                 className={cn(

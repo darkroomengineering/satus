@@ -35,7 +35,7 @@ export function useStudioCurrentObject() {
           ({ type }) => type === 'Theatre_SheetObject_PublicAPI'
         )[0]
 
-        setCurrentObjectAddress(object?.address)
+        setCurrentObjectAddress(object?.address ?? null)
       })
 
       return unsubscribe

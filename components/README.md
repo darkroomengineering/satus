@@ -47,12 +47,34 @@ Built on [Base UI](https://base-ui.com/) for accessibility.
 | `header/` | Site header/navigation |
 | `footer/` | Site footer |
 | `lenis/` | Smooth scrolling |
+| `page-transition/` | GSAP-powered page transitions |
 
 ```tsx
 <Wrapper theme="dark" webgl lenis>
   <section>Your content</section>
 </Wrapper>
 ```
+
+### Page Transitions
+
+GSAP-based transitions that don't freeze the router. Enable via environment variable:
+
+```bash
+NEXT_PUBLIC_ENABLE_PAGE_TRANSITIONS=true
+```
+
+```tsx
+import { TransitionLink, usePageTransition } from '~/components/layout/page-transition'
+
+// Declarative
+<TransitionLink href="/about" exitType="slide-up">About</TransitionLink>
+
+// Programmatic
+const { navigate } = usePageTransition()
+navigate('/success', { exitType: 'fade' })
+```
+
+Types: `fade`, `slide-left`, `slide-right`, `slide-up`, `slide-down`, `reveal`
 
 ## Effects Components
 

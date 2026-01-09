@@ -70,6 +70,17 @@ bun run setup:project  # Configure integrations
 - **CSS Modules**: Import as `s` → `import s from './component.module.css'`
 - **Debug Tools**: Toggle with `Cmd/Ctrl + O`
 
+## Optional Features
+
+Toggle via environment variables in `.env.local`:
+
+| Feature | Variable | Description |
+|---------|----------|-------------|
+| Page Transitions | `NEXT_PUBLIC_ENABLE_PAGE_TRANSITIONS=true` | GSAP-powered page transitions |
+| WebGL | `NEXT_PUBLIC_ENABLE_WEBGL=false` | Disable WebGL (enabled by default) |
+
+See [components/README.md](components/README.md) for usage details.
+
 ## Deployment
 
 ```bash

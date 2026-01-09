@@ -1,18 +1,17 @@
 import { notFound } from 'next/navigation'
 import { Wrapper } from '~/components/layout/wrapper'
+import { fetchAllArticles } from '~/integrations/sanity/fetch'
 import { sanityFetch } from '~/integrations/sanity/live'
 import { articleQuery } from '~/integrations/sanity/queries'
 import type { Article } from '~/integrations/sanity/sanity.types'
 import { generateSanityMetadata } from '~/utils'
 import { SanityArticle } from './_components/article'
 
-// export async function generateStaticParams() {
-//   const { data } = await sanityFetch({
-//     query: allArticlesQuery,
-//   })
+export async function generateStaticParams() {
+  const data = await fetchAllArticles()
 
-//   return data.map((article) => ({ slug: article.slug?.current }))
-// }
+  return (data ?? []).map((article) => ({ slug: article.slug?.current ?? '' }))
+}
 
 export default async function SanityArticlePage({
   params,

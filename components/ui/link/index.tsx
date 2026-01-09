@@ -54,9 +54,20 @@ export function Link({
   scroll = false, // Default to false to prevent scroll restoration warnings with fixed/sticky elements
   ...props
 }: CustomLinkProps) {
-  const pathname = usePathname()
   const [shouldPrefetch, setShouldPrefetch] = useState(false)
   const [isExternal, setIsExternal] = useState(false)
+  const [isActive, setIsActive] = useState(false)
+
+  // Get pathname - deferred to avoid blocking static generation
+  // usePathname is safe to call but we defer the active check to useEffect
+  const pathname = usePathname()
+
+  useEffect(() => {
+    // Check if this link is active (current page)
+    if (href && pathname) {
+      setIsActive(pathname === href)
+    }
+  }, [href, pathname])
 
   useEffect(() => {
     // Skip if no href
@@ -102,8 +113,6 @@ export function Link({
   if (!href) {
     return <div {...getDivProps(props)}>{children}</div>
   }
-
-  const isActive = pathname === href
 
   // For SSR, check if it's external based on the href pattern
   const isExternalSSR =

@@ -134,8 +134,12 @@ export const fetchArticleById = cache(async (id: string) => {
  */
 export const fetchAllArticles = cache(async () => {
   const { allArticlesQuery } = await import('./queries')
+  type ArticleSummary = {
+    _id: string
+    slug?: { current?: string } | null
+  }
 
-  return fetchSanityInternal(
+  return fetchSanityInternal<ArticleSummary[]>(
     allArticlesQuery,
     {},
     {

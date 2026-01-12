@@ -9,8 +9,11 @@ export {} // Module marker for top-level await
 const isHttps = process.argv.includes('--https')
 const isInspect = process.argv.includes('--inspect')
 
+// Use process.execPath to get the current bun executable (works cross-platform)
+const bunExecutable = process.execPath
+
 // Build next dev command args
-const nextDevArgs = ['bun', 'next', 'dev']
+const nextDevArgs = [bunExecutable, 'next', 'dev']
 if (isHttps) nextDevArgs.push('--experimental-https')
 if (isInspect) nextDevArgs.push('--inspect')
 
@@ -23,11 +26,14 @@ delete devEnv.NO_COLOR
 
 const processes = [
   // Style watcher
-  Bun.spawn(['bun', '--watch', './lib/styles/scripts/setup-styles.ts'], {
-    stdout: 'inherit',
-    stderr: 'inherit',
-    env: devEnv,
-  }),
+  Bun.spawn(
+    [bunExecutable, '--watch', './lib/styles/scripts/setup-styles.ts'],
+    {
+      stdout: 'inherit',
+      stderr: 'inherit',
+      env: devEnv,
+    }
+  ),
 
   // Next.js dev server
   Bun.spawn(nextDevArgs, {

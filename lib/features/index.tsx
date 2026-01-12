@@ -8,7 +8,11 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+
+// Feature detection
+const hasWebGL = Boolean(process.env.NEXT_PUBLIC_ENABLE_WEBGL !== 'false')
+const isDevelopment = process.env.NODE_ENV === 'development'
 
 // Lazy imports to avoid loading unused features
 const LazyGlobalCanvas = dynamic(
@@ -32,15 +36,19 @@ const GSAPRuntime = dynamic(
   { ssr: false }
 )
 
-// Feature detection
-const hasWebGL = Boolean(process.env.NEXT_PUBLIC_ENABLE_WEBGL !== 'false')
-const isDevelopment = process.env.NODE_ENV === 'development'
-
 /**
  * Conditionally loads optional root layout features
  */
 export function OptionalFeatures() {
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
   const features = useMemo(() => {
+    if (!isClient) return []
+
     const components = []
 
     // GSAP Runtime - always included (lightweight)
@@ -57,7 +65,9 @@ export function OptionalFeatures() {
     }
 
     return components
-  }, [])
+  }, [isClient])
+
+  if (!isClient) return null
 
   return <>{features}</>
 }

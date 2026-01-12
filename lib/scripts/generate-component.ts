@@ -4,9 +4,12 @@
  *
  * Generates new components with pre-configured templates through interactive prompts.
  * Used by the unified generator: `bun run generate`
+ *
+ * Cross-platform compatible (Windows, macOS, Linux)
  */
 
 import * as p from '@clack/prompts'
+import { createDir } from './utils'
 
 interface ComponentOptions {
   client?: boolean
@@ -272,8 +275,8 @@ export const createComponent = async (
 
     s.start(`Generating component "${componentPath}"`)
 
-    // Create component directory
-    await Bun.$`mkdir -p ${componentDir}`.quiet()
+    // Create component directory (cross-platform)
+    await createDir(componentDir)
 
     // Generate and write files
     const componentContent = generateComponentContent(componentName, options)

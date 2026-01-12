@@ -11,10 +11,19 @@
  * Usage:
  *   bun run handoff
  *   bun run handoff --dry-run
+ *
+ * Cross-platform compatible (Windows, macOS, Linux)
  */
 
 import * as p from '@clack/prompts'
 import { getConfiguredIntegrations } from '~/integrations/check-integration'
+import {
+  parseCliFlags,
+  pathExists,
+  removeDir,
+  removeFile,
+  resolvePath,
+} from './utils'
 
 interface HandoffOptions {
   dryRun: boolean
@@ -27,39 +36,9 @@ interface HandoffOptions {
 }
 
 /**
- * Check if a file or directory exists
+ * Remove Satūs-specific branding and assets (cross-platform)
  */
-const pathExists = async (path: string): Promise<boolean> => {
-  try {
-    const fs = await import('node:fs/promises')
-    await fs.access(path)
-    return true
-  } catch {
-    return false
-  }
-}
-
-/**
- * Remove a directory recursively
- */
-const removeDir = async (path: string, dryRun: boolean): Promise<boolean> => {
-  try {
-    const fullPath = `${process.cwd()}/${path}`
-    if (!(await pathExists(fullPath))) return false
-
-    if (!dryRun) {
-      await Bun.$`rm -rf ${fullPath}`.quiet()
-    }
-    return true
-  } catch {
-    return false
-  }
-}
-
-/**
- * Remove Satūs-specific branding and assets
- */
-const removeBranding = async (dryRun: boolean): Promise<boolean> => {
+const removeBrandingAssets = async (dryRun: boolean): Promise<boolean> => {
   const brandingFiles = [
     'components/ui/darkroom.svg',
     'public/opengraph-image.jpg',
@@ -73,18 +52,8 @@ const removeBranding = async (dryRun: boolean): Promise<boolean> => {
   let removedCount = 0
 
   for (const file of brandingFiles) {
-    const fullPath = `${process.cwd()}/${file}`
-    if (await pathExists(fullPath)) {
-      if (!dryRun) {
-        try {
-          await Bun.$`rm -f ${fullPath}`.quiet()
-          removedCount++
-        } catch {
-          // Continue if file removal fails
-        }
-      } else {
-        removedCount++
-      }
+    if (await removeFile(file, dryRun)) {
+      removedCount++
     }
   }
 
@@ -99,7 +68,7 @@ const updatePackageJson = async (
   dryRun: boolean
 ): Promise<boolean> => {
   try {
-    const pkgPath = `${process.cwd()}/package.json`
+    const pkgPath = resolvePath('package.json')
     const pkg = await Bun.file(pkgPath).json()
 
     // Generate a slug from project name
@@ -139,7 +108,7 @@ const updatePackageJson = async (
  */
 const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
   try {
-    const envExamplePath = `${process.cwd()}/.env.example`
+    const envExamplePath = resolvePath('.env.example')
 
     if (!(await pathExists(envExamplePath))) {
       return false
@@ -230,8 +199,8 @@ const swapReadme = async (
   dryRun: boolean
 ): Promise<boolean> => {
   try {
-    const prodReadmePath = `${process.cwd()}/PROD-README.md`
-    const readmePath = `${process.cwd()}/README.md`
+    const prodReadmePath = resolvePath('PROD-README.md')
+    const readmePath = resolvePath('README.md')
 
     if (!(await pathExists(prodReadmePath))) {
       p.log.warn('PROD-README.md not found, skipping README swap')
@@ -247,13 +216,13 @@ const swapReadme = async (
     if (!dryRun) {
       // Backup original README
       const originalReadme = await Bun.file(readmePath).text()
-      await Bun.write(`${process.cwd()}/README.original.md`, originalReadme)
+      await Bun.write(resolvePath('README.original.md'), originalReadme)
 
       // Write new README
       await Bun.write(readmePath, content)
 
-      // Remove PROD-README
-      await Bun.$`rm -f ${prodReadmePath}`.quiet()
+      // Remove PROD-README (cross-platform)
+      await removeFile('PROD-README.md')
     }
 
     return true
@@ -293,7 +262,7 @@ const generateInventory = async (dryRun: boolean): Promise<string> => {
   try {
     const uiComponents = await Array.fromAsync(
       new Bun.Glob('*/index.tsx').scan({
-        cwd: `${process.cwd()}/components/ui`,
+        cwd: resolvePath('components/ui'),
       })
     )
     for (const comp of uiComponents.sort()) {
@@ -311,7 +280,7 @@ const generateInventory = async (dryRun: boolean): Promise<string> => {
   try {
     const layoutComponents = await Array.fromAsync(
       new Bun.Glob('*/index.tsx').scan({
-        cwd: `${process.cwd()}/components/layout`,
+        cwd: resolvePath('components/layout'),
       })
     )
     for (const comp of layoutComponents.sort()) {
@@ -329,7 +298,7 @@ const generateInventory = async (dryRun: boolean): Promise<string> => {
   try {
     const effectComponents = await Array.fromAsync(
       new Bun.Glob('*/index.tsx').scan({
-        cwd: `${process.cwd()}/components/effects`,
+        cwd: resolvePath('components/effects'),
       })
     )
     for (const comp of effectComponents.sort()) {
@@ -347,7 +316,7 @@ const generateInventory = async (dryRun: boolean): Promise<string> => {
   try {
     const pages = await Array.fromAsync(
       new Bun.Glob('**/page.tsx').scan({
-        cwd: `${process.cwd()}/app`,
+        cwd: resolvePath('app'),
       })
     )
     for (const page of pages.sort()) {
@@ -364,7 +333,7 @@ const generateInventory = async (dryRun: boolean): Promise<string> => {
   const content = inventory.join('\n')
 
   if (!dryRun) {
-    await Bun.write(`${process.cwd()}/INVENTORY.md`, content)
+    await Bun.write(resolvePath('INVENTORY.md'), content)
   }
 
   return content
@@ -462,7 +431,7 @@ const generateChecklist = async (
   const content = checklist.join('\n')
 
   if (!dryRun) {
-    await Bun.write(`${process.cwd()}/DEPLOYMENT-CHECKLIST.md`, content)
+    await Bun.write(resolvePath('DEPLOYMENT-CHECKLIST.md'), content)
   }
 
   return content
@@ -487,7 +456,7 @@ const runHandoff = async (options: HandoffOptions): Promise<void> => {
   // Remove branding
   if (doRemoveBranding) {
     s.start('Removing Satūs branding...')
-    const removed = await removeBranding(dryRun)
+    const removed = await removeBrandingAssets(dryRun)
     s.stop(removed ? 'Removed branding assets' : 'No branding assets to remove')
   }
 
@@ -538,8 +507,7 @@ const runHandoff = async (options: HandoffOptions): Promise<void> => {
  * CLI entry point
  */
 const main = async (): Promise<void> => {
-  const args = process.argv.slice(2)
-  const dryRun = args.includes('--dry-run') || args.includes('-d')
+  const { dryRun } = parseCliFlags()
 
   console.clear()
 

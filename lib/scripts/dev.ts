@@ -4,25 +4,18 @@
  * Works on Windows, macOS, and Linux using Bun's native APIs
  */
 
-export {} // Module marker for top-level await
+import { bunExecutable, colorEnv } from './utils'
 
 const isHttps = process.argv.includes('--https')
 const isInspect = process.argv.includes('--inspect')
-
-// Use process.execPath to get the current bun executable (works cross-platform)
-const bunExecutable = process.execPath
 
 // Build next dev command args
 const nextDevArgs = [bunExecutable, 'next', 'dev']
 if (isHttps) nextDevArgs.push('--experimental-https')
 if (isInspect) nextDevArgs.push('--inspect')
 
-// Build environment with FORCE_COLOR, removing NO_COLOR to prevent warning
-const devEnv = { ...process.env, FORCE_COLOR: '1' } as Record<
-  string,
-  string | undefined
->
-delete devEnv.NO_COLOR
+// Build environment with FORCE_COLOR
+const devEnv = colorEnv()
 
 const processes = [
   // Style watcher

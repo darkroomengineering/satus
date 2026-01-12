@@ -4,9 +4,12 @@
  *
  * Generates new pages with pre-configured templates through interactive prompts.
  * Used by the unified generator: `bun run generate`
+ *
+ * Cross-platform compatible (Windows, macOS, Linux)
  */
 
 import * as p from '@clack/prompts'
+import { createDir } from './utils'
 
 interface PageOptions {
   webgl?: boolean
@@ -313,11 +316,11 @@ export const createPage = async (
 
     s.start(`Creating page structure for "${pageName}"`)
 
-    // Create main page directory
-    await Bun.$`mkdir -p ${pageDir}`.quiet()
+    // Create main page directory (cross-platform)
+    await createDir(pageDir)
 
-    // Create _components subdirectory
-    await Bun.$`mkdir -p ${componentsDir}`.quiet()
+    // Create _components subdirectory (cross-platform)
+    await createDir(componentsDir)
 
     // Create .gitkeep in _components
     await Bun.write(`${componentsDir}/.gitkeep`, '')

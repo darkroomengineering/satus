@@ -8,6 +8,8 @@
  * 1. Choose which integrations to keep
  * 2. Remove unused code and dependencies
  * 3. Clean up configuration files
+ *
+ * Cross-platform compatible (Windows, macOS, Linux)
  */
 
 import * as p from '@clack/prompts'
@@ -16,6 +18,13 @@ import {
   getIntegrationNames,
   INTEGRATION_BUNDLES,
 } from './integration-bundles'
+import {
+  parseCliFlags,
+  pathExists,
+  removeDir,
+  removeFile,
+  resolvePath,
+} from './utils'
 
 /**
  * Preset project modes with pre-selected integrations
@@ -75,51 +84,6 @@ interface SetupOptions {
 }
 
 /**
- * Remove a directory recursively
- */
-const removeDir = async (path: string, dryRun: boolean): Promise<boolean> => {
-  try {
-    const fullPath = `${process.cwd()}/${path}`
-
-    // Check if path exists by trying to scan it
-    const entries = await Array.fromAsync(
-      new Bun.Glob('**/*').scan({ cwd: fullPath, onlyFiles: false })
-    ).catch(() => null)
-
-    if (entries === null) {
-      return false // Doesn't exist
-    }
-
-    if (!dryRun) {
-      await Bun.$`rm -rf ${fullPath}`.quiet()
-    }
-    return true
-  } catch {
-    return false
-  }
-}
-
-/**
- * Remove a file
- */
-const removeFile = async (path: string, dryRun: boolean): Promise<boolean> => {
-  try {
-    const fullPath = `${process.cwd()}/${path}`
-    const file = Bun.file(fullPath)
-    const exists = await file.exists()
-
-    if (!exists) return false
-
-    if (!dryRun) {
-      await Bun.$`rm -f ${fullPath}`.quiet()
-    }
-    return true
-  } catch {
-    return false
-  }
-}
-
-/**
  * Apply code transformations to a file
  */
 const applyCodeTransforms = async (
@@ -130,7 +94,7 @@ const applyCodeTransforms = async (
 
   for (const transform of transforms) {
     try {
-      const fullPath = `${process.cwd()}/${transform.file}`
+      const fullPath = resolvePath(transform.file)
       const file = Bun.file(fullPath)
 
       if (!(await file.exists())) continue
@@ -171,7 +135,7 @@ const updatePackageJson = async (
   devDepsToRemove: string[],
   dryRun: boolean
 ): Promise<{ deps: string[]; devDeps: string[] }> => {
-  const pkgPath = `${process.cwd()}/package.json`
+  const pkgPath = resolvePath('package.json')
   const pkg = await Bun.file(pkgPath).json()
 
   const removedDeps: string[] = []
@@ -211,7 +175,7 @@ const updateNextConfig = async (
 ): Promise<number> => {
   if (patterns.length === 0) return 0
 
-  const configPath = `${process.cwd()}/next.config.ts`
+  const configPath = resolvePath('next.config.ts')
   let content = await Bun.file(configPath).text()
   let changes = 0
 
@@ -262,10 +226,11 @@ const updateEnvExample = async (
 ): Promise<number> => {
   if (envVars.length === 0) return 0
 
-  const envPath = `${process.cwd()}/.env.example`
-  const file = Bun.file(envPath)
+  const envPath = resolvePath('.env.example')
 
-  if (!(await file.exists())) return 0
+  if (!(await pathExists(envPath))) return 0
+
+  const file = Bun.file(envPath)
 
   let content = await file.text()
   let changes = 0
@@ -297,10 +262,11 @@ const updateBarrelExports = async (
 
   for (const { file, pattern } of barrelExports) {
     try {
-      const fullPath = `${process.cwd()}/${file}`
-      const barrelFile = Bun.file(fullPath)
+      const fullPath = resolvePath(file)
 
-      if (!(await barrelFile.exists())) continue
+      if (!(await pathExists(fullPath))) continue
+
+      const barrelFile = Bun.file(fullPath)
 
       const content = await barrelFile.text()
       const lines = content.split('\n')
@@ -473,8 +439,7 @@ const setup = async (options: SetupOptions): Promise<void> => {
  * CLI entry point
  */
 const main = async (): Promise<void> => {
-  const args = process.argv.slice(2)
-  const dryRun = args.includes('--dry-run') || args.includes('-d')
+  const { dryRun } = parseCliFlags()
 
   console.clear()
 

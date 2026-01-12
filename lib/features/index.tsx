@@ -32,8 +32,19 @@ const GSAPRuntime = dynamic(
   { ssr: false }
 )
 
+const PageTransitionOverlay = dynamic(
+  () =>
+    import('~/components/layout/page-transition').then((mod) => ({
+      default: mod.PageTransition,
+    })),
+  { ssr: false }
+)
+
 // Feature detection
 const hasWebGL = Boolean(process.env.NEXT_PUBLIC_ENABLE_WEBGL !== 'false')
+const hasPageTransitions = Boolean(
+  process.env.NEXT_PUBLIC_ENABLE_PAGE_TRANSITIONS === 'true'
+)
 const isDevelopment = process.env.NODE_ENV === 'development'
 
 /**
@@ -45,6 +56,11 @@ export function OptionalFeatures() {
 
     // GSAP Runtime - always included (lightweight)
     components.push(<GSAPRuntime key="gsap" />)
+
+    // Page Transitions - opt-in for cinematic route changes
+    if (hasPageTransitions) {
+      components.push(<PageTransitionOverlay key="page-transition" />)
+    }
 
     // WebGL Canvas - only if WebGL is enabled
     if (hasWebGL) {

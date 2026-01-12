@@ -1,16 +1,19 @@
 import type { Metadata, Viewport } from 'next'
 
+import { draftMode } from 'next/headers'
+import Script from 'next/script'
+import { VisualEditing } from 'next-sanity/visual-editing'
 import { type PropsWithChildren, Suspense } from 'react'
 import { ReactTempus } from 'tempus/react'
 import { Link } from '~/components/ui/link'
 import { RealViewport } from '~/components/ui/real-viewport'
 import { TransformProvider } from '~/hooks/use-transform'
+import { isSanityConfigured } from '~/integrations/check-integration'
+import { SanityLive } from '~/integrations/sanity/live'
+import { OptionalFeatures } from '~/lib/features'
 import AppData from '~/package.json'
 import { fontsVariable, themes } from '~/styles'
 import '~/styles/css/index.css'
-
-import Script from 'next/script'
-import { OptionalFeatures } from '~/lib/features'
 
 const APP_NAME = AppData.name
 const APP_DEFAULT_TITLE = 'Satūs'
@@ -80,6 +83,9 @@ export const viewport: Viewport = {
 }
 
 export default async function Layout({ children }: PropsWithChildren) {
+  const { isEnabled: isDraftMode } = await draftMode()
+  const sanityConfigured = isSanityConfigured()
+
   return (
     <html
       lang="en"
@@ -110,11 +116,16 @@ export default async function Layout({ children }: PropsWithChildren) {
         {/* Optional features - conditionally loaded based on configuration */}
         <OptionalFeatures />
 
+        {/* Sanity Visual Editing - only when draft mode is enabled */}
+        {sanityConfigured && isDraftMode && (
+          <Suspense fallback={null}>
+            <VisualEditing />
+            <SanityLive />
+          </Suspense>
+        )}
+
         {/* RAF management - lightweight, but don't patch in draft mode to avoid conflicts */}
-        <ReactTempus
-          // patch={!isDraftMode}
-          patch={true}
-        />
+        <ReactTempus patch={!isDraftMode} />
       </body>
     </html>
   )

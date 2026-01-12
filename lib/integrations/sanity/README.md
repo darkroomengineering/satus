@@ -5,11 +5,22 @@ Headless CMS with visual editing.
 ## Environment Variables
 
 ```env
+# Required
 NEXT_PUBLIC_SANITY_PROJECT_ID="your-project-id"
 NEXT_PUBLIC_SANITY_DATASET="production"
+
+# Required for Visual Editing & Live Preview
+NEXT_PUBLIC_SANITY_API_READ_TOKEN="your-viewer-token"
+SANITY_PRIVATE_TOKEN="your-editor-token"
+
+# Optional
 NEXT_PUBLIC_SANITY_STUDIO_URL="http://localhost:3000/studio"
-SANITY_API_WRITE_TOKEN="your-write-token"
+NEXT_PUBLIC_SANITY_API_VERSION="2024-03-15"
 ```
+
+> **Note**: Create tokens in [Sanity Dashboard](https://sanity.io/manage) → Your Project → API → Tokens.
+> - **Viewer** token → `NEXT_PUBLIC_SANITY_API_READ_TOKEN`
+> - **Editor** token → `SANITY_PRIVATE_TOKEN`
 
 ## Quick Start
 

@@ -6,7 +6,7 @@ import cn from 'clsx'
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 import { SheetProvider } from '@/lib/dev/theatre'
-import { useWebGLStore } from '@/webgl/store'
+import { useWebGLStore } from '@/lib/webgl/store'
 import { FlowmapProvider } from '../flowmap-provider'
 import { PostProcessing } from '../postprocessing'
 import { Preload } from '../preload'
@@ -42,7 +42,7 @@ type GlobalCanvasProps = {
  * @example
  * ```tsx
  * // In app/layout.tsx
- * import { GlobalCanvas } from '@/webgl/components/global-canvas'
+ * import { GlobalCanvas } from '@/lib/webgl/components/global-canvas'
  *
  * export default function Layout({ children }) {
  *   return (
@@ -59,8 +59,8 @@ type GlobalCanvasProps = {
  * @example
  * ```tsx
  * // In a page with WebGL content
- * import { Wrapper } from '@/components/layout'
- * import { WebGLTunnel } from '@/webgl/components/tunnel'
+ * import { Wrapper } from '@/components/layout/wrapper'
+ * import { WebGLTunnel } from '@/lib/webgl/components/tunnel'
  *
  * export default function WebGLPage() {
  *   return (

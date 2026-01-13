@@ -123,21 +123,25 @@ const generatePageContent = (
 
   if (sanity) {
     imports.push(
-      `import { isSanityConfigured } from '@/integrations/check-integration'`
+      `import { isSanityConfigured } from '@/lib/integrations/check-integration'`
     )
-    imports.push(`import { sanityFetch } from '@/integrations/sanity/live'`)
-    imports.push(`import { pageQuery } from '@/integrations/sanity/queries'`)
+    imports.push(`import { sanityFetch } from 'next-sanity/live'`)
     imports.push(
-      `import type { Page } from '@/integrations/sanity/sanity.types'`
+      `import { pageQuery } from '@/lib/integrations/sanity/queries'`
     )
-    imports.push(`import { generateSanityMetadata } from '@/utils/metadata'`)
+    imports.push(
+      `import type { Page } from '@/lib/integrations/sanity/sanity.types'`
+    )
+    imports.push(
+      `import { generateSanityMetadata } from '@/lib/utils/metadata'`
+    )
   }
 
   if (shopify) {
     imports.push(
-      `import { isShopifyConfigured } from '@/integrations/check-integration'`
+      `import { isShopifyConfigured } from '@/lib/integrations/check-integration'`
     )
-    imports.push(`import { Cart } from '@/integrations/shopify/cart'`)
+    imports.push(`import { Cart } from '@/lib/integrations/shopify/cart'`)
   }
 
   // Build wrapper props

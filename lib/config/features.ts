@@ -106,7 +106,10 @@ export const features = {
  * Helper functions to read from satus.config.ts
  * Uses dynamic import to avoid circular dependencies
  */
-let satusConfigCache: any = null
+let satusConfigCache: {
+  features?: Record<string, boolean>
+  development?: Record<string, boolean>
+} | null = null
 
 /**
  * Get feature value from satus.config.ts with fallback
@@ -153,7 +156,9 @@ export async function initializeFeatures(): Promise<void> {
     if (features.devtools && typeof window !== 'undefined') {
       logFeatureState()
       // Add features to window for debugging
-      ;(window as any).__SATUS_FEATURES__ = features
+      ;(
+        globalThis as { __SATUS_FEATURES__?: typeof features }
+      ).__SATUS_FEATURES__ = features
     }
   } catch (_error) {
     console.warn(

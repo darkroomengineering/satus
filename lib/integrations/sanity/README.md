@@ -33,8 +33,8 @@ NEXT_PUBLIC_SANITY_API_VERSION="2024-03-15"
 ### Fetching Data
 
 ```tsx
-import { sanityFetch } from '@/integrations/sanity/live'
-import { pageQuery } from '@/integrations/sanity/queries'
+import { sanityFetch } from 'next-sanity/live'
+import { pageQuery } from '@/lib/integrations/sanity/queries'
 
 export default async function Page({ params }) {
   const { data } = await sanityFetch({ 
@@ -50,8 +50,8 @@ export default async function Page({ params }) {
 For `generateStaticParams` or other build-time functions, use the client directly:
 
 ```tsx
-import { client } from '@/integrations/sanity/client'
-import { allArticlesQuery } from '@/integrations/sanity/queries'
+import { client } from '@/lib/integrations/sanity/client'
+import { allArticlesQuery } from '@/lib/integrations/sanity/queries'
 
 export async function generateStaticParams() {
   if (!client) return []
@@ -65,7 +65,7 @@ export async function generateStaticParams() {
 Add `data-sanity` attributes for visual editing:
 
 ```tsx
-import { RichText } from '@/integrations/sanity/components/rich-text'
+import { RichText } from '@/lib/integrations/sanity/components/rich-text'
 
 function MyComponent({ data }) {
   return (
@@ -80,7 +80,7 @@ function MyComponent({ data }) {
 ### Image Handling
 
 ```tsx
-import { urlForImage } from '@/integrations/sanity/utils/image'
+import { urlForImage } from '@/lib/integrations/sanity/utils/image'
 import { SanityImage } from '@/components/ui/sanity-image'
 
 // Option 1: Using urlForImage utility
@@ -93,7 +93,7 @@ import { SanityImage } from '@/components/ui/sanity-image'
 ### SEO Metadata
 
 ```tsx
-import { generateSanityMetadata } from '@/utils/metadata'
+import { generateSanityMetadata } from '@/lib/utils/metadata'
 
 export async function generateMetadata({ params }) {
   const { data } = await sanityFetch({ query: pageQuery, params })

@@ -8,27 +8,28 @@ Non-UI code: hooks, integrations, styles, and utilities.
 
 ```tsx
 // Hooks
-import { useScrollTrigger, useDeviceDetection, useStore } from '@/hooks'
+import { useScrollTrigger } from '@/lib/hooks/use-scroll-trigger'
+import { useDeviceDetection } from '@/lib/hooks/use-device-detection'
+import { useStore } from '@/lib/hooks/use-store'
 
-// Utilities
-// Use explicit imports for better tree-shaking
-import { clamp, lerp } from '@/utils/math'
-import { slugify } from '@/utils/strings'
-import { fetchWithTimeout } from '@/utils/fetch'
+// Utilities - explicit imports for better tree-shaking
+import { clamp, lerp } from '@/lib/utils/math'
+import { slugify } from '@/lib/utils/strings'
+import { fetchWithTimeout } from '@/lib/utils/fetch'
 
 // Styles
-import { colors, themes, breakpoints } from '@/styles'
+import { colors, themes, breakpoints } from '@/lib/styles/config'
 
 // Integrations
-import { sanityFetch } from '@/integrations/sanity/live'
-import { Cart } from '@/integrations/shopify/cart'
+import { sanityFetch } from 'next-sanity/live'
+import { Cart } from '@/lib/integrations/shopify/cart'
 
 // WebGL
-import { Canvas } from '@/webgl/components/canvas'
-import { WebGLTunnel } from '@/webgl/components/tunnel'
+import { Canvas } from '@/lib/webgl/components/canvas'
+import { WebGLTunnel } from '@/lib/webgl/components/tunnel'
 
 // Dev tools
-import { useOrchestra } from '@/dev'
+import { useOrchestra } from '@/lib/dev/orchestra'
 ```
 
 ## Directories

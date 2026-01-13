@@ -1,9 +1,12 @@
 /**
- * Centralized Feature Detection
+ * Centralized Feature Detection & Configuration
  *
- * This module provides a single source of truth for feature detection
- * based on environment variables and configuration. Use this instead
- * of checking process.env directly throughout the codebase.
+ * Combines satus.config.ts with environment variables for feature detection.
+ * This module provides a single source of truth for feature flags and boundaries.
+ *
+ * @category starter-core
+ * @modification-level structure-only
+ * @preserve-structure true
  *
  * @example
  * ```tsx
@@ -19,18 +22,39 @@
  * ```
  */
 
+/**
+ * Runtime feature flags with satus.config.ts integration
+ *
+ * Priority order:
+ * 1. Environment variables (highest priority)
+ * 2. satus.config.ts settings
+ * 3. Auto-detection from env presence
+ * 4. Built-in defaults (lowest priority)
+ */
 export const features = {
-  // WebGL / 3D Graphics - disabled by default, enable with NEXT_PUBLIC_ENABLE_WEBGL=true
-  webgl: Boolean(process.env.NEXT_PUBLIC_ENABLE_WEBGL),
+  // WebGL / 3D Graphics
+  webgl: Boolean(
+    process.env.NEXT_PUBLIC_ENABLE_WEBGL === 'true' ||
+      (process.env.NEXT_PUBLIC_ENABLE_WEBGL !== 'false' &&
+        getSatusConfigFeature('webgl', true))
+  ),
 
   // Content Management
-  sanity: Boolean(process.env.NEXT_PUBLIC_SANITY_PROJECT_ID),
+  sanity: Boolean(
+    process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ||
+      getSatusConfigFeature('sanity', true)
+  ),
 
   // E-commerce
-  shopify: Boolean(process.env.SHOPIFY_STORE_DOMAIN),
+  shopify: Boolean(
+    process.env.SHOPIFY_STORE_DOMAIN || getSatusConfigFeature('shopify', false)
+  ),
 
   // Marketing & Forms
-  hubspot: Boolean(process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID),
+  hubspot: Boolean(
+    process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID ||
+      getSatusConfigFeature('hubspot', false)
+  ),
 
   // Email Marketing
   mailchimp: Boolean(process.env.MAILCHIMP_API_KEY),
@@ -48,9 +72,110 @@ export const features = {
   // Bot Protection
   turnstile: Boolean(process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY),
 
-  // Development Tools (always false in production)
-  devtools: process.env.NODE_ENV === 'development',
+  // Animation System
+  animations: Boolean(
+    process.env.NEXT_PUBLIC_ENABLE_ANIMATIONS !== 'false' &&
+      getSatusConfigFeature('animations', true)
+  ),
+
+  // Smooth Scrolling
+  smoothScrolling: Boolean(
+    process.env.NEXT_PUBLIC_ENABLE_SMOOTH_SCROLL !== 'false' &&
+      getSatusConfigFeature('smoothScrolling', true)
+  ),
+
+  // Development Tools
+  devtools:
+    process.env.NODE_ENV === 'development' ||
+    getSatusConfigFeature('devTools', false),
+
+  // Boundary System (development)
+  showBoundaries: Boolean(
+    process.env.SATUS_SHOW_BOUNDARIES === 'true' ||
+      (process.env.NODE_ENV === 'development' &&
+        getSatusConfigDev('showBoundaries', true))
+  ),
+
+  strictBoundaries: Boolean(
+    process.env.SATUS_STRICT_BOUNDARIES === 'true' ||
+      getSatusConfigDev('strictBoundaries', false)
+  ),
 } as const
+
+/**
+ * Helper functions to read from satus.config.ts
+ * Uses dynamic import to avoid circular dependencies
+ */
+let satusConfigCache: any = null
+
+/**
+ * Get feature value from satus.config.ts with fallback
+ */
+function getSatusConfigFeature(
+  feature: string,
+  defaultValue: boolean
+): boolean {
+  try {
+    if (!satusConfigCache) {
+      // Note: This is a synchronous fallback - async loading happens in initializeFeatures()
+      return defaultValue
+    }
+    return satusConfigCache.features?.[feature] ?? defaultValue
+  } catch {
+    return defaultValue
+  }
+}
+
+/**
+ * Get development setting from satus.config.ts with fallback
+ */
+function getSatusConfigDev(setting: string, defaultValue: boolean): boolean {
+  try {
+    if (!satusConfigCache) {
+      return defaultValue
+    }
+    return satusConfigCache.development?.[setting] ?? defaultValue
+  } catch {
+    return defaultValue
+  }
+}
+
+/**
+ * Initialize the feature system by loading satus.config.ts
+ * Call this early in your application lifecycle
+ */
+export async function initializeFeatures(): Promise<void> {
+  try {
+    const configModule = await import('../../satus.config')
+    satusConfigCache = configModule.default
+
+    // Log feature state in development
+    if (features.devtools && typeof window !== 'undefined') {
+      logFeatureState()
+      // Add features to window for debugging
+      ;(window as any).__SATUS_FEATURES__ = features
+    }
+  } catch (_error) {
+    console.warn(
+      'Could not load satus.config.ts, using environment-only features'
+    )
+  }
+}
+
+/**
+ * Development helper: Log current feature state
+ */
+export function logFeatureState(): void {
+  if (!features.devtools) return
+
+  console.group('🔧 Satus Features')
+  Object.entries(features).forEach(([key, value]) => {
+    if (typeof value === 'boolean') {
+      console.log(`${key}: ${value ? '✅' : '❌'}`)
+    }
+  })
+  console.groupEnd()
+}
 
 /**
  * All available features

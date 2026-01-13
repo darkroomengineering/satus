@@ -1,3 +1,14 @@
+/**
+ * Satus Image Component
+ *
+ * Enhanced Next.js Image wrapper with optimized defaults and error handling.
+ *
+ * @category starter-core
+ * @modification-level structure-only
+ * @preserve-structure true
+ *
+ * BOUNDARY: This is starter code - preserve structure, customize props/styling only
+ */
 'use client'
 
 import cn from 'clsx'

@@ -130,7 +130,7 @@ const generatePageContent = (
     imports.push(
       `import type { Page } from '@/integrations/sanity/sanity.types'`
     )
-    imports.push(`import { generateSanityMetadata } from '@/utils'`)
+    imports.push(`import { generateSanityMetadata } from '@/utils/metadata'`)
   }
 
   if (shopify) {

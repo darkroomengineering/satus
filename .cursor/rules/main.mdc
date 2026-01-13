@@ -212,18 +212,18 @@ if (process.env.NODE_ENV === 'development') {
 
 ```typescript
 // Fetch with timeout
-import { fetchWithTimeout } from '@/utils'
+import { fetchWithTimeout } from '@/utils/fetch'
 const response = await fetchWithTimeout(url, { timeout: 10000, ...options })
 
 // Generate metadata
-import { generatePageMetadata, generateSanityMetadata } from '@/utils'
+import { generatePageMetadata, generateSanityMetadata } from '@/utils/metadata'
 export async function generateMetadata({ params }) {
   const page = await fetchPage(params.slug)
   return generateSanityMetadata({ document: page, url: `/page/${params.slug}` })
 }
 
 // Math utilities
-import { clamp, lerp, mapRange } from '@/utils'
+import { clamp, lerp, mapRange } from '@/utils/math'
 const value = clamp(input, 0, 100)
 ```
 

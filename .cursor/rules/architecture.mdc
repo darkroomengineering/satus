@@ -100,7 +100,7 @@ function Navigation() {
 Use `@/utils/metadata` for SEO optimization. Generate metadata for all pages.
 
 ```tsx
-import { generatePageMetadata } from '@/utils'
+import { generatePageMetadata } from '@/utils/metadata'
 
 export async function generateMetadata({ params }) {
   const page = await fetchPage(params.slug)

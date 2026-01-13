@@ -93,7 +93,7 @@ import { SanityImage } from '@/components/ui/sanity-image'
 ### SEO Metadata
 
 ```tsx
-import { generateSanityMetadata } from '@/utils'
+import { generateSanityMetadata } from '@/utils/metadata'
 
 export async function generateMetadata({ params }) {
   const { data } = await sanityFetch({ query: pageQuery, params })

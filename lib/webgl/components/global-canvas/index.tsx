@@ -42,7 +42,7 @@ type GlobalCanvasProps = {
  * @example
  * ```tsx
  * // In app/layout.tsx
- * import { GlobalCanvas } from '@/webgl'
+ * import { GlobalCanvas } from '@/webgl/components/global-canvas'
  *
  * export default function Layout({ children }) {
  *   return (
@@ -60,7 +60,7 @@ type GlobalCanvasProps = {
  * ```tsx
  * // In a page with WebGL content
  * import { Wrapper } from '@/components/layout'
- * import { WebGLTunnel } from '@/webgl'
+ * import { WebGLTunnel } from '@/webgl/components/tunnel'
  *
  * export default function WebGLPage() {
  *   return (

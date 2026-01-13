@@ -11,7 +11,10 @@ Non-UI code: hooks, integrations, styles, and utilities.
 import { useScrollTrigger, useDeviceDetection, useStore } from '@/hooks'
 
 // Utilities
-import { clamp, lerp, slugify, fetchWithTimeout } from '@/utils'
+// Use explicit imports for better tree-shaking
+import { clamp, lerp } from '@/utils/math'
+import { slugify } from '@/utils/strings'
+import { fetchWithTimeout } from '@/utils/fetch'
 
 // Styles
 import { colors, themes, breakpoints } from '@/styles'
@@ -21,7 +24,8 @@ import { sanityFetch } from '@/integrations/sanity/live'
 import { Cart } from '@/integrations/shopify/cart'
 
 // WebGL
-import { Canvas, WebGLTunnel } from '@/webgl'
+import { Canvas } from '@/webgl/components/canvas'
+import { WebGLTunnel } from '@/webgl/components/tunnel'
 
 // Dev tools
 import { useOrchestra } from '@/dev'

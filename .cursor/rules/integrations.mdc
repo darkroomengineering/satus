@@ -134,7 +134,7 @@ Use proper perspective for draft vs published content. Implement caching strateg
 ```typescript
 // In lib/integrations/sanity/queries/index.ts
 import { sanityFetch } from '@/integrations/sanity/live'
-import { generateSanityMetadata } from '@/utils'
+import { generateSanityMetadata } from '@/utils/metadata'
 
 // Use sanityFetch (automatically includes cacheSignal)
 export async function fetchSanityPage(slug: string, isDraftMode = false) {
@@ -212,7 +212,7 @@ Use ISR for static content with revalidation. Implement proper cache invalidatio
 
 ```typescript
 import { urlForImage } from '@/integrations/sanity/utils/image'
-import { generateSanityMetadata } from '@/utils'
+import { generateSanityMetadata } from '@/utils/metadata'
 
 // Use ISR for published content
 export const revalidate = 3600
@@ -390,7 +390,7 @@ for (const envVar of requiredEnvVars) {
 - Use `cacheSignal()` for automatic request cleanup (React 19+)
 
 ```typescript
-import { fetchWithTimeout } from '@/utils'
+import { fetchWithTimeout } from '@/utils/fetch'
 import { cacheSignal } from 'react'
 
 // HubSpot: 8 seconds

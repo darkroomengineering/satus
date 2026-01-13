@@ -1,12 +1,5 @@
 /**
- * Homepage
- *
- * Your project's main landing page.
- *
- * @category project-page
- * @modification-level full
- *
- * BOUNDARY: This is project code - customize freely
+ * Homepage - customize freely for your project
  */
 import { Wrapper } from '@/components/layout/wrapper'
 

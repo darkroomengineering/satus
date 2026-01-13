@@ -1,13 +1,7 @@
 /**
- * Satus Wrapper Component
+ * Main page wrapper providing theme, smooth scrolling, and WebGL context.
  *
- * Main page layout wrapper providing theme, smooth scrolling, and WebGL context.
- *
- * @category starter-layout
- * @modification-level content-only
- * @preserve-structure true
- *
- * BOUNDARY: Customize content (Header/Footer), preserve wrapper structure
+ * Customize the Header and Footer components for your project needs.
  */
 'use client'
 

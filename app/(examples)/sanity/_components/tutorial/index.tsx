@@ -1,6 +1,6 @@
 import type { PortableTextBlock } from 'next-sanity'
 import { Link } from '@/components/ui/link'
-import { RichText } from '@/integrations/sanity'
+import { RichText } from '@/integrations/sanity/components/rich-text'
 import type { Page } from '@/integrations/sanity/sanity.types'
 
 type SanityTutorialProps = NonNullable<Page>

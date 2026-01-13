@@ -17,7 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Only fetch Sanity pages if Sanity is configured
   if (isSanityConfigured()) {
     try {
-      const { client } = await import('@/integrations/sanity')
+      const { client } = await import('@/integrations/sanity/client')
       const { groq } = await import('next-sanity')
 
       // Skip if client is null (shouldn't happen since we check isSanityConfigured)

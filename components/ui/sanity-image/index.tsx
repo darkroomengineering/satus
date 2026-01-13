@@ -1,6 +1,6 @@
 import { getImageDimensions } from '@sanity/asset-utils'
 import { Image, type ImageProps } from '@/components/ui/image'
-import { urlForImage } from '@/integrations/sanity'
+import { urlForImage } from '@/integrations/sanity/utils/image'
 
 interface SanityImageProps extends Omit<ImageProps, 'src' | 'aspectRatio'> {
   image: {

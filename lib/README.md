@@ -17,7 +17,7 @@ import { clamp, lerp, slugify, fetchWithTimeout } from '@/utils'
 import { colors, themes, breakpoints } from '@/styles'
 
 // Integrations
-import { sanityFetch } from '@/integrations/sanity'
+import { sanityFetch } from '@/integrations/sanity/live'
 import { Cart } from '@/integrations/shopify/cart'
 
 // WebGL

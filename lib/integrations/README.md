@@ -52,7 +52,8 @@ NEXT_PUBLIC_GOOGLE_ANALYTICS=G-XXXXXXXXXX
 
 ```tsx
 // Sanity
-import { sanityFetch, RichText } from '@/lib/integrations/sanity'
+import { sanityFetch } from '@/integrations/sanity/live'
+import { RichText } from '@/integrations/sanity/components/rich-text'
 const { data } = await sanityFetch({ query: pageQuery })
 
 // Shopify

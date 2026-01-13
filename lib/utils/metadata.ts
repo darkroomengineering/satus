@@ -130,6 +130,8 @@ export function generatePageMetadata(
  *
  * @example
  * ```ts
+ * import { sanityFetch } from '@/integrations/sanity/live'
+ *
  * export async function generateMetadata({ params }) {
  *   const { data } = await sanityFetch({ query: pageQuery, params })
  *

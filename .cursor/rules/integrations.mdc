@@ -112,7 +112,7 @@ Every `document` and `object` schema type should:
 Always add `data-sanity` attributes for visual editing. Use SanityContextProvider for document access. Implement proper draft mode handling. Import from `/lib/integrations/sanity` directory.
 
 ```typescript
-import { useSanityContext, RichText } from '@/lib/integrations/sanity'
+import { RichText } from '@/integrations/sanity/components/rich-text'
 
 export function MyComponent() {
   const { document } = useSanityContext()
@@ -133,7 +133,7 @@ Use proper perspective for draft vs published content. Implement caching strateg
 
 ```typescript
 // In lib/integrations/sanity/queries/index.ts
-import { sanityFetch } from '../fetch'
+import { sanityFetch } from '@/integrations/sanity/live'
 import { generateSanityMetadata } from '@/utils'
 
 // Use sanityFetch (automatically includes cacheSignal)
@@ -211,7 +211,7 @@ export const POST_QUERY = defineQuery(`*[
 Use ISR for static content with revalidation. Implement proper cache invalidation via webhooks. Optimize images with proper sizing. Use consolidated imports for better tree-shaking. Use metadata helpers for consistent SEO.
 
 ```typescript
-import { urlForImage } from '@/lib/integrations/sanity'
+import { urlForImage } from '@/integrations/sanity/utils/image'
 import { generateSanityMetadata } from '@/utils'
 
 // Use ISR for published content

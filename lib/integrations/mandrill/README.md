@@ -20,9 +20,9 @@ MANDRILL_FROM_NAME="Your Company Contact Form"
 Sends email via Mandrill AND adds contact to Mailchimp:
 
 ```tsx
-import { Form, Input, Textarea, SubmitButton } from '~/components/ui/form'
-import { Turnstile } from '~/components/turnstile'
-import { combinedContactAction } from '~/lib/integrations/mandrill'
+import { Form, Input, Textarea, SubmitButton } from '@/components/ui/form'
+import { Turnstile } from '@/components/turnstile'
+import { combinedContactAction } from '@/lib/integrations/mandrill'
 
 <Form action={combinedContactAction}>
   <Input name="name" required />
@@ -37,7 +37,7 @@ import { combinedContactAction } from '~/lib/integrations/mandrill'
 ### Email-Only
 
 ```tsx
-import { mandrillContactAction } from '~/lib/integrations/mandrill'
+import { mandrillContactAction } from '@/lib/integrations/mandrill'
 
 <Form action={mandrillContactAction}>...</Form>
 ```

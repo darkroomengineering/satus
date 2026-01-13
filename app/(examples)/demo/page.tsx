@@ -1,5 +1,5 @@
-import { Wrapper } from '~/components/layout/wrapper'
-import { Fold } from '~/components/ui/fold'
+import { Wrapper } from '@/components/layout/wrapper'
+import { Fold } from '@/components/ui/fold'
 import { AccordionDemo } from './_components/accordion-demo'
 import { AlertDialogDemo } from './_components/alert-dialog-demo'
 import { CheckboxDemo } from './_components/checkbox-demo'
@@ -25,7 +25,7 @@ export default function DemoPage() {
           <header className="dr-mb-48 dt:dr-mb-64">
             <h1 className="dr-text-32 dt:dr-text-48 font-bold">Components</h1>
             <p className="dr-mt-8 dt:dr-mt-12 opacity-70">
-              UI component library from ~/components/ui
+              UI component library from @/components/ui
             </p>
             <p className="dr-mt-4 text-sm opacity-40">
               Each section uses the Fold component for parallax scroll effects

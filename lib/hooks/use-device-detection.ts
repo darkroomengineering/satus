@@ -1,6 +1,6 @@
 import { useMediaQuery } from 'hamo'
 import { useEffect, useState } from 'react'
-import { breakpoints } from '~/styles/config'
+import { breakpoints } from '@/styles/config'
 
 /**
  * Hook for detecting device capabilities and characteristics.
@@ -13,7 +13,7 @@ import { breakpoints } from '~/styles/config'
  *
  * @example
  * ```tsx
- * import { useDeviceDetection } from '~/hooks/use-device-detection'
+ * import { useDeviceDetection } from '@/hooks/use-device-detection'
  *
  * function ResponsiveComponent() {
  *   const {

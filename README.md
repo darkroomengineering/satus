@@ -65,8 +65,8 @@ bun run setup:project  # Configure integrations
 
 ## Key Conventions
 
-- **Images**: Use `~/components/ui/image` (never `next/image` directly)
-- **Links**: Use `~/components/ui/link` (auto-handles external links)
+- **Images**: Use `@/components/ui/image` (never `next/image` directly)
+- **Links**: Use `@/components/ui/link` (auto-handles external links)
 - **CSS Modules**: Import as `s` → `import s from './component.module.css'`
 - **Debug Tools**: Toggle with `Cmd/Ctrl + O`
 

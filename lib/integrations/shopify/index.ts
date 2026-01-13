@@ -3,7 +3,7 @@ import { headers } from 'next/headers'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { cacheSignal } from 'react'
-import { fetchWithTimeout } from '~/utils'
+import { fetchWithTimeout } from '@/utils/fetch'
 import {
   HIDDEN_PRODUCT_TAG,
   SHOPIFY_GRAPHQL_API_ENDPOINT,

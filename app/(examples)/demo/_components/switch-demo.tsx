@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Switch } from '~/components/ui/switch'
+import { Switch } from '@/components/ui/switch'
 
 export function SwitchDemo() {
   const [notifications, setNotifications] = useState(false)

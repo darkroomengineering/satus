@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useLayoutEffect, useState } from 'react'
-import { mutate } from '~/utils'
+import { mutate } from '@/utils/raf'
 
 type ViewportValues = {
   vw: number

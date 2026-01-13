@@ -115,7 +115,7 @@ type TransformProviderProps = {
  *
  * @example
  * ```tsx
- * import { TransformProvider } from '~/hooks/use-transform'
+ * import { TransformProvider } from '@/hooks/use-transform'
  *
  * function Scene() {
  *   return (
@@ -275,7 +275,7 @@ export function TransformProvider({ children, ref }: TransformProviderProps) {
  *
  * @example
  * ```tsx
- * import { useTransform } from '~/hooks/use-transform'
+ * import { useTransform } from '@/hooks/use-transform'
  *
  * function AnimatedElement() {
  *   useTransform((transform) => {

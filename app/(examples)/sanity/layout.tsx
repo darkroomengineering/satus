@@ -1,6 +1,6 @@
 import { draftMode } from 'next/headers'
-import { isSanityConfigured } from '~/integrations/check-integration'
-import { DisableDraftMode } from '~/integrations/sanity/components/disable-draft-mode'
+import { isSanityConfigured } from '@/integrations/check-integration'
+import { DisableDraftMode } from '@/integrations/sanity/components/disable-draft-mode'
 
 export default async function SanityLayout({
   children,

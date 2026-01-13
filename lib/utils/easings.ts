@@ -8,7 +8,7 @@
  *
  * @example
  * ```ts
- * import { easings, type EasingName } from '~/utils/easings'
+ * import { easings, type EasingName } from '@/utils/easings'
  *
  * // Direct usage
  * const eased = easings.easeOutCubic(0.5)

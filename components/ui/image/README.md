@@ -5,7 +5,7 @@ Optimized images with smart loading, blur placeholders, and responsive sizing.
 ## Usage
 
 ```tsx
-import { Image } from '~/components/ui/image'
+import { Image } from '@/components/ui/image'
 
 // Basic
 <Image src="/hero.jpg" alt="Hero" aspectRatio={16/9} />

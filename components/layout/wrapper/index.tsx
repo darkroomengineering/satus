@@ -2,12 +2,12 @@
 
 import cn from 'clsx'
 import type { LenisOptions } from 'lenis'
-import { Footer } from '~/components/layout/footer'
-import { Header } from '~/components/layout/header'
-import { Lenis } from '~/components/layout/lenis'
-import { Theme } from '~/components/layout/theme'
-import type { ThemeName } from '~/styles/config'
-import { Canvas } from '~/webgl/components/canvas'
+import { Footer } from '@/components/layout/footer'
+import { Header } from '@/components/layout/header'
+import { Lenis } from '@/components/layout/lenis'
+import { Theme } from '@/components/layout/theme'
+import type { ThemeName } from '@/styles/config'
+import { Canvas } from '@/webgl/components/canvas'
 
 /**
  * Props for the Wrapper component.

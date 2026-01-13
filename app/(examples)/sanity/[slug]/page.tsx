@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation'
-import { Wrapper } from '~/components/layout/wrapper'
-import { fetchAllArticles } from '~/integrations/sanity/fetch'
-import { sanityFetch } from '~/integrations/sanity/live'
-import { articleQuery } from '~/integrations/sanity/queries'
-import type { Article } from '~/integrations/sanity/sanity.types'
-import { generateSanityMetadata } from '~/utils'
+import { Wrapper } from '@/components/layout/wrapper'
+import { fetchAllArticles } from '@/integrations/sanity/fetch'
+import { sanityFetch } from '@/integrations/sanity/live'
+import { articleQuery } from '@/integrations/sanity/queries'
+import type { Article } from '@/integrations/sanity/sanity.types'
+import { generateSanityMetadata } from '@/utils/metadata'
 import { SanityArticle } from './_components/article'
 
 export async function generateStaticParams() {

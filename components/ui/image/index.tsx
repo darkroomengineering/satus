@@ -3,7 +3,7 @@
 import cn from 'clsx'
 import NextImage, { type ImageProps as NextImageProps } from 'next/image'
 import type { CSSProperties, Ref } from 'react'
-import { breakpoints } from '~/styles/config'
+import { breakpoints } from '@/styles/config'
 import s from './image.module.css'
 
 /**

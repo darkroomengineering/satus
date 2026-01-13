@@ -33,8 +33,8 @@ NEXT_PUBLIC_SANITY_API_VERSION="2024-03-15"
 ### Fetching Data
 
 ```tsx
-import { sanityFetch } from '~/lib/integrations/sanity/live'
-import { pageQuery } from '~/lib/integrations/sanity/queries'
+import { sanityFetch } from '@/lib/integrations/sanity/live'
+import { pageQuery } from '@/lib/integrations/sanity/queries'
 
 export default async function Page({ params }) {
   const { data } = await sanityFetch({ 
@@ -50,7 +50,7 @@ export default async function Page({ params }) {
 Add `data-sanity` attributes:
 
 ```tsx
-import { useSanityContext, RichText } from '~/lib/integrations/sanity'
+import { useSanityContext, RichText } from '@/lib/integrations/sanity'
 
 function MyComponent() {
   const { document } = useSanityContext()
@@ -66,7 +66,7 @@ function MyComponent() {
 ### SEO Metadata
 
 ```tsx
-import { generateSanityMetadata } from '~/utils'
+import { generateSanityMetadata } from '@/utils'
 
 export async function generateMetadata({ params }) {
   const { data } = await sanityFetch({ query: pageQuery, params })

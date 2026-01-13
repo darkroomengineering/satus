@@ -1,8 +1,8 @@
 'use client'
 
 import cn from 'clsx'
-import { Messages, SubmitButton, useFormContext } from '~/components/ui/form'
-import type { HubSpotParsedForm } from '~/integrations/hubspot/fetch-form'
+import { Messages, SubmitButton, useFormContext } from '@/components/ui/form'
+import type { HubSpotParsedForm } from '@/integrations/hubspot/fetch-form'
 
 export const Subscribe = ({
   idx = 0,

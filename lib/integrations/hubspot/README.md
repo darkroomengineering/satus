@@ -14,7 +14,7 @@ NEXT_PUBLIC_HUBSPOT_PORTAL_ID=your-portal-id
 ### Embedded Form
 
 ```tsx
-import { EmbedHubspotForm } from '~/lib/integrations/hubspot/embed'
+import { EmbedHubspotForm } from '@/lib/integrations/hubspot/embed'
 
 <EmbedHubspotForm 
   formId="your-form-id"
@@ -25,8 +25,8 @@ import { EmbedHubspotForm } from '~/lib/integrations/hubspot/embed'
 ### Server Action
 
 ```tsx
-import { Form, Input, SubmitButton } from '~/components/ui/form'
-import { HubspotNewsletterAction } from '~/lib/integrations/hubspot/action'
+import { Form, Input, SubmitButton } from '@/components/ui/form'
+import { HubspotNewsletterAction } from '@/lib/integrations/hubspot/action'
 
 <Form action={HubspotNewsletterAction} formId="your-form-id">
   <Input name="email" type="email" required />

@@ -4,19 +4,19 @@
  * ## Quick Import
  *
  * ```ts
- * import { clamp, lerp, slugify, fetchWithTimeout } from '~/utils'
+ * import { clamp, lerp, slugify, fetchWithTimeout } from '@/utils'
  * ```
  *
  * ## Module Imports (recommended for clarity)
  *
  * ```ts
- * import { clamp, lerp, mapRange } from '~/utils/math'
- * import { easings, type EasingName } from '~/utils/easings'
- * import { fromTo, stagger } from '~/utils/animation'
- * import { measure, mutate } from '~/utils/raf'
- * import { desktopVW, mobileVW } from '~/utils/viewport'
- * import { fetchWithTimeout } from '~/utils/fetch'
- * import { slugify } from '~/utils/strings'
+ * import { clamp, lerp, mapRange } from '@/utils/math'
+ * import { easings, type EasingName } from '@/utils/easings'
+ * import { fromTo, stagger } from '@/utils/animation'
+ * import { measure, mutate } from '@/utils/raf'
+ * import { desktopVW, mobileVW } from '@/utils/viewport'
+ * import { fetchWithTimeout } from '@/utils/fetch'
+ * import { slugify } from '@/utils/strings'
  * ```
  *
  * ## Available Modules

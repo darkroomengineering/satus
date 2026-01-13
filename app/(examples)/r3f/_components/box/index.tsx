@@ -1,8 +1,8 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { WebGLTunnel } from '~/webgl/components/tunnel'
-import { useWebGLElement } from '~/webgl/hooks/use-webgl-element'
+import { WebGLTunnel } from '@/webgl/components/tunnel'
+import { useWebGLElement } from '@/webgl/hooks/use-webgl-element'
 
 const WebGLBox = dynamic(
   () => import('./webgl').then(({ WebGLBox }) => WebGLBox),

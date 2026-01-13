@@ -8,23 +8,23 @@ Non-UI code: hooks, integrations, styles, and utilities.
 
 ```tsx
 // Hooks
-import { useScrollTrigger, useDeviceDetection, useStore } from '~/hooks'
+import { useScrollTrigger, useDeviceDetection, useStore } from '@/hooks'
 
 // Utilities
-import { clamp, lerp, slugify, fetchWithTimeout } from '~/utils'
+import { clamp, lerp, slugify, fetchWithTimeout } from '@/utils'
 
 // Styles
-import { colors, themes, breakpoints } from '~/styles'
+import { colors, themes, breakpoints } from '@/styles'
 
 // Integrations
-import { sanityFetch } from '~/integrations/sanity'
-import { Cart } from '~/integrations/shopify/cart'
+import { sanityFetch } from '@/integrations/sanity'
+import { Cart } from '@/integrations/shopify/cart'
 
 // WebGL
-import { Canvas, WebGLTunnel } from '~/webgl'
+import { Canvas, WebGLTunnel } from '@/webgl'
 
 // Dev tools
-import { useOrchestra } from '~/dev'
+import { useOrchestra } from '@/dev'
 ```
 
 ## Directories

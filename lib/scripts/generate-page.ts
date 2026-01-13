@@ -112,32 +112,32 @@ const generatePageContent = (
   // Build imports
   const imports: string[] = []
   imports.push(`import type { Metadata } from 'next'`)
-  imports.push(`import { Wrapper } from '~/components/layout/wrapper'`)
+  imports.push(`import { Wrapper } from '@/components/layout/wrapper'`)
 
   // Integration-specific imports
   if (sanity || shopify) {
     imports.push(
-      `import { NotConfigured } from '~/components/ui/not-configured'`
+      `import { NotConfigured } from '@/components/ui/not-configured'`
     )
   }
 
   if (sanity) {
     imports.push(
-      `import { isSanityConfigured } from '~/integrations/check-integration'`
+      `import { isSanityConfigured } from '@/integrations/check-integration'`
     )
-    imports.push(`import { sanityFetch } from '~/integrations/sanity/live'`)
-    imports.push(`import { pageQuery } from '~/integrations/sanity/queries'`)
+    imports.push(`import { sanityFetch } from '@/integrations/sanity/live'`)
+    imports.push(`import { pageQuery } from '@/integrations/sanity/queries'`)
     imports.push(
-      `import type { Page } from '~/integrations/sanity/sanity.types'`
+      `import type { Page } from '@/integrations/sanity/sanity.types'`
     )
-    imports.push(`import { generateSanityMetadata } from '~/utils'`)
+    imports.push(`import { generateSanityMetadata } from '@/utils'`)
   }
 
   if (shopify) {
     imports.push(
-      `import { isShopifyConfigured } from '~/integrations/check-integration'`
+      `import { isShopifyConfigured } from '@/integrations/check-integration'`
     )
-    imports.push(`import { Cart } from '~/integrations/shopify/cart'`)
+    imports.push(`import { Cart } from '@/integrations/shopify/cart'`)
   }
 
   // Build wrapper props

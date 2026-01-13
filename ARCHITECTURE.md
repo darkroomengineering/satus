@@ -35,8 +35,8 @@ import s from './component.module.css'
 Always use these, never native HTML:
 
 ```tsx
-import { Image } from '~/components/ui/image'
-import { Link } from '~/components/ui/link'
+import { Image } from '@/components/ui/image'
+import { Link } from '@/components/ui/link'
 ```
 
 **Why?**
@@ -52,7 +52,7 @@ Configured in `app/layout.tsx`. ScrollTrigger uses Lenis automatically.
 Root layout conditionally loads features:
 
 ```tsx
-import { OptionalFeatures } from '~/lib/features'
+import { OptionalFeatures } from '@/lib/features'
 <OptionalFeatures /> // Only loads WebGL, dev tools when needed
 ```
 

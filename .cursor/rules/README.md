@@ -15,7 +15,7 @@ This directory contains consolidated Cursor AI rules for the Satus project. The 
 - React Compiler & memoization guidelines (single source of truth)
 - Image optimization guidelines (single source of truth)
 - Development vs production guidelines (single source of truth)
-- Core utility libraries (`~/utils`)
+- Core utility libraries (`@/utils`)
 
 **When to reference**: Starting a new project, understanding the tech stack, cross-cutting concerns
 
@@ -116,9 +116,9 @@ This directory contains consolidated Cursor AI rules for the Satus project. The 
 - **Handle security** → `architecture.mdc` § Security
 - **Debug issues** → `architecture.mdc` § Testing & Debugging
 - **Understand React Compiler** → `main.mdc` § React Compiler & Memoization
-- **Handle images** → `main.mdc` § Image Optimization (`~/components/ui/image`)
+- **Handle images** → `main.mdc` § Image Optimization (`@/components/ui/image`)
 - **Dev vs prod differences** → `main.mdc` § Development vs Production
-- **Use utility functions** → `main.mdc` § Core Utility Libraries (`~/utils`)
+- **Use utility functions** → `main.mdc` § Core Utility Libraries (`@/utils`)
 
 ---
 

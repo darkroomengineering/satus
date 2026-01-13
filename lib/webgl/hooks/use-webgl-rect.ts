@@ -3,7 +3,7 @@ import type { Rect } from 'hamo'
 import { useLenis } from 'lenis/react'
 import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
 import { Euler, Vector3 } from 'three'
-import { useTransform } from '~/hooks/use-transform'
+import { useTransform } from '@/hooks/use-transform'
 
 interface WebGLTransform {
   position: Vector3

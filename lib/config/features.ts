@@ -7,7 +7,7 @@
  *
  * @example
  * ```tsx
- * import { features } from '~/lib/config/features'
+ * import { features } from '@/lib/config/features'
  *
  * // Check if WebGL is enabled
  * if (features.webgl) {

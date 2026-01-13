@@ -1,5 +1,5 @@
 import cn from 'clsx'
-import { Link } from '~/components/ui/link'
+import { Link } from '@/components/ui/link'
 import s from './not-configured.module.css'
 
 interface NotConfiguredProps {
@@ -71,8 +71,8 @@ const INTEGRATION_INFO: Record<
  *
  * @example
  * ```tsx
- * import { isSanityConfigured } from '~/integrations/check-integration'
- * import { NotConfigured } from '~/components/ui/not-configured'
+ * import { isSanityConfigured } from '@/integrations/check-integration'
+ * import { NotConfigured } from '@/components/ui/not-configured'
  *
  * export default function SanityPage() {
  *   if (!isSanityConfigured()) {

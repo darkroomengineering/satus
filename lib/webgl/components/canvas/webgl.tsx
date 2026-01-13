@@ -4,11 +4,11 @@ import { OrthographicCamera } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import cn from 'clsx'
 import { Suspense, useContext } from 'react'
-import { SheetProvider } from '~/lib/dev/theatre'
-import { FlowmapProvider } from '~/webgl/components/flowmap-provider'
-import { PostProcessing } from '~/webgl/components/postprocessing'
-import { Preload } from '~/webgl/components/preload'
-import { RAF } from '~/webgl/components/raf'
+import { SheetProvider } from '@/lib/dev/theatre'
+import { FlowmapProvider } from '@/webgl/components/flowmap-provider'
+import { PostProcessing } from '@/webgl/components/postprocessing'
+import { Preload } from '@/webgl/components/preload'
+import { RAF } from '@/webgl/components/raf'
 import { CanvasContext } from './'
 import s from './webgl.module.css'
 
@@ -23,7 +23,7 @@ type WebGLCanvasProps = React.HTMLAttributes<HTMLDivElement> & {
  * Local WebGLCanvas component for legacy (local) canvas mode.
  * Used when Canvas is mounted with local={true}.
  *
- * For GlobalCanvas, see ~/webgl/components/global-canvas
+ * For GlobalCanvas, see @/webgl/components/global-canvas
  */
 export function WebGLCanvas({
   render = true,

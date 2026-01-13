@@ -2,7 +2,7 @@
 
 import cn from 'clsx'
 import { usePathname } from 'next/navigation'
-import { Link } from '~/components/ui/link'
+import { Link } from '@/components/ui/link'
 
 // Example links for demo - customize for your project
 const LINKS = [

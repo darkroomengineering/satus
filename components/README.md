@@ -9,12 +9,25 @@ components/
 └── effects/   → Animation & visual enhancements
 ```
 
-## Quick Imports
+## Direct Imports (Recommended)
 
 ```tsx
-import { Image, Link, Menu, Select, Tabs, Toast } from '~/components/ui'
-import { Wrapper, Header, Footer } from '~/components/layout'
-import { Marquee, GSAPRuntime } from '~/components/effects'
+// UI Components - import directly for better clarity
+import { Image } from '@/components/ui/image'
+import { Link } from '@/components/ui/link'
+import { Menu } from '@/components/ui/menu'
+import { Select } from '@/components/ui/select'
+import { Tabs } from '@/components/ui/tabs'
+import { Toast } from '@/components/ui/toast'
+
+// Layout Components
+import { Wrapper } from '@/components/layout/wrapper'
+import { Header } from '@/components/layout/header' 
+import { Footer } from '@/components/layout/footer'
+
+// Effects Components
+import { Marquee } from '@/components/ui/marquee'
+import { GSAPRuntime } from '@/components/effects/gsap'
 ```
 
 ## UI Components
@@ -67,11 +80,11 @@ Built on [Base UI](https://base-ui.com/) for accessibility.
 
 ```tsx
 // ✅ Always use custom Image
-import { Image } from '~/components/ui/image'
+import { Image } from '@/components/ui/image'
 <Image src="/photo.jpg" alt="Photo" aspectRatio={16/9} />
 
 // ✅ Always use custom Link
-import { Link } from '~/components/ui/link'
+import { Link } from '@/components/ui/link'
 <Link href="/about">Internal</Link>
 <Link href="https://example.com">External</Link>
 

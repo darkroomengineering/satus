@@ -2,7 +2,7 @@
 
 import cn from 'clsx'
 import { useRouter } from 'next/navigation'
-import type { Product, ProductVariant } from '~/integrations/shopify/types'
+import type { Product, ProductVariant } from '@/integrations/shopify/types'
 import { addItem } from '../actions'
 import { useCartContext } from '../cart-context'
 import { useCartModal } from '../modal'

@@ -4,9 +4,9 @@ import { useFrame } from '@react-three/fiber'
 import type { Rect } from 'hamo'
 import { useRef } from 'react'
 import type { Mesh } from 'three'
-import { useCurrentSheet } from '~/dev/theatre'
-import { useTheatre } from '~/dev/theatre/hooks/use-theatre'
-import { useWebGLRect } from '~/webgl/hooks/use-webgl-rect'
+import { useCurrentSheet } from '@/dev/theatre'
+import { useTheatre } from '@/dev/theatre/hooks/use-theatre'
+import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
 
 interface WebGLBoxProps {
   theatreKey?: string

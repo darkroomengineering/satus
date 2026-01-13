@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { Wrapper } from '~/components/layout/wrapper'
+import { Wrapper } from '@/components/layout/wrapper'
 
 export default function GlobalError({
   error,

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Checkbox } from '~/components/ui/checkbox'
+import { Checkbox } from '@/components/ui/checkbox'
 
 export function CheckboxDemo() {
   const [terms, setTerms] = useState(false)

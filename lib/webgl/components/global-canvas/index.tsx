@@ -5,8 +5,8 @@ import { Canvas } from '@react-three/fiber'
 import cn from 'clsx'
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
-import { SheetProvider } from '~/lib/dev/theatre'
-import { useWebGLStore } from '~/webgl/store'
+import { SheetProvider } from '@/lib/dev/theatre'
+import { useWebGLStore } from '@/webgl/store'
 import { FlowmapProvider } from '../flowmap-provider'
 import { PostProcessing } from '../postprocessing'
 import { Preload } from '../preload'
@@ -42,7 +42,7 @@ type GlobalCanvasProps = {
  * @example
  * ```tsx
  * // In app/layout.tsx
- * import { GlobalCanvas } from '~/webgl'
+ * import { GlobalCanvas } from '@/webgl'
  *
  * export default function Layout({ children }) {
  *   return (
@@ -59,8 +59,8 @@ type GlobalCanvasProps = {
  * @example
  * ```tsx
  * // In a page with WebGL content
- * import { Wrapper } from '~/components/layout'
- * import { WebGLTunnel } from '~/webgl'
+ * import { Wrapper } from '@/components/layout'
+ * import { WebGLTunnel } from '@/webgl'
  *
  * export default function WebGLPage() {
  *   return (

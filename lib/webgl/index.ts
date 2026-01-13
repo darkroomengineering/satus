@@ -2,7 +2,7 @@
  * WebGL / React Three Fiber Utilities
  *
  * Import from barrel:
- *   import { Canvas, WebGLTunnel, GlobalCanvas } from '~/webgl'
+ *   import { Canvas, WebGLTunnel, GlobalCanvas } from '@/webgl'
  *
  * ## Architecture
  *

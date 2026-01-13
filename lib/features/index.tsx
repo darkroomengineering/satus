@@ -17,20 +17,20 @@ const isDevelopment = process.env.NODE_ENV === 'development'
 // Lazy imports to avoid loading unused features
 const LazyGlobalCanvas = dynamic(
   () =>
-    import('~/webgl/components/global-canvas').then((mod) => ({
+    import('@/webgl/components/global-canvas').then((mod) => ({
       default: mod.LazyGlobalCanvas,
     })),
   { ssr: false }
 )
 
 const OrchestraTools = dynamic(
-  () => import('~/dev').then((mod) => ({ default: mod.OrchestraTools })),
+  () => import('@/dev').then((mod) => ({ default: mod.OrchestraTools })),
   { ssr: false }
 )
 
 const GSAPRuntime = dynamic(
   () =>
-    import('~/components/effects/gsap').then((mod) => ({
+    import('@/components/effects/gsap').then((mod) => ({
       default: mod.GSAPRuntime,
     })),
   { ssr: false }

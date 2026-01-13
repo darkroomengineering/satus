@@ -1,8 +1,8 @@
 'use client'
 
 import cn from 'clsx'
-import { useCartContext } from '~/integrations/shopify/cart/cart-context'
-import { useCartModal } from '~/integrations/shopify/cart/modal'
+import { useCartContext } from '@/integrations/shopify/cart/cart-context'
+import { useCartModal } from '@/integrations/shopify/cart/modal'
 
 export const ShowCart = ({ className }: { className: string }) => {
   const { openCart } = useCartModal()

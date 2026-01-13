@@ -3,13 +3,13 @@
  *
  * High-level animation helpers that combine math, easings, and timing.
  * For lower-level utilities, see:
- * - `~/utils/math` - clamp, lerp, mapRange, etc.
- * - `~/utils/easings` - easing functions
- * - `~/utils/raf` - DOM batching (measure, mutate)
+ * - `@/utils/math` - clamp, lerp, mapRange, etc.
+ * - `@/utils/easings` - easing functions
+ * - `@/utils/raf` - DOM batching (measure, mutate)
  *
  * @example
  * ```ts
- * import { fromTo, stagger, ease } from '~/utils/animation'
+ * import { fromTo, stagger, ease } from '@/utils/animation'
  *
  * // Animate elements with stagger
  * fromTo(elements, { opacity: 0, y: 20 }, { opacity: 1, y: 0 }, progress, {

@@ -1,6 +1,6 @@
 import type { QueryParams } from 'next-sanity'
 import { cache, cacheSignal } from 'react'
-import { isSanityConfigured } from '~/integrations/check-integration'
+import { isSanityConfigured } from '@/integrations/check-integration'
 import { client } from './client'
 
 /**

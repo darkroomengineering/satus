@@ -7,7 +7,7 @@ import { ReactLenis } from 'lenis/react'
 import dynamic from 'next/dynamic'
 import { useEffect, useRef } from 'react'
 import { useTempus } from 'tempus/react'
-import { useStore } from '~/hooks/store'
+import { useStore } from '@/hooks/store'
 
 const LenisScrollTriggerSync = dynamic(
   () => import('./scroll-trigger').then((mod) => mod.LenisScrollTriggerSync),

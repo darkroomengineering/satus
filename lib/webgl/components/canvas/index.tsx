@@ -9,8 +9,8 @@ import {
   useState,
 } from 'react'
 import tunnel from 'tunnel-rat'
-import { useDeviceDetection } from '~/hooks'
-import { useWebGLStore } from '~/webgl/store'
+import { useDeviceDetection } from '@/hooks/use-device-detection'
+import { useWebGLStore } from '@/webgl/store'
 
 const WebGLCanvas = dynamic(
   () => import('./webgl').then(({ WebGLCanvas }) => WebGLCanvas),

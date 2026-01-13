@@ -1,7 +1,7 @@
 import type { QueryParams } from 'next-sanity'
 import { defineLive } from 'next-sanity/live'
 import { cache } from 'react'
-import { isSanityConfigured } from '~/integrations/check-integration'
+import { isSanityConfigured } from '@/integrations/check-integration'
 import { client } from '../client'
 import { privateToken, publicToken } from '../env'
 

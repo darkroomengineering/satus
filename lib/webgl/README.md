@@ -5,8 +5,8 @@ WebGL rendering with lazy GlobalCanvas architecture.
 ## Quick Start
 
 ```tsx
-import { Wrapper } from '~/components/layout'
-import { WebGLTunnel } from '~/webgl'
+import { Wrapper } from '@/components/layout'
+import { WebGLTunnel } from '@/webgl'
 
 export default function Page() {
   return (
@@ -46,7 +46,7 @@ Root Layout → LazyGlobalCanvas (mounts on first WebGL page)
 ## Hooks
 
 ```tsx
-import { useWebGLRect, useWebGLStore } from '~/webgl'
+import { useWebGLRect, useWebGLStore } from '@/webgl'
 
 // Track DOM element for WebGL sync
 const [setRef, rect] = useWebGLRect()
@@ -58,7 +58,7 @@ const { isActivated, isActive } = useWebGLStore()
 ## DOM-Synced Component
 
 ```tsx
-import { useWebGLRect, WebGLTunnel } from '~/webgl'
+import { useWebGLRect, WebGLTunnel } from '@/webgl'
 
 function WebGLBox({ className }) {
   const [setRef, rect] = useWebGLRect()

@@ -1,7 +1,7 @@
-import { Wrapper } from '~/components/layout/wrapper'
-import { NotConfigured } from '~/components/ui/not-configured'
-import { isShopifyConfigured } from '~/integrations/check-integration'
-import { Cart } from '~/integrations/shopify/cart'
+import { Wrapper } from '@/components/layout/wrapper'
+import { NotConfigured } from '@/components/ui/not-configured'
+import { isShopifyConfigured } from '@/integrations/check-integration'
+import { Cart } from '@/integrations/shopify/cart'
 import { Product } from './_components/product'
 import { ShowCart } from './_components/show-cart'
 

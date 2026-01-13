@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
-import { Wrapper } from '~/components/layout/wrapper'
-import { getCustomer } from '~/integrations/shopify/customer/actions'
-import type { Customer } from '~/integrations/shopify/types'
+import { Wrapper } from '@/components/layout/wrapper'
+import { getCustomer } from '@/integrations/shopify/customer/actions'
+import type { Customer } from '@/integrations/shopify/types'
 import { LoginForm, LogoutButton, RegisterForm } from '../_components/customer'
 
 export default async function AccountPage() {

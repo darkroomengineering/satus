@@ -52,27 +52,27 @@ NEXT_PUBLIC_GOOGLE_ANALYTICS=G-XXXXXXXXXX
 
 ```tsx
 // Sanity
-import { sanityFetch, RichText } from '~/lib/integrations/sanity'
+import { sanityFetch, RichText } from '@/lib/integrations/sanity'
 const { data } = await sanityFetch({ query: pageQuery })
 
 // Shopify
-import { Cart, AddToCart } from '~/lib/integrations/shopify/cart'
+import { Cart, AddToCart } from '@/lib/integrations/shopify/cart'
 <Cart><AddToCart product={product} /></Cart>
 
 // HubSpot
-import { EmbedHubspotForm } from '~/lib/integrations/hubspot/embed'
+import { EmbedHubspotForm } from '@/lib/integrations/hubspot/embed'
 <EmbedHubspotForm formId="your-form-id" />
 
 // Mailchimp
-import { mailchimpSubscriptionAction } from '~/lib/integrations/mailchimp'
+import { mailchimpSubscriptionAction } from '@/lib/integrations/mailchimp'
 <Form action={mailchimpSubscriptionAction}>...</Form>
 ```
 
 ## Detection & Conditional Loading
 
 ```tsx
-import { features } from '~/config/features'
-import { isShopifyConfigured } from '~/lib/integrations/check-integration'
+import { features } from '@/config/features'
+import { isShopifyConfigured } from '@/lib/integrations/check-integration'
 
 // Feature flags
 if (features.sanity) { /* Load Sanity */ }

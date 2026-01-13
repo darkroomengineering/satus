@@ -1,5 +1,5 @@
 import { createClient, type SanityClient } from 'next-sanity'
-import { isSanityConfigured } from '~/integrations/check-integration'
+import { isSanityConfigured } from '@/integrations/check-integration'
 import { apiVersion, dataset, privateToken, projectId, studioUrl } from './env'
 
 /**

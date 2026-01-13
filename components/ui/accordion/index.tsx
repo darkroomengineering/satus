@@ -27,7 +27,7 @@ import s from './accordion.module.css'
  *
  * @example
  * ```tsx
- * import { Accordion } from '~/components/ui/accordion'
+ * import { Accordion } from '@/components/ui/accordion'
  *
  * <Accordion.Group>
  *   <Accordion.Root>

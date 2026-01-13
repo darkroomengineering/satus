@@ -3,7 +3,7 @@
 Pure utility functions organized by concern.
 
 ```tsx
-import { clamp, lerp, slugify, fetchWithTimeout } from '~/utils'
+import { clamp, lerp, slugify, fetchWithTimeout } from '@/utils'
 ```
 
 ## Modules

@@ -1,6 +1,6 @@
 'use server'
 
-import { fetchWithTimeout } from '~/utils'
+import { fetchWithTimeout } from '@/utils/fetch'
 
 export async function HubspotNewsletterAction(_: unknown, formData: FormData) {
   const portalId = process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID

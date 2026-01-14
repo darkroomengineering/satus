@@ -40,6 +40,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# tldr
+.tldr
+
 .eslintcache
 
 .env*.local

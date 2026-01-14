@@ -22,7 +22,7 @@ State persists in `localStorage` and syncs across tabs.
 ## Theatre.js
 
 ```tsx
-import { SheetProvider, useTheatreValue } from '~/lib/dev/theatre'
+import { SheetProvider, useTheatreValue } from '@/lib/dev/theatre'
 
 function AnimatedComponent() {
   const opacity = useTheatreValue('opacity', 1)

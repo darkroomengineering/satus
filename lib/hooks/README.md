@@ -3,7 +3,7 @@
 Custom React hooks.
 
 ```tsx
-import { useScrollTrigger, useDeviceDetection, useStore } from '~/hooks'
+import { useScrollTrigger, useDeviceDetection, useStore } from '@/hooks'
 ```
 
 ## Available Hooks
@@ -20,7 +20,7 @@ import { useScrollTrigger, useDeviceDetection, useStore } from '~/hooks'
 
 ```tsx
 import { useRect } from 'hamo/use-rect'
-import { useScrollTrigger } from '~/hooks'
+import { useScrollTrigger } from '@/hooks'
 
 function ScrollAnimation() {
   const [setRectRef, rect] = useRect()

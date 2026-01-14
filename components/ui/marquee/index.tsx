@@ -5,7 +5,7 @@ import { useIntersectionObserver, useResizeObserver } from 'hamo'
 import { useLenis } from 'lenis/react'
 import { type HTMLAttributes, useId, useRef } from 'react'
 import { useTempus } from 'tempus/react'
-import { modulo } from '~/utils/animation'
+import { modulo } from '@/utils/animation'
 import s from './marquee.module.css'
 
 function getHash(input: string) {

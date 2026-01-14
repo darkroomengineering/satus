@@ -16,7 +16,7 @@
  */
 
 import * as p from '@clack/prompts'
-import { getConfiguredIntegrations } from '~/integrations/check-integration'
+import { getConfiguredIntegrations } from '@/integrations/check-integration'
 import {
   parseCliFlags,
   pathExists,

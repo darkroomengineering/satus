@@ -1,7 +1,8 @@
 import type { PortableTextBlock } from 'next-sanity'
-import { Image } from '~/components/ui/image'
-import { RichText, urlForImage } from '~/integrations/sanity'
-import type { Article } from '~/integrations/sanity/sanity.types'
+import { Image } from '@/components/ui/image'
+import { RichText } from '@/integrations/sanity/components/rich-text'
+import type { Article } from '@/integrations/sanity/sanity.types'
+import { urlForImage } from '@/integrations/sanity/utils/image'
 
 type SanityArticleProps = NonNullable<Article>
 

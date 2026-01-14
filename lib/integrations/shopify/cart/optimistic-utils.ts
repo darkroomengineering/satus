@@ -2,8 +2,8 @@ import type {
   Cart,
   Product,
   ProductVariant,
-} from '~/integrations/shopify/types'
-import { isEmptyArray } from '~/utils'
+} from '@/integrations/shopify/types'
+import { isEmptyArray } from '@/utils/strings'
 
 type CartLine = Pick<
   Cart['lines'][number],
@@ -174,7 +174,7 @@ function createOrUpdateCartItem(
         id: product.id,
         handle: product.handle,
         title: product.title,
-        featuredImage: product.featuredImage,
+        featuredImage: product.featuredImage ?? null,
       },
     },
   }

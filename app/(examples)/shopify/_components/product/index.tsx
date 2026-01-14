@@ -1,7 +1,7 @@
 import cn from 'clsx'
-import { Image } from '~/components/ui/image'
-import { getCollectionProducts } from '~/integrations/shopify'
-import type { Product as ProductType } from '~/integrations/shopify/types'
+import { Image } from '@/components/ui/image'
+import { getCollectionProducts } from '@/integrations/shopify'
+import type { Product as ProductType } from '@/integrations/shopify/types'
 import { SizeAndBuy } from '../size-and-buy'
 import s from './product.module.css'
 

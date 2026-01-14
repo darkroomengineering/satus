@@ -15,7 +15,7 @@ SHOPIFY_REVALIDATION_SECRET="your-secret"
 ### Cart Provider
 
 ```tsx
-import { Cart } from '~/lib/integrations/shopify/cart'
+import { Cart } from '@/lib/integrations/shopify/cart'
 
 export default function Layout({ children }) {
   return <Cart>{children}</Cart>
@@ -25,7 +25,7 @@ export default function Layout({ children }) {
 ### Add to Cart
 
 ```tsx
-import { AddToCart } from '~/lib/integrations/shopify/cart/add-to-cart'
+import { AddToCart } from '@/lib/integrations/shopify/cart/add-to-cart'
 
 <AddToCart product={product} variant={variant} quantity={1} />
 ```
@@ -33,7 +33,7 @@ import { AddToCart } from '~/lib/integrations/shopify/cart/add-to-cart'
 ### Cart Context
 
 ```tsx
-import { useCartContext } from '~/lib/integrations/shopify/cart/cart-context'
+import { useCartContext } from '@/lib/integrations/shopify/cart/cart-context'
 
 const { cart, totalQuantity } = useCartContext()
 ```
@@ -41,7 +41,7 @@ const { cart, totalQuantity } = useCartContext()
 ### Products
 
 ```tsx
-import { getProducts, getProduct } from '~/lib/integrations/shopify'
+import { getProducts, getProduct } from '@/lib/integrations/shopify'
 
 const products = await getProducts({ sortKey: 'CREATED_AT' })
 const product = await getProduct('product-handle')

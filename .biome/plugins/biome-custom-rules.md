@@ -23,7 +23,7 @@ Checks for unnecessary `forwardRef` usage in React 19 with the compiler.
 - **Current violations**: 0
 
 ### 3. `no-relative-parent-imports.grit`
-Forbids relative parent imports (`../`) and encourages alias imports (`~/`).
+Forbids relative parent imports (`../`) and encourages alias imports (`@/`).
 - **Status**: ✅ Active
 - **Current violations**: Multiple violations found and reported
 

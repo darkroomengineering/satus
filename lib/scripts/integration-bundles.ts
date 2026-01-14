@@ -200,7 +200,7 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
         patterns: [
           // Remove Canvas import
           {
-            regex: "import \\{ Canvas \\} from '~/webgl/components/canvas'\\n",
+            regex: "import \\{ Canvas \\} from '@/webgl/components/canvas'\\n",
             flags: 'gm',
           },
           // Remove webgl prop JSDoc comment

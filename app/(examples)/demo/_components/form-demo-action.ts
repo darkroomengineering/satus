@@ -1,6 +1,6 @@
 'use server'
 
-import type { FormState } from '~/components/ui/form/types'
+import type { FormState } from '@/components/ui/form/types'
 
 // Demo server action (simulated)
 export async function demoFormAction(

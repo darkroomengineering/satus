@@ -19,9 +19,9 @@ CLOUDFLARE_TURNSTILE_SECRET_KEY=your-secret-key
 ## Usage
 
 ```tsx
-import { Form, Input, SubmitButton } from '~/components/ui/form'
-import { Turnstile } from '~/components/turnstile'
-import { mailchimpSubscriptionAction } from '~/lib/integrations/mailchimp'
+import { Form, Input, SubmitButton } from '@/components/ui/form'
+import { Turnstile } from '@/components/turnstile'
+import { mailchimpSubscriptionAction } from '@/lib/integrations/mailchimp'
 
 <Form action={mailchimpSubscriptionAction}>
   <Input name="email" type="email" required />

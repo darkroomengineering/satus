@@ -1,7 +1,7 @@
 'use client'
 
 import cn from 'clsx'
-import { Accordion } from '~/components/ui/accordion'
+import { Accordion } from '@/components/ui/accordion'
 
 export function AccordionDemo() {
   return (

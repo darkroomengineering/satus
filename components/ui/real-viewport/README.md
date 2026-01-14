@@ -9,7 +9,7 @@ Sets CSS custom properties for accurate viewport units.
 <RealViewport />
 
 // With runtime access
-import { RealViewport, useRealViewport } from '~/components/ui/real-viewport'
+import { RealViewport, useRealViewport } from '@/components/ui/real-viewport'
 
 function Component() {
   const { vw, dvh, svh, scrollbarWidth } = useRealViewport()

@@ -2,7 +2,7 @@
 
 import cn from 'clsx'
 import { createContext, useContext, useEffect, useState } from 'react'
-import { mutate } from '~/utils'
+import { mutate } from '@/utils/raf'
 import s from './form.module.css'
 import { useForm } from './hook'
 import type {

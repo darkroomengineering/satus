@@ -20,7 +20,7 @@
  *
  * ```ts
  * // ✅ GOOD: Batch reads, then batch writes
- * import { measure, mutate } from '~/utils/raf'
+ * import { measure, mutate } from '@/utils/raf'
  *
  * // All reads happen first
  * const height = await measure(() => element.offsetHeight)
@@ -33,7 +33,7 @@
  *
  * @example
  * ```ts
- * import { measure, mutate } from '~/utils/raf'
+ * import { measure, mutate } from '@/utils/raf'
  *
  * // Read multiple values
  * const [width, height] = await Promise.all([

@@ -140,7 +140,7 @@ interface ${pascalName}Props extends HTMLAttributes<HTMLDivElement> {
  *
  * @example
  * \`\`\`tsx
- * import { ${pascalName} } from '~/components/${options.category}/${componentName}'
+ * import { ${pascalName} } from '@/components/${options.category}/${componentName}'
  *
  * <${pascalName}>
  *   Content here
@@ -204,7 +204,7 @@ const updateBarrelExport = async (
       const header =
         categoryTitles[category] || `${toPascalCase(category)} Components`
       const content = `// ${header}
-// Import from '~/components/${category}' or '~/components/${category}/[component]'
+// Import from '@/components/${category}' or '@/components/${category}/[component]'
 
 export { ${pascalName} } from './${componentName}'
 `
@@ -301,7 +301,7 @@ export const createComponent = async (
       `Next steps:\n` +
         `  1. Customize ${componentDir}/index.tsx\n` +
         `  2. Style in ${componentDir}/${componentName}.module.css\n` +
-        `  3. Import: \`import { ${pascalName} } from '~/components/${componentPath}'\``
+        `  3. Import: \`import { ${pascalName} } from '@/components/${componentPath}'\``
     )
   } catch (error) {
     s.stop(`Failed to create component "${componentPath}"`)

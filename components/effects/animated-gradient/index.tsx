@@ -2,8 +2,8 @@
 
 import dynamic from 'next/dynamic'
 import type { ComponentProps, CSSProperties } from 'react'
-import { WebGLTunnel } from '~/webgl/components/tunnel'
-import { useWebGLElement } from '~/webgl/hooks/use-webgl-element'
+import { WebGLTunnel } from '@/webgl/components/tunnel'
+import { useWebGLElement } from '@/webgl/hooks/use-webgl-element'
 
 const WebGLAnimatedGradient = dynamic(
   () =>

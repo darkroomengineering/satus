@@ -6,7 +6,7 @@
  *
  * @example
  * ```ts
- * import { clamp, lerp, mapRange } from '~/utils/math'
+ * import { clamp, lerp, mapRange } from '@/utils/math'
  *
  * // Constrain a value
  * const bounded = clamp(0, value, 100)

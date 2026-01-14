@@ -140,13 +140,9 @@ export function TextareaField({
         placeholder={placeholder}
         rows={rows}
         className={s.textarea}
-        ref={reg.ref as React.Ref<HTMLTextAreaElement>}
-        onChange={(e) =>
-          reg.onChange(e as unknown as React.ChangeEvent<HTMLInputElement>)
-        }
-        onBlur={(e) =>
-          reg.onBlur(e as unknown as React.FocusEvent<HTMLInputElement>)
-        }
+        ref={reg.ref}
+        onChange={reg.onChange}
+        onBlur={reg.onBlur}
       />
       {error?.state && error.message && (
         <Field.Error {...(s.errorMessage && { className: s.errorMessage })}>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Select } from '~/components/ui/select'
+import { Select } from '@/components/ui/select'
 
 const fruits = [
   { value: 'apple', label: '🍎 Apple' },

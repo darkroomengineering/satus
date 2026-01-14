@@ -1,16 +1,21 @@
 import { notFound } from 'next/navigation'
-import { Wrapper } from '~/components/layout/wrapper'
-import { fetchAllArticles } from '~/integrations/sanity/fetch'
-import { sanityFetch } from '~/integrations/sanity/live'
-import { articleQuery } from '~/integrations/sanity/queries'
-import type { Article } from '~/integrations/sanity/sanity.types'
-import { generateSanityMetadata } from '~/utils'
+import { Wrapper } from '@/components/layout/wrapper'
+import { client } from '@/integrations/sanity/client'
+import { sanityFetch } from '@/integrations/sanity/live'
+import { allArticlesQuery, articleQuery } from '@/integrations/sanity/queries'
+import type { Article } from '@/integrations/sanity/sanity.types'
+import { generateSanityMetadata } from '@/utils/metadata'
 import { SanityArticle } from './_components/article'
 
 export async function generateStaticParams() {
-  const data = await fetchAllArticles()
+  // Use client directly for build-time data fetching instead of sanityFetch
+  if (!client) return []
 
-  return (data ?? []).map((article) => ({ slug: article.slug?.current ?? '' }))
+  const data = await client.fetch(allArticlesQuery)
+
+  if (!(data && Array.isArray(data))) return []
+
+  return data.map((article) => ({ slug: article.slug?.current ?? '' }))
 }
 
 export default async function SanityArticlePage({

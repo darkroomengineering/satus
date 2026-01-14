@@ -31,19 +31,19 @@
       }
     ],
     "paths": {
-      "~/*": ["./*"],
-      "~/hooks": ["./lib/hooks"],
-      "~/hooks/*": ["./lib/hooks/*"],
-      "~/styles": ["./lib/styles"],
-      "~/styles/*": ["./lib/styles/*"],
-      "~/integrations/*": ["./lib/integrations/*"],
-      "~/webgl": ["./lib/webgl"],
-      "~/webgl/*": ["./lib/webgl/*"],
-      "~/dev": ["./lib/dev"],
-      "~/dev/*": ["./lib/dev/*"],
-      "~/utils": ["./lib/utils"],
-      "~/utils/*": ["./lib/utils/*"],
-      "~/config": ["./lib/styles/config.ts"]
+      "@/*": ["./*"],
+      "@/components/*": ["./components/*"],
+      "@/lib/*": ["./lib/*"],
+      "@/hooks/*": ["./lib/hooks/*"],
+      "@/styles/*": ["./lib/styles/*"],
+      "@/integrations/*": ["./lib/integrations/*"],
+      "@/webgl/*": ["./lib/webgl/*"],
+      "@/utils/*": ["./lib/utils/*"],
+      "@/config": ["./lib/styles/config.ts"],
+      "@/dev/*": ["./lib/dev/*"],
+      "@/dev/theatre/*": ["./lib/dev/theatre/*"],
+      "@/dev/theatre": ["./lib/dev/theatre"],
+      "@/dev": ["./lib/dev"]
     }
   },
   "include": [

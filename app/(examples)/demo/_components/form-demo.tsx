@@ -1,7 +1,7 @@
 'use client'
 
-import { Form, Messages, SubmitButton } from '~/components/ui/form'
-import { InputField, TextareaField } from '~/components/ui/form/fields'
+import { Form, Messages, SubmitButton } from '@/components/ui/form'
+import { InputField, TextareaField } from '@/components/ui/form/fields'
 import { demoFormAction } from './form-demo-action'
 
 export function FormDemo() {

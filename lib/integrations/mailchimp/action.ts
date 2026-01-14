@@ -1,7 +1,7 @@
 'use server'
 
-import type { ErrorField, FormState } from '~/components/ui/form/types'
-import { fetchWithTimeout } from '~/utils'
+import type { ErrorField, FormState } from '@/components/ui/form/types'
+import { fetchWithTimeout } from '@/utils/fetch'
 import { validateFormWithTurnstile } from './turnstile'
 
 // Type declarations for Node.js globals in Next.js server environment

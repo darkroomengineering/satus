@@ -1,7 +1,7 @@
 'use server'
 
 import { cookies } from 'next/headers'
-import type { FormState } from '~/components/ui/form/types'
+import type { FormState } from '@/components/ui/form/types'
 import { shopifyFetch } from '../index'
 import {
   customerAccessTokenCreateMutation,

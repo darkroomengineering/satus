@@ -1,12 +1,12 @@
 'use client'
 
-import { Form, SubmitButton } from '~/components/ui/form'
-import { InputField } from '~/components/ui/form/fields'
+import { Form, SubmitButton } from '@/components/ui/form'
+import { InputField } from '@/components/ui/form/fields'
 import {
   CreateCustomerAction,
   LoginCustomerAction,
   LogoutCustomerAction,
-} from '~/integrations/shopify/customer/actions'
+} from '@/integrations/shopify/customer/actions'
 
 export function LoginForm() {
   return (

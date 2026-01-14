@@ -13,7 +13,7 @@ import s from './menu.module.css'
  *
  * @example
  * ```tsx
- * import { Menu } from '~/components/ui/menu'
+ * import { Menu } from '@/components/ui/menu'
  *
  * <Menu.Root>
  *   <Menu.Trigger>Options</Menu.Trigger>

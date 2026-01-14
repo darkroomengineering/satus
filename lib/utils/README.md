@@ -2,8 +2,13 @@
 
 Pure utility functions organized by concern.
 
+Use explicit imports for clarity and better tree-shaking:
+
 ```tsx
-import { clamp, lerp, slugify, fetchWithTimeout } from '~/utils'
+import { clamp, lerp } from '@/utils/math'
+import { slugify } from '@/utils/strings'
+import { fetchWithTimeout } from '@/utils/fetch'
+import { generateSanityMetadata } from '@/utils/metadata'
 ```
 
 ## Modules

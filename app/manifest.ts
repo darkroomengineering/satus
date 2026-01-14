@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
-import AppData from '~/package.json'
-import { themes } from '~/styles'
+import AppData from '@/package.json'
+import { themes } from '@/styles/colors'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {

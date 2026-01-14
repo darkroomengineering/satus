@@ -1,5 +1,5 @@
-import { Wrapper } from '~/components/layout/wrapper'
-import { TheatreProjectProvider } from '~/dev/theatre'
+import { Wrapper } from '@/components/layout/wrapper'
+import { TheatreProjectProvider } from '@/dev/theatre'
 import { Box } from './_components/box'
 
 export default function R3FPage() {

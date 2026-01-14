@@ -2,10 +2,10 @@
  * Custom React Hooks
  *
  * Import individual hooks:
- *   import { useScrollTrigger } from '~/hooks/use-scroll-trigger'
+ *   import { useScrollTrigger } from '@/hooks/use-scroll-trigger'
  *
  * Or import from barrel:
- *   import { useScrollTrigger, useTransform } from '~/hooks'
+ *   import { useScrollTrigger, useTransform } from '@/hooks/use-scroll-trigger'
  */
 
 export { useStore } from './store'

@@ -1,6 +1,6 @@
 'use client'
 
-import { Tabs } from '~/components/ui/tabs'
+import { Tabs } from '@/components/ui/tabs'
 
 export function TabsDemo() {
   return (

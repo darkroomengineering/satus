@@ -307,7 +307,7 @@ describe('WebGL Code Transforms', () => {
       expect(content).toContain('<Lenis')
 
       // Verify WebGL code is removed
-      expect(content).not.toContain('~/webgl')
+      expect(content).not.toContain('@/webgl')
       expect(content).not.toContain('<Canvas')
       expect(content).not.toContain('webgl?:')
       expect(content).not.toContain('webgl = false')

@@ -3,10 +3,10 @@
 import { type Rect, useLazyState, useWindowSize } from 'hamo'
 import { useLenis } from 'lenis/react'
 import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
-import { useTransform } from '~/hooks/use-transform'
-import { useOrchestra } from '~/lib/dev'
-import { useMinimap } from '~/lib/dev/minimap'
-import { clamp, mapRange } from '~/utils'
+import { useTransform } from '@/hooks/use-transform'
+import { useOrchestra } from '@/lib/dev'
+import { useMinimap } from '@/lib/dev/minimap'
+import { clamp, mapRange } from '@/utils/math'
 
 // @refresh reset
 
@@ -148,7 +148,7 @@ export type UseScrollTriggerOptions = {
  *
  * @example
  * ```tsx
- * import { useScrollTrigger } from '~/hooks/use-scroll-trigger'
+ * import { useScrollTrigger } from '@/hooks/use-scroll-trigger'
  * import { useRect } from 'hamo'
  *
  * function AnimatedSection() {

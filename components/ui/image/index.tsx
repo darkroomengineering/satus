@@ -1,9 +1,15 @@
+/**
+ * Enhanced Image Component
+ *
+ * Next.js Image wrapper with optimized defaults and error handling.
+ * Always use this component instead of next/image directly.
+ */
 'use client'
 
 import cn from 'clsx'
 import NextImage, { type ImageProps as NextImageProps } from 'next/image'
 import type { CSSProperties, Ref } from 'react'
-import { breakpoints } from '~/styles/config'
+import { breakpoints } from '@/styles/config'
 import s from './image.module.css'
 
 /**

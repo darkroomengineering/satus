@@ -33,8 +33,8 @@ NEXT_PUBLIC_SANITY_API_VERSION="2024-03-15"
 ### Fetching Data
 
 ```tsx
-import { sanityFetch } from '~/lib/integrations/sanity/live'
-import { pageQuery } from '~/lib/integrations/sanity/queries'
+import { sanityFetch } from 'next-sanity/live'
+import { pageQuery } from '@/lib/integrations/sanity/queries'
 
 export default async function Page({ params }) {
   const { data } = await sanityFetch({ 
@@ -45,28 +45,55 @@ export default async function Page({ params }) {
 }
 ```
 
-### Visual Editing
+### Build-time Data Fetching
 
-Add `data-sanity` attributes:
+For `generateStaticParams` or other build-time functions, use the client directly:
 
 ```tsx
-import { useSanityContext, RichText } from '~/lib/integrations/sanity'
+import { client } from '@/lib/integrations/sanity/client'
+import { allArticlesQuery } from '@/lib/integrations/sanity/queries'
 
-function MyComponent() {
-  const { document } = useSanityContext()
+export async function generateStaticParams() {
+  if (!client) return []
+  const data = await client.fetch(allArticlesQuery)
+  return data.map((item) => ({ slug: item.slug?.current ?? '' }))
+}
+```
+
+### Visual Editing
+
+Add `data-sanity` attributes for visual editing:
+
+```tsx
+import { RichText } from '@/lib/integrations/sanity/components/rich-text'
+
+function MyComponent({ data }) {
   return (
-    <div data-sanity={document._id}>
-      <h1 data-sanity="title">{document.title}</h1>
-      <RichText content={document.content} />
+    <div data-sanity={data._id}>
+      <h1 data-sanity="title">{data.title}</h1>
+      <RichText content={data.content} />
     </div>
   )
 }
 ```
 
+### Image Handling
+
+```tsx
+import { urlForImage } from '@/lib/integrations/sanity/utils/image'
+import { SanityImage } from '@/components/ui/sanity-image'
+
+// Option 1: Using urlForImage utility
+<img src={urlForImage(image).width(800).url()} alt={image.alt} />
+
+// Option 2: Using SanityImage component
+<SanityImage image={image} maxWidth={800} />
+```
+
 ### SEO Metadata
 
 ```tsx
-import { generateSanityMetadata } from '~/utils'
+import { generateSanityMetadata } from '@/lib/utils/metadata'
 
 export async function generateMetadata({ params }) {
   const { data } = await sanityFetch({ query: pageQuery, params })
@@ -93,7 +120,7 @@ export const landing = defineType({
 ```
 
 2. **Add to schema index** in `schemaTypes/index.ts`
-3. **Create query** in `queries/index.ts`
+3. **Create query** in `queries.ts`
 4. **Create page** in `app/`
 
 ## Caching

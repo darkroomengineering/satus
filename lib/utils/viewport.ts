@@ -6,7 +6,7 @@
  *
  * @example
  * ```ts
- * import { desktopVW, mobileVW } from '~/utils/viewport'
+ * import { desktopVW, mobileVW } from '@/utils/viewport'
  *
  * // In a resize handler
  * const width = window.innerWidth
@@ -27,7 +27,7 @@
  * A 100px element designed at 1728px will be ~58px at 1000px viewport.
  */
 
-import { screens } from '~/lib/styles/config'
+import { screens } from '@/lib/styles/config'
 
 /**
  * Scales a pixel value relative to the desktop design width.

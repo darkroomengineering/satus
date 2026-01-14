@@ -2,7 +2,7 @@
  * Styling System
  *
  * Import from barrel:
- *   import { colors, themes, breakpoints } from '~/styles'
+ *   import { colors, themes, breakpoints } from '@/styles'
  */
 
 export { colors, type Themes, themeNames, themes } from './colors'

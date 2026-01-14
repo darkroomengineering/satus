@@ -6,7 +6,7 @@
  * - Perfect for terminal aesthetics
  */
 
-import { fetchWithTimeout } from '~/utils'
+import { fetchWithTimeout } from '@/utils/fetch'
 
 export interface TurnstileValidationResult {
   isValid: boolean

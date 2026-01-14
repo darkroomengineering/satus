@@ -112,7 +112,7 @@ Every `document` and `object` schema type should:
 Always add `data-sanity` attributes for visual editing. Use SanityContextProvider for document access. Implement proper draft mode handling. Import from `/lib/integrations/sanity` directory.
 
 ```typescript
-import { useSanityContext, RichText } from '~/lib/integrations/sanity'
+import { RichText } from '@/integrations/sanity/components/rich-text'
 
 export function MyComponent() {
   const { document } = useSanityContext()
@@ -129,12 +129,12 @@ export function MyComponent() {
 ```
 
 ### Data Fetching
-Use proper perspective for draft vs published content. Implement caching strategies for performance. Handle errors gracefully with try-catch. Import from `/lib/integrations/sanity` directory. Use `~/utils/metadata` helpers for SEO optimization. All `sanityFetch` calls automatically use `cacheSignal()` for request cleanup.
+Use proper perspective for draft vs published content. Implement caching strategies for performance. Handle errors gracefully with try-catch. Import from `/lib/integrations/sanity` directory. Use `@/utils/metadata` helpers for SEO optimization. All `sanityFetch` calls automatically use `cacheSignal()` for request cleanup.
 
 ```typescript
 // In lib/integrations/sanity/queries/index.ts
-import { sanityFetch } from '../fetch'
-import { generateSanityMetadata } from '~/utils'
+import { sanityFetch } from '@/integrations/sanity/live'
+import { generateSanityMetadata } from '@/utils/metadata'
 
 // Use sanityFetch (automatically includes cacheSignal)
 export async function fetchSanityPage(slug: string, isDraftMode = false) {
@@ -211,8 +211,8 @@ export const POST_QUERY = defineQuery(`*[
 Use ISR for static content with revalidation. Implement proper cache invalidation via webhooks. Optimize images with proper sizing. Use consolidated imports for better tree-shaking. Use metadata helpers for consistent SEO.
 
 ```typescript
-import { urlForImage } from '~/lib/integrations/sanity'
-import { generateSanityMetadata } from '~/utils'
+import { urlForImage } from '@/integrations/sanity/utils/image'
+import { generateSanityMetadata } from '@/utils/metadata'
 
 // Use ISR for published content
 export const revalidate = 3600
@@ -328,14 +328,14 @@ const shopifyClient = createShopifyClient({
 Use fragments for reusable queries. Implement proper error handling.
 
 ```typescript
-import { PRODUCT_FRAGMENT } from '~/lib/integrations/shopify/fragments/product'
+import { PRODUCT_FRAGMENT } from '@/lib/integrations/shopify/fragments/product'
 ```
 
 ### Cart Operations
 Use mutations for cart operations. Maintain cart state with Zustand.
 
 ```typescript
-import { ADD_TO_CART_MUTATION } from '~/lib/integrations/shopify/mutations/cart'
+import { ADD_TO_CART_MUTATION } from '@/lib/integrations/shopify/mutations/cart'
 ```
 
 ---
@@ -359,7 +359,7 @@ export async function submitToHubspot(formData: FormData) {
 Implement proper consent management. Handle errors gracefully.
 
 ```typescript
-import { HubspotNewsletterAction } from '~/lib/integrations/hubspot/action'
+import { HubspotNewsletterAction } from '@/lib/integrations/hubspot/action'
 ```
 
 ---
@@ -390,7 +390,7 @@ for (const envVar of requiredEnvVars) {
 - Use `cacheSignal()` for automatic request cleanup (React 19+)
 
 ```typescript
-import { fetchWithTimeout } from '~/utils'
+import { fetchWithTimeout } from '@/utils/fetch'
 import { cacheSignal } from 'react'
 
 // HubSpot: 8 seconds
@@ -459,7 +459,7 @@ const ProductSchema = z.object({
 - Implement rate limiting where necessary
 
 ### Integration Management
-- Check integration usage with `~/lib/integrations/check-integration`
+- Check integration usage with `@/lib/integrations/check-integration`
 - Keep only active integrations to optimize bundle size
 - Remove unused integration directories to reduce bundle size
 

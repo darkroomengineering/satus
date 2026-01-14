@@ -2,8 +2,8 @@
 
 import { usePathname } from 'next/navigation'
 import { createContext, useContext, useEffect, useState } from 'react'
-import type { Themes } from '~/styles/colors'
-import { type ThemeName, themes } from '~/styles/config'
+import type { Themes } from '@/styles/colors'
+import { type ThemeName, themes } from '@/styles/config'
 
 export const ThemeContext = createContext<{
   name: ThemeName

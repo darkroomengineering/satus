@@ -27,7 +27,7 @@ app/
 ## Page Pattern
 
 ```tsx
-import { Wrapper } from '~/components/layout'
+import { Wrapper } from '@/components/layout'
 
 export default function Page() {
   return (

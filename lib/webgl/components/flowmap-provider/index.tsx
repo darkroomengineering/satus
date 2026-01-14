@@ -1,8 +1,8 @@
 import { createContext, useContext } from 'react'
-import { useFlowmapSim } from '~/webgl/utils/flowmaps'
-import type { Flowmap } from '~/webgl/utils/flowmaps/flowmap-sim'
-import { useFluidSim } from '~/webgl/utils/fluid'
-import type { Fluid } from '~/webgl/utils/fluid/fluid-sim'
+import { useFlowmapSim } from '@/webgl/utils/flowmaps'
+import type { Flowmap } from '@/webgl/utils/flowmaps/flowmap-sim'
+import { useFluidSim } from '@/webgl/utils/fluid'
+import type { Fluid } from '@/webgl/utils/fluid/fluid-sim'
 
 type FlowmapContextType = {
   fluid: Fluid

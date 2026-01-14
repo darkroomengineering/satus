@@ -31,11 +31,29 @@ export interface defaultCart {
   }
 }
 
-// Before reshaping data
+// Before reshaping data (raw Shopify API response)
 export interface ShopifyCart extends defaultCart {
   id: string
-  lines: EdgeNode<unknown>
-  [key: string]: unknown
+  lines: EdgeNode<ShopifyCartLineItem>
+}
+
+export interface ShopifyCartLineItem {
+  id: string
+  quantity: number
+  merchandise: {
+    id: string
+    title: string
+    selectedOptions: Array<{ name: string; value: string }>
+    product: {
+      id: string
+      handle: string
+      title: string
+      featuredImage: ShopifyImage | null
+    }
+  }
+  cost: {
+    totalAmount: Money
+  }
 }
 
 // After reshaping data
@@ -58,7 +76,7 @@ export interface Cart extends defaultCart {
         id: string
         handle: string
         title: string
-        featuredImage: unknown
+        featuredImage: Image | null
       }
     }
   }>
@@ -67,7 +85,6 @@ export interface Cart extends defaultCart {
     totalAmount: Money
     totalTaxAmount: Money
   }
-  [key: string]: unknown
 }
 
 export interface CartLine {
@@ -125,7 +142,7 @@ export interface EdgeNode<T> {
   edges: Array<{ node: T }>
 }
 
-// Before reshaping data
+// Before reshaping data (raw Shopify API response)
 export interface ShopifyProduct {
   id: string
   handle: string
@@ -133,8 +150,25 @@ export interface ShopifyProduct {
   tags: string[]
   availableForSale: boolean
   images: EdgeNode<ShopifyImage>
-  variants: EdgeNode<unknown>
-  [key: string]: unknown
+  variants: EdgeNode<ShopifyProductVariant>
+  description?: string
+  descriptionHtml?: string
+  priceRange?: {
+    minVariantPrice: Money
+    maxVariantPrice: Money
+  }
+  seo?: {
+    title: string
+    description: string
+  }
+}
+
+export interface ShopifyProductVariant {
+  id: string
+  title: string
+  availableForSale: boolean
+  selectedOptions: Array<{ name: string; value: string }>
+  price: Money
 }
 
 // After reshaping data
@@ -144,6 +178,7 @@ export interface Product {
   title: string
   tags: string[]
   images: Image[]
+  featuredImage?: Image | null
   availableForSale: boolean
   variants: ProductVariant[]
   options?: Array<{
@@ -151,7 +186,16 @@ export interface Product {
     name: string
     values: string[]
   }>
-  [key: string]: unknown
+  description?: string
+  descriptionHtml?: string
+  priceRange?: {
+    minVariantPrice: Money
+    maxVariantPrice: Money
+  }
+  seo?: {
+    title: string
+    description: string
+  }
 }
 
 export interface ProductVariant {

@@ -47,12 +47,14 @@ export function useForm<T = unknown>({
   const [isActive, setIsActive] = useState<boolean[]>([])
   const [isValid, setIsValid] = useState<boolean[]>([])
   const [errors, setErrors] = useState<FieldError[]>([])
-  const inputsRefs = useRef<(HTMLInputElement | null)[]>([])
+  const inputsRefs = useRef<(HTMLInputElement | HTMLTextAreaElement | null)[]>(
+    []
+  )
   const registeredCount = useRef(0)
 
   // Initialize state for a specific input when it registers
   const initializeInput = useCallback(
-    (index: number, input: HTMLInputElement | null) => {
+    (index: number, input: HTMLInputElement | HTMLTextAreaElement | null) => {
       setIsActive((prev) => {
         const next = [...prev]
         next[index] = false
@@ -61,7 +63,10 @@ export function useForm<T = unknown>({
       setIsValid((prev) => {
         const next = [...prev]
         // Hidden inputs are always valid, others start as invalid until validated
-        next[index] = input?.id === 'hidden' || input?.type === 'hidden'
+        const isHidden =
+          input?.id === 'hidden' ||
+          (input instanceof HTMLInputElement && input.type === 'hidden')
+        next[index] = isHidden
         return next
       })
       setErrors((prev) => {
@@ -97,7 +102,9 @@ export function useForm<T = unknown>({
     const element = inputsRefs.current[index]
     if (!element) return
 
-    const validator = validators[element.id] || validators[element.type]
+    const elementType =
+      element instanceof HTMLInputElement ? element.type : 'textarea'
+    const validator = validators[element.id] || validators[elementType]
 
     // If no custom validator, field is valid if it has a value (for required) or always valid (for optional)
     const isRequired = element.required
@@ -129,7 +136,7 @@ export function useForm<T = unknown>({
 
   const register = useCallback(
     (index: number) => ({
-      ref: (node: HTMLInputElement | null) => {
+      ref: (node: HTMLInputElement | HTMLTextAreaElement | null) => {
         const isNewRegistration = !inputsRefs.current[index] && node
         inputsRefs.current[index] = node
         if (isNewRegistration) {
@@ -139,7 +146,9 @@ export function useForm<T = unknown>({
       },
       onChange: ({
         target,
-      }: Parameters<ChangeEventHandler<HTMLInputElement>>[0]) => {
+      }: Parameters<
+        ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>
+      >[0]) => {
         setToActiveInput(target.value, index)
         if (!onBlur) {
           validate(target.value, index)
@@ -147,7 +156,9 @@ export function useForm<T = unknown>({
       },
       onBlur: ({
         target,
-      }: Parameters<FocusEventHandler<HTMLInputElement>>[0]) => {
+      }: Parameters<
+        FocusEventHandler<HTMLInputElement | HTMLTextAreaElement>
+      >[0]) => {
         if (onBlur) {
           validate(target.value, index)
         }

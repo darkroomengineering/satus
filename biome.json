@@ -214,9 +214,6 @@
             "useExportType": "error",
             "useConsistentArrayType": "error"
           },
-          "suspicious": {
-            "noExplicitAny": "warn"
-          },
           "correctness": {
             "noUndeclaredVariables": "off"
           }

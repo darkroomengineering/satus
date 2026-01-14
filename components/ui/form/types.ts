@@ -48,9 +48,13 @@ export interface UseFormReturn<T = unknown> {
   formAction: (formData: FormData) => void
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void
   register: (index: number) => {
-    ref: (node: HTMLInputElement | null) => void
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-    onBlur: (e: React.FocusEvent<HTMLInputElement>) => void
+    ref: (node: HTMLInputElement | HTMLTextAreaElement | null) => void
+    onChange: (
+      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => void
+    onBlur: (
+      e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => void
   }
   isActive: boolean[]
   isValid: boolean[]

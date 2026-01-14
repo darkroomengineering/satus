@@ -19,7 +19,7 @@ interface CartContextType {
 
 interface CartProviderProps {
   children: ReactNode
-  cart?: Cart
+  cart?: Cart | undefined
 }
 
 const CartContext = createContext<CartContextType>({

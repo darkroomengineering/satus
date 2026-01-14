@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import type { Cart as CartData } from '@/integrations/shopify/types'
 import { fetchCart } from './actions'
 import { CartProvider } from './cart-context'
 
@@ -8,9 +7,9 @@ interface CartProps {
 }
 
 export async function Cart({ children }: CartProps) {
-  const cart = (await fetchCart()) as unknown
+  const cart = await fetchCart()
 
-  return <CartProvider cart={cart as CartData}>{children}</CartProvider>
+  return <CartProvider cart={cart}>{children}</CartProvider>
 }
 
 // Based on

@@ -69,19 +69,6 @@ import { mailchimpSubscriptionAction } from '@/lib/integrations/mailchimp'
 <Form action={mailchimpSubscriptionAction}>...</Form>
 ```
 
-## Detection & Conditional Loading
-
-```tsx
-import { features } from '@/config/features'
-import { isShopifyConfigured } from '@/lib/integrations/check-integration'
-
-// Feature flags
-if (features.sanity) { /* Load Sanity */ }
-
-// Runtime detection
-if (isShopifyConfigured()) { /* Load Shopify */ }
-```
-
 ## Removing Integrations
 
 Run `bun run setup:project` for interactive removal, or manually:

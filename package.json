@@ -43,6 +43,7 @@
     "@sanity/asset-utils": "^2.3.0",
     "@sanity/image-url": "^2.0.2",
     "@sanity/visual-editing": "^5.0.4",
+    "@vercel/analytics": "^1.6.1",
     "clsx": "^2.1.1",
     "gsap": "^3.14.2",
     "hamo": "1.0.0-dev.7",

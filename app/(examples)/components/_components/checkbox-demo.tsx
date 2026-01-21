@@ -9,23 +9,19 @@ export function CheckboxDemo() {
   const [updates, setUpdates] = useState(false)
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-wrap gap-x-8 gap-y-3">
+      <Checkbox label="Terms" checked={terms} onCheckedChange={setTerms} />
       <Checkbox
-        label="I agree to the terms and conditions"
-        checked={terms}
-        onCheckedChange={setTerms}
-      />
-      <Checkbox
-        label="Send me marketing emails"
+        label="Marketing"
         checked={marketing}
         onCheckedChange={setMarketing}
       />
       <Checkbox
-        label="Notify me about updates"
+        label="Updates"
         checked={updates}
         onCheckedChange={setUpdates}
       />
-      <Checkbox label="Disabled checkbox" disabled />
+      <Checkbox label="Disabled" disabled />
     </div>
   )
 }

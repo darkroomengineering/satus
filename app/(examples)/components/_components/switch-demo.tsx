@@ -9,9 +9,9 @@ export function SwitchDemo() {
   const [autoSave, setAutoSave] = useState(true)
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-wrap gap-x-8 gap-y-3">
       <Switch
-        label="Enable notifications"
+        label="Notifications"
         checked={notifications}
         onCheckedChange={setNotifications}
       />
@@ -25,7 +25,7 @@ export function SwitchDemo() {
         checked={autoSave}
         onCheckedChange={setAutoSave}
       />
-      <Switch label="Disabled option" disabled />
+      <Switch label="Disabled" disabled />
     </div>
   )
 }

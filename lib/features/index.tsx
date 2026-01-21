@@ -10,8 +10,8 @@
 import dynamic from 'next/dynamic'
 import { useEffect, useMemo, useState } from 'react'
 
-// Feature detection
-const hasWebGL = Boolean(process.env.NEXT_PUBLIC_ENABLE_WEBGL !== 'false')
+// Feature detection - opt-in to avoid loading heavy WebGL libraries by default
+const hasWebGL = process.env.NEXT_PUBLIC_ENABLE_WEBGL === 'true'
 const isDevelopment = process.env.NODE_ENV === 'development'
 
 // Lazy imports to avoid loading unused features

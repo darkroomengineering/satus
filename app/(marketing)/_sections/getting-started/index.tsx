@@ -46,17 +46,6 @@ export function GettingStarted() {
           ))}
         </div>
       </div>
-
-      <footer
-        className={cn(s.footer, 'col-span-full dt:col-start-2 dt:col-end-12')}
-      >
-        <span>
-          Built by{' '}
-          <Link href="https://darkroom.engineering" className={s.footerLink}>
-            darkroom.engineering
-          </Link>
-        </span>
-      </footer>
     </section>
   )
 }

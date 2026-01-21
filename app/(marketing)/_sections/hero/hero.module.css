@@ -58,17 +58,16 @@
 
 .tagline {
   font-family: var(--font-mono);
-  font-size: calc(12 / 375 * 100vw);
-  line-height: 1.8;
-  opacity: 0.5;
-  max-width: 36ch;
-  letter-spacing: 0.02em;
-  margin-top: calc(8 / 375 * 100vw);
+  font-size: calc(9 / 375 * 100vw);
+  line-height: 1.6;
+  opacity: 0.4;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: calc(12 / 375 * 100vw);
 
   @media (--desktop) {
-    font-size: calc(14 / 1440 * 100vw);
-    max-width: 50ch;
-    margin-top: calc(16 / 1440 * 100vw);
+    font-size: calc(11 / 1440 * 100vw);
+    margin-top: calc(20 / 1440 * 100vw);
   }
 }
 

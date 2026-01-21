@@ -124,24 +124,3 @@
     font-size: calc(16 / 1440 * 100vw);
   }
 }
-
-.footer {
-  margin-top: calc(64 / 375 * 100vw);
-  padding-top: calc(32 / 375 * 100vw);
-  border-top: 1px solid
-    color-mix(in srgb, var(--color-secondary) 15%, transparent);
-  font-family: var(--font-mono);
-  font-size: calc(12 / 375 * 100vw);
-  opacity: 0.5;
-
-  @media (--desktop) {
-    margin-top: calc(80 / 1440 * 100vw);
-    padding-top: calc(40 / 1440 * 100vw);
-    font-size: calc(14 / 1440 * 100vw);
-  }
-}
-
-.footerLink {
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
-}

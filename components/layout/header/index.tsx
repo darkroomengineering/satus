@@ -27,55 +27,47 @@ export function Header() {
   )
 
   return (
-    <nav className="fixed top-safe left-safe z-2 flex flex-col font-mono dt:text-[11px] text-[10px] uppercase">
-      <div className="inline-flex gap-1">
-        <h1>Satūs</h1>
-        <span className="opacity-50">{pathname}</span>
+    <nav className="fixed top-safe left-safe z-2 flex flex-col gap-3 font-mono dt:text-[11px] text-[10px] uppercase">
+      {/* Logo + current path */}
+      <div className="flex items-baseline gap-2">
+        <h1 className="dt:text-[13px] text-[12px]">Satūs</h1>
+        <span className="opacity-40">{pathname}</span>
       </div>
 
-      <ul className="mt-2 flex flex-col">
+      {/* Main navigation */}
+      <ul className="flex flex-col gap-0.5">
         {LINKS.map((link) => (
-          <li key={link.href}>
+          <li key={link.href} className="flex">
+            <span className="w-3 opacity-50">
+              {pathname === link.href ? '›' : ''}
+            </span>
+            <Link href={link.href} className="link">
+              {link.label}
+            </Link>
+          </li>
+        ))}
+
+        {/* Examples submenu */}
+        <li className="flex">
+          <span className="w-3 opacity-50">{isExamplePage ? '›' : ''}</span>
+          <span>examples</span>
+        </li>
+        {EXAMPLES.map((link) => (
+          <li key={link.href} className="flex pl-3">
+            <span className="w-3 opacity-50">
+              {pathname === link.href ? '·' : ''}
+            </span>
             <Link
               href={link.href}
               className={cn(
-                'link relative pl-4',
-                pathname === link.href &&
-                  "before:absolute before:left-0 before:content-['›']"
+                'link transition-opacity hover:opacity-100',
+                pathname === link.href ? 'opacity-100' : 'opacity-40'
               )}
             >
               {link.label}
             </Link>
           </li>
         ))}
-        <li>
-          <span
-            className={cn(
-              'relative pl-4',
-              isExamplePage &&
-                "before:absolute before:left-0 before:content-['›']"
-            )}
-          >
-            examples
-          </span>
-          <ul className="flex flex-col pl-4 opacity-60">
-            {EXAMPLES.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className={cn(
-                    'link relative pl-4 transition-opacity hover:opacity-100',
-                    pathname === link.href
-                      ? "opacity-100 before:absolute before:left-0 before:content-['•']"
-                      : 'opacity-60'
-                  )}
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </li>
       </ul>
     </nav>
   )

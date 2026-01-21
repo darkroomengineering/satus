@@ -22,41 +22,41 @@ const LINKS = [
 export function GettingStarted() {
   return (
     <section className={cn(s.section, 'dr-layout-grid')}>
-      <div className="col-span-full dt:col-start-2 dt:col-end-12">
-        <div className={s.content}>
-          <div className={s.main}>
-            <h2 className={s.title}>Get Started</h2>
-            <div className={s.commands}>
-              {COMMANDS.map((item) => (
-                <div key={item.cmd} className={s.command}>
-                  <span className={s.commandLabel}>{item.label}</span>
-                  <code className={s.commandCode}>{item.cmd}</code>
-                </div>
-              ))}
+      <div className="col-span-full dt:col-start-2 dt:col-end-9">
+        <h2 className={s.title}>Get Started</h2>
+        <div className={s.commands}>
+          {COMMANDS.map((item) => (
+            <div key={item.cmd} className={s.command}>
+              <span className={s.commandLabel}>{item.label}</span>
+              <code className={s.commandCode}>{item.cmd}</code>
             </div>
-          </div>
-
-          <div className={s.aside}>
-            <h3 className={s.linksTitle}>Links</h3>
-            <div className={s.links}>
-              {LINKS.map((link) => (
-                <Link key={link.label} href={link.href} className={s.link}>
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-          </div>
+          ))}
         </div>
-
-        <footer className={s.footer}>
-          <span>
-            Built by{' '}
-            <Link href="https://darkroom.engineering" className={s.footerLink}>
-              darkroom.engineering
-            </Link>
-          </span>
-        </footer>
       </div>
+
+      <div
+        className={cn(s.aside, 'col-span-full dt:col-start-10 dt:col-end-12')}
+      >
+        <h3 className={s.linksTitle}>Links</h3>
+        <div className={s.links}>
+          {LINKS.map((link) => (
+            <Link key={link.label} href={link.href} className={s.link}>
+              {link.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      <footer
+        className={cn(s.footer, 'col-span-full dt:col-start-2 dt:col-end-12')}
+      >
+        <span>
+          Built by{' '}
+          <Link href="https://darkroom.engineering" className={s.footerLink}>
+            darkroom.engineering
+          </Link>
+        </span>
+      </footer>
     </section>
   )
 }

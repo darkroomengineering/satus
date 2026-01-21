@@ -13,23 +13,6 @@
   }
 }
 
-.content {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: calc(48 / 375 * 100vw);
-
-  @media (--desktop) {
-    grid-template-columns: 2fr 1fr;
-    gap: calc(80 / 1440 * 100vw);
-    align-items: start;
-  }
-}
-
-.main {
-  display: flex;
-  flex-direction: column;
-}
-
 .title {
   font-family: var(--font-mono);
   font-size: calc(12 / 375 * 100vw);
@@ -91,7 +74,10 @@
 }
 
 .aside {
+  margin-top: calc(48 / 375 * 100vw);
+
   @media (--desktop) {
+    margin-top: 0;
     padding-top: calc(40 / 1440 * 100vw);
   }
 }

@@ -45,8 +45,6 @@ export function Hero() {
         <h1 className={s.title}>Satūs</h1>
 
         <p className={s.tagline}>
-          The modern Next.js starter for creative developers.
-          <br />
           Part of{' '}
           <Link href="https://oss.darkroom.engineering" className={s.link}>
             Darkroom Open Source Operative System

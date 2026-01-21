@@ -1,5 +1,5 @@
-import { Wrapper } from '@/components/layout/wrapper'
-import { Fold } from '@/components/ui/fold'
+import cn from 'clsx'
+import { Link } from '@/components/ui/link'
 import { AccordionDemo } from './_components/accordion-demo'
 import { AlertDialogDemo } from './_components/alert-dialog-demo'
 import { CheckboxDemo } from './_components/checkbox-demo'
@@ -10,165 +10,130 @@ import { SelectDemo } from './_components/select-demo'
 import { SwitchDemo } from './_components/switch-demo'
 import { TabsDemo } from './_components/tabs-demo'
 import { TooltipDemo } from './_components/tooltip-demo'
+import s from './page.module.css'
 
 export const metadata = {
   title: 'Components - Satūs',
   description: 'Component library showcase',
 }
 
-export default function DemoPage() {
+const COMPONENTS = [
+  {
+    name: 'Menu',
+    description: 'Dropdown menus with keyboard navigation',
+    demo: <MenuDemo />,
+  },
+  {
+    name: 'Select',
+    description: 'Custom select with controlled mode',
+    demo: <SelectDemo />,
+  },
+  {
+    name: 'Accordion',
+    description: 'Expandable sections using Base UI Collapsible',
+    demo: <AccordionDemo />,
+  },
+  {
+    name: 'Tabs',
+    description: 'Tab navigation',
+    demo: <TabsDemo />,
+  },
+  {
+    name: 'Tooltip',
+    description: 'Hover hints with arrow',
+    demo: <TooltipDemo />,
+  },
+  {
+    name: 'Alert Dialog',
+    description: 'Confirmation dialogs',
+    demo: <AlertDialogDemo />,
+  },
+  {
+    name: 'Switch',
+    description: 'Toggle switches',
+    demo: <SwitchDemo />,
+  },
+  {
+    name: 'Checkbox',
+    description: 'Accessible checkboxes',
+    demo: <CheckboxDemo />,
+  },
+  {
+    name: 'Link',
+    description: 'Auto-detects internal vs external',
+    demo: <LinkDemo />,
+  },
+  {
+    name: 'Marquee',
+    description: 'Infinite scroll with velocity',
+    demo: <MarqueeDemo />,
+  },
+] as const
+
+const ADDITIONAL = [
+  { name: 'Form', description: 'See /hubspot for validation example' },
+  { name: 'Image', description: 'Optimized next/image wrapper' },
+  { name: 'Scrollbar', description: 'Custom scrollbar (requires Lenis)' },
+  { name: 'SanityImage', description: 'Sanity CMS image component' },
+  { name: 'RealViewport', description: 'Viewport measurement utility' },
+  { name: 'Toast', description: 'Notification toasts' },
+] as const
+
+export default function ComponentsPage() {
   return (
-    <Wrapper theme="evil" className="font-mono">
-      {/* Header outside Fold */}
-      <section className="m-auto w-1/2">
-        <div className="dr-layout-block dr-py-64 dt:dr-py-100">
-          <header className="dr-mb-48 dt:dr-mb-64">
-            <h1 className="dr-text-32 dt:dr-text-48 font-bold">Components</h1>
-            <p className="dr-mt-8 dt:dr-mt-12 opacity-70">
-              UI component library from @/components/ui
-            </p>
-            <p className="dr-mt-4 text-sm opacity-40">
-              Each section uses the Fold component for parallax scroll effects
-            </p>
-          </header>
+    <main className={s.page}>
+      <section className={cn(s.hero, 'dr-layout-grid')}>
+        <div className="col-span-full dt:col-start-2 dt:col-end-12">
+          <h1 className={s.title}>Components</h1>
+          <p className={s.subtitle}>
+            UI library from <code className={s.code}>@/components/ui</code>
+          </p>
         </div>
-
-        {/* Base UI Components - each wrapped in Fold */}
-        <Fold type="bottom">
-          <Section
-            title="Menu"
-            description="Dropdown menus with keyboard navigation"
-          >
-            <MenuDemo />
-          </Section>
-        </Fold>
-
-        <Fold type="bottom">
-          <Section
-            title="Select"
-            description="Custom select with controlled mode support"
-          >
-            <SelectDemo />
-          </Section>
-        </Fold>
-
-        <Fold type="bottom">
-          <Section
-            title="Accordion"
-            description="Expandable sections using Base UI Collapsible + React 19 Activity"
-          >
-            <AccordionDemo />
-          </Section>
-        </Fold>
-
-        <Fold type="bottom">
-          <Section title="Tabs" description="Tab navigation">
-            <TabsDemo />
-          </Section>
-        </Fold>
-
-        <Fold type="bottom">
-          <Section title="Tooltip" description="Hover hints with arrow">
-            <TooltipDemo />
-          </Section>
-        </Fold>
-
-        <Fold type="bottom">
-          <Section title="Alert Dialog" description="Confirmation dialogs">
-            <AlertDialogDemo />
-          </Section>
-        </Fold>
-
-        <Fold type="bottom">
-          <Section title="Switch" description="Toggle switches">
-            <SwitchDemo />
-          </Section>
-        </Fold>
-
-        <Fold type="bottom">
-          <Section title="Checkbox" description="Accessible checkboxes">
-            <CheckboxDemo />
-          </Section>
-        </Fold>
-
-        {/* Custom Components */}
-        <Fold type="bottom">
-          <Section
-            title="Link"
-            description="Auto-detects internal vs external links"
-          >
-            <LinkDemo />
-          </Section>
-        </Fold>
-
-        <Fold type="bottom">
-          <Section
-            title="Marquee"
-            description="Infinite scrolling text with scroll velocity"
-          >
-            <MarqueeDemo />
-          </Section>
-        </Fold>
       </section>
 
-      {/* Notes Section - outside Fold container with z-index to sit above */}
-      <footer className="relative z-10 bg-black">
-        <div className="dr-py-64 dt:dr-py-100 m-auto h-svh w-1/2">
-          <div className="dr-pt-32 border-white/20 border-t">
-            <h3 className="dr-text-18 font-semibold">Additional Components</h3>
-            <p className="dr-mt-8 text-sm opacity-60">
-              These components are available but not demoed here:
-            </p>
-            <ul className="dr-mt-12 list-disc pl-5 text-sm opacity-60">
-              <li>
-                <strong>Form</strong> — See /hubspot example for form with
-                validation and server actions
-              </li>
-              <li>
-                <strong>Image</strong> — Optimized image component with
-                next/image
-              </li>
-              <li>
-                <strong>Scrollbar</strong> — Custom scrollbar (requires Lenis)
-              </li>
-              <li>
-                <strong>SanityImage</strong> — Image component for Sanity CMS
-              </li>
-              <li>
-                <strong>RealViewport</strong> — Viewport measurement utility
-              </li>
-              <li>
-                <strong>ScrollRestoration</strong> — Scroll position restoration
-              </li>
-              <li>
-                <strong>Toast</strong> — Notification toasts (needs provider)
-              </li>
-            </ul>
+      <section className={cn(s.list, 'dr-layout-grid')}>
+        <div className="col-span-full dt:col-start-2 dt:col-end-9">
+          <h2 className={s.sectionTitle}>Library</h2>
+          <div className={s.components}>
+            {COMPONENTS.map((component) => (
+              <div key={component.name} className={s.component}>
+                <div className={s.componentHeader}>
+                  <span className={s.componentName}>{component.name}</span>
+                  <span className={s.componentDescription}>
+                    {component.description}
+                  </span>
+                </div>
+                <div className={s.componentDemo}>{component.demo}</div>
+              </div>
+            ))}
           </div>
         </div>
-      </footer>
-    </Wrapper>
-  )
-}
 
-function Section({
-  title,
-  description,
-  children,
-}: {
-  title: string
-  description: string
-  children: React.ReactNode
-}) {
-  return (
-    <section className="flex h-svh items-center justify-center">
-      <div className="dr-p-24 dt:dr-p-32 w-full max-w-3xl border border-white/20 bg-black bg-zinc-900">
-        <div className="dr-mb-16 dt:dr-mb-24">
-          <h3 className="dr-text-18 dt:dr-text-24 font-semibold">{title}</h3>
-          <p className="dr-mt-4 text-sm opacity-60">{description}</p>
+        <aside
+          className={cn(s.aside, 'col-span-full dt:col-start-10 dt:col-end-12')}
+        >
+          <h3 className={s.asideTitle}>Additional</h3>
+          <p className={s.asideDescription}>Available but not demoed here</p>
+          <ul className={s.additional}>
+            {ADDITIONAL.map((item) => (
+              <li key={item.name} className={s.additionalItem}>
+                <span className={s.additionalName}>{item.name}</span>
+                <span className={s.additionalDescription}>
+                  {item.description}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </aside>
+      </section>
+
+      <footer className={cn(s.footer, 'dr-layout-grid')}>
+        <div className="col-span-full dt:col-start-2 dt:col-end-12">
+          <Link href="/" className={s.footerLink}>
+            Back to Home
+          </Link>
         </div>
-        <div className="flex flex-wrap gap-4">{children}</div>
-      </div>
-    </section>
+      </footer>
+    </main>
   )
 }

@@ -5,9 +5,11 @@ const STACK = [
   { name: 'Lenis', description: 'Smooth scroll' },
   { name: 'Tempus', description: 'RAF orchestration' },
   { name: 'Hamo', description: 'Performance hooks' },
-  { name: 'React Compiler', description: 'Auto memoization' },
-  { name: 'Global Canvas', description: 'Persistent WebGL' },
-  { name: 'Debug Panel', description: 'Cmd+O diagnostics' },
+  { name: 'GSAP', description: 'Animation library' },
+  { name: 'R3F + drei', description: 'WebGL / 3D graphics' },
+  { name: 'Zustand', description: 'State management' },
+  { name: 'Base UI', description: 'Accessible primitives' },
+  { name: 'Theatre.js', description: 'Animation editor' },
 ] as const
 
 const INTEGRATIONS = ['Sanity', 'Shopify', 'HubSpot', 'Mailchimp'] as const

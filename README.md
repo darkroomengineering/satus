@@ -8,6 +8,13 @@ A modern Next.js 16 starter with React 19, Tailwind CSS v4, and optional WebGL. 
 
 > **Note**: This README is for template developers. For client handoff, see [PROD-README.md](PROD-README.md).
 
+## Requirements
+
+| Tool | Version | Notes |
+|------|---------|-------|
+| Node.js | >= 22.0.0 | Required for native fetch and modern APIs |
+| Bun | >= 1.3.5 | Package manager & runtime |
+
 ## Quick Start
 
 ```bash
@@ -61,7 +68,22 @@ bun build            # Production build
 bun lint             # Biome linter
 bun run generate     # Generate pages/components
 bun run setup:project  # Configure integrations
+bun run handoff      # Prepare for client delivery
 ```
+
+## Client Handoff
+
+Prepare the codebase for client delivery:
+
+```bash
+bun run handoff
+```
+
+This interactive script:
+- Removes example pages and Satūs branding
+- Swaps README with production version
+- Generates component inventory
+- Updates package.json with project name
 
 ## Key Conventions
 

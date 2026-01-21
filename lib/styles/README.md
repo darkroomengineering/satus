@@ -54,4 +54,4 @@ After changing config: `bun setup:styles`
 - `css/root.css` — CSS custom properties
 - `css/tailwind.css` — Tailwind utilities
 
-See [scripts/README.md](scripts/README.md) for generation details.
+Run `bun setup:styles` to regenerate after config changes.

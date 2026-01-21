@@ -6,9 +6,10 @@ Next.js App Router pages and routes.
 
 ```
 app/
-├── page.tsx              # Homepage
+├── page.tsx              # Homepage (redirects to marketing)
 ├── layout.tsx            # Root layout
-├── (examples)/           # DELETE when starting real project
+├── (marketing)/          # DELETE - Satūs marketing homepage
+├── (examples)/           # DELETE - Demo pages (components, r3f, etc.)
 ├── api/
 │   ├── draft-mode/       # Sanity draft mode
 │   └── revalidate/       # Webhook endpoint
@@ -20,9 +21,20 @@ app/
 
 ## Getting Started
 
-1. Delete `(examples)/` folder
-2. Customize `page.tsx`
-3. Add routes as folders with `page.tsx`
+**Quick cleanup (manual):**
+```bash
+rm -rf "app/(examples)"     # Remove example pages (r3f, sanity, shopify, etc.)
+rm -rf "app/(marketing)"    # Remove marketing homepage
+```
+
+**Or use the interactive setup:**
+```bash
+bun run setup:project       # Choose what to keep/remove
+```
+
+Then:
+1. Customize `page.tsx` for your homepage
+2. Add routes as folders with `page.tsx`
 
 ## Page Pattern
 

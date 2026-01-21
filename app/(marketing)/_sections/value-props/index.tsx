@@ -8,13 +8,13 @@ const VALUE_PROPS = [
       'Next.js 16 + App Router',
       'React 19 + Compiler',
       'Tailwind CSS v4',
-      'TypeScript strict mode',
+      'TypeScript ultra-strict',
     ],
   },
   {
     title: 'Developer Experience',
     features: [
-      'Interactive project setup',
+      'Bun + Turbopack',
       'Cmd+O debug panel',
       'Code generation CLI',
       'Biome linting',
@@ -23,10 +23,10 @@ const VALUE_PROPS = [
   {
     title: 'Production Ready',
     features: [
-      'Security headers (CSP, HSTS)',
-      'Lighthouse CI testing',
-      'Dependabot auto-merge',
-      'Performance optimized',
+      'Security headers',
+      'Lighthouse CI',
+      'Base UI components',
+      'Typed routes',
     ],
   },
 ] as const

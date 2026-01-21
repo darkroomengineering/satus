@@ -1,0 +1,217 @@
+.hero {
+  position: relative;
+  z-index: 1;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: var(--color-primary);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: calc(100 / 375 * 100vw) 0;
+  gap: calc(24 / 375 * 100vw);
+
+  @media (--desktop) {
+    padding: calc(140 / 1440 * 100vw) 0;
+    gap: calc(28 / 1440 * 100vw);
+  }
+}
+
+.badge {
+  display: inline-flex;
+  padding: calc(8 / 375 * 100vw) calc(16 / 375 * 100vw);
+  font-family: var(--font-mono);
+  font-size: calc(9 / 375 * 100vw);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  border: 1px solid color-mix(in srgb, var(--color-secondary) 30%, transparent);
+  opacity: 0.6;
+
+  @media (--desktop) {
+    padding: calc(10 / 1440 * 100vw) calc(20 / 1440 * 100vw);
+    font-size: calc(11 / 1440 * 100vw);
+  }
+}
+
+.title {
+  font-family: var(--font-mono);
+  font-size: calc(72 / 375 * 100vw);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  line-height: 0.9;
+  color: var(--color-secondary);
+  margin-top: calc(8 / 375 * 100vw);
+
+  @media (--desktop) {
+    font-size: calc(180 / 1440 * 100vw);
+    letter-spacing: 0.25em;
+    margin-top: calc(12 / 1440 * 100vw);
+  }
+}
+
+.tagline {
+  font-family: var(--font-mono);
+  font-size: calc(9 / 375 * 100vw);
+  line-height: 1.6;
+  opacity: 0.4;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: calc(12 / 375 * 100vw);
+
+  @media (--desktop) {
+    font-size: calc(11 / 1440 * 100vw);
+    margin-top: calc(20 / 1440 * 100vw);
+  }
+}
+
+.link {
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.install {
+  display: flex;
+  align-items: center;
+  gap: calc(12 / 375 * 100vw);
+  margin-top: calc(20 / 375 * 100vw);
+  padding: calc(14 / 375 * 100vw) calc(20 / 375 * 100vw);
+  background: var(--color-secondary);
+  color: var(--color-primary);
+
+  @media (--desktop) {
+    gap: calc(16 / 1440 * 100vw);
+    margin-top: calc(32 / 1440 * 100vw);
+    padding: calc(16 / 1440 * 100vw) calc(28 / 1440 * 100vw);
+  }
+}
+
+.command {
+  font-family: var(--font-mono);
+  font-size: calc(11 / 375 * 100vw);
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+
+  @media (--desktop) {
+    font-size: calc(14 / 1440 * 100vw);
+  }
+}
+
+.copyButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(4 / 375 * 100vw);
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: inherit;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  @media (--desktop) {
+    padding: calc(4 / 1440 * 100vw);
+  }
+}
+
+.ctas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: calc(12 / 375 * 100vw);
+  margin-top: calc(12 / 375 * 100vw);
+
+  @media (--desktop) {
+    gap: calc(16 / 1440 * 100vw);
+    margin-top: calc(16 / 1440 * 100vw);
+  }
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(12 / 375 * 100vw) calc(24 / 375 * 100vw);
+  font-family: var(--font-mono);
+  font-size: calc(10 / 375 * 100vw);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  text-decoration: none;
+  transition: all 0.2s ease;
+
+  @media (--desktop) {
+    padding: calc(14 / 1440 * 100vw) calc(32 / 1440 * 100vw);
+    font-size: calc(12 / 1440 * 100vw);
+  }
+}
+
+.primary {
+  background: var(--color-secondary);
+  color: var(--color-primary);
+  border: 1px solid var(--color-secondary);
+
+  &:hover {
+    background: transparent;
+    color: var(--color-secondary);
+  }
+}
+
+.secondary {
+  background: transparent;
+  color: var(--color-secondary);
+  border: 1px solid color-mix(in srgb, var(--color-secondary) 40%, transparent);
+  opacity: 0.6;
+
+  &:hover {
+    opacity: 1;
+    border-color: var(--color-secondary);
+  }
+}
+
+.scrollIndicator {
+  position: absolute;
+  bottom: calc(28 / 375 * 100vw);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(8 / 375 * 100vw);
+  font-family: var(--font-mono);
+  font-size: calc(8 / 375 * 100vw);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  opacity: 0.3;
+  animation: bounce 2s ease-in-out infinite;
+
+  @media (--desktop) {
+    bottom: calc(40 / 1440 * 100vw);
+    gap: calc(8 / 1440 * 100vw);
+    font-size: calc(10 / 1440 * 100vw);
+  }
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(6px);
+  }
+}

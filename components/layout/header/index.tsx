@@ -4,16 +4,16 @@ import cn from 'clsx'
 import { usePathname } from 'next/navigation'
 import { Link } from '@/components/ui/link'
 
-// Example links for demo - customize for your project
+// Navigation links - customize for your project
 const LINKS = [
   { href: '/', label: 'home' },
-  // Example pages - delete (examples) folder to remove these
-  { href: '/r3f', label: 'r3f' },
-  { href: '/sanity', label: 'sanity' },
-  { href: '/shopify', label: 'shopify' },
-  { href: '/hubspot', label: 'hubspot' },
-  { href: '/demo', label: 'demo' },
+  { href: '/components', label: 'components' },
+  { href: '/#features', label: 'features' },
+  { href: 'https://github.com/darkroomengineering/satus', label: 'github' },
 ]
+
+// Example pages (for template demos) - accessible via direct URL
+// /r3f, /sanity, /shopify, /hubspot
 
 export function Header() {
   const pathname = usePathname()

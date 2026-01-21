@@ -35,10 +35,10 @@ export function Header() {
       </div>
 
       {/* Main navigation */}
-      <ul className="flex flex-col gap-0.5">
+      <ul className="flex flex-col gap-0.5 pl-4">
         {LINKS.map((link) => (
           <li key={link.href} className="flex">
-            <span className="w-3 opacity-50">
+            <span className="-ml-4 w-4 opacity-50">
               {pathname === link.href ? '›' : ''}
             </span>
             <Link href={link.href} className="link">
@@ -49,12 +49,18 @@ export function Header() {
 
         {/* Examples submenu */}
         <li className="flex">
-          <span className="w-3 opacity-50">{isExamplePage ? '›' : ''}</span>
+          <span className="-ml-4 w-4 opacity-50">
+            {isExamplePage ? '›' : ''}
+          </span>
           <span>examples</span>
         </li>
+      </ul>
+
+      {/* Examples sub-navigation */}
+      <ul className="flex flex-col gap-0.5 pl-8">
         {EXAMPLES.map((link) => (
-          <li key={link.href} className="flex pl-3">
-            <span className="w-3 opacity-50">
+          <li key={link.href} className="flex">
+            <span className="-ml-4 w-4 opacity-50">
               {pathname === link.href ? '·' : ''}
             </span>
             <Link

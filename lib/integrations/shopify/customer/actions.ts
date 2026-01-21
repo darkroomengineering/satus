@@ -1,7 +1,8 @@
 'use server'
 
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import type { FormState } from '@/components/ui/form/types'
+import { rateLimit, rateLimiters } from '@/lib/utils/rate-limit'
 import { shopifyFetch } from '../index'
 import {
   customerAccessTokenCreateMutation,
@@ -14,6 +15,18 @@ export async function LoginCustomerAction(
   _prevState: FormState | null,
   formData: FormData
 ): Promise<FormState> {
+  // Rate limit login attempts to prevent brute force attacks
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0] || 'unknown'
+  const rateLimitResult = rateLimit(`login:${ip}`, rateLimiters.strict)
+
+  if (!rateLimitResult.success) {
+    return {
+      status: 429,
+      message: `Too many login attempts. Please try again in ${rateLimitResult.resetIn} seconds.`,
+    }
+  }
+
   const email = formData.get('email')
   const password = formData.get('password')
 
@@ -50,6 +63,7 @@ export async function LoginCustomerAction(
         expires: new Date(customerAccessToken.expiresAt),
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
       })
     }
 

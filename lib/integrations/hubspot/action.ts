@@ -1,8 +1,22 @@
 'use server'
 
+import { headers } from 'next/headers'
+import { rateLimit, rateLimiters } from '@/lib/utils/rate-limit'
 import { fetchWithTimeout } from '@/utils/fetch'
 
 export async function HubspotNewsletterAction(_: unknown, formData: FormData) {
+  // Rate limit to prevent newsletter subscription abuse
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0] || 'unknown'
+  const rateLimitResult = rateLimit(`hubspot:${ip}`, rateLimiters.standard)
+
+  if (!rateLimitResult.success) {
+    return {
+      status: 429,
+      message: 'Too many requests. Please try again later.',
+    }
+  }
+
   const portalId = process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID
   const formId = formData.get('formId')
 

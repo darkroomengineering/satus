@@ -1,8 +1,22 @@
 import { revalidateTag } from 'next/cache'
 import { type NextRequest, NextResponse } from 'next/server'
 import { parseBody } from 'next-sanity/webhook'
+import { getClientIP, rateLimit, rateLimiters } from '@/lib/utils/rate-limit'
 
 export async function POST(request: NextRequest) {
+  // Rate limit to prevent cache flooding
+  const ip = getClientIP(request)
+  const rateLimitResult = rateLimit(`revalidate:${ip}`, rateLimiters.standard)
+
+  if (!rateLimitResult.success) {
+    return new Response('Too many requests', {
+      status: 429,
+      headers: {
+        'Retry-After': String(rateLimitResult.resetIn),
+      },
+    })
+  }
+
   try {
     const { body, isValidSignature } = await parseBody<{
       _type: string

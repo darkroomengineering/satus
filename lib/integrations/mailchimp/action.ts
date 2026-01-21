@@ -1,6 +1,8 @@
 'use server'
 
+import { headers } from 'next/headers'
 import type { ErrorField, FormState } from '@/components/ui/form/types'
+import { rateLimit, rateLimiters } from '@/lib/utils/rate-limit'
 import { fetchWithTimeout } from '@/utils/fetch'
 import { validateFormWithTurnstile } from './turnstile'
 
@@ -191,6 +193,23 @@ export async function mailchimpContactAction(
   _initialState: FormState,
   formData: FormData
 ): Promise<FormState> {
+  // Rate limit to prevent spam submissions
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0] || 'unknown'
+  const rateLimitResult = rateLimit(
+    `mailchimp-contact:${ip}`,
+    rateLimiters.standard
+  )
+
+  if (!rateLimitResult.success) {
+    return {
+      status: 429,
+      message: 'rate_limit_exceeded_',
+      errors: new Map(),
+      inputs: {},
+    }
+  }
+
   const rawData = {
     name: formData.get('name')?.toString() || '',
     email: formData.get('email')?.toString() || '',
@@ -266,6 +285,23 @@ export async function mailchimpSubscriptionAction(
   _initialState: FormState,
   formData: FormData
 ): Promise<FormState> {
+  // Rate limit to prevent subscription abuse
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0] || 'unknown'
+  const rateLimitResult = rateLimit(
+    `mailchimp-subscribe:${ip}`,
+    rateLimiters.standard
+  )
+
+  if (!rateLimitResult.success) {
+    return {
+      status: 429,
+      message: 'rate_limit_exceeded_',
+      errors: new Map(),
+      inputs: {},
+    }
+  }
+
   const email = formData.get('email')?.toString() || ''
   const firstName = formData.get('firstName')?.toString() || ''
   const lastName = formData.get('lastName')?.toString() || ''

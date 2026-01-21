@@ -26,8 +26,17 @@ export async function validateTurnstile(
   try {
     const secret = process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY
     if (!secret) {
-      console.warn('CLOUDFLARE_TURNSTILE_SECRET_KEY not found')
-      return { isValid: true, errors: [] } // Fail open in development
+      // Fail closed in production, fail open in development
+      if (process.env.NODE_ENV === 'production') {
+        console.error(
+          'CLOUDFLARE_TURNSTILE_SECRET_KEY not configured in production'
+        )
+        return { isValid: false, errors: ['security_configuration_error_'] }
+      }
+      console.warn(
+        'CLOUDFLARE_TURNSTILE_SECRET_KEY not found - skipping in development'
+      )
+      return { isValid: true, errors: [] }
     }
 
     const response = await fetchWithTimeout(

@@ -82,7 +82,7 @@ export default function ComponentsPage() {
   return (
     <>
       <section className={cn(s.hero, 'dr-layout-grid')}>
-        <div className="col-span-full dt:col-start-2 dt:col-end-12">
+        <div className="col-span-full dt:col-start-3 dt:col-end-11">
           <h1 className={s.title}>Components</h1>
           <p className={s.subtitle}>
             UI library from <code className={s.code}>@/components/ui</code>
@@ -91,7 +91,7 @@ export default function ComponentsPage() {
       </section>
 
       <section className={cn(s.list, 'dr-layout-grid')}>
-        <div className="col-span-full dt:col-start-2 dt:col-end-9">
+        <div className="col-span-full dt:col-start-3 dt:col-end-8">
           <h2 className={s.sectionTitle}>Library</h2>
           <div className={s.components}>
             {COMPONENTS.map((component) => (
@@ -109,7 +109,7 @@ export default function ComponentsPage() {
         </div>
 
         <aside
-          className={cn(s.aside, 'col-span-full dt:col-start-10 dt:col-end-12')}
+          className={cn(s.aside, 'col-span-full dt:col-start-9 dt:col-end-11')}
         >
           <h3 className={s.asideTitle}>Additional</h3>
           <p className={s.asideDescription}>Available but not demoed here</p>

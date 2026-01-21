@@ -12,7 +12,7 @@ import { TabsDemo } from './_components/tabs-demo'
 import { TooltipDemo } from './_components/tooltip-demo'
 
 export const metadata = {
-  title: 'Demo - Satūs',
+  title: 'Components - Satūs',
   description: 'Component library showcase',
 }
 
@@ -162,7 +162,7 @@ function Section({
 }) {
   return (
     <section className="flex h-svh items-center justify-center">
-      <div className="dr-rounded-12 dt:dr-rounded-16 dr-p-24 dt:dr-p-32 w-full max-w-3xl border border-white/20 bg-black bg-zinc-900">
+      <div className="dr-p-24 dt:dr-p-32 w-full max-w-3xl border border-white/20 bg-black bg-zinc-900">
         <div className="dr-mb-16 dt:dr-mb-24">
           <h3 className="dr-text-18 dt:dr-text-24 font-semibold">{title}</h3>
           <p className="dr-mt-4 text-sm opacity-60">{description}</p>

@@ -1,0 +1,389 @@
+.section {
+  position: relative;
+  z-index: 1;
+  padding-top: calc(64 / 375 * 100vw);
+  padding-bottom: calc(64 / 375 * 100vw);
+  border-top: 1px solid
+    color-mix(in srgb, var(--color-secondary) 20%, transparent);
+  background: var(--color-primary);
+
+  @media (--desktop) {
+    padding-top: calc(100 / 1440 * 100vw);
+    padding-bottom: calc(100 / 1440 * 100vw);
+  }
+}
+
+.header {
+  text-align: center;
+  margin-bottom: calc(32 / 375 * 100vw);
+
+  @media (--desktop) {
+    margin-bottom: calc(48 / 1440 * 100vw);
+  }
+}
+
+.title {
+  font-family: var(--font-mono);
+  font-size: calc(28 / 375 * 100vw);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  margin-bottom: calc(12 / 375 * 100vw);
+
+  @media (--desktop) {
+    font-size: calc(40 / 1440 * 100vw);
+    margin-bottom: calc(12 / 1440 * 100vw);
+  }
+}
+
+.subtitle {
+  font-family: var(--font-mono);
+  font-size: calc(14 / 375 * 100vw);
+  opacity: 0.7;
+
+  @media (--desktop) {
+    font-size: calc(16 / 1440 * 100vw);
+  }
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: calc(48 / 375 * 100vw);
+
+  @media (--desktop) {
+    grid-template-columns: 1fr 1fr;
+    gap: calc(48 / 1440 * 100vw);
+    align-items: start;
+  }
+}
+
+.sectionTitle {
+  font-family: var(--font-mono);
+  font-size: calc(11 / 375 * 100vw);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.5;
+  margin-bottom: calc(20 / 375 * 100vw);
+
+  @media (--desktop) {
+    font-size: calc(12 / 1440 * 100vw);
+    margin-bottom: calc(24 / 1440 * 100vw);
+  }
+}
+
+/* Problem/Solution Table */
+.problemsSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.table {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid color-mix(in srgb, var(--color-secondary) 20%, transparent);
+}
+
+.tableHeader {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--color-secondary) 20%, transparent);
+  background: color-mix(in srgb, var(--color-secondary) 8%, transparent);
+}
+
+.tableHeaderCell {
+  font-family: var(--font-mono);
+  font-size: calc(10 / 375 * 100vw);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.5;
+  padding: calc(12 / 375 * 100vw) calc(16 / 375 * 100vw);
+
+  @media (--desktop) {
+    font-size: calc(11 / 1440 * 100vw);
+    padding: calc(14 / 1440 * 100vw) calc(20 / 1440 * 100vw);
+  }
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--color-secondary) 10%, transparent);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.problemCell {
+  padding: calc(14 / 375 * 100vw) calc(16 / 375 * 100vw);
+  background: color-mix(in srgb, var(--color-secondary) 3%, transparent);
+
+  @media (--desktop) {
+    padding: calc(16 / 1440 * 100vw) calc(20 / 1440 * 100vw);
+  }
+}
+
+.problemText {
+  font-family: var(--font-mono);
+  font-size: calc(11 / 375 * 100vw);
+  line-height: 1.4;
+  opacity: 0.6;
+
+  @media (--desktop) {
+    font-size: calc(13 / 1440 * 100vw);
+  }
+}
+
+.solutionCell {
+  display: flex;
+  flex-direction: column;
+  gap: calc(4 / 375 * 100vw);
+  padding: calc(14 / 375 * 100vw) calc(16 / 375 * 100vw);
+
+  @media (--desktop) {
+    gap: calc(4 / 1440 * 100vw);
+    padding: calc(16 / 1440 * 100vw) calc(20 / 1440 * 100vw);
+  }
+}
+
+.solutionName {
+  font-family: var(--font-mono);
+  font-size: calc(12 / 375 * 100vw);
+  font-weight: 500;
+  color: var(--color-contrast);
+
+  @media (--desktop) {
+    font-size: calc(14 / 1440 * 100vw);
+  }
+}
+
+.solutionDetail {
+  font-family: var(--font-mono);
+  font-size: calc(10 / 375 * 100vw);
+  opacity: 0.5;
+
+  @media (--desktop) {
+    font-size: calc(12 / 1440 * 100vw);
+  }
+}
+
+/* Architecture Diagram */
+.architectureSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.architecture {
+  display: flex;
+  gap: calc(16 / 375 * 100vw);
+
+  @media (--desktop) {
+    gap: calc(20 / 1440 * 100vw);
+  }
+}
+
+.layers {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: calc(2 / 375 * 100vw);
+
+  @media (--desktop) {
+    gap: calc(2 / 1440 * 100vw);
+  }
+}
+
+.layer {
+  position: relative;
+  padding: calc(16 / 375 * 100vw);
+  border: 1px solid color-mix(in srgb, var(--color-secondary) 25%, transparent);
+  background: color-mix(in srgb, var(--color-secondary) 5%, transparent);
+
+  &:first-child {
+    border-color: var(--color-contrast);
+    background: color-mix(in srgb, var(--color-contrast) 8%, transparent);
+  }
+
+  @media (--desktop) {
+    padding: calc(20 / 1440 * 100vw);
+  }
+}
+
+.layerName {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: calc(12 / 375 * 100vw);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-bottom: calc(8 / 375 * 100vw);
+
+  @media (--desktop) {
+    font-size: calc(14 / 1440 * 100vw);
+    margin-bottom: calc(10 / 1440 * 100vw);
+  }
+}
+
+.layerItems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(6 / 375 * 100vw);
+
+  @media (--desktop) {
+    gap: calc(8 / 1440 * 100vw);
+  }
+}
+
+.layerItem {
+  font-family: var(--font-mono);
+  font-size: calc(9 / 375 * 100vw);
+  padding: calc(4 / 375 * 100vw) calc(8 / 375 * 100vw);
+  background: color-mix(in srgb, var(--color-secondary) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-secondary) 15%, transparent);
+  opacity: 0.8;
+
+  @media (--desktop) {
+    font-size: calc(11 / 1440 * 100vw);
+    padding: calc(5 / 1440 * 100vw) calc(10 / 1440 * 100vw);
+  }
+}
+
+.layerConnector {
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100%);
+  width: 1px;
+  height: calc(8 / 375 * 100vw);
+  background: color-mix(in srgb, var(--color-secondary) 30%, transparent);
+
+  @media (--desktop) {
+    height: calc(10 / 1440 * 100vw);
+  }
+}
+
+.integrationsSidebar {
+  display: flex;
+  flex-direction: column;
+  gap: calc(8 / 375 * 100vw);
+  padding: calc(12 / 375 * 100vw);
+  border: 1px dashed color-mix(in srgb, var(--color-secondary) 25%, transparent);
+  background: color-mix(in srgb, var(--color-secondary) 3%, transparent);
+  align-self: stretch;
+
+  @media (--desktop) {
+    gap: calc(10 / 1440 * 100vw);
+    padding: calc(16 / 1440 * 100vw);
+  }
+}
+
+.integrationsLabel {
+  font-family: var(--font-mono);
+  font-size: calc(9 / 375 * 100vw);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.4;
+
+  @media (--desktop) {
+    font-size: calc(10 / 1440 * 100vw);
+  }
+}
+
+.integrationsList {
+  display: flex;
+  flex-direction: column;
+  gap: calc(6 / 375 * 100vw);
+
+  @media (--desktop) {
+    gap: calc(8 / 1440 * 100vw);
+  }
+}
+
+.integrationItem {
+  font-family: var(--font-mono);
+  font-size: calc(10 / 375 * 100vw);
+  opacity: 0.6;
+
+  @media (--desktop) {
+    font-size: calc(12 / 1440 * 100vw);
+  }
+}
+
+/* CTA */
+.cta {
+  margin-top: calc(48 / 375 * 100vw);
+  padding: calc(24 / 375 * 100vw);
+  background: var(--color-secondary);
+  color: var(--color-primary);
+  text-align: center;
+
+  @media (--desktop) {
+    margin-top: calc(64 / 1440 * 100vw);
+    padding: calc(32 / 1440 * 100vw);
+  }
+}
+
+.ctaContent {
+  display: flex;
+  flex-direction: column;
+  gap: calc(8 / 375 * 100vw);
+
+  @media (--desktop) {
+    gap: calc(12 / 1440 * 100vw);
+  }
+}
+
+.command {
+  font-family: var(--font-mono);
+  font-size: calc(13 / 375 * 100vw);
+
+  @media (--desktop) {
+    font-size: calc(18 / 1440 * 100vw);
+  }
+}
+
+.hint {
+  font-family: var(--font-mono);
+  font-size: calc(11 / 375 * 100vw);
+  opacity: 0.6;
+
+  & code {
+    opacity: 1;
+  }
+
+  @media (--desktop) {
+    font-size: calc(13 / 1440 * 100vw);
+  }
+}
+
+/* Footer */
+.footer {
+  margin-top: calc(24 / 375 * 100vw);
+  text-align: center;
+
+  @media (--desktop) {
+    margin-top: calc(32 / 1440 * 100vw);
+  }
+}
+
+.docsLink {
+  font-family: var(--font-mono);
+  font-size: calc(12 / 375 * 100vw);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  @media (--desktop) {
+    font-size: calc(14 / 1440 * 100vw);
+  }
+}

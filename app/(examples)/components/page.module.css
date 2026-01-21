@@ -1,8 +1,3 @@
-.page {
-  min-height: 100svh;
-  background: var(--color-primary);
-}
-
 .hero {
   padding-top: calc(120 / 375 * 100vw);
   padding-bottom: calc(60 / 375 * 100vw);
@@ -204,34 +199,5 @@
 
   @media (--desktop) {
     font-size: calc(11 / 1440 * 100vw);
-  }
-}
-
-.footer {
-  padding-top: calc(32 / 375 * 100vw);
-  padding-bottom: calc(64 / 375 * 100vw);
-  border-top: 1px solid
-    color-mix(in srgb, var(--color-secondary) 15%, transparent);
-
-  @media (--desktop) {
-    padding-top: calc(40 / 1440 * 100vw);
-    padding-bottom: calc(80 / 1440 * 100vw);
-  }
-}
-
-.footerLink {
-  font-family: var(--font-mono);
-  font-size: calc(12 / 375 * 100vw);
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
-  opacity: 0.5;
-  transition: opacity 0.2s ease;
-
-  &:hover {
-    opacity: 1;
-  }
-
-  @media (--desktop) {
-    font-size: calc(14 / 1440 * 100vw);
   }
 }

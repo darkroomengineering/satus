@@ -1,5 +1,4 @@
 import cn from 'clsx'
-import { Link } from '@/components/ui/link'
 import { AccordionDemo } from './_components/accordion-demo'
 import { AlertDialogDemo } from './_components/alert-dialog-demo'
 import { CheckboxDemo } from './_components/checkbox-demo'
@@ -81,7 +80,7 @@ const ADDITIONAL = [
 
 export default function ComponentsPage() {
   return (
-    <main className={s.page}>
+    <>
       <section className={cn(s.hero, 'dr-layout-grid')}>
         <div className="col-span-full dt:col-start-2 dt:col-end-12">
           <h1 className={s.title}>Components</h1>
@@ -126,14 +125,6 @@ export default function ComponentsPage() {
           </ul>
         </aside>
       </section>
-
-      <footer className={cn(s.footer, 'dr-layout-grid')}>
-        <div className="col-span-full dt:col-start-2 dt:col-end-12">
-          <Link href="/" className={s.footerLink}>
-            Back to Home
-          </Link>
-        </div>
-      </footer>
-    </main>
+    </>
   )
 }

@@ -1,4 +1,5 @@
 import cn from 'clsx'
+import { Wrapper } from '@/components/layout/wrapper'
 import { AccordionDemo } from './_components/accordion-demo'
 import { AlertDialogDemo } from './_components/alert-dialog-demo'
 import { CheckboxDemo } from './_components/checkbox-demo'
@@ -80,7 +81,7 @@ const ADDITIONAL = [
 
 export default function ComponentsPage() {
   return (
-    <>
+    <Wrapper theme="dark">
       <section className={cn(s.hero, 'dr-layout-grid')}>
         <div className="col-span-full dt:col-start-3 dt:col-end-11">
           <h1 className={s.title}>Components</h1>
@@ -109,7 +110,7 @@ export default function ComponentsPage() {
         </div>
 
         <aside
-          className={cn(s.aside, 'col-span-full dt:col-start-9 dt:col-end-11')}
+          className={cn(s.aside, 'col-span-full dt:col-start-9 dt:col-end-12')}
         >
           <h3 className={s.asideTitle}>Additional</h3>
           <p className={s.asideDescription}>Available but not demoed here</p>
@@ -125,6 +126,6 @@ export default function ComponentsPage() {
           </ul>
         </aside>
       </section>
-    </>
+    </Wrapper>
   )
 }

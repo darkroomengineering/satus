@@ -47,9 +47,9 @@ export function Hero() {
         <p className={s.tagline}>
           The modern Next.js starter for creative developers.
           <br />
-          Built by{' '}
-          <Link href="https://darkroom.engineering" className={s.link}>
-            darkroom.engineering
+          Part of{' '}
+          <Link href="https://oss.darkroom.engineering" className={s.link}>
+            Darkroom Open Source Operative System
           </Link>
         </p>
 

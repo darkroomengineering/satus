@@ -31,6 +31,7 @@
     "setup:project": "bun ./lib/scripts/setup-project.ts",
     "test": "bun test",
     "test:setup": "bun test lib/scripts/setup-project.test.ts",
+    "doctor": "bun ./lib/scripts/doctor.ts",
     "setup:styles": "bun ./lib/styles/scripts/setup-styles.ts",
     "generate": "bun ./lib/scripts/generate.ts",
     "handoff": "bun ./lib/scripts/prepare-handoff.ts",

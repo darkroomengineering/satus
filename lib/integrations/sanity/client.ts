@@ -7,6 +7,9 @@ import { apiVersion, dataset, privateToken, projectId, studioUrl } from './env'
  *
  * Returns null if Sanity is not configured (missing env vars).
  * Always check with isSanityConfigured() before using.
+ *
+ * Note: next-sanity uses fetch internally with Next.js caching.
+ * Deduplication is automatic - no need for React.cache() wrapper.
  */
 export const client: SanityClient | null = isSanityConfigured()
   ? createClient({

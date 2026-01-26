@@ -1,10 +1,12 @@
 /**
- * Enhanced Image Component
+ * Enhanced Image Component (Server Component)
  *
  * Next.js Image wrapper with optimized defaults and error handling.
  * Always use this component instead of next/image directly.
+ *
+ * This is a Server Component - blur placeholders are generated server-side
+ * for better performance. The underlying NextImage handles client hydration.
  */
-'use client'
 
 import cn from 'clsx'
 import NextImage, { type ImageProps as NextImageProps } from 'next/image'
@@ -35,11 +37,8 @@ export type ImageProps = Omit<NextImageProps, 'objectFit' | 'alt'> & {
   aspectRatio?: number
 }
 
-// Memoize helper functions to avoid recreation
-const toBase64 = (str: string) =>
-  typeof window === 'undefined'
-    ? Buffer.from(str).toString('base64')
-    : window.btoa(str)
+// Server-side base64 encoding for blur placeholders
+const toBase64 = (str: string) => Buffer.from(str).toString('base64')
 
 // Helper to generate blur placeholder with transparent background by default
 const generateShimmer = (w: number, h: number) => `

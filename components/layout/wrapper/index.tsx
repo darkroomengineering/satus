@@ -1,6 +1,9 @@
 /**
  * Main page wrapper providing theme, smooth scrolling, and WebGL context.
  *
+ * IMPORTANT: This component ALREADY includes <Header> and <Footer>.
+ * Do NOT add Header/Footer to layout.tsx or individual pages - they render here.
+ *
  * Customize the Header and Footer components for your project needs.
  */
 'use client'
@@ -103,6 +106,7 @@ export function Wrapper({
 }: WrapperProps) {
   return (
     <Theme theme={theme} global>
+      {/* Header is rendered here - do NOT add another in layout.tsx */}
       <Header />
       <Canvas root={webgl}>
         <main
@@ -113,6 +117,7 @@ export function Wrapper({
           {children}
         </main>
       </Canvas>
+      {/* Footer is rendered here - do NOT add another in layout.tsx */}
       <Footer />
       {lenis && <Lenis root options={typeof lenis === 'object' ? lenis : {}} />}
     </Theme>

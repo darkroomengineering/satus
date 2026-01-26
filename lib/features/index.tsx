@@ -8,7 +8,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 // Feature detection - opt-in to avoid loading heavy WebGL libraries by default
 const hasWebGL = process.env.NEXT_PUBLIC_ENABLE_WEBGL === 'true'
@@ -38,6 +38,9 @@ const GSAPRuntime = dynamic(
 
 /**
  * Conditionally loads optional root layout features
+ *
+ * Note: React Compiler handles memoization automatically.
+ * No manual useMemo/useCallback needed.
  */
 export function OptionalFeatures() {
   const [isClient, setIsClient] = useState(false)
@@ -46,28 +49,16 @@ export function OptionalFeatures() {
     setIsClient(true)
   }, [])
 
-  const features = useMemo(() => {
-    if (!isClient) return []
-
-    const components = []
-
-    // GSAP Runtime - always included (lightweight)
-    components.push(<GSAPRuntime key="gsap" />)
-
-    // WebGL Canvas - only if WebGL is enabled
-    if (hasWebGL) {
-      components.push(<LazyGlobalCanvas key="webgl" />)
-    }
-
-    // Development tools - only in development
-    if (isDevelopment) {
-      components.push(<OrchestraTools key="orchestra" />)
-    }
-
-    return components
-  }, [isClient])
-
   if (!isClient) return null
 
-  return <>{features}</>
+  return (
+    <>
+      {/* GSAP Runtime - always included (lightweight) */}
+      <GSAPRuntime />
+      {/* WebGL Canvas - only if WebGL is enabled */}
+      {hasWebGL && <LazyGlobalCanvas />}
+      {/* Development tools - only in development */}
+      {isDevelopment && <OrchestraTools />}
+    </>
+  )
 }

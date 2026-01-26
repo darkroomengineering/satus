@@ -180,7 +180,7 @@ describe('WebGL Code Transforms', () => {
 
       const pattern = webglBundle.codeTransforms
         .find((t) => t.file === file)
-        ?.patterns.find((p) => p.regex.includes('hasWebGL = Boolean'))
+        ?.patterns.find((p) => p.regex.includes('hasWebGL = process'))
 
       expect(pattern).toBeTruthy()
       const regex = new RegExp(pattern!.regex, pattern!.flags)

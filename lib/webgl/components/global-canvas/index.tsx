@@ -4,9 +4,10 @@ import { OrthographicCamera } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import cn from 'clsx'
 import dynamic from 'next/dynamic'
-import { Suspense, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { SheetProvider } from '@/lib/dev/theatre'
 import { useWebGLStore } from '@/lib/webgl/store'
+import { createContextLossHandler } from '@/lib/webgl/utils/context-loss-handler'
 import { createRenderer } from '@/lib/webgl/utils/create-renderer'
 import { detectGPUCapability } from '@/lib/webgl/utils/gpu-detection'
 import { FlowmapProvider } from '../flowmap-provider'
@@ -91,9 +92,27 @@ export function GlobalCanvas({
   const [rendererType, setRendererType] = useState<'webgpu' | 'webgl' | null>(
     null
   )
+  const [contextLost, setContextLost] = useState(false)
+  const canvasContainerRef = useRef<HTMLDivElement>(null)
 
   // Get device capabilities for renderer config
   const capability = detectGPUCapability()
+
+  // Set up context loss handling after canvas mounts
+  // rendererType changes when the Canvas gl callback completes, indicating the canvas is ready
+  useEffect(() => {
+    if (!rendererType) return
+
+    const canvas = canvasContainerRef.current?.querySelector('canvas')
+    if (!canvas) return
+
+    const handler = createContextLossHandler(canvas, {
+      onContextLost: () => setContextLost(true),
+      onContextRestored: () => setContextLost(false),
+    })
+
+    return handler.cleanup
+  }, [rendererType])
 
   // Don't render anything until activated by <Wrapper webgl>
   if (!isActivated) {
@@ -103,7 +122,7 @@ export function GlobalCanvas({
   // Don't render if device has no GPU support
   if (!capability.hasGPU) {
     if (process.env.NODE_ENV === 'development') {
-      console.info('🎮 No GPU detected. WebGL/WebGPU canvas disabled.')
+      console.info('[WebGL] No GPU detected. Canvas disabled.')
     }
     return null
   }
@@ -112,11 +131,12 @@ export function GlobalCanvas({
   const WebGLTunnel = getWebGLTunnel()
   const DOMTunnel = getDOMTunnel()
 
-  // Only render when active
-  const shouldRender = render && isActive
+  // Only render when active and context is available
+  const shouldRender = render && isActive && !contextLost
 
   return (
     <div
+      ref={canvasContainerRef}
       className={cn(s.globalCanvas, className)}
       style={{
         visibility: isActive ? 'visible' : 'hidden',
@@ -170,18 +190,8 @@ export function GlobalCanvas({
       <DOMTunnel.Out />
       {/* Renderer indicator (dev only) */}
       {process.env.NODE_ENV === 'development' && rendererType && (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 8,
-            right: 8,
-            fontSize: 10,
-            opacity: 0.5,
-            pointerEvents: 'none',
-            fontFamily: 'monospace',
-          }}
-        >
-          {rendererType === 'webgpu' ? '🚀 WebGPU' : '🎮 WebGL'}
+        <div className={s.rendererIndicator}>
+          {rendererType === 'webgpu' ? 'WebGPU' : 'WebGL'}
         </div>
       )}
     </div>

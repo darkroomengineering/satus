@@ -13,3 +13,13 @@
     height: 100% !important;
   }
 }
+
+.rendererIndicator {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  font-size: 10px;
+  opacity: 0.5;
+  pointer-events: none;
+  font-family: monospace;
+}

@@ -83,7 +83,7 @@ export async function createRenderer(
       // WebGPURenderer requires async initialization
       await renderer.init()
 
-      console.info('🚀 Using WebGPU renderer')
+      console.info('[Renderer] Using WebGPU')
 
       return {
         renderer: renderer as unknown as WebGLRenderer,
@@ -108,7 +108,7 @@ export async function createRenderer(
     depth,
   })
 
-  console.info('🎮 Using WebGL renderer')
+  console.info('[Renderer] Using WebGL')
 
   return {
     renderer,

@@ -92,8 +92,19 @@ export function GlobalCanvas({
     null
   )
 
-  // Don't render anything until activated
+  // Get device capabilities for renderer config
+  const capability = detectGPUCapability()
+
+  // Don't render anything until activated by <Wrapper webgl>
   if (!isActivated) {
+    return null
+  }
+
+  // Don't render if device has no GPU support
+  if (!capability.hasGPU) {
+    if (process.env.NODE_ENV === 'development') {
+      console.info('🎮 No GPU detected. WebGL/WebGPU canvas disabled.')
+    }
     return null
   }
 
@@ -103,9 +114,6 @@ export function GlobalCanvas({
 
   // Only render when active
   const shouldRender = render && isActive
-
-  // Get device capabilities for renderer config
-  const capability = detectGPUCapability()
 
   return (
     <div

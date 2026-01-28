@@ -1,26 +1,16 @@
 /**
  * Optional Features for Root Layout
  *
- * Conditionally loads optional features based on project configuration.
- * This prevents unused features from being mounted in the root layout.
- *
- * WebGL/WebGPU features require:
- * 1. NEXT_PUBLIC_ENABLE_WEBGL=true (build-time opt-in)
- * 2. Runtime GPU capability check (device must support WebGL/WebGPU)
- *
- * The env variable prevents heavy WebGL libraries from being bundled
- * when the project doesn't use 3D features. Runtime detection ensures
- * graceful fallback on devices without GPU support.
+ * Conditionally loads optional features based on usage.
+ * WebGL/WebGPU canvas is lazy-loaded and only mounts when a page
+ * uses `<Wrapper webgl>`. No configuration required.
  */
 
 'use client'
 
 import dynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
-import { detectGPUCapability } from '@/webgl/utils/gpu-detection'
 
-// Build-time opt-in to avoid loading heavy WebGL libraries by default
-const webglEnabled = process.env.NEXT_PUBLIC_ENABLE_WEBGL === 'true'
 const isDevelopment = process.env.NODE_ENV === 'development'
 
 // Lazy imports to avoid loading unused features
@@ -53,35 +43,19 @@ const GSAPRuntime = dynamic(
  */
 export function OptionalFeatures() {
   const [isClient, setIsClient] = useState(false)
-  const [hasGPU, setHasGPU] = useState(false)
 
   useEffect(() => {
     setIsClient(true)
-
-    // Runtime GPU capability check
-    if (webglEnabled) {
-      const capability = detectGPUCapability()
-      setHasGPU(capability.hasGPU)
-
-      if (!capability.hasGPU) {
-        console.info(
-          '🎮 WebGL enabled but no GPU detected. 3D features disabled.'
-        )
-      }
-    }
   }, [])
 
   if (!isClient) return null
-
-  // Only render WebGL canvas if both env opt-in AND device has GPU
-  const shouldRenderWebGL = webglEnabled && hasGPU
 
   return (
     <>
       {/* GSAP Runtime - always included (lightweight) */}
       <GSAPRuntime />
-      {/* WebGL/WebGPU Canvas - only if enabled AND device has GPU */}
-      {shouldRenderWebGL && <LazyGlobalCanvas />}
+      {/* WebGL/WebGPU Canvas - lazy loaded, only mounts when <Wrapper webgl> is used */}
+      <LazyGlobalCanvas />
       {/* Development tools - only in development */}
       {isDevelopment && <OrchestraTools />}
     </>

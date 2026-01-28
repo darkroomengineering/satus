@@ -170,38 +170,10 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
               'const LazyGlobalCanvas = dynamic\\([\\s\\S]*?\\{ ssr: false \\}\\s*\\)\\s*',
             flags: 'gm',
           },
-          // Remove the GPU detection import
+          // Remove the WebGL component render
           {
             regex:
-              "import \\{ detectGPUCapability \\} from '@/webgl/utils/gpu-detection'\\n",
-            flags: 'gm',
-          },
-          // Remove the webglEnabled constant
-          {
-            regex:
-              "// Build-time opt-in to avoid loading heavy WebGL libraries by default\\nconst webglEnabled = process\\.env\\.NEXT_PUBLIC_ENABLE_WEBGL === 'true'\\n",
-            flags: 'gm',
-          },
-          // Remove GPU state and detection in useEffect
-          {
-            regex: '\\n  const \\[hasGPU, setHasGPU\\] = useState\\(false\\)',
-            flags: 'gm',
-          },
-          {
-            regex:
-              '\\n\\n    // Runtime GPU capability check\\n    if \\(webglEnabled\\) \\{[\\s\\S]*?\\}\\n    \\}',
-            flags: 'gm',
-          },
-          // Remove shouldRenderWebGL constant
-          {
-            regex:
-              '\\n\\n  // Only render WebGL canvas if both env opt-in AND device has GPU\\n  const shouldRenderWebGL = webglEnabled && hasGPU',
-            flags: 'gm',
-          },
-          // Remove the WebGL component render (inline conditional)
-          {
-            regex:
-              '\\s*\\{/\\* WebGL/WebGPU Canvas - only if enabled AND device has GPU \\*/\\}\\n\\s*\\{shouldRenderWebGL && <LazyGlobalCanvas />\\}',
+              '\\s*\\{/\\* WebGL/WebGPU Canvas - lazy loaded, only mounts when <Wrapper webgl> is used \\*/\\}\\n\\s*<LazyGlobalCanvas />',
             flags: 'gm',
           },
         ],

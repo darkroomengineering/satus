@@ -110,7 +110,11 @@ export default async function Layout({ children }: PropsWithChildren) {
         {/* Critical: CSS custom properties needed for layout */}
         <RealViewport>
           <TransformProvider>
-            {/* Main app content */}
+            {/*
+              DO NOT add Header or Footer here.
+              They are included in the <Wrapper> component used by each page.
+              See: components/layout/wrapper/index.tsx
+            */}
             {children}
           </TransformProvider>
         </RealViewport>

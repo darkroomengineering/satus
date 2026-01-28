@@ -173,13 +173,13 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
           // Remove the hasWebGL constant
           {
             regex:
-              "const hasWebGL = Boolean\\(process\\.env\\.NEXT_PUBLIC_ENABLE_WEBGL !== 'false'\\)\\n",
+              "const hasWebGL = process\\.env\\.NEXT_PUBLIC_ENABLE_WEBGL === 'true'\\n",
             flags: 'gm',
           },
-          // Remove the WebGL component push block (with surrounding newlines)
+          // Remove the WebGL component render (inline conditional)
           {
             regex:
-              '\\n\\s*// WebGL Canvas - only if WebGL is enabled\\n\\s*if \\(hasWebGL\\) \\{\\n\\s*components\\.push\\(<LazyGlobalCanvas key="webgl" />\\)\\n\\s*\\}',
+              '\\s*\\{/\\* WebGL Canvas - only if WebGL is enabled \\*/\\}\\n\\s*\\{hasWebGL && <LazyGlobalCanvas />\\}',
             flags: 'gm',
           },
         ],

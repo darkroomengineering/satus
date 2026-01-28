@@ -164,3 +164,56 @@ export async function initWebGPU(): Promise<{
     return null
   }
 }
+
+/**
+ * Shader precision type for WebGL.
+ */
+export type ShaderPrecision = 'highp' | 'mediump' | 'lowp'
+
+/**
+ * Get the recommended shader precision based on device capabilities.
+ *
+ * Per Three.js Tip 43: Using mediump instead of highp on mobile devices
+ * can provide up to ~2x speedup on mobile GPUs, with negligible visual
+ * difference for most use cases.
+ *
+ * - highp: Desktop devices, high-end mobile
+ * - mediump: Low-power mobile devices (touch-only, no hover)
+ *
+ * Note: mediump is sufficient for most fragment shader operations.
+ * Only use highp when you need high precision for:
+ * - Large world coordinates
+ * - Complex mathematical operations
+ * - Depth-sensitive calculations
+ *
+ * @returns Recommended shader precision for the current device
+ *
+ * @example
+ * ```tsx
+ * const precision = getRecommendedPrecision()
+ * console.log(precision) // 'highp' on desktop, 'mediump' on mobile
+ *
+ * // Use with WebGLRenderer
+ * const renderer = new WebGLRenderer({
+ *   precision,
+ *   // ...other options
+ * })
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // Use with createRenderer (automatically applied)
+ * const { renderer } = await createRenderer({ canvas })
+ * ```
+ */
+export function getRecommendedPrecision(): ShaderPrecision {
+  const capability = detectGPUCapability()
+
+  // Use mediump on low-power devices for ~2x speedup
+  if (capability.isLowPower) {
+    return 'mediump'
+  }
+
+  // Default to highp for desktop and high-end mobile
+  return 'highp'
+}

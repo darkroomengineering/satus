@@ -152,5 +152,57 @@ export {
 export {
   detectGPUCapability,
   type GPUCapability,
+  getRecommendedPrecision,
   isWebGPUAvailable,
+  type ShaderPrecision,
 } from './utils/gpu-detection'
+
+// ============================================================================
+// Texture Cache
+// ============================================================================
+
+export {
+  type CachedTextureOptions,
+  /**
+   * Clear and dispose all textures from the cache.
+   * Call on scene cleanup or major transitions.
+   */
+  clearTextureCache,
+  /**
+   * Remove and dispose a specific texture from the cache.
+   */
+  disposeTextureFromCache,
+  /**
+   * Get the number of cached textures (for debugging).
+   */
+  getTextureCacheSize,
+  /**
+   * Check if a texture is already cached.
+   */
+  isTextureCached,
+  /**
+   * Load a texture with caching support.
+   * Returns cached instance if already loaded.
+   *
+   * Per Three.js Tip 40: Reuse textures across materials
+   * to reduce memory usage.
+   *
+   * @example
+   * ```tsx
+   * const texture = await loadCachedTexture('/hero.jpg')
+   * const texture2 = await loadCachedTexture('/hero.jpg') // Same instance
+   * ```
+   */
+  loadCachedTexture,
+  /**
+   * React hook for loading cached textures.
+   * Handles loading state automatically.
+   *
+   * @example
+   * ```tsx
+   * const texture = useTextureCached('/hero.jpg')
+   * if (!texture) return <Loading />
+   * ```
+   */
+  useTextureCached,
+} from './utils/texture-cache'

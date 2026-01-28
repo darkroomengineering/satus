@@ -66,7 +66,8 @@ export default function R3FPage() {
           <p className="max-w-lg text-center text-xs opacity-40">
             Open DevTools console to see PerfMonitor stats.
             <br />
-            Replace placeholder assets in /public/images and /public/models.
+            Example assets in /public/examples are removed during client
+            handoff.
           </p>
         </div>
       </Wrapper>

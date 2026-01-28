@@ -1,9 +1,42 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { types } from '@theatre/core'
 import { useEffect, useRef } from 'react'
+import type { WebGLRenderer } from 'three'
 import { useCurrentSheet } from '@/dev/theatre'
 import { useTheatre } from '@/dev/theatre/hooks/use-theatre'
 import { Fluid } from '@/webgl/utils/fluid/fluid-sim'
+
+/**
+ * Check if the renderer is WebGPU (NodeMaterial-based)
+ * Note: Fluid simulation currently only works with WebGL.
+ * WebGPU would require compute shaders for proper ping-pong texture support.
+ */
+function isWebGPURenderer(gl: WebGLRenderer): boolean {
+  return (
+    'isWebGPURenderer' in gl &&
+    (gl as unknown as { isWebGPURenderer: boolean }).isWebGPURenderer
+  )
+}
+
+/**
+ * Stub fluid for WebGPU - provides compatible interface but no-ops
+ * Exported for type compatibility in components that use fluid sim
+ */
+export class FluidStub {
+  uniform = { value: null }
+  splatMaterial = { uniforms: { uAspect: { value: 1 } } }
+  densityDissipation = 0
+  velocityDissipation = 0
+  pressureDissipation = 0
+  curlStrength = 0
+  radius = 0
+  addSplat(_x: number, _y: number, _dx: number, _dy: number) {
+    // No-op for WebGPU stub
+  }
+  update() {
+    // No-op for WebGPU stub
+  }
+}
 
 export function useFluidSim() {
   const sheet = useCurrentSheet()
@@ -11,9 +44,17 @@ export function useFluidSim() {
   const size = useThree((state) => state.size)
 
   // Use ref to ensure fluid is only created once
-  const fluidRef = useRef<Fluid | null>(null)
+  const fluidRef = useRef<Fluid | FluidStub | null>(null)
   if (!fluidRef.current) {
-    fluidRef.current = new Fluid(gl, { size: 128 })
+    // Skip fluid for WebGPU - would require compute shaders for proper support
+    if (isWebGPURenderer(gl)) {
+      console.info(
+        '[Fluid] Disabled for WebGPU renderer (requires compute shaders)'
+      )
+      fluidRef.current = new FluidStub()
+    } else {
+      fluidRef.current = new Fluid(gl, { size: 128 })
+    }
   }
   const fluid = fluidRef.current
 
@@ -78,7 +119,8 @@ export function useFluidSim() {
 
   // Update aspect ratio when viewport size changes
   useEffect(() => {
-    fluid.splatMaterial.uniforms.uAspect!.value = size.width / size.height
+    // Both GLSL and TSL versions have compatible splatMaterial.uniforms.uAspect interface
+    fluid.splatMaterial.uniforms.uAspect.value = size.width / size.height
   }, [size, fluid])
 
   // Theatre.js controls for fluid parameters

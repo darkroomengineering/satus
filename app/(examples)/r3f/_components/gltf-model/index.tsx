@@ -19,7 +19,7 @@ const WebGLGLTFModel = dynamic(
  */
 export function GLTFModel({
   className,
-  modelUrl = '/models/placeholder.glb',
+  modelUrl = '/examples/placeholder.glb',
 }: {
   className?: string
   modelUrl?: string

@@ -19,7 +19,7 @@ const WebGLTexturedPlane = dynamic(
  */
 export function TexturedPlane({
   className,
-  textureUrl = '/images/placeholder.jpg',
+  textureUrl = '/examples/placeholder.jpg',
 }: {
   className?: string
   textureUrl?: string

@@ -1,13 +1,17 @@
 import { useMediaQuery } from 'hamo'
 import { useEffect, useState } from 'react'
 import { breakpoints } from '@/styles/config'
+import {
+  detectGPUCapability,
+  type GPUCapability,
+} from '@/webgl/utils/gpu-detection'
 import { usePreferredReducedMotion } from './use-sync-external'
 
 /**
  * Hook for detecting device capabilities and characteristics.
  *
  * Provides comprehensive device detection including screen size, input methods,
- * performance preferences, and browser capabilities. Useful for responsive design,
+ * performance preferences, and GPU capabilities. Useful for responsive design,
  * performance optimization, and feature detection.
  *
  * @returns Object with device detection results
@@ -21,7 +25,8 @@ import { usePreferredReducedMotion } from './use-sync-external'
  *     isMobile,
  *     isDesktop,
  *     isReducedMotion,
- *     isWebGL,
+ *     hasGPU,
+ *     gpuCapability,
  *     isLowPowerMode,
  *     dpr,
  *     isSafari
@@ -32,8 +37,8 @@ import { usePreferredReducedMotion } from './use-sync-external'
  *     // Disable animations
  *   }
  *
- *   if (isWebGL && !isLowPowerMode) {
- *     // Enable WebGL features
+ *   if (hasGPU && !isLowPowerMode) {
+ *     // Enable GPU features
  *   }
  *
  *   return (
@@ -48,7 +53,7 @@ import { usePreferredReducedMotion } from './use-sync-external'
  * @example
  * ```tsx
  * // Performance optimizations
- * const { isLowPowerMode, dpr, isReducedMotion } = useDeviceDetection()
+ * const { isLowPowerMode, dpr, isReducedMotion, gpuCapability } = useDeviceDetection()
  *
  * // Reduce quality on low-power devices
  * const quality = isLowPowerMode ? 'low' : 'high'
@@ -56,6 +61,9 @@ import { usePreferredReducedMotion } from './use-sync-external'
  *
  * // Respect user motion preferences
  * const enableAnimations = !isReducedMotion
+ *
+ * // Check renderer type
+ * console.log('Preferred renderer:', gpuCapability.preferredRenderer)
  * ```
  */
 export function useDeviceDetection() {
@@ -64,8 +72,17 @@ export function useDeviceDetection() {
   const isMobile = useMediaQuery(`(max-width: ${breakpoint - 1}px)`)
   const isDesktop = useMediaQuery(`(min-width: ${breakpoint}px)`)
   const isReducedMotion = usePreferredReducedMotion()
-  const isWebGL = isDesktop
-  const [dpr, setDpr] = useState<number | undefined>(undefined)
+
+  const [gpuCapability, setGpuCapability] = useState<GPUCapability>(() => ({
+    hasWebGPU: false,
+    hasWebGL2: false,
+    hasWebGL1: false,
+    hasGPU: false,
+    preferredRenderer: 'none',
+    dpr: 1,
+    isLowPower: false,
+  }))
+
   const [isSafari, setIsSafari] = useState<boolean | undefined>(undefined)
 
   // Check for low power mode with fallback for unsupported browsers
@@ -74,17 +91,39 @@ export function useDeviceDetection() {
   )
 
   useEffect(() => {
-    setDpr(window.devicePixelRatio)
+    // Detect GPU capabilities at runtime
+    const capability = detectGPUCapability()
+    setGpuCapability(capability)
+
     setIsSafari(/^((?!chrome|android).)*safari/i.test(navigator.userAgent))
   }, [])
 
+  // GPU is available if device has capability AND is not in low-power mode
+  const hasGPU = gpuCapability.hasGPU && !isLowPowerMode
+
   return {
+    // Screen size
     isMobile,
     isDesktop,
+
+    // Accessibility
     isReducedMotion,
-    isWebGL,
+
+    // GPU capabilities (replaces old isWebGL)
+    hasGPU,
+    hasWebGPU: gpuCapability.hasWebGPU,
+    hasWebGL: gpuCapability.hasWebGL2 || gpuCapability.hasWebGL1,
+    gpuCapability,
+
+    // Legacy alias (deprecated, use hasGPU instead)
+    /** @deprecated Use `hasGPU` instead */
+    isWebGL: hasGPU,
+
+    // Performance
     isLowPowerMode,
-    dpr,
+    dpr: gpuCapability.dpr,
+
+    // Browser
     isSafari,
   }
 }

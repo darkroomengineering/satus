@@ -174,26 +174,26 @@ describe('WebGL Code Transforms', () => {
       expect(content.match(regex)).toBeTruthy()
     })
 
-    it('should match hasWebGL constant', () => {
+    it('should match webglEnabled constant', () => {
       const content = sourceFiles[file]
       if (!content) return
 
       const pattern = webglBundle.codeTransforms
         .find((t) => t.file === file)
-        ?.patterns.find((p) => p.regex.includes('hasWebGL = process'))
+        ?.patterns.find((p) => p.regex.includes('webglEnabled = process'))
 
       expect(pattern).toBeTruthy()
       const regex = new RegExp(pattern!.regex, pattern!.flags)
       expect(content.match(regex)).toBeTruthy()
     })
 
-    it('should match WebGL push block', () => {
+    it('should match WebGL/WebGPU Canvas block', () => {
       const content = sourceFiles[file]
       if (!content) return
 
       const pattern = webglBundle.codeTransforms
         .find((t) => t.file === file)
-        ?.patterns.find((p) => p.regex.includes('WebGL Canvas'))
+        ?.patterns.find((p) => p.regex.includes('WebGL/WebGPU Canvas'))
 
       expect(pattern).toBeTruthy()
       const regex = new RegExp(pattern!.regex, pattern!.flags)
@@ -217,7 +217,8 @@ describe('WebGL Code Transforms', () => {
 
       // Verify WebGL code is removed
       expect(content).not.toContain('LazyGlobalCanvas')
-      expect(content).not.toContain('hasWebGL')
+      expect(content).not.toContain('webglEnabled')
+      expect(content).not.toContain('shouldRenderWebGL')
     })
   })
 

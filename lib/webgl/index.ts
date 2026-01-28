@@ -254,3 +254,70 @@ export {
    */
   useGLTFLoader,
 } from './utils/loaders'
+
+// ============================================================================
+// TSL (Three Shader Language) - EXPERIMENTAL
+// ============================================================================
+// TSL compiles to WGSL (WebGPU) or GLSL (WebGL) automatically.
+// Use for unified shaders that work with both renderers.
+// See /lib/webgl/docs/tsl-migration.md for migration guide.
+
+export {
+  type AnimatedColorMaterialOptions,
+  type AnimatedMaterialHandle,
+  /**
+   * Creates an animated color material using TSL.
+   * Oscillates between two colors over time.
+   *
+   * EXPERIMENTAL: TSL APIs may change with Three.js updates.
+   *
+   * @example
+   * ```tsx
+   * const { material, speedUniform } = createAnimatedColorMaterial({
+   *   colorA: '#ff0000',
+   *   colorB: '#0000ff',
+   *   speed: 2.0,
+   * })
+   * ```
+   */
+  createAnimatedColorMaterial,
+  /**
+   * Creates an FBM (fractal Brownian motion) noise node.
+   * TSL equivalent of GLSL fbm() in noise.ts.
+   *
+   * EXPERIMENTAL: TSL APIs may change with Three.js updates.
+   */
+  createFBMNoiseNode,
+  /**
+   * Creates a noise-based material using MaterialX noise functions.
+   * Works on both WebGPU and WebGL renderers.
+   *
+   * EXPERIMENTAL: TSL APIs may change with Three.js updates.
+   *
+   * @example
+   * ```tsx
+   * const { material } = createNoiseMaterial({
+   *   baseColor: '#3366ff',
+   *   scale: 2.0,
+   *   octaves: 4,
+   * })
+   * ```
+   */
+  createNoiseMaterial,
+  /**
+   * Creates a Perlin noise node using MaterialX.
+   * TSL equivalent of GLSL perlin_3d() in noise.ts.
+   *
+   * EXPERIMENTAL: TSL APIs may change with Three.js updates.
+   */
+  createPerlinNoiseNode,
+  /**
+   * Creates a textured material using TSL with UV manipulation.
+   *
+   * EXPERIMENTAL: TSL APIs may change with Three.js updates.
+   */
+  createTSLTextureMaterial,
+  type NoiseMaterialHandle,
+  type NoiseMaterialOptions,
+  type TSLTextureMaterialOptions,
+} from './utils/tsl'

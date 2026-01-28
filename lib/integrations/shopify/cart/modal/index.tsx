@@ -57,7 +57,8 @@ interface CartModalProps {
 
 export function CartModal({ children }: CartModalProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const { cart } = useCartContext()
+  const { state } = useCartContext()
+  const { cart } = state
   const openCart = () => setIsOpen(true)
   const closeCart = () => setIsOpen(false)
 
@@ -97,7 +98,8 @@ function EmptyCart() {
 }
 
 function InnerCart() {
-  const { cart } = useCartContext()
+  const { state } = useCartContext()
+  const { cart } = state
 
   return (
     <>
@@ -180,7 +182,8 @@ const quantityAction: Record<'minus' | 'plus', number> = {
 }
 
 function Quantity({ className, payload }: QuantityProps) {
-  const { updateCartItem } = useCartContext()
+  const { actions } = useCartContext()
+  const { updateCartItem } = actions
   const router = useRouter()
 
   async function formAction(type: 'minus' | 'plus') {
@@ -220,7 +223,8 @@ function QuantityButton({
 }
 
 function RemoveButton({ merchandiseId, className }: RemoveButtonProps) {
-  const { updateCartItem } = useCartContext()
+  const { actions } = useCartContext()
+  const { updateCartItem } = actions
   const router = useRouter()
 
   async function formAction() {

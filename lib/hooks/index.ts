@@ -8,6 +8,12 @@
  *   import { useScrollTrigger, useTransform } from '@/hooks/use-scroll-trigger'
  */
 
+// Standard context utilities
+export {
+  createStandardContext,
+  type StandardContext,
+  useStandardContext,
+} from '@/utils/context'
 export { useStore } from './store'
 export { useDeviceDetection } from './use-device-detection'
 export { usePrefetch } from './use-prefetch'

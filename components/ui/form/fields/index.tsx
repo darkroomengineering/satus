@@ -52,7 +52,9 @@ export function InputField({
   disabled = false,
   idx,
 }: InputFieldProps) {
-  const { errors, isActive, register } = useFormContext()
+  const { state, actions } = useFormContext()
+  const { errors, isActive } = state
+  const { register } = actions
   const error = errors[idx]
 
   return (
@@ -113,7 +115,9 @@ export function TextareaField({
   rows = 4,
   idx,
 }: TextareaFieldProps) {
-  const { errors, isActive, register } = useFormContext()
+  const { state, actions } = useFormContext()
+  const { errors, isActive } = state
+  const { register } = actions
   const error = errors[idx]
   const reg = register(idx)
 
@@ -168,7 +172,8 @@ export function CheckboxesField({
   name = 'interests',
   label = 'Select topics of interest',
 }: CheckboxesFieldProps) {
-  const { register } = useFormContext()
+  const { actions } = useFormContext()
+  const { register } = actions
   const [selected, setSelected] = useState<string[]>(['all'])
 
   const handleToggle = (value: string) => {

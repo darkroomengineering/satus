@@ -7,6 +7,7 @@ import s from './form.module.css'
 import { useForm } from './hook'
 import type {
   FormAction,
+  FormContextStandard,
   FormContextValue,
   FormProps,
   FormState,
@@ -46,15 +47,39 @@ import type {
  * ```
  */
 
-// Context
-const FormContext = createContext<FormContextValue | null>(null)
+// Context with standard { state, actions, meta } structure
+const FormContext = createContext<FormContextStandard | null>(null)
 
-export function useFormContext() {
+/**
+ * Hook to access the form context with standard structure.
+ * Returns { state, actions, meta } for new implementations.
+ *
+ * @example
+ * ```tsx
+ * const { state, actions, meta } = useFormContext()
+ * const { isPending, formState, errors } = state
+ * const { register, resetForm } = actions
+ * const { formId } = meta
+ * ```
+ */
+export function useFormContext(): FormContextStandard {
   const context = useContext(FormContext)
   if (!context) {
     throw new Error('useFormContext must be used within a Form')
   }
   return context
+}
+
+/**
+ * @deprecated Use useFormContext() which returns { state, actions, meta }.
+ * This hook is kept for backward compatibility.
+ */
+export function useFormContextLegacy(): FormContextValue {
+  const { state, actions } = useFormContext()
+  return {
+    ...state,
+    register: actions.register,
+  }
 }
 
 // Main Form component
@@ -133,14 +158,27 @@ function FormProvider<T = unknown>({
     }
   }, [formState, onSuccess, onError, setKey])
 
-  const contextValue: FormContextValue = {
-    formState,
-    isPending,
-    isReady,
-    isActive,
-    isValid,
-    errors,
-    register,
+  // Reset form function for actions
+  const resetForm = () => {
+    setKey(crypto.randomUUID())
+  }
+
+  const contextValue: FormContextStandard = {
+    state: {
+      formState,
+      isPending,
+      isReady,
+      isActive,
+      isValid,
+      errors,
+    },
+    actions: {
+      register,
+      resetForm,
+    },
+    meta: {
+      formId: formId ?? '',
+    },
   }
 
   return (
@@ -167,7 +205,8 @@ export function SubmitButton({
   errorText = 'Error',
   ...props
 }: SubmitButtonProps) {
-  const { isReady, isPending, formState } = useFormContext()
+  const { state } = useFormContext()
+  const { isReady, isPending, formState } = state
   const [buttonText, setButtonText] = useState(defaultText)
 
   const isSuccess = formState?.status === 200
@@ -220,7 +259,8 @@ export function SubmitButton({
 
 // Messages (error display)
 export function Messages({ className, ...props }: MessagesProps) {
-  const { errors, formState } = useFormContext()
+  const { state } = useFormContext()
+  const { errors, formState } = state
 
   const allErrors = [
     ...errors.filter((e) => e.state).map((e) => e.message),
@@ -244,4 +284,11 @@ export function Messages({ className, ...props }: MessagesProps) {
 
 export { useForm } from './hook'
 // Re-export types
-export type { FormAction, FormState } from './types'
+export type {
+  FormAction,
+  FormContextActions,
+  FormContextMeta,
+  FormContextStandard,
+  FormContextState,
+  FormState,
+} from './types'

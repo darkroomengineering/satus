@@ -21,7 +21,8 @@ export function AddToCart({
   quantity = 1,
   className,
 }: AddToCartProps) {
-  const { addCartItem } = useCartContext()
+  const { actions } = useCartContext()
+  const { addCartItem } = actions
   const { openCart } = useCartModal()
   const router = useRouter()
 

@@ -13,7 +13,9 @@ export const Subscribe = ({
   form: HubSpotParsedForm
   className?: string
 }) => {
-  const { errors, isActive, register } = useFormContext()
+  const { state, actions } = useFormContext()
+  const { errors, isActive } = state
+  const { register } = actions
 
   const inputName = form?.inputs[idx]?.name || 'email'
   const inputType = form?.inputs[idx]?.type || 'email'

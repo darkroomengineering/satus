@@ -4,21 +4,70 @@ import { usePathname } from 'next/navigation'
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { Themes } from '@/styles/colors'
 import { type ThemeName, themes } from '@/styles/config'
+import type { StandardContext } from '@/utils/context'
 
-export const ThemeContext = createContext<{
+// Standard context state
+export interface ThemeState {
+  name: ThemeName
+  theme: Themes[ThemeName]
+}
+
+// Standard context actions
+export interface ThemeActions {
+  setTheme: (theme: ThemeName) => void
+}
+
+// Standard context type
+export type ThemeContextStandard = StandardContext<ThemeState, ThemeActions>
+
+/**
+ * @deprecated Use ThemeContextStandard for new implementations.
+ * This type is kept for backward compatibility.
+ */
+export interface ThemeContextLegacyType {
   name: ThemeName
   theme: Themes[ThemeName]
   setThemeName: (theme: ThemeName) => void
-}>({
-  name: 'light',
-  theme: themes.light,
-  setThemeName: () => {
-    void 0
-  },
-})
+}
 
-export function useTheme() {
-  return useContext(ThemeContext)
+const ThemeContextInternal = createContext<ThemeContextStandard | null>(null)
+
+/**
+ * @deprecated Use useTheme() which returns { state, actions }.
+ * Kept as export for backward compatibility.
+ */
+export const ThemeContext = ThemeContextInternal
+
+/**
+ * Hook to access the theme context with standard structure.
+ * Returns { state, actions } for new implementations.
+ *
+ * @example
+ * ```tsx
+ * const { state, actions } = useTheme()
+ * const { name, theme } = state
+ * const { setTheme } = actions
+ * ```
+ */
+export function useTheme(): ThemeContextStandard {
+  const context = useContext(ThemeContextInternal)
+  if (!context) {
+    throw new Error('useTheme must be used within a Theme provider')
+  }
+  return context
+}
+
+/**
+ * @deprecated Use useTheme() which returns { state, actions }.
+ * This hook is kept for backward compatibility.
+ */
+export function useThemeLegacy(): ThemeContextLegacyType {
+  const { state, actions } = useTheme()
+  return {
+    name: state.name,
+    theme: state.theme,
+    setThemeName: actions.setTheme,
+  }
 }
 
 export function Theme({
@@ -45,6 +94,16 @@ export function Theme({
     }
   }, [pathname, currentTheme, global])
 
+  const contextValue: ThemeContextStandard = {
+    state: {
+      name: currentTheme,
+      theme: themes[currentTheme],
+    },
+    actions: {
+      setTheme: setCurrentTheme,
+    },
+  }
+
   return (
     <>
       {global && (
@@ -52,15 +111,9 @@ export function Theme({
           {`document.documentElement.setAttribute('data-theme', '${currentTheme}');`}
         </script>
       )}
-      <ThemeContext.Provider
-        value={{
-          name: currentTheme,
-          theme: themes[currentTheme],
-          setThemeName: setCurrentTheme,
-        }}
-      >
+      <ThemeContextInternal.Provider value={contextValue}>
         {children}
-      </ThemeContext.Provider>
+      </ThemeContextInternal.Provider>
     </>
   )
 }

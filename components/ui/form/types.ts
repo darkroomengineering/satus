@@ -1,4 +1,5 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
+import type { StandardContext } from '@/utils/context'
 
 // Form state returned by server actions
 export type FormState<T = unknown> = {
@@ -74,7 +75,38 @@ export interface FormProps<T = unknown>
   onError?: (state: FormState<T>) => void
 }
 
-// Form context value
+// Standard context state
+export interface FormContextState<T = unknown> {
+  formState: FormState<T> | null
+  isPending: boolean
+  isReady: boolean
+  isActive: boolean[]
+  isValid: boolean[]
+  errors: FieldError[]
+}
+
+// Standard context actions
+export interface FormContextActions<T = unknown> {
+  register: UseFormReturn<T>['register']
+  resetForm: () => void
+}
+
+// Standard context meta
+export interface FormContextMeta {
+  formId: string
+}
+
+// Standard context type
+export type FormContextStandard<T = unknown> = StandardContext<
+  FormContextState<T>,
+  FormContextActions<T>,
+  FormContextMeta
+>
+
+/**
+ * @deprecated Use FormContextStandard for new implementations.
+ * This type is kept for backward compatibility.
+ */
 export interface FormContextValue<T = unknown> {
   formState: FormState<T> | null
   isPending: boolean

@@ -4,7 +4,9 @@ import {
   Vector2,
   type WebGLProgramParametersWithUniforms,
 } from 'three'
+import type { FlowmapStub } from '@/webgl/utils/flowmaps'
 import type { Flowmap } from '@/webgl/utils/flowmaps/flowmap-sim'
+import type { FluidStub } from '@/webgl/utils/fluid'
 import type { Fluid } from '@/webgl/utils/fluid/fluid-sim'
 import { NOISE } from '@/webgl/utils/noise'
 
@@ -48,7 +50,7 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
     colorFrequency?: number
     quantize?: number
     radial?: boolean
-    flowmap?: Flowmap | Fluid
+    flowmap?: Flowmap | FlowmapStub | Fluid | FluidStub
   }) {
     super({
       transparent: true,

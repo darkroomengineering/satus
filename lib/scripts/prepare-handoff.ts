@@ -478,8 +478,14 @@ const runHandoff = async (options: HandoffOptions): Promise<void> => {
   // Remove examples
   if (removeExamples) {
     s.start('Removing example pages...')
-    const removed = await removeDir('app/(examples)', dryRun)
-    s.stop(removed ? 'Removed example pages' : 'No example pages to remove')
+    const removedPages = await removeDir('app/(examples)', dryRun)
+    const removedAssets = await removeDir('public/examples', dryRun)
+    const removed = removedPages || removedAssets
+    s.stop(
+      removed
+        ? 'Removed example pages and assets'
+        : 'No example pages to remove'
+    )
   }
 
   // Swap README

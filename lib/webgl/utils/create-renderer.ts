@@ -10,7 +10,11 @@
  */
 
 import type { WebGLRenderer } from 'three'
-import { detectGPUCapability, isWebGPUAvailable } from './gpu-detection'
+import {
+  detectGPUCapability,
+  getRecommendedPrecision,
+  isWebGPUAvailable,
+} from './gpu-detection'
 
 export type RendererType = 'webgpu' | 'webgl'
 
@@ -57,7 +61,7 @@ export async function createRenderer(
     alpha = true,
     antialias = true,
     powerPreference = 'high-performance',
-    precision = 'highp',
+    precision = getRecommendedPrecision(),
     stencil = false,
     depth = true,
     forceWebGL = false,
@@ -83,7 +87,7 @@ export async function createRenderer(
       // WebGPURenderer requires async initialization
       await renderer.init()
 
-      console.info('🚀 Using WebGPU renderer')
+      console.info('[Renderer] Using WebGPU')
 
       return {
         renderer: renderer as unknown as WebGLRenderer,
@@ -108,7 +112,7 @@ export async function createRenderer(
     depth,
   })
 
-  console.info('🎮 Using WebGL renderer')
+  console.info('[Renderer] Using WebGL')
 
   return {
     renderer,
@@ -130,7 +134,7 @@ export async function createWebGLRenderer(
     alpha = true,
     antialias = true,
     powerPreference = 'high-performance',
-    precision = 'highp',
+    precision = getRecommendedPrecision(),
     stencil = false,
     depth = true,
   } = options

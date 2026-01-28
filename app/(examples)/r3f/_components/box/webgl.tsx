@@ -4,8 +4,12 @@ import { useFrame } from '@react-three/fiber'
 import type { Rect } from 'hamo'
 import { useRef } from 'react'
 import type { Mesh } from 'three'
+import { BoxGeometry, MeshNormalMaterial } from 'three'
 import { useCurrentSheet } from '@/dev/theatre'
 import { useTheatre } from '@/dev/theatre/hooks/use-theatre'
+// useDisposable: Automatically disposes Three.js resources (geometries, materials, textures)
+// when the component unmounts or dependencies change. Prevents memory leaks.
+import { useDisposable } from '@/lib/webgl'
 import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
 
 interface WebGLBoxProps {
@@ -18,6 +22,10 @@ interface WebGLBoxProps {
 /**
  * WebGL box component with visibility-aware optimizations.
  *
+ * Demonstrates:
+ * - useDisposable for automatic geometry/material cleanup
+ * - Visibility-based optimization (skip work when off-screen)
+ *
  * When visible is false:
  * - useWebGLRect skips position computations
  * - useFrame skips rotation updates
@@ -29,6 +37,14 @@ export function WebGLBox({
   visible = true,
 }: WebGLBoxProps) {
   const meshRef = useRef<Mesh | null>(null)
+
+  // useDisposable creates the geometry and automatically calls .dispose() on unmount.
+  // The empty dependency array [] means it's created once and persists until unmount.
+  const geometry = useDisposable(() => new BoxGeometry(1, 1, 1), [])
+
+  // Materials are also disposable. If you had a color prop that changes,
+  // you'd pass [color] as deps to recreate the material when color changes.
+  const material = useDisposable(() => new MeshNormalMaterial(), [])
 
   useFrame(({ clock }) => {
     // Skip expensive updates when off-screen
@@ -75,9 +91,8 @@ export function WebGLBox({
         meshRef.current = node
         node?.updateMatrix()
       }}
-    >
-      <boxGeometry />
-      <meshNormalMaterial />
-    </mesh>
+      geometry={geometry}
+      material={material}
+    />
   )
 }

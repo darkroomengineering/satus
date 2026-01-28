@@ -1,6 +1,7 @@
 import { useMediaQuery } from 'hamo'
 import { useEffect, useState } from 'react'
 import { breakpoints } from '@/styles/config'
+import { usePreferredReducedMotion } from './use-sync-external'
 
 /**
  * Hook for detecting device capabilities and characteristics.
@@ -62,7 +63,7 @@ export function useDeviceDetection() {
 
   const isMobile = useMediaQuery(`(max-width: ${breakpoint - 1}px)`)
   const isDesktop = useMediaQuery(`(min-width: ${breakpoint}px)`)
-  const isReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
+  const isReducedMotion = usePreferredReducedMotion()
   const isWebGL = isDesktop
   const [dpr, setDpr] = useState<number | undefined>(undefined)
   const [isSafari, setIsSafari] = useState<boolean | undefined>(undefined)

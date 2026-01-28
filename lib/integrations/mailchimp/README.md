@@ -2,8 +2,6 @@
 
 Email subscriptions with Cloudflare Turnstile spam protection.
 
-> For contact forms, see [Mandrill](../mandrill/README.md) for combined email + audience solution.
-
 ## Environment Variables
 
 ```env

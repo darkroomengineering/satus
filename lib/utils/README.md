@@ -23,7 +23,6 @@ import { generateSanityMetadata } from '@/utils/metadata'
 | `fetch` | `fetchWithTimeout`, `fetchJSON` |
 | `strings` | `slugify`, `mergeRefs`, `capitalizeFirstLetter` |
 | `metadata` | `generatePageMetadata`, `generateSanityMetadata` |
-| `performance` | `reportWebVitals`, `getLCP`, `getCLS` |
 
 ## Common Patterns
 

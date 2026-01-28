@@ -105,6 +105,18 @@ export async function CreateCustomerAction(
   _prevState: FormState | null,
   formData: FormData
 ): Promise<FormState> {
+  // Rate limit registration to prevent spam account creation
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0] || 'unknown'
+  const rateLimitResult = rateLimit(`register:${ip}`, rateLimiters.standard)
+
+  if (!rateLimitResult.success) {
+    return {
+      status: 429,
+      message: `Too many registration attempts. Please try again in ${rateLimitResult.resetIn} seconds.`,
+    }
+  }
+
   const firstName = formData.get('firstName')
   const lastName = formData.get('lastName')
   const email = formData.get('email')

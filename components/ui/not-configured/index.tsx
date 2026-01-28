@@ -57,11 +57,6 @@ const INTEGRATION_INFO: Record<
       'MAILCHIMP_AUDIENCE_ID',
     ],
   },
-  Mandrill: {
-    description: 'Transactional email service',
-    docsUrl: 'https://mailchimp.com/developer/transactional/',
-    envVars: ['MANDRILL_API_KEY'],
-  },
 }
 
 /**

@@ -64,7 +64,12 @@ export async function addItem(
   if (!cartId) {
     cart = await createCart()
     cartId = (cart as { id: string }).id
-    _cookies.set('cartId', cartId)
+    _cookies.set('cartId', cartId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+    })
   }
 
   if (!variantId) {

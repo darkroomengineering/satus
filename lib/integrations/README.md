@@ -10,7 +10,6 @@ Third-party service integrations. All are optional—remove unused ones with `bu
 | [Shopify](shopify/README.md) | E-commerce | Cart, products, checkout |
 | [HubSpot](hubspot/README.md) | Forms | Marketing forms, CRM |
 | [Mailchimp](mailchimp/README.md) | Newsletter | Email subscriptions |
-| [Mandrill](mandrill/README.md) | Email | Transactional emails |
 
 ## Environment Variables
 
@@ -34,10 +33,6 @@ NEXT_PUBLIC_HUBSPOT_PORTAL_ID=your-portal-id
 MAILCHIMP_API_KEY=your-api-key
 MAILCHIMP_SERVER_PREFIX=us1
 MAILCHIMP_AUDIENCE_ID=your-audience-id
-
-# Mandrill
-MANDRILL_API_KEY=your-api-key
-NEXT_PUBLIC_CONTACT_EMAIL=contact@example.com
 
 # Cloudflare Turnstile (spam protection)
 NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY=your-site-key
@@ -85,8 +80,8 @@ rm -rf lib/integrations/shopify app/(examples)/shopify
 rm -rf lib/integrations/hubspot app/(examples)/hubspot
 bun remove @hubspot/api-client
 
-# Mailchimp/Mandrill (~20KB each)
-rm -rf lib/integrations/mailchimp lib/integrations/mandrill
+# Mailchimp (~20KB)
+rm -rf lib/integrations/mailchimp
 ```
 
 After removal: `bun lint:fix && bun build`

@@ -93,5 +93,9 @@
     "lefthook",
     "sharp"
   ],
+  "overrides": {
+    "lodash": "^4.17.21",
+    "lodash-es": "^4.17.21"
+  },
   "packageManager": "bun@1.3.5"
 }

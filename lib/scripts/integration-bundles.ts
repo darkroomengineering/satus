@@ -125,19 +125,6 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
     codeTransforms: [],
   },
 
-  mandrill: {
-    name: 'Mandrill',
-    description: 'Transactional email service',
-    dependencies: [],
-    devDependencies: [],
-    folders: ['lib/integrations/mandrill'],
-    files: [],
-    configPatterns: [],
-    envVars: ['MANDRILL_API_KEY'],
-    barrelExports: [],
-    codeTransforms: [],
-  },
-
   webgl: {
     name: 'WebGL / 3D',
     description: 'Three.js and React Three Fiber for 3D graphics',

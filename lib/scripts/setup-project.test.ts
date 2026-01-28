@@ -323,15 +323,7 @@ describe('Preset Configurations', () => {
   // (We can't import directly due to the main() call)
   const presets = {
     editorial: ['sanity', 'hubspot', 'mailchimp'],
-    studio: [
-      'sanity',
-      'shopify',
-      'hubspot',
-      'mailchimp',
-      'mandrill',
-      'webgl',
-      'theatre',
-    ],
+    studio: ['sanity', 'shopify', 'hubspot', 'mailchimp', 'webgl', 'theatre'],
     boutique: ['shopify', 'hubspot', 'mailchimp'],
     gallery: ['sanity', 'shopify', 'hubspot', 'mailchimp', 'webgl', 'theatre'],
     blank: [],

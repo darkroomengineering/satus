@@ -46,7 +46,6 @@ const PROJECT_PRESETS = {
       'shopify',
       'hubspot',
       'mailchimp',
-      'mandrill',
       'webgl',
       'theatre',
     ],

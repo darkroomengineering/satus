@@ -7,13 +7,13 @@ export type FormState<T = unknown> = {
   message: string
   data?: T
   fieldErrors?: Record<string, string>
-  /** Legacy: For backward compatibility with existing integrations (mailchimp, mandrill) */
+  /** Legacy: For backward compatibility with existing integrations (mailchimp) */
   errors?: ErrorField
   /** Legacy: For backward compatibility with existing integrations */
   inputs?: Record<string, string>
 }
 
-// Legacy error field type (Map-based) for backward compatibility with mailchimp/mandrill
+// Legacy error field type (Map-based) for backward compatibility with mailchimp
 export type ErrorField = Map<string, FieldError>
 
 // Server action type

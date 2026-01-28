@@ -123,7 +123,6 @@ const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
       Shopify: [/^SHOPIFY_/],
       HubSpot: [/^HUBSPOT_/, /^NEXT_PUBLIC_HUBSPOT_/],
       Mailchimp: [/^MAILCHIMP_/],
-      Mandrill: [/^MANDRILL_/],
     }
 
     // Always keep these core variables

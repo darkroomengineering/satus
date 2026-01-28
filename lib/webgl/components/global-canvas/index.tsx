@@ -11,7 +11,7 @@ import { createContextLossHandler } from '@/lib/webgl/utils/context-loss-handler
 import { createRenderer } from '@/lib/webgl/utils/create-renderer'
 import { detectGPUCapability } from '@/lib/webgl/utils/gpu-detection'
 import { FlowmapProvider } from '../flowmap-provider'
-import { PostProcessing } from '../postprocessing'
+import { PostProcessing, type PostProcessingProps } from '../postprocessing'
 import { Preload } from '../preload'
 import { RAF } from '../raf'
 import s from './global-canvas.module.css'
@@ -21,6 +21,11 @@ type GlobalCanvasProps = {
   render?: boolean
   /** Enable post-processing effects. Defaults to false. */
   postprocessing?: boolean
+  /**
+   * Post-processing options.
+   * Only used when `postprocessing` is true.
+   */
+  postprocessingOptions?: PostProcessingProps
   /** Enable alpha channel. Defaults to true. */
   alpha?: boolean
   /** Additional CSS class for the container. */
@@ -83,6 +88,7 @@ type GlobalCanvasProps = {
 export function GlobalCanvas({
   render = true,
   postprocessing = false,
+  postprocessingOptions,
   alpha = true,
   className,
   forceWebGL = false,
@@ -179,7 +185,7 @@ export function GlobalCanvas({
           />
           <RAF render={shouldRender} />
           <FlowmapProvider>
-            {postprocessing && <PostProcessing />}
+            {postprocessing && <PostProcessing {...postprocessingOptions} />}
             <Suspense>
               <WebGLTunnel.Out />
             </Suspense>

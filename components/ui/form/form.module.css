@@ -23,6 +23,11 @@
     background: var(--color-white);
   }
 
+  &.pending {
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
   span {
     position: relative;
     text-align: center;
@@ -61,10 +66,6 @@
   @media (--desktop) {
     font-size: desktop-vw(14px);
     padding-right: desktop-vw(16px);
-  }
-
-  .success {
-    color: var(--color-green);
   }
 
   .error {

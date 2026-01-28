@@ -206,3 +206,51 @@ export {
    */
   useTextureCached,
 } from './utils/texture-cache'
+
+// ============================================================================
+// Asset Loaders (Draco/KTX2)
+// ============================================================================
+
+export {
+  /**
+   * Create a configured GLTFLoader with Draco and KTX2 support.
+   * Use for non-React contexts or explicit control.
+   *
+   * Draco reduces geometry by 90-95%, KTX2 reduces VRAM ~10x.
+   *
+   * @example
+   * ```tsx
+   * const loader = createGLTFLoader(renderer)
+   * const gltf = await loader.loadAsync('/model.glb')
+   * ```
+   */
+  createGLTFLoader,
+  /**
+   * Dispose singleton Draco/KTX2 loaders.
+   * Usually not needed as loaders are lightweight and reused.
+   */
+  disposeLoaders,
+  type GLTF,
+  /**
+   * Load a GLTF/GLB with Draco and KTX2 support.
+   * Simplest way to load optimized 3D models.
+   *
+   * @example
+   * ```tsx
+   * const gltf = await loadGLTF('/model.glb')
+   * scene.add(gltf.scene)
+   * ```
+   */
+  loadGLTF,
+  /**
+   * React hook returning a configured GLTFLoader.
+   * Must be inside R3F Canvas context.
+   *
+   * @example
+   * ```tsx
+   * const loader = useGLTFLoader()
+   * const gltf = await loader.loadAsync('/model.glb')
+   * ```
+   */
+  useGLTFLoader,
+} from './utils/loaders'

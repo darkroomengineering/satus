@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useSyncExternalStore } from 'react'
+import { useEffect, useRef, useSyncExternalStore } from 'react'
 import { mutate } from '@/utils/raf'
 
 /**
@@ -169,13 +169,54 @@ export function useViewport<T>(selector: (state: ViewportValues) => T): T
 export function useViewport<T>(
   selector?: (state: ViewportValues) => T
 ): ViewportValues | T {
-  const state = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
+  // Cache selector and its result to prevent unnecessary re-renders
+  const selectorRef = useRef(selector)
+  const resultRef = useRef<T | ViewportValues | undefined>(undefined)
+  const stateRef = useRef<ViewportValues | undefined>(undefined)
 
-  if (selector) {
-    return selector(state)
+  // Update selector ref on each render (selector may be inline function)
+  selectorRef.current = selector
+
+  // Create a stable getSnapshot that integrates the selector
+  // This ensures useSyncExternalStore only triggers re-renders
+  // when the selected value actually changes
+  const getSnapshotWithSelector = (): T | ViewportValues => {
+    const nextState = getSnapshot()
+
+    // If no selector, return full state
+    if (!selectorRef.current) {
+      return nextState
+    }
+
+    // If state hasn't changed, return cached result
+    if (stateRef.current === nextState && resultRef.current !== undefined) {
+      return resultRef.current
+    }
+
+    // Compute new result
+    const nextResult = selectorRef.current(nextState)
+
+    // If result is the same (by value for primitives), return cached
+    if (Object.is(resultRef.current, nextResult)) {
+      return resultRef.current as T
+    }
+
+    // Update cache and return new result
+    stateRef.current = nextState
+    resultRef.current = nextResult
+    return nextResult
   }
 
-  return state
+  const getServerSnapshotWithSelector = (): T | ViewportValues => {
+    const state = getServerSnapshot()
+    return selectorRef.current ? selectorRef.current(state) : state
+  }
+
+  return useSyncExternalStore(
+    subscribe,
+    getSnapshotWithSelector,
+    getServerSnapshotWithSelector
+  )
 }
 
 /**

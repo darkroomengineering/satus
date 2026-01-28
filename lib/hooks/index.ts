@@ -16,6 +16,13 @@ export {
   useScrollTrigger,
 } from './use-scroll-trigger'
 export {
+  useDocumentVisibility,
+  useMediaQuery,
+  useOnlineStatus,
+  usePreferredColorScheme,
+  usePreferredReducedMotion,
+} from './use-sync-external'
+export {
   TransformContext,
   TransformProvider,
   useTransform,

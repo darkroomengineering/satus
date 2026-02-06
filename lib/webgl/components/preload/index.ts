@@ -5,6 +5,28 @@ import { useEffect } from 'react'
 import type * as THREE from 'three'
 import { CubeCamera, WebGLCubeRenderTarget } from 'three'
 
+/**
+ * Pre-compiles all shaders in the scene to avoid jank on first render.
+ *
+ * **Strategy:**
+ * 1. Traverse the scene and temporarily make all invisible objects visible
+ *    (so the renderer can discover their materials/shaders).
+ *    Objects with `userData.debug` set to `true` are excluded from this
+ *    traversal, as they are developer-only helpers that should never be
+ *    compiled into the production shader cache.
+ * 2. Call `renderer.compileAsync(scene, camera)` to compile every shader
+ *    program in a non-blocking way.
+ * 3. Create a temporary `CubeCamera` and render one update to force
+ *    compilation of environment-map shaders (e.g. reflections, IBL).
+ *    The cube render target is disposed immediately afterwards.
+ * 4. Restore the original visibility of all objects that were toggled.
+ *
+ * **Note:** There is a commented-out `loaderLoaded` guard that can be
+ * re-enabled to defer preloading until after a loading screen completes.
+ * When enabled, add `loaderLoaded` to the effect's dependency array.
+ *
+ * @returns `null` -- this component renders nothing to the scene.
+ */
 export function Preload() {
   const gl = useThree((state) => state.gl)
   const camera = useThree((state) => state.camera)

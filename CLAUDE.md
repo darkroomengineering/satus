@@ -91,16 +91,18 @@ All integrations (Sanity, Shopify, HubSpot) must gracefully handle missing env v
 ## File Structure
 
 ```
+proxy.ts              # Next.js 16 request proxy (rate limiting, auth)
 app/                  # Routes only -- no components here
 components/
   ui/                 # Reusable primitives (Image, Link, Form, etc.)
   layout/             # Page chrome (Wrapper, Header, Footer, Theme, Lenis)
   effects/            # Animation components (GSAP, SplitText, etc.)
 lib/
+  env.ts              # Typed environment variables (Zod-validated singleton)
   hooks/              # Custom hooks + Zustand stores
-  utils/              # Pure utilities (math, fetch, metadata, strings, animation)
+  utils/              # Pure utilities (math, fetch, metadata, strings, animation, validation)
   styles/             # Design system, Tailwind config (CSS-based for v4)
-  integrations/       # Third-party services (Sanity, Shopify, HubSpot)
+  integrations/       # Third-party services + registry (Sanity, Shopify, HubSpot)
   webgl/              # 3D graphics (optional, lazy-loaded)
   dev/                # Debug tools (stripped in production)
   features/           # Root layout conditional features
@@ -163,6 +165,30 @@ export function MyComponent({ variant = 'primary', className, ...props }: MyComp
 | `@base-ui/react` | Unstyled UI primitives |
 | `zustand` | Global state management |
 | `clsx` | Class name composition (aliased as `cn`) |
+| `zod` | Schema validation (env vars, forms, server actions) |
+
+## Validation
+
+All server actions and form inputs use Zod schemas for validation. Env var checking uses Zod schemas via the integration registry.
+
+```tsx
+// Server action validation
+import { emailSchema, parseFormData } from '@/utils/validation'
+
+const schema = z.object({ email: emailSchema, name: z.string().min(1) })
+const result = parseFormData(schema, formData)
+if (!('success' in result)) return result // Returns FormState on error
+
+// Typed environment access
+import { env } from '@/lib/env'
+const projectId = env.NEXT_PUBLIC_SANITY_PROJECT_ID
+
+// Integration registry (single source of truth)
+import { isConfigured } from '@/integrations/registry'
+if (isConfigured('sanity')) { /* ... */ }
+```
+
+Client-side form validation uses the same Zod schemas via `zodToValidator()` bridge.
 
 ## Commands
 
@@ -175,6 +201,7 @@ bun lint:fix         # Biome lint with auto-fix
 bun run format       # Biome format
 bun run typecheck    # tsgo --noEmit
 bun test             # Unit tests
+bun run doctor       # Diagnose setup issues (env validation included)
 ```
 
 ## Pre-Commit Hooks (lefthook)

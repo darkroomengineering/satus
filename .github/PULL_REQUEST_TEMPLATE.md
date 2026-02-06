@@ -8,7 +8,7 @@
 
 ## Checklist
 
-- [ ] `bun lint` passes
+- [ ] `bun run check` passes (biome + typecheck + tests)
 - [ ] Tested locally in dev mode
 - [ ] No breaking changes (or documented in summary)
 

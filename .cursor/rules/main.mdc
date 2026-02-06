@@ -15,6 +15,7 @@ globs: *.tsx, *.jsx, *.css, *.js, *.ts
 - **React Compiler** - Automatically optimizes component re-renders and memoization
 - **TypeScript** - Strict mode enabled
 - **Tailwind CSS v4** - CSS-first configuration
+- **Zod** - Schema validation (env vars, forms, server actions)
 - **Biome** - Linting and formatting
 - **Bun** - JavaScript runtime and package manager
 
@@ -278,4 +279,4 @@ Cache Components are enabled globally (`cacheComponents: true` in `next.config.t
 - Set proper cache tags: `next: { tags: ['products'] }`
 - Dynamic routes require careful cache tag management
 
-Last updated: 2025-12-18
+Last updated: 2026-02-06

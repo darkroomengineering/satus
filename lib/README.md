@@ -38,7 +38,8 @@ import { useOrchestra } from '@/lib/dev/orchestra'
 |-----------|---------|-----------|
 | [hooks/](hooks/README.md) | React hooks + Zustand store | ❌ Core |
 | [styles/](styles/README.md) | CSS & Tailwind config | ❌ Core |
-| [utils/](utils/README.md) | Pure utility functions | ❌ Core |
+| [utils/](utils/README.md) | Pure utilities (math, fetch, metadata, strings, animation, validation) | ❌ Core |
+| `env.ts` | Typed environment variables (Zod-validated singleton) | ❌ Core |
 | [integrations/](integrations/README.md) | Sanity, Shopify, HubSpot | ✅ Yes |
 | [webgl/](webgl/README.md) | 3D graphics with R3F | ✅ Yes |
 | [dev/](dev/README.md) | Debug tools (CMD+O) | ✅ Yes |

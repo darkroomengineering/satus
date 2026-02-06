@@ -2,6 +2,31 @@
 
 Third-party service integrations. All are optional—remove unused ones with `bun run setup:project`.
 
+### Validation
+
+All integrations use Zod schemas for environment variable validation. The integration registry (`lib/integrations/registry.ts`) is the single source of truth:
+
+```ts
+import { isConfigured } from '@/integrations/registry'
+
+if (isConfigured('sanity')) {
+  // Sanity env vars are valid
+}
+```
+
+Individual check functions are still available for backward compatibility:
+
+```ts
+import { isSanityConfigured } from '@/integrations/check-integration'
+```
+
+Typed environment access is available via:
+
+```ts
+import { env } from '@/lib/env'
+const domain = env.SHOPIFY_STORE_DOMAIN // string | undefined with IntelliSense
+```
+
 ## Available Integrations
 
 | Integration | Purpose | Documentation |
@@ -85,3 +110,10 @@ rm -rf lib/integrations/mailchimp
 ```
 
 After removal: `bun lint:fix && bun build`
+
+## Adding a New Integration
+
+1. Create Zod env schema in `lib/utils/validation.ts`
+2. Add entry to `lib/integrations/registry.ts`
+3. Create integration directory under `lib/integrations/`
+4. Add env vars to `.env.example` and `lib/env.ts`

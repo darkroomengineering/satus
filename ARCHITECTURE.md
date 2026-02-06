@@ -101,6 +101,20 @@ lib/
 └── dev/       → Debug tools (optional)
 ```
 
+### Validation Layer
+
+Zod schemas provide type-safe validation at three boundaries:
+
+1. **Environment variables** -- Per-integration schemas validate config at startup via `check-integration.ts` and `doctor.ts`
+2. **Server actions** -- `parseFormData()` validates FormData before processing (HubSpot, Mailchimp, Shopify)
+3. **Client forms** -- `zodToValidator()` bridges the same Zod schemas to the form hook's client-side validation
+
+All schemas live in `lib/utils/validation.ts`. The typed env singleton (`lib/env.ts`) provides IntelliSense for `process.env` access.
+
+### Request Proxy
+
+`proxy.ts` (project root) handles cross-cutting request concerns for Next.js 16. Currently configured with rate limiting for `/api/*` routes. Security headers remain in `next.config.ts` (they're static configuration).
+
 ## Deployment Checklist
 
 - [ ] Environment variables configured
@@ -113,7 +127,7 @@ lib/
 
 **New component**: `bun run generate` or add to `components/ui/`
 
-**New integration**: Add to `lib/integrations/`, update `integration-bundles.ts`
+**New integration**: Add Zod env schema in `@/utils/validation`, add entry in `lib/integrations/registry.ts`. Everything else (`check-integration`, `doctor`) derives automatically from the registry.
 
 **Modify styles**: Edit config in `lib/styles/`, run `bun setup:styles`
 

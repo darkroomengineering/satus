@@ -1,6 +1,6 @@
 {
   "name": "@darkroom.engineering/satus",
-  "description": "Satūs is a next.js starter",
+  "description": "Next.js 16 starter by darkroom.engineering — React 19, TypeScript strict, Tailwind v4, Zod validation, and production-ready integrations",
   "version": "1.0.0",
   "license": "MIT",
   "type": "module",

@@ -40,6 +40,10 @@ import { mailchimpSubscriptionAction } from '@/lib/integrations/mailchimp'
 2. **Server Prefix**: Found in API key (e.g., `us17`)
 3. **Audience ID**: Audience → Settings → Audience name
 
+### Validation
+
+Contact and subscription actions validate email format using Zod's `emailSchema`. Env vars are validated via `mailchimpEnvSchema` in the integration registry. Error responses use the unified `fieldErrors: Record<string, string>` pattern (legacy Map-based errors have been removed).
+
 ## Notes
 
 - Turnstile requires HTTPS (auto-disabled in development)

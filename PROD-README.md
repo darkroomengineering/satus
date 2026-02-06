@@ -13,8 +13,9 @@ bun dev
 | Command | Description |
 |---------|-------------|
 | `bun dev` | Development server |
-| `bun build` | Production build |
+| `bun run build` | Production build |
 | `bun lint` | Run linter |
+| `bun run check` | Run biome + typecheck + tests |
 | `bun setup:styles` | Regenerate CSS |
 
 ## Tech Stack
@@ -26,7 +27,14 @@ Next.js 16, React 19, TypeScript, Tailwind CSS v4, Bun
 ```
 app/           # Pages and routes
 components/    # UI components
-lib/           # Hooks, utils, integrations
+lib/
+  hooks/       # Custom hooks + stores
+  utils/       # Pure utilities
+  styles/      # Design system, Tailwind config
+  integrations/ # Third-party services (Sanity, Shopify, HubSpot)
+  webgl/       # 3D graphics (optional)
+  dev/         # Debug tools
+  scripts/     # CLI tools
 ```
 
 ## Content Management

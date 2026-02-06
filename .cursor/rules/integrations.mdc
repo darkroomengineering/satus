@@ -366,20 +366,74 @@ import { HubspotNewsletterAction } from '@/lib/integrations/hubspot/action'
 
 ## General Integration Best Practices
 
-### Environment Variables
+### Environment Variables & Validation
+
+All integrations validate env vars with **Zod schemas**. Never use raw `process.env` -- use the typed `env` object instead.
+
+```typescript
+// Type-safe environment access (preferred over process.env)
+import { env } from '@/lib/env'
+
+const projectId = env.NEXT_PUBLIC_SANITY_PROJECT_ID // string | undefined, with IntelliSense
+```
+
 - Never commit API keys
 - Use `.env.local` for development
 - Document required variables in `.env.example`
-- Validate environment variables are set before use
+- Each integration defines its own Zod schema in `@/utils/validation`
+- `lib/env.ts` provides a single validated `env` object parsed once at import
+
+### Integration Registry
+
+`lib/integrations/registry.ts` is the **single source of truth** for all integrations. Adding a new integration is 2 steps:
+
+1. Create its Zod env schema in `@/utils/validation`
+2. Add a registry entry in `lib/integrations/registry.ts`
+
+Everything else (check-integration, doctor) picks it up automatically.
 
 ```typescript
-// Check required env vars at module load
-const requiredEnvVars = ['NEXT_PUBLIC_API_KEY', 'API_SECRET'] as const
-for (const envVar of requiredEnvVars) {
-  if (!process.env[envVar]) {
-    throw new Error(`Missing required environment variable: ${envVar}`)
+import { integrations, isConfigured, getConfigured } from '@/integrations/registry'
+
+// Check if a specific integration is ready
+if (isConfigured('sanity')) { /* ... */ }
+
+// Get all configured integration names
+const active = getConfigured() // ['Sanity', 'HubSpot', ...]
+```
+
+### Server Action Error Pattern
+
+All server actions return a consistent shape. No Map-based errors.
+
+```typescript
+// Standard server action return type
+{ status: number, message: string, fieldErrors?: Record<string, string[]> }
+
+// Example server action with Zod validation
+async function submitForm(formData: FormData) {
+  'use server'
+  const result = schema.safeParse(Object.fromEntries(formData))
+  if (!result.success) {
+    const fieldErrors = result.error.flatten().fieldErrors
+    return { status: 400, message: 'Invalid input', fieldErrors }
   }
+  // ... process valid data
+  return { status: 200, message: 'Success' }
 }
+```
+
+Server actions validate input with `parseFormData()` (from `@/utils/validation`) or direct `schema.safeParse()`.
+
+### Client/Server Validation Bridge
+
+Use `zodToValidator()` to convert Zod schemas for client-side form validation while keeping the schema as the single source of truth.
+
+```typescript
+import { zodToValidator } from '@/utils/zodToValidator'
+
+// In form hook -- reuses the same Zod schema on the client
+const validate = zodToValidator(myFormSchema)
 ```
 
 ### API Resilience
@@ -480,4 +534,4 @@ export async function verifyWebhookSignature(
 ### Processing
 Process webhooks asynchronously. Implement idempotency. Return 200 status quickly.
 
-Last updated: 2025-12-18
+Last updated: 2026-02-06

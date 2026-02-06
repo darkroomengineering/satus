@@ -8,6 +8,7 @@ const STACK = [
   { name: 'GSAP', description: 'Animation library' },
   { name: 'R3F + drei', description: 'WebGL / 3D graphics' },
   { name: 'Zustand', description: 'State management' },
+  { name: 'Zod', description: 'Schema validation' },
   { name: 'Base UI', description: 'Accessible primitives' },
   { name: 'Theatre.js', description: 'Animation editor' },
 ] as const

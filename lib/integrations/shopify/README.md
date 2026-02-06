@@ -47,6 +47,15 @@ const products = await getProducts({ sortKey: 'CREATED_AT' })
 const product = await getProduct('product-handle')
 ```
 
+### Validation
+
+All Shopify server actions validate input with Zod schemas:
+- **Cart actions** (`addItem`, `updateItemQuantity`, `removeItem`): validate variant IDs, quantity bounds (1-99), rate limiting
+- **Customer actions** (`LoginCustomerAction`, `CreateCustomerAction`): validate email format, password length, rate limiting
+- **Error handling**: All errors are proper `Error` instances with `error.cause` containing the original error and query
+
+Env vars are validated via `shopifyEnvSchema` in the integration registry.
+
 ## Features
 
 - Optimistic UI updates

@@ -34,6 +34,15 @@ import { HubspotNewsletterAction } from '@/lib/integrations/hubspot/action'
 </Form>
 ```
 
+### Validation
+
+The newsletter action validates input with Zod:
+- Email validated with `z.email()` (Zod 4 top-level validator)
+- Form ID validated as non-empty string
+- Returns `{ status: 400, fieldErrors }` on validation failure
+
+Env vars are validated via `hubspotEnvSchema` in the integration registry.
+
 ## Getting Credentials
 
 1. **Access Token**: Account → Settings → Integrations → Private Apps

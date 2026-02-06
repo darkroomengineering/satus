@@ -18,6 +18,7 @@ const VALUE_PROPS = [
       'Cmd+O debug panel',
       'Code generation CLI',
       'Biome linting',
+      '432 tests',
     ],
   },
   {
@@ -27,6 +28,7 @@ const VALUE_PROPS = [
       'Lighthouse CI',
       'Base UI components',
       'Typed routes',
+      'Zod validation',
     ],
   },
 ] as const

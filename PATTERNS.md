@@ -157,6 +157,22 @@ export default async function SanityPage() {
 
 Available checks: `isSanityConfigured()`, `isShopifyConfigured()`, `isHubSpotConfigured()`, `isMailchimpConfigured()`, `isTurnstileConfigured()`.
 
+#### Integration Registry
+
+The integration registry (`lib/integrations/registry.ts`) centralizes integration metadata:
+
+```ts
+import { isConfigured, getConfigured } from '@/integrations/registry'
+
+// Check specific integration
+if (isConfigured('sanity')) { /* ... */ }
+
+// List all configured
+const active = getConfigured() // ['Sanity', 'Shopify', ...]
+```
+
+Adding a new integration: add its Zod schema to `@/utils/validation`, then add one entry to the registry. `check-integration.ts`, `doctor.ts`, and listing functions derive automatically.
+
 `NotConfigured` auto-detects env vars and docs URL for known integrations. Pass custom props for new ones:
 
 ```tsx

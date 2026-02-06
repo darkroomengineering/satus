@@ -238,53 +238,68 @@ export async function POST(request: Request) {
 - Check bundle size impact of new dependencies
 - Use `bun lint` to check for linting issues
 
+## Request Proxy (`proxy.ts`)
+
+Next.js 16 replaces `middleware.ts` with a **request proxy** at the project root (`proxy.ts`). This handles cross-cutting concerns for incoming requests.
+
+- **Rate limiting**: API routes are rate-limited via `@/utils/rate-limit`. Adjust `rateLimiters` config per route pattern.
+- **Security headers**: Stay in `next.config.ts` (static, no need for proxy).
+- **Extensible**: Add auth, logging, or CORS by editing `proxy.ts`.
+
+```typescript
+// proxy.ts (project root)
+import { proxy } from './proxy'
+export { proxy, config } from './proxy'
+```
+
 ## Security
 
-### Environment Variables
+### Environment Variables & Validation Layer
+
+Environment variables are validated with **Zod schemas** at three boundaries:
+
+1. **Env boundary** -- `lib/env.ts` provides `env` object with type-safe access (parsed once at import)
+2. **Form boundary** -- `parseFormData()` and `zodToValidator()` validate user input on client and server
+3. **Server action boundary** -- `schema.safeParse()` validates before processing
+
+```typescript
+// Typed env access (preferred over process.env)
+import { env } from '@/lib/env'
+
+const projectId = env.NEXT_PUBLIC_SANITY_PROJECT_ID // typed, validated
+```
+
 - Never commit API keys
 - Use `.env.local` for development
 - Document required variables in `.env.example`
-- Validate environment variables are set before use
-
-```typescript
-// Check required env vars at module load
-const requiredEnvVars = [
-  'NEXT_PUBLIC_API_KEY',
-  'DATABASE_URL',
-  'SANITY_API_TOKEN'
-] as const
-
-for (const envVar of requiredEnvVars) {
-  if (!process.env[envVar]) {
-    throw new Error(`Missing required environment variable: ${envVar}`)
-  }
-}
-```
 
 ### Input Validation
-Validate all user inputs. Use server-side validation for forms.
+Validate all user inputs with Zod. Server actions return `{ status, message, fieldErrors? }`.
 
 ```tsx
+import { z } from 'zod'
+
+const contactSchema = z.object({
+  email: z.string().email(),
+  message: z.string().min(1),
+})
+
 async function submitForm(formData: FormData) {
   'use server'
-  
-  const email = formData.get('email')
-  
-  // Validate
-  if (!email || typeof email !== 'string') {
-    return { error: 'Invalid email' }
+  const result = contactSchema.safeParse(Object.fromEntries(formData))
+  if (!result.success) {
+    return { status: 400, message: 'Invalid input', fieldErrors: result.error.flatten().fieldErrors }
   }
-  
-  // Process
-  // ...
+  // Process validated data...
+  return { status: 200, message: 'Success' }
 }
 ```
 
 ### Authentication & Authorization
 - Implement proper authentication
 - Use server-side API calls for sensitive operations
-- Implement rate limiting where necessary
-- Follow CSP guidelines
+- Rate limiting is handled by `proxy.ts` for API routes
+- Follow CSP guidelines (configured in `next.config.ts`)
 
 ## Testing & Debugging
 
@@ -437,4 +452,4 @@ function ClientComponent({ data }) {
 6. **Code Quality**: Follow linting rules, maintain consistent style, write meaningful documentation
 7. **Development**: Use Bun, follow git best practices, understand client/server boundaries
 
-Last updated: 2025-12-18
+Last updated: 2026-02-06

@@ -1,6 +1,8 @@
 'use server'
 
+import { z } from 'zod'
 import type { FormState } from '@/components/ui/form/types'
+import { emailSchema, parseFormData } from '@/utils/validation'
 
 // Demo server action (simulated)
 export async function demoFormAction(
@@ -10,20 +12,19 @@ export async function demoFormAction(
   // Simulate network delay
   await new Promise((resolve) => setTimeout(resolve, 1000))
 
-  const email = formData.get('email') as string
-  const name = formData.get('name') as string
-  const message = formData.get('message') as string
+  const schema = z.object({
+    email: emailSchema,
+    name: z.string().min(2, { error: 'Name must be at least 2 characters' }),
+    message: z.string().optional(),
+  })
 
-  // Simulate validation
-  if (!email?.includes('@')) {
-    return { status: 400, message: 'Please enter a valid email address' }
+  const result = parseFormData(schema, formData)
+
+  if (!('success' in result)) {
+    return result
   }
 
-  if (!name || name.length < 2) {
-    return { status: 400, message: 'Name must be at least 2 characters' }
-  }
-
-  console.log('Form submitted:', { email, name, message })
+  console.log('Form submitted:', result.data)
 
   return { status: 200, message: 'Form submitted successfully!' }
 }

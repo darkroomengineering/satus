@@ -25,11 +25,15 @@ export const studioUrl =
     ? 'http://localhost:3000/studio'
     : `${process.env.NEXT_PUBLIC_BASE_URL || ''}/studio`
 
-/** Public read token for client-side queries */
-export const publicToken = process.env.NEXT_PUBLIC_SANITY_API_READ_TOKEN || ''
+/** Public read token — supports both Satus and Vercel Marketplace conventions */
+export const publicToken =
+  process.env.NEXT_PUBLIC_SANITY_API_READ_TOKEN ||
+  process.env.SANITY_API_READ_TOKEN ||
+  ''
 
-/** Private token for server-side mutations (optional) */
-export const privateToken = process.env.SANITY_PRIVATE_TOKEN || ''
+/** Private token for server-side mutations — supports both Satus and Vercel Marketplace conventions */
+export const privateToken =
+  process.env.SANITY_PRIVATE_TOKEN || process.env.SANITY_API_WRITE_TOKEN || ''
 
 /** Preview URL for draft mode */
 export const previewURL =

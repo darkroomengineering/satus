@@ -8,6 +8,7 @@ import {
   useState,
   useTransition,
 } from 'react'
+import { emailSchema, phoneSchema, zodToValidator } from '@/utils/validation'
 import type {
   FieldError,
   FormAction,
@@ -180,21 +181,10 @@ export function useForm<T = unknown>({
   }
 }
 
-// Built-in validators
-function validatePhoneNumber(phone: string): boolean {
-  const re = /^[0-9+\-\s]+$/
-  return re.test(String(phone))
-}
-
-function validateEmail(email: string): boolean {
-  const re =
-    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-  return re.test(String(email).toLowerCase())
-}
-
+// Built-in validators (uses same Zod schemas as server-side validation)
 const validators: Record<string, (value: string) => boolean> = {
-  email: validateEmail,
-  phone: validatePhoneNumber,
+  email: zodToValidator(emailSchema),
+  phone: zodToValidator(phoneSchema),
 }
 
 // Allow extending validators

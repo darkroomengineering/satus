@@ -1,28 +1,11 @@
 'use server'
 
 import { headers } from 'next/headers'
-import type { ErrorField, FormState } from '@/components/ui/form/types'
+import type { FormState } from '@/components/ui/form/types'
 import { rateLimit, rateLimiters } from '@/lib/utils/rate-limit'
 import { fetchWithTimeout } from '@/utils/fetch'
+import { emailSchema } from '@/utils/validation'
 import { validateFormWithTurnstile } from './turnstile'
-
-// Type declarations for Node.js globals in Next.js server environment
-declare const process: {
-  env: {
-    MAILCHIMP_API_KEY?: string
-    MAILCHIMP_SERVER_PREFIX?: string
-    MAILCHIMP_AUDIENCE_ID?: string
-  }
-}
-
-declare const Buffer: {
-  from(
-    str: string,
-    encoding?: string
-  ): {
-    toString(encoding: string): string
-  }
-}
 
 export interface MailchimpConfig {
   apiKey: string
@@ -205,8 +188,6 @@ export async function mailchimpContactAction(
     return {
       status: 429,
       message: 'rate_limit_exceeded_',
-      errors: new Map(),
-      inputs: {},
     }
   }
 
@@ -217,45 +198,43 @@ export async function mailchimpContactAction(
     message: formData.get('message')?.toString() || '',
   }
 
-  const errors = new Map() as ErrorField
+  const fieldErrors: Record<string, string> = {}
 
   // Turnstile validation (invisible spam protection)
   const turnstileValidation = await validateFormWithTurnstile(formData)
   if (!turnstileValidation.isValid) {
     for (const error of turnstileValidation.errors) {
-      errors.set('turnstile', { state: true, message: error })
+      fieldErrors.turnstile = error
     }
   }
 
   // Basic validation
   if (!rawData.name.trim()) {
-    errors.set('name', { state: true, message: 'name_required_' })
+    fieldErrors.name = 'name_required_'
   }
 
   if (!rawData.email.trim()) {
-    errors.set('email', { state: true, message: 'email_required_' })
+    fieldErrors.email = 'email_required_'
   }
 
   if (!rawData.subject.trim()) {
-    errors.set('subject', { state: true, message: 'subject_required_' })
+    fieldErrors.subject = 'subject_required_'
   }
 
   if (!rawData.message.trim()) {
-    errors.set('message', { state: true, message: 'message_required_' })
+    fieldErrors.message = 'message_required_'
   }
 
   // Email format validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (rawData.email && !emailRegex.test(rawData.email)) {
-    errors.set('email', { state: true, message: 'invalid_email_format_' })
+  if (rawData.email && !emailSchema.safeParse(rawData.email).success) {
+    fieldErrors.email = 'invalid_email_format_'
   }
 
-  if (errors.size > 0) {
+  if (Object.keys(fieldErrors).length > 0) {
     return {
       status: 400,
       message: 'invalid_input_',
-      errors,
-      inputs: rawData,
+      fieldErrors,
     }
   }
 
@@ -263,20 +242,16 @@ export async function mailchimpContactAction(
   const result = await addContactToMailchimp(rawData)
 
   if (!result.success) {
-    errors.set('submit', { state: true, message: 'submission_failed_' })
     return {
       status: 500,
       message: 'submission_failed_',
-      errors,
-      inputs: rawData,
+      fieldErrors: { submit: 'submission_failed_' },
     }
   }
 
   return {
     status: 200,
     message: 'message_sent_',
-    inputs: {},
-    errors: new Map(),
   }
 }
 
@@ -297,8 +272,6 @@ export async function mailchimpSubscriptionAction(
     return {
       status: 429,
       message: 'rate_limit_exceeded_',
-      errors: new Map(),
-      inputs: {},
     }
   }
 
@@ -306,32 +279,30 @@ export async function mailchimpSubscriptionAction(
   const firstName = formData.get('firstName')?.toString() || ''
   const lastName = formData.get('lastName')?.toString() || ''
 
-  const errors = new Map() as ErrorField
+  const fieldErrors: Record<string, string> = {}
 
   // Turnstile validation (invisible spam protection)
   const turnstileValidation = await validateFormWithTurnstile(formData)
   if (!turnstileValidation.isValid) {
     for (const error of turnstileValidation.errors) {
-      errors.set('turnstile', { state: true, message: error })
+      fieldErrors.turnstile = error
     }
   }
 
   if (!email.trim()) {
-    errors.set('email', { state: true, message: 'email_required_' })
+    fieldErrors.email = 'email_required_'
   }
 
   // Email format validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (email && !emailRegex.test(email)) {
-    errors.set('email', { state: true, message: 'invalid_email_format_' })
+  if (email && !emailSchema.safeParse(email).success) {
+    fieldErrors.email = 'invalid_email_format_'
   }
 
-  if (errors.size > 0) {
+  if (Object.keys(fieldErrors).length > 0) {
     return {
       status: 400,
       message: 'invalid_input_',
-      errors,
-      inputs: { email, firstName, lastName },
+      fieldErrors,
     }
   }
 
@@ -348,8 +319,6 @@ export async function mailchimpSubscriptionAction(
       return {
         status: 200,
         message: 'already_subscribed_',
-        inputs: {},
-        errors: new Map(),
       }
     }
 
@@ -364,15 +333,11 @@ export async function mailchimpSubscriptionAction(
     return {
       status: 500,
       message: errorMessage,
-      errors: new Map(),
-      inputs: { email, firstName, lastName },
     }
   }
 
   return {
     status: 200,
     message: 'subscription_successful_',
-    inputs: {},
-    errors: new Map(),
   }
 }

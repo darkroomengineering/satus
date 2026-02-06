@@ -83,7 +83,7 @@ export async function shopifyFetch<T = Record<string, unknown>>({
     }
 
     if (body.errors) {
-      throw body.errors[0]
+      throw new Error(body.errors[0]?.message ?? 'Unknown Shopify API error')
     }
 
     return {
@@ -96,10 +96,10 @@ export async function shopifyFetch<T = Record<string, unknown>>({
       console.log('Shopify request aborted (cache expired or timeout)')
     }
 
-    throw {
-      error: e,
-      query,
-    }
+    const message = e instanceof Error ? e.message : 'Unknown error'
+    const error = new Error(`Shopify fetch failed: ${message}`)
+    error.cause = { originalError: e, query }
+    throw error
   }
 }
 

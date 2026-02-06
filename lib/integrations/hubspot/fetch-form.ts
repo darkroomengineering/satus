@@ -105,8 +105,7 @@ function apiParser(id: string | null, data: HubspotFormResponse) {
     (data?.legalConsentOptions as HubSpotLegalConsentOptions)
       ?.communicationsCheckboxes || null
 
-  const removeHTML = (htmlText: string) =>
-    htmlText.replace('<p>', '').replace('</p>', '')
+  const removeHTML = (htmlText: string) => htmlText.replace(/<[^>]*>/g, '')
 
   return {
     portalId: process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID,

@@ -1,7 +1,9 @@
 'use server'
 
 import { revalidateTag } from 'next/cache'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
+import { z } from 'zod'
+import { rateLimit, rateLimiters } from '@/lib/utils/rate-limit'
 import { TAGS } from '../constants'
 import {
   addToCart,
@@ -10,12 +12,17 @@ import {
   removeFromCart,
   updateCart,
 } from '../index'
-import type {
-  AddItemPayload,
-  Cart,
-  CartData,
-  UpdateItemQuantityPayload,
-} from '../types'
+import type { AddItemPayload, Cart, CartData } from '../types'
+
+const addItemSchema = z.object({
+  variantId: z.string().min(1, { error: 'Product variant ID is required' }),
+  quantity: z.number().int().min(1).max(99).optional().default(1),
+})
+
+const updateQuantitySchema = z.object({
+  merchandiseId: z.string().min(1, { error: 'Merchandise ID is required' }),
+  quantity: z.number().int().min(0).max(99),
+})
 
 export async function removeItem(
   _prevState: unknown,
@@ -26,6 +33,17 @@ export async function removeItem(
 
   if (!cartId) {
     return 'Missing cart ID'
+  }
+
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0] || 'unknown'
+  const rateLimitResult = rateLimit(`cart-remove:${ip}`, rateLimiters.standard)
+  if (!rateLimitResult.success) {
+    return 'Too many requests. Please try again later.'
+  }
+
+  if (!merchandiseId) {
+    return 'Merchandise ID is required'
   }
 
   try {
@@ -72,12 +90,22 @@ export async function addItem(
     })
   }
 
-  if (!variantId) {
-    return 'Missing product variant ID'
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0] || 'unknown'
+  const rateLimitResult = rateLimit(`cart-add:${ip}`, rateLimiters.standard)
+  if (!rateLimitResult.success) {
+    return 'Too many requests. Please try again later.'
+  }
+
+  const parsed = addItemSchema.safeParse({ variantId, quantity })
+  if (!parsed.success) {
+    return parsed.error.issues[0]?.message ?? 'Invalid input'
   }
 
   try {
-    await addToCart(cartId, [{ merchandiseId: variantId, quantity }])
+    await addToCart(cartId, [
+      { merchandiseId: parsed.data.variantId, quantity: parsed.data.quantity },
+    ])
     revalidateTag(TAGS.cart, {})
 
     return 'success'
@@ -88,13 +116,28 @@ export async function addItem(
 
 export async function updateItemQuantity(
   _prevState: unknown,
-  payload: UpdateItemQuantityPayload = { merchandiseId: '', quantity: 0 }
+  payload: { merchandiseId: string; quantity: number } = {
+    merchandiseId: '',
+    quantity: 0,
+  }
 ): Promise<string | undefined> {
   const _cookies = await cookies()
   const cartId = _cookies.get('cartId')?.value
 
   if (!cartId) {
     return 'Missing cart ID'
+  }
+
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0] || 'unknown'
+  const rateLimitResult = rateLimit(`cart-update:${ip}`, rateLimiters.standard)
+  if (!rateLimitResult.success) {
+    return 'Too many requests. Please try again later.'
+  }
+
+  const parsed = updateQuantitySchema.safeParse(payload)
+  if (!parsed.success) {
+    return parsed.error.issues[0]?.message ?? 'Invalid input'
   }
 
   try {
@@ -104,7 +147,7 @@ export async function updateItemQuantity(
       return 'Error fetching cart'
     }
 
-    const { merchandiseId, quantity } = payload
+    const { merchandiseId, quantity } = parsed.data
 
     const lineItem = cart.lines.find(
       (line) => line.merchandise.id === merchandiseId

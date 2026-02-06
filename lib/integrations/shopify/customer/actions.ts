@@ -1,8 +1,10 @@
 'use server'
 
 import { cookies, headers } from 'next/headers'
+import { z } from 'zod'
 import type { FormState } from '@/components/ui/form/types'
 import { rateLimit, rateLimiters } from '@/lib/utils/rate-limit'
+import { emailSchema } from '@/utils/validation'
 import { shopifyFetch } from '../index'
 import {
   customerAccessTokenCreateMutation,
@@ -10,6 +12,20 @@ import {
   customerCreateMutation,
 } from '../mutations/customer'
 import { getCustomerQuery } from '../queries/customer'
+
+const loginSchema = z.object({
+  email: emailSchema,
+  password: z.string().min(1, { error: 'Password is required' }),
+})
+
+const createCustomerSchema = z.object({
+  firstName: z.string().min(1, { error: 'First name is required' }),
+  lastName: z.string().min(1, { error: 'Last name is required' }),
+  email: emailSchema,
+  password: z
+    .string()
+    .min(8, { error: 'Password must be at least 8 characters' }),
+})
 
 export async function LoginCustomerAction(
   _prevState: FormState | null,
@@ -27,8 +43,23 @@ export async function LoginCustomerAction(
     }
   }
 
-  const email = formData.get('email')
-  const password = formData.get('password')
+  const parsed = loginSchema.safeParse({
+    email: formData.get('email'),
+    password: formData.get('password'),
+  })
+
+  if (!parsed.success) {
+    const fieldErrors: Record<string, string> = {}
+    for (const issue of parsed.error.issues) {
+      const path = issue.path.join('.')
+      if (path && !fieldErrors[path]) {
+        fieldErrors[path] = issue.message
+      }
+    }
+    return { status: 400, message: 'Invalid input', fieldErrors }
+  }
+
+  const { email, password } = parsed.data
 
   try {
     const res = await shopifyFetch<{
@@ -117,10 +148,25 @@ export async function CreateCustomerAction(
     }
   }
 
-  const firstName = formData.get('firstName')
-  const lastName = formData.get('lastName')
-  const email = formData.get('email')
-  const password = formData.get('password')
+  const parsed = createCustomerSchema.safeParse({
+    firstName: formData.get('firstName'),
+    lastName: formData.get('lastName'),
+    email: formData.get('email'),
+    password: formData.get('password'),
+  })
+
+  if (!parsed.success) {
+    const fieldErrors: Record<string, string> = {}
+    for (const issue of parsed.error.issues) {
+      const path = issue.path.join('.')
+      if (path && !fieldErrors[path]) {
+        fieldErrors[path] = issue.message
+      }
+    }
+    return { status: 400, message: 'Invalid input', fieldErrors }
+  }
+
+  const { firstName, lastName, email, password } = parsed.data
 
   try {
     const res = await shopifyFetch<{

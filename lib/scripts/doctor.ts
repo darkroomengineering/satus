@@ -7,6 +7,7 @@
 
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { coreEnvSchema } from '../utils/validation'
 
 const ROOT = process.cwd()
 
@@ -55,6 +56,20 @@ const checks: Check[] = [
     check: () =>
       existsSync(join(ROOT, '.env.local')) || existsSync(join(ROOT, '.env')),
     fix: 'Copy .env.example to .env.local and fill in values',
+  },
+  {
+    name: 'Environment variables valid',
+    check: () => {
+      const result = coreEnvSchema.safeParse(process.env)
+      if (!result.success) {
+        const issues = result.error.issues.map(
+          (i) => `${i.path.join('.')}: ${i.message}`
+        )
+        console.log(`  ${colors.dim(issues.join(', '))}`)
+      }
+      return result.success
+    },
+    fix: 'Check .env.local for invalid values (e.g., NEXT_PUBLIC_BASE_URL must be a valid URL)',
   },
   {
     name: 'TypeScript config exists',

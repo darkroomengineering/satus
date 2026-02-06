@@ -1,8 +1,16 @@
 'use server'
 
 import { headers } from 'next/headers'
+import { z } from 'zod'
+
 import { rateLimit, rateLimiters } from '@/lib/utils/rate-limit'
 import { fetchWithTimeout } from '@/utils/fetch'
+import { emailSchema } from '@/utils/validation'
+
+const hubspotNewsletterSchema = z.object({
+  email: emailSchema,
+  formId: z.string().min(1, { error: 'Form ID is required' }),
+})
 
 export async function HubspotNewsletterAction(_: unknown, formData: FormData) {
   // Rate limit to prevent newsletter subscription abuse
@@ -17,14 +25,35 @@ export async function HubspotNewsletterAction(_: unknown, formData: FormData) {
     }
   }
 
+  // Validate input
+  const parsed = hubspotNewsletterSchema.safeParse({
+    email: formData.get('email'),
+    formId: formData.get('formId'),
+  })
+
+  if (!parsed.success) {
+    const fieldErrors: Record<string, string> = {}
+    for (const issue of parsed.error.issues) {
+      const path = issue.path.join('.')
+      if (path && !fieldErrors[path]) {
+        fieldErrors[path] = issue.message
+      }
+    }
+    return {
+      status: 400,
+      message: 'Invalid input',
+      fieldErrors,
+    }
+  }
+
   const portalId = process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID
-  const formId = formData.get('formId')
+  const { email, formId } = parsed.data
 
   const body = {
     fields: [
       {
         name: 'email',
-        value: formData.get('email'),
+        value: email,
       },
     ],
   }

@@ -176,6 +176,37 @@ Re-exports: `clamp`, `lerp`, `mapRange`, `modulo`, `truncate` from math; `easing
 | useStandardContext | `(Context, hookName) => { state, actions, meta? }` | Consume standard context with error boundary |
 | StandardContext | `interface { state: S, actions: A, meta?: M }` | Standard context type interface |
 
+### Validation (`@/utils/validation`)
+
+| Export | Type | Description |
+|--------|------|-------------|
+| sanityEnvSchema | `ZodObject` | Validates Sanity env vars |
+| shopifyEnvSchema | `ZodObject` | Validates Shopify env vars |
+| hubspotEnvSchema | `ZodObject` | Validates HubSpot env vars (either token or portal ID) |
+| mailchimpEnvSchema | `ZodObject` | Validates Mailchimp env vars |
+| turnstileEnvSchema | `ZodObject` | Validates Turnstile env vars |
+| analyticsEnvSchema | `ZodObject` | Validates Analytics env vars (either GA or GTM) |
+| coreEnvSchema | `ZodObject` | Validates core env vars (BASE_URL as valid URL) |
+| emailSchema | `ZodEmail` | Zod 4 email validator |
+| phoneSchema | `ZodString` | E.164 phone number validator |
+| parseFormData | `(schema, formData) => FormState \| { success, data }` | Parse and validate FormData with Zod schema |
+| zodToValidator | `(schema) => (value: string) => boolean` | Bridge Zod schemas to form hook client validators |
+
+### Environment (`@/lib/env`)
+
+| Export | Type | Description |
+|--------|------|-------------|
+| env | `Env` | Typed, validated environment variables (parsed once at import) |
+
+### Integration Registry (`@/integrations/registry`)
+
+| Export | Type | Description |
+|--------|------|-------------|
+| integrations | `Record<IntegrationId, IntegrationEntry>` | All available integrations with name, schema, docs URL |
+| isConfigured | `(id: IntegrationId) => boolean` | Check if a specific integration is configured |
+| getConfigured | `() => string[]` | Get names of all configured integrations |
+| getUnconfigured | `() => string[]` | Get names of all unconfigured integrations |
+
 ---
 
 ## WebGL Components

@@ -4,110 +4,56 @@
  * Utilities to check if integrations are configured via environment variables.
  * This helps with tree-shaking unused integrations from the bundle.
  *
+ * All checks are backed by Zod schemas defined in the integration registry.
+ *
  * Usage:
  * ```ts
  * import { isShopifyConfigured } from '@/integrations/check-integration'
  *
  * if (isShopifyConfigured()) {
- *   // Only import and use Shopify code if configured
  *   const { ShopifyCart } = await import('@/integrations/shopify/cart')
  * }
  * ```
  */
 
-/**
- * Check if Sanity CMS is configured
- * Requires: NEXT_PUBLIC_SANITY_PROJECT_ID and NEXT_PUBLIC_SANITY_DATASET
- */
+import { getConfigured, getUnconfigured, isConfigured } from './registry'
+
+/** Check if Sanity CMS is configured */
 export function isSanityConfigured(): boolean {
-  return Boolean(
-    process.env.NEXT_PUBLIC_SANITY_PROJECT_ID &&
-      process.env.NEXT_PUBLIC_SANITY_DATASET
-  )
+  return isConfigured('sanity')
 }
 
-/**
- * Check if Shopify is configured
- * Requires: SHOPIFY_STORE_DOMAIN and SHOPIFY_STOREFRONT_ACCESS_TOKEN
- */
+/** Check if Shopify is configured */
 export function isShopifyConfigured(): boolean {
-  return Boolean(
-    process.env.SHOPIFY_STORE_DOMAIN &&
-      process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN
-  )
+  return isConfigured('shopify')
 }
 
-/**
- * Check if HubSpot is configured
- * Requires: HUBSPOT_ACCESS_TOKEN or NEXT_PUBLIC_HUBSPOT_PORTAL_ID
- */
+/** Check if HubSpot is configured */
 export function isHubSpotConfigured(): boolean {
-  return Boolean(
-    process.env.HUBSPOT_ACCESS_TOKEN ||
-      process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID
-  )
+  return isConfigured('hubspot')
 }
 
-/**
- * Check if Mailchimp is configured
- * Requires: MAILCHIMP_API_KEY, MAILCHIMP_SERVER_PREFIX, and MAILCHIMP_AUDIENCE_ID
- */
+/** Check if Mailchimp is configured */
 export function isMailchimpConfigured(): boolean {
-  return Boolean(
-    process.env.MAILCHIMP_API_KEY &&
-      process.env.MAILCHIMP_SERVER_PREFIX &&
-      process.env.MAILCHIMP_AUDIENCE_ID
-  )
+  return isConfigured('mailchimp')
 }
 
-/**
- * Check if Google Analytics is configured
- * Requires: NEXT_PUBLIC_GOOGLE_ANALYTICS or NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID
- */
+/** Check if Google Analytics is configured */
 export function isAnalyticsConfigured(): boolean {
-  return Boolean(
-    process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS ||
-      process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID
-  )
+  return isConfigured('analytics')
 }
 
-/**
- * Check if Cloudflare Turnstile is configured
- * Requires: NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY and CLOUDFLARE_TURNSTILE_SECRET_KEY
- */
+/** Check if Cloudflare Turnstile is configured */
 export function isTurnstileConfigured(): boolean {
-  return Boolean(
-    process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY &&
-      process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY
-  )
+  return isConfigured('turnstile')
 }
 
-/**
- * Get a list of all configured integrations
- */
+/** Get a list of all configured integrations */
 export function getConfiguredIntegrations(): string[] {
-  const integrations: string[] = []
-
-  if (isSanityConfigured()) integrations.push('Sanity')
-  if (isShopifyConfigured()) integrations.push('Shopify')
-  if (isHubSpotConfigured()) integrations.push('HubSpot')
-  if (isMailchimpConfigured()) integrations.push('Mailchimp')
-  if (isTurnstileConfigured()) integrations.push('Turnstile')
-
-  return integrations
+  return getConfigured()
 }
 
-/**
- * Get a list of all unconfigured integrations
- */
+/** Get a list of all unconfigured integrations */
 export function getUnconfiguredIntegrations(): string[] {
-  const integrations: string[] = []
-
-  if (!isSanityConfigured()) integrations.push('Sanity')
-  if (!isShopifyConfigured()) integrations.push('Shopify')
-  if (!isHubSpotConfigured()) integrations.push('HubSpot')
-  if (!isMailchimpConfigured()) integrations.push('Mailchimp')
-  if (!isTurnstileConfigured()) integrations.push('Turnstile')
-
-  return integrations
+  return getUnconfigured()
 }

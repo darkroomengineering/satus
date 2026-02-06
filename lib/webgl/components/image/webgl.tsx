@@ -1,6 +1,6 @@
 import { useTexture } from '@react-three/drei'
 import type { Rect } from 'hamo'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { LinearFilter, type Mesh, MeshBasicMaterial } from 'three'
 import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
 
@@ -29,6 +29,12 @@ function isRectValid(rect: Rect): boolean {
 export function WebGLImage({ src, rect, visible = true }: WebGLImageProps) {
   const meshRef = useRef<Mesh>(null!)
   const [material] = useState(() => new MeshBasicMaterial())
+
+  useEffect(() => {
+    return () => {
+      material.dispose()
+    }
+  }, [material])
 
   useTexture(src || '', (texture) => {
     if (!src) return

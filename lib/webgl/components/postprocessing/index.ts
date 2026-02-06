@@ -1,6 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { CopyPass, EffectComposer, RenderPass } from 'postprocessing'
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { HalfFloatType } from 'three'
 
 export function PostProcessing() {
@@ -18,23 +18,39 @@ export function PostProcessing() {
   const maxSamples = gl.capabilities.maxSamples
   const needsAA = dpr < 2
 
-  const composer = new EffectComposer(gl, {
-    multisampling: isWebgl2 && needsAA ? maxSamples : 0,
-    frameBufferType: HalfFloatType,
-  })
+  const [composer] = useState(
+    () =>
+      new EffectComposer(gl, {
+        multisampling: isWebgl2 && needsAA ? maxSamples : 0,
+        frameBufferType: HalfFloatType,
+      })
+  )
 
-  const renderPass = new RenderPass(scene, camera)
-  const copyPass = new CopyPass()
+  const renderPassRef = useRef<RenderPass | null>(null)
+  const copyPassRef = useRef<CopyPass | null>(null)
 
   useEffect(() => {
+    const renderPass = new RenderPass(scene, camera)
+    const copyPass = new CopyPass()
+    renderPassRef.current = renderPass
+    copyPassRef.current = copyPass
+
     composer.addPass(renderPass)
     composer.addPass(copyPass)
 
     return () => {
       composer.removePass(renderPass)
       composer.removePass(copyPass)
+      renderPass.dispose()
+      copyPass.dispose()
     }
-  }, [composer, renderPass, copyPass])
+  }, [composer, scene, camera])
+
+  useEffect(() => {
+    return () => {
+      composer.dispose()
+    }
+  }, [composer])
 
   useEffect(() => {
     const initialDpr = Math.min(window.devicePixelRatio, 2)

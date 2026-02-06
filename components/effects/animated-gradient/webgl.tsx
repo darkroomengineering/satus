@@ -20,6 +20,12 @@ function useGradient(colors: string[]) {
   })
 
   useEffect(() => {
+    return () => {
+      texture.dispose()
+    }
+  }, [texture])
+
+  useEffect(() => {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height)
@@ -88,6 +94,12 @@ export function WebGLAnimatedGradient({
   )
 
   const gradientTexture = useGradient(colors)
+
+  useEffect(() => {
+    return () => {
+      material.dispose()
+    }
+  }, [material])
 
   useEffect(() => {
     material.colorsTexture = gradientTexture

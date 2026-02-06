@@ -55,6 +55,10 @@ lib/                    # Everything non-UI
 | Area | Documentation |
 |------|---------------|
 | Architecture | [ARCHITECTURE.md](ARCHITECTURE.md) — Key decisions & patterns |
+| Customization | [BOUNDARIES.md](BOUNDARIES.md) — What to modify vs what's framework |
+| Components | [COMPONENTS.md](COMPONENTS.md) — Complete component/hook/utility inventory |
+| Patterns | [PATTERNS.md](PATTERNS.md) — Recurring code patterns guide |
+| AI Agents | [CLAUDE.md](CLAUDE.md) — Agent-readable project configuration |
 | App Router | [app/README.md](app/README.md) — Pages, layouts, routing |
 | Components | [components/README.md](components/README.md) — UI reference |
 | Library | [lib/README.md](lib/README.md) — Hooks, utils, integrations |

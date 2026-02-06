@@ -5,6 +5,15 @@ import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
 import { Euler, Vector3 } from 'three'
 import { useTransform } from '@/hooks/use-transform'
 
+/**
+ * Represents the computed transform for positioning a WebGL mesh
+ * to match a DOM element's bounding rectangle.
+ *
+ * @property position - World-space position (x/y derived from DOM rect, z = 0).
+ * @property rotation - Euler rotation (currently unused, reserved for future use).
+ * @property scale - World-space scale where x = rect width, y = rect height.
+ * @property isVisible - Whether the element is within the scroll viewport bounds.
+ */
 interface WebGLTransform {
   position: Vector3
   rotation: Euler
@@ -42,6 +51,19 @@ interface UseWebGLRectOptions {
  *   return <mesh ref={meshRef}>...</mesh>
  * }
  * ```
+ *
+ * @param rect - Bounding rectangle from `useRect` or `useWebGLElement`.
+ *   Provides `top`, `left`, `width`, and `height` values that are
+ *   translated into WebGL world-space coordinates.
+ * @param onUpdate - Optional callback invoked on every scroll/transform
+ *   change with the latest {@link WebGLTransform}. Use this to imperatively
+ *   update mesh position and scale each frame.
+ * @param options - Configuration options.
+ * @param options.visible - When `false`, skips all position and visibility
+ *   computations for off-screen culling performance. Defaults to `true`.
+ * @returns A stable getter function that returns the current
+ *   {@link WebGLTransform}. The getter reference never changes, making it
+ *   safe to use in dependency arrays.
  */
 export function useWebGLRect(
   rect: Rect,

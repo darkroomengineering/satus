@@ -1,3 +1,21 @@
+/**
+ * @module store
+ *
+ * Central WebGL lifecycle store built on Zustand.
+ *
+ * Manages the activation state and tunnel instances for the global
+ * `<Canvas>` / `<GlobalCanvas>` system. Components throughout the app
+ * read from this store to decide whether to mount the canvas, whether
+ * to enable the RAF loop, and where to portal WebGL or DOM children.
+ *
+ * Key consumers:
+ * - **`GlobalCanvas`** -- reads `isActivated` to decide whether to
+ *   mount the R3F canvas for the first time.
+ * - **`Canvas`** / **`Wrapper`** -- read `isActive` to toggle CSS
+ *   visibility and pause the render loop when no page needs WebGL.
+ * - **`WebGLTunnel` / `DOMTunnel`** -- use the tunnel getters to
+ *   obtain the shared `tunnel-rat` instances for portaling children.
+ */
 import tunnel from 'tunnel-rat'
 import { create } from 'zustand'
 
@@ -61,6 +79,23 @@ type WebGLStore = {
   setActive: (active: boolean) => void
 }
 
+/**
+ * Zustand hook for the global WebGL lifecycle state.
+ *
+ * Consumed by `Canvas`, `GlobalCanvas`, `Wrapper`, and tunnel components
+ * to coordinate lazy canvas activation, visibility toggling, and
+ * child portaling.
+ *
+ * @example
+ * ```tsx
+ * // Read activation state
+ * const isActivated = useWebGLStore((s) => s.isActivated)
+ *
+ * // Activate the canvas on first WebGL page visit
+ * const activate = useWebGLStore((s) => s.activate)
+ * useEffect(() => { activate() }, [activate])
+ * ```
+ */
 export const useWebGLStore = create<WebGLStore>((set, get) => ({
   isActivated: false,
   isActive: false,

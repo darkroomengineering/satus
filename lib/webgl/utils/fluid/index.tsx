@@ -17,6 +17,12 @@ export function useFluidSim() {
   }
   const fluid = fluidRef.current
 
+  useEffect(() => {
+    return () => {
+      fluidRef.current?.destroy()
+    }
+  }, [])
+
   const lastMouseRef = useRef({ x: 0, y: 0, isInit: false })
 
   // Setup mouse event listeners

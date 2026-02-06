@@ -1,6 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { types } from '@theatre/core'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useCurrentSheet } from '@/dev/theatre'
 import { useTheatre } from '@/dev/theatre/hooks/use-theatre'
 import { Flowmap } from '@/webgl/utils/flowmaps/flowmap-sim'
@@ -15,6 +15,12 @@ export function useFlowmapSim() {
     flowmapRef.current = new Flowmap(gl, { size: 128 })
   }
   const flowmap = flowmapRef.current
+
+  useEffect(() => {
+    return () => {
+      flowmapRef.current?.destroy()
+    }
+  }, [])
 
   useTheatre(
     sheet,

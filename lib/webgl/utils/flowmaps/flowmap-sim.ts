@@ -153,6 +153,24 @@ export class Flowmap {
   get dissipation() {
     return this.material.uniforms.uDissipation!.value
   }
+
+  destroy(): null {
+    const isTouchCapable = 'ontouchstart' in window
+    if (isTouchCapable) {
+      window.removeEventListener('touchstart', this.updateMouse, false)
+      window.removeEventListener('touchmove', this.updateMouse, false)
+    } else {
+      window.removeEventListener('mousemove', this.updateMouse, false)
+    }
+
+    this.mask.read?.dispose()
+    this.mask.write?.dispose()
+    this.material.dispose()
+    this.program.mesh.geometry.dispose()
+    this.program.scene.clear()
+
+    return null
+  }
 }
 
 const vertexShader = /* glsl */ `

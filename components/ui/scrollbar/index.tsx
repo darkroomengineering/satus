@@ -52,12 +52,13 @@ export function Scrollbar() {
       document.documentElement.classList.remove('scrollbar-grabbing')
     }
 
-    thumbRef.current?.addEventListener('pointerdown', onPointerDown, false)
+    const element = thumbRef.current
+    element?.addEventListener('pointerdown', onPointerDown, false)
     window.addEventListener('pointermove', onPointerMove, false)
     window.addEventListener('pointerup', onPointerUp, false)
 
     return () => {
-      thumbRef.current?.removeEventListener('pointerdown', onPointerDown, false)
+      element?.removeEventListener('pointerdown', onPointerDown, false)
       window.removeEventListener('pointermove', onPointerMove, false)
       window.removeEventListener('pointerup', onPointerUp, false)
     }

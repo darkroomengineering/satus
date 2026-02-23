@@ -210,6 +210,7 @@ export function Image({
       alt={alt}
       style={{
         objectFit,
+        ...(block && aspectRatio ? { aspectRatio } : {}),
         ...style,
       }}
       className={cn(className, block && s.block)}

@@ -32,18 +32,14 @@
     ],
     "paths": {
       "@/*": ["./*"],
-      "@/components/*": ["./components/*"],
-      "@/lib/*": ["./lib/*"],
       "@/hooks/*": ["./lib/hooks/*"],
       "@/styles/*": ["./lib/styles/*"],
       "@/integrations/*": ["./lib/integrations/*"],
       "@/webgl/*": ["./lib/webgl/*"],
       "@/utils/*": ["./lib/utils/*"],
       "@/config": ["./lib/styles/config.ts"],
-      "@/dev/*": ["./lib/dev/*"],
-      "@/dev/theatre/*": ["./lib/dev/theatre/*"],
-      "@/dev/theatre": ["./lib/dev/theatre"],
-      "@/dev": ["./lib/dev"]
+      "@/dev": ["./lib/dev"],
+      "@/dev/*": ["./lib/dev/*"]
     }
   },
   "include": [

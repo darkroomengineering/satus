@@ -3,7 +3,6 @@ import {
   type FocusEventHandler,
   type FormEvent,
   useActionState,
-  useCallback,
   useRef,
   useState,
   useTransition,
@@ -54,30 +53,30 @@ export function useForm<T = unknown>({
   const registeredCount = useRef(0)
 
   // Initialize state for a specific input when it registers
-  const initializeInput = useCallback(
-    (index: number, input: HTMLInputElement | HTMLTextAreaElement | null) => {
-      setIsActive((prev) => {
-        const next = [...prev]
-        next[index] = false
-        return next
-      })
-      setIsValid((prev) => {
-        const next = [...prev]
-        // Hidden inputs are always valid, others start as invalid until validated
-        const isHidden =
-          input?.id === 'hidden' ||
-          (input instanceof HTMLInputElement && input.type === 'hidden')
-        next[index] = isHidden
-        return next
-      })
-      setErrors((prev) => {
-        const next = [...prev]
-        next[index] = { state: false, message: '' }
-        return next
-      })
-    },
-    []
-  )
+  function initializeInput(
+    index: number,
+    input: HTMLInputElement | HTMLTextAreaElement | null
+  ) {
+    setIsActive((prev) => {
+      const next = [...prev]
+      next[index] = false
+      return next
+    })
+    setIsValid((prev) => {
+      const next = [...prev]
+      // Hidden inputs are always valid, others start as invalid until validated
+      const isHidden =
+        input?.id === 'hidden' ||
+        (input instanceof HTMLInputElement && input.type === 'hidden')
+      next[index] = isHidden
+      return next
+    })
+    setErrors((prev) => {
+      const next = [...prev]
+      next[index] = { state: false, message: '' }
+      return next
+    })
+  }
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -91,15 +90,15 @@ export function useForm<T = unknown>({
     })
   }
 
-  const setToActiveInput = useCallback((value: string, index: number) => {
+  function setToActiveInput(value: string, index: number) {
     setIsActive((prev) => {
       const next = [...prev]
       next[index] = value.length > 0
       return next
     })
-  }, [])
+  }
 
-  const validate = useCallback((value: string, index: number) => {
+  function validate(value: string, index: number) {
     const element = inputsRefs.current[index]
     if (!element) return
 
@@ -133,10 +132,10 @@ export function useForm<T = unknown>({
       }
       return next
     })
-  }, [])
+  }
 
-  const register = useCallback(
-    (index: number) => ({
+  function register(index: number) {
+    return {
       ref: (node: HTMLInputElement | HTMLTextAreaElement | null) => {
         const isNewRegistration = !inputsRefs.current[index] && node
         inputsRefs.current[index] = node
@@ -164,9 +163,8 @@ export function useForm<T = unknown>({
           validate(target.value, index)
         }
       },
-    }),
-    [onBlur, initializeInput, setToActiveInput, validate]
-  )
+    }
+  }
 
   return {
     formState: formState as FormState<T> | null,

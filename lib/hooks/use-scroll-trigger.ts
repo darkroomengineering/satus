@@ -2,7 +2,7 @@
 
 import { type Rect, useLazyState, useWindowSize } from 'hamo'
 import { useLenis } from 'lenis/react'
-import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
+import { useEffect, useEffectEvent, useRef } from 'react'
 import { useTransform } from '@/hooks/use-transform'
 import { useOrchestra } from '@/lib/dev'
 import { useMinimap } from '@/lib/dev/minimap'
@@ -81,30 +81,23 @@ function useMarker({
     }
   }, [color, text, fixed, id, visible, type, setElementRef, minimap])
 
-  const top = useCallback(
-    (value: number) => {
-      if (!elementRef.current) return 0
+  function top(value: number) {
+    if (!elementRef.current) return 0
 
-      if (type === 'start') {
-        return clamp(
-          0,
-          value,
-          elementRef.current.getBoundingClientRect().height
-        )
-      }
+    if (type === 'start') {
+      return clamp(0, value, elementRef.current.getBoundingClientRect().height)
+    }
 
-      if (type === 'end') {
-        return clamp(
-          0,
-          value - window.innerHeight,
-          elementRef.current.getBoundingClientRect().height - window.innerHeight
-        )
-      }
+    if (type === 'end') {
+      return clamp(
+        0,
+        value - window.innerHeight,
+        elementRef.current.getBoundingClientRect().height - window.innerHeight
+      )
+    }
 
-      return 0
-    },
-    [type]
-  )
+    return 0
+  }
 
   return { top }
 }

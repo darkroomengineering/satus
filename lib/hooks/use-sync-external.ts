@@ -12,51 +12,10 @@ import { useSyncExternalStore } from 'react'
  */
 
 // ============================================================================
-// useMediaQuery
+// useMediaQuery — re-exported from hamo for single canonical source
 // ============================================================================
 
-function subscribeToMediaQuery(query: string) {
-  return (callback: () => void) => {
-    const mql = window.matchMedia(query)
-    mql.addEventListener('change', callback)
-    return () => mql.removeEventListener('change', callback)
-  }
-}
-
-function getMediaQuerySnapshot(query: string) {
-  return () => window.matchMedia(query).matches
-}
-
-function getMediaQueryServerSnapshot() {
-  return false
-}
-
-/**
- * Subscribe to a CSS media query with automatic updates.
- *
- * Uses useSyncExternalStore for concurrent-rendering safety.
- * Only re-renders when the media query result changes.
- *
- * @param query - CSS media query string
- * @returns Whether the media query matches
- *
- * @example
- * ```tsx
- * function ResponsiveComponent() {
- *   const isDesktop = useMediaQuery('(min-width: 800px)')
- *   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
- *
- *   return isDesktop ? <DesktopView /> : <MobileView />
- * }
- * ```
- */
-export function useMediaQuery(query: string): boolean {
-  return useSyncExternalStore(
-    subscribeToMediaQuery(query),
-    getMediaQuerySnapshot(query),
-    getMediaQueryServerSnapshot
-  )
-}
+export { useMediaQuery } from 'hamo'
 
 // ============================================================================
 // useOnlineStatus

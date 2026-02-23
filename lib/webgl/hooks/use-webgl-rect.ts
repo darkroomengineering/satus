@@ -1,7 +1,7 @@
 import { useThree } from '@react-three/fiber'
 import type { Rect } from 'hamo'
 import { useLenis } from 'lenis/react'
-import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
+import { useEffect, useEffectEvent, useRef } from 'react'
 import { Euler, Vector3 } from 'three'
 import { useTransform } from '@/hooks/use-transform'
 
@@ -134,7 +134,9 @@ export function useWebGLRect(
     }
   }, [lenis]) // handleUpdate is stable from useEffectEvent
 
-  const get = useCallback(() => transformRef.current, [])
+  function get() {
+    return transformRef.current
+  }
 
   return get
 }

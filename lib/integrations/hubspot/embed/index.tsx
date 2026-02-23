@@ -2,7 +2,7 @@
 
 import cn from 'clsx'
 import Script, { type ScriptProps } from 'next/script'
-import { useCallback, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import s from './form.module.css'
 
 type EmbedHubspotFormProps = {
@@ -25,7 +25,7 @@ export function EmbedHubspotForm({
 }: EmbedHubspotFormProps) {
   const formCreatedRef = useRef(false)
 
-  const createForm = useCallback(() => {
+  function createForm() {
     if (formCreatedRef.current) return
 
     if (
@@ -47,15 +47,16 @@ export function EmbedHubspotForm({
         ...(onSubmit && { onFormSubmitted: onSubmit }),
       })
     }
-  }, [formId, target, onSubmit])
+  }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: React Compiler handles dependency tracking
   useEffect(() => {
     createForm()
     // Reset the ref when component unmounts
     return () => {
       formCreatedRef.current = false
     }
-  }, [createForm])
+  }, [formId, target, onSubmit])
 
   return (
     <div id={target} className={cn(s['hubspot-form'], className)}>

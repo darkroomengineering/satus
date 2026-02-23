@@ -4,7 +4,6 @@ import {
   createContext,
   type ReactNode,
   type Ref,
-  useCallback,
   useContext,
   useEffect,
   useEffectEvent,
@@ -149,7 +148,7 @@ export function TransformProvider({ children, ref }: TransformProviderProps) {
   const parentTransformRef = useRef(structuredClone(DEFAULT_TRANSFORM))
   const transformRef = useRef(structuredClone(DEFAULT_TRANSFORM))
 
-  const getTransform = useCallback<() => Transform>(() => {
+  function getTransform(): Transform {
     const transform = structuredClone(parentTransformRef.current)
 
     transform.translate.x += transformRef.current.translate.x
@@ -170,19 +169,19 @@ export function TransformProvider({ children, ref }: TransformProviderProps) {
     }
 
     return transform
-  }, [])
+  }
 
   const callbacksRefs = useRef<TransformCallback[]>([])
 
-  const addCallback = useCallback((callback: TransformCallback) => {
+  function addCallback(callback: TransformCallback) {
     callbacksRefs.current.push(callback)
-  }, [])
+  }
 
-  const removeCallback = useCallback((callback: TransformCallback) => {
+  function removeCallback(callback: TransformCallback) {
     callbacksRefs.current = callbacksRefs.current.filter(
       (ref) => ref !== callback
     )
-  }, [])
+  }
 
   const update = useEffectEvent(() => {
     for (const callback of callbacksRefs.current) {
@@ -190,47 +189,43 @@ export function TransformProvider({ children, ref }: TransformProviderProps) {
     }
   })
 
-  const setTranslate = useCallback((x = 0, y = 0, z = 0) => {
+  function setTranslate(x = 0, y = 0, z = 0) {
     if (!Number.isNaN(x)) transformRef.current.translate.x = Number(x)
     if (!Number.isNaN(y)) transformRef.current.translate.y = Number(y)
     if (!Number.isNaN(z)) transformRef.current.translate.z = Number(z)
 
     update()
-  }, [])
+  }
 
-  const setRotate = useCallback((x = 0, y = 0, z = 0) => {
+  function setRotate(x = 0, y = 0, z = 0) {
     if (!Number.isNaN(x)) transformRef.current.rotate.x = Number(x)
     if (!Number.isNaN(y)) transformRef.current.rotate.y = Number(y)
     if (!Number.isNaN(z)) transformRef.current.rotate.z = Number(z)
 
     update()
-  }, [])
+  }
 
-  const setScale = useCallback((x = 1, y = 1, z = 1) => {
+  function setScale(x = 1, y = 1, z = 1) {
     if (!Number.isNaN(x)) transformRef.current.scale.x = Number(x)
     if (!Number.isNaN(y)) transformRef.current.scale.y = Number(y)
     if (!Number.isNaN(z)) transformRef.current.scale.z = Number(z)
 
     update()
-  }, [])
+  }
 
-  const setClip = useCallback(
-    ({ top = 0, right = 0, bottom = 0, left = 0 } = {}) => {
-      if (!Number.isNaN(top)) transformRef.current.clip.top = Number(top)
-      if (!Number.isNaN(right)) transformRef.current.clip.right = Number(right)
-      if (!Number.isNaN(bottom))
-        transformRef.current.clip.bottom = Number(bottom)
-      if (!Number.isNaN(left)) transformRef.current.clip.left = Number(left)
+  function setClip({ top = 0, right = 0, bottom = 0, left = 0 } = {}) {
+    if (!Number.isNaN(top)) transformRef.current.clip.top = Number(top)
+    if (!Number.isNaN(right)) transformRef.current.clip.right = Number(right)
+    if (!Number.isNaN(bottom)) transformRef.current.clip.bottom = Number(bottom)
+    if (!Number.isNaN(left)) transformRef.current.clip.left = Number(left)
 
-      update()
-    },
-    []
-  )
+    update()
+  }
 
-  const setUserData = useCallback((key: string | number, value: unknown) => {
+  function setUserData(key: string | number, value: unknown) {
     transformRef.current.userData[key] = value
     update()
-  }, [])
+  }
 
   useTransform((transform) => {
     parentTransformRef.current = structuredClone(transform)

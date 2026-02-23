@@ -131,5 +131,3 @@ export function NotConfigured({
     </div>
   )
 }
-
-export default NotConfigured

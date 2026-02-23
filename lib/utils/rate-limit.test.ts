@@ -7,7 +7,7 @@
  * Run with: bun test lib/utils/rate-limit.test.ts
  */
 
-import { describe, expect, it } from 'bun:test'
+import { afterEach, describe, expect, it, spyOn } from 'bun:test'
 import { getClientIP, rateLimit, rateLimiters } from './rate-limit'
 
 /**
@@ -20,7 +20,16 @@ function uniqueId(prefix = 'test'): string {
 }
 
 describe('rateLimit', () => {
-  it('should allow requests within the limit', () => {
+  let dateNowSpy: ReturnType<typeof spyOn> | undefined
+
+  afterEach(() => {
+    if (dateNowSpy) {
+      dateNowSpy.mockRestore()
+      dateNowSpy = undefined
+    }
+  })
+
+  it('should allow first request and return correct remaining count', () => {
     const id = uniqueId()
     const config = { limit: 5, windowSeconds: 60 }
 
@@ -28,6 +37,7 @@ describe('rateLimit', () => {
     expect(result.success).toBe(true)
     expect(result.limit).toBe(5)
     expect(result.remaining).toBe(4)
+    expect(result.resetIn).toBe(60)
   })
 
   it('should decrement remaining count on each request', () => {
@@ -44,6 +54,23 @@ describe('rateLimit', () => {
     expect(r3.remaining).toBe(2)
   })
 
+  it('should allow all requests within the limit', () => {
+    const id = uniqueId()
+    const config = { limit: 3, windowSeconds: 60 }
+
+    const r1 = rateLimit(id, config)
+    expect(r1.success).toBe(true)
+    expect(r1.remaining).toBe(2)
+
+    const r2 = rateLimit(id, config)
+    expect(r2.success).toBe(true)
+    expect(r2.remaining).toBe(1)
+
+    const r3 = rateLimit(id, config)
+    expect(r3.success).toBe(true)
+    expect(r3.remaining).toBe(0)
+  })
+
   it('should block requests after limit is reached', () => {
     const id = uniqueId()
     const config = { limit: 3, windowSeconds: 60 }
@@ -57,6 +84,7 @@ describe('rateLimit', () => {
     const blocked = rateLimit(id, config)
     expect(blocked.success).toBe(false)
     expect(blocked.remaining).toBe(0)
+    expect(blocked.limit).toBe(3)
   })
 
   it('should return correct limit value in result', () => {
@@ -90,26 +118,50 @@ describe('rateLimit', () => {
     // id2 should still be allowed
     const result2 = rateLimit(id2, config)
     expect(result2.success).toBe(true)
+    expect(result2.remaining).toBe(1)
   })
 
-  it('should reset after window expires', async () => {
-    const id = uniqueId()
-    // 1-second window for fast test
-    const config = { limit: 1, windowSeconds: 1 }
+  it('should reset counter after window expires (mocked time)', () => {
+    const baseTime = 1000000
+    dateNowSpy = spyOn(Date, 'now').mockReturnValue(baseTime)
 
+    const id = uniqueId()
+    const config = { limit: 1, windowSeconds: 60 }
+
+    // First request succeeds
     const r1 = rateLimit(id, config)
     expect(r1.success).toBe(true)
+    expect(r1.remaining).toBe(0)
 
-    // Should be blocked immediately
+    // Second request at same time is blocked
     const r2 = rateLimit(id, config)
     expect(r2.success).toBe(false)
+    expect(r2.remaining).toBe(0)
 
-    // Wait for window to expire
-    await new Promise((resolve) => setTimeout(resolve, 1100))
+    // Advance time past the 60-second window
+    dateNowSpy.mockReturnValue(baseTime + 61_000)
 
-    // Should be allowed again
+    // Should be allowed again after window expiry
     const r3 = rateLimit(id, config)
     expect(r3.success).toBe(true)
+    expect(r3.remaining).toBe(0)
+  })
+
+  it('should still block within the window when time partially advances', () => {
+    const baseTime = 2000000
+    dateNowSpy = spyOn(Date, 'now').mockReturnValue(baseTime)
+
+    const id = uniqueId()
+    const config = { limit: 1, windowSeconds: 60 }
+
+    rateLimit(id, config)
+
+    // Advance 30 seconds (still within 60s window)
+    dateNowSpy.mockReturnValue(baseTime + 30_000)
+
+    const result = rateLimit(id, config)
+    expect(result.success).toBe(false)
+    expect(result.resetIn).toBe(30) // 30 seconds remaining
   })
 
   it('should handle limit of 1 correctly', () => {
@@ -136,6 +188,23 @@ describe('rateLimit', () => {
 
     expect(r3.remaining).toBe(0)
     expect(r4.remaining).toBe(0)
+  })
+
+  it('should return resetIn relative to current time for subsequent requests', () => {
+    const baseTime = 3000000
+    dateNowSpy = spyOn(Date, 'now').mockReturnValue(baseTime)
+
+    const id = uniqueId()
+    const config = { limit: 5, windowSeconds: 60 }
+
+    // First request sets the window
+    rateLimit(id, config)
+
+    // Advance 20 seconds
+    dateNowSpy.mockReturnValue(baseTime + 20_000)
+
+    const r2 = rateLimit(id, config)
+    expect(r2.resetIn).toBe(40) // 60 - 20 = 40 seconds remaining
   })
 })
 

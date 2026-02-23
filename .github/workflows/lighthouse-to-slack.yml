@@ -1,13 +1,13 @@
 # Lighthouse Performance Reports
 #
 # Runs Lighthouse on Vercel deployments and posts results as commit comments.
-# Our GitHub → Slack integration forwards these to Slack automatically.
+# If you have a GitHub → Slack integration, these get forwarded automatically.
 #
 # Required GitHub Secrets:
 #   VERCEL_TOKEN - Vercel API token (Settings → Tokens)
 #
-# Required GitHub Variables (optional, with fallbacks):
-#   VERCEL_TEAM_SLUG - Vercel team slug (defaults to GitHub repository owner)
+# Optional GitHub Variables:
+#   VERCEL_TEAM_SLUG - Your Vercel team slug (defaults to GitHub repository owner)
 
 name: Lighthouse
 

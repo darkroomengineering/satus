@@ -1,10 +1,13 @@
 # Lighthouse Performance Reports
 #
 # Runs Lighthouse on Vercel deployments and posts results as commit comments.
-# Our GitHub → Slack integration forwards these to Slack automatically.
+# If you have a GitHub → Slack integration, these get forwarded automatically.
 #
 # Required GitHub Secrets:
 #   VERCEL_TOKEN - Vercel API token (Settings → Tokens)
+#
+# Optional GitHub Variables:
+#   VERCEL_TEAM_SLUG - Your Vercel team slug (defaults to GitHub repository owner)
 
 name: Lighthouse
 
@@ -19,6 +22,10 @@ permissions:
   pull-requests: write
   actions: read
 
+concurrency:
+  group: lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lighthouse:
     runs-on: ubuntu-latest
@@ -29,25 +36,27 @@ jobs:
         id: vercel_info
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_SLUG: ${{ vars.VERCEL_TEAM_SLUG || github.repository_owner }}
         run: |
           project_name="${GITHUB_REPOSITORY##*/}"
           echo "Looking for Vercel project: $project_name"
-          
-          # Get team ID for darkroom-engineering
+
+          # Get team ID
           teams=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v2/teams")
-          team_id=$(echo "$teams" | jq -r '.teams[] | select(.slug=="darkroom-engineering") | .id')
+          team_id=$(echo "$teams" | jq -r ".teams[] | select(.slug==\"$VERCEL_TEAM_SLUG\") | .id")
           echo "Team ID: $team_id"
-          
+
           # Get project ID by matching repo name
           projects=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v9/projects?teamId=$team_id")
           project_id=$(echo "$projects" | jq -r ".projects[] | select(.name==\"$project_name\") | .id")
           echo "Project ID: $project_id"
-          
+
           echo "team_id=$team_id" >> $GITHUB_OUTPUT
           echo "project_id=$project_id" >> $GITHUB_OUTPUT
 
       - name: Get Vercel Preview URL
         id: vercel_url
+        # TODO: Pin to commit SHA for production use
         uses: zentered/vercel-preview-url@v1.4.0
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -57,6 +66,7 @@ jobs:
 
       - name: Wait for Deployment
         id: await
+        # TODO: Pin to commit SHA for production use
         uses: UnlyEd/github-action-await-vercel@v2.0.0
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -78,31 +88,26 @@ jobs:
           temporaryPublicStorage: true
 
       - name: Format Results
+        if: steps.await.outcome == 'success'
         id: format
         uses: actions/github-script@v8
         env:
-          DEPLOYMENT_FAILED: ${{ steps.await.outcome != 'success' }}
           PREVIEW_URL: ${{ steps.vercel_url.outputs.preview_url }}
           MANIFEST: ${{ steps.lighthouse.outputs.manifest }}
           LINKS: ${{ steps.lighthouse.outputs.links }}
         with:
           script: |
-            if (process.env.DEPLOYMENT_FAILED === 'true') {
-              core.setOutput('comment', '⚠️ Vercel deployment failed or timed out. Lighthouse audit skipped.');
-              return;
-            }
-            
             try {
               const manifest = JSON.parse(process.env.MANIFEST);
               const links = JSON.parse(process.env.LINKS);
               const previewUrl = process.env.PREVIEW_URL;
-              
+
               const scores = manifest[0].summary;
               const reportUrl = Object.values(links)[0];
-              
+
               const emoji = (score) => score >= 0.9 ? '🟢' : score >= 0.5 ? '🟠' : '🔴';
               const format = (score) => Math.round(score * 100);
-              
+
               const comment = [
                 `⚡️ [Lighthouse report](${reportUrl}) for this commit:`,
                 '',
@@ -113,7 +118,7 @@ jobs:
                 '',
                 `*Tested on [${previewUrl}](https://${previewUrl})*`
               ].join('\n');
-              
+
               core.setOutput('comment', comment);
             } catch (error) {
               console.error('Error:', error);
@@ -121,6 +126,13 @@ jobs:
             }
 
       - name: Post Commit Comment
+        if: steps.await.outcome == 'success'
         uses: peter-evans/commit-comment@v4
         with:
           body: ${{ steps.format.outputs.comment }}
+
+      - name: Post Failure Notice
+        if: steps.await.outcome != 'success'
+        uses: peter-evans/commit-comment@v4
+        with:
+          body: "⚠️ Lighthouse audit skipped — Vercel deployment failed or timed out."

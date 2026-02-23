@@ -17,7 +17,7 @@
     "incremental": true,
     // "allowImportingTsExtensions": true,
     "noImplicitOverride": true,
-    "exactOptionalPropertyTypes": true,
+
     "useUnknownInCatchVariables": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,

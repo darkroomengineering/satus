@@ -11,6 +11,12 @@
  * - CORS: Add custom CORS headers for API routes
  *
  * Note: Security headers are configured in next.config.ts (static, no need for proxy)
+ *
+ * ⚠️  Vercel limitation: The in-memory rate limiter (Map-based) resets on each
+ * serverless cold start. For production with high traffic, consider:
+ * - @upstash/ratelimit with Redis for distributed rate limiting
+ * - Vercel KV for serverless-compatible shared state
+ * - Vercel WAF / Firewall rules for infrastructure-level rate limiting
  */
 
 import type { NextRequest } from 'next/server'

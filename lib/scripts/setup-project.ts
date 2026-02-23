@@ -426,6 +426,33 @@ const setup = async (options: SetupOptions): Promise<void> => {
     )
   }
 
+  // Clean up marketing homepage
+  s.start('Cleaning up marketing homepage...')
+  const pagePath = resolvePath('app/page.tsx')
+  const marketingRemoved = await removeDir('app/(marketing)', dryRun)
+
+  if (marketingRemoved && !dryRun) {
+    const blankPage = `import { Wrapper } from '@/components/layout/wrapper'
+
+export default function Home() {
+  return (
+    <Wrapper theme="dark" lenis={{}}>
+      <section>
+        <h1>Welcome</h1>
+      </section>
+    </Wrapper>
+  )
+}
+`
+    await Bun.write(pagePath, blankPage)
+  }
+
+  s.stop(
+    marketingRemoved
+      ? 'Replaced marketing homepage with blank starter'
+      : 'No marketing homepage found'
+  )
+
   // Run bun install to update lockfile
   if (!dryRun) {
     s.start('Updating lockfile...')

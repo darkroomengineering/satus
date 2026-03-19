@@ -15,7 +15,3 @@ export const studioUrl =
   process.env.SANITY_STUDIO_URL || 'http://localhost:5173/studio'
 
 export const readToken = process.env.SANITY_API_READ_TOKEN || ''
-
-export function isSanityConfigured(): boolean {
-  return Boolean(projectId && dataset)
-}

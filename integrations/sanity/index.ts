@@ -1,4 +1,3 @@
-export { client, serverClient } from './client'
-export { isSanityConfigured } from './env'
+export { client } from './client'
 export { urlForImage } from './image'
 export * from './queries'

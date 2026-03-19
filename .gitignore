@@ -9,9 +9,12 @@
 # testing
 /coverage
 
-# next.js
+# next.js (legacy, remove after migration)
 /.next/
 /out/
+
+# react router
+.react-router/
 
 # TypeScript
 *.tsbuildinfo

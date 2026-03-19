@@ -9,10 +9,6 @@
 # testing
 /coverage
 
-# next.js (legacy, remove after migration)
-/.next/
-/out/
-
 # react router
 .react-router/
 
@@ -55,6 +51,5 @@ yarn-error.log*
 *storybook.log
 certificates
 
-next-env.d.ts
 # claude
 .claude

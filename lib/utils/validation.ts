@@ -1,5 +1,11 @@
 import { z } from 'zod'
-import type { FormState } from '@/components/ui/form/types'
+
+export type FormState<T = unknown> = {
+  status: number
+  message: string
+  data?: T
+  fieldErrors?: Record<string, string>
+}
 
 // ---------------------------------------------------------------------------
 // Shared field schemas

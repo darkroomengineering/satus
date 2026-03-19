@@ -3,7 +3,7 @@ import { Link } from '@/components/link'
 
 const LINKS = [
   { href: '/', label: 'home' },
-  { href: '/#features', label: 'features' },
+  { href: '/components', label: 'components' },
   {
     href: 'https://github.com/darkroomengineering/satus',
     label: 'github',

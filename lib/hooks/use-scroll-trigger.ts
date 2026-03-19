@@ -4,9 +4,13 @@ import { type Rect, useLazyState, useWindowSize } from 'hamo'
 import { useLenis } from 'lenis/react'
 import { useEffect, useEffectEvent, useRef } from 'react'
 import { useTransform } from '@/hooks/use-transform'
-import { useOrchestra } from '@/lib/dev'
-import { useMinimap } from '@/lib/dev/minimap'
 import { clamp, mapRange } from '@/utils/math'
+
+// Dev tools stubs — replaced with real imports when dev tools are ported
+const useOrchestra = () => ({ grid: false, minimap: false })
+const useMinimap = (_opts?: {
+  color?: string
+}): ((el: HTMLElement) => void) | null => null
 
 // @refresh reset
 

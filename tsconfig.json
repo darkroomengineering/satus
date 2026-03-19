@@ -6,7 +6,7 @@
     "**/*.ts",
     "**/*.tsx"
   ],
-  "exclude": ["node_modules", "build", "_next-app"],
+  "exclude": ["node_modules", "build", "lib/dev", "lib/features", "lib/integrations", "lib/webgl", "lib/scripts", "lib/styles/scripts"],
   "compilerOptions": {
     "target": "ES2023",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],

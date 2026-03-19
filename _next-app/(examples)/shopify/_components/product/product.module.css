@@ -1,7 +1,0 @@
-.product {
-  height: calc(100vh - mobile-vw(128px));
-
-  @media (--desktop) {
-    height: calc(100vh - desktop-vw(80px));
-  }
-}

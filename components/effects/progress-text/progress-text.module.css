@@ -1,8 +1,0 @@
-.progressText {
-  display: inline-block;
-
-  .word {
-    display: inline-block;
-    transition: var(--transition);
-  }
-}

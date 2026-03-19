@@ -15,8 +15,8 @@ const banner = `/*
 const tailwindcss = [banner, tailwind, scale]
 const rootcss = [banner, root]
 
-await Bun.write('./lib/styles/css/tailwind.css', tailwindcss.join('\n\n'))
-await Bun.write('./lib/styles/css/root.css', rootcss.join('\n\n'))
+await Bun.write('./styles/css/tailwind.css', tailwindcss.join('\n\n'))
+await Bun.write('./styles/css/root.css', rootcss.join('\n\n'))
 
 console.log(
   Bun.color('green', 'ansi'),

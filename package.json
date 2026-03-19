@@ -19,7 +19,7 @@
     "format": "biome format --write .",
     "typecheck": "react-router typegen && tsc --noEmit",
     "test": "bun test",
-    "setup:styles": "bun ./lib/styles/scripts/setup-styles.ts"
+    "setup:styles": "bun ./styles/scripts/setup-styles.ts"
   },
   "dependencies": {
     "@portabletext/react": "^6.0.2",

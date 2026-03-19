@@ -6,7 +6,7 @@
     "**/*.ts",
     "**/*.tsx"
   ],
-  "exclude": ["node_modules", "build", "lib/dev", "lib/features", "lib/integrations", "lib/webgl", "lib/scripts", "lib/styles/scripts"],
+  "exclude": ["node_modules", "build", "lib", "styles/scripts"],
   "compilerOptions": {
     "target": "ES2023",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
@@ -35,14 +35,10 @@
     "paths": {
       "~/*": ["./app/*"],
       "@/*": ["./*"],
-      "@/hooks/*": ["./lib/hooks/*"],
-      "@/styles/*": ["./lib/styles/*"],
-      "@/integrations/*": ["./lib/integrations/*"],
-      "@/webgl/*": ["./lib/webgl/*"],
-      "@/utils/*": ["./lib/utils/*"],
-      "@/config": ["./lib/styles/config.ts"],
-      "@/dev": ["./lib/dev"],
-      "@/dev/*": ["./lib/dev/*"]
+      "@/hooks/*": ["./hooks/*"],
+      "@/styles/*": ["./styles/*"],
+      "@/utils/*": ["./utils/*"],
+      "@/config": ["./styles/config.ts"]
     }
   }
 }

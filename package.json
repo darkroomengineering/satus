@@ -75,7 +75,8 @@
     "sanity": "^5.8.1",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
-    "vite": "^8.0.0"
+    "vite": "^8.0.0",
+    "vite-plugin-svgr": "^4.5.0"
   },
   "trustedDependencies": [
     "@biomejs/biome",

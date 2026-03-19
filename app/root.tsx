@@ -6,12 +6,12 @@ import {
   Scripts,
   ScrollRestoration,
 } from 'react-router'
-
+import { ReactTempus } from 'tempus/react'
+import { RealViewport } from '@/components/real-viewport'
+import { Theme } from '@/components/theme'
 import '@/styles/css/index.css'
-
-// TODO Phase 4: import providers
-// import { RealViewport } from '@/components/real-viewport'
-// import { TransformProvider } from '@/hooks/use-transform'
+import { Footer } from './components/footer'
+import { Header } from './components/header'
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -32,8 +32,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  // TODO Phase 4: wrap with RealViewport + TransformProvider
-  return <Outlet />
+  return (
+    <RealViewport>
+      <Theme theme="dark" global>
+        <Header />
+        <main id="main-content">
+          <Outlet />
+        </main>
+        <Footer />
+      </Theme>
+      <ReactTempus />
+    </RealViewport>
+  )
 }
 
 export function ErrorBoundary() {

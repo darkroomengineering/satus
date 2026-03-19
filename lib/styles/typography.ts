@@ -1,12 +1,12 @@
 import type { CSSProperties } from 'react'
 
 const fonts = {
-  mono: '--next-font-mono', // this should be the variable name defined in fonts.ts
+  mono: "'ServerMono', ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace",
 } as const
 
 const typography: TypeStyles = {
   'test-mono': {
-    'font-family': `var(${fonts.mono})`,
+    'font-family': 'var(--font-mono)',
     'font-style': 'normal',
     'font-weight': 400,
     'line-height': '90%',

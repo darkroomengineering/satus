@@ -7,8 +7,7 @@ import {
   ScrollRestoration,
 } from 'react-router'
 
-// TODO Phase 2: import styles
-// import '@/styles/css/index.css'
+import '@/styles/css/index.css'
 
 // TODO Phase 4: import providers
 // import { RealViewport } from '@/components/real-viewport'

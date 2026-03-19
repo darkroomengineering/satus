@@ -1,6 +1,7 @@
 /* INDEX CSS FILE - Barrel file for importing all the css files */
 @import "tailwindcss/utilities.css";
 @import "./reset.css";
+@import "./fonts.css";
 @import "./tailwind.css";
 @import "./root.css";
 @import "./global.css";

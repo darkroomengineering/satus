@@ -33,6 +33,7 @@
     "noUncheckedIndexedAccess": true,
     "rootDirs": [".", ".react-router/types"],
     "paths": {
+      "~/*": ["./app/*"],
       "@/*": ["./*"],
       "@/hooks/*": ["./lib/hooks/*"],
       "@/styles/*": ["./lib/styles/*"],
@@ -41,8 +42,7 @@
       "@/utils/*": ["./lib/utils/*"],
       "@/config": ["./lib/styles/config.ts"],
       "@/dev": ["./lib/dev"],
-      "@/dev/*": ["./lib/dev/*"],
-      "~/*": ["./app/*"]
+      "@/dev/*": ["./lib/dev/*"]
     }
   }
 }

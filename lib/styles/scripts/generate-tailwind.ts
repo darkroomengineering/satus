@@ -38,7 +38,7 @@ export function generateTailwind({
   ${formatObject(customSizes, ([key]) => `--spacing-${key}: var(--${key});`)}
 
   --font-*: initial;
-  ${formatObject(fonts, ([name, variableName]) => `--font-${name}: var(${variableName});`)}
+  ${formatObject(fonts, ([name, value]) => `--font-${name}: ${value};`)}
 
   --ease-*: initial;
   ${formatObject(easings, ([name, value]) => `--ease-${name}: ${value};`)}

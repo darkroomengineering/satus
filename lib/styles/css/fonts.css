@@ -1,0 +1,9 @@
+/* Font definitions — replaces next/font/local */
+
+@font-face {
+  font-family: "ServerMono";
+  src: url("/fonts/ServerMono/ServerMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

@@ -18,7 +18,7 @@
     "includes": [
       "**",
       "!node_modules",
-      "!**/.next",
+      "!.react-router",
       "!**/dist",
       "!**/public",
       "!.github",
@@ -52,7 +52,6 @@
   "linter": {
     "enabled": true,
     "domains": {
-      "next": "recommended",
       "react": "recommended",
       "project": "recommended"
     },
@@ -137,7 +136,7 @@
       },
 
       "performance": {
-        "noImgElement": "error"
+        "noImgElement": "off"
       },
 
       "nursery": {

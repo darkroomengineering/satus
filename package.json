@@ -1,7 +1,7 @@
 {
   "name": "@darkroom.engineering/satus",
-  "description": "React Router starter by darkroom.engineering — React 19, TypeScript strict, Tailwind v4, Zod validation",
   "version": "1.0.0",
+  "description": "React Router starter by darkroom.engineering — React 19, TypeScript strict, Tailwind v4, Zod validation",
   "license": "MIT",
   "type": "module",
   "sideEffects": [
@@ -59,9 +59,9 @@
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
     "vite": "npm:@voidzero-dev/vite-plus-core@latest",
-    "vitest": "npm:@voidzero-dev/vite-plus-test@latest",
     "vite-plugin-svgr": "^4.5.0",
-    "vite-plus": "latest"
+    "vite-plus": "latest",
+    "vitest": "npm:@voidzero-dev/vite-plus-test@latest"
   },
   "packageManager": "pnpm@10.32.1",
   "pnpm": {

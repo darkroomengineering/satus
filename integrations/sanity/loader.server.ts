@@ -1,6 +1,6 @@
-import { loadQuery, setServerClient } from '@sanity/react-loader'
-import { serverClient } from './client.server'
+import { loadQuery, setServerClient } from "@sanity/react-loader";
+import { serverClient } from "./client.server";
 
-setServerClient(serverClient)
+setServerClient(serverClient);
 
-export { loadQuery }
+export { loadQuery };

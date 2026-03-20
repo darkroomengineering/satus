@@ -1,27 +1,27 @@
-import cn from 'clsx'
-import { useIntersectionObserver, useResizeObserver } from 'hamo'
-import { useLenis } from 'lenis/react'
-import { type HTMLAttributes, useId, useRef } from 'react'
-import { useTempus } from 'tempus/react'
-import { modulo } from '@/utils/animation'
-import s from './marquee.module.css'
+import cn from "clsx";
+import { useIntersectionObserver, useResizeObserver } from "hamo";
+import { useLenis } from "lenis/react";
+import { type HTMLAttributes, useId, useRef } from "react";
+import { useTempus } from "tempus/react";
+import { modulo } from "@/utils/animation";
+import s from "./marquee.module.css";
 
 function getHash(input: string) {
-  let hash = 0
+  let hash = 0;
 
   for (let i = 0; i < input.length; i++) {
-    hash = (hash << 5) - hash + input.charCodeAt(i)
-    hash |= 0 // to 32bit integer
+    hash = (hash << 5) - hash + input.charCodeAt(i);
+    hash |= 0; // to 32bit integer
   }
-  return hash
+  return hash;
 }
 
 interface MarqueeProps extends HTMLAttributes<HTMLElement> {
-  repeat?: number
-  speed?: number
-  scrollVelocity?: boolean
-  reversed?: boolean
-  pauseOnHover?: boolean
+  repeat?: number;
+  speed?: number;
+  scrollVelocity?: boolean;
+  reversed?: boolean;
+  pauseOnHover?: boolean;
 }
 
 export function Marquee({
@@ -38,47 +38,47 @@ export function Marquee({
 }: MarqueeProps) {
   const [setRectRef, getEntry] = useResizeObserver({
     lazy: true,
-  })
+  });
 
-  const id = useId()
+  const id = useId();
 
-  const elementsRef = useRef<HTMLDivElement[]>([])
-  const transformRef = useRef(getHash(id) % 10000)
-  const isHovered = useRef(false)
+  const elementsRef = useRef<HTMLDivElement[]>([]);
+  const transformRef = useRef(getHash(id) % 10000);
+  const isHovered = useRef(false);
 
-  const [setIntersectionRef, intersection] = useIntersectionObserver()
+  const [setIntersectionRef, intersection] = useIntersectionObserver();
 
-  const lenis = useLenis()
+  const lenis = useLenis();
 
   useTempus((_, deltaTime) => {
-    const entry = getEntry()
+    const entry = getEntry();
 
-    if (!intersection?.isIntersecting) return
-    if (pauseOnHover && isHovered.current) return
+    if (!intersection?.isIntersecting) return;
+    if (pauseOnHover && isHovered.current) return;
 
-    if (!entry?.borderBoxSize[0]?.inlineSize) return
+    if (!entry?.borderBoxSize[0]?.inlineSize) return;
 
-    let velocity = lenis?.velocity ?? 0
+    let velocity = lenis?.velocity ?? 0;
     if (!scrollVelocity) {
-      velocity = 0
+      velocity = 0;
     }
-    velocity = 1 + Math.abs(velocity / 5)
+    velocity = 1 + Math.abs(velocity / 5);
 
-    const offset = deltaTime * (speed * 0.1 * velocity)
+    const offset = deltaTime * (speed * 0.1 * velocity);
 
     if (reversed) {
-      transformRef.current -= offset
+      transformRef.current -= offset;
     } else {
-      transformRef.current += offset
+      transformRef.current += offset;
     }
 
-    const width = entry.borderBoxSize[0].inlineSize
-    transformRef.current = modulo(transformRef.current, width)
+    const width = entry.borderBoxSize[0].inlineSize;
+    transformRef.current = modulo(transformRef.current, width);
 
     for (const node of elementsRef.current) {
-      node.style.transform = `translate3d(${-transformRef.current}px,0,0)`
+      node.style.transform = `translate3d(${-transformRef.current}px,0,0)`;
     }
-  })
+  });
 
   return (
     <section
@@ -87,12 +87,12 @@ export function Marquee({
       aria-live="off"
       aria-label="Scrolling content"
       onMouseEnter={(e) => {
-        isHovered.current = true
-        onMouseEnter?.(e)
+        isHovered.current = true;
+        onMouseEnter?.(e);
       }}
       onMouseLeave={(e) => {
-        isHovered.current = false
-        onMouseLeave?.(e)
+        isHovered.current = false;
+        onMouseLeave?.(e);
       }}
       {...props}
     >
@@ -104,17 +104,17 @@ export function Marquee({
           }`}
           className={s.inner}
           aria-hidden={i !== 0}
-          data-nosnippet={i !== 0 ? '' : undefined}
+          data-nosnippet={i !== 0 ? "" : undefined}
           ref={(node) => {
-            if (!node) return
-            elementsRef.current[i] = node
+            if (!node) return;
+            elementsRef.current[i] = node;
 
-            if (i === 0) setRectRef(node)
+            if (i === 0) setRectRef(node);
           }}
         >
           {children}
         </div>
       ))}
     </section>
-  )
+  );
 }

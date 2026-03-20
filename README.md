@@ -2,7 +2,7 @@
 
 # Satūs
 
-A modern Next.js 16 starter with React 19, Tailwind CSS v4, and optional WebGL. *Satūs* means "beginning" in Latin.
+A modern Next.js 16 starter with React 19, Tailwind CSS v4, and optional WebGL. _Satūs_ means "beginning" in Latin.
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/darkroomengineering/satus)
 
@@ -10,10 +10,10 @@ A modern Next.js 16 starter with React 19, Tailwind CSS v4, and optional WebGL. 
 
 ## Requirements
 
-| Tool | Version | Notes |
-|------|---------|-------|
+| Tool    | Version   | Notes                                     |
+| ------- | --------- | ----------------------------------------- |
 | Node.js | >= 22.0.0 | Required for native fetch and modern APIs |
-| Bun | >= 1.3.5 | Package manager & runtime |
+| Bun     | >= 1.3.5  | Package manager & runtime                 |
 
 ## Quick Start
 
@@ -28,12 +28,12 @@ Or skip setup and keep everything: `bun install && bun dev`
 
 ## Tech Stack
 
-| Category | Technologies |
-|----------|--------------|
-| Framework | Next.js 16, React 19.2, TypeScript |
-| Styling | Tailwind CSS v4, CSS Modules |
-| Optional | React Three Fiber, GSAP, Sanity, Shopify, HubSpot |
-| Tooling | Bun, Biome, Turbopack |
+| Category  | Technologies                                      |
+| --------- | ------------------------------------------------- |
+| Framework | Next.js 16, React 19.2, TypeScript                |
+| Styling   | Tailwind CSS v4, CSS Modules                      |
+| Optional  | React Three Fiber, GSAP, Sanity, Shopify, HubSpot |
+| Tooling   | Bun, Biome, Turbopack                             |
 
 ## Project Structure
 
@@ -52,17 +52,17 @@ lib/                    # Everything non-UI
 
 ## Documentation
 
-| Area | Documentation |
-|------|---------------|
-| Architecture | [ARCHITECTURE.md](ARCHITECTURE.md) — Key decisions & patterns |
-| Customization | [BOUNDARIES.md](BOUNDARIES.md) — What to modify vs what's framework |
-| Components | [COMPONENTS.md](COMPONENTS.md) — Complete component/hook/utility inventory |
-| Patterns | [PATTERNS.md](PATTERNS.md) — Recurring code patterns guide |
-| AI Agents | [CLAUDE.md](CLAUDE.md) — Agent-readable project configuration |
-| App Router | [app/README.md](app/README.md) — Pages, layouts, routing |
-| Components | [components/README.md](components/README.md) — UI reference |
-| Library | [lib/README.md](lib/README.md) — Hooks, utils, integrations |
-| Integrations | [lib/integrations/README.md](lib/integrations/README.md) — Sanity, Shopify, etc. |
+| Area          | Documentation                                                                    |
+| ------------- | -------------------------------------------------------------------------------- |
+| Architecture  | [ARCHITECTURE.md](ARCHITECTURE.md) — Key decisions & patterns                    |
+| Customization | [BOUNDARIES.md](BOUNDARIES.md) — What to modify vs what's framework              |
+| Components    | [COMPONENTS.md](COMPONENTS.md) — Complete component/hook/utility inventory       |
+| Patterns      | [PATTERNS.md](PATTERNS.md) — Recurring code patterns guide                       |
+| AI Agents     | [CLAUDE.md](CLAUDE.md) — Agent-readable project configuration                    |
+| App Router    | [app/README.md](app/README.md) — Pages, layouts, routing                         |
+| Components    | [components/README.md](components/README.md) — UI reference                      |
+| Library       | [lib/README.md](lib/README.md) — Hooks, utils, integrations                      |
+| Integrations  | [lib/integrations/README.md](lib/integrations/README.md) — Sanity, Shopify, etc. |
 
 ## Scripts
 
@@ -84,6 +84,7 @@ bun run handoff
 ```
 
 This interactive script:
+
 - Removes example pages and Satūs branding
 - Swaps README with production version
 - Generates component inventory

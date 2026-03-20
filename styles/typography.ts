@@ -1,36 +1,32 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties } from "react";
 
 const fonts = {
   mono: "'ServerMono', ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace",
-} as const
+} as const;
 
 const typography: TypeStyles = {
-  'test-mono': {
-    'font-family': 'var(--font-mono)',
-    'font-style': 'normal',
-    'font-weight': 400,
-    'line-height': '90%',
-    'letter-spacing': '0em',
-    'font-size': { mobile: 20, desktop: 24 },
+  "test-mono": {
+    "font-family": "var(--font-mono)",
+    "font-style": "normal",
+    "font-weight": 400,
+    "line-height": "90%",
+    "letter-spacing": "0em",
+    "font-size": { mobile: 20, desktop: 24 },
   },
-} as const
+} as const;
 
-export { fonts, typography }
+export { fonts, typography };
 
 // UTIL TYPES
 type TypeStyles = Record<
   string,
   {
-    'font-family': string
-    'font-style': CSSProperties['fontStyle']
-    'font-weight': CSSProperties['fontWeight']
-    'line-height':
-      | `${number}%`
-      | { mobile: `${number}%`; desktop: `${number}%` }
-    'letter-spacing':
-      | `${number}em`
-      | { mobile: `${number}em`; desktop: `${number}em` }
-    'font-feature-settings'?: string
-    'font-size': number | { mobile: number; desktop: number }
+    "font-family": string;
+    "font-style": CSSProperties["fontStyle"];
+    "font-weight": CSSProperties["fontWeight"];
+    "line-height": `${number}%` | { mobile: `${number}%`; desktop: `${number}%` };
+    "letter-spacing": `${number}em` | { mobile: `${number}em`; desktop: `${number}em` };
+    "font-feature-settings"?: string;
+    "font-size": number | { mobile: number; desktop: number };
   }
->
+>;

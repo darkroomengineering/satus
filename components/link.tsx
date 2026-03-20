@@ -1,16 +1,16 @@
-import type { ComponentProps, MouseEvent } from 'react'
-import { Link as RRLink, useLocation } from 'react-router'
+import type { ComponentProps, MouseEvent } from "react";
+import { Link as RRLink, useLocation } from "react-router";
 
-type RRLinkProps = ComponentProps<typeof RRLink>
+type RRLinkProps = ComponentProps<typeof RRLink>;
 
-interface CustomLinkProps extends Omit<RRLinkProps, 'to'> {
-  href?: string
-  onClick?: (e: MouseEvent<HTMLElement>) => void
-  scroll?: boolean
+interface CustomLinkProps extends Omit<RRLinkProps, "to"> {
+  href?: string;
+  onClick?: (e: MouseEvent<HTMLElement>) => void;
+  scroll?: boolean;
 }
 
 function isExternalHref(href: string): boolean {
-  return href.startsWith('http://') || href.startsWith('https://')
+  return href.startsWith("http://") || href.startsWith("https://");
 }
 
 export function Link({
@@ -21,8 +21,8 @@ export function Link({
   className,
   ...props
 }: CustomLinkProps) {
-  const location = useLocation()
-  const isActive = href ? location.pathname === href : false
+  const location = useLocation();
+  const isActive = href ? location.pathname === href : false;
 
   // No href + onClick → button
   if (!href && onClick) {
@@ -30,12 +30,12 @@ export function Link({
       <button onClick={onClick} type="button" className={className}>
         {children}
       </button>
-    )
+    );
   }
 
   // No href, no onClick → div
   if (!href) {
-    return <div className={className}>{children}</div>
+    return <div className={className}>{children}</div>;
   }
 
   // External link
@@ -52,7 +52,7 @@ export function Link({
       >
         {children}
       </a>
-    )
+    );
   }
 
   // Internal link
@@ -67,5 +67,5 @@ export function Link({
     >
       {children}
     </RRLink>
-  )
+  );
 }

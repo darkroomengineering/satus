@@ -1,30 +1,28 @@
-import type { SanityDocument } from '@sanity/client'
-import { isRouteErrorResponse, Link, useRouteError } from 'react-router'
-import { Image } from '@/components/image'
-import { client } from '@/integrations/sanity/client'
-import { urlForImage } from '@/integrations/sanity/image'
-import { articleQuery } from '@/integrations/sanity/queries'
-import type { Route } from './+types/sanity.$slug'
+import type { SanityDocument } from "@sanity/client";
+import { isRouteErrorResponse, Link, useRouteError } from "react-router";
+import { Image } from "@/components/image";
+import { client } from "@/integrations/sanity/client";
+import { urlForImage } from "@/integrations/sanity/image";
+import { articleQuery } from "@/integrations/sanity/queries";
+import type { Route } from "./+types/sanity.$slug";
 
 export function meta({ loaderData }: Route.MetaArgs) {
-  const title = loaderData?.article?.title
-  return [{ title: title ? `${title} — Satus` : 'Article — Satus' }]
+  const title = loaderData?.article?.title;
+  return [{ title: title ? `${title} — Satus` : "Article — Satus" }];
 }
 
 export async function loader({ params }: Route.LoaderArgs) {
   const article = await client.fetch<SanityDocument>(articleQuery, {
     slug: params.slug,
-  })
+  });
   if (!article) {
-    throw new Response('Article not found', { status: 404 })
+    throw new Response("Article not found", { status: 404 });
   }
-  return { article }
+  return { article };
 }
 
-export default function SanityArticlePage({
-  loaderData,
-}: Route.ComponentProps) {
-  const { article } = loaderData
+export default function SanityArticlePage({ loaderData }: Route.ComponentProps) {
+  const { article } = loaderData;
 
   return (
     <div className="max-dt:dr-px-16 flex min-h-dvh grow items-center justify-center font-mono uppercase">
@@ -34,7 +32,7 @@ export default function SanityArticlePage({
         {article.featuredImage && (
           <Image
             src={urlForImage(article.featuredImage).url()}
-            alt={article.title || ''}
+            alt={article.title || ""}
             aspectRatio={16 / 9}
             mobileSize="100vw"
             desktopSize="50vw"
@@ -50,11 +48,11 @@ export default function SanityArticlePage({
         </Link>
       </div>
     </div>
-  )
+  );
 }
 
 export function ErrorBoundary() {
-  const error = useRouteError()
+  const error = useRouteError();
 
   if (isRouteErrorResponse(error)) {
     return (
@@ -64,7 +62,7 @@ export function ErrorBoundary() {
         </h1>
         <p>{error.data}</p>
       </div>
-    )
+    );
   }
   if (error instanceof Error) {
     return (
@@ -74,7 +72,7 @@ export function ErrorBoundary() {
         <p>The stack trace is:</p>
         <pre>{error.stack}</pre>
       </div>
-    )
+    );
   }
-  return <h1>Unknown Error</h1>
+  return <h1>Unknown Error</h1>;
 }

@@ -1,36 +1,36 @@
-'use client'
+"use client";
 
-import { Dialog } from '@base-ui/react/dialog'
-import { useEffect, useState } from 'react'
-import Orchestra from './orchestra'
-import { OrchestraToggle } from './toggle'
+import { Dialog } from "@base-ui/react/dialog";
+import { useEffect, useState } from "react";
+import Orchestra from "./orchestra";
+import { OrchestraToggle } from "./toggle";
 
 export function Cmdo() {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === 'o' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault()
-        setOpen((open) => !open)
+      if (e.key === "o" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setOpen((open) => !open);
       }
 
       // Toggle grid
-      if (e.key === 'G' && e.shiftKey) {
-        e.preventDefault()
+      if (e.key === "G" && e.shiftKey) {
+        e.preventDefault();
         Orchestra.setState((state) => ({
           grid: !state.grid,
-        }))
+        }));
       }
 
-      if (e.key === 'Escape') {
-        setOpen(false)
+      if (e.key === "Escape") {
+        setOpen(false);
       }
-    }
+    };
 
-    document.addEventListener('keydown', down)
-    return () => document.removeEventListener('keydown', down)
-  }, [])
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -53,5 +53,5 @@ export function Cmdo() {
         </div>
       </Dialog.Portal>
     </Dialog.Root>
-  )
+  );
 }

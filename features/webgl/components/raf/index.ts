@@ -1,5 +1,5 @@
-import { useThree } from '@react-three/fiber'
-import { useTempus } from 'tempus/react'
+import { useThree } from "@react-three/fiber";
+import { useTempus } from "tempus/react";
 
 /**
  * RAF (Request Animation Frame) component for controlling WebGL rendering.
@@ -10,18 +10,18 @@ import { useTempus } from 'tempus/react'
  * @param render - Whether to render frames. Set to false to pause rendering.
  */
 export function RAF({ render = true }) {
-  const advance = useThree((state) => state.advance)
+  const advance = useThree((state) => state.advance);
 
   useTempus(
     (time: number) => {
       if (render) {
-        advance(time / 1000)
+        advance(time / 1000);
       }
     },
     {
       priority: 1,
-    }
-  )
+    },
+  );
 
-  return null
+  return null;
 }

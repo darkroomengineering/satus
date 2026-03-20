@@ -1,5 +1,5 @@
-import type { Config } from '../config'
-import { formatObject, scalingCalc } from './utils'
+import type { Config } from "../config";
+import { formatObject, scalingCalc } from "./utils";
 
 export function generateTailwind({
   breakpoints,
@@ -11,17 +11,11 @@ export function generateTailwind({
   typography,
 }: Pick<
   Config,
-  | 'breakpoints'
-  | 'colors'
-  | 'customSizes'
-  | 'easings'
-  | 'fonts'
-  | 'themes'
-  | 'typography'
+  "breakpoints" | "colors" | "customSizes" | "easings" | "fonts" | "themes" | "typography"
 >) {
   // Theme
-  const themeEntries = Object.entries(themes)
-  const firstTheme = themeEntries[0]?.[1] ?? {}
+  const themeEntries = Object.entries(themes);
+  const firstTheme = themeEntries[0]?.[1] ?? {};
   const theme = `/** Custom theme **/
 @theme {
 	--breakpoint-*: initial;
@@ -42,7 +36,7 @@ export function generateTailwind({
 
   --ease-*: initial;
   ${formatObject(easings, ([name, value]) => `--ease-${name}: ${value};`)}
-}`
+}`;
 
   // Theme overwrites
   const themeOverwrites = `
@@ -52,9 +46,9 @@ ${formatObject(
   ([name, value]) => `[data-theme=${name}] {
   ${formatObject(value, ([key, value]) => `--color-${key}: ${value};`)}
 }`,
-  '\n'
+  "\n",
 )}
-  `
+  `;
 
   // Utilities
   const utilities = `
@@ -66,30 +60,29 @@ ${Object.entries(typography)
     .filter((entry) => entry?.[0] && entry?.[1])
     .filter((entry) => entry !== undefined)
     .map(([key, value]) => {
-      if (key === 'font-size') {
-        if (typeof value === 'number') {
-          return `@apply dr-text-${value};`
+      if (key === "font-size") {
+        if (typeof value === "number") {
+          return `@apply dr-text-${value};`;
         }
 
         return [
           `font-size: ${scalingCalc(value.mobile)};`,
           `@variant dt { font-size: ${scalingCalc(value.desktop)}; }`,
-        ].join('\n\t')
+        ].join("\n\t");
       }
 
-      if (typeof value === 'object') {
-        return [
-          `${key}: ${value.mobile};`,
-          `@variant dt { ${key}: ${value.desktop}; }`,
-        ].join('\n\t')
+      if (typeof value === "object") {
+        return [`${key}: ${value.mobile};`, `@variant dt { ${key}: ${value.desktop}; }`].join(
+          "\n\t",
+        );
       }
 
-      return `${key}: ${value};`
+      return `${key}: ${value};`;
     })
-    .join('\n\t')}
-}`
+    .join("\n\t")}
+}`,
   )
-  .join('\n')}
+  .join("\n")}
 
 @utility desktop-only {
   @media (--mobile) {
@@ -125,17 +118,14 @@ ${Object.entries(typography)
 
 @utility dr-layout-grid-inner {
 	@apply dr-layout-block-inner dr-grid;
-}`
+}`;
 
   // Variants
   const variants = `
 /** Custom variants **/
 ${Object.keys(themes)
-  .map(
-    (name) =>
-      `@custom-variant ${name} (&:where([data-theme=${name}], [data-theme=${name}] *));`
-  )
-  .join('\n')}`
+  .map((name) => `@custom-variant ${name} (&:where([data-theme=${name}], [data-theme=${name}] *));`)
+  .join("\n")}`;
 
-  return [theme, themeOverwrites, utilities, variants].join('\n')
+  return [theme, themeOverwrites, utilities, variants].join("\n");
 }

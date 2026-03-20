@@ -1,32 +1,32 @@
-'use client'
+"use client";
 
-import { OrthographicCamera } from '@react-three/drei'
-import { Canvas } from '@react-three/fiber'
-import cn from 'clsx'
-import dynamic from 'next/dynamic'
-import { Suspense, useState } from 'react'
-import { SheetProvider } from '@/lib/dev/theatre'
-import { useWebGLStore } from '@/lib/webgl/store'
-import { createRenderer } from '@/lib/webgl/utils/create-renderer'
-import { detectGPUCapability } from '@/lib/webgl/utils/gpu-detection'
-import { FlowmapProvider } from '../flowmap-provider'
-import { PostProcessing } from '../postprocessing'
-import { Preload } from '../preload'
-import { RAF } from '../raf'
-import s from './global-canvas.module.css'
+import { OrthographicCamera } from "@react-three/drei";
+import { Canvas } from "@react-three/fiber";
+import cn from "clsx";
+import dynamic from "next/dynamic";
+import { Suspense, useState } from "react";
+import { SheetProvider } from "@/lib/dev/theatre";
+import { useWebGLStore } from "@/lib/webgl/store";
+import { createRenderer } from "@/lib/webgl/utils/create-renderer";
+import { detectGPUCapability } from "@/lib/webgl/utils/gpu-detection";
+import { FlowmapProvider } from "../flowmap-provider";
+import { PostProcessing } from "../postprocessing";
+import { Preload } from "../preload";
+import { RAF } from "../raf";
+import s from "./global-canvas.module.css";
 
 type GlobalCanvasProps = {
   /** Enable R3F render loop. Defaults to true. */
-  render?: boolean
+  render?: boolean;
   /** Enable post-processing effects. Defaults to false. */
-  postprocessing?: boolean
+  postprocessing?: boolean;
   /** Enable alpha channel. Defaults to true. */
-  alpha?: boolean
+  alpha?: boolean;
   /** Additional CSS class for the container. */
-  className?: string
+  className?: string;
   /** Force WebGL renderer (skip WebGPU). Defaults to false. */
-  forceWebGL?: boolean
-}
+  forceWebGL?: boolean;
+};
 
 /**
  * GlobalCanvas — A lazy, persistent GPU canvas with WebGPU support.
@@ -86,41 +86,38 @@ export function GlobalCanvas({
   className,
   forceWebGL = false,
 }: GlobalCanvasProps) {
-  const { isActivated, isActive, getWebGLTunnel, getDOMTunnel } =
-    useWebGLStore()
-  const [rendererType, setRendererType] = useState<'webgpu' | 'webgl' | null>(
-    null
-  )
+  const { isActivated, isActive, getWebGLTunnel, getDOMTunnel } = useWebGLStore();
+  const [rendererType, setRendererType] = useState<"webgpu" | "webgl" | null>(null);
 
   // Get device capabilities for renderer config
-  const capability = detectGPUCapability()
+  const capability = detectGPUCapability();
 
   // Don't render anything until activated by <Wrapper webgl>
   if (!isActivated) {
-    return null
+    return null;
   }
 
   // Don't render if device has no GPU support
   if (!capability.hasGPU) {
-    if (process.env.NODE_ENV === 'development') {
-      console.info('🎮 No GPU detected. WebGL/WebGPU canvas disabled.')
+    if (process.env.NODE_ENV === "development") {
+      console.info("🎮 No GPU detected. WebGL/WebGPU canvas disabled.");
     }
-    return null
+    return null;
   }
 
   // Get tunnel singletons (always available once we reach here)
-  const WebGLTunnel = getWebGLTunnel()
-  const DOMTunnel = getDOMTunnel()
+  const WebGLTunnel = getWebGLTunnel();
+  const DOMTunnel = getDOMTunnel();
 
   // Only render when active
-  const shouldRender = render && isActive
+  const shouldRender = render && isActive;
 
   return (
     <div
       className={cn(s.globalCanvas, className)}
       style={{
-        visibility: isActive ? 'visible' : 'hidden',
-        pointerEvents: isActive ? 'auto' : 'none',
+        visibility: isActive ? "visible" : "hidden",
+        pointerEvents: isActive ? "auto" : "none",
       }}
     >
       <Canvas
@@ -129,25 +126,25 @@ export function GlobalCanvas({
             canvas: props.canvas as HTMLCanvasElement,
             alpha,
             antialias: !postprocessing && capability.dpr < 2,
-            powerPreference: 'high-performance',
+            powerPreference: "high-performance",
             stencil: !postprocessing,
             depth: !postprocessing,
             forceWebGL,
-          })
-          setRendererType(type)
-          return renderer
+          });
+          setRendererType(type);
+          return renderer;
         }}
         dpr={[1, capability.dpr]}
         orthographic
         frameloop="never"
         linear
         flat
-        {...(typeof document !== 'undefined' && {
+        {...(typeof document !== "undefined" && {
           eventSource: document.documentElement,
         })}
         eventPrefix="client"
         resize={{ scroll: false, debounce: 500 }}
-        style={{ pointerEvents: isActive ? 'all' : 'none' }}
+        style={{ pointerEvents: isActive ? "all" : "none" }}
       >
         <SheetProvider id="webgl">
           <OrthographicCamera
@@ -169,30 +166,29 @@ export function GlobalCanvas({
       </Canvas>
       <DOMTunnel.Out />
       {/* Renderer indicator (dev only) */}
-      {process.env.NODE_ENV === 'development' && rendererType && (
+      {process.env.NODE_ENV === "development" && rendererType && (
         <div
           style={{
-            position: 'absolute',
+            position: "absolute",
             bottom: 8,
             right: 8,
             fontSize: 10,
             opacity: 0.5,
-            pointerEvents: 'none',
-            fontFamily: 'monospace',
+            pointerEvents: "none",
+            fontFamily: "monospace",
           }}
         >
-          {rendererType === 'webgpu' ? '🚀 WebGPU' : '🎮 WebGL'}
+          {rendererType === "webgpu" ? "🚀 WebGPU" : "🎮 WebGL"}
         </div>
       )}
     </div>
-  )
+  );
 }
 
 /**
  * Dynamic import wrapper for GlobalCanvas.
  * Use this to avoid SSR issues and enable code splitting.
  */
-export const LazyGlobalCanvas = dynamic(
-  () => Promise.resolve({ default: GlobalCanvas }),
-  { ssr: false }
-)
+export const LazyGlobalCanvas = dynamic(() => Promise.resolve({ default: GlobalCanvas }), {
+  ssr: false,
+});

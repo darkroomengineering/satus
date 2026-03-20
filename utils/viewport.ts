@@ -27,7 +27,7 @@
  * A 100px element designed at 1728px will be ~58px at 1000px viewport.
  */
 
-import { screens } from '@/styles/config'
+import { screens } from "@/styles/config";
 
 /**
  * Scales a pixel value relative to the desktop design width.
@@ -50,7 +50,7 @@ import { screens } from '@/styles/config'
  * ```
  */
 export function desktopVW(value: number, width: number): number {
-  return (value * width) / screens.desktop.width
+  return (value * width) / screens.desktop.width;
 }
 
 /**
@@ -68,7 +68,7 @@ export function desktopVW(value: number, width: number): number {
  * ```
  */
 export function mobileVW(value: number, width: number): number {
-  return (value * width) / screens.mobile.width
+  return (value * width) / screens.mobile.width;
 }
 
 /**
@@ -79,7 +79,7 @@ export function mobileVW(value: number, width: number): number {
  * @returns Scaled pixel value
  */
 export function desktopVH(value: number, height: number): number {
-  return (value * height) / screens.desktop.height
+  return (value * height) / screens.desktop.height;
 }
 
 /**
@@ -90,5 +90,5 @@ export function desktopVH(value: number, height: number): number {
  * @returns Scaled pixel value
  */
 export function mobileVH(value: number, height: number): number {
-  return (value * height) / screens.mobile.height
+  return (value * height) / screens.mobile.height;
 }

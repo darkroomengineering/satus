@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata } from "next";
 
 /**
  * Metadata Generation Utilities
@@ -8,26 +8,25 @@ import type { Metadata } from 'next'
  */
 
 interface GenerateMetadataOptions {
-  title?: string
-  description?: string
-  keywords?: string[]
+  title?: string;
+  description?: string;
+  keywords?: string[];
   image?: {
-    url?: string
-    width?: number
-    height?: number
-    alt?: string
-  }
-  url?: string
-  siteName?: string
-  noIndex?: boolean
-  type?: 'website' | 'article'
-  publishedTime?: string
-  modifiedTime?: string
-  authors?: string[]
+    url?: string;
+    width?: number;
+    height?: number;
+    alt?: string;
+  };
+  url?: string;
+  siteName?: string;
+  noIndex?: boolean;
+  type?: "website" | "article";
+  publishedTime?: string;
+  modifiedTime?: string;
+  authors?: string[];
 }
 
-const APP_BASE_URL =
-  process.env.NEXT_PUBLIC_BASE_URL ?? 'https://localhost:3000'
+const APP_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "https://localhost:3000";
 
 /**
  * Generate complete metadata object for pages
@@ -47,28 +46,26 @@ const APP_BASE_URL =
  * }
  * ```
  */
-export function generatePageMetadata(
-  options: GenerateMetadataOptions
-): Metadata {
+export function generatePageMetadata(options: GenerateMetadataOptions): Metadata {
   const {
     title,
     description,
     keywords,
     image,
     url,
-    siteName = 'Satūs',
+    siteName = "Satūs",
     noIndex = false,
-    type = 'website',
+    type = "website",
     publishedTime,
     modifiedTime,
     authors,
-  } = options
+  } = options;
 
-  const fullUrl = url ? `${APP_BASE_URL}${url}` : APP_BASE_URL
-  const imageUrl = image?.url || '/opengraph-image.jpg'
-  const imageWidth = image?.width || 1200
-  const imageHeight = image?.height || 630
-  const imageAlt = image?.alt || title || siteName
+  const fullUrl = url ? `${APP_BASE_URL}${url}` : APP_BASE_URL;
+  const imageUrl = image?.url || "/opengraph-image.jpg";
+  const imageWidth = image?.width || 1200;
+  const imageHeight = image?.height || 630;
+  const imageAlt = image?.alt || title || siteName;
 
   const metadata: Metadata = {
     metadataBase: new URL(APP_BASE_URL),
@@ -76,14 +73,14 @@ export function generatePageMetadata(
     description,
     keywords,
     alternates: {
-      canonical: url || '/',
+      canonical: url || "/",
     },
     openGraph: {
       title,
       description,
       url: fullUrl,
       siteName,
-      locale: 'en_US',
+      locale: "en_US",
       type,
       images: [
         {
@@ -98,7 +95,7 @@ export function generatePageMetadata(
       ...(authors && { authors }),
     },
     twitter: {
-      card: 'summary_large_image',
+      card: "summary_large_image",
       title,
       description,
       images: [
@@ -111,18 +108,18 @@ export function generatePageMetadata(
       ],
     },
     other: {
-      'fb:app_id': process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '',
+      "fb:app_id": process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || "",
     },
-  }
+  };
 
   if (noIndex) {
     metadata.robots = {
       index: false,
       follow: false,
-    }
+    };
   }
 
-  return metadata
+  return metadata;
 }
 
 /**
@@ -144,22 +141,22 @@ export function generatePageMetadata(
  */
 export function generateSanityMetadata(options: {
   document: {
-    title?: string
+    title?: string;
     metadata?: {
-      title?: string
-      description?: string
-      keywords?: string[]
-      image?: { asset?: { url?: string } }
-      noIndex?: boolean
-    }
-    _updatedAt?: string
-    publishedAt?: string
-  }
-  url?: string
-  type?: 'website' | 'article'
+      title?: string;
+      description?: string;
+      keywords?: string[];
+      image?: { asset?: { url?: string } };
+      noIndex?: boolean;
+    };
+    _updatedAt?: string;
+    publishedAt?: string;
+  };
+  url?: string;
+  type?: "website" | "article";
 }): Metadata {
-  const { document, url, type = 'website' } = options
-  const metadata = document.metadata
+  const { document, url, type = "website" } = options;
+  const metadata = document.metadata;
 
   if (!metadata) {
     // Fallback to basic metadata if none provided
@@ -167,13 +164,11 @@ export function generateSanityMetadata(options: {
       ...(document.title && { title: document.title }),
       ...(url && { url }),
       type,
-    })
+    });
   }
 
   return generatePageMetadata({
-    ...(metadata.title || document.title
-      ? { title: metadata.title || document.title }
-      : {}),
+    ...(metadata.title || document.title ? { title: metadata.title || document.title } : {}),
     ...(metadata.description && { description: metadata.description }),
     ...(metadata.keywords && { keywords: metadata.keywords }),
     ...(metadata.image?.asset?.url && {
@@ -186,5 +181,5 @@ export function generateSanityMetadata(options: {
     type,
     ...(document.publishedAt && { publishedTime: document.publishedAt }),
     ...(document._updatedAt && { modifiedTime: document._updatedAt }),
-  })
+  });
 }

@@ -10,13 +10,13 @@ bun dev
 
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `bun dev` | Development server |
-| `bun run build` | Production build |
-| `bun lint` | Run linter |
-| `bun run check` | Run biome + typecheck + tests |
-| `bun setup:styles` | Regenerate CSS |
+| Command            | Description                   |
+| ------------------ | ----------------------------- |
+| `bun dev`          | Development server            |
+| `bun run build`    | Production build              |
+| `bun lint`         | Run linter                    |
+| `bun run check`    | Run biome + typecheck + tests |
+| `bun setup:styles` | Regenerate CSS                |
 
 ## Tech Stack
 
@@ -49,11 +49,11 @@ Push to `main` branch for Vercel deployment.
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| Build fails | `bun install` + check env vars |
-| Styles not updating | `bun setup:styles` + restart |
-| CMS not connecting | Check Sanity env vars + CORS |
+| Issue               | Solution                       |
+| ------------------- | ------------------------------ |
+| Build fails         | `bun install` + check env vars |
+| Styles not updating | `bun setup:styles` + restart   |
+| CMS not connecting  | Check Sanity env vars + CORS   |
 
 ---
 

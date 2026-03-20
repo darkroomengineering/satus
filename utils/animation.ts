@@ -23,14 +23,14 @@
  * ```
  */
 
-import { type EasingName, easings } from './easings'
-import { clamp, mapRange } from './math'
+import { type EasingName, easings } from "./easings";
+import { clamp, mapRange } from "./math";
 
 // Re-export for convenience
-export { type EasingName, easings } from './easings'
-export { clamp, lerp, mapRange, modulo, truncate } from './math'
-export { batch, measure, mutate } from './raf'
-export { desktopVH, desktopVW, mobileVH, mobileVW } from './viewport'
+export { type EasingName, easings } from "./easings";
+export { clamp, lerp, mapRange, modulo, truncate } from "./math";
+export { batch, measure, mutate } from "./raf";
+export { desktopVH, desktopVW, mobileVH, mobileVW } from "./viewport";
 
 /**
  * Calculates staggered progress for an element in a sequence.
@@ -61,11 +61,11 @@ export function stagger(
   index: number,
   total: number,
   progress: number,
-  staggerAmount: number
+  staggerAmount: number,
 ): number {
-  const start = index * staggerAmount
-  const end = 1 - (total - index) * staggerAmount
-  return clamp(0, mapRange(start, end, progress, 0, 1), 1)
+  const start = index * staggerAmount;
+  const end = 1 - (total - index) * staggerAmount;
+  return clamp(0, mapRange(start, end, progress, 0, 1), 1);
 }
 
 /**
@@ -82,26 +82,21 @@ export function stagger(
  * ```
  */
 export function ease(progress: number, easeName: EasingName): number {
-  return easings[easeName](progress)
+  return easings[easeName](progress);
 }
 
 /** Options for the fromTo animation helper */
 export interface FromToOptions {
   /** Easing function name (default: 'linear') */
-  ease?: EasingName
+  ease?: EasingName;
   /** Stagger amount between elements (default: 0) */
-  stagger?: number
+  stagger?: number;
   /** Render callback for each element */
-  render?: (
-    element: HTMLElement | number | Element,
-    values: Record<string, number>
-  ) => void
+  render?: (element: HTMLElement | number | Element, values: Record<string, number>) => void;
 }
 
 /** Value type for fromTo - can be a number or a function returning a number */
-export type FromToValue =
-  | number
-  | Record<string, number | ((index: number) => number)>
+export type FromToValue = number | Record<string, number | ((index: number) => number)>;
 
 /**
  * Animates elements from one state to another based on progress.
@@ -166,48 +161,32 @@ export function fromTo(
   from: FromToValue = 0,
   to: FromToValue = 1,
   progress = 0,
-  options: FromToOptions = {}
+  options: FromToOptions = {},
 ): void {
-  if (!entries) return
+  if (!entries) return;
 
-  const {
-    stagger: staggerAmount = 0,
-    ease: easeName = 'linear',
-    render,
-  } = options
-  const keys = typeof from === 'object' ? Object.keys(from) : ['value']
-  const elements = Array.isArray(entries) ? entries : [entries]
+  const { stagger: staggerAmount = 0, ease: easeName = "linear", render } = options;
+  const keys = typeof from === "object" ? Object.keys(from) : ["value"];
+  const elements = Array.isArray(entries) ? entries : [entries];
 
   for (const [index, element] of elements.entries()) {
-    const staggeredProgress = stagger(
-      index,
-      elements.length,
-      progress,
-      staggerAmount
-    )
+    const staggeredProgress = stagger(index, elements.length, progress, staggerAmount);
 
-    const easedProgress = ease(staggeredProgress, easeName)
+    const easedProgress = ease(staggeredProgress, easeName);
 
     const values = Object.fromEntries(
       keys.map((key) => {
-        const fromPreValue = typeof from === 'object' ? from[key] : from
-        const toPreValue = typeof to === 'object' ? to[key] : to
+        const fromPreValue = typeof from === "object" ? from[key] : from;
+        const toPreValue = typeof to === "object" ? to[key] : to;
 
-        const fromValue =
-          typeof fromPreValue === 'function'
-            ? fromPreValue(index)
-            : fromPreValue
-        const toValue =
-          typeof toPreValue === 'function' ? toPreValue(index) : toPreValue
+        const fromValue = typeof fromPreValue === "function" ? fromPreValue(index) : fromPreValue;
+        const toValue = typeof toPreValue === "function" ? toPreValue(index) : toPreValue;
 
-        return [
-          key,
-          mapRange(0, 1, easedProgress, fromValue ?? 0, toValue ?? 0),
-        ]
-      })
-    )
+        return [key, mapRange(0, 1, easedProgress, fromValue ?? 0, toValue ?? 0)];
+      }),
+    );
 
-    if (render && element) render(element, values)
+    if (render && element) render(element, values);
   }
 }
 
@@ -250,15 +229,15 @@ export function spring(
   velocity: number,
   stiffness = 200,
   damping = 20,
-  deltaTime = 1 / 60
+  deltaTime = 1 / 60,
 ): { value: number; velocity: number } {
-  const displacement = current - target
-  const springForce = -stiffness * displacement
-  const dampingForce = -damping * velocity
-  const acceleration = springForce + dampingForce
+  const displacement = current - target;
+  const springForce = -stiffness * displacement;
+  const dampingForce = -damping * velocity;
+  const acceleration = springForce + dampingForce;
 
-  const newVelocity = velocity + acceleration * deltaTime
-  const newValue = current + newVelocity * deltaTime
+  const newVelocity = velocity + acceleration * deltaTime;
+  const newValue = current + newVelocity * deltaTime;
 
-  return { value: newValue, velocity: newVelocity }
+  return { value: newValue, velocity: newVelocity };
 }

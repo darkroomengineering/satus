@@ -8,31 +8,31 @@ import {
   Vector2,
   type WebGLRenderer,
   WebGLRenderTarget,
-} from 'three'
-import Program from '../program'
+} from "three";
+import Program from "../program";
 
 export class Flowmap {
-  renderer: WebGLRenderer
-  uniform = { value: null as Texture | null }
+  renderer: WebGLRenderer;
+  uniform = { value: null as Texture | null };
   mask = {
     read: null as WebGLRenderTarget | null,
     write: null as WebGLRenderTarget | null,
 
     // Helper function to ping pong the render targets and update the uniform
     swap: () => {
-      const temp = this.mask.read
-      this.mask.read = this.mask.write
-      this.mask.write = temp
-      this.uniform.value = this.mask.read?.texture ?? null
+      const temp = this.mask.read;
+      this.mask.read = this.mask.write;
+      this.mask.write = temp;
+      this.uniform.value = this.mask.read?.texture ?? null;
     },
-  }
-  aspect = 1
-  lastMouse = new Vector2()
-  mouse = new Vector2()
-  targetMouse = new Vector2()
-  velocity = new Vector2()
-  program: Program
-  material: ShaderMaterial
+  };
+  aspect = 1;
+  lastMouse = new Vector2();
+  mouse = new Vector2();
+  targetMouse = new Vector2();
+  velocity = new Vector2();
+  program: Program;
+  material: ShaderMaterial;
 
   constructor(
     renderer: WebGLRenderer,
@@ -41,18 +41,18 @@ export class Flowmap {
       falloff = 0.3, // size of the stamp, percentage of the size
       alpha = 1, // opacity of the stamp
       dissipation = 0.98, // affects the speed that the stamp fades. Closer to 1 is slower
-    } = {}
+    } = {},
   ) {
-    this.renderer = renderer
+    this.renderer = renderer;
 
     const options = {
       type: HalfFloatType,
       depthBuffer: false,
-    }
+    };
 
-    this.mask.read = new WebGLRenderTarget(size, size, options)
-    this.mask.write = new WebGLRenderTarget(size, size, options)
-    this.mask.swap()
+    this.mask.read = new WebGLRenderTarget(size, size, options);
+    this.mask.write = new WebGLRenderTarget(size, size, options);
+    this.mask.swap();
 
     this.material = new ShaderMaterial({
       vertexShader,
@@ -72,104 +72,102 @@ export class Flowmap {
       blending: NoBlending,
       depthTest: false,
       depthWrite: false,
-    })
+    });
 
-    this.program = new Program(this.material)
+    this.program = new Program(this.material);
 
-    const isTouchCapable = 'ontouchstart' in window
+    const isTouchCapable = "ontouchstart" in window;
     if (isTouchCapable) {
-      window.addEventListener('touchstart', this.updateMouse, false)
-      window.addEventListener('touchmove', this.updateMouse, false)
+      window.addEventListener("touchstart", this.updateMouse, false);
+      window.addEventListener("touchmove", this.updateMouse, false);
     } else {
-      window.addEventListener('mousemove', this.updateMouse, false)
+      window.addEventListener("mousemove", this.updateMouse, false);
     }
   }
 
   updateMouse = (e: MouseEvent | TouchEvent) => {
     // Normalize touch and mouse events to get x/y coordinates
-    let pageX: number
-    let pageY: number
+    let pageX: number;
+    let pageY: number;
 
-    if ('changedTouches' in e && e.changedTouches.length) {
-      pageX = e.changedTouches[0]?.pageX ?? 0
-      pageY = e.changedTouches[0]?.pageY ?? 0
-    } else if ('pageX' in e) {
-      pageX = e.pageX
-      pageY = e.pageY
+    if ("changedTouches" in e && e.changedTouches.length) {
+      pageX = e.changedTouches[0]?.pageX ?? 0;
+      pageY = e.changedTouches[0]?.pageY ?? 0;
+    } else if ("pageX" in e) {
+      pageX = e.pageX;
+      pageY = e.pageY;
     } else {
-      return
+      return;
     }
 
-    const viewportSize = this.renderer.getSize(new Vector2())
-    this.aspect = viewportSize.width / viewportSize.height
-    this.material.uniforms.uAspect!.value = this.aspect
+    const viewportSize = this.renderer.getSize(new Vector2());
+    this.aspect = viewportSize.width / viewportSize.height;
+    this.material.uniforms.uAspect!.value = this.aspect;
 
-    const x = pageX / viewportSize.width
-    const y = 1 - pageY / viewportSize.height
+    const x = pageX / viewportSize.width;
+    const y = 1 - pageY / viewportSize.height;
 
-    this.targetMouse.set(x, y)
-  }
+    this.targetMouse.set(x, y);
+  };
 
   update() {
-    const lastVelocity = this.velocity.length()
+    const lastVelocity = this.velocity.length();
 
-    this.velocity
-      .copy(this.targetMouse.clone().sub(this.mouse))
-      .multiplyScalar(100)
+    this.velocity.copy(this.targetMouse.clone().sub(this.mouse)).multiplyScalar(100);
 
-    this.mouse.lerp(this.targetMouse, lastVelocity === 0 ? 1 : 0.07)
+    this.mouse.lerp(this.targetMouse, lastVelocity === 0 ? 1 : 0.07);
 
     if (this.velocity.length() < 1) {
-      this.targetMouse.set(-1, -1)
-      this.mouse.set(-1, -1)
-      this.velocity.set(0, 0)
+      this.targetMouse.set(-1, -1);
+      this.mouse.set(-1, -1);
+      this.velocity.set(0, 0);
     }
 
-    const oldAutoClear = this.renderer.autoClear
-    this.renderer.autoClear = false
+    const oldAutoClear = this.renderer.autoClear;
+    this.renderer.autoClear = false;
     if (this.mask.write) {
-      this.renderer.setRenderTarget(this.mask.write)
+      this.renderer.setRenderTarget(this.mask.write);
     }
 
-    this.program.render(this.renderer)
-    this.mask.swap()
+    this.program.render(this.renderer);
+    this.mask.swap();
 
-    this.renderer.autoClear = oldAutoClear
-    this.renderer.setRenderTarget(null)
+    this.renderer.autoClear = oldAutoClear;
+    this.renderer.setRenderTarget(null);
   }
 
   set falloff(value) {
-    this.material.uniforms.uFalloff!.value = value
+    this.material.uniforms.uFalloff!.value = value;
   }
 
   get falloff() {
-    return this.material.uniforms.uFalloff!.value
+    return this.material.uniforms.uFalloff!.value;
   }
 
   set dissipation(value) {
-    this.material.uniforms.uDissipation!.value = value
+    this.material.uniforms.uDissipation!.value = value;
   }
 
   get dissipation() {
-    return this.material.uniforms.uDissipation!.value
+    return this.material.uniforms.uDissipation!.value;
   }
 
   destroy(): null {
-    const isTouchCapable = 'ontouchstart' in window
+    const isTouchCapable = "ontouchstart" in window;
     if (isTouchCapable) {
-      window.removeEventListener('touchstart', this.updateMouse, false)
-      window.removeEventListener('touchmove', this.updateMouse, false)
+      window.removeEventListener("touchstart", this.updateMouse, false);
+      window.removeEventListener("touchmove", this.updateMouse, false);
     } else {
-      window.removeEventListener('mousemove', this.updateMouse, false)
+      window.removeEventListener("mousemove", this.updateMouse, false);
     }
 
-    this.mask.read?.dispose()
-    this.mask.write?.dispose()
-    this.material.dispose()
-    this.program.mesh.geometry.dispose()
-    this.program.scene.clear()
+    this.mask.read?.dispose();
+    this.mask.write?.dispose();
+    this.material.dispose();
+    this.program.mesh.geometry.dispose();
+    this.program.scene.clear();
 
-    return null
+    return null;
   }
 }
 
@@ -183,7 +181,7 @@ const vertexShader = /* glsl */ `
         vUv = uv;
         gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
     }
-`
+`;
 
 const fragmentShader = /* glsl */ `
     precision highp float;
@@ -213,4 +211,4 @@ const fragmentShader = /* glsl */ `
 
         gl_FragColor = vec4(color.rgb, 1.0);
     }
-`
+`;

@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * @module tunnel
@@ -11,11 +11,11 @@
  * or into an HTML overlay layer on top of the canvas (via {@link DOMTunnel}).
  */
 
-import { useContextBridge } from '@react-three/drei'
-import { Fragment, type PropsWithChildren, useId } from 'react'
-import { TransformContext } from '@/hooks/use-transform'
-import { SheetContext, SheetProvider, useSheet } from '@/lib/dev/theatre'
-import { useCanvas } from '@/webgl/components/canvas'
+import { useContextBridge } from "@react-three/drei";
+import { Fragment, type PropsWithChildren, useId } from "react";
+import { TransformContext } from "@/hooks/use-transform";
+import { SheetContext, SheetProvider, useSheet } from "@/lib/dev/theatre";
+import { useCanvas } from "@/webgl/components/canvas";
 
 /**
  * Portals React children into the R3F Canvas scene graph.
@@ -53,27 +53,24 @@ import { useCanvas } from '@/webgl/components/canvas'
  * ```
  */
 export function WebGLTunnel({ children }: PropsWithChildren) {
-  const { WebGLTunnel } = useCanvas()
+  const { WebGLTunnel } = useCanvas();
 
-  const ContextBridge = useContextBridge(TransformContext, SheetContext)
+  const ContextBridge = useContextBridge(TransformContext, SheetContext);
 
-  const sheet = useSheet()
-  const uuid = useId()
+  const sheet = useSheet();
+  const uuid = useId();
 
-  if (!WebGLTunnel) return
+  if (!WebGLTunnel) return;
 
   return (
     <WebGLTunnel.In>
       <ContextBridge key={uuid}>
-        <SheetProvider
-          id={sheet?.address?.sheetId}
-          instance={sheet?.address?.sheetInstanceId}
-        >
+        <SheetProvider id={sheet?.address?.sheetId} instance={sheet?.address?.sheetInstanceId}>
           {children}
         </SheetProvider>
       </ContextBridge>
     </WebGLTunnel.In>
-  )
+  );
 }
 
 /**
@@ -105,13 +102,13 @@ export function WebGLTunnel({ children }: PropsWithChildren) {
  * ```
  */
 export function DOMTunnel({ children }: PropsWithChildren) {
-  const { DOMTunnel } = useCanvas()
+  const { DOMTunnel } = useCanvas();
 
-  const uuid = useId()
+  const uuid = useId();
 
   return (
     <DOMTunnel.In>
       <Fragment key={uuid}>{children}</Fragment>
     </DOMTunnel.In>
-  )
+  );
 }

@@ -13,11 +13,11 @@
  * updated each frame inside the R3F render loop.
  */
 
-import { createContext, useContext } from 'react'
-import { useFlowmapSim } from '@/webgl/utils/flowmaps'
-import type { Flowmap } from '@/webgl/utils/flowmaps/flowmap-sim'
-import { useFluidSim } from '@/webgl/utils/fluid'
-import type { Fluid } from '@/webgl/utils/fluid/fluid-sim'
+import { createContext, useContext } from "react";
+import { useFlowmapSim } from "@/webgl/utils/flowmaps";
+import type { Flowmap } from "@/webgl/utils/flowmaps/flowmap-sim";
+import { useFluidSim } from "@/webgl/utils/fluid";
+import type { Fluid } from "@/webgl/utils/fluid/fluid-sim";
 
 /**
  * Shape of the flowmap context value.
@@ -26,13 +26,11 @@ import type { Fluid } from '@/webgl/utils/fluid/fluid-sim'
  * @property flowmap - The GPU flowmap simulation instance (velocity-field displacement).
  */
 type FlowmapContextType = {
-  fluid: Fluid
-  flowmap: Flowmap
-}
+  fluid: Fluid;
+  flowmap: Flowmap;
+};
 
-export const FlowmapContext = createContext<FlowmapContextType>(
-  {} as FlowmapContextType
-)
+export const FlowmapContext = createContext<FlowmapContextType>({} as FlowmapContextType);
 
 /**
  * Retrieves the active GPU simulation instance from context.
@@ -59,11 +57,11 @@ export const FlowmapContext = createContext<FlowmapContextType>(
  * }
  * ```
  */
-export function useFlowmap(type: 'fluid' | 'flowmap' = 'flowmap') {
-  const { fluid, flowmap } = useContext(FlowmapContext)
+export function useFlowmap(type: "fluid" | "flowmap" = "flowmap") {
+  const { fluid, flowmap } = useContext(FlowmapContext);
 
-  if (type === 'fluid') return fluid
-  return flowmap
+  if (type === "fluid") return fluid;
+  return flowmap;
 }
 
 /**
@@ -87,12 +85,8 @@ export function useFlowmap(type: 'fluid' | 'flowmap' = 'flowmap') {
  * ```
  */
 export function FlowmapProvider({ children }: { children: React.ReactNode }) {
-  const fluid = useFluidSim()
-  const flowmap = useFlowmapSim()
+  const fluid = useFluidSim();
+  const flowmap = useFlowmapSim();
 
-  return (
-    <FlowmapContext.Provider value={{ fluid, flowmap }}>
-      {children}
-    </FlowmapContext.Provider>
-  )
+  return <FlowmapContext.Provider value={{ fluid, flowmap }}>{children}</FlowmapContext.Provider>;
 }

@@ -1,11 +1,11 @@
 // Type augmentations and module declarations
 
 // React CSS custom properties support
-import 'react'
+import "react";
 
-declare module 'react' {
+declare module "react" {
   interface CSSProperties {
-    [key: `--${string}`]: string | number
+    [key: `--${string}`]: string | number;
   }
 }
 
@@ -15,17 +15,17 @@ declare global {
     hbspt?: {
       forms: {
         create: (options: {
-          portalId?: string
-          formId: string
-          target: string
-          submitButtonClass?: string
-          errorMessageClass?: string
-          cssClass?: string
-          onFormReady?: () => void
-          onFormSubmitted?: () => void
-        }) => void
-      }
-    }
-    THEATRE_PROJECT_ID?: string
+          portalId?: string;
+          formId: string;
+          target: string;
+          submitButtonClass?: string;
+          errorMessageClass?: string;
+          cssClass?: string;
+          onFormReady?: () => void;
+          onFormSubmitted?: () => void;
+        }) => void;
+      };
+    };
+    THEATRE_PROJECT_ID?: string;
   }
 }

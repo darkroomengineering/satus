@@ -1,5 +1,5 @@
-import type { Config } from '../config'
-import { formatObject, scalingCalc } from './utils'
+import type { Config } from "../config";
+import { formatObject, scalingCalc } from "./utils";
 
 export function generateRoot({
   breakpoints,
@@ -8,10 +8,7 @@ export function generateRoot({
   easings,
   layout,
   screens,
-}: Pick<
-  Config,
-  'breakpoints' | 'colors' | 'customSizes' | 'easings' | 'layout' | 'screens'
->) {
+}: Pick<Config, "breakpoints" | "colors" | "customSizes" | "easings" | "layout" | "screens">) {
   return `@custom-media --hover (hover: hover);
 @custom-media --mobile (width <= ${breakpoints.dt - 0.02}px);
 @custom-media --desktop (width >= ${breakpoints.dt}px);
@@ -22,9 +19,9 @@ export function generateRoot({
 	--device-height: ${screens.mobile.height};
 	
 	${formatObject(layout, ([name, { mobile }]) => {
-    if (name === 'columns') return `--columns: ${mobile};`
+    if (name === "columns") return `--columns: ${mobile};`;
 
-    return `--${name}: ${scalingCalc(mobile)};`
+    return `--${name}: ${scalingCalc(mobile)};`;
   })}
 	
 	${formatObject(customSizes, ([name, { mobile }]) => `--${name}: ${scalingCalc(mobile)};`)}
@@ -43,15 +40,15 @@ export function generateRoot({
     ${formatObject(
       layout,
       ([name, { desktop }]) => {
-        if (name === 'columns') return `--columns: ${desktop};`
+        if (name === "columns") return `--columns: ${desktop};`;
 
-        return `--${name}: ${scalingCalc(desktop)};`
+        return `--${name}: ${scalingCalc(desktop)};`;
       },
-      '\n\t\t'
+      "\n\t\t",
     )}
 
-    ${formatObject(customSizes, ([name, { desktop }]) => `--${name}: ${scalingCalc(desktop)};`, '\n\t\t')}
+    ${formatObject(customSizes, ([name, { desktop }]) => `--${name}: ${scalingCalc(desktop)};`, "\n\t\t")}
 	}
 }
-  `
+  `;
 }

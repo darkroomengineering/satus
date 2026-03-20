@@ -1,9 +1,9 @@
-import { useThree } from '@react-three/fiber'
-import type { Rect } from 'hamo'
-import { useLenis } from 'lenis/react'
-import { useEffect, useEffectEvent, useRef } from 'react'
-import { Euler, Vector3 } from 'three'
-import { useTransform } from '@/hooks/use-transform'
+import { useThree } from "@react-three/fiber";
+import type { Rect } from "hamo";
+import { useLenis } from "lenis/react";
+import { useEffect, useEffectEvent, useRef } from "react";
+import { Euler, Vector3 } from "three";
+import { useTransform } from "@/hooks/use-transform";
 
 /**
  * Represents the computed transform for positioning a WebGL mesh
@@ -15,15 +15,15 @@ import { useTransform } from '@/hooks/use-transform'
  * @property isVisible - Whether the element is within the scroll viewport bounds.
  */
 interface WebGLTransform {
-  position: Vector3
-  rotation: Euler
-  scale: Vector3
-  isVisible: boolean
+  position: Vector3;
+  rotation: Euler;
+  scale: Vector3;
+  isVisible: boolean;
 }
 
 interface UseWebGLRectOptions {
   /** Whether the element is visible in the viewport. When false, skips computations. */
-  visible?: boolean
+  visible?: boolean;
 }
 
 /**
@@ -68,30 +68,30 @@ interface UseWebGLRectOptions {
 export function useWebGLRect(
   rect: Rect,
   onUpdate?: (transform: WebGLTransform) => void,
-  options: UseWebGLRectOptions = {}
+  options: UseWebGLRectOptions = {},
 ) {
-  const { visible = true } = options
+  const { visible = true } = options;
 
-  const size = useThree((state) => state.size)
-  const lenis = useLenis()
-  const getTransform = useTransform()
+  const size = useThree((state) => state.size);
+  const lenis = useLenis();
+  const getTransform = useTransform();
 
   const transformRef = useRef<WebGLTransform>({
     position: new Vector3(0, 0, 0),
     rotation: new Euler(0, 0, 0),
     scale: new Vector3(1, 1, 1),
     isVisible: true,
-  })
+  });
 
   // useEffectEvent: callback always has access to latest values
   // without being a dependency that triggers re-subscriptions
   const handleUpdate = useEffectEvent(() => {
     // Skip computations when not visible
-    if (!visible) return
+    if (!visible) return;
 
-    const { translate, scale } = getTransform()
-    const scroll = lenis ? Math.floor(lenis.scroll) : window.scrollY
-    const transform = transformRef.current
+    const { translate, scale } = getTransform();
+    const scroll = lenis ? Math.floor(lenis.scroll) : window.scrollY;
+    const transform = transformRef.current;
 
     if (
       rect.top === undefined ||
@@ -100,43 +100,42 @@ export function useWebGLRect(
       rect.width === undefined
     ) {
       // Expected during initial render before DOM measurement completes
-      return
+      return;
     }
 
     transform.isVisible =
       scroll > rect.top - size.height + translate.y &&
-      scroll < rect.top + translate.y + rect.height
+      scroll < rect.top + translate.y + rect.height;
 
-    transform.position.x = -size.width / 2 + (rect.left + rect.width / 2)
-    transform.position.y =
-      size.height / 2 - (rect.top + rect.height / 2) + scroll - translate.y
-    transform.scale.x = rect.width * scale.x
-    transform.scale.y = rect.height * scale.y
+    transform.position.x = -size.width / 2 + (rect.left + rect.width / 2);
+    transform.position.y = size.height / 2 - (rect.top + rect.height / 2) + scroll - translate.y;
+    transform.scale.x = rect.width * scale.x;
+    transform.scale.y = rect.height * scale.y;
 
-    onUpdate?.(transformRef.current)
-  })
+    onUpdate?.(transformRef.current);
+  });
 
   // Subscribe to transform changes - handleUpdate is stable from useEffectEvent
-  useTransform(handleUpdate, [])
+  useTransform(handleUpdate, []);
 
   // Subscribe to lenis scroll - handleUpdate is stable from useEffectEvent
-  useLenis(handleUpdate, [])
+  useLenis(handleUpdate, []);
 
   // Fallback for non-lenis scroll
   useEffect(() => {
-    if (lenis) return
+    if (lenis) return;
 
-    handleUpdate()
-    window.addEventListener('scroll', handleUpdate, false)
+    handleUpdate();
+    window.addEventListener("scroll", handleUpdate, false);
 
     return () => {
-      window.removeEventListener('scroll', handleUpdate, false)
-    }
-  }, [lenis]) // handleUpdate is stable from useEffectEvent
+      window.removeEventListener("scroll", handleUpdate, false);
+    };
+  }, [lenis]); // handleUpdate is stable from useEffectEvent
 
   function get() {
-    return transformRef.current
+    return transformRef.current;
   }
 
-  return get
+  return get;
 }

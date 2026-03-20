@@ -1,15 +1,15 @@
-import { reactRouter } from '@react-router/dev/vite'
-import { defineConfig } from 'vite-plus'
-import svgr from 'vite-plugin-svgr'
+import { reactRouter } from "@react-router/dev/vite";
+import { defineConfig } from "vite-plus";
+import svgr from "vite-plugin-svgr";
 
 export default defineConfig({
   staged: {
-    "*": "vp check --fix"
+    "*": "vp check --fix",
   },
-  lint: {"options":{"typeAware":true,"typeCheck":true}},
+  lint: { options: { typeAware: true, typeCheck: true } },
   plugins: [reactRouter(), svgr()],
-  envPrefix: 'PUBLIC_',
+  envPrefix: "PUBLIC_",
   resolve: {
     tsconfigPaths: true,
   },
-})
+});

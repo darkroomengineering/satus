@@ -1,4 +1,4 @@
-import { functions } from './styles/scripts/postcss-functions.mjs'
+import { functions } from "./styles/scripts/postcss-functions.mjs";
 
 /**
  * PostCSS preset-env config
@@ -8,15 +8,15 @@ import { functions } from './styles/scripts/postcss-functions.mjs'
  */
 const presetEnvConfig = {
   autoprefixer: {
-    flexbox: 'no-2009',
+    flexbox: "no-2009",
   },
   stage: 3,
   features: {
-    'custom-properties': false,
-    'custom-media-queries': true,
-    'nesting-rules': true,
+    "custom-properties": false,
+    "custom-media-queries": true,
+    "nesting-rules": true,
   },
-}
+};
 
 /**
  * PostCSS global data config
@@ -25,18 +25,18 @@ const presetEnvConfig = {
  * @type {import('@csstools/postcss-global-data').pluginOptions}
  */
 const globalDataConfig = {
-  files: ['./styles/css/root.css'],
-}
+  files: ["./styles/css/root.css"],
+};
 
 const postcssConfig = {
   // NOTE: Order is important
   plugins: {
-    '@tailwindcss/postcss': {},
-    '@csstools/postcss-global-data': globalDataConfig,
-    'postcss-functions': { functions },
+    "@tailwindcss/postcss": {},
+    "@csstools/postcss-global-data": globalDataConfig,
+    "postcss-functions": { functions },
     // NOTE: This has to be last config
-    'postcss-preset-env': presetEnvConfig,
+    "postcss-preset-env": presetEnvConfig,
   },
-}
+};
 
-export default postcssConfig
+export default postcssConfig;

@@ -1,5 +1,5 @@
 export function scalingCalc(value: number) {
-  return `calc(((${value} * 100) / var(--device-width)) * 1vw)`
+  return `calc(((${value} * 100) / var(--device-width)) * 1vw)`;
 }
 
 /**
@@ -12,7 +12,7 @@ export function scalingCalc(value: number) {
 export function formatObject<Obj extends Record<string, unknown>>(
   obj: Obj,
   mapper: (args: [key: keyof Obj, value: Obj[keyof Obj]]) => string,
-  joiner = '\n\t'
+  joiner = "\n\t",
 ) {
-  return Object.entries(obj).map(mapper).join(joiner)
+  return Object.entries(obj).map(mapper).join(joiner);
 }

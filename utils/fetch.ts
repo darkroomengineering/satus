@@ -6,7 +6,7 @@
  */
 
 export interface FetchWithTimeoutOptions extends RequestInit {
-  timeout?: number // Timeout in milliseconds (default: 10000ms)
+  timeout?: number; // Timeout in milliseconds (default: 10000ms)
 }
 
 /**
@@ -35,26 +35,26 @@ export interface FetchWithTimeoutOptions extends RequestInit {
  */
 export async function fetchWithTimeout(
   url: string,
-  options: FetchWithTimeoutOptions = {}
+  options: FetchWithTimeoutOptions = {},
 ): Promise<Response> {
-  const { timeout = 10000, signal: externalSignal, ...fetchOptions } = options
+  const { timeout = 10000, signal: externalSignal, ...fetchOptions } = options;
 
-  const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), timeout)
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   // If an external signal is provided, listen to it and abort our controller
   if (externalSignal) {
-    externalSignal.addEventListener('abort', () => controller.abort())
+    externalSignal.addEventListener("abort", () => controller.abort());
   }
 
   try {
     const response = await fetch(url, {
       ...fetchOptions,
       signal: controller.signal,
-    })
-    return response
+    });
+    return response;
   } finally {
-    clearTimeout(timeoutId)
+    clearTimeout(timeoutId);
   }
 }
 
@@ -72,13 +72,13 @@ export async function fetchWithTimeout(
  */
 export async function fetchJSON<T = unknown>(
   url: string,
-  options: FetchWithTimeoutOptions = {}
+  options: FetchWithTimeoutOptions = {},
 ): Promise<T> {
-  const response = await fetchWithTimeout(url, options)
+  const response = await fetchWithTimeout(url, options);
 
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   }
 
-  return response.json() as Promise<T>
+  return response.json() as Promise<T>;
 }

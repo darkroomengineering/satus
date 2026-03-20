@@ -48,25 +48,25 @@
  * ```
  */
 
-import Tempus from 'tempus'
+import Tempus from "tempus";
 
 // Internal queues
-const readQueue: Array<() => unknown> = []
-const writeQueue: Array<() => unknown> = []
+const readQueue: Array<() => unknown> = [];
+const writeQueue: Array<() => unknown> = [];
 
 // Process queues each frame via Tempus
 Tempus.add(
   () => {
     // Process all reads first (measurements)
-    for (const fn of readQueue) fn()
-    readQueue.length = 0
+    for (const fn of readQueue) fn();
+    readQueue.length = 0;
 
     // Then process all writes (mutations)
-    for (const fn of writeQueue) fn()
-    writeQueue.length = 0
+    for (const fn of writeQueue) fn();
+    writeQueue.length = 0;
   },
-  { priority: 1000 }
-)
+  { priority: 1000 },
+);
 
 /**
  * Queue a DOM measurement (read operation).
@@ -88,8 +88,8 @@ Tempus.add(
  */
 export function measure<T>(fn: () => T): Promise<T> {
   return new Promise((resolve) => {
-    readQueue.push(() => resolve(fn()))
-  })
+    readQueue.push(() => resolve(fn()));
+  });
 }
 
 /**
@@ -114,8 +114,8 @@ export function measure<T>(fn: () => T): Promise<T> {
  */
 export function mutate<T>(fn: () => T): Promise<T> {
   return new Promise((resolve) => {
-    writeQueue.push(() => resolve(fn()))
-  })
+    writeQueue.push(() => resolve(fn()));
+  });
 }
 
 /**
@@ -142,8 +142,8 @@ export function mutate<T>(fn: () => T): Promise<T> {
  */
 export async function batch<T extends unknown[]>(
   reads: { [K in keyof T]: () => T[K] },
-  write: (results: T) => void
+  write: (results: T) => void,
 ): Promise<void> {
-  const results = (await Promise.all(reads.map((fn) => measure(fn)))) as T
-  await mutate(() => write(results))
+  const results = (await Promise.all(reads.map((fn) => measure(fn)))) as T;
+  await mutate(() => write(results));
 }

@@ -1,4 +1,4 @@
-import type { ThreeElements } from '@react-three/fiber'
+import type { ThreeElements } from "@react-three/fiber";
 
 declare global {
   namespace React {

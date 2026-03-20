@@ -59,4 +59,4 @@ export const BLEND = {
 		  return (blendScreen(base, blend) * opacity + base * (1.0 - opacity));
 	  }
 	  `,
-} as const
+} as const;

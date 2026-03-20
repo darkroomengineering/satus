@@ -1,16 +1,16 @@
-import { types } from '@theatre/core'
-import { useRef } from 'react'
-import type { Group as ThreeGroup } from 'three'
-import { useCurrentSheet } from '.'
-import { useTheatre } from './hooks/use-theatre'
+import { types } from "@theatre/core";
+import { useRef } from "react";
+import type { Group as ThreeGroup } from "three";
+import { useCurrentSheet } from ".";
+import { useTheatre } from "./hooks/use-theatre";
 
 type GroupProps = {
-  children: React.ReactNode
-  theatreKey: string
-  position?: [number, number, number]
-  rotation?: [number, number, number]
-  scale?: [number, number, number]
-}
+  children: React.ReactNode;
+  theatreKey: string;
+  position?: [number, number, number];
+  rotation?: [number, number, number];
+  scale?: [number, number, number];
+};
 
 export function Group({
   children,
@@ -19,9 +19,9 @@ export function Group({
   rotation = [0, 0, 0],
   scale = [1, 1, 1],
 }: GroupProps) {
-  const groupRef = useRef<ThreeGroup>(null!)
+  const groupRef = useRef<ThreeGroup>(null!);
 
-  const sheet = useCurrentSheet()
+  const sheet = useCurrentSheet();
 
   useTheatre(
     sheet,
@@ -46,22 +46,22 @@ export function Group({
     },
     {
       onValuesChange: ({ position, rotation, scale, visible }) => {
-        if (!groupRef.current) return
+        if (!groupRef.current) return;
 
-        groupRef.current.visible = visible
+        groupRef.current.visible = visible;
 
-        groupRef.current.position.set(position.x, position.y, position.z)
-        groupRef.current.rotation.set(rotation.x, rotation.y, rotation.z)
-        groupRef.current.scale.set(scale.x, scale.y, scale.z)
+        groupRef.current.position.set(position.x, position.y, position.z);
+        groupRef.current.rotation.set(rotation.x, rotation.y, rotation.z);
+        groupRef.current.scale.set(scale.x, scale.y, scale.z);
 
-        groupRef.current.updateMatrix()
+        groupRef.current.updateMatrix();
       },
-    }
-  )
+    },
+  );
 
   return (
     <group matrixAutoUpdate={false} ref={groupRef}>
       {children}
     </group>
-  )
+  );
 }

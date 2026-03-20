@@ -9,28 +9,28 @@
  * better error handling and logging.
  */
 
-import type { WebGLRenderer } from 'three'
-import { detectGPUCapability, isWebGPUAvailable } from './gpu-detection'
+import type { WebGLRenderer } from "three";
+import { detectGPUCapability, isWebGPUAvailable } from "./gpu-detection";
 
-export type RendererType = 'webgpu' | 'webgl'
+export type RendererType = "webgpu" | "webgl";
 
 export type CreateRendererOptions = {
-  canvas: HTMLCanvasElement
-  alpha?: boolean
-  antialias?: boolean
-  powerPreference?: 'high-performance' | 'low-power'
-  precision?: 'highp' | 'mediump' | 'lowp'
-  stencil?: boolean
-  depth?: boolean
+  canvas: HTMLCanvasElement;
+  alpha?: boolean;
+  antialias?: boolean;
+  powerPreference?: "high-performance" | "low-power";
+  precision?: "highp" | "mediump" | "lowp";
+  stencil?: boolean;
+  depth?: boolean;
   /** Force WebGL renderer (skip WebGPU). Defaults to false. */
-  forceWebGL?: boolean
-}
+  forceWebGL?: boolean;
+};
 
 export type RendererResult = {
-  renderer: WebGLRenderer
-  type: RendererType
-  isWebGPU: boolean
-}
+  renderer: WebGLRenderer;
+  type: RendererType;
+  isWebGPU: boolean;
+};
 
 /**
  * Create the best available renderer for the current device.
@@ -49,27 +49,25 @@ export type RendererResult = {
  * >
  * ```
  */
-export async function createRenderer(
-  options: CreateRendererOptions
-): Promise<RendererResult> {
+export async function createRenderer(options: CreateRendererOptions): Promise<RendererResult> {
   const {
     canvas,
     alpha = true,
     antialias = true,
-    powerPreference = 'high-performance',
-    precision = 'highp',
+    powerPreference = "high-performance",
+    precision = "highp",
     stencil = false,
     depth = true,
     forceWebGL = false,
-  } = options
+  } = options;
 
-  const capability = detectGPUCapability()
+  const capability = detectGPUCapability();
 
   // Try WebGPU first (unless forced to WebGL)
   if (!forceWebGL && isWebGPUAvailable() && !capability.isLowPower) {
     try {
       // Dynamic import to avoid loading WebGPU code if not needed
-      const { WebGPURenderer } = await import('three/webgpu')
+      const { WebGPURenderer } = await import("three/webgpu");
 
       const renderer = new WebGPURenderer({
         canvas,
@@ -78,25 +76,25 @@ export async function createRenderer(
         powerPreference,
         // WebGPURenderer-specific options
         forceWebGL: false,
-      })
+      });
 
       // WebGPURenderer requires async initialization
-      await renderer.init()
+      await renderer.init();
 
-      console.info('🚀 Using WebGPU renderer')
+      console.info("🚀 Using WebGPU renderer");
 
       return {
         renderer: renderer as unknown as WebGLRenderer,
-        type: 'webgpu',
+        type: "webgpu",
         isWebGPU: true,
-      }
+      };
     } catch (error) {
-      console.warn('WebGPU renderer failed, falling back to WebGL:', error)
+      console.warn("WebGPU renderer failed, falling back to WebGL:", error);
     }
   }
 
   // Fall back to WebGL
-  const { WebGLRenderer } = await import('three')
+  const { WebGLRenderer } = await import("three");
 
   const renderer = new WebGLRenderer({
     canvas,
@@ -106,15 +104,15 @@ export async function createRenderer(
     precision,
     stencil,
     depth,
-  })
+  });
 
-  console.info('🎮 Using WebGL renderer')
+  console.info("🎮 Using WebGL renderer");
 
   return {
     renderer,
-    type: 'webgl',
+    type: "webgl",
     isWebGPU: false,
-  }
+  };
 }
 
 /**
@@ -122,21 +120,19 @@ export async function createRenderer(
  *
  * Use this when you know you want WebGL, or for compatibility.
  */
-export async function createWebGLRenderer(
-  options: CreateRendererOptions
-): Promise<RendererResult> {
+export async function createWebGLRenderer(options: CreateRendererOptions): Promise<RendererResult> {
   const {
     canvas,
     alpha = true,
     antialias = true,
-    powerPreference = 'high-performance',
-    precision = 'highp',
+    powerPreference = "high-performance",
+    precision = "highp",
     stencil = false,
     depth = true,
-  } = options
+  } = options;
 
-  const capability = detectGPUCapability()
-  const { WebGLRenderer } = await import('three')
+  const capability = detectGPUCapability();
+  const { WebGLRenderer } = await import("three");
 
   const renderer = new WebGLRenderer({
     canvas,
@@ -146,11 +142,11 @@ export async function createWebGLRenderer(
     precision,
     stencil,
     depth,
-  })
+  });
 
   return {
     renderer,
-    type: 'webgl',
+    type: "webgl",
     isWebGPU: false,
-  }
+  };
 }

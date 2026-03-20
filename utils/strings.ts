@@ -23,12 +23,12 @@
 export function slugify(text: { toString: () => string }) {
   return text
     .toString()
-    .normalize('NFKD')
+    .normalize("NFKD")
     .toLowerCase()
     .trim()
-    .replace(/\s+/g, '-')
-    .replace(/[^\w-]+/g, '')
-    .replace(/--+/g, '-')
+    .replace(/\s+/g, "-")
+    .replace(/[^\w-]+/g, "")
+    .replace(/--+/g, "-");
 }
 
 /**
@@ -43,7 +43,7 @@ export function slugify(text: { toString: () => string }) {
  * ```
  */
 export function convertToCamelCase(inputString: string) {
-  return inputString.charAt(0).toLowerCase() + inputString.slice(1)
+  return inputString.charAt(0).toLowerCase() + inputString.slice(1);
 }
 
 /**
@@ -59,7 +59,7 @@ export function convertToCamelCase(inputString: string) {
  * ```
  */
 export function capitalizeFirstLetter(inputString: string) {
-  return inputString.charAt(0).toUpperCase() + inputString.slice(1)
+  return inputString.charAt(0).toUpperCase() + inputString.slice(1);
 }
 
 /**
@@ -75,7 +75,7 @@ export function capitalizeFirstLetter(inputString: string) {
  * ```
  */
 export function twoDigits(number: number) {
-  return number > 9 ? `${number}` : `0${number}`
+  return number > 9 ? `${number}` : `0${number}`;
 }
 
 /**
@@ -91,7 +91,7 @@ export function twoDigits(number: number) {
  * ```
  */
 export function numberWithCommas(x: { toString: () => string }) {
-  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 // =============================================================================
@@ -112,8 +112,8 @@ export function numberWithCommas(x: { toString: () => string }) {
  * ```
  */
 export function isEmptyObject(obj: Record<string, unknown>) {
-  if (!obj) return true
-  return Object.keys(obj).length === 0
+  if (!obj) return true;
+  return Object.keys(obj).length === 0;
 }
 
 /**
@@ -131,6 +131,6 @@ export function isEmptyObject(obj: Record<string, unknown>) {
  * ```
  */
 export function isEmptyArray(arr: string | unknown[]) {
-  if (!arr) return true
-  return Array.isArray(arr) && arr.length === 0
+  if (!arr) return true;
+  return Array.isArray(arr) && arr.length === 0;
 }

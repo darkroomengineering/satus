@@ -20,7 +20,7 @@
  * ```
  */
 export interface StandardContext<S, A, M = object> {
-  state: S
-  actions: A
-  meta?: M
+  state: S;
+  actions: A;
+  meta?: M;
 }

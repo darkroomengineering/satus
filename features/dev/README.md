@@ -4,14 +4,14 @@ Debug tools suite. Toggle with `Cmd/Ctrl + O`.
 
 ## Features
 
-| Tool | Description |
-|------|-------------|
+| Tool            | Description         |
+| --------------- | ------------------- |
 | Theatre.js (⚙️) | Animation debugging |
-| Stats (📈) | FPS and performance |
-| Grid (🌐) | Layout grid overlay |
-| Minimap (🗺️) | Page navigation |
-| Dev Mode (🚧) | Development toggle |
-| Screenshot (📸) | Clean UI captures |
+| Stats (📈)      | FPS and performance |
+| Grid (🌐)       | Layout grid overlay |
+| Minimap (🗺️)    | Page navigation     |
+| Dev Mode (🚧)   | Development toggle  |
+| Screenshot (📸) | Clean UI captures   |
 
 ## Usage
 
@@ -22,11 +22,11 @@ State persists in `localStorage` and syncs across tabs.
 ## Theatre.js
 
 ```tsx
-import { SheetProvider, useTheatreValue } from '@/lib/dev/theatre'
+import { SheetProvider, useTheatreValue } from "@/lib/dev/theatre";
 
 function AnimatedComponent() {
-  const opacity = useTheatreValue('opacity', 1)
-  return <div style={{ opacity }}>...</div>
+  const opacity = useTheatreValue("opacity", 1);
+  return <div style={{ opacity }}>...</div>;
 }
 ```
 

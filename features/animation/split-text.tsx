@@ -1,81 +1,77 @@
-import cn from 'clsx'
-import { SplitText as GSAPSplitText } from 'gsap/SplitText'
-import { useEffect, useImperativeHandle, useRef, useState } from 'react'
+import cn from "clsx";
+import { SplitText as GSAPSplitText } from "gsap/SplitText";
+import { useEffect, useImperativeHandle, useRef, useState } from "react";
 // import { useIsVisualEditor } from '@/lib/integrations/storyblok/use-is-visual-editor'
-import s from './split-text.module.css'
+import s from "./split-text.module.css";
 
 // @refresh reset
 
 interface SplitTextProps {
-  children: React.ReactNode
-  className?: string
-  as?: 'span' | 'div' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p'
-  willAppear?: boolean
-  type?: 'lines' | 'words' | 'chars'
-  mask?: boolean
+  children: React.ReactNode;
+  className?: string;
+  as?: "span" | "div" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p";
+  willAppear?: boolean;
+  type?: "lines" | "words" | "chars";
+  mask?: boolean;
 }
 
 interface SplitTextRef {
-  getNode: () => HTMLElement | null
-  getSplitText: () => GSAPSplitText | null
-  splittedText: GSAPSplitText | null
+  getNode: () => HTMLElement | null;
+  getSplitText: () => GSAPSplitText | null;
+  splittedText: GSAPSplitText | null;
 }
 
 export function SplitText({
   ref,
   children,
   className,
-  as: Tag = 'span',
+  as: Tag = "span",
   willAppear = false,
-  type = 'words',
+  type = "words",
   mask = true,
 }: SplitTextProps & {
-  ref?:
-    | React.RefObject<SplitTextRef | null>
-    | ((node: SplitTextRef | null) => void)
+  ref?: React.RefObject<SplitTextRef | null> | ((node: SplitTextRef | null) => void);
 }) {
   // const isVisualEditor = useIsVisualEditor()
 
-  const splitRef = useRef<HTMLDivElement>(null)
-  const splittedRef = useRef<GSAPSplitText | null>(null)
-  const [splittedText, setSplittedText] = useState<GSAPSplitText | null>(null)
+  const splitRef = useRef<HTMLDivElement>(null);
+  const splittedRef = useRef<GSAPSplitText | null>(null);
+  const [splittedText, setSplittedText] = useState<GSAPSplitText | null>(null);
 
   useEffect(() => {
-    function findDeepestElement(
-      element: HTMLElement | null
-    ): HTMLElement | null {
-      if (!element) return null
+    function findDeepestElement(element: HTMLElement | null): HTMLElement | null {
+      if (!element) return null;
 
       if (element.children.length !== element.childNodes.length) {
-        return element
+        return element;
       }
 
       if (element.children.length === 1) {
-        return findDeepestElement(element.children[0] as HTMLElement)
+        return findDeepestElement(element.children[0] as HTMLElement);
       }
 
-      return element as HTMLElement
+      return element as HTMLElement;
     }
 
-    splittedRef.current?.revert()
+    splittedRef.current?.revert();
 
     const split = GSAPSplitText.create(findDeepestElement(splitRef.current), {
       type,
       ...(mask && { mask: type }),
       autoSplit: true,
-      wordsClass: 'word',
-      linesClass: 'line',
-      charsClass: 'char',
+      wordsClass: "word",
+      linesClass: "line",
+      charsClass: "char",
       onSplit: (splitted) => {
-        splittedRef.current = splitted
-        setSplittedText(splitted)
+        splittedRef.current = splitted;
+        setSplittedText(splitted);
       },
-    })
+    });
 
     return () => {
-      split.revert()
-    }
-  }, [type, mask])
+      split.revert();
+    };
+  }, [type, mask]);
 
   useImperativeHandle(
     ref,
@@ -85,8 +81,8 @@ export function SplitText({
       getNode: () => splitRef.current,
       splittedText,
     }),
-    [splittedText]
-  )
+    [splittedText],
+  );
 
   // if (isVisualEditor) {
   //   return (
@@ -112,5 +108,5 @@ export function SplitText({
     >
       {children}
     </Tag>
-  )
+  );
 }

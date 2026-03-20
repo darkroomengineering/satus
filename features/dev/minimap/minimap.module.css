@@ -22,9 +22,7 @@
     content: "";
     width: 100%;
     aspect-ratio: var(--body-ratio);
-    transform: translateY(
-      calc((var(--progress) * -100%) + (var(--progress) * var(--height)))
-    );
+    transform: translateY(calc((var(--progress) * -100%) + (var(--progress) * var(--height))));
     position: absolute;
     top: 0;
     background-color: rgba(0, 0, 0, 0.1);

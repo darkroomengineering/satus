@@ -1,28 +1,28 @@
-import { createContext, useContext, useEffect, useState } from 'react'
-import { useLocation } from 'react-router'
-import type { Themes } from '@/styles/colors'
-import { type ThemeName, themes } from '@/styles/config'
-import type { StandardContext } from '@/utils/context'
+import { createContext, useContext, useEffect, useState } from "react";
+import { useLocation } from "react-router";
+import type { Themes } from "@/styles/colors";
+import { type ThemeName, themes } from "@/styles/config";
+import type { StandardContext } from "@/utils/context";
 
 export interface ThemeState {
-  name: ThemeName
-  theme: Themes[ThemeName]
+  name: ThemeName;
+  theme: Themes[ThemeName];
 }
 
 export interface ThemeActions {
-  setTheme: (theme: ThemeName) => void
+  setTheme: (theme: ThemeName) => void;
 }
 
-export type ThemeContextType = StandardContext<ThemeState, ThemeActions>
+export type ThemeContextType = StandardContext<ThemeState, ThemeActions>;
 
-const ThemeContextInternal = createContext<ThemeContextType | null>(null)
+const ThemeContextInternal = createContext<ThemeContextType | null>(null);
 
 export function useTheme(): ThemeContextType {
-  const context = useContext(ThemeContextInternal)
+  const context = useContext(ThemeContextInternal);
   if (!context) {
-    throw new Error('useTheme must be used within a Theme provider')
+    throw new Error("useTheme must be used within a Theme provider");
   }
-  return context
+  return context;
 }
 
 export function Theme({
@@ -30,23 +30,23 @@ export function Theme({
   theme,
   global,
 }: {
-  children: React.ReactNode
-  theme: ThemeName
-  global?: boolean
+  children: React.ReactNode;
+  theme: ThemeName;
+  global?: boolean;
 }) {
-  const { pathname } = useLocation()
-  const [currentTheme, setCurrentTheme] = useState(theme)
+  const { pathname } = useLocation();
+  const [currentTheme, setCurrentTheme] = useState(theme);
 
   useEffect(() => {
-    setCurrentTheme(theme)
-  }, [theme])
+    setCurrentTheme(theme);
+  }, [theme]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset theme on route change
   useEffect(() => {
     if (global) {
-      document.documentElement.setAttribute('data-theme', currentTheme)
+      document.documentElement.setAttribute("data-theme", currentTheme);
     }
-  }, [pathname, currentTheme, global])
+  }, [pathname, currentTheme, global]);
 
   const contextValue: ThemeContextType = {
     state: {
@@ -56,7 +56,7 @@ export function Theme({
     actions: {
       setTheme: setCurrentTheme,
     },
-  }
+  };
 
   return (
     <>
@@ -68,9 +68,7 @@ export function Theme({
           }}
         />
       )}
-      <ThemeContextInternal value={contextValue}>
-        {children}
-      </ThemeContextInternal>
+      <ThemeContextInternal value={contextValue}>{children}</ThemeContextInternal>
     </>
-  )
+  );
 }

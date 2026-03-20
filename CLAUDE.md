@@ -6,15 +6,15 @@ Next.js 16 starter template by [darkroom.engineering](https://darkroom.engineeri
 
 ## Documentation Map
 
-| Document | Purpose |
-|----------|---------|
-| `ARCHITECTURE.md` | Architectural decisions and patterns |
-| `BOUNDARIES.md` | What to customize vs what is framework |
-| `components/README.md` | Component inventory and conventions |
-| `lib/README.md` | Library structure overview |
+| Document                       | Purpose                                         |
+| ------------------------------ | ----------------------------------------------- |
+| `ARCHITECTURE.md`              | Architectural decisions and patterns            |
+| `BOUNDARIES.md`                | What to customize vs what is framework          |
+| `components/README.md`         | Component inventory and conventions             |
+| `lib/README.md`                | Library structure overview                      |
 | `lib/integrations/*/README.md` | Per-integration docs (Sanity, Shopify, HubSpot) |
-| `lib/styles/README.md` | Design system and style generation |
-| `components/effects/README.md` | Animation component docs |
+| `lib/styles/README.md`         | Design system and style generation              |
+| `components/effects/README.md` | Animation component docs                        |
 
 ## Critical Rules
 
@@ -23,8 +23,8 @@ These break the build or cause bugs if violated.
 ### 1. Use Wrapper Components (never raw Next.js)
 
 ```tsx
-import { Image } from '@/components/ui/image' // NOT next/image
-import { Link } from '@/components/ui/link'    // NOT next/link
+import { Image } from "@/components/ui/image"; // NOT next/image
+import { Link } from "@/components/ui/link"; // NOT next/link
 ```
 
 Biome plugin `no-anchor-element` enforces no raw `<a>` tags. Biome rule `noImgElement: error` enforces no raw `<img>` tags.
@@ -32,15 +32,15 @@ Biome plugin `no-anchor-element` enforces no raw `<a>` tags. Biome rule `noImgEl
 ### 2. CSS Modules Imported as `s`
 
 ```tsx
-import s from './component.module.css'
+import s from "./component.module.css";
 ```
 
 ### 3. Path Aliases Required
 
 ```tsx
-import { Image } from '@/components/ui/image'
-import { useRect } from '@/hooks/use-rect'
-import { clamp } from '@/utils/math'
+import { Image } from "@/components/ui/image";
+import { useRect } from "@/hooks/use-rect";
+import { clamp } from "@/utils/math";
 ```
 
 Available aliases: `@/*`, `@/components/*`, `@/lib/*`, `@/hooks/*`, `@/styles/*`, `@/integrations/*`, `@/webgl/*`, `@/utils/*`, `@/config`, `@/dev/*`.
@@ -58,9 +58,9 @@ React Compiler handles all optimization. **Never** use `useMemo`, `useCallback`,
 **Exception**: Use `useRef` for class/object instantiation to prevent infinite loops:
 
 ```tsx
-const instanceRef = useRef<SomeClass | null>(null)
+const instanceRef = useRef<SomeClass | null>(null);
 if (!instanceRef.current) {
-  instanceRef.current = new SomeClass(params)
+  instanceRef.current = new SomeClass(params);
 }
 ```
 
@@ -77,7 +77,7 @@ if (!instanceRef.current) {
 `verbatimModuleSyntax: true` in tsconfig. `useImportType: error` and `useExportType: error` in Biome.
 
 ```tsx
-import type { ComponentProps } from 'react'
+import type { ComponentProps } from "react";
 ```
 
 ### 9. WebGL Cleanup Mandatory
@@ -135,16 +135,16 @@ lib/
 
 ```tsx
 // Standard component pattern
-import s from './my-component.module.css'
-import cn from 'clsx'
-import type { ComponentProps } from 'react'
+import s from "./my-component.module.css";
+import cn from "clsx";
+import type { ComponentProps } from "react";
 
-interface MyComponentProps extends ComponentProps<'div'> {
-  variant?: 'primary' | 'secondary'
+interface MyComponentProps extends ComponentProps<"div"> {
+  variant?: "primary" | "secondary";
 }
 
-export function MyComponent({ variant = 'primary', className, ...props }: MyComponentProps) {
-  return <div className={cn(s.root, className)} {...props} />
+export function MyComponent({ variant = "primary", className, ...props }: MyComponentProps) {
+  return <div className={cn(s.root, className)} {...props} />;
 }
 ```
 
@@ -156,16 +156,16 @@ export function MyComponent({ variant = 'primary', className, ...props }: MyComp
 
 ## Key Libraries
 
-| Package | Purpose |
-|---------|---------|
-| `lenis` | Smooth scroll (configured in layout) |
-| `gsap` | Complex animations |
-| `tempus` | RAF management |
-| `hamo` | Performance hooks (`useRect`, etc.) |
-| `@base-ui/react` | Unstyled UI primitives |
-| `zustand` | Global state management |
-| `clsx` | Class name composition (aliased as `cn`) |
-| `zod` | Schema validation (env vars, forms, server actions) |
+| Package          | Purpose                                             |
+| ---------------- | --------------------------------------------------- |
+| `lenis`          | Smooth scroll (configured in layout)                |
+| `gsap`           | Complex animations                                  |
+| `tempus`         | RAF management                                      |
+| `hamo`           | Performance hooks (`useRect`, etc.)                 |
+| `@base-ui/react` | Unstyled UI primitives                              |
+| `zustand`        | Global state management                             |
+| `clsx`           | Class name composition (aliased as `cn`)            |
+| `zod`            | Schema validation (env vars, forms, server actions) |
 
 ## Validation
 
@@ -173,19 +173,21 @@ All server actions and form inputs use Zod schemas for validation. Env var check
 
 ```tsx
 // Server action validation
-import { emailSchema, parseFormData } from '@/utils/validation'
+import { emailSchema, parseFormData } from "@/utils/validation";
 
-const schema = z.object({ email: emailSchema, name: z.string().min(1) })
-const result = parseFormData(schema, formData)
-if (!('success' in result)) return result // Returns FormState on error
+const schema = z.object({ email: emailSchema, name: z.string().min(1) });
+const result = parseFormData(schema, formData);
+if (!("success" in result)) return result; // Returns FormState on error
 
 // Typed environment access
-import { env } from '@/lib/env'
-const projectId = env.NEXT_PUBLIC_SANITY_PROJECT_ID
+import { env } from "@/lib/env";
+const projectId = env.NEXT_PUBLIC_SANITY_PROJECT_ID;
 
 // Integration registry (single source of truth)
-import { isConfigured } from '@/integrations/registry'
-if (isConfigured('sanity')) { /* ... */ }
+import { isConfigured } from "@/integrations/registry";
+if (isConfigured("sanity")) {
+  /* ... */
+}
 ```
 
 Client-side form validation uses the same Zod schemas via `zodToValidator()` bridge.
@@ -207,6 +209,7 @@ bun run doctor       # Diagnose setup issues (env validation included)
 ## Pre-Commit Hooks (lefthook)
 
 Runs in parallel on staged files:
+
 1. **Biome**: `biome check --write --unsafe` on `*.{js,mjs,ts,jsx,tsx,css,scss}`
 2. **Typecheck**: `tsgo --noEmit` on `*.{ts,tsx}`
 

@@ -12,40 +12,40 @@
  */
 
 interface RateLimitEntry {
-  count: number
-  resetTime: number
+  count: number;
+  resetTime: number;
 }
 
-const store = new Map<string, RateLimitEntry>()
+const store = new Map<string, RateLimitEntry>();
 
 // Clean up expired entries periodically
-const CLEANUP_INTERVAL = 60 * 1000 // 1 minute
-let lastCleanup = Date.now()
+const CLEANUP_INTERVAL = 60 * 1000; // 1 minute
+let lastCleanup = Date.now();
 
 function cleanup() {
-  const now = Date.now()
-  if (now - lastCleanup < CLEANUP_INTERVAL) return
+  const now = Date.now();
+  if (now - lastCleanup < CLEANUP_INTERVAL) return;
 
   for (const [key, entry] of store.entries()) {
     if (now > entry.resetTime) {
-      store.delete(key)
+      store.delete(key);
     }
   }
-  lastCleanup = now
+  lastCleanup = now;
 }
 
 export interface RateLimitConfig {
   /** Maximum number of requests allowed in the window */
-  limit: number
+  limit: number;
   /** Time window in seconds */
-  windowSeconds: number
+  windowSeconds: number;
 }
 
 export interface RateLimitResult {
-  success: boolean
-  limit: number
-  remaining: number
-  resetIn: number
+  success: boolean;
+  limit: number;
+  remaining: number;
+  resetIn: number;
 }
 
 /**
@@ -63,33 +63,30 @@ export interface RateLimitResult {
  * }
  * ```
  */
-export function rateLimit(
-  identifier: string,
-  config: RateLimitConfig
-): RateLimitResult {
-  cleanup()
+export function rateLimit(identifier: string, config: RateLimitConfig): RateLimitResult {
+  cleanup();
 
-  const now = Date.now()
-  const windowMs = config.windowSeconds * 1000
-  const entry = store.get(identifier)
+  const now = Date.now();
+  const windowMs = config.windowSeconds * 1000;
+  const entry = store.get(identifier);
 
   // No existing entry or window expired - create new entry
   if (!entry || now > entry.resetTime) {
     store.set(identifier, {
       count: 1,
       resetTime: now + windowMs,
-    })
+    });
     return {
       success: true,
       limit: config.limit,
       remaining: config.limit - 1,
       resetIn: config.windowSeconds,
-    }
+    };
   }
 
   // Within window - check limit
-  const remaining = config.limit - entry.count - 1
-  const resetIn = Math.ceil((entry.resetTime - now) / 1000)
+  const remaining = config.limit - entry.count - 1;
+  const resetIn = Math.ceil((entry.resetTime - now) / 1000);
 
   if (entry.count >= config.limit) {
     return {
@@ -97,18 +94,18 @@ export function rateLimit(
       limit: config.limit,
       remaining: 0,
       resetIn,
-    }
+    };
   }
 
   // Increment counter
-  entry.count++
+  entry.count++;
 
   return {
     success: true,
     limit: config.limit,
     remaining: Math.max(0, remaining),
     resetIn,
-  }
+  };
 }
 
 /**
@@ -116,27 +113,27 @@ export function rateLimit(
  * Works with Vercel, Cloudflare, and standard proxies
  */
 export function getClientIP(request: Request): string {
-  const headers = request.headers
+  const headers = request.headers;
 
   // Vercel
-  const forwardedFor = headers.get('x-forwarded-for')
+  const forwardedFor = headers.get("x-forwarded-for");
   if (forwardedFor) {
-    return forwardedFor.split(',')[0]?.trim() || 'unknown'
+    return forwardedFor.split(",")[0]?.trim() || "unknown";
   }
 
   // Cloudflare
-  const cfConnectingIP = headers.get('cf-connecting-ip')
+  const cfConnectingIP = headers.get("cf-connecting-ip");
   if (cfConnectingIP) {
-    return cfConnectingIP
+    return cfConnectingIP;
   }
 
   // Real IP header
-  const realIP = headers.get('x-real-ip')
+  const realIP = headers.get("x-real-ip");
   if (realIP) {
-    return realIP
+    return realIP;
   }
 
-  return 'unknown'
+  return "unknown";
 }
 
 // Pre-configured rate limiters for common use cases
@@ -147,4 +144,4 @@ export const rateLimiters = {
   standard: { limit: 20, windowSeconds: 60 },
   /** Relaxed: 60 requests per minute (general endpoints) */
   relaxed: { limit: 60, windowSeconds: 60 },
-} as const
+} as const;

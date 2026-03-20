@@ -5,9 +5,11 @@ This directory contains consolidated Cursor AI rules for the Satus project. The 
 ## 📁 File Structure
 
 ### 1. `main.mdc` - Project Overview & Cross-Cutting Concerns
+
 **Purpose**: High-level overview and concerns that apply across the entire project
 
 **Contents**:
+
 - Technology stack (Next.js 16+, React 19+, Tailwind v4, Biome, Bun)
 - React 19+ new features (`<Activity />`, `useEffectEvent`, `cacheSignal`)
 - Next.js 16 Cache Components gotchas and best practices
@@ -22,9 +24,11 @@ This directory contains consolidated Cursor AI rules for the Satus project. The 
 ---
 
 ### 2. `components.mdc` - React Component Patterns & WebGL
+
 **Purpose**: All React component patterns including standard components and WebGL/Three.js
 
 **Contents**:
+
 - Component structure and imports
 - Props interfaces and React 19 ref handling
 - Forms and responsive design
@@ -42,9 +46,11 @@ This directory contains consolidated Cursor AI rules for the Satus project. The 
 ---
 
 ### 3. `styling.mdc` - CSS Modules & Tailwind CSS v4
+
 **Purpose**: All styling approaches including CSS Modules and Tailwind CSS v4
 
 **Contents**:
+
 - CSS Modules (file naming, class naming, imports)
 - Responsive design (viewport functions, breakpoints, grid system)
 - Typography and colors
@@ -62,9 +68,11 @@ This directory contains consolidated Cursor AI rules for the Satus project. The 
 ---
 
 ### 4. `integrations.mdc` - Third-Party Integrations
+
 **Purpose**: Guidelines for all third-party service integrations
 
 **Contents**:
+
 - **Sanity CMS**: Configuration, schema management, GROQ queries, visual editing, TypeScript generation, cacheSignal integration
 - **Shopify**: API configuration, product management, cart operations, cacheSignal integration
 - **HubSpot**: Form integration, newsletter subscriptions
@@ -79,9 +87,11 @@ This directory contains consolidated Cursor AI rules for the Satus project. The 
 ---
 
 ### 5. `architecture.mdc` - Architecture Patterns & Best Practices
+
 **Purpose**: Architectural patterns, state management, routing, and code quality guidelines
 
 **Contents**:
+
 - Type safety (TypeScript configuration)
 - State management (React state, Zustand)
 - Routing & navigation (Next.js App Router, Link component)
@@ -127,6 +137,7 @@ This directory contains consolidated Cursor AI rules for the Satus project. The 
 ### What Changed?
 
 **Before (7 files)**:
+
 1. `main.mdc` - Overview
 2. `components.mdc` - React components
 3. `webgl.mdc` - WebGL/Three.js
@@ -136,6 +147,7 @@ This directory contains consolidated Cursor AI rules for the Satus project. The 
 7. `sanity-opinionated.mdc` - Sanity-specific
 
 **After (5 files)**:
+
 1. `main.mdc` - Overview + cross-cutting concerns
 2. `components.mdc` - React + WebGL (merged)
 3. `styling.mdc` - CSS Modules + Tailwind (merged)
@@ -166,13 +178,16 @@ This directory contains consolidated Cursor AI rules for the Satus project. The 
 
 ```markdown
 <!-- In components.mdc -->
+
 ## Performance Optimization
+
 See main.mdc § React Compiler & Memoization for optimization guidelines.
 ```
 
 ### Adding New Content
 
 **Ask yourself**:
+
 - Is this component-specific? → `components.mdc`
 - Is this styling-related? → `styling.mdc`
 - Is this an integration? → `integrations.mdc`
@@ -184,12 +199,15 @@ See main.mdc § React Compiler & Memoization for optimization guidelines.
 ## 🚀 For Developers
 
 ### Quick Setup
+
 1. These rules are automatically loaded by Cursor AI
 2. All files have `alwaysApply: true` in frontmatter
 3. Files apply to: `*.tsx, *.jsx, *.css, *.js, *.ts`
 
 ### Contributing
+
 When adding new guidelines:
+
 1. Choose the appropriate file
 2. Follow existing formatting patterns
 3. Add clear examples
@@ -200,17 +218,16 @@ When adding new guidelines:
 
 ## 📊 File Statistics
 
-| File | Purpose | Key Topics |
-|------|---------|------------|
-| `main.mdc` | Overview & Cross-cutting | Tech stack, React 19+ features, Cache Components, React Compiler, Images, Dev/Prod |
-| `components.mdc` | React & WebGL | Components, Forms, WebGL, Three.js, Shaders, Activity |
-| `styling.mdc` | All Styling | CSS Modules, Tailwind v4, Responsive, Custom utilities |
-| `integrations.mdc` | Third-party Services | Sanity, Shopify, HubSpot, Cache Components, cacheSignal |
-| `architecture.mdc` | Patterns & Quality | State, Routing, Performance, Cache Components, Security, Testing |
+| File               | Purpose                  | Key Topics                                                                         |
+| ------------------ | ------------------------ | ---------------------------------------------------------------------------------- |
+| `main.mdc`         | Overview & Cross-cutting | Tech stack, React 19+ features, Cache Components, React Compiler, Images, Dev/Prod |
+| `components.mdc`   | React & WebGL            | Components, Forms, WebGL, Three.js, Shaders, Activity                              |
+| `styling.mdc`      | All Styling              | CSS Modules, Tailwind v4, Responsive, Custom utilities                             |
+| `integrations.mdc` | Third-party Services     | Sanity, Shopify, HubSpot, Cache Components, cacheSignal                            |
+| `architecture.mdc` | Patterns & Quality       | State, Routing, Performance, Cache Components, Security, Testing                   |
 
 ---
 
 Last updated: 2025-12-18
 
 For questions or suggestions about these rules, contact the development team.
-

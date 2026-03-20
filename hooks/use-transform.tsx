@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   createContext,
@@ -9,7 +9,7 @@ import {
   useEffectEvent,
   useImperativeHandle,
   useRef,
-} from 'react'
+} from "react";
 
 const DEFAULT_TRANSFORM = {
   translate: {
@@ -34,42 +34,37 @@ const DEFAULT_TRANSFORM = {
     left: 0,
   },
   userData: {} as Record<string | number, unknown>,
-}
+};
 
-type Transform = typeof DEFAULT_TRANSFORM
-type TransformCallback = (transform: Transform) => void
+type Transform = typeof DEFAULT_TRANSFORM;
+type TransformCallback = (transform: Transform) => void;
 type TransformRef = {
-  setTranslate: (x?: number, y?: number, z?: number) => void
-  setRotate: (x?: number, y?: number, z?: number) => void
-  setScale: (x?: number, y?: number, z?: number) => void
+  setTranslate: (x?: number, y?: number, z?: number) => void;
+  setRotate: (x?: number, y?: number, z?: number) => void;
+  setScale: (x?: number, y?: number, z?: number) => void;
   setClip: ({
     top,
     right,
     bottom,
     left,
   }: {
-    top?: number
-    right?: number
-    bottom?: number
-    left?: number
-  }) => void
-}
+    top?: number;
+    right?: number;
+    bottom?: number;
+    left?: number;
+  }) => void;
+};
 
 type TransformContextType = {
-  getTransform: () => Transform
-  addCallback: (callback: TransformCallback) => void
-  removeCallback: (callback: TransformCallback) => void
-  setTranslate: (x?: number, y?: number, z?: number) => void
-  setRotate: (x?: number, y?: number, z?: number) => void
-  setScale: (x?: number, y?: number, z?: number) => void
-  setClip: (params?: {
-    top?: number
-    right?: number
-    bottom?: number
-    left?: number
-  }) => void
-  setUserData: (key: string | number, value: unknown) => void
-}
+  getTransform: () => Transform;
+  addCallback: (callback: TransformCallback) => void;
+  removeCallback: (callback: TransformCallback) => void;
+  setTranslate: (x?: number, y?: number, z?: number) => void;
+  setRotate: (x?: number, y?: number, z?: number) => void;
+  setScale: (x?: number, y?: number, z?: number) => void;
+  setClip: (params?: { top?: number; right?: number; bottom?: number; left?: number }) => void;
+  setUserData: (key: string | number, value: unknown) => void;
+};
 
 export const TransformContext = createContext<TransformContextType>({
   getTransform: () => structuredClone(DEFAULT_TRANSFORM),
@@ -94,12 +89,12 @@ export const TransformContext = createContext<TransformContextType>({
   setUserData: () => {
     // Default no-op implementation
   },
-})
+});
 
 type TransformProviderProps = {
-  children: ReactNode
-  ref?: Ref<TransformRef>
-}
+  children: ReactNode;
+  ref?: Ref<TransformRef>;
+};
 
 /**
  * Provider component for managing element transforms.
@@ -145,92 +140,90 @@ type TransformProviderProps = {
  * ```
  */
 export function TransformProvider({ children, ref }: TransformProviderProps) {
-  const parentTransformRef = useRef(structuredClone(DEFAULT_TRANSFORM))
-  const transformRef = useRef(structuredClone(DEFAULT_TRANSFORM))
+  const parentTransformRef = useRef(structuredClone(DEFAULT_TRANSFORM));
+  const transformRef = useRef(structuredClone(DEFAULT_TRANSFORM));
 
   function getTransform(): Transform {
-    const transform = structuredClone(parentTransformRef.current)
+    const transform = structuredClone(parentTransformRef.current);
 
-    transform.translate.x += transformRef.current.translate.x
-    transform.translate.y += transformRef.current.translate.y
-    transform.translate.z += transformRef.current.translate.z
+    transform.translate.x += transformRef.current.translate.x;
+    transform.translate.y += transformRef.current.translate.y;
+    transform.translate.z += transformRef.current.translate.z;
 
-    transform.rotate.x += transformRef.current.rotate.x
-    transform.rotate.y += transformRef.current.rotate.y
-    transform.rotate.z += transformRef.current.rotate.z
+    transform.rotate.x += transformRef.current.rotate.x;
+    transform.rotate.y += transformRef.current.rotate.y;
+    transform.rotate.z += transformRef.current.rotate.z;
 
-    transform.scale.x *= transformRef.current.scale.x
-    transform.scale.y *= transformRef.current.scale.y
-    transform.scale.z *= transformRef.current.scale.z
+    transform.scale.x *= transformRef.current.scale.x;
+    transform.scale.y *= transformRef.current.scale.y;
+    transform.scale.z *= transformRef.current.scale.z;
 
     transform.userData = {
       ...transformRef.current.userData,
       ...transform.userData,
-    }
+    };
 
-    return transform
+    return transform;
   }
 
-  const callbacksRefs = useRef<TransformCallback[]>([])
+  const callbacksRefs = useRef<TransformCallback[]>([]);
 
   function addCallback(callback: TransformCallback) {
-    callbacksRefs.current.push(callback)
+    callbacksRefs.current.push(callback);
   }
 
   function removeCallback(callback: TransformCallback) {
-    callbacksRefs.current = callbacksRefs.current.filter(
-      (ref) => ref !== callback
-    )
+    callbacksRefs.current = callbacksRefs.current.filter((ref) => ref !== callback);
   }
 
   const update = useEffectEvent(() => {
     for (const callback of callbacksRefs.current) {
-      callback(getTransform())
+      callback(getTransform());
     }
-  })
+  });
 
   function setTranslate(x = 0, y = 0, z = 0) {
-    if (!Number.isNaN(x)) transformRef.current.translate.x = Number(x)
-    if (!Number.isNaN(y)) transformRef.current.translate.y = Number(y)
-    if (!Number.isNaN(z)) transformRef.current.translate.z = Number(z)
+    if (!Number.isNaN(x)) transformRef.current.translate.x = Number(x);
+    if (!Number.isNaN(y)) transformRef.current.translate.y = Number(y);
+    if (!Number.isNaN(z)) transformRef.current.translate.z = Number(z);
 
-    update()
+    update();
   }
 
   function setRotate(x = 0, y = 0, z = 0) {
-    if (!Number.isNaN(x)) transformRef.current.rotate.x = Number(x)
-    if (!Number.isNaN(y)) transformRef.current.rotate.y = Number(y)
-    if (!Number.isNaN(z)) transformRef.current.rotate.z = Number(z)
+    if (!Number.isNaN(x)) transformRef.current.rotate.x = Number(x);
+    if (!Number.isNaN(y)) transformRef.current.rotate.y = Number(y);
+    if (!Number.isNaN(z)) transformRef.current.rotate.z = Number(z);
 
-    update()
+    update();
   }
 
   function setScale(x = 1, y = 1, z = 1) {
-    if (!Number.isNaN(x)) transformRef.current.scale.x = Number(x)
-    if (!Number.isNaN(y)) transformRef.current.scale.y = Number(y)
-    if (!Number.isNaN(z)) transformRef.current.scale.z = Number(z)
+    if (!Number.isNaN(x)) transformRef.current.scale.x = Number(x);
+    if (!Number.isNaN(y)) transformRef.current.scale.y = Number(y);
+    if (!Number.isNaN(z)) transformRef.current.scale.z = Number(z);
 
-    update()
+    update();
   }
 
   function setClip({ top = 0, right = 0, bottom = 0, left = 0 } = {}) {
-    if (!Number.isNaN(top)) transformRef.current.clip.top = Number(top)
-    if (!Number.isNaN(right)) transformRef.current.clip.right = Number(right)
-    if (!Number.isNaN(bottom)) transformRef.current.clip.bottom = Number(bottom)
-    if (!Number.isNaN(left)) transformRef.current.clip.left = Number(left)
+    if (!Number.isNaN(top)) transformRef.current.clip.top = Number(top);
+    if (!Number.isNaN(right)) transformRef.current.clip.right = Number(right);
+    if (!Number.isNaN(bottom)) transformRef.current.clip.bottom = Number(bottom);
+    if (!Number.isNaN(left)) transformRef.current.clip.left = Number(left);
 
-    update()
+    update();
   }
 
   function setUserData(key: string | number, value: unknown) {
-    transformRef.current.userData[key] = value
-    update()
+    transformRef.current.userData[key] = value;
+    update();
   }
 
   useTransform((transform) => {
-    parentTransformRef.current = structuredClone(transform)
-    update()
-  })
+    parentTransformRef.current = structuredClone(transform);
+    update();
+  });
 
   useImperativeHandle(ref, () => ({
     setTranslate,
@@ -238,7 +231,7 @@ export function TransformProvider({ children, ref }: TransformProviderProps) {
     setScale,
     setClip,
     setUserData,
-  }))
+  }));
 
   return (
     <TransformContext
@@ -255,7 +248,7 @@ export function TransformProvider({ children, ref }: TransformProviderProps) {
     >
       {children}
     </TransformContext>
-  )
+  );
 }
 
 /**
@@ -302,21 +295,17 @@ export function TransformProvider({ children, ref }: TransformProviderProps) {
  * }
  * ```
  */
-export function useTransform(
-  callback?: TransformCallback,
-  deps = [] as unknown[]
-) {
-  const { getTransform, addCallback, removeCallback } =
-    useContext(TransformContext)
+export function useTransform(callback?: TransformCallback, deps = [] as unknown[]) {
+  const { getTransform, addCallback, removeCallback } = useContext(TransformContext);
 
   useEffect(() => {
-    if (!callback) return
+    if (!callback) return;
 
-    addCallback(callback)
+    addCallback(callback);
     return () => {
-      removeCallback(callback)
-    }
-  }, [callback, addCallback, removeCallback, ...deps])
+      removeCallback(callback);
+    };
+  }, [callback, addCallback, removeCallback, ...deps]);
 
-  return getTransform
+  return getTransform;
 }

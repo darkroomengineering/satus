@@ -1,11 +1,11 @@
-import gsap from 'gsap'
-import { ScrollTrigger as GSAPScrollTrigger } from 'gsap/all'
-import { useLenis } from 'lenis/react'
-import { useEffect, useEffectEvent } from 'react'
+import gsap from "gsap";
+import { ScrollTrigger as GSAPScrollTrigger } from "gsap/all";
+import { useLenis } from "lenis/react";
+import { useEffect, useEffectEvent } from "react";
 
 // Register ScrollTrigger once
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(GSAPScrollTrigger)
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(GSAPScrollTrigger);
   //   GSAPScrollTrigger.clearScrollMemory('manual')
   //   GSAPScrollTrigger.defaults({
   //     markers: process.env.NODE_ENV === 'development',
@@ -18,24 +18,24 @@ if (typeof window !== 'undefined') {
  */
 export function LenisScrollTriggerSync() {
   useEffect(() => {
-    GSAPScrollTrigger.update()
-  }, [])
+    GSAPScrollTrigger.update();
+  }, []);
 
   const handleUpdate = useEffectEvent(() => {
-    GSAPScrollTrigger.update()
-  })
+    GSAPScrollTrigger.update();
+  });
 
   const handleRefresh = useEffectEvent(() => {
-    GSAPScrollTrigger.refresh()
-  })
+    GSAPScrollTrigger.refresh();
+  });
 
-  const lenis = useLenis(handleUpdate)
+  const lenis = useLenis(handleUpdate);
 
   useEffect(() => {
     if (lenis) {
-      handleRefresh()
+      handleRefresh();
     }
-  }, [lenis])
+  }, [lenis]);
 
-  return null
+  return null;
 }

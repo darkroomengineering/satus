@@ -1,22 +1,20 @@
-import { Image } from '@/components/image'
-import { Link } from '@/components/link'
-import { Marquee } from '@/components/marquee'
-import type { Route } from './+types/components'
+import { Image } from "@/components/image";
+import { Link } from "@/components/link";
+import { Marquee } from "@/components/marquee";
+import type { Route } from "./+types/components";
 
 export function meta(_args: Route.MetaArgs) {
   return [
-    { title: 'Components — Satus' },
-    { name: 'description', content: 'Component library showcase' },
-  ]
+    { title: "Components — Satus" },
+    { name: "description", content: "Component library showcase" },
+  ];
 }
 
 export default function Components() {
   return (
     <div className="flex min-h-dvh flex-col gap-16 pt-32 pb-24 font-mono">
       <header className="px-safe">
-        <h1 className="dt:text-[13px] text-[12px] uppercase opacity-50">
-          Components
-        </h1>
+        <h1 className="dt:text-[13px] text-[12px] uppercase opacity-50">Components</h1>
       </header>
 
       {/* Link */}
@@ -26,13 +24,10 @@ export default function Components() {
           <Link href="/" className="link underline">
             Internal link (/)
           </Link>
-          <Link
-            href="https://github.com/darkroomengineering/satus"
-            className="link underline"
-          >
+          <Link href="https://github.com/darkroomengineering/satus" className="link underline">
             External link (opens in new tab) ↗
           </Link>
-          <Link onClick={() => alert('clicked')} className="link underline">
+          <Link onClick={() => alert("clicked")} className="link underline">
             Button (onClick only)
           </Link>
         </div>
@@ -58,12 +53,10 @@ export default function Components() {
       <section className="flex flex-col gap-4">
         <h2 className="px-safe text-[11px] uppercase opacity-40">Marquee</h2>
         <Marquee speed={0.5}>
-          <span className="px-4 text-2xl uppercase">
-            Satus — React Router starter
-          </span>
+          <span className="px-4 text-2xl uppercase">Satus — React Router starter</span>
           <span className="px-4 text-2xl uppercase opacity-40">•</span>
         </Marquee>
       </section>
     </div>
-  )
+  );
 }

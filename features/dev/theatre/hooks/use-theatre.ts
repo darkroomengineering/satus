@@ -1,88 +1,85 @@
-'use client'
+"use client";
 
-import type {
-  ISheet,
-  ISheetObject,
-  UnknownShorthandCompoundProps,
-} from '@theatre/core'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useStudio } from './use-studio'
+import type { ISheet, ISheetObject, UnknownShorthandCompoundProps } from "@theatre/core";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useStudio } from "./use-studio";
 
 export function useTheatreObject(
   sheet: ISheet | undefined,
   theatreKey: string,
   config: UnknownShorthandCompoundProps,
-  deps = [] as unknown[]
+  deps = [] as unknown[],
 ) {
-  const [object, setObject] = useState<ISheetObject>()
+  const [object, setObject] = useState<ISheetObject>();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: this is fine
   useEffect(() => {
-    if (!sheet) return
+    if (!sheet) return;
 
-    setObject(sheet?.object(theatreKey, config, { reconfigure: true }))
+    setObject(sheet?.object(theatreKey, config, { reconfigure: true }));
 
     return () => {
-      sheet.detachObject(theatreKey)
-    }
-  }, [JSON.stringify(config), sheet, theatreKey, ...deps])
+      sheet.detachObject(theatreKey);
+    };
+  }, [JSON.stringify(config), sheet, theatreKey, ...deps]);
 
-  return object
+  return object;
 }
 
-type TheatrePropsToValues<Config extends UnknownShorthandCompoundProps> =
-  Parameters<Parameters<ISheetObject<Config>['onValuesChange']>[0]>[0]
+type TheatrePropsToValues<Config extends UnknownShorthandCompoundProps> = Parameters<
+  Parameters<ISheetObject<Config>["onValuesChange"]>[0]
+>[0];
 
 type UseTheatreOptions<Config extends UnknownShorthandCompoundProps> = {
-  onValuesChange?: (values: TheatrePropsToValues<Config>) => void
-  lazy?: boolean
-  deps?: unknown[]
-}
+  onValuesChange?: (values: TheatrePropsToValues<Config>) => void;
+  lazy?: boolean;
+  deps?: unknown[];
+};
 
 export function useTheatre<Config extends UnknownShorthandCompoundProps>(
   sheet: ISheet | undefined,
   theatreKey: string,
   config: Config,
-  { onValuesChange, lazy = true, deps = [] }: UseTheatreOptions<Config> = {}
+  { onValuesChange, lazy = true, deps = [] }: UseTheatreOptions<Config> = {},
 ) {
-  const onValuesChangeRef = useRef(onValuesChange)
-  onValuesChangeRef.current = onValuesChange
+  const onValuesChangeRef = useRef(onValuesChange);
+  onValuesChangeRef.current = onValuesChange;
 
-  const object = useTheatreObject(sheet, theatreKey, config, deps)
+  const object = useTheatreObject(sheet, theatreKey, config, deps);
 
-  const [values, setValues] = useState({})
-  const lazyValues = useRef({})
+  const [values, setValues] = useState({});
+  const lazyValues = useRef({});
 
-  const getLazyValues = useCallback(() => lazyValues.current, [])
+  const getLazyValues = useCallback(() => lazyValues.current, []);
 
   useEffect(() => {
     if (object) {
       return object.onValuesChange((values) => {
-        lazyValues.current = values
-        if (!lazy) setValues(values)
+        lazyValues.current = values;
+        if (!lazy) setValues(values);
 
-        onValuesChangeRef.current?.(values as TheatrePropsToValues<Config>)
-      })
+        onValuesChangeRef.current?.(values as TheatrePropsToValues<Config>);
+      });
     }
 
-    return undefined
-  }, [object, lazy, ...deps])
+    return undefined;
+  }, [object, lazy, ...deps]);
 
-  const studio = useStudio()
+  const studio = useStudio();
 
   const set = useCallback(
-    (values: NonNullable<typeof object>['props']) => {
+    (values: NonNullable<typeof object>["props"]) => {
       if (studio && object) {
         studio.transaction(({ set }) => {
           set(object.props, {
             ...object.value,
             ...values,
-          })
-        })
+          });
+        });
       }
     },
-    [studio, object]
-  )
+    [studio, object],
+  );
 
-  return { get: getLazyValues, values, set, object }
+  return { get: getLazyValues, values, set, object };
 }

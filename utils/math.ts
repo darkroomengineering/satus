@@ -35,7 +35,7 @@
  * ```
  */
 export function clamp(min: number, input: number, max: number): number {
-  return Math.max(min, Math.min(input, max))
+  return Math.max(min, Math.min(input, max));
 }
 
 /**
@@ -55,7 +55,7 @@ export function clamp(min: number, input: number, max: number): number {
  * ```
  */
 export function lerp(start: number, end: number, amount: number): number {
-  return (1 - amount) * start + amount * end
+  return (1 - amount) * start + amount * end;
 }
 
 /**
@@ -87,17 +87,14 @@ export function mapRange(
   input: number,
   outMin: number,
   outMax: number,
-  shouldClamp = false
+  shouldClamp = false,
 ): number {
-  const result =
-    ((input - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin
+  const result = ((input - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
 
-  if (!shouldClamp) return result
+  if (!shouldClamp) return result;
 
-  const isInverted = outMin > outMax
-  return isInverted
-    ? clamp(outMax, result, outMin)
-    : clamp(outMin, result, outMax)
+  const isInverted = outMin > outMax;
+  return isInverted ? clamp(outMax, result, outMin) : clamp(outMin, result, outMax);
 }
 
 /**
@@ -114,7 +111,7 @@ export function mapRange(
  * ```
  */
 export function truncate(value: number, decimals: number): number {
-  return Number.parseFloat(value.toFixed(decimals))
+  return Number.parseFloat(value.toFixed(decimals));
 }
 
 /**
@@ -138,9 +135,9 @@ export function truncate(value: number, decimals: number): number {
  * ```
  */
 export function modulo(n: number, d: number): number {
-  if (d === 0) return n
-  if (d < 0) return Number.NaN
-  return ((n % d) + d) % d
+  if (d === 0) return n;
+  if (d < 0) return Number.NaN;
+  return ((n % d) + d) % d;
 }
 
 /**
@@ -158,7 +155,7 @@ export function modulo(n: number, d: number): number {
  * ```
  */
 export function roundTo(value: number, multiple: number): number {
-  return Math.round(value / multiple) * multiple
+  return Math.round(value / multiple) * multiple;
 }
 
 /**
@@ -174,7 +171,7 @@ export function roundTo(value: number, multiple: number): number {
  * ```
  */
 export function degToRad(degrees: number): number {
-  return (degrees * Math.PI) / 180
+  return (degrees * Math.PI) / 180;
 }
 
 /**
@@ -190,7 +187,7 @@ export function degToRad(degrees: number): number {
  * ```
  */
 export function radToDeg(radians: number): number {
-  return (radians * 180) / Math.PI
+  return (radians * 180) / Math.PI;
 }
 
 /**
@@ -207,13 +204,8 @@ export function radToDeg(radians: number): number {
  * distance(0, 0, 3, 4) // 5
  * ```
  */
-export function distance(
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number
-): number {
-  return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+export function distance(x1: number, y1: number, x2: number, y2: number): number {
+  return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
 }
 
 /**
@@ -232,5 +224,5 @@ export function distance(
  * ```
  */
 export function normalize(min: number, max: number, value: number): number {
-  return (value - min) / (max - min)
+  return (value - min) / (max - min);
 }

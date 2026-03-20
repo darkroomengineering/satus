@@ -1,29 +1,29 @@
-import cn from 'clsx'
-import { Marquee } from '@/components/marquee'
-import s from './presets.module.css'
+import cn from "clsx";
+import { Marquee } from "@/components/marquee";
+import s from "./presets.module.css";
 
 const PRESETS = [
   {
-    name: 'Editorial',
-    description: 'Sanity CMS + HubSpot forms',
+    name: "Editorial",
+    description: "Sanity CMS + HubSpot forms",
   },
   {
-    name: 'Studio',
-    description: 'WebGL + all integrations',
+    name: "Studio",
+    description: "WebGL + all integrations",
   },
   {
-    name: 'Boutique',
-    description: 'Shopify + marketing tools',
+    name: "Boutique",
+    description: "Shopify + marketing tools",
   },
   {
-    name: 'Gallery',
-    description: 'Optimized media + minimal UI',
+    name: "Gallery",
+    description: "Optimized media + minimal UI",
   },
   {
-    name: 'Blank',
-    description: 'Core only, no integrations',
+    name: "Blank",
+    description: "Core only, no integrations",
   },
-] as const
+] as const;
 
 function PresetCard({ preset }: { preset: (typeof PRESETS)[number] }) {
   return (
@@ -31,7 +31,7 @@ function PresetCard({ preset }: { preset: (typeof PRESETS)[number] }) {
       <span className={s.cardTitle}>{preset.name}</span>
       <span className={s.cardDescription}>{preset.description}</span>
     </div>
-  )
+  );
 }
 
 export function Presets() {
@@ -46,10 +46,10 @@ export function Presets() {
       </Marquee>
 
       <div className="dr-layout-grid">
-        <p className={cn(s.hint, 'col-span-full dt:col-start-2 dt:col-end-12')}>
+        <p className={cn(s.hint, "col-span-full dt:col-start-2 dt:col-end-12")}>
           Run <code className={s.code}>bun run setup:project</code> to choose
         </p>
       </div>
     </section>
-  )
+  );
 }

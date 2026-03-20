@@ -1,23 +1,23 @@
-import type { SanityDocument } from '@sanity/client'
-import { Link } from 'react-router'
-import { client } from '@/integrations/sanity/client'
-import { allArticlesQuery } from '@/integrations/sanity/queries'
-import type { Route } from './+types/sanity'
+import type { SanityDocument } from "@sanity/client";
+import { Link } from "react-router";
+import { client } from "@/integrations/sanity/client";
+import { allArticlesQuery } from "@/integrations/sanity/queries";
+import type { Route } from "./+types/sanity";
 
 export function meta(_args: Route.MetaArgs) {
   return [
-    { title: 'Sanity — Satus' },
-    { name: 'description', content: 'Sanity CMS integration example' },
-  ]
+    { title: "Sanity — Satus" },
+    { name: "description", content: "Sanity CMS integration example" },
+  ];
 }
 
 export async function loader(_args: Route.LoaderArgs) {
-  const articles = await client.fetch<SanityDocument[]>(allArticlesQuery)
-  return { articles }
+  const articles = await client.fetch<SanityDocument[]>(allArticlesQuery);
+  return { articles };
 }
 
 export default function SanityPage({ loaderData }: Route.ComponentProps) {
-  const { articles } = loaderData
+  const { articles } = loaderData;
 
   return (
     <div className="max-dt:dr-px-16 flex min-h-dvh grow items-center justify-center font-mono uppercase">
@@ -34,11 +34,9 @@ export default function SanityPage({ loaderData }: Route.ComponentProps) {
             ))}
           </ul>
         ) : (
-          <p className="opacity-50">
-            No articles found. Add content in Sanity Studio.
-          </p>
+          <p className="opacity-50">No articles found. Add content in Sanity Studio.</p>
         )}
       </div>
     </div>
-  )
+  );
 }

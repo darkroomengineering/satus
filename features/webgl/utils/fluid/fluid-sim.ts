@@ -23,71 +23,68 @@ import {
   Vector2,
   type WebGLRenderer,
   WebGLRenderTarget,
-} from 'three'
+} from "three";
 
 interface DoubleRenderTarget {
-  read: WebGLRenderTarget
-  write: WebGLRenderTarget
-  swap: () => void
-  setSize: (width: number, height: number) => void
-  dispose: () => void
+  read: WebGLRenderTarget;
+  write: WebGLRenderTarget;
+  swap: () => void;
+  setSize: (width: number, height: number) => void;
+  dispose: () => void;
 }
 
 interface Splat {
-  x: number
-  y: number
-  dx: number
-  dy: number
+  x: number;
+  y: number;
+  dx: number;
+  dy: number;
 }
 
 interface FluidOptions {
-  size?: number
-  dyeRes?: number
-  iterations?: number
-  densityDissipation?: number
-  velocityDissipation?: number
-  pressureDissipation?: number
-  curlStrength?: number
-  radius?: number
+  size?: number;
+  dyeRes?: number;
+  iterations?: number;
+  densityDissipation?: number;
+  velocityDissipation?: number;
+  pressureDissipation?: number;
+  curlStrength?: number;
+  radius?: number;
 }
 
 // From https://github.com/alienkitty/space.js/blob/main/src/three/utils/Utils3D.js
 function getDoubleRenderTarget(
   width: number,
   height: number,
-  options?: RenderTargetOptions
+  options?: RenderTargetOptions,
 ): DoubleRenderTarget {
   const renderTarget: DoubleRenderTarget = {
     read: new WebGLRenderTarget(width, height, options),
     write: new WebGLRenderTarget(width, height, options),
     swap: () => {
-      const temp = renderTarget.read
-      renderTarget.read = renderTarget.write
-      renderTarget.write = temp
+      const temp = renderTarget.read;
+      renderTarget.read = renderTarget.write;
+      renderTarget.write = temp;
     },
     setSize: (width: number, height: number) => {
-      renderTarget.read.setSize(width, height)
-      renderTarget.write.setSize(width, height)
+      renderTarget.read.setSize(width, height);
+      renderTarget.write.setSize(width, height);
     },
     dispose: () => {
-      renderTarget.read.dispose()
-      renderTarget.write.dispose()
+      renderTarget.read.dispose();
+      renderTarget.write.dispose();
     },
-  }
+  };
 
-  return renderTarget
+  return renderTarget;
 }
 
 // From https://github.com/alienkitty/space.js/blob/main/src/three/utils/Utils3D.js
 function getFullscreenTriangle(): BufferGeometry {
-  const geometry = new BufferGeometry()
-  geometry.setAttribute(
-    'position',
-    new Float32BufferAttribute([-1, 3, 0, -1, -1, 0, 3, -1, 0], 3)
-  )
-  geometry.setAttribute('uv', new Float32BufferAttribute([0, 2, 0, 0, 2, 0], 2))
+  const geometry = new BufferGeometry();
+  geometry.setAttribute("position", new Float32BufferAttribute([-1, 3, 0, -1, -1, 0, 3, -1, 0], 3));
+  geometry.setAttribute("uv", new Float32BufferAttribute([0, 2, 0, 0, 2, 0], 2));
 
-  return geometry
+  return geometry;
 }
 
 const baseVertexShader = /* glsl */ `
@@ -113,7 +110,7 @@ void main () {
 
   gl_Position = vec4(position, 1.0);
 }
-`
+`;
 
 const clearShader = /* glsl */ `
 precision mediump float;
@@ -129,7 +126,7 @@ out vec4 FragColor;
 void main () {
   FragColor = value * texture(uTexture, vUv);
 }
-`
+`;
 
 const splatShader = /* glsl */ `
 precision highp float;
@@ -153,7 +150,7 @@ void main () {
 
   FragColor = vec4(base + splat, 1.0);
 }
-`
+`;
 
 const advectionShader = /* glsl */ `
 precision highp float;
@@ -175,7 +172,7 @@ void main () {
   FragColor = dissipation * texture(uSource, coord);
   FragColor.a = 1.0;
 }
-`
+`;
 
 const divergenceShader = /* glsl */ `
 precision mediump float;
@@ -205,7 +202,7 @@ void main () {
 
   FragColor = vec4(div, 0.0, 0.0, 1.0);
 }
-`
+`;
 
 const curlShader = /* glsl */ `
 precision mediump float;
@@ -230,7 +227,7 @@ void main () {
 
   FragColor = vec4(0.5 * vorticity, 0.0, 0.0, 1.0);
 }
-`
+`;
 
 const vorticityShader = /* glsl */ `
 precision highp float;
@@ -263,7 +260,7 @@ void main () {
 
   FragColor = vec4(vel + force * dt, 0.0, 1.0);
 }
-`
+`;
 
 const pressureShader = /* glsl */ `
 precision mediump float;
@@ -291,7 +288,7 @@ void main () {
 
   FragColor = vec4(pressure, 0.0, 0.0, 1.0);
 }
-`
+`;
 
 const gradientSubtractShader = /* glsl */ `
 precision mediump float;
@@ -318,50 +315,50 @@ void main () {
 
   FragColor = vec4(velocity, 0.0, 1.0);
 }
-`
+`;
 
 /**
  * A class for fluid distortion.
  */
 export class Fluid {
-  private renderer: WebGLRenderer
-  private simRes: number
-  private dyeRes: number
-  private iterations: number
+  private renderer: WebGLRenderer;
+  private simRes: number;
+  private dyeRes: number;
+  private iterations: number;
 
   // Make these public so they can be edited at runtime via the controller
-  public densityDissipation: number
-  public velocityDissipation: number
-  public pressureDissipation: number
-  public curlStrength: number
-  public radius: number
+  public densityDissipation: number;
+  public velocityDissipation: number;
+  public pressureDissipation: number;
+  public curlStrength: number;
+  public radius: number;
 
-  private splats: Splat[]
+  private splats: Splat[];
 
   // Render targets
-  private density: DoubleRenderTarget
-  private velocity: DoubleRenderTarget
-  private pressure: DoubleRenderTarget
-  private divergence: WebGLRenderTarget
-  private curl: WebGLRenderTarget
+  private density: DoubleRenderTarget;
+  private velocity: DoubleRenderTarget;
+  private pressure: DoubleRenderTarget;
+  private divergence: WebGLRenderTarget;
+  private curl: WebGLRenderTarget;
 
   // Materials
-  private clearMaterial: RawShaderMaterial
-  public splatMaterial: RawShaderMaterial // Made public for aspect ratio access in controller
-  private advectionMaterial: RawShaderMaterial
-  private divergenceMaterial: RawShaderMaterial
-  private curlMaterial: RawShaderMaterial
-  private vorticityMaterial: RawShaderMaterial
-  private pressureMaterial: RawShaderMaterial
-  private gradientSubtractMaterial: RawShaderMaterial
+  private clearMaterial: RawShaderMaterial;
+  public splatMaterial: RawShaderMaterial; // Made public for aspect ratio access in controller
+  private advectionMaterial: RawShaderMaterial;
+  private divergenceMaterial: RawShaderMaterial;
+  private curlMaterial: RawShaderMaterial;
+  private vorticityMaterial: RawShaderMaterial;
+  private pressureMaterial: RawShaderMaterial;
+  private gradientSubtractMaterial: RawShaderMaterial;
 
   // Screen rendering
-  private screenCamera: OrthographicCamera
-  private screenTriangle: BufferGeometry
-  private screen: Mesh
+  private screenCamera: OrthographicCamera;
+  private screenTriangle: BufferGeometry;
+  private screen: Mesh;
 
   // Output uniform
-  public uniform: { value: Texture }
+  public uniform: { value: Texture };
 
   constructor(
     renderer: WebGLRenderer,
@@ -374,31 +371,31 @@ export class Fluid {
       pressureDissipation = 0.8,
       curlStrength = 20,
       radius = 0.2,
-    }: FluidOptions = {}
+    }: FluidOptions = {},
   ) {
-    this.renderer = renderer
-    this.simRes = size
-    this.dyeRes = dyeRes
-    this.iterations = iterations
-    this.densityDissipation = densityDissipation
-    this.velocityDissipation = velocityDissipation
-    this.pressureDissipation = pressureDissipation
-    this.curlStrength = curlStrength
-    this.radius = radius
+    this.renderer = renderer;
+    this.simRes = size;
+    this.dyeRes = dyeRes;
+    this.iterations = iterations;
+    this.densityDissipation = densityDissipation;
+    this.velocityDissipation = velocityDissipation;
+    this.pressureDissipation = pressureDissipation;
+    this.curlStrength = curlStrength;
+    this.radius = radius;
 
-    this.splats = []
+    this.splats = [];
 
     // Fluid simulation render targets
     this.density = getDoubleRenderTarget(dyeRes, dyeRes, {
       type: HalfFloatType,
       depthBuffer: false,
-    })
+    });
 
     this.velocity = getDoubleRenderTarget(size, size, {
       type: HalfFloatType,
       format: RGFormat,
       depthBuffer: false,
-    })
+    });
 
     this.pressure = getDoubleRenderTarget(size, size, {
       type: HalfFloatType,
@@ -406,7 +403,7 @@ export class Fluid {
       magFilter: NearestFilter,
       minFilter: NearestFilter,
       depthBuffer: false,
-    })
+    });
 
     this.divergence = new WebGLRenderTarget(size, size, {
       type: HalfFloatType,
@@ -414,7 +411,7 @@ export class Fluid {
       magFilter: NearestFilter,
       minFilter: NearestFilter,
       depthBuffer: false,
-    })
+    });
 
     this.curl = new WebGLRenderTarget(size, size, {
       type: HalfFloatType,
@@ -422,13 +419,13 @@ export class Fluid {
       magFilter: NearestFilter,
       minFilter: NearestFilter,
       depthBuffer: false,
-    })
+    });
 
     // Output uniform containing render target textures
-    this.uniform = { value: this.density.read.texture }
+    this.uniform = { value: this.density.read.texture };
 
     // Common uniform
-    const texelSize = { value: new Vector2(1 / size, 1 / size) }
+    const texelSize = { value: new Vector2(1 / size, 1 / size) };
 
     // Fluid simulation materials
     this.clearMaterial = new RawShaderMaterial({
@@ -443,7 +440,7 @@ export class Fluid {
       blending: NoBlending,
       depthTest: false,
       depthWrite: false,
-    })
+    });
 
     this.splatMaterial = new RawShaderMaterial({
       glslVersion: GLSL3,
@@ -460,7 +457,7 @@ export class Fluid {
       blending: NoBlending,
       depthTest: false,
       depthWrite: false,
-    })
+    });
 
     this.advectionMaterial = new RawShaderMaterial({
       glslVersion: GLSL3,
@@ -477,7 +474,7 @@ export class Fluid {
       blending: NoBlending,
       depthTest: false,
       depthWrite: false,
-    })
+    });
 
     this.divergenceMaterial = new RawShaderMaterial({
       glslVersion: GLSL3,
@@ -490,7 +487,7 @@ export class Fluid {
       blending: NoBlending,
       depthTest: false,
       depthWrite: false,
-    })
+    });
 
     this.curlMaterial = new RawShaderMaterial({
       glslVersion: GLSL3,
@@ -503,7 +500,7 @@ export class Fluid {
       blending: NoBlending,
       depthTest: false,
       depthWrite: false,
-    })
+    });
 
     this.vorticityMaterial = new RawShaderMaterial({
       glslVersion: GLSL3,
@@ -519,7 +516,7 @@ export class Fluid {
       blending: NoBlending,
       depthTest: false,
       depthWrite: false,
-    })
+    });
 
     this.pressureMaterial = new RawShaderMaterial({
       glslVersion: GLSL3,
@@ -533,7 +530,7 @@ export class Fluid {
       blending: NoBlending,
       depthTest: false,
       depthWrite: false,
-    })
+    });
 
     this.gradientSubtractMaterial = new RawShaderMaterial({
       glslVersion: GLSL3,
@@ -547,155 +544,142 @@ export class Fluid {
       blending: NoBlending,
       depthTest: false,
       depthWrite: false,
-    })
+    });
 
     // Fullscreen triangle
-    this.screenCamera = new OrthographicCamera(-1, 1, 1, -1, 0, 1)
-    this.screenTriangle = getFullscreenTriangle()
-    this.screen = new Mesh(this.screenTriangle)
-    this.screen.frustumCulled = false
+    this.screenCamera = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    this.screenTriangle = getFullscreenTriangle();
+    this.screen = new Mesh(this.screenTriangle);
+    this.screen.frustumCulled = false;
   }
 
   addSplat(x: number, y: number, dx: number, dy: number): void {
-    this.splats.push({ x, y, dx, dy })
+    this.splats.push({ x, y, dx, dy });
   }
 
   update(): void {
-    const renderer = this.renderer
-    const simRes = this.simRes
-    const dyeRes = this.dyeRes
-    const iterations = this.iterations
-    const densityDissipation = this.densityDissipation
-    const velocityDissipation = this.velocityDissipation
-    const pressureDissipation = this.pressureDissipation
-    const curlStrength = this.curlStrength
-    const radius = this.radius
+    const renderer = this.renderer;
+    const simRes = this.simRes;
+    const dyeRes = this.dyeRes;
+    const iterations = this.iterations;
+    const densityDissipation = this.densityDissipation;
+    const velocityDissipation = this.velocityDissipation;
+    const pressureDissipation = this.pressureDissipation;
+    const curlStrength = this.curlStrength;
+    const radius = this.radius;
 
     // Renderer state
-    const currentRenderTarget = renderer.getRenderTarget()
-    const currentAutoClear = renderer.autoClear
-    renderer.autoClear = false
+    const currentRenderTarget = renderer.getRenderTarget();
+    const currentAutoClear = renderer.autoClear;
+    renderer.autoClear = false;
 
     // Render all of the inputs since the last frame
     for (let i = this.splats.length - 1; i >= 0; i--) {
-      const splat = this.splats.splice(i, 1)[0]
-      if (!splat) continue
-      const { x, y, dx, dy } = splat
+      const splat = this.splats.splice(i, 1)[0];
+      if (!splat) continue;
+      const { x, y, dx, dy } = splat;
 
-      this.splatMaterial.uniforms.uTarget!.value = this.velocity.read.texture
-      this.splatMaterial.uniforms.point!.value.set(x, y)
-      this.splatMaterial.uniforms.color!.value.set(dx, dy, 1)
-      this.splatMaterial.uniforms.radius!.value = radius / 100
-      this.screen.material = this.splatMaterial
-      renderer.setRenderTarget(this.velocity.write)
-      renderer.render(this.screen, this.screenCamera)
-      this.velocity.swap()
+      this.splatMaterial.uniforms.uTarget!.value = this.velocity.read.texture;
+      this.splatMaterial.uniforms.point!.value.set(x, y);
+      this.splatMaterial.uniforms.color!.value.set(dx, dy, 1);
+      this.splatMaterial.uniforms.radius!.value = radius / 100;
+      this.screen.material = this.splatMaterial;
+      renderer.setRenderTarget(this.velocity.write);
+      renderer.render(this.screen, this.screenCamera);
+      this.velocity.swap();
 
-      this.splatMaterial.uniforms.uTarget!.value = this.density.read.texture
-      this.screen.material = this.splatMaterial
-      renderer.setRenderTarget(this.density.write)
-      renderer.render(this.screen, this.screenCamera)
-      this.density.swap()
+      this.splatMaterial.uniforms.uTarget!.value = this.density.read.texture;
+      this.screen.material = this.splatMaterial;
+      renderer.setRenderTarget(this.density.write);
+      renderer.render(this.screen, this.screenCamera);
+      this.density.swap();
     }
 
     // Perform all of the fluid simulation renders
-    this.curlMaterial.uniforms.uVelocity!.value = this.velocity.read.texture
-    this.screen.material = this.curlMaterial
-    renderer.setRenderTarget(this.curl)
-    renderer.render(this.screen, this.screenCamera)
+    this.curlMaterial.uniforms.uVelocity!.value = this.velocity.read.texture;
+    this.screen.material = this.curlMaterial;
+    renderer.setRenderTarget(this.curl);
+    renderer.render(this.screen, this.screenCamera);
 
-    this.vorticityMaterial.uniforms.uVelocity!.value =
-      this.velocity.read.texture
-    this.vorticityMaterial.uniforms.uCurl!.value = this.curl.texture
-    this.vorticityMaterial.uniforms.curl!.value = curlStrength
-    this.screen.material = this.vorticityMaterial
-    renderer.setRenderTarget(this.velocity.write)
-    renderer.render(this.screen, this.screenCamera)
-    this.velocity.swap()
+    this.vorticityMaterial.uniforms.uVelocity!.value = this.velocity.read.texture;
+    this.vorticityMaterial.uniforms.uCurl!.value = this.curl.texture;
+    this.vorticityMaterial.uniforms.curl!.value = curlStrength;
+    this.screen.material = this.vorticityMaterial;
+    renderer.setRenderTarget(this.velocity.write);
+    renderer.render(this.screen, this.screenCamera);
+    this.velocity.swap();
 
-    this.divergenceMaterial.uniforms.uVelocity!.value =
-      this.velocity.read.texture
-    this.screen.material = this.divergenceMaterial
-    renderer.setRenderTarget(this.divergence)
-    renderer.render(this.screen, this.screenCamera)
+    this.divergenceMaterial.uniforms.uVelocity!.value = this.velocity.read.texture;
+    this.screen.material = this.divergenceMaterial;
+    renderer.setRenderTarget(this.divergence);
+    renderer.render(this.screen, this.screenCamera);
 
-    this.clearMaterial.uniforms.uTexture!.value = this.pressure.read.texture
-    this.clearMaterial.uniforms.value!.value = pressureDissipation
-    this.screen.material = this.clearMaterial
-    renderer.setRenderTarget(this.pressure.write)
-    renderer.render(this.screen, this.screenCamera)
-    this.pressure.swap()
+    this.clearMaterial.uniforms.uTexture!.value = this.pressure.read.texture;
+    this.clearMaterial.uniforms.value!.value = pressureDissipation;
+    this.screen.material = this.clearMaterial;
+    renderer.setRenderTarget(this.pressure.write);
+    renderer.render(this.screen, this.screenCamera);
+    this.pressure.swap();
 
-    this.pressureMaterial.uniforms.uDivergence!.value = this.divergence.texture
+    this.pressureMaterial.uniforms.uDivergence!.value = this.divergence.texture;
 
     for (let i = 0; i < iterations; i++) {
-      this.pressureMaterial.uniforms.uPressure!.value =
-        this.pressure.read.texture
-      this.screen.material = this.pressureMaterial
-      renderer.setRenderTarget(this.pressure.write)
-      renderer.render(this.screen, this.screenCamera)
-      this.pressure.swap()
+      this.pressureMaterial.uniforms.uPressure!.value = this.pressure.read.texture;
+      this.screen.material = this.pressureMaterial;
+      renderer.setRenderTarget(this.pressure.write);
+      renderer.render(this.screen, this.screenCamera);
+      this.pressure.swap();
     }
 
-    this.gradientSubtractMaterial.uniforms.uPressure!.value =
-      this.pressure.read.texture
-    this.gradientSubtractMaterial.uniforms.uVelocity!.value =
-      this.velocity.read.texture
-    this.screen.material = this.gradientSubtractMaterial
-    renderer.setRenderTarget(this.velocity.write)
-    renderer.render(this.screen, this.screenCamera)
-    this.velocity.swap()
+    this.gradientSubtractMaterial.uniforms.uPressure!.value = this.pressure.read.texture;
+    this.gradientSubtractMaterial.uniforms.uVelocity!.value = this.velocity.read.texture;
+    this.screen.material = this.gradientSubtractMaterial;
+    renderer.setRenderTarget(this.velocity.write);
+    renderer.render(this.screen, this.screenCamera);
+    this.velocity.swap();
 
-    this.advectionMaterial.uniforms.dyeTexelSize!.value.set(
-      1 / simRes,
-      1 / simRes
-    )
-    this.advectionMaterial.uniforms.uVelocity!.value =
-      this.velocity.read.texture
-    this.advectionMaterial.uniforms.uSource!.value = this.velocity.read.texture
-    this.advectionMaterial.uniforms.dissipation!.value = velocityDissipation
-    this.screen.material = this.advectionMaterial
-    renderer.setRenderTarget(this.velocity.write)
-    renderer.render(this.screen, this.screenCamera)
-    this.velocity.swap()
+    this.advectionMaterial.uniforms.dyeTexelSize!.value.set(1 / simRes, 1 / simRes);
+    this.advectionMaterial.uniforms.uVelocity!.value = this.velocity.read.texture;
+    this.advectionMaterial.uniforms.uSource!.value = this.velocity.read.texture;
+    this.advectionMaterial.uniforms.dissipation!.value = velocityDissipation;
+    this.screen.material = this.advectionMaterial;
+    renderer.setRenderTarget(this.velocity.write);
+    renderer.render(this.screen, this.screenCamera);
+    this.velocity.swap();
 
-    this.advectionMaterial.uniforms.dyeTexelSize!.value.set(
-      1 / dyeRes,
-      1 / dyeRes
-    )
-    this.advectionMaterial.uniforms.uVelocity!.value =
-      this.velocity.read.texture
-    this.advectionMaterial.uniforms.uSource!.value = this.density.read.texture
-    this.advectionMaterial.uniforms.dissipation!.value = densityDissipation
-    this.screen.material = this.advectionMaterial
-    renderer.setRenderTarget(this.density.write)
-    renderer.render(this.screen, this.screenCamera)
-    this.density.swap()
+    this.advectionMaterial.uniforms.dyeTexelSize!.value.set(1 / dyeRes, 1 / dyeRes);
+    this.advectionMaterial.uniforms.uVelocity!.value = this.velocity.read.texture;
+    this.advectionMaterial.uniforms.uSource!.value = this.density.read.texture;
+    this.advectionMaterial.uniforms.dissipation!.value = densityDissipation;
+    this.screen.material = this.advectionMaterial;
+    renderer.setRenderTarget(this.density.write);
+    renderer.render(this.screen, this.screenCamera);
+    this.density.swap();
 
-    this.uniform.value = this.density.read.texture
+    this.uniform.value = this.density.read.texture;
 
     // Restore renderer settings
-    renderer.autoClear = currentAutoClear
-    renderer.setRenderTarget(currentRenderTarget)
+    renderer.autoClear = currentAutoClear;
+    renderer.setRenderTarget(currentRenderTarget);
   }
 
   destroy(): null {
-    this.density.dispose()
-    this.velocity.dispose()
-    this.pressure.dispose()
-    this.divergence.dispose()
-    this.curl.dispose()
+    this.density.dispose();
+    this.velocity.dispose();
+    this.pressure.dispose();
+    this.divergence.dispose();
+    this.curl.dispose();
 
-    this.clearMaterial.dispose()
-    this.splatMaterial.dispose()
-    this.advectionMaterial.dispose()
-    this.divergenceMaterial.dispose()
-    this.curlMaterial.dispose()
-    this.vorticityMaterial.dispose()
-    this.pressureMaterial.dispose()
-    this.gradientSubtractMaterial.dispose()
+    this.clearMaterial.dispose();
+    this.splatMaterial.dispose();
+    this.advectionMaterial.dispose();
+    this.divergenceMaterial.dispose();
+    this.curlMaterial.dispose();
+    this.vorticityMaterial.dispose();
+    this.pressureMaterial.dispose();
+    this.gradientSubtractMaterial.dispose();
 
-    this.screenTriangle.dispose()
+    this.screenTriangle.dispose();
 
     // Clear all references
     Object.assign(this, {
@@ -717,8 +701,8 @@ export class Fluid {
       screenTriangle: null,
       screen: null,
       uniform: null,
-    } as unknown as Partial<this>)
+    } as unknown as Partial<this>);
 
-    return null
+    return null;
   }
 }

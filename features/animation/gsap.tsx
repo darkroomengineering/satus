@@ -16,13 +16,13 @@
  * ```
  */
 
-import gsap from 'gsap'
-import { useTempus } from 'tempus/react'
+import gsap from "gsap";
+import { useTempus } from "tempus/react";
 
-if (typeof window !== 'undefined') {
-  gsap.defaults({ ease: 'none' })
-  gsap.ticker.lagSmoothing(0)
-  gsap.ticker.remove(gsap.updateRoot)
+if (typeof window !== "undefined") {
+  gsap.defaults({ ease: "none" });
+  gsap.ticker.lagSmoothing(0);
+  gsap.ticker.remove(gsap.updateRoot);
 }
 
 /**
@@ -31,8 +31,8 @@ if (typeof window !== 'undefined') {
  */
 export function GSAPRuntime() {
   useTempus((time) => {
-    gsap.updateRoot(time / 1000)
-  })
+    gsap.updateRoot(time / 1000);
+  });
 
-  return null
+  return null;
 }

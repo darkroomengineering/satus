@@ -1,13 +1,13 @@
-import cn from 'clsx'
-import { Link } from '@/components/link'
-import s from './hero.module.css'
+import cn from "clsx";
+import { Link } from "@/components/link";
+import s from "./hero.module.css";
 
-const INSTALL_COMMAND = 'bunx degit darkroomengineering/satus my-project'
+const INSTALL_COMMAND = "bunx degit darkroomengineering/satus my-project";
 
 function CopyButton({ text }: { text: string }) {
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(text)
-  }
+    await navigator.clipboard.writeText(text);
+  };
 
   return (
     <button
@@ -29,21 +29,19 @@ function CopyButton({ text }: { text: string }) {
         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
       </svg>
     </button>
-  )
+  );
 }
 
 export function Hero() {
   return (
-    <section className={cn(s.hero, 'dr-layout-grid')}>
-      <div
-        className={cn(s.content, 'col-span-full dt:col-start-3 dt:col-end-11')}
-      >
+    <section className={cn(s.hero, "dr-layout-grid")}>
+      <div className={cn(s.content, "col-span-full dt:col-start-3 dt:col-end-11")}>
         <div className={s.badge}>Next.js 16 + React 19 + Tailwind v4</div>
 
         <h1 className={s.title}>Satus</h1>
 
         <p className={s.tagline}>
-          Part of{' '}
+          Part of{" "}
           <Link href="https://oss.darkroom.engineering" className={s.link}>
             Darkroom Open Source Operative System
           </Link>
@@ -88,5 +86,5 @@ export function Hero() {
         </svg>
       </div>
     </section>
-  )
+  );
 }

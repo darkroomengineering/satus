@@ -1,11 +1,5 @@
 {
-  "include": [
-    ".react-router/types/**/*",
-    "**/*.js",
-    "**/*.jsx",
-    "**/*.ts",
-    "**/*.tsx"
-  ],
+  "include": [".react-router/types/**/*", "**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules", "build", "styles/scripts", "features/dev", "features/webgl"],
   "compilerOptions": {
     "target": "ES2023",

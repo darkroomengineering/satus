@@ -32,17 +32,17 @@ jobs:
         run: |
           project_name="${GITHUB_REPOSITORY##*/}"
           echo "Looking for Vercel project: $project_name"
-          
+
           # Get team ID for darkroom-engineering
           teams=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v2/teams")
           team_id=$(echo "$teams" | jq -r '.teams[] | select(.slug=="darkroom-engineering") | .id')
           echo "Team ID: $team_id"
-          
+
           # Get project ID by matching repo name
           projects=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v9/projects?teamId=$team_id")
           project_id=$(echo "$projects" | jq -r ".projects[] | select(.name==\"$project_name\") | .id")
           echo "Project ID: $project_id"
-          
+
           echo "team_id=$team_id" >> $GITHUB_OUTPUT
           echo "project_id=$project_id" >> $GITHUB_OUTPUT
 
@@ -91,7 +91,7 @@ jobs:
               core.setOutput('comment', '⚠️ Vercel deployment failed or timed out. Lighthouse audit skipped.');
               return;
             }
-            
+
             try {
               const manifest = JSON.parse(process.env.MANIFEST);
               const links = JSON.parse(process.env.LINKS);

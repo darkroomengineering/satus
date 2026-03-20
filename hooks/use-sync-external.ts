@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useSyncExternalStore } from 'react'
+import { useSyncExternalStore } from "react";
 
 /**
  * Browser API Hooks using useSyncExternalStore
@@ -15,27 +15,27 @@ import { useSyncExternalStore } from 'react'
 // useMediaQuery — re-exported from hamo for single canonical source
 // ============================================================================
 
-export { useMediaQuery } from 'hamo'
+export { useMediaQuery } from "hamo";
 
 // ============================================================================
 // useOnlineStatus
 // ============================================================================
 
 function subscribeToOnlineStatus(callback: () => void) {
-  window.addEventListener('online', callback)
-  window.addEventListener('offline', callback)
+  window.addEventListener("online", callback);
+  window.addEventListener("offline", callback);
   return () => {
-    window.removeEventListener('online', callback)
-    window.removeEventListener('offline', callback)
-  }
+    window.removeEventListener("online", callback);
+    window.removeEventListener("offline", callback);
+  };
 }
 
 function getOnlineStatusSnapshot() {
-  return navigator.onLine
+  return navigator.onLine;
 }
 
 function getOnlineStatusServerSnapshot() {
-  return true
+  return true;
 }
 
 /**
@@ -63,28 +63,28 @@ export function useOnlineStatus(): boolean {
   return useSyncExternalStore(
     subscribeToOnlineStatus,
     getOnlineStatusSnapshot,
-    getOnlineStatusServerSnapshot
-  )
+    getOnlineStatusServerSnapshot,
+  );
 }
 
 // ============================================================================
 // usePreferredColorScheme
 // ============================================================================
 
-const COLOR_SCHEME_QUERY = '(prefers-color-scheme: dark)'
+const COLOR_SCHEME_QUERY = "(prefers-color-scheme: dark)";
 
 function subscribeToColorScheme(callback: () => void) {
-  const mql = window.matchMedia(COLOR_SCHEME_QUERY)
-  mql.addEventListener('change', callback)
-  return () => mql.removeEventListener('change', callback)
+  const mql = window.matchMedia(COLOR_SCHEME_QUERY);
+  mql.addEventListener("change", callback);
+  return () => mql.removeEventListener("change", callback);
 }
 
-function getColorSchemeSnapshot(): 'light' | 'dark' {
-  return window.matchMedia(COLOR_SCHEME_QUERY).matches ? 'dark' : 'light'
+function getColorSchemeSnapshot(): "light" | "dark" {
+  return window.matchMedia(COLOR_SCHEME_QUERY).matches ? "dark" : "light";
 }
 
-function getColorSchemeServerSnapshot(): 'light' | 'dark' {
-  return 'light'
+function getColorSchemeServerSnapshot(): "light" | "dark" {
+  return "light";
 }
 
 /**
@@ -108,32 +108,32 @@ function getColorSchemeServerSnapshot(): 'light' | 'dark' {
  * }
  * ```
  */
-export function usePreferredColorScheme(): 'light' | 'dark' {
+export function usePreferredColorScheme(): "light" | "dark" {
   return useSyncExternalStore(
     subscribeToColorScheme,
     getColorSchemeSnapshot,
-    getColorSchemeServerSnapshot
-  )
+    getColorSchemeServerSnapshot,
+  );
 }
 
 // ============================================================================
 // usePreferredReducedMotion
 // ============================================================================
 
-const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
 function subscribeToReducedMotion(callback: () => void) {
-  const mql = window.matchMedia(REDUCED_MOTION_QUERY)
-  mql.addEventListener('change', callback)
-  return () => mql.removeEventListener('change', callback)
+  const mql = window.matchMedia(REDUCED_MOTION_QUERY);
+  mql.addEventListener("change", callback);
+  return () => mql.removeEventListener("change", callback);
 }
 
 function getReducedMotionSnapshot(): boolean {
-  return window.matchMedia(REDUCED_MOTION_QUERY).matches
+  return window.matchMedia(REDUCED_MOTION_QUERY).matches;
 }
 
 function getReducedMotionServerSnapshot(): boolean {
-  return false
+  return false;
 }
 
 /**
@@ -164,8 +164,8 @@ export function usePreferredReducedMotion(): boolean {
   return useSyncExternalStore(
     subscribeToReducedMotion,
     getReducedMotionSnapshot,
-    getReducedMotionServerSnapshot
-  )
+    getReducedMotionServerSnapshot,
+  );
 }
 
 // ============================================================================
@@ -173,16 +173,16 @@ export function usePreferredReducedMotion(): boolean {
 // ============================================================================
 
 function subscribeToVisibility(callback: () => void) {
-  document.addEventListener('visibilitychange', callback)
-  return () => document.removeEventListener('visibilitychange', callback)
+  document.addEventListener("visibilitychange", callback);
+  return () => document.removeEventListener("visibilitychange", callback);
 }
 
 function getVisibilitySnapshot(): DocumentVisibilityState {
-  return document.visibilityState
+  return document.visibilityState;
 }
 
 function getVisibilityServerSnapshot(): DocumentVisibilityState {
-  return 'visible'
+  return "visible";
 }
 
 /**
@@ -213,6 +213,6 @@ export function useDocumentVisibility(): DocumentVisibilityState {
   return useSyncExternalStore(
     subscribeToVisibility,
     getVisibilitySnapshot,
-    getVisibilityServerSnapshot
-  )
+    getVisibilityServerSnapshot,
+  );
 }

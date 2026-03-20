@@ -1,4 +1,4 @@
-import groq from 'groq'
+import groq from "groq";
 
 const richTextWithLinks = `
   content[]{
@@ -11,14 +11,14 @@ const richTextWithLinks = `
       }
     }
   }
-`
+`;
 
 const linkWithLabel = `
   link {
     ...,
     internalLink->{_type, slug, title}
   }
-`
+`;
 
 export const pageQuery = groq`
   *[_type == "page" && slug.current == $slug][0] {
@@ -31,7 +31,7 @@ export const pageQuery = groq`
     publishedAt,
     _updatedAt
   }
-`
+`;
 
 export const articleQuery = groq`
   *[_type == "article" && slug.current == $slug][0] {
@@ -48,7 +48,7 @@ export const articleQuery = groq`
     metadata,
     _updatedAt
   }
-`
+`;
 
 export const allArticlesQuery = groq`
   *[_type == "article"] | order(publishedAt desc) {
@@ -63,4 +63,4 @@ export const allArticlesQuery = groq`
     publishedAt,
     _updatedAt
   }
-`
+`;

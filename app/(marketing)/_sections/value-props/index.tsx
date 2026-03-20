@@ -18,7 +18,7 @@ const VALUE_PROPS = [
       'Cmd+O debug panel',
       'Code generation CLI',
       'Biome linting',
-      '432 tests',
+      '424 tests',
     ],
   },
   {

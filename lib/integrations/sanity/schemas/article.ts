@@ -107,7 +107,7 @@ export const article = defineType({
     prepare({ title, slug, media }) {
       return {
         title: title || 'Untitled',
-        subtitle: slug ? `/blog/${slug}` : 'No slug',
+        subtitle: slug ? `/sanity/${slug}` : 'No slug',
         media,
       }
     },

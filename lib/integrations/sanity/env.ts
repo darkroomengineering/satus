@@ -6,37 +6,41 @@
  * if Sanity is properly set up before making API calls.
  */
 
-/** Sanity API version - defaults to latest stable */
+/** Sanity API version - pinned for stability, update periodically */
 export const apiVersion =
-  process.env.NEXT_PUBLIC_SANITY_API_VERSION || '2024-03-15'
+  process.env.NEXT_PUBLIC_SANITY_API_VERSION ?? '2025-03-01'
 
 /** Sanity dataset name - defaults to 'production' */
-export const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production'
+export const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET ?? 'production'
 
 /** Sanity project ID - empty string if not configured */
 export const projectId =
-  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ||
-  process.env.SANITY_STUDIO_PROJECT_ID ||
+  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ??
+  process.env.SANITY_STUDIO_PROJECT_ID ??
   ''
 
 /** Sanity Studio URL for visual editing */
 export const studioUrl =
   process.env.NODE_ENV === 'development'
     ? 'http://localhost:3000/studio'
-    : `${process.env.NEXT_PUBLIC_BASE_URL || ''}/studio`
+    : `${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/studio`
 
-/** Public read token — supports both Satus and Vercel Marketplace conventions */
+/**
+ * Public read token — supports both Satus and Vercel Marketplace conventions.
+ * IMPORTANT: This token is exposed to the client bundle via NEXT_PUBLIC_ prefix.
+ * It MUST be a viewer-only token with no write permissions.
+ */
 export const publicToken =
-  process.env.NEXT_PUBLIC_SANITY_API_READ_TOKEN ||
-  process.env.SANITY_API_READ_TOKEN ||
+  process.env.NEXT_PUBLIC_SANITY_API_READ_TOKEN ??
+  process.env.SANITY_API_READ_TOKEN ??
   ''
 
 /** Private token for server-side mutations — supports both Satus and Vercel Marketplace conventions */
 export const privateToken =
-  process.env.SANITY_PRIVATE_TOKEN || process.env.SANITY_API_WRITE_TOKEN || ''
+  process.env.SANITY_PRIVATE_TOKEN ?? process.env.SANITY_API_WRITE_TOKEN ?? ''
 
 /** Preview URL for draft mode */
 export const previewURL =
   process.env.NODE_ENV === 'development'
     ? 'http://localhost:3000'
-    : process.env.NEXT_PUBLIC_BASE_URL || ''
+    : (process.env.NEXT_PUBLIC_BASE_URL ?? '')

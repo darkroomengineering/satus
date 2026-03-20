@@ -35,18 +35,6 @@ export const pageQuery = groq`
   }
 `
 
-export const pageByIdQuery = groq`
-  *[_type == "page" && _id == $id][0] {
-    _id,
-    title,
-    slug,
-    ${richTextWithLinks},
-    metadata,
-    publishedAt,
-    _updatedAt
-  }
-`
-
 // Article queries
 export const articleQuery = groq`
   *[_type == "article" && slug.current == $slug][0] {
@@ -73,27 +61,6 @@ export const allArticlesQuery = groq`
     excerpt,
     featuredImage,
     categories,
-    tags,
-    author,
-    publishedAt,
-    metadata,
-    _updatedAt
-  }
-`
-
-export const articleByIdQuery = groq`
-  *[_type == "article" && _id == $id][0] {
-    _id,
-    title,
-    slug,
-    excerpt,
-    featuredImage,
-    ${richTextWithLinks},
-    categories,
-    tags,
-    author,
-    publishedAt,
-    metadata,
-    _updatedAt
+    publishedAt
   }
 `

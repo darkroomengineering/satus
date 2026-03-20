@@ -14,13 +14,9 @@ export const urlForReference = (link: Link): string => {
     return link.externalUrl
   }
 
-  // Internal path (manual URL entry)
-  if (link.linkType === 'internal' && link.internalLink) {
-    return link.internalLink._ref
-  }
-
-  // Internal reference (dereferenced document)
+  // Internal reference (dereferenced document with slug)
   if (
+    link.linkType === 'internal' &&
     link.internalLink &&
     typeof link.internalLink === 'object' &&
     'slug' in link.internalLink
@@ -38,6 +34,8 @@ function resolveDocumentUrl(documentType: string, slug?: string): string {
   switch (documentType) {
     case 'page':
       return slug === 'home' ? '/' : `/${slug}`
+    case 'article':
+      return `/sanity/${slug}`
     default:
       console.warn('Unknown document type for URL resolution:', documentType)
       return '#'

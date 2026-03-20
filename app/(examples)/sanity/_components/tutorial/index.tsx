@@ -1,18 +1,20 @@
 import type { PortableTextBlock } from 'next-sanity'
 import { Link } from '@/components/ui/link'
 import { RichText } from '@/integrations/sanity/components/rich-text'
-import type { Page } from '@/integrations/sanity/sanity.types'
+import type {
+  Page,
+  Link as SanityLink,
+} from '@/integrations/sanity/sanity.types'
+import { getLinkAttributes } from '@/integrations/sanity/utils/link'
 
 type SanityTutorialProps = NonNullable<Page>
 
-type InternalReference = {
-  _type: string
-  slug?: { current: string }
-  title?: string
-}
-
 export function SanityTutorial({ data }: { data: SanityTutorialProps }) {
   if (!data) return null
+
+  const linkAttrs = data?.link
+    ? getLinkAttributes(data.link as SanityLink)
+    : null
 
   return (
     <div className="flex flex-col items-center gap-gap" data-sanity={data._id}>
@@ -24,9 +26,11 @@ export function SanityTutorial({ data }: { data: SanityTutorialProps }) {
           <RichText content={data?.content as PortableTextBlock[]} />
         </div>
       )}
-      {data?.link && (
+      {linkAttrs && (
         <Link
-          href={`/sanity/${(data?.link?.internalLink as InternalReference)?.slug?.current}`}
+          href={linkAttrs.href}
+          target={linkAttrs.target}
+          rel={linkAttrs.rel}
         >
           {data?.link?.text}
         </Link>

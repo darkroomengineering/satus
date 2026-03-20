@@ -1,8 +1,7 @@
 import type { PortableTextBlock } from 'next-sanity'
-import { Image } from '@/components/ui/image'
+import { SanityImage } from '@/components/ui/sanity-image'
 import { RichText } from '@/integrations/sanity/components/rich-text'
 import type { Article } from '@/integrations/sanity/sanity.types'
-import { urlForImage } from '@/integrations/sanity/utils/image'
 
 type SanityArticleProps = NonNullable<Article>
 
@@ -19,7 +18,7 @@ export function SanityArticle({ data }: { data: SanityArticleProps }) {
       )}
       {data.featuredImage && (
         <div data-sanity="featuredImage">
-          <Image src={urlForImage(data.featuredImage).url()} />
+          <SanityImage image={data.featuredImage} maxWidth={1200} />
         </div>
       )}
       {data.content && (

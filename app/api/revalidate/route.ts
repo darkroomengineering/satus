@@ -18,10 +18,15 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const secret = process.env.SANITY_REVALIDATE_SECRET
+    if (!secret) {
+      return new Response('Webhook secret not configured', { status: 503 })
+    }
+
     const { body, isValidSignature } = await parseBody<{
       _type: string
       slug?: { current: string }
-    }>(request, process.env.SANITY_REVALIDATE_SECRET)
+    }>(request, secret)
 
     if (!isValidSignature) {
       return new Response('Invalid signature', { status: 401 })

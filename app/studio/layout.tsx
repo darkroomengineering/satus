@@ -15,10 +15,10 @@ export default async function StudioLayout({ children }: PropsWithChildren) {
 
   // Reload of entire app is happening only when entering the studio
   // when draft mode is already enabled, we need to disable it
-  const { isEnabled: isDraftMode } = await draftMode()
-  if (isDraftMode) {
+  const draft = await draftMode()
+  if (draft.isEnabled) {
     console.log('Disabling draft mode')
-    ;(await draftMode()).disable()
+    draft.disable()
   }
 
   return children

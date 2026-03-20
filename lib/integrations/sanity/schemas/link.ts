@@ -94,34 +94,9 @@ export const linkField = defineField({
   type: 'link',
 })
 
-export const linkFieldWithLabel = defineField({
-  name: 'link',
-  title: 'Link',
-  type: 'link',
-})
-
 export const linkFieldWithLabelAndRequired = defineField({
   name: 'link',
   title: 'Link',
   type: 'link',
   validation: (Rule) => Rule.required(),
 })
-
-type LinkFieldOptions = {
-  name?: string
-  title?: string
-  required?: boolean
-}
-
-export function extendedLinkField({
-  name = 'link',
-  title = 'Link',
-  required = false,
-}: LinkFieldOptions = {}) {
-  return defineField({
-    name,
-    title,
-    type: 'link',
-    validation: required ? (Rule) => Rule.required() : undefined,
-  })
-}

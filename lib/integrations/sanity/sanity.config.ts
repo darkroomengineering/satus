@@ -12,7 +12,6 @@ import {
 import { structureTool } from 'sanity/structure'
 import { apiVersion, dataset, previewURL, projectId } from './env'
 import { schema } from './schemas'
-import { structure } from './structure'
 
 // Helper function for URL resolution
 function resolveHref(documentType?: string, slug?: string): string | undefined {
@@ -44,7 +43,7 @@ export default defineConfig({
           },
           {
             route: '/sanity/:slug',
-            filter: `_type == "article" && slug.current == $slug && defined(slug.current)`,
+            filter: `_type == "article" && slug.current == $slug`,
           },
         ]),
         locations: {
@@ -56,7 +55,7 @@ export default defineConfig({
             resolve: (doc) => ({
               locations: [
                 {
-                  title: doc?.title || 'Untitled Page',
+                  title: doc?.title ?? 'Untitled Page',
                   href: resolveHref('page', doc?.slug)!,
                 },
               ],
@@ -70,7 +69,7 @@ export default defineConfig({
             resolve: (doc) => ({
               locations: [
                 {
-                  title: doc?.title || 'Untitled Article',
+                  title: doc?.title ?? 'Untitled Article',
                   href: resolveHref('article', doc?.slug)!,
                 },
               ],
@@ -86,7 +85,7 @@ export default defineConfig({
         },
       },
     }),
-    structureTool({ structure }),
+    structureTool(),
     // Vision is for querying with GROQ from inside the Studio
     // https://www.sanity.io/docs/the-vision-plugin
     visionTool({ defaultApiVersion: apiVersion }),

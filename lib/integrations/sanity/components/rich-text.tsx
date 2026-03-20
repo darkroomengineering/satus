@@ -1,32 +1,11 @@
 import { PortableText, type PortableTextBlock } from '@portabletext/react'
 import { Link } from '@/components/ui/link'
 import { SanityImage } from '@/components/ui/sanity-image'
+import type { Link as SanityLink } from '../sanity.types'
+import { getLinkAttributes } from '../utils/link'
 
 interface RichTextProps {
   content: PortableTextBlock[]
-}
-
-interface LinkFieldData {
-  type: 'external' | 'internal'
-  url?: string
-  blank?: boolean
-  label?: string
-}
-
-function resolveLinkFieldUrl(linkData: LinkFieldData): string {
-  if (!linkData) return '#'
-
-  // External URL
-  if (linkData.type === 'external' && linkData.url) {
-    return linkData.url
-  }
-
-  // Internal path (like /home, /hubspot, /r3f, etc.)
-  if (linkData.type === 'internal' && linkData.url) {
-    return linkData.url
-  }
-
-  return '#'
 }
 
 export function RichText({ content }: RichTextProps) {
@@ -41,16 +20,14 @@ export function RichText({ content }: RichTextProps) {
         },
         marks: {
           link: ({ children, value }) => {
-            const href = resolveLinkFieldUrl(value)
-            const isExternal = value?.type === 'url'
+            const linkData = value as SanityLink
+            const { href, target, rel } = getLinkAttributes(linkData)
 
             return (
               <Link
                 href={href}
-                target={isExternal && value?.blank ? '_blank' : undefined}
-                rel={
-                  isExternal && value?.blank ? 'noopener noreferrer' : undefined
-                }
+                target={target}
+                rel={rel}
                 data-sanity-edit-target
               >
                 {children}

@@ -1,6 +1,6 @@
 import { createClient, type SanityClient } from 'next-sanity'
 import { isSanityConfigured } from '@/integrations/check-integration'
-import { apiVersion, dataset, privateToken, projectId, studioUrl } from './env'
+import { apiVersion, dataset, projectId, studioUrl } from './env'
 
 /**
  * Sanity client instance
@@ -10,6 +10,10 @@ import { apiVersion, dataset, privateToken, projectId, studioUrl } from './env'
  *
  * Note: next-sanity uses fetch internally with Next.js caching.
  * Deduplication is automatic - no need for React.cache() wrapper.
+ *
+ * The base client has no token — it uses the public CDN for published content.
+ * Token is applied where needed via client.withConfig({ token }) for
+ * draft mode, revalidation, or server-side mutations.
  */
 export const client: SanityClient | null = isSanityConfigured()
   ? createClient({
@@ -18,7 +22,6 @@ export const client: SanityClient | null = isSanityConfigured()
       apiVersion,
       useCdn: true,
       perspective: 'published',
-      token: privateToken,
       stega: {
         studioUrl,
         filter: (props) => {

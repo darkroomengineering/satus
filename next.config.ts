@@ -68,7 +68,10 @@ const nextConfig: NextConfig = {
             exclude: ['error', 'warn'],
           }
         : false,
-    reactRemoveProperties: true,
+    reactRemoveProperties:
+      process.env.NODE_ENV === 'production'
+        ? { properties: ['^data-testid$'] }
+        : false,
   },
   cacheComponents: true,
   compress: true,
@@ -129,7 +132,7 @@ const nextConfig: NextConfig = {
         },
         {
           key: 'Content-Security-Policy',
-          value: "frame-ancestors 'self';",
+          value: "frame-ancestors 'self' https://*.sanity.studio;",
         },
         {
           key: 'X-Frame-Options',

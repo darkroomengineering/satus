@@ -21,7 +21,7 @@ export async function generateStaticParams() {
 export default async function SanityArticlePage({
   params,
 }: {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
   const { data } = await sanityFetch({
@@ -44,7 +44,7 @@ export default async function SanityArticlePage({
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
   const { data } = await sanityFetch({

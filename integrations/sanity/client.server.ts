@@ -3,9 +3,11 @@ import { readToken } from './env'
 
 /**
  * Sanity client with read token — server only
- * Supports draft content and visual editing
+ * null if Sanity is not configured
  */
-export const serverClient = client.withConfig({
-  token: readToken,
-  useCdn: false,
-})
+export const serverClient = client
+  ? client.withConfig({
+      token: readToken,
+      useCdn: false,
+    })
+  : null

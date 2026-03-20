@@ -4,6 +4,7 @@ import svgr from 'vite-plugin-svgr'
 
 export default defineConfig({
   plugins: [reactRouter(), svgr()],
+  envPrefix: 'PUBLIC_',
   resolve: {
     tsconfigPaths: true,
   },

@@ -20,8 +20,8 @@ const GridDebugger = dynamic(
   { ssr: false }
 )
 
-const Minimap = dynamic(
-  () => import('./minimap').then(({ Minimap }) => Minimap),
+const ScrollTriggerDebugger = dynamic(
+  () => import('hamo/scroll-trigger/debugger').then(({ Debugger }) => Debugger),
   { ssr: false }
 )
 
@@ -47,7 +47,7 @@ export function OrchestraTools() {
       {studio && <Studio />}
       {stats && <Stats />}
       {grid && <GridDebugger />}
-      {minimap && <Minimap />}
+      {minimap && <ScrollTriggerDebugger />}
     </>
   )
 }

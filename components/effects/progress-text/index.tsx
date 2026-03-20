@@ -1,7 +1,7 @@
 'use client'
 
 import cn from 'clsx'
-import { useRect } from 'hamo'
+import { type UseScrollTriggerOptions, useScrollTrigger } from 'hamo'
 import {
   Children,
   type CSSProperties,
@@ -10,10 +10,6 @@ import {
   type ReactNode,
   useRef,
 } from 'react'
-import {
-  type UseScrollTriggerOptions,
-  useScrollTrigger,
-} from '@/hooks/use-scroll-trigger'
 import { slugify } from '@/utils/strings'
 import s from './progress-text.module.css'
 
@@ -83,12 +79,9 @@ export function ProgressText({
   className,
   style,
 }: ProgressTextProps) {
-  const [setRectRef, rect] = useRect()
-
   const wordsRefs = useRef<HTMLSpanElement[]>([])
 
-  useScrollTrigger({
-    rect,
+  const [setRectRef] = useScrollTrigger({
     start,
     end,
     onProgress: ({ progress }) => {

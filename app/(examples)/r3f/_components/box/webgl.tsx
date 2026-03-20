@@ -2,6 +2,7 @@
 
 import { useFrame } from '@react-three/fiber'
 import type { Rect } from 'hamo'
+import type { MutableRefObject } from 'react'
 import { useRef } from 'react'
 import type { Mesh } from 'three'
 import { useCurrentSheet } from '@/dev/theatre'
@@ -11,32 +12,24 @@ import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
 interface WebGLBoxProps {
   theatreKey?: string
   rect: Rect
-  /** Whether the element is visible in the viewport */
   visible?: boolean
+  progressRef: MutableRefObject<number>
 }
 
-/**
- * WebGL box component with visibility-aware optimizations.
- *
- * When visible is false:
- * - useWebGLRect skips position computations
- * - useFrame skips rotation updates
- * - Component still mounts (preserves state) but does minimal work
- */
 export function WebGLBox({
   theatreKey = 'box',
   rect,
   visible = true,
+  progressRef,
 }: WebGLBoxProps) {
   const meshRef = useRef<Mesh | null>(null)
 
-  useFrame(({ clock }) => {
-    // Skip expensive updates when off-screen
+  useFrame(() => {
     if (!(visible && meshRef.current)) return
 
-    const time = clock.getElapsedTime()
-    meshRef.current.rotation.x = time
-    meshRef.current.rotation.y = time
+    const rotation = progressRef.current * Math.PI * 4
+    meshRef.current.rotation.x = rotation
+    meshRef.current.rotation.y = rotation
     meshRef.current.updateMatrix()
   })
 
@@ -56,7 +49,6 @@ export function WebGLBox({
     }
   )
 
-  // Pass visibility to skip computations when off-screen
   useWebGLRect(
     rect,
     ({ scale, position, rotation }) => {

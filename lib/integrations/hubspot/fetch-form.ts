@@ -29,7 +29,7 @@ interface HubSpotLegalConsentOptions {
 
 export interface HubSpotParsedForm {
   portalId: string | undefined
-  id: string | null
+  id: string
   inputs: Array<{
     name: string
     label: string
@@ -56,12 +56,6 @@ export interface HubSpotParsedForm {
   }
 }
 
-// Also export the result type from getForm
-export interface HubSpotFormResult {
-  form?: HubSpotParsedForm
-  error?: string
-}
-
 // TODO: If only server side maybe use api-client
 async function hubspotFormApi(id: string | null | undefined) {
   // Guard against null/undefined form ID
@@ -71,12 +65,19 @@ async function hubspotFormApi(id: string | null | undefined) {
     )
   }
 
+  const accessToken = process.env.HUBSPOT_ACCESS_TOKEN
+  if (!accessToken) {
+    throw new Error(
+      'HUBSPOT_ACCESS_TOKEN is not configured. Set it in your environment variables.'
+    )
+  }
+
   const resp = await fetchWithTimeout(
     `https://api.hubapi.com/marketing/v3/forms/${id}`,
     {
       headers: {
         accept: 'application/json',
-        authorization: `Bearer ${process.env.HUBSPOT_ACCESS_TOKEN}`,
+        authorization: `Bearer ${accessToken}`,
       },
       timeout: 8000, // 8 second timeout for HubSpot API
     }
@@ -85,10 +86,17 @@ async function hubspotFormApi(id: string | null | undefined) {
     throw new Error(`Failed to fetch form data: ${resp.status}`)
   }
   const response = (await resp.json()) as HubspotFormResponse
+
+  if (!(response.fieldGroups && Array.isArray(response.fieldGroups))) {
+    throw new Error(
+      'Invalid HubSpot form response: missing fieldGroups property.'
+    )
+  }
+
   return apiParser(id, response)
 }
 
-function apiParser(id: string | null, data: HubspotFormResponse) {
+function apiParser(id: string, data: HubspotFormResponse) {
   const typeSetter = (type: string) => {
     switch (type) {
       case 'phone':
@@ -110,24 +118,26 @@ function apiParser(id: string | null, data: HubspotFormResponse) {
   return {
     portalId: process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID,
     id: id,
-    inputs: data.fieldGroups.map((item) => {
-      const flatData = item.fields[0] as HubSpotFormField // Type assertion to handle incomplete types
-      return {
-        name: flatData?.name || '',
-        label: flatData?.label || '',
-        placeholder: flatData?.placeholder || 'placeHolder',
-        required: flatData?.required,
-        hubspotType: typeSetter(flatData.fieldType),
-        type: flatData.fieldType || '',
-        hidden: flatData.hidden,
-        helpText: flatData?.helpText || '',
-        options: flatData.options
-          ? flatData.options.map((option) => option.label)
-          : [],
-      }
-    }),
+    inputs: data.fieldGroups
+      .filter((item) => item.fields[0] != null)
+      .map((item) => {
+        const flatData = item.fields[0] as HubSpotFormField
+        return {
+          name: flatData.name || '',
+          label: flatData.label || '',
+          placeholder: flatData.placeholder || '',
+          required: flatData.required,
+          hubspotType: typeSetter(flatData.fieldType),
+          type: flatData.fieldType || '',
+          hidden: flatData.hidden,
+          helpText: flatData.helpText || '',
+          options: flatData.options
+            ? flatData.options.map((option) => option.label)
+            : [],
+        }
+      }),
     submitButton: {
-      text: data.displayOptions.submitButtonText || 'LFG',
+      text: data.displayOptions.submitButtonText || 'Submit',
     },
     legalConsent: legalConsentOptions?.[0]
       ? {
@@ -158,15 +168,13 @@ type GetFormError = { form?: never; error: string }
 type GetFormResult = GetFormSuccess | GetFormError
 
 export async function getForm(
-  formId: string | null | undefined = null,
-  handler?: (result: GetFormSuccess) => Promise<void>
+  formId: string | null | undefined = null
 ): Promise<GetFormResult> {
   try {
     const result: GetFormSuccess = {
       form: await hubspotFormApi(formId),
     }
 
-    await handler?.(result)
     return result
   } catch (err) {
     if (err instanceof Error) {

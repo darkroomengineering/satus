@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react'
 import { createContext, useContext, useOptimistic } from 'react'
 import type { StandardContext } from '@/utils/context'
-import type { Cart } from '../types'
+import type { Cart, Product, ProductVariant } from '../types'
 import { CartModal } from './modal'
 import type { CartAction } from './optimistic-utils'
 import { cartReconciler } from './optimistic-utils'
@@ -19,7 +19,11 @@ export interface CartActions {
     merchandiseId: string,
     updateType: 'plus' | 'minus' | 'delete'
   ) => void
-  addCartItem: (variant: unknown, product: unknown, quantity?: number) => void
+  addCartItem: (
+    variant: ProductVariant | undefined,
+    product: Product,
+    quantity?: number
+  ) => void
 }
 
 // Standard context meta (computed values)
@@ -44,7 +48,11 @@ export interface CartContextType {
     merchandiseId: string,
     updateType: 'plus' | 'minus' | 'delete'
   ) => void
-  addCartItem: (variant: unknown, product: unknown, quantity?: number) => void
+  addCartItem: (
+    variant: ProductVariant | undefined,
+    product: Product,
+    quantity?: number
+  ) => void
   totalQuantity: () => number
 }
 
@@ -104,7 +112,11 @@ export function CartProvider({ children, cart }: CartProviderProps) {
     })
   }
 
-  function addCartItem(variant: unknown, product: unknown, quantity = 1) {
+  function addCartItem(
+    variant: ProductVariant | undefined,
+    product: Product,
+    quantity = 1
+  ) {
     updateOptimisticCart({
       type: 'ADD_ITEM',
       payload: { variant, product, quantity },

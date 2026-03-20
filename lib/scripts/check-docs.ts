@@ -83,7 +83,7 @@ function hasExport(filePath: string): boolean {
 
 /** Convert a file basename to import-path segment (strip extension) */
 function fileToSegment(file: string): string {
-  return file.replace(/\.(tsx?|js)$/, '')
+  return file.replace(/\.(?<ext>tsx?|js)$/, '')
 }
 
 function run() {

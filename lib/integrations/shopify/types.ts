@@ -21,7 +21,7 @@ export interface Money {
   currencyCode: string
 }
 
-export interface defaultCart {
+export interface DefaultCart {
   checkoutUrl: string
   totalQuantity: number
   cost: {
@@ -32,7 +32,7 @@ export interface defaultCart {
 }
 
 // Before reshaping data (raw Shopify API response)
-export interface ShopifyCart extends defaultCart {
+export interface ShopifyCart extends DefaultCart {
   id: string
   lines: EdgeNode<ShopifyCartLineItem>
 }
@@ -57,7 +57,7 @@ export interface ShopifyCartLineItem {
 }
 
 // After reshaping data
-export interface Cart extends defaultCart {
+export interface Cart extends DefaultCart {
   id?: string
   lines: Array<{
     id?: string
@@ -206,6 +206,21 @@ export interface ProductVariant {
   }
   selectedOptions: Array<{ name: string; value: string }>
   title: string
+}
+
+/* Page types */
+export interface Page {
+  id: string
+  title: string
+  handle: string
+  body: string
+  bodySummary: string
+  seo?: {
+    title: string
+    description: string
+  }
+  createdAt: string
+  updatedAt: string
 }
 
 /* Customer types */

@@ -1,3 +1,8 @@
+.cta {
+  cursor: pointer;
+  transition: 300ms opacity var(--ease-gleasing);
+}
+
 .disable {
   opacity: 0.5;
   pointer-events: none;

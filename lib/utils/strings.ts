@@ -91,7 +91,7 @@ export function twoDigits(number: number) {
  * ```
  */
 export function numberWithCommas(x: { toString: () => string }) {
-  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+  return x.toString().replace(/\B(?=(?<thousands>\d{3})+(?!\d))/g, ',')
 }
 
 // =============================================================================

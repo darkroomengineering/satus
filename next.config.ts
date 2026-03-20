@@ -84,6 +84,8 @@ const nextConfig: NextConfig = {
   experimental: {
     taint: true,
     cachedNavigations: true,
+    prefetchInlining: true,
+    sri: { algorithm: 'sha384' },
     optimizePackageImports: [
       '@react-three/drei',
       '@react-three/fiber',

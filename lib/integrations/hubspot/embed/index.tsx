@@ -24,6 +24,7 @@ export function EmbedHubspotForm({
   onSubmit,
 }: EmbedHubspotFormProps) {
   const formCreatedRef = useRef(false)
+  const targetRef = useRef<HTMLDivElement>(null)
 
   function createForm() {
     if (formCreatedRef.current) return
@@ -42,7 +43,9 @@ export function EmbedHubspotForm({
         ...(s.error && { errorMessageClass: s.error }),
         ...(s['custom-form'] && { cssClass: s['custom-form'] }),
         onFormReady: () => {
-          console.log(`Form ${formId} ready in target ${target}`)
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`Form ${formId} ready in target ${target}`)
+          }
         },
         ...(onSubmit && { onFormSubmitted: onSubmit }),
       })
@@ -52,20 +55,29 @@ export function EmbedHubspotForm({
   // biome-ignore lint/correctness/useExhaustiveDependencies: React Compiler handles dependency tracking
   useEffect(() => {
     createForm()
-    // Reset the ref when component unmounts
+    // Clean up on unmount
     return () => {
       formCreatedRef.current = false
+      if (targetRef.current) {
+        targetRef.current.innerHTML = ''
+      }
     }
   }, [formId, target, onSubmit])
 
   return (
-    <div id={target} className={cn(s['hubspot-form'], className)}>
+    <div
+      ref={targetRef}
+      id={target}
+      className={cn(s['hubspot-form'], className)}
+    >
       <Script
         src="https://js.hsforms.net/forms/v2.js"
         id="hubspotScript"
         strategy={strategy}
         onLoad={() => {
-          console.log('Form script loaded')
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Form script loaded')
+          }
           isScriptLoaded = true
           createForm()
         }}

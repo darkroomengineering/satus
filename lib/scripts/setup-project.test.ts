@@ -419,7 +419,7 @@ describe('Combined Transforms (Multiple Integrations Removed)', () => {
 
       // Verify basic structure is intact (no empty exports, etc.)
       if (file.includes('index.tsx')) {
-        expect(content).toMatch(/export (function|const)/)
+        expect(content).toMatch(/export (?<keyword>function|const)/)
       }
     }
   })

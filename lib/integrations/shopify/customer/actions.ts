@@ -12,6 +12,7 @@ import {
   customerCreateMutation,
 } from '../mutations/customer'
 import { getCustomerQuery } from '../queries/customer'
+import type { Customer } from '../types'
 
 const loginSchema = z.object({
   email: emailSchema,
@@ -171,7 +172,7 @@ export async function CreateCustomerAction(
   try {
     const res = await shopifyFetch<{
       customerCreate: {
-        customer: unknown
+        customer: Customer | null
         customerUserErrors: Array<{ message: string }>
       }
     }>({
@@ -209,7 +210,7 @@ export async function CreateCustomerAction(
   }
 }
 
-export async function getCustomer(): Promise<unknown> {
+export async function getCustomer(): Promise<Customer | null> {
   const _cookies = await cookies()
   const customerAccessToken = _cookies.get('customerAccessToken')?.value
 
@@ -218,7 +219,7 @@ export async function getCustomer(): Promise<unknown> {
   }
 
   try {
-    const res = await shopifyFetch<{ customer: unknown }>({
+    const res = await shopifyFetch<{ customer: Customer | null }>({
       query: getCustomerQuery,
       variables: {
         customerAccessToken,

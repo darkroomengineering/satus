@@ -35,7 +35,10 @@ import { AddToCart } from '@/lib/integrations/shopify/cart/add-to-cart'
 ```tsx
 import { useCartContext } from '@/lib/integrations/shopify/cart/cart-context'
 
-const { cart, totalQuantity } = useCartContext()
+const { state, actions, meta } = useCartContext()
+const { cart } = state
+const { addCartItem, updateCartItem } = actions
+const quantity = meta?.totalQuantity()
 ```
 
 ### Products

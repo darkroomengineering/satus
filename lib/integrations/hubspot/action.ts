@@ -15,7 +15,7 @@ const hubspotNewsletterSchema = z.object({
 export async function HubspotNewsletterAction(_: unknown, formData: FormData) {
   // Rate limit to prevent newsletter subscription abuse
   const headersList = await headers()
-  const ip = headersList.get('x-forwarded-for')?.split(',')[0] || 'unknown'
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0] ?? 'unknown'
   const rateLimitResult = rateLimit(`hubspot:${ip}`, rateLimiters.standard)
 
   if (!rateLimitResult.success) {
@@ -47,6 +47,13 @@ export async function HubspotNewsletterAction(_: unknown, formData: FormData) {
   }
 
   const portalId = process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID
+  if (!portalId) {
+    return {
+      status: 500,
+      message: 'HubSpot portal ID is not configured.',
+    }
+  }
+
   const { email, formId } = parsed.data
 
   const body = {

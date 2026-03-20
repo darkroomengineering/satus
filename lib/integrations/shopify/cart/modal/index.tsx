@@ -30,6 +30,7 @@ interface QuantityButtonProps {
   formAction: () => void
   className?: string
   children: ReactNode
+  'aria-label': string
 }
 
 interface RemoveButtonProps {
@@ -201,9 +202,19 @@ function Quantity({ className, payload }: QuantityProps) {
 
   return (
     <div className={className}>
-      <QuantityButton formAction={() => formAction('minus')}>-</QuantityButton>
+      <QuantityButton
+        formAction={() => formAction('minus')}
+        aria-label="Decrease quantity"
+      >
+        -
+      </QuantityButton>
       <span>{payload.quantity}</span>
-      <QuantityButton formAction={() => formAction('plus')}>+</QuantityButton>
+      <QuantityButton
+        formAction={() => formAction('plus')}
+        aria-label="Increase quantity"
+      >
+        +
+      </QuantityButton>
     </div>
   )
 }
@@ -212,10 +223,11 @@ function QuantityButton({
   formAction,
   className,
   children,
+  'aria-label': ariaLabel,
 }: QuantityButtonProps) {
   return (
     <form action={formAction} className={className}>
-      <button type="submit" className="p1" aria-label="Remove cart item">
+      <button type="submit" className="p1" aria-label={ariaLabel}>
         {children}
       </button>
     </form>

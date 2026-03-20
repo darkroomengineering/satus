@@ -150,7 +150,8 @@
           }
         },
         "useNullishCoalescing": "warn",
-        "useImportsFirst": "error"
+        "useImportsFirst": "error",
+        "useNamedCaptureGroup": "warn"
       }
     }
   },

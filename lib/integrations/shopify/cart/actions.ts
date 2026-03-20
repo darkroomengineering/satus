@@ -77,7 +77,7 @@ export async function addItem(
   let cartId = _cookies.get('cartId')?.value
   let cart: unknown
 
-  // This is here beacuse cookie can only be set server side
+  // This is here because cookie can only be set server side
   // and useFormState executes the addItem action in the server
   if (!cartId) {
     cart = await createCart()

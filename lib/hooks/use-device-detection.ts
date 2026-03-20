@@ -95,7 +95,9 @@ export function useDeviceDetection() {
     const capability = detectGPUCapability()
     setGpuCapability(capability)
 
-    setIsSafari(/^((?!chrome|android).)*safari/i.test(navigator.userAgent))
+    setIsSafari(
+      /^(?<safariCheck>(?!chrome|android).)*safari/i.test(navigator.userAgent)
+    )
   }, [])
 
   // GPU is available if device has capability AND is not in low-power mode

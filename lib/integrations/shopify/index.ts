@@ -34,6 +34,7 @@ import type {
   Collection,
   EdgeNode,
   Image,
+  Page,
   Product,
   ProductVariant,
   ShopifyCart,
@@ -43,9 +44,9 @@ import type {
   ShopifyResponse,
 } from './types'
 
-const endpoint = `${process.env.SHOPIFY_STORE_DOMAIN || ''}${SHOPIFY_GRAPHQL_API_ENDPOINT}`
-const key = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN || ''
-const domain = process.env.SHOPIFY_STORE_DOMAIN || ''
+const endpoint = `${process.env.SHOPIFY_STORE_DOMAIN ?? ''}${SHOPIFY_GRAPHQL_API_ENDPOINT}`
+const key = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN ?? ''
+const domain = process.env.SHOPIFY_STORE_DOMAIN ?? ''
 
 export async function shopifyFetch<T = Record<string, unknown>>({
   cache = 'force-cache',
@@ -108,7 +109,7 @@ const removeEdgesAndNodes = <T>(array: EdgeNode<T>): T[] => {
 }
 
 const reshapeCart = (cart: ShopifyCart): Cart => {
-  const totalTaxAmount = cart.cost?.totalTaxAmount || {
+  const totalTaxAmount = cart.cost?.totalTaxAmount ?? {
     amount: '0.0',
     currencyCode: 'USD',
   }
@@ -161,10 +162,10 @@ const reshapeImages = (
   const flattened = removeEdgesAndNodes(images)
 
   return flattened.map((image) => {
-    const filename = image.url.match(/.*\/(.*)\..*/)?.[1] || 'product'
+    const filename = image.url.match(/.*\/(?<name>.*)\..*/)?.[1] ?? 'product'
     return {
       ...image,
-      altText: image.altText || `${productTitle} - ${filename}`,
+      altText: image.altText ?? `${productTitle} - ${filename}`,
     }
   })
 }
@@ -314,7 +315,6 @@ export async function getCollectionProducts({
   }>({
     query: getCollectionProductsQuery,
     tags: [TAGS.collections, TAGS.products],
-    cache: 'no-store',
     variables: {
       handle: collection,
       reverse,
@@ -381,12 +381,12 @@ export async function getMenu(handle: string): Promise<MenuItem[]> {
         .replace(domain, '')
         .replace('/collections', '/search')
         .replace('/pages', ''),
-    })) || []
+    })) ?? []
   )
 }
 
-export async function getPage(handle: string): Promise<unknown> {
-  const res = await shopifyFetch<{ pageByHandle: unknown }>({
+export async function getPage(handle: string): Promise<Page | null> {
+  const res = await shopifyFetch<{ pageByHandle: Page | null }>({
     query: getPageQuery,
     variables: { handle },
   })
@@ -394,8 +394,8 @@ export async function getPage(handle: string): Promise<unknown> {
   return res.body.data.pageByHandle
 }
 
-export async function getPages(): Promise<unknown[]> {
-  const res = await shopifyFetch<{ pages: EdgeNode<unknown> }>({
+export async function getPages(): Promise<Page[]> {
+  const res = await shopifyFetch<{ pages: EdgeNode<Page> }>({
     query: getPagesQuery,
   })
 
@@ -411,7 +411,6 @@ export async function getProduct({
   const res = await shopifyFetch<{ product: ShopifyProduct | null }>({
     query: getProductQuery,
     tags: [TAGS.products],
-    cache: 'no-store',
     variables: {
       handle,
       id,
@@ -474,7 +473,7 @@ export async function revalidate(req: NextRequest): Promise<NextResponse> {
     'products/update',
   ]
   const headersList = await headers()
-  const topic = headersList.get('x-shopify-topic') || 'unknown'
+  const topic = headersList.get('x-shopify-topic') ?? 'unknown'
   const secret = req.nextUrl.searchParams.get('secret')
   const isCollectionUpdate = collectionWebhooks.includes(topic)
   const isProductUpdate = productWebhooks.includes(topic)

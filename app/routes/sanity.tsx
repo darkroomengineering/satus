@@ -1,9 +1,7 @@
 import type { SanityDocument } from '@sanity/client'
-import { useQuery } from '@sanity/react-loader'
-import { Link } from '@/components/link'
-import { loadQuery } from '@/integrations/sanity/loader.server'
+import { Link } from 'react-router'
+import { client } from '@/integrations/sanity/client'
 import { allArticlesQuery } from '@/integrations/sanity/queries'
-import { getPreviewData } from '@/integrations/sanity/session'
 import type { Route } from './+types/sanity'
 
 export function meta(_args: Route.MetaArgs) {
@@ -13,23 +11,13 @@ export function meta(_args: Route.MetaArgs) {
   ]
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const { options } = await getPreviewData(request)
-  const initial = await loadQuery<SanityDocument[]>(
-    allArticlesQuery,
-    {},
-    options
-  )
-  return { initial }
+export async function loader(_args: Route.LoaderArgs) {
+  const articles = await client.fetch<SanityDocument[]>(allArticlesQuery)
+  return { articles }
 }
 
 export default function SanityPage({ loaderData }: Route.ComponentProps) {
-  const { initial } = loaderData
-  const { data: articles } = useQuery<SanityDocument[]>(
-    allArticlesQuery,
-    {},
-    { initial }
-  )
+  const { articles } = loaderData
 
   return (
     <div className="max-dt:dr-px-16 flex min-h-dvh grow items-center justify-center font-mono uppercase">
@@ -39,10 +27,7 @@ export default function SanityPage({ loaderData }: Route.ComponentProps) {
           <ul className="flex flex-col items-center gap-2">
             {articles.map((article) => (
               <li key={article._id}>
-                <Link
-                  href={`/sanity/${article.slug?.current}`}
-                  className="link"
-                >
+                <Link to={`/sanity/${article.slug?.current}`} className="link">
                   {article.title}
                 </Link>
               </li>

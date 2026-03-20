@@ -1,10 +1,10 @@
+import cn from 'clsx'
 import { useLocation } from 'react-router'
 import { Link } from '@/components/link'
 
 const LINKS = [
   { href: '/', label: 'home' },
-  { href: '/components', label: 'components' },
-  { href: '/sanity', label: 'sanity' },
+  { href: '/#features', label: 'features' },
   {
     href: 'https://github.com/darkroomengineering/satus',
     label: 'github',
@@ -12,8 +12,16 @@ const LINKS = [
   },
 ] as const
 
+const EXAMPLES = [
+  { href: '/components', label: 'components' },
+  { href: '/sanity', label: 'sanity' },
+]
+
 export function Header() {
   const { pathname } = useLocation()
+  const isExamplePage = EXAMPLES.some(
+    (ex) => pathname === ex.href || pathname.startsWith(`${ex.href}/`)
+  )
 
   return (
     <nav className="fixed top-safe left-safe z-2 flex flex-col font-mono dt:text-[11px] text-[10px] uppercase">
@@ -43,6 +51,30 @@ export function Header() {
             </li>
           )
         })}
+        <li className="flex flex-col">
+          <div className="flex items-center gap-1">
+            <span className="w-2 opacity-50">{isExamplePage ? '›' : ''}</span>
+            <span>examples</span>
+          </div>
+          <ul className="dr-pl-12 mt-px flex flex-col gap-px">
+            {EXAMPLES.map((link) => (
+              <li key={link.href} className="flex items-center gap-1">
+                <span className="w-2 opacity-50">
+                  {pathname === link.href ? '›' : ''}
+                </span>
+                <Link
+                  href={link.href}
+                  className={cn(
+                    'link transition-opacity hover:opacity-100',
+                    pathname === link.href ? 'opacity-100' : 'opacity-40'
+                  )}
+                >
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </li>
       </ul>
     </nav>
   )

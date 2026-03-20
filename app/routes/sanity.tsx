@@ -23,7 +23,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { initial }
 }
 
-export default function SanityExample({ loaderData }: Route.ComponentProps) {
+export default function SanityPage({ loaderData }: Route.ComponentProps) {
   const { initial } = loaderData
   const { data: articles } = useQuery<SanityDocument[]>(
     allArticlesQuery,
@@ -32,47 +32,28 @@ export default function SanityExample({ loaderData }: Route.ComponentProps) {
   )
 
   return (
-    <div className="flex min-h-dvh flex-col gap-8 pt-32 pb-24 font-mono">
-      <header className="px-safe">
-        <h1 className="dt:text-[13px] text-[12px] uppercase opacity-50">
-          Sanity
-        </h1>
-        <p className="mt-2 text-sm opacity-40">
-          Articles fetched via React Router loader + @sanity/react-loader
-        </p>
-      </header>
-
-      <section className="flex flex-col gap-4 px-safe">
+    <div className="max-dt:dr-px-16 flex min-h-dvh grow items-center justify-center font-mono uppercase">
+      <div className="flex flex-col items-center gap-gap">
+        <h2 className="text-center">Sanity</h2>
         {articles && articles.length > 0 ? (
-          <ul className="flex flex-col gap-3">
+          <ul className="flex flex-col items-center gap-2">
             {articles.map((article) => (
-              <li
-                key={article._id}
-                className="flex flex-col gap-1 border-secondary/10 border-t pt-3"
-              >
+              <li key={article._id}>
                 <Link
                   href={`/sanity/${article.slug?.current}`}
-                  className="link text-sm underline"
+                  className="link"
                 >
                   {article.title}
                 </Link>
-                {article.excerpt && (
-                  <p className="text-xs opacity-40">{article.excerpt}</p>
-                )}
               </li>
             ))}
           </ul>
         ) : (
-          <div className="flex flex-col gap-2 text-sm opacity-50">
-            <p>No articles found.</p>
-            <p>
-              Set <code className="opacity-100">SANITY_PROJECT_ID</code> and{' '}
-              <code className="opacity-100">SANITY_DATASET</code> in your .env
-              to connect.
-            </p>
-          </div>
+          <p className="opacity-50">
+            No articles found. Add content in Sanity Studio.
+          </p>
         )}
-      </section>
+      </div>
     </div>
   )
 }

@@ -45,6 +45,9 @@ yarn-error.log*
 
 .eslintcache
 
+# Windows crash dumps
+*.exe.stackdump
+
 .env*.local
 
 .npmrc

@@ -33,7 +33,9 @@ export class GenericMaterial extends MeshBasicMaterial {
   }
 
   override onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
-    console.log(`WebGL: compiling ${this.constructor.name}`)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`WebGL: compiling ${this.constructor.name}`)
+    }
 
     // uniforms
     shader.uniforms = {

@@ -8,9 +8,9 @@ Non-UI code: hooks, integrations, styles, and utilities.
 
 ```tsx
 // Hooks
-import { useScrollTrigger } from '@/lib/hooks/use-scroll-trigger'
+import { useScrollTrigger, useTransform } from 'hamo'
 import { useDeviceDetection } from '@/lib/hooks/use-device-detection'
-import { useStore } from '@/lib/hooks/use-store'
+import { useStore } from '@/lib/hooks/store'
 
 // Utilities - explicit imports for better tree-shaking
 import { clamp, lerp } from '@/lib/utils/math'
@@ -29,7 +29,7 @@ import { Canvas } from '@/lib/webgl/components/canvas'
 import { WebGLTunnel } from '@/lib/webgl/components/tunnel'
 
 // Dev tools
-import { useOrchestra } from '@/lib/dev/orchestra'
+import { useOrchestra } from '@/lib/dev'
 ```
 
 ## Directories

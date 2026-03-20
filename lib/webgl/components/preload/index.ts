@@ -34,8 +34,10 @@ export function Preload() {
 
   useEffect(() => {
     async function load() {
-      console.log('WebGL: Preloading...')
-      console.time('WebGL: Preload took:')
+      if (process.env.NODE_ENV === 'development') {
+        console.log('WebGL: Preloading...')
+        console.time('WebGL: Preload took:')
+      }
 
       const invisible: THREE.Object3D[] = []
       scene.traverse((object: THREE.Object3D) => {
@@ -54,7 +56,9 @@ export function Preload() {
         object.visible = false
       }
 
-      console.timeEnd('WebGL: Preload took:')
+      if (process.env.NODE_ENV === 'development') {
+        console.timeEnd('WebGL: Preload took:')
+      }
     }
 
     load()

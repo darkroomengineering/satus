@@ -24,7 +24,9 @@ export async function demoFormAction(
     return result
   }
 
-  console.log('Form submitted:', result.data)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Form submitted:', result.data)
+  }
 
   return { status: 200, message: 'Form submitted successfully!' }
 }

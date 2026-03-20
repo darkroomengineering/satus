@@ -61,14 +61,14 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | useStore | `@/hooks/store` | `() => { isNavOpened, setIsNavOpened }` | Global nav state (Zustand) |
 | useDeviceDetection | `@/hooks/use-device-detection` | `() => DeviceInfo` | Mobile, GPU, browser, reduced motion detection |
 | usePrefetch | `@/hooks/use-prefetch` | `(href) => ref` | Viewport-triggered route prefetch with network awareness |
-| useScrollTrigger | `@/hooks/use-scroll-trigger` | `(options, deps?) => void` | Scroll-based animation trigger with position syntax |
-| useMediaQuery | `@/hooks/use-sync-external` | `(query) => boolean` | CSS media query subscription |
+| useScrollTrigger | `hamo` | `(options, deps?) => void` | Scroll-based animation trigger with position syntax |
+| useMediaQuery | `hamo` | `(query) => boolean` | CSS media query subscription |
 | useOnlineStatus | `@/hooks/use-sync-external` | `() => boolean` | Network online/offline status |
 | usePreferredColorScheme | `@/hooks/use-sync-external` | `() => 'light' \| 'dark'` | System theme preference |
 | usePreferredReducedMotion | `@/hooks/use-sync-external` | `() => boolean` | Reduced motion preference |
 | useDocumentVisibility | `@/hooks/use-sync-external` | `() => DocumentVisibilityState` | Tab visibility state |
-| useTransform | `@/hooks/use-transform` | `(callback?, deps?) => () => Transform` | Hierarchical transform context |
-| TransformProvider | `@/hooks/use-transform` | `{ children, ref? }` | Transform context provider component |
+| useTransform | `hamo` | `(callback?, deps?) => () => Transform` | Hierarchical transform context |
+| TransformProvider | `hamo` | `{ children, ref? }` | Transform context provider component |
 | useViewport | `@/components/ui/real-viewport` | `() => ViewportValues` or `(selector) => T` | Viewport dimensions (--vw, --dvh) |
 | useTheme | `@/components/layout/theme` | `() => { state, actions }` | Theme state and setter |
 | useFormContext | `@/components/ui/form` | `() => { state, actions, meta }` | Form state within Form component |

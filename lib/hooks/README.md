@@ -3,15 +3,13 @@
 Custom React hooks for common patterns.
 
 ```tsx
-import { useScrollTrigger, useDeviceDetection, useMediaQuery } from '@/hooks'
+import { useDeviceDetection, useMediaQuery } from '@/hooks'
 ```
 
 ## Available Hooks
 
 | Hook | Purpose |
 |------|---------|
-| `useScrollTrigger` | Scroll-based animations |
-| `useTransform` | Element transformations |
 | `useDeviceDetection` | Detect mobile/desktop/tablet |
 | `usePrefetch` | Prefetch routes on visibility |
 | `useStore` | Global Zustand store |
@@ -114,49 +112,13 @@ function VideoPlayer() {
 }
 ```
 
-## useScrollTrigger
+## Hooks from `hamo`
 
-GSAP ScrollTrigger-like scroll animations with Lenis integration:
+`useScrollTrigger`, `useTransform`, `TransformProvider`, `useRect`, `useWindowSize`, and `useMediaQuery` are provided by the [`hamo`](https://github.com/darkroomengineering/hamo) package. Import them directly:
 
 ```tsx
-import { useRect } from 'hamo'
-import { useScrollTrigger } from '@/hooks'
-
-function ScrollAnimation() {
-  const [setRectRef, rect] = useRect()
-
-  useScrollTrigger({
-    rect,
-    start: 'bottom bottom', // element bottom meets viewport bottom
-    end: 'top top',         // element top meets viewport top
-    onProgress: ({ progress, isActive }) => {
-      // progress: 0-1 animation progress
-      // isActive: whether element is in trigger zone
-      element.style.opacity = String(progress)
-    },
-    onEnter: () => console.log('Entered'),
-    onLeave: () => console.log('Left'),
-  })
-
-  return <div ref={setRectRef}>Animated element</div>
-}
+import { useScrollTrigger, useTransform, TransformProvider } from 'hamo'
 ```
-
-### Position Syntax
-
-Format: `"element-position viewport-position"`
-
-| Position | Element | Viewport |
-|----------|---------|----------|
-| `top` | Top edge | Top of viewport |
-| `center` | Vertical center | Center of viewport |
-| `bottom` | Bottom edge | Bottom of viewport |
-| `100` | 100px from top | 100px from viewport top |
-
-Examples:
-- `'bottom bottom'` - Element bottom meets viewport bottom
-- `'top center'` - Element top meets viewport center
-- `'center 100'` - Element center meets 100px from viewport top
 
 ## useDeviceDetection
 
@@ -169,31 +131,6 @@ function Component() {
   const { isMobile, isTablet, isDesktop, isTouch } = useDeviceDetection()
 
   return isMobile ? <MobileNav /> : <DesktopNav />
-}
-```
-
-## useTransform
-
-Coordinate transforms between elements:
-
-```tsx
-import { TransformProvider, useTransform } from '@/hooks'
-
-function Parent() {
-  return (
-    <TransformProvider>
-      <Child />
-    </TransformProvider>
-  )
-}
-
-function Child() {
-  const getTransform = useTransform()
-
-  useEffect(() => {
-    const { translate, scale } = getTransform()
-    // Use transform values
-  }, [getTransform])
 }
 ```
 

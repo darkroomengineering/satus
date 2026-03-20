@@ -21,9 +21,9 @@ import { CubeCamera, WebGLCubeRenderTarget } from 'three'
  *    The cube render target is disposed immediately afterwards.
  * 4. Restore the original visibility of all objects that were toggled.
  *
- * **Note:** There is a commented-out `loaderLoaded` guard that can be
- * re-enabled to defer preloading until after a loading screen completes.
- * When enabled, add `loaderLoaded` to the effect's dependency array.
+ * **Note:** To defer preloading until after a loading screen completes,
+ * add a `loaderLoaded` guard from the WebGL store and include it in
+ * the effect's dependency array.
  *
  * @returns `null` -- this component renders nothing to the scene.
  */
@@ -31,11 +31,8 @@ export function Preload() {
   const gl = useThree((state) => state.gl)
   const camera = useThree((state) => state.camera)
   const scene = useThree((state) => state.scene)
-  // const loaderLoaded = useStore((state) => state.loaderLoaded)
 
   useEffect(() => {
-    // if (!loaderLoaded) return
-
     async function load() {
       console.log('WebGL: Preloading...')
       console.time('WebGL: Preload took:')
@@ -61,12 +58,7 @@ export function Preload() {
     }
 
     load()
-  }, [
-    camera,
-    gl,
-    scene,
-    // loaderLoaded
-  ])
+  }, [camera, gl, scene])
 
   return null
 }

@@ -8,7 +8,6 @@ import { useForm } from './hook'
 import type {
   FormAction,
   FormContextStandard,
-  FormContextValue,
   FormProps,
   FormState,
   MessagesProps,
@@ -68,18 +67,6 @@ export function useFormContext(): FormContextStandard {
     throw new Error('useFormContext must be used within a Form')
   }
   return context
-}
-
-/**
- * @deprecated Use useFormContext() which returns { state, actions, meta }.
- * This hook is kept for backward compatibility.
- */
-export function useFormContextLegacy(): FormContextValue {
-  const { state, actions } = useFormContext()
-  return {
-    ...state,
-    register: actions.register,
-  }
 }
 
 // Main Form component

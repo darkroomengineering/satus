@@ -10,8 +10,6 @@ import {
 import { slugify } from '@/utils/strings'
 import s from './progress-text.module.css'
 
-// TODO: add support for children as an array of strings and objects
-
 type ProgressTextProps = {
   children: ReactNode
   start: UseScrollTriggerOptions['start']

@@ -26,7 +26,6 @@ export function useMinimap({ color = 'blue' } = {}) {
   useEffect(() => {
     if (!element) return
 
-    // list.set(id, element)
     useMinimapStore.setState((state) => ({
       list: {
         ...state.list,
@@ -39,8 +38,6 @@ export function useMinimap({ color = 'blue' } = {}) {
         delete list[id]
         return { list }
       })
-
-      // list.delete(id, element)
     }
   }, [id, element, color])
 
@@ -114,16 +111,12 @@ function Marker({ element, color }: MinimapEntry) {
 
     if (!markerRef.current) return
 
-    // console.log(element)
     const rect = element.getBoundingClientRect()
     const top = rect.top / window.innerHeight
-    // const height = rect.height / document.documentElement.scrollHeight
     const left = rect.left / window.innerWidth
     const width = rect.width / window.innerWidth
 
-    // markerRef.current.style.top = `${top * 100}%`
     markerRef.current.style.setProperty('--top', top.toString())
-    // markerRef.current.style.height = `${height * 100}%`
     markerRef.current.style.left = `${left * 100}%`
     markerRef.current.style.width = `${width * 100}%`
   })

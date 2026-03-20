@@ -78,8 +78,8 @@ export function Canvas({
   local = false,
   ...props
 }: CanvasProps) {
-  const { isWebGL } = useDeviceDetection()
-  const shouldRender = root && (isWebGL || force)
+  const { hasGPU } = useDeviceDetection()
+  const shouldRender = root && (hasGPU || force)
 
   // Global store for GlobalCanvas mode
   const { activate, setActive, getWebGLTunnel, getDOMTunnel } = useWebGLStore()

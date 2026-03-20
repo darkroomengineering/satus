@@ -38,24 +38,6 @@ export type CartContextStandard = StandardContext<
   CartMeta
 >
 
-/**
- * @deprecated Use CartContextStandard for new implementations.
- * This type is kept for backward compatibility.
- */
-export interface CartContextType {
-  cart?: Cart | undefined
-  updateCartItem: (
-    merchandiseId: string,
-    updateType: 'plus' | 'minus' | 'delete'
-  ) => void
-  addCartItem: (
-    variant: ProductVariant | undefined,
-    product: Product,
-    quantity?: number
-  ) => void
-  totalQuantity: () => number
-}
-
 interface CartProviderProps {
   children: ReactNode
   cart?: Cart | undefined
@@ -81,19 +63,6 @@ export function useCartContext(): CartContextStandard {
     throw new Error('useCartContext must be used within a CartProvider')
   }
   return context
-}
-
-/**
- * @deprecated Use useCartContext() which returns { state, actions, meta }.
- * This hook is kept for backward compatibility.
- */
-export function useCartContextLegacy(): CartContextType {
-  const { state, actions, meta } = useCartContext()
-  return {
-    cart: state.cart,
-    ...actions,
-    totalQuantity: meta?.totalQuantity ?? (() => 0),
-  }
 }
 
 export function CartProvider({ children, cart }: CartProviderProps) {

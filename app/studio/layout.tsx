@@ -17,7 +17,9 @@ export default async function StudioLayout({ children }: PropsWithChildren) {
   // when draft mode is already enabled, we need to disable it
   const draft = await draftMode()
   if (draft.isEnabled) {
-    console.log('Disabling draft mode')
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Disabling draft mode')
+    }
     draft.disable()
   }
 

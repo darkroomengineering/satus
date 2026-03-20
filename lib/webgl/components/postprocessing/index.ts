@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from 'react'
 import { HalfFloatType } from 'three'
 
 export function PostProcessing() {
-  console.log('WebGL: PostProcessing enabled')
-
   const gl = useThree((state) => state.gl)
   const viewport = useThree((state) => state.viewport)
   const camera = useThree((state) => state.camera)

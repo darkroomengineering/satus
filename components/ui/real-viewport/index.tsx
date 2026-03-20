@@ -219,13 +219,6 @@ export function useViewport<T>(
   )
 }
 
-/**
- * @deprecated Use `useViewport()` instead for better performance with selectors
- */
-export function useRealViewport(): ViewportValues {
-  return useViewport()
-}
-
 // ============================================================================
 // Provider Component
 // ============================================================================

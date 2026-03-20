@@ -38,10 +38,7 @@ export function Fold({
 }: FoldProps) {
   const foldRef = useRef<HTMLDivElement | null>(null)
   const { height: windowHeight = 0 } = useWindowSize()
-  const [setRectRef, rect] = useRect({
-    // ignoreTransform: true,
-    // ignoreSticky: true,
-  })
+  const [setRectRef, rect] = useRect()
 
   const overlayRef = useRef<HTMLDivElement>(null!)
   const stickyRef = useRef<HTMLDivElement>(null!)
@@ -77,7 +74,6 @@ export function Fold({
   })
 
   return (
-    // <TransformProvider ref={transformProviderRef}>
     <FoldContext.Provider value={true}>
       <div
         ref={(node) => {
@@ -101,6 +97,5 @@ export function Fold({
         <div className={s.overlay} ref={overlayRef} />
       </div>
     </FoldContext.Provider>
-    // </TransformProvider>
   )
 }

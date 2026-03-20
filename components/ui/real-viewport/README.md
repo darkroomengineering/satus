@@ -114,14 +114,3 @@ const isMobile = useViewport(state => state.vw < 8)
 const { vw, dvh } = useViewport()
 ```
 
-## Migration
-
-If using the deprecated `useRealViewport`:
-
-```tsx
-// Before
-const { dvh } = useRealViewport()
-
-// After (better performance)
-const dvh = useViewport(state => state.dvh)
-```

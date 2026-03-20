@@ -111,15 +111,11 @@ export function useDeviceDetection() {
     // Accessibility
     isReducedMotion,
 
-    // GPU capabilities (replaces old isWebGL)
+    // GPU capabilities
     hasGPU,
     hasWebGPU: gpuCapability.hasWebGPU,
     hasWebGL: gpuCapability.hasWebGL2 || gpuCapability.hasWebGL1,
     gpuCapability,
-
-    // Legacy alias (deprecated, use hasGPU instead)
-    /** @deprecated Use `hasGPU` instead */
-    isWebGL: hasGPU,
 
     // Performance
     isLowPowerMode,

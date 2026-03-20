@@ -96,20 +96,6 @@ export type FormContextStandard<T = unknown> = StandardContext<
   FormContextMeta
 >
 
-/**
- * @deprecated Use FormContextStandard for new implementations.
- * This type is kept for backward compatibility.
- */
-export interface FormContextValue<T = unknown> {
-  formState: FormState<T> | null
-  isPending: boolean
-  isReady: boolean
-  isActive: boolean[]
-  isValid: boolean[]
-  errors: FieldError[]
-  register: UseFormReturn<T>['register']
-}
-
 // Submit button props
 export interface SubmitButtonProps
   extends Omit<ComponentPropsWithoutRef<'button'>, 'children'> {

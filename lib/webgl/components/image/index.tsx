@@ -26,13 +26,13 @@ const WebGLImage = dynamic(
 export function Image({ className, ...props }: DRImageProps) {
   const [src, setSrc] = useState<string>()
   const { setRef, rect, isVisible } = useWebGLElement<HTMLDivElement>()
-  const { isWebGL } = useDeviceDetection()
+  const { hasGPU } = useDeviceDetection()
 
   return (
     <div
       className={className}
       style={{
-        opacity: src && isWebGL ? 0 : 1,
+        opacity: src && hasGPU ? 0 : 1,
         position: 'relative',
       }}
       ref={setRef}

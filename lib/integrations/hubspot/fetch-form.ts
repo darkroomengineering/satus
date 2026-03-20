@@ -56,7 +56,6 @@ export interface HubSpotParsedForm {
   }
 }
 
-// TODO: If only server side maybe use api-client
 async function hubspotFormApi(id: string | null | undefined) {
   // Guard against null/undefined form ID
   if (!id) {

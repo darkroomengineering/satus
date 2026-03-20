@@ -20,23 +20,7 @@ export interface ThemeActions {
 // Standard context type
 export type ThemeContextStandard = StandardContext<ThemeState, ThemeActions>
 
-/**
- * @deprecated Use ThemeContextStandard for new implementations.
- * This type is kept for backward compatibility.
- */
-export interface ThemeContextLegacyType {
-  name: ThemeName
-  theme: Themes[ThemeName]
-  setThemeName: (theme: ThemeName) => void
-}
-
 const ThemeContextInternal = createContext<ThemeContextStandard | null>(null)
-
-/**
- * @deprecated Use useTheme() which returns { state, actions }.
- * Kept as export for backward compatibility.
- */
-export const ThemeContext = ThemeContextInternal
 
 /**
  * Hook to access the theme context with standard structure.
@@ -55,19 +39,6 @@ export function useTheme(): ThemeContextStandard {
     throw new Error('useTheme must be used within a Theme provider')
   }
   return context
-}
-
-/**
- * @deprecated Use useTheme() which returns { state, actions }.
- * This hook is kept for backward compatibility.
- */
-export function useThemeLegacy(): ThemeContextLegacyType {
-  const { state, actions } = useTheme()
-  return {
-    name: state.name,
-    theme: state.theme,
-    setThemeName: actions.setTheme,
-  }
 }
 
 export function Theme({

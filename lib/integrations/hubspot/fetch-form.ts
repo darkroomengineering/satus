@@ -56,6 +56,10 @@ export interface HubSpotParsedForm {
   }
 }
 
+// NOTE: This uses raw fetch instead of @hubspot/api-client because the form
+// endpoint is public and doesn't need the full SDK. If server-side form
+// operations grow (e.g., creating forms, managing contacts), consider
+// switching to the SDK which is already installed as a devDependency.
 async function hubspotFormApi(id: string | null | undefined) {
   // Guard against null/undefined form ID
   if (!id) {

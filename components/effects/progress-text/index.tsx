@@ -2,7 +2,14 @@
 
 import cn from 'clsx'
 import { useRect } from 'hamo'
-import { type CSSProperties, Fragment, type ReactNode, useRef } from 'react'
+import {
+  Children,
+  type CSSProperties,
+  Fragment,
+  isValidElement,
+  type ReactNode,
+  useRef,
+} from 'react'
 import {
   type UseScrollTriggerOptions,
   useScrollTrigger,
@@ -10,7 +17,14 @@ import {
 import { slugify } from '@/utils/strings'
 import s from './progress-text.module.css'
 
+interface WordSegment {
+  text: string
+  className?: string
+  style?: CSSProperties
+}
+
 type ProgressTextProps = {
+  /** Accepts a string, an array of strings, or an array of objects with { text, className?, style? } */
   children: ReactNode
   start: UseScrollTriggerOptions['start']
   end: UseScrollTriggerOptions['end']
@@ -22,6 +36,42 @@ type ProgressTextProps = {
 
 function defaultOnChange(node: HTMLSpanElement, value: boolean) {
   node.style.opacity = String(value ? 1 : 0.33)
+}
+
+/** Extract words from children, supporting strings, arrays of strings, and objects with { text, className?, style? } */
+function extractWords(children: ReactNode): WordSegment[] {
+  const words: WordSegment[] = []
+
+  function processNode(node: ReactNode) {
+    if (typeof node === 'string') {
+      for (const word of node.split(' ').filter(Boolean)) {
+        words.push({ text: word })
+      }
+    } else if (
+      typeof node === 'object' &&
+      node !== null &&
+      !isValidElement(node) &&
+      'text' in node
+    ) {
+      const segment = node as WordSegment
+      for (const word of segment.text.split(' ').filter(Boolean)) {
+        const entry: WordSegment = { text: word }
+        if (segment.className) entry.className = segment.className
+        if (segment.style) entry.style = segment.style
+        words.push(entry)
+      }
+    } else if (Array.isArray(node)) {
+      for (const item of node) {
+        processNode(item)
+      }
+    } else if (isValidElement<{ children?: ReactNode }>(node)) {
+      // Extract text from React elements (e.g., <span>word</span>)
+      Children.forEach(node.props.children, processNode)
+    }
+  }
+
+  processNode(children)
+  return words
 }
 
 export function ProgressText({
@@ -48,8 +98,9 @@ export function ProgressText({
     },
   })
 
-  if (typeof children !== 'string') {
-    console.warn('ProgressText children should be a string')
+  const words = extractWords(children)
+
+  if (words.length === 0) {
     return children
   }
 
@@ -62,18 +113,18 @@ export function ProgressText({
         ...style,
       }}
     >
-      {children.split(' ').map((word, index) => (
+      {words.map((word, index) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: word list derived from static children, order never changes
-        <Fragment key={`${slugify(word)}-${index}`}>
+        <Fragment key={`${slugify(word.text)}-${index}`}>
           <span
-            className={s.word}
+            className={cn(s.word, word.className)}
             ref={(node) => {
               if (!node) return
               wordsRefs.current[index] = node
             }}
-            style={{ opacity: 0.33 }}
+            style={{ opacity: 0.33, ...word.style }}
           >
-            {word}
+            {word.text}
           </span>{' '}
         </Fragment>
       ))}

@@ -4,6 +4,7 @@ import { Link } from '@/components/link'
 const LINKS = [
   { href: '/', label: 'home' },
   { href: '/components', label: 'components' },
+  { href: '/sanity', label: 'sanity' },
   {
     href: 'https://github.com/darkroomengineering/satus',
     label: 'github',

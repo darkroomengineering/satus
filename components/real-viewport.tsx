@@ -82,7 +82,7 @@ function getScrollbarWidth(): number {
 // ============================================================================
 
 function updateViewport() {
-  mutate(() => {
+  void mutate(() => {
     const vw = document.documentElement.offsetWidth * 0.01;
     const dvh = window.innerHeight * 0.01;
     const svh = document.documentElement.clientHeight * 0.01;

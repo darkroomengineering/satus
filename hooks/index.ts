@@ -12,7 +12,6 @@
 export type { StandardContext } from "@/utils/context";
 export { useStore } from "./store";
 export { useDeviceDetection } from "./use-device-detection";
-export { usePrefetch } from "./use-prefetch";
 export { type UseScrollTriggerOptions, useScrollTrigger } from "./use-scroll-trigger";
 export {
   useDocumentVisibility,

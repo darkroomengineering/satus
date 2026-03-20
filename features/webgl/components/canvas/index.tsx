@@ -1,20 +1,19 @@
-"use client";
-
-import dynamic from "next/dynamic";
 import {
+  Suspense,
   createContext,
+  lazy,
   type PropsWithChildren,
   useContext,
   useLayoutEffect,
   useState,
 } from "react";
 import tunnel from "tunnel-rat";
-import { useDeviceDetection } from "@/lib/hooks/use-device-detection";
-import { useWebGLStore } from "@/lib/webgl/store";
+import { useDeviceDetection } from "@/hooks/use-device-detection";
+import { useWebGLStore } from "../../store";
 
-const WebGLCanvas = dynamic(() => import("./webgl").then(({ WebGLCanvas }) => WebGLCanvas), {
-  ssr: false,
-});
+const WebGLCanvas = lazy(() =>
+  import("./webgl").then(({ WebGLCanvas }) => ({ default: WebGLCanvas })),
+);
 
 type CanvasContextValue = {
   WebGLTunnel?: ReturnType<typeof tunnel>;
@@ -116,7 +115,11 @@ export function Canvas({
   return (
     <CanvasContext.Provider value={contextValue}>
       {/* Only render local WebGLCanvas when in local mode */}
-      {local && shouldRender && localWebGLTunnel && localDOMTunnel && <WebGLCanvas {...props} />}
+      {local && shouldRender && localWebGLTunnel && localDOMTunnel && (
+        <Suspense fallback={null}>
+          <WebGLCanvas {...props} />
+        </Suspense>
+      )}
       {children}
     </CanvasContext.Provider>
   );

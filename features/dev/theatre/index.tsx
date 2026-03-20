@@ -42,7 +42,7 @@ export function TheatreProjectProvider({
       if (!isLoadingRef.current) {
         console.log(`Theatre: project ${id} loading...`);
         isLoadingRef.current = true;
-        fetch(config)
+        void fetch(config)
           .then((response) => response.json())
           .then((state) => {
             const project = getProject(id, { state });
@@ -50,7 +50,7 @@ export function TheatreProjectProvider({
             if (project.isReady) {
               setproject(project);
             } else {
-              project.ready.then(() => {
+              void project.ready.then(() => {
                 setproject(project);
               });
             }
@@ -59,7 +59,7 @@ export function TheatreProjectProvider({
     } else {
       const project = getProject(id);
 
-      project.ready.then(() => {
+      void project.ready.then(() => {
         setproject(project);
       });
     }

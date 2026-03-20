@@ -14,10 +14,10 @@
  */
 
 import { createContext, useContext } from "react";
-import { useFlowmapSim } from "@/webgl/utils/flowmaps";
-import type { Flowmap } from "@/webgl/utils/flowmaps/flowmap-sim";
-import { useFluidSim } from "@/webgl/utils/fluid";
-import type { Fluid } from "@/webgl/utils/fluid/fluid-sim";
+import { useFlowmapSim } from "../../utils/flowmaps";
+import type { Flowmap } from "../../utils/flowmaps/flowmap-sim";
+import { useFluidSim } from "../../utils/fluid";
+import type { Fluid } from "../../utils/fluid/fluid-sim";
 
 /**
  * Shape of the flowmap context value.

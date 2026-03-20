@@ -70,6 +70,7 @@ export function useTheatre<Config extends UnknownShorthandCompoundProps>(
   const set = useCallback(
     (values: NonNullable<typeof object>["props"]) => {
       if (studio && object) {
+        // eslint-disable-next-line typescript-eslint/unbound-method
         studio.transaction(({ set }) => {
           set(object.props, {
             ...object.value,

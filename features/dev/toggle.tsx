@@ -14,9 +14,9 @@ type OrchestraToggleProps = Omit<
 export function OrchestraToggle({
   id,
   children,
-  buttonRef,
+  buttonRef: _buttonRef,
   defaultValue,
-  className,
+  className: _className,
   ...props
 }: OrchestraToggleProps) {
   useEffect(() => {

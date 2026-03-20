@@ -96,7 +96,7 @@ export function Marquee({
       }}
       {...props}
     >
-      {new Array(repeat).fill(children).map((_, i) => (
+      {Array.from({ length: repeat }).map((_, i) => (
         <div
           key={`marquee-item-${
             // biome-ignore lint/suspicious/noArrayIndexKey: i can't come up with anything better tbh

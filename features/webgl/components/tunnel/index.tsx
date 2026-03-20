@@ -14,8 +14,8 @@
 import { useContextBridge } from "@react-three/drei";
 import { Fragment, type PropsWithChildren, useId } from "react";
 import { TransformContext } from "@/hooks/use-transform";
-import { SheetContext, SheetProvider, useSheet } from "@/lib/dev/theatre";
-import { useCanvas } from "@/webgl/components/canvas";
+import { SheetContext, SheetProvider, useSheet } from "../../../dev/theatre";
+import { useCanvas } from "../canvas";
 
 /**
  * Portals React children into the R3F Canvas scene graph.

@@ -3,12 +3,11 @@
 import { OrthographicCamera } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import cn from "clsx";
-import dynamic from "next/dynamic";
-import { Suspense, useState } from "react";
-import { SheetProvider } from "@/lib/dev/theatre";
-import { useWebGLStore } from "@/lib/webgl/store";
-import { createRenderer } from "@/lib/webgl/utils/create-renderer";
-import { detectGPUCapability } from "@/lib/webgl/utils/gpu-detection";
+import { Suspense, lazy, useState } from "react";
+import { SheetProvider } from "../../../dev/theatre";
+import { useWebGLStore } from "../../store";
+import { createRenderer } from "../../utils/create-renderer";
+import { detectGPUCapability } from "../../utils/gpu-detection";
 import { FlowmapProvider } from "../flowmap-provider";
 import { PostProcessing } from "../postprocessing";
 import { Preload } from "../preload";
@@ -189,6 +188,4 @@ export function GlobalCanvas({
  * Dynamic import wrapper for GlobalCanvas.
  * Use this to avoid SSR issues and enable code splitting.
  */
-export const LazyGlobalCanvas = dynamic(() => Promise.resolve({ default: GlobalCanvas }), {
-  ssr: false,
-});
+export const LazyGlobalCanvas = lazy(() => Promise.resolve({ default: GlobalCanvas }));

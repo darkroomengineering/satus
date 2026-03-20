@@ -60,7 +60,7 @@ export function Preload() {
       console.timeEnd("WebGL: Preload took:");
     }
 
-    load();
+    void load();
   }, [
     camera,
     gl,

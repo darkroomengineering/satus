@@ -1,7 +1,7 @@
 import type { ISheet } from "@theatre/core";
 import type { IStudio } from "@theatre/studio";
 import { useEffect, useState } from "react";
-import { useOrchestra } from "@/lib/dev";
+import { useOrchestra } from "../..";
 
 let studioPackage: IStudio;
 
@@ -11,7 +11,7 @@ export function useStudio() {
 
   useEffect(() => {
     if (hasStudio && !studioPackage) {
-      import("@theatre/studio").then((pkg) => {
+      void import("@theatre/studio").then((pkg) => {
         studioPackage = pkg.default;
         setStudio(pkg.default);
       });

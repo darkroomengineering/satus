@@ -1,15 +1,12 @@
-"use client";
-
-import dynamic from "next/dynamic";
-import { useState } from "react";
-import { Image as DRImage, type ImageProps as DRImageProps } from "@/components/ui/image";
+import { lazy, useState } from "react";
+import { Image as DRImage, type ImageProps as DRImageProps } from "@/components/image";
 import { useDeviceDetection } from "@/hooks/use-device-detection";
-import { useWebGLElement } from "@/webgl/hooks/use-webgl-element";
+import { useWebGLElement } from "../../hooks/use-webgl-element";
 import { WebGLTunnel } from "../tunnel";
 
-const WebGLImage = dynamic(() => import("./webgl").then(({ WebGLImage }) => WebGLImage), {
-  ssr: false,
-});
+const WebGLImage = lazy(() =>
+  import("./webgl").then(({ WebGLImage }) => ({ default: WebGLImage })),
+);
 
 /**
  * WebGL-enhanced Image component with visibility optimizations.
@@ -39,7 +36,7 @@ export function Image({ className, ...props }: DRImageProps) {
         onLoad={(img: React.SyntheticEvent<HTMLImageElement>) => {
           setSrc(img.currentTarget.currentSrc);
         }}
-        fill
+        style={{ width: "100%", height: "100%", position: "absolute", inset: 0 }}
       />
     </div>
   );

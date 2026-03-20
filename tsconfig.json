@@ -1,6 +1,6 @@
 {
   "include": [".react-router/types/**/*", "**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "build", "styles/scripts", "features/dev", "features/webgl"],
+  "exclude": ["node_modules", "build", "styles/scripts"],
   "compilerOptions": {
     "target": "ES2023",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
@@ -15,6 +15,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
+    "types": ["vite/client"],
     "incremental": true,
     "noImplicitOverride": true,
     "exactOptionalPropertyTypes": true,

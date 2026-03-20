@@ -6,7 +6,11 @@ export default defineConfig({
   staged: {
     "*": "vp check --fix",
   },
-  lint: { options: { typeAware: true, typeCheck: true } },
+  lint: {
+    // TODO: remove once styles/scripts becomes a vite plugin
+    ignorePatterns: ["styles/scripts/**"],
+    options: { typeAware: true, typeCheck: true },
+  },
   plugins: [reactRouter(), svgr()],
   envPrefix: "PUBLIC_",
   resolve: {

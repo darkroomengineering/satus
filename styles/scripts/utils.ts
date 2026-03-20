@@ -9,9 +9,9 @@ export function scalingCalc(value: number) {
  * @param joiner - The string to join the mapped entries with
  * @returns A string of CSS variables
  */
-export function formatObject<Obj extends Record<string, unknown>>(
-  obj: Obj,
-  mapper: (args: [key: keyof Obj, value: Obj[keyof Obj]]) => string,
+export function formatObject(
+  obj: Record<string, unknown>,
+  mapper: (args: [string, unknown]) => string,
   joiner = "\n\t",
 ) {
   return Object.entries(obj).map(mapper).join(joiner);

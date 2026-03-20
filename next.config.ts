@@ -8,11 +8,6 @@ const nextConfig: NextConfig = {
   productionBrowserSourceMaps:
     process.env.SOURCE_MAPS === 'true' && typeof Bun === 'undefined',
   typedRoutes: true,
-  logging: {
-    fetches: {
-      fullUrl: true,
-    },
-  },
   turbopack: {
     rules: {
       '*.svg': {
@@ -77,9 +72,15 @@ const nextConfig: NextConfig = {
   },
   cacheComponents: true,
   compress: true,
+  logging: {
+    fetches: {
+      fullUrl: true,
+    },
+    browserToTerminal: true,
+  },
   experimental: {
     taint: true,
-    browserDebugInfoInTerminal: true,
+    cachedNavigations: true,
     optimizePackageImports: [
       '@react-three/drei',
       '@react-three/fiber',

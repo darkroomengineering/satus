@@ -16,7 +16,7 @@ import { page } from './page'
 import { richText } from './richText'
 
 // Re-export all schemas for convenience
-export { link, metadata, richText, article, example, page, navigation }
+export { article, example, link, metadata, navigation, page, richText }
 
 // Schema collection for Sanity configuration
 export const schema: { types: SchemaTypeDefinition[] } = {

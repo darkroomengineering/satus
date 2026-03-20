@@ -33,7 +33,7 @@ export function cartReconciler(
   state: Cart | undefined,
   action: CartAction
 ): Cart {
-  const currentCart = state || createEmptyCart()
+  const currentCart = state ?? createEmptyCart()
   const reconcilingAction = reconcilingActions[action.type]
 
   if (reconcilingAction) {

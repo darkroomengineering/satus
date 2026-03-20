@@ -7,7 +7,6 @@
  *
  * Or keep it as inspiration for your own marketing pages!
  */
-import { Analytics } from '@vercel/analytics/react'
 import { Wrapper } from '@/components/layout/wrapper'
 import { Features } from './(marketing)/_sections/features'
 import { GettingStarted } from './(marketing)/_sections/getting-started'
@@ -23,7 +22,6 @@ export default function Home() {
       <Features />
       <Presets />
       <GettingStarted />
-      <Analytics />
     </Wrapper>
   )
 }

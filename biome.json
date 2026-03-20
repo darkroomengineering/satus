@@ -148,7 +148,9 @@
             "attributes": ["class", "className"],
             "functions": ["cn", "clsx"]
           }
-        }
+        },
+        "useNullishCoalescing": "warn",
+        "useImportsFirst": "error"
       }
     }
   },

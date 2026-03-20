@@ -141,8 +141,8 @@ async function addSubscriberToMailchimp(
       email_address: subscriptionData.email,
       status: 'subscribed', // Use 'pending' for double opt-in, 'subscribed' for single
       merge_fields: {
-        FNAME: subscriptionData.firstName || '',
-        LNAME: subscriptionData.lastName || '',
+        FNAME: subscriptionData.firstName ?? '',
+        LNAME: subscriptionData.lastName ?? '',
       },
       tags: ['newsletter'],
     }

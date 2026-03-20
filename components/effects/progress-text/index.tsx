@@ -65,6 +65,7 @@ export function ProgressText({
       }}
     >
       {children.split(' ').map((word, index) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: word list derived from static children, order never changes
         <Fragment key={`${slugify(word)}-${index}`}>
           <span
             className={s.word}

@@ -293,7 +293,7 @@ export const metadata: Metadata = {
   }
 
   // Determine if component should be async
-  const isAsync = sanity || shopify
+  const isAsync = sanity ?? shopify
 
   return `${imports.join('\n')}
 ${metadataExport}

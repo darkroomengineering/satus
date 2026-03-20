@@ -85,9 +85,9 @@ export function NotConfigured({
   className,
 }: NotConfiguredProps) {
   const info = INTEGRATION_INFO[integration]
-  const finalDescription = description || info?.description
-  const finalDocsUrl = docsUrl || info?.docsUrl
-  const finalEnvVars = envVars || info?.envVars || []
+  const finalDescription = description ?? info?.description
+  const finalDocsUrl = docsUrl ?? info?.docsUrl
+  const finalEnvVars = envVars ?? info?.envVars ?? []
 
   return (
     <div className={cn(s.container, className)}>

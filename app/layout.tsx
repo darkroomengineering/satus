@@ -1,5 +1,5 @@
+import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-
 import { draftMode } from 'next/headers'
 import Script from 'next/script'
 import { VisualEditing } from 'next-sanity/visual-editing'
@@ -131,6 +131,7 @@ export default async function Layout({ children }: PropsWithChildren) {
 
         {/* RAF management - lightweight, but don't patch in draft mode to avoid conflicts */}
         <ReactTempus patch={!isDraftMode} />
+        <Analytics />
       </body>
     </html>
   )

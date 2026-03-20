@@ -105,8 +105,8 @@ function InnerCart() {
     <>
       <p className={s.heading}>your cart</p>
       <div className={s.lines} data-lenis-prevent>
-        {cart?.lines?.map(({ id, merchandise, cost, quantity }, idx) => (
-          <div className={s.line} key={`${idx}-${id}`}>
+        {cart?.lines?.map(({ id, merchandise, cost, quantity }) => (
+          <div className={s.line} key={id}>
             <div className={s.media}>
               <Image
                 src={

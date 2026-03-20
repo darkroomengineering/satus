@@ -36,7 +36,7 @@ export function WebGLImage({ src, rect, visible = true }: WebGLImageProps) {
     }
   }, [material])
 
-  useTexture(src || '', (texture) => {
+  useTexture(src ?? '', (texture) => {
     if (!src) return
 
     texture.magFilter = texture.minFilter = LinearFilter

@@ -65,10 +65,10 @@ export function generatePageMetadata(
   } = options
 
   const fullUrl = url ? `${APP_BASE_URL}${url}` : APP_BASE_URL
-  const imageUrl = image?.url || '/opengraph-image.jpg'
-  const imageWidth = image?.width || 1200
-  const imageHeight = image?.height || 630
-  const imageAlt = image?.alt || title || siteName
+  const imageUrl = image?.url ?? '/opengraph-image.jpg'
+  const imageWidth = image?.width ?? 1200
+  const imageHeight = image?.height ?? 630
+  const imageAlt = image?.alt ?? title ?? siteName
 
   const metadata: Metadata = {
     metadataBase: new URL(APP_BASE_URL),
@@ -76,7 +76,7 @@ export function generatePageMetadata(
     description,
     keywords,
     alternates: {
-      canonical: url || '/',
+      canonical: url ?? '/',
     },
     openGraph: {
       title,
@@ -171,8 +171,8 @@ export function generateSanityMetadata(options: {
   }
 
   return generatePageMetadata({
-    ...(metadata.title || document.title
-      ? { title: metadata.title || document.title }
+    ...((metadata.title ?? document.title)
+      ? { title: metadata.title ?? document.title }
       : {}),
     ...(metadata.description && { description: metadata.description }),
     ...(metadata.keywords && { keywords: metadata.keywords }),

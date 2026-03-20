@@ -55,3 +55,4 @@ certificates
 next-env.d.ts
 # claude
 .claude
+AGENTS.md

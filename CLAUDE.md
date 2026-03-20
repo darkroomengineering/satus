@@ -1,33 +1,19 @@
 # Satus -- AI Agent Guide
 
-Next.js 16 starter template by [darkroom.engineering](https://darkroom.engineering).
+React Router starter template by [darkroom.engineering](https://darkroom.engineering).
 
-**Stack**: Next.js 16, React 19, TypeScript (strict), Tailwind v4 + CSS Modules, Bun, Biome, React Compiler ON.
-
-## Documentation Map
-
-| Document                       | Purpose                                         |
-| ------------------------------ | ----------------------------------------------- |
-| `ARCHITECTURE.md`              | Architectural decisions and patterns            |
-| `BOUNDARIES.md`                | What to customize vs what is framework          |
-| `components/README.md`         | Component inventory and conventions             |
-| `lib/README.md`                | Library structure overview                      |
-| `lib/integrations/*/README.md` | Per-integration docs (Sanity, Shopify, HubSpot) |
-| `lib/styles/README.md`         | Design system and style generation              |
-| `components/effects/README.md` | Animation component docs                        |
+**Stack**: React Router 7 (framework mode, SSR), React 19, TypeScript (strict), Tailwind v4 + CSS Modules, Vite+, pnpm, Oxlint/Oxfmt, React Compiler ON.
 
 ## Critical Rules
 
-These break the build or cause bugs if violated.
-
-### 1. Use Wrapper Components (never raw Next.js)
+### 1. Use Custom Components
 
 ```tsx
-import { Image } from "@/components/ui/image"; // NOT next/image
-import { Link } from "@/components/ui/link"; // NOT next/link
+import { Image } from "@/components/image";
+import { Link } from "@/components/link";
 ```
 
-Biome plugin `no-anchor-element` enforces no raw `<a>` tags. Biome rule `noImgElement: error` enforces no raw `<img>` tags.
+`Image` wraps native `<img>` with responsive sizes. `Link` wraps React Router `<Link>` with external detection and active state.
 
 ### 2. CSS Modules Imported as `s`
 
@@ -35,106 +21,105 @@ Biome plugin `no-anchor-element` enforces no raw `<a>` tags. Biome rule `noImgEl
 import s from "./component.module.css";
 ```
 
-### 3. Path Aliases Required
+### 3. Path Aliases
 
 ```tsx
-import { Image } from "@/components/ui/image";
+import { Image } from "@/components/image";
 import { useRect } from "@/hooks/use-rect";
 import { clamp } from "@/utils/math";
 ```
 
-Available aliases: `@/*`, `@/components/*`, `@/lib/*`, `@/hooks/*`, `@/styles/*`, `@/integrations/*`, `@/webgl/*`, `@/utils/*`, `@/config`, `@/dev/*`.
+Available: `@/*` (root), `@/hooks/*`, `@/styles/*`, `@/utils/*`, `~/*` (app dir). Resolved by Vite via `tsconfigPaths: true`.
 
-Biome plugin `no-relative-parent-imports` enforces this -- no `../` imports.
+### 4. No Manual Memoization
 
-### 4. Server Components by Default
+React Compiler handles optimization. Never use `useMemo`, `useCallback`, or `React.memo`.
 
-Only add `'use client'` when you need hooks, event handlers, or browser APIs. Keep data fetching in Server Components and pass props down.
+### 5. `import type` for Type-Only Imports
 
-### 5. No Manual Memoization
-
-React Compiler handles all optimization. **Never** use `useMemo`, `useCallback`, or `React.memo`.
-
-**Exception**: Use `useRef` for class/object instantiation to prevent infinite loops:
-
-```tsx
-const instanceRef = useRef<SomeClass | null>(null);
-if (!instanceRef.current) {
-  instanceRef.current = new SomeClass(params);
-}
-```
-
-### 6. No `any` Types
-
-`noExplicitAny: error` in Biome. Use `unknown` + type narrowing instead.
-
-### 7. Sorted Tailwind Classes
-
-`useSortedClasses: error` in Biome. Classes in `className`, `class`, `cn()`, and `clsx()` must be sorted.
-
-### 8. `import type` for Type-Only Imports
-
-`verbatimModuleSyntax: true` in tsconfig. `useImportType: error` and `useExportType: error` in Biome.
+`verbatimModuleSyntax: true` in tsconfig.
 
 ```tsx
 import type { ComponentProps } from "react";
 ```
 
-### 9. WebGL Cleanup Mandatory
+### 6. Environment Variables
 
-Dispose materials, textures, geometries, and render targets on unmount. Remove event listeners. Gate debug UI with `process.env.NODE_ENV === 'development'`.
+Client-safe vars use `PUBLIC_` prefix and `import.meta.env`. Server-only vars use `process.env`. Both validated with t3-env + valibot.
 
-### 10. Integration Optionality
+```tsx
+// Client (available everywhere)
+import { env } from "@/env";
+env.PUBLIC_SANITY_PROJECT_ID;
 
-All integrations (Sanity, Shopify, HubSpot) must gracefully handle missing env vars. Use `fetchWithTimeout` for external API calls.
+// Server only (.server.ts files or loaders)
+import { env } from "@/env.server";
+env.SANITY_API_READ_TOKEN;
+```
+
+### 7. Data Loading
+
+Use React Router loaders for server data, `client.fetch()` for Sanity queries.
+
+```tsx
+export async function loader({ params }: Route.LoaderArgs) {
+  const data = await client.fetch(query, { slug: params.slug });
+  return { data };
+}
+
+export default function Page({ loaderData }: Route.ComponentProps) {
+  const { data } = loaderData;
+}
+```
 
 ## File Structure
 
 ```
-proxy.ts              # Next.js 16 request proxy (rate limiting, auth)
-app/                  # Routes only -- no components here
-components/
-  ui/                 # Reusable primitives (Image, Link, Form, etc.)
-  layout/             # Page chrome (Wrapper, Header, Footer, Theme, Lenis)
-  effects/            # Animation components (GSAP, SplitText, etc.)
-lib/
-  env.ts              # Typed environment variables (Zod-validated singleton)
-  hooks/              # Custom hooks + Zustand stores
-  utils/              # Pure utilities (math, fetch, metadata, strings, animation, validation)
-  styles/             # Design system, Tailwind config (CSS-based for v4)
-  integrations/       # Third-party services + registry (Sanity, Shopify, HubSpot)
-  webgl/              # 3D graphics (optional, lazy-loaded)
-  dev/                # Debug tools (stripped in production)
-  features/           # Root layout conditional features
-  scripts/            # CLI tools (dev, setup)
+app/
+  root.tsx              # HTML shell, providers (RealViewport, Theme, Tempus)
+  routes.ts             # Route config
+  routes/               # Route modules (loaders, components, meta)
+  components/           # Layout pieces colocated with routes (header, footer)
+components/             # Flat reusable components (image, link, theme, lenis, marquee, fold, scrollbar, real-viewport)
+features/
+  animation/            # GSAP runtime, SplitText, ProgressText
+  dev/                  # Orchestra debug tools (not yet ported)
+  webgl/                # R3F system (not yet ported)
+hooks/                  # Custom hooks + Zustand store
+utils/                  # Pure utilities (math, easings, animation, raf, fetch, strings, viewport)
+styles/                 # Design system, Tailwind config, CSS generation, PostCSS functions
+integrations/
+  sanity/               # Sanity client, queries, image utils, session, loader
+env.ts                  # Client environment (t3-env + valibot, PUBLIC_ prefix)
+env.server.ts           # Server environment (t3-env + valibot)
+vite.config.ts          # Vite+ with React Router plugin, svgr, oxlint
+react-router.config.ts  # SSR enabled
+postcss.config.mjs      # Tailwind v4 + PostCSS functions + preset-env
 ```
 
 ## TypeScript
 
-- `strict: true` plus: `noImplicitOverride`, `exactOptionalPropertyTypes`, `useUnknownInCatchVariables`, `noFallthroughCasesInSwitch`, `noImplicitReturns`, `noUnusedLocals`, `noUnusedParameters`, `noUncheckedIndexedAccess`, `noUncheckedSideEffectImports`
+- `strict: true` plus `noImplicitOverride`, `exactOptionalPropertyTypes`, `useUnknownInCatchVariables`, `noFallthroughCasesInSwitch`, `noImplicitReturns`, `noUnusedLocals`, `noUnusedParameters`, `noUncheckedIndexedAccess`, `noUncheckedSideEffectImports`
 - Target: ES2023, module: ESNext, moduleResolution: bundler
-- `verbatimModuleSyntax: true` -- use `import type` for type-only imports
+- `verbatimModuleSyntax: true`
 - Prefer `interface` for object shapes, `type` for unions/intersections
 - Props extend `ComponentProps<'element'>` when wrapping HTML elements
 - React 19: `ref` is a regular prop, no `forwardRef` needed
 
 ## Styling
 
-- **Tailwind v4**: CSS-based config (no `tailwind.config.js`), uses `@theme` directive
-- **CSS Modules**: For complex animations, custom layouts, CSS specificity
+- **Tailwind v4**: CSS-based config, `@theme` directive
+- **CSS Modules**: For complex animations, custom layouts
 - Combine with `cn()` from `clsx`
-- Design tokens in `lib/styles/css/root.css`
-- Custom viewport functions: `mobile-vw()`, `mobile-vh()`, `desktop-vw()`, `desktop-vh()`
-- Column function: `columns(n)` for grid-based sizing
-- Custom `dr-*` utility classes for responsive scaling (see `lib/styles/README.md`)
-- Use `h-dvh` not `h-screen`
-- Animate only `transform`, `opacity` (compositor properties)
+- Design tokens in `styles/css/root.css`
+- Custom PostCSS functions: `mobile-vw()`, `mobile-vh()`, `desktop-vw()`, `desktop-vh()`, `columns(n)`
+- Custom `dr-*` utility classes for responsive scaling
 - Desktop breakpoint: 800px
+- Use `h-dvh` not `h-screen`
 
 ## Component Conventions
 
 ```tsx
-// Standard component pattern
 import s from "./my-component.module.css";
 import cn from "clsx";
 import type { ComponentProps } from "react";
@@ -149,88 +134,47 @@ export function MyComponent({ variant = "primary", className, ...props }: MyComp
 ```
 
 - Named function declarations, not arrow functions
-- Kebab-case filenames (`my-component.tsx`, `my-component.module.css`)
+- Kebab-case filenames
 - CamelCase CSS class names (`.isPrimary`, `.isDisabled`)
 - Zustand for global state, React state for component state
-- `next/dynamic` for heavy components with `{ ssr: false }` when needed
+- `React.lazy` + `Suspense` for heavy components
 
 ## Key Libraries
 
-| Package          | Purpose                                             |
-| ---------------- | --------------------------------------------------- |
-| `lenis`          | Smooth scroll (configured in layout)                |
-| `gsap`           | Complex animations                                  |
-| `tempus`         | RAF management                                      |
-| `hamo`           | Performance hooks (`useRect`, etc.)                 |
-| `@base-ui/react` | Unstyled UI primitives                              |
-| `zustand`        | Global state management                             |
-| `clsx`           | Class name composition (aliased as `cn`)            |
-| `zod`            | Schema validation (env vars, forms, server actions) |
-
-## Validation
-
-All server actions and form inputs use Zod schemas for validation. Env var checking uses Zod schemas via the integration registry.
-
-```tsx
-// Server action validation
-import { emailSchema, parseFormData } from "@/utils/validation";
-
-const schema = z.object({ email: emailSchema, name: z.string().min(1) });
-const result = parseFormData(schema, formData);
-if (!("success" in result)) return result; // Returns FormState on error
-
-// Typed environment access
-import { env } from "@/lib/env";
-const projectId = env.NEXT_PUBLIC_SANITY_PROJECT_ID;
-
-// Integration registry (single source of truth)
-import { isConfigured } from "@/integrations/registry";
-if (isConfigured("sanity")) {
-  /* ... */
-}
-```
-
-Client-side form validation uses the same Zod schemas via `zodToValidator()` bridge.
+| Package    | Purpose                          |
+| ---------- | -------------------------------- |
+| `lenis`    | Smooth scroll                    |
+| `gsap`     | Complex animations               |
+| `tempus`   | RAF management                   |
+| `hamo`     | Performance hooks (`useRect`)    |
+| `zustand`  | Global state                     |
+| `clsx`     | Class name composition           |
+| `valibot`  | Schema validation (env vars)     |
+| `groq`     | Sanity query language            |
 
 ## Commands
 
 ```bash
-bun dev              # Dev server with Turbopack
-bun run build        # Production build (runs setup:styles first)
-bun run check        # biome check + tsgo --noEmit + bun test
-bun lint             # Biome lint
-bun lint:fix         # Biome lint with auto-fix
-bun run format       # Biome format
-bun run typecheck    # tsgo --noEmit
-bun test             # Unit tests
-bun run doctor       # Diagnose setup issues (env validation included)
+vp dev               # Dev server (Vite)
+vp build             # Production build
+vp check             # Lint + format + typecheck
+vp lint              # Oxlint
+vp fmt               # Oxfmt
+vp test              # Vitest
+vp install           # Install dependencies (pnpm)
 ```
-
-## Pre-Commit Hooks (lefthook)
-
-Runs in parallel on staged files:
-
-1. **Biome**: `biome check --write --unsafe` on `*.{js,mjs,ts,jsx,tsx,css,scss}`
-2. **Typecheck**: `tsgo --noEmit` on `*.{ts,tsx}`
 
 ## Git
 
 - Conventional commits: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`
 - No force push to `main`
-- No `--no-verify` unless explicitly requested
-- Small, atomic commits
+- Pre-commit: `vp check --fix` via `.vite-hooks/`
 
 ## Before Committing
 
 ```bash
-bun run check   # Must pass: biome + types + tests
+vp check             # Must pass: lint + format + types
 ```
-
-## Customization Philosophy
-
-From `BOUNDARIES.md`: modify pages and content freely, extend starter components by creating new ones alongside existing ones. Do not modify core `ui/` primitives unless necessary -- create wrappers instead.
-
-<!--VITE PLUS START-->
 
 # Using Vite+, the Unified Toolchain for the Web
 
@@ -305,4 +249,3 @@ These commands map to their corresponding tools. For example, `vp dev --port 300
 
 - [ ] Run `vp install` after pulling remote changes and before getting started.
 - [ ] Run `vp check` and `vp test` to validate changes.
-<!--VITE PLUS END-->

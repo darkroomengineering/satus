@@ -1,4 +1,4 @@
-import { atRule, comment } from "./css";
+import { atRule, comment } from "./css.ts";
 
 // Text, border, and border-radius utilities that only need viewport scaling
 const scaleUtilityMap: Record<string, string | string[]> = {
@@ -70,16 +70,30 @@ function scaleUtility(name: string, properties: string | string[]): string {
   const props = toArray(properties);
 
   return [
-    atRule(`utility dr-${name}-*`, scaleDeclarations(props, "calc((--value(integer) * 100) / var(--device-width) * 1vw)")),
-    atRule(`utility dr-${name}-px`, scaleDeclarations(props, "calc(100 / var(--device-width) * 1vw)")),
-    atRule(`utility -dr-${name}-*`, scaleDeclarations(props, "calc((--value(integer) * -100) / var(--device-width) * 1vw)")),
-    atRule(`utility -dr-${name}-px`, scaleDeclarations(props, "calc(-100 / var(--device-width) * 1vw)")),
+    atRule(
+      `utility dr-${name}-*`,
+      scaleDeclarations(props, "calc((--value(integer) * 100) / var(--device-width) * 1vw)"),
+    ),
+    atRule(
+      `utility dr-${name}-px`,
+      scaleDeclarations(props, "calc(100 / var(--device-width) * 1vw)"),
+    ),
+    atRule(
+      `utility -dr-${name}-*`,
+      scaleDeclarations(props, "calc((--value(integer) * -100) / var(--device-width) * 1vw)"),
+    ),
+    atRule(
+      `utility -dr-${name}-px`,
+      scaleDeclarations(props, "calc(-100 / var(--device-width) * 1vw)"),
+    ),
   ].join("\n");
 }
 
 function columnScaleUtility(name: string, property: string): string {
-  const colCalc = "calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)))";
-  const negColCalc = "calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) * -1 - 1) * var(--gap)))";
+  const colCalc =
+    "calc((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap)))";
+  const negColCalc =
+    "calc((--value(integer) * -1 * var(--column-width)) + ((--value(integer) * -1 - 1) * var(--gap)))";
 
   return [
     atRule(`utility dr-${name}-col-*`, [`${property}: ${colCalc};`]),

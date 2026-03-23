@@ -1,7 +1,7 @@
 import type { Colors } from "../colors";
 import type { Easings } from "../easings";
 import type { CustomSizes, Layout, Screens } from "../layout";
-import { atRule, block, mapEntries, prop, scalingCalc, variable } from "./css";
+import { atRule, block, mapEntries, prop, scalingCalc, variable } from "./css.ts";
 
 export function generateRoot({
   colors,
@@ -29,7 +29,10 @@ export function generateRoot({
     "",
     // Computed layout
     prop("--layout-width", "calc(100vw - (2 * var(--safe)))"),
-    prop("--column-width", "calc((var(--layout-width) - (var(--columns) - 1) * var(--gap)) / var(--columns))"),
+    prop(
+      "--column-width",
+      "calc((var(--layout-width) - (var(--columns) - 1) * var(--gap)) / var(--columns))",
+    ),
     "",
     // Easings
     ...mapEntries(easings, (name, value) => variable(`ease-${name}`, value)),

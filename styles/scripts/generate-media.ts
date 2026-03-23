@@ -1,5 +1,5 @@
 import type { Breakpoints } from "../layout";
-import { atRule } from "./css";
+import { atRule } from "./css.ts";
 
 export function generateMedia({ breakpoints }: { breakpoints: Breakpoints }) {
   return [

@@ -3,23 +3,17 @@ import tailwindcss from "@tailwindcss/vite";
 import { composeVisitors } from "lightningcss";
 import { defineConfig } from "vite-plus";
 import svgr from "vite-plugin-svgr";
-import { darkroomStyling } from "./styles/scripts/vite/darkroom-styling";
-import { lightningcssFunctions } from "./styles/scripts/vite/lightningcss-functions";
+import { darkroomStyling } from "./styles/scripts/vite/darkroom-styling.ts";
+import { lightningcssFunctions } from "./styles/scripts/vite/lightningcss-functions.ts";
 
 export default defineConfig({
   staged: {
     "*": "vp check --fix",
   },
   lint: {
-    ignorePatterns: ["styles/scripts/**"],
     options: { typeAware: true, typeCheck: true },
   },
-  plugins: [
-    tailwindcss(),
-    reactRouter(),
-    svgr(),
-    darkroomStyling(),
-  ],
+  plugins: [tailwindcss(), reactRouter(), svgr(), darkroomStyling()],
   envPrefix: "PUBLIC_",
   resolve: {
     tsconfigPaths: true,

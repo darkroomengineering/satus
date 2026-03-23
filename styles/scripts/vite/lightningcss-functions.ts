@@ -2,11 +2,11 @@ import type { CustomAtRules, Function as LightningCssFunction, Visitor } from "l
 
 function buildFunction(args: LightningCssFunction["arguments"], calc: (value: number) => string) {
   if (!args || args.length !== 1) {
-    throw new Error(`Invalid arguments: ${args}`);
+    throw new Error(`Invalid arguments: ${JSON.stringify(args)}`);
   }
 
   if (args[0]?.type !== "token" || args[0]?.value?.type !== "number") {
-    throw new Error(`Invalid pixel value: ${args[0]?.value}`);
+    throw new Error(`Invalid pixel value: ${JSON.stringify(args[0]?.value)}`);
   }
 
   return { raw: calc(args[0].value.value) };

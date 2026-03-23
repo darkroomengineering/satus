@@ -2,7 +2,7 @@ import type { Colors, Themes } from "../colors";
 import type { Easings } from "../easings";
 import type { Breakpoints, CustomSizes } from "../layout";
 import type { Fonts, Typography } from "../typography";
-import { atRule, block, comment, mapEntries, prop, scalingCalc, variables } from "./css";
+import { atRule, block, comment, mapEntries, prop, scalingCalc, variables } from "./css.ts";
 
 export function generateTailwind({
   breakpoints,
@@ -53,12 +53,14 @@ export function generateTailwind({
   // Theme overwrites: [data-theme=name] { --color-*: value; }
   const themeOverwrites = [
     comment("Custom theme overwrites"),
-    ...mapEntries(themes, (name, value) => block(`[data-theme=${name}]`, variables(value, "color"))),
+    ...mapEntries(themes, (name, value) =>
+      block(`[data-theme=${name}]`, variables(value, "color")),
+    ),
   ].join("\n");
 
   // Typography utilities
   const typographyUtilities = mapEntries(typography, (name, style) => {
-    const declarations = Object.entries(style)
+    const declarations = Object.entries(style as Record<string, unknown>)
       .filter(([, v]) => v !== undefined && v !== null)
       .flatMap(([key, value]) => {
         if (key === "font-size") {
@@ -71,10 +73,7 @@ export function generateTailwind({
         }
         if (typeof value === "object" && value !== null) {
           const v = value as { mobile: string; desktop: string };
-          return [
-            prop(key, v.mobile),
-            atRule(`variant dt`, [prop(key, v.desktop)]),
-          ];
+          return [prop(key, v.mobile), atRule(`variant dt`, [prop(key, v.desktop)])];
         }
         return [prop(key, String(value))];
       });
@@ -88,12 +87,8 @@ export function generateTailwind({
     ...typographyUtilities,
     "",
     // Responsive visibility
-    atRule("utility desktop-only", [
-      atRule("media (--mobile)", ["display: none !important;"]),
-    ]),
-    atRule("utility mobile-only", [
-      atRule("media (--desktop)", ["display: none !important;"]),
-    ]),
+    atRule("utility desktop-only", [atRule("media (--mobile)", ["display: none !important;"])]),
+    atRule("utility mobile-only", [atRule("media (--desktop)", ["display: none !important;"])]),
     "",
     // Layout grid
     atRule("utility dr-grid", [
@@ -105,16 +100,9 @@ export function generateTailwind({
       "margin-inline: auto;",
       "width: calc(100% - 2 * var(--safe));",
     ]),
-    atRule("utility dr-layout-block-inner", [
-      "padding-inline: var(--safe);",
-      "width: 100%;",
-    ]),
-    atRule("utility dr-layout-grid", [
-      "@apply dr-layout-block dr-grid;",
-    ]),
-    atRule("utility dr-layout-grid-inner", [
-      "@apply dr-layout-block-inner dr-grid;",
-    ]),
+    atRule("utility dr-layout-block-inner", ["padding-inline: var(--safe);", "width: 100%;"]),
+    atRule("utility dr-layout-grid", ["@apply dr-layout-block dr-grid;"]),
+    atRule("utility dr-layout-grid-inner", ["@apply dr-layout-block-inner dr-grid;"]),
   ].join("\n");
 
   // Custom variants
@@ -122,8 +110,7 @@ export function generateTailwind({
     comment("Custom variants"),
     ...mapEntries(
       themes,
-      (name) =>
-        `@custom-variant ${name} (&:where([data-theme=${name}], [data-theme=${name}] *));`,
+      (name) => `@custom-variant ${name} (&:where([data-theme=${name}], [data-theme=${name}] *));`,
     ),
   ].join("\n");
 

@@ -16,7 +16,6 @@
     "clean": "rm -rf build node_modules/.cache .react-router",
     "typecheck": "react-router typegen && tsc --noEmit",
     "test": "bun test",
-    "setup:styles": "bun ./styles/scripts/setup-styles.ts",
     "prepare": "vp config"
   },
   "dependencies": {

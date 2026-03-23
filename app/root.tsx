@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { Link, Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 import { ReactTempus } from "tempus/react";
 import { RealViewport } from "@/components/real-viewport";
@@ -6,6 +7,10 @@ import "@/styles/css/index.css";
 import "@/styles/css/media.css";
 import { Footer } from "./components/footer";
 import { Header } from "./components/header";
+
+const OrchestraTools = lazy(() =>
+  import("@/features/dev/index.ts").then(({ OrchestraTools }) => ({ default: OrchestraTools })),
+);
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -36,6 +41,11 @@ export default function App() {
         <Footer />
       </Theme>
       <ReactTempus />
+      {process.env.NODE_ENV === "development" && (
+        <Suspense fallback={null}>
+          <OrchestraTools />
+        </Suspense>
+      )}
     </RealViewport>
   );
 }

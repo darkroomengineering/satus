@@ -11,12 +11,8 @@ import { generateScale } from "../generate-scale.ts";
 import { generateTailwind } from "../generate-tailwind.ts";
 
 interface DarkroomStylingOptions {
-  /** CSS file to prepend into all CSS files (for custom media queries) */
   prependCss?: string;
-  /** Style config files to watch for regeneration */
   watchFiles?: string[];
-  /** Generated files that must exist before dev server starts */
-  requiredFiles?: string[];
 }
 
 const defaults: Required<DarkroomStylingOptions> = {
@@ -27,11 +23,6 @@ const defaults: Required<DarkroomStylingOptions> = {
     "styles/easings.ts",
     "styles/layout.ts",
   ],
-  requiredFiles: [
-    "./styles/css/root.css",
-    "./styles/css/tailwind.css",
-    "./styles/css/media.css",
-  ],
 };
 
 const banner = `/*
@@ -40,12 +31,12 @@ const banner = `/*
  */`;
 
 function generate() {
-  const tailwind = generateTailwind({ breakpoints, colors, customSizes, easings, fonts, themes, typography });
+  const tw = generateTailwind({ breakpoints, colors, customSizes, easings, fonts, themes, typography });
   const root = generateRoot({ colors, customSizes, easings, layout, screens });
   const scale = generateScale();
   const media = generateMedia({ breakpoints });
 
-  writeFileSync("./styles/css/tailwind.css", [banner, tailwind, scale].join("\n\n"));
+  writeFileSync("./styles/css/tailwind.css", [banner, tw, scale].join("\n\n"));
   writeFileSync("./styles/css/root.css", [banner, root].join("\n\n"));
   writeFileSync("./styles/css/media.css", [banner, media].join("\n\n"));
 
@@ -54,19 +45,19 @@ function generate() {
 
 export function darkroomStyling(options?: DarkroomStylingOptions): Plugin {
   const config = { ...defaults, ...options };
-
   const prependResolved = path.resolve(config.prependCss);
-  const prependExists = existsSync(prependResolved);
 
   return {
     name: "darkroom-styling",
     enforce: "pre",
 
-    // Generate on startup if files are missing, watch for changes
-    configureServer(server) {
-      const missing = config.requiredFiles.some((f) => !existsSync(f));
-      if (missing) generate();
+    // Generate CSS files once before anything else
+    configResolved() {
+      generate();
+    },
 
+    // In dev: watch config files and regenerate on change
+    configureServer(server) {
       server.watcher.add(config.watchFiles);
       server.watcher.on("change", (filePath) => {
         if (config.watchFiles.some((file) => filePath.includes(file))) {
@@ -75,21 +66,9 @@ export function darkroomStyling(options?: DarkroomStylingOptions): Plugin {
       });
     },
 
-    // Also generate at build time
-    buildStart() {
-      generate();
-    },
-
-    // Restart dev server when the prepended CSS changes
-    handleHotUpdate({ file, server }) {
-      if (file.includes(config.prependCss.replace(/^(\.\/|\.\.\/)+/, ""))) {
-        void server.restart();
-      }
-    },
-
     // Prepend @import for custom media queries into all CSS files
     transform(code, id) {
-      if (!prependExists || !id.endsWith(".css")) return;
+      if (!existsSync(prependResolved) || !id.endsWith(".css")) return;
 
       const parts = code.split("\n");
       let insertIndex = 0;

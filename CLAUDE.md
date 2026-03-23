@@ -1,65 +1,76 @@
 # Satus -- AI Agent Guide
 
-React Router starter template by [darkroom.engineering](https://darkroom.engineering).
+React Router starter by [darkroom.engineering](https://darkroom.engineering).
 
-**Stack**: React Router 7 (framework mode, SSR), React 19, TypeScript (strict), Tailwind v4 + CSS Modules, Vite+, pnpm, Oxlint/Oxfmt, React Compiler ON.
+**Stack**: React Router 7 (SSR), React 19, TypeScript (strict), Tailwind v4 + CSS Modules + Lightning CSS, Vite+, pnpm, Oxlint/Oxfmt.
+
+## File Structure
+
+```
+app/
+  root.tsx              # HTML shell, ThemeProvider, header, footer, global canvas, dev tools
+  routes.ts             # Route config
+  routes/               # Route modules (loaders, components, meta)
+  components/           # Route-specific components (header, footer)
+components/             # Reusable: image, link, wrapper, theme, lenis, marquee, fold,
+                        # scrollbar, real-viewport, scroll-restoration, gsap, split-text, progress-text
+hooks/                  # Custom hooks + Zustand store
+utils/                  # Pure utilities (math, easings, animation, raf, fetch, strings, viewport)
+styles/                 # Design system config, generated CSS, Vite plugin, Lightning CSS functions
+integrations/sanity/    # Sanity client, queries, image utils, session, loader
+dev/                    # Debug tools (Orchestra, grid, stats, minimap, Theatre.js)
+webgl/                  # 3D graphics system (R3F, global canvas, tunnels)
+env.ts                  # Client env (t3-env + valibot, PUBLIC_ prefix)
+env.server.ts           # Server env (t3-env + valibot)
+vite.config.ts          # Vite+ config, Tailwind, Lightning CSS, darkroom-styling plugin
+```
 
 ## Critical Rules
 
-### 1. Use Custom Components
+### Path Alias
+
+`~/` maps to project root. Only alias.
 
 ```tsx
-import { Image } from "@/components/image";
-import { Link } from "@/components/link";
+import { Image } from "~/components/image";
+import { clamp } from "~/utils/math";
+import { breakpoints } from "~/styles/layout";
 ```
 
-`Image` wraps native `<img>` with responsive sizes. `Link` wraps React Router `<Link>` with external detection and active state.
+### Components
 
-### 2. CSS Modules Imported as `s`
+Use `~/components/image` (not raw `<img>`) and `~/components/link` (not raw `<a>` or RR `<Link>`).
+
+### Wrapper
+
+Every route wraps content with `<Wrapper>`. Opt into WebGL and Lenis per-page:
+
+```tsx
+<Wrapper>content</Wrapper>
+<Wrapper webgl>content with 3D</Wrapper>
+<Wrapper lenis={false}>no smooth scroll</Wrapper>
+```
+
+### CSS Modules
+
+Import as `s`:
 
 ```tsx
 import s from "./component.module.css";
 ```
 
-### 3. Path Aliases
+### Environment Variables
+
+`PUBLIC_` prefix for client (`import.meta.env`), plain for server (`process.env`). Validated with t3-env + valibot.
 
 ```tsx
-import { Image } from "@/components/image";
-import { useRect } from "@/hooks/use-rect";
-import { clamp } from "@/utils/math";
+import { env } from "~/env";        // client
+import { env } from "~/env.server"; // server (.server.ts or loaders)
 ```
 
-Available: `@/*` (root), `@/hooks/*`, `@/styles/*`, `@/utils/*`, `~/*` (app dir). Resolved by Vite via `tsconfigPaths: true`.
+### Data Loading
 
-### 4. No Manual Memoization
-
-React Compiler handles optimization. Never use `useMemo`, `useCallback`, or `React.memo`.
-
-### 5. `import type` for Type-Only Imports
-
-`verbatimModuleSyntax: true` in tsconfig.
-
-```tsx
-import type { ComponentProps } from "react";
-```
-
-### 6. Environment Variables
-
-Client-safe vars use `PUBLIC_` prefix and `import.meta.env`. Server-only vars use `process.env`. Both validated with t3-env + valibot.
-
-```tsx
-// Client (available everywhere)
-import { env } from "@/env";
-env.PUBLIC_SANITY_PROJECT_ID;
-
-// Server only (.server.ts files or loaders)
-import { env } from "@/env.server";
-env.SANITY_API_READ_TOKEN;
-```
-
-### 7. Data Loading
-
-Use React Router loaders for server data, `client.fetch()` for Sanity queries.
+React Router loaders for server data:
 
 ```tsx
 export async function loader({ params }: Route.LoaderArgs) {
@@ -72,52 +83,23 @@ export default function Page({ loaderData }: Route.ComponentProps) {
 }
 ```
 
-## File Structure
+### Lazy Loading
 
-```
-app/
-  root.tsx              # HTML shell, providers (RealViewport, Theme, Tempus)
-  routes.ts             # Route config
-  routes/               # Route modules (loaders, components, meta)
-  components/           # Layout pieces colocated with routes (header, footer)
-components/             # Flat reusable components (image, link, theme, lenis, marquee, fold, scrollbar, real-viewport)
-features/
-  animation/            # GSAP runtime, SplitText, ProgressText
-  dev/                  # Orchestra debug tools (not yet ported)
-  webgl/                # R3F system (not yet ported)
-hooks/                  # Custom hooks + Zustand store
-utils/                  # Pure utilities (math, easings, animation, raf, fetch, strings, viewport)
-styles/                 # Design system, Tailwind config, CSS generation, PostCSS functions
-integrations/
-  sanity/               # Sanity client, queries, image utils, session, loader
-env.ts                  # Client environment (t3-env + valibot, PUBLIC_ prefix)
-env.server.ts           # Server environment (t3-env + valibot)
-vite.config.ts          # Vite+ with React Router plugin, svgr, oxlint
-react-router.config.ts  # SSR enabled
-postcss.config.mjs      # Tailwind v4 + PostCSS functions + preset-env
+Components loaded with `React.lazy` must use `export default`:
+
+```tsx
+const MyComponent = lazy(() => import("./my-component"));
 ```
 
-## TypeScript
+### No Manual Memoization
 
-- `strict: true` plus `noImplicitOverride`, `exactOptionalPropertyTypes`, `useUnknownInCatchVariables`, `noFallthroughCasesInSwitch`, `noImplicitReturns`, `noUnusedLocals`, `noUnusedParameters`, `noUncheckedIndexedAccess`, `noUncheckedSideEffectImports`
-- Target: ES2023, module: ESNext, moduleResolution: bundler
-- `verbatimModuleSyntax: true`
-- Prefer `interface` for object shapes, `type` for unions/intersections
-- Props extend `ComponentProps<'element'>` when wrapping HTML elements
-- React 19: `ref` is a regular prop, no `forwardRef` needed
+React Compiler handles optimization. Never use `useMemo`, `useCallback`, or `React.memo`.
 
-## Styling
+### `import type` for Type-Only Imports
 
-- **Tailwind v4**: CSS-based config, `@theme` directive
-- **CSS Modules**: For complex animations, custom layouts
-- Combine with `cn()` from `clsx`
-- Design tokens in `styles/css/root.css`
-- Custom PostCSS functions: `mobile-vw()`, `mobile-vh()`, `desktop-vw()`, `desktop-vh()`, `columns(n)`
-- Custom `dr-*` utility classes for responsive scaling
-- Desktop breakpoint: 800px
-- Use `h-dvh` not `h-screen`
+`verbatimModuleSyntax: true` in tsconfig.
 
-## Component Conventions
+## Component Pattern
 
 ```tsx
 import s from "./my-component.module.css";
@@ -135,33 +117,47 @@ export function MyComponent({ variant = "primary", className, ...props }: MyComp
 
 - Named function declarations, not arrow functions
 - Kebab-case filenames
-- CamelCase CSS class names (`.isPrimary`, `.isDisabled`)
 - Zustand for global state, React state for component state
-- `React.lazy` + `Suspense` for heavy components
+
+## Root Layout Pattern
+
+- `ThemeProvider` — wraps everything, provides theme context
+- `RealViewport` — standalone, sets CSS vars, returns null
+- `ReactTempus` — standalone, manages RAF
+- `GlobalCanvas` — standalone, persistent WebGL canvas (lazy)
+- `OrchestraTools` — standalone, dev tools overlay (lazy, dev only)
+
+Providers wrap. Standalone components return null and set global state.
+
+## Styling
+
+- **Tailwind v4** with `@tailwindcss/vite` plugin
+- **Lightning CSS** as transformer with custom functions (`mobile-vw()`, `desktop-vw()`, `columns()`)
+- **CSS generation** via `darkroom-styling` Vite plugin (auto-generates on config change)
+- Design tokens in `styles/colors.ts`, `styles/layout.ts`, `styles/easings.ts`, `styles/typography.ts`
+- Custom `dr-*` utility classes for responsive scaling
+- Desktop breakpoint: 800px
 
 ## Key Libraries
 
-| Package    | Purpose                          |
-| ---------- | -------------------------------- |
-| `lenis`    | Smooth scroll                    |
-| `gsap`     | Complex animations               |
-| `tempus`   | RAF management                   |
-| `hamo`     | Performance hooks (`useRect`)    |
-| `zustand`  | Global state                     |
-| `clsx`     | Class name composition           |
-| `valibot`  | Schema validation (env vars)     |
-| `groq`     | Sanity query language            |
+| Package    | Purpose                       |
+| ---------- | ----------------------------- |
+| `lenis`    | Smooth scroll                 |
+| `gsap`     | Complex animations            |
+| `tempus`   | RAF management                |
+| `hamo`     | Performance hooks (`useRect`) |
+| `zustand`  | Global state                  |
+| `clsx`     | Class name composition        |
+| `valibot`  | Schema validation (env vars)  |
 
 ## Commands
 
 ```bash
-vp dev               # Dev server (Vite)
+vp dev               # Dev server
 vp build             # Production build
 vp check             # Lint + format + typecheck
 vp lint              # Oxlint
 vp fmt               # Oxfmt
-vp test              # Vitest
-vp install           # Install dependencies (pnpm)
 ```
 
 ## Git
@@ -169,12 +165,6 @@ vp install           # Install dependencies (pnpm)
 - Conventional commits: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`
 - No force push to `main`
 - Pre-commit: `vp check --fix` via `.vite-hooks/`
-
-## Before Committing
-
-```bash
-vp check             # Must pass: lint + format + types
-```
 
 # Using Vite+, the Unified Toolchain for the Web
 
@@ -239,13 +229,13 @@ These commands map to their corresponding tools. For example, `vp dev --port 300
 
 - **Using the package manager directly:** Do not use pnpm, npm, or Yarn directly. Vite+ can handle all package manager operations.
 - **Always use Vite commands to run tools:** Don't attempt to run `vp vitest` or `vp oxlint`. They do not exist. Use `vp test` and `vp lint` instead.
-- **Running scripts:** Vite+ built-in commands (`vp dev`, `vp build`, `vp test`, etc.) always run the Vite+ built-in tool, not any `package.json` script of the same name. To run a custom script that shares a name with a built-in command, use `vp run <script>`. For example, if you have a custom `dev` script that runs multiple services concurrently, run it with `vp run dev`, not `vp dev` (which always starts Vite's dev server).
-- **Do not install Vitest, Oxlint, Oxfmt, or tsdown directly:** Vite+ wraps these tools. They must not be installed directly. You cannot upgrade these tools by installing their latest versions. Always use Vite+ commands.
+- **Running scripts:** Vite+ built-in commands (`vp dev`, `vp build`, `vp test`, etc.) always run the Vite+ built-in tool, not any `package.json` script of the same name. To run a custom script that shares a name with a built-in command, use `vp run <script>`.
+- **Do not install Vitest, Oxlint, Oxfmt, or tsdown directly:** Vite+ wraps these tools. They must not be installed directly.
 - **Use Vite+ wrappers for one-off binaries:** Use `vp dlx` instead of package-manager-specific `dlx`/`npx` commands.
-- **Import JavaScript modules from `vite-plus`:** Instead of importing from `vite` or `vitest`, all modules should be imported from the project's `vite-plus` dependency. For example, `import { defineConfig } from 'vite-plus';` or `import { expect, test, vi } from 'vite-plus/test';`. You must not install `vitest` to import test utilities.
-- **Type-Aware Linting:** There is no need to install `oxlint-tsgolint`, `vp lint --type-aware` works out of the box.
+- **Import JavaScript modules from `vite-plus`:** Instead of importing from `vite` or `vitest`, import from `vite-plus`. For example, `import { defineConfig } from 'vite-plus';`.
+- **Type-Aware Linting:** `vp lint --type-aware` works out of the box.
 
 ## Review Checklist for Agents
 
 - [ ] Run `vp install` after pulling remote changes and before getting started.
-- [ ] Run `vp check` and `vp test` to validate changes.
+- [ ] Run `vp check` to validate changes.

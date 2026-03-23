@@ -1,111 +1,64 @@
 [![SATUS](https://assets.darkroom.engineering/satus/banner.gif)](https://github.com/darkroomengineering/satus)
 
-# Satūs
+# Satus
 
-A modern Next.js 16 starter with React 19, Tailwind CSS v4, and optional WebGL. _Satūs_ means "beginning" in Latin.
-
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/darkroomengineering/satus)
-
-> **Note**: This README is for template developers. For client handoff, see [PROD-README.md](PROD-README.md).
+A React Router starter with React 19, Tailwind CSS v4, and optional WebGL. _Satus_ means "beginning" in Latin.
 
 ## Requirements
 
-| Tool    | Version   | Notes                                     |
-| ------- | --------- | ----------------------------------------- |
-| Node.js | >= 22.0.0 | Required for native fetch and modern APIs |
-| Bun     | >= 1.3.5  | Package manager & runtime                 |
+| Tool    | Version   |
+| ------- | --------- |
+| Node.js | >= 22.0.0 |
+| pnpm    | >= 10.0.0 |
 
 ## Quick Start
 
 ```bash
-bun install
-bun run setup:project    # Interactive setup - choose integrations
+pnpm install
 cp .env.example .env.local
-bun dev
+pnpm dev
 ```
-
-Or skip setup and keep everything: `bun install && bun dev`
 
 ## Tech Stack
 
-| Category  | Technologies                                      |
-| --------- | ------------------------------------------------- |
-| Framework | Next.js 16, React 19.2, TypeScript                |
-| Styling   | Tailwind CSS v4, CSS Modules                      |
-| Optional  | React Three Fiber, GSAP, Sanity, Shopify, HubSpot |
-| Tooling   | Bun, Biome, Turbopack                             |
+| Category     | Technologies                              |
+| ------------ | ----------------------------------------- |
+| Framework    | React Router 7 (SSR), React 19, TypeScript |
+| Styling      | Tailwind CSS v4, CSS Modules, Lightning CSS |
+| Optional     | React Three Fiber, GSAP, Theatre.js, Sanity |
+| Tooling      | Vite+, pnpm, Oxlint, Oxfmt               |
+| Env          | t3-env, Valibot                           |
 
 ## Project Structure
 
 ```
-app/                    # Next.js pages and routes
-components/             # UI components
-lib/                    # Everything non-UI
-  ├── hooks/           # Custom React hooks
-  ├── integrations/    # Third-party services
-  ├── styles/          # CSS & Tailwind
-  ├── webgl/           # 3D graphics (optional)
-  └── dev/             # Debug tools (optional)
+app/                    # React Router routes and layouts
+components/             # Reusable UI components
+hooks/                  # Custom React hooks
+utils/                  # Pure utility functions
+styles/                 # Design system, Tailwind config, CSS generation
+integrations/           # Third-party services (Sanity)
+dev/                    # Debug tools (Orchestra, Theatre.js)
+webgl/                  # 3D graphics system (R3F)
 ```
 
-> **Mental model:** UI → `components/`, everything else → `lib/`
-
-## Documentation
-
-| Area          | Documentation                                                                    |
-| ------------- | -------------------------------------------------------------------------------- |
-| Architecture  | [ARCHITECTURE.md](ARCHITECTURE.md) — Key decisions & patterns                    |
-| Customization | [BOUNDARIES.md](BOUNDARIES.md) — What to modify vs what's framework              |
-| Components    | [COMPONENTS.md](COMPONENTS.md) — Complete component/hook/utility inventory       |
-| Patterns      | [PATTERNS.md](PATTERNS.md) — Recurring code patterns guide                       |
-| AI Agents     | [CLAUDE.md](CLAUDE.md) — Agent-readable project configuration                    |
-| App Router    | [app/README.md](app/README.md) — Pages, layouts, routing                         |
-| Components    | [components/README.md](components/README.md) — UI reference                      |
-| Library       | [lib/README.md](lib/README.md) — Hooks, utils, integrations                      |
-| Integrations  | [lib/integrations/README.md](lib/integrations/README.md) — Sanity, Shopify, etc. |
-
-## Scripts
+## Commands
 
 ```bash
-bun dev              # Development server
-bun build            # Production build
-bun lint             # Biome linter
-bun run generate     # Generate pages/components
-bun run setup:project  # Configure integrations
-bun run handoff      # Prepare for client delivery
+vp dev               # Dev server
+vp build             # Production build
+vp check             # Lint + format + typecheck
+vp lint              # Oxlint
+vp fmt               # Oxfmt
 ```
-
-## Client Handoff
-
-Prepare the codebase for client delivery:
-
-```bash
-bun run handoff
-```
-
-This interactive script:
-
-- Removes example pages and Satūs branding
-- Swaps README with production version
-- Generates component inventory
-- Updates package.json with project name
 
 ## Key Conventions
 
-- **Images**: Use `@/components/ui/image` (never `next/image` directly)
-- **Links**: Use `@/components/ui/link` (auto-handles external links)
+- **Path alias**: `~/` maps to project root
+- **Components**: Use `~/components/image` and `~/components/link`
 - **CSS Modules**: Import as `s` → `import s from './component.module.css'`
-- **Debug Tools**: Toggle with `Cmd/Ctrl + O`
-
-## Deployment
-
-```bash
-vercel
-```
-
-**Required GitHub Secret**: `VERCEL_TOKEN` for Lighthouse CI workflow.
-
-See [ARCHITECTURE.md](ARCHITECTURE.md) for deployment checklist and cache strategies.
+- **Env vars**: `PUBLIC_` prefix for client, plain for server. Validated with t3-env + Valibot
+- **Debug tools**: Toggle with `Ctrl+O` / `Cmd+Shift+O` / `Cmd+.`
 
 ## License
 

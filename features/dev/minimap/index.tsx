@@ -47,7 +47,7 @@ export function useMinimap({ color = "blue" } = {}) {
   return setElement;
 }
 
-export function Minimap() {
+export default function Minimap() {
   const [aspectRatio, setAspectRatio] = useState("1");
 
   useEffect(() => {

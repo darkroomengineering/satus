@@ -244,18 +244,12 @@ export function useRealViewport(): ViewportValues {
  * }
  * ```
  */
-export function RealViewport({ children }: { children?: React.ReactNode }) {
+export function RealViewport() {
   useEffect(() => {
-    // Set initial values
     updateViewport();
-
-    // Subscribe to resize events
     window.addEventListener("resize", debouncedUpdateViewport, false);
-
-    return () => {
-      window.removeEventListener("resize", debouncedUpdateViewport, false);
-    };
+    return () => window.removeEventListener("resize", debouncedUpdateViewport, false);
   }, []);
 
-  return children ?? null;
+  return null;
 }

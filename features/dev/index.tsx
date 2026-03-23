@@ -2,14 +2,12 @@ import { Suspense, lazy, useEffect, useState } from "react";
 import { Cmdo } from "./cmdo";
 import Orchestra from "./orchestra";
 
-const Studio = lazy(() => import("./theatre/studio").then(({ Studio }) => ({ default: Studio })));
-const Stats = lazy(() => import("./stats").then(({ Stats }) => ({ default: Stats })));
-const GridDebugger = lazy(() =>
-  import("./grid").then(({ GridDebugger }) => ({ default: GridDebugger })),
-);
-const Minimap = lazy(() => import("./minimap").then(({ Minimap }) => ({ default: Minimap })));
+const Studio = lazy(() => import("./theatre/studio"));
+const Stats = lazy(() => import("./stats"));
+const GridDebugger = lazy(() => import("./grid"));
+const Minimap = lazy(() => import("./minimap"));
 
-export function OrchestraTools() {
+export default function OrchestraTools() {
   const { stats, grid, studio, dev, minimap, screenshot } = useOrchestra();
 
   useEffect(() => {

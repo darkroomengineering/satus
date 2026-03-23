@@ -25,7 +25,7 @@ type WebGLCanvasProps = React.HTMLAttributes<HTMLDivElement> & {
  *
  * For GlobalCanvas, see @/webgl/components/global-canvas
  */
-export function WebGLCanvas({
+export default function WebGLCanvas({
   render = true,
   postprocessing = false,
   alpha = true,

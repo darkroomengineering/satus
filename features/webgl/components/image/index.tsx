@@ -5,7 +5,7 @@ import { useWebGLElement } from "../../hooks/use-webgl-element";
 import { WebGLTunnel } from "../tunnel";
 
 const WebGLImage = lazy(() =>
-  import("./webgl").then(({ WebGLImage }) => ({ default: WebGLImage })),
+  import("./webgl"),
 );
 
 /**

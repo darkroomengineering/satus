@@ -3,7 +3,7 @@ import _Stats from "stats-gl";
 import { useTempus } from "tempus/react";
 import s from "./stats.module.css";
 
-export function Stats() {
+export default function Stats() {
   const stats = useMemo(
     () => new _Stats({ minimal: false } as ConstructorParameters<typeof _Stats>[0]),
     [],

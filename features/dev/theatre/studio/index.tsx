@@ -20,7 +20,7 @@ function downloadState(studio: StudioInstance, projectId: string) {
   URL.revokeObjectURL(url);
 }
 
-export function Studio() {
+export default function Studio() {
   const studioRef = useRef<StudioInstance>(null);
   const [ready, setReady] = useState(false);
 

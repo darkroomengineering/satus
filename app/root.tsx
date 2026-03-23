@@ -2,15 +2,14 @@ import { Suspense, lazy } from "react";
 import { Link, Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 import { ReactTempus } from "tempus/react";
 import { RealViewport } from "@/components/real-viewport";
-import { Theme } from "@/components/theme";
+import { ThemeProvider } from "@/components/theme";
 import "@/styles/css/index.css";
 import "@/styles/css/media.css";
 import { Footer } from "./components/footer";
 import { Header } from "./components/header";
 
-const OrchestraTools = lazy(() =>
-  import("../features/dev").then(({ OrchestraTools }) => ({ default: OrchestraTools })),
-);
+const OrchestraTools = lazy(() => import("../features/dev"));
+const GlobalCanvas = lazy(() => import("../features/webgl/components/global-canvas"));
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -32,21 +31,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <RealViewport>
-      <Theme theme="dark" global>
-        <Header />
-        <main id="main-content">
-          <Outlet />
-        </main>
-        <Footer />
-      </Theme>
+    <ThemeProvider theme="dark" global>
+      <Header />
+      <Outlet />
+      <Footer />
+      <RealViewport />
       <ReactTempus />
+      <Suspense fallback={null}>
+        <GlobalCanvas />
+      </Suspense>
       {process.env.NODE_ENV === "development" && (
         <Suspense fallback={null}>
           <OrchestraTools />
         </Suspense>
       )}
-    </RealViewport>
+    </ThemeProvider>
   );
 }
 

@@ -7,7 +7,7 @@ type GridDebuggerProps = {
   gridClassName?: string;
 };
 
-export function GridDebugger({ gridClassName = "dr-layout-grid" }: GridDebuggerProps) {
+export default function GridDebugger({ gridClassName = "dr-layout-grid" }: GridDebuggerProps) {
   const { width: windowWidth, height: windowHeight } = useWindowSize();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: columns dependency is needed to adjust on size changes

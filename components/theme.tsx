@@ -24,7 +24,7 @@ export function useTheme(): ThemeContextType {
   return context;
 }
 
-export function Theme({
+export function ThemeProvider({
   children,
   theme,
   global,

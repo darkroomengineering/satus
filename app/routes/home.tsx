@@ -1,3 +1,4 @@
+import { Wrapper } from "@/components/wrapper";
 import type { Route } from "./+types/home";
 import { Features } from "./home/features";
 import { GettingStarted } from "./home/getting-started";
@@ -18,12 +19,12 @@ export function meta(_args: Route.MetaArgs) {
 
 export default function Home() {
   return (
-    <>
+    <Wrapper>
       <Hero />
       <ValueProps />
       <Features />
       <Presets />
       <GettingStarted />
-    </>
+    </Wrapper>
   );
 }

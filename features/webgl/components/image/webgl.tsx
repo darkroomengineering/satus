@@ -26,7 +26,7 @@ function isRectValid(rect: Rect): boolean {
 /**
  * WebGL image mesh with visibility-aware optimizations.
  */
-export function WebGLImage({ src, rect, visible = true }: WebGLImageProps) {
+export default function WebGLImage({ src, rect, visible = true }: WebGLImageProps) {
   const meshRef = useRef<Mesh>(null!);
   const [material] = useState(() => new MeshBasicMaterial());
 

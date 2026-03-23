@@ -6,11 +6,7 @@ import { lazy, Suspense, useEffect, useRef } from "react";
 import { useTempus } from "tempus/react";
 import { useStore } from "@/hooks/store";
 
-const LenisScrollTriggerSync = lazy(() =>
-  import("./scroll-trigger").then((mod) => ({
-    default: mod.LenisScrollTriggerSync,
-  })),
-);
+const LenisScrollTriggerSync = lazy(() => import("./scroll-trigger"));
 
 interface LenisProps extends Omit<ReactLenisProps, "ref"> {
   root: boolean;

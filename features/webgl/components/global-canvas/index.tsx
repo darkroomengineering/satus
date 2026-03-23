@@ -3,7 +3,7 @@
 import { OrthographicCamera } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import cn from "clsx";
-import { Suspense, lazy, useState } from "react";
+import { Suspense, useState } from "react";
 import { SheetProvider } from "../../../dev/theatre";
 import { useWebGLStore } from "../../store";
 import { createRenderer } from "../../utils/create-renderer";
@@ -78,7 +78,7 @@ type GlobalCanvasProps = {
  * }
  * ```
  */
-export function GlobalCanvas({
+export default function GlobalCanvas({
   render = true,
   postprocessing = false,
   alpha = true,
@@ -184,8 +184,3 @@ export function GlobalCanvas({
   );
 }
 
-/**
- * Dynamic import wrapper for GlobalCanvas.
- * Use this to avoid SSR issues and enable code splitting.
- */
-export const LazyGlobalCanvas = lazy(() => Promise.resolve({ default: GlobalCanvas }));

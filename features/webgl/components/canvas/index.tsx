@@ -12,7 +12,7 @@ import { useDeviceDetection } from "@/hooks/use-device-detection";
 import { useWebGLStore } from "../../store";
 
 const WebGLCanvas = lazy(() =>
-  import("./webgl").then(({ WebGLCanvas }) => ({ default: WebGLCanvas })),
+  import("./webgl"),
 );
 
 type CanvasContextValue = {

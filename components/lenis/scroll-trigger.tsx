@@ -16,7 +16,7 @@ if (typeof window !== "undefined") {
  * Syncs GSAP ScrollTrigger with Lenis scroll position.
  * Must be rendered inside ReactLenis context.
  */
-export function LenisScrollTriggerSync() {
+export default function LenisScrollTriggerSync() {
   useEffect(() => {
     GSAPScrollTrigger.update();
   }, []);

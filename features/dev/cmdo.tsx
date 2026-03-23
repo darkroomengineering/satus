@@ -10,7 +10,11 @@ export function Cmdo() {
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === "o" && (e.metaKey || e.ctrlKey)) {
+      if (
+        (e.key === "o" && e.ctrlKey) ||
+        (e.key === "." && (e.metaKey || e.ctrlKey)) ||
+        (e.key === "o" && e.shiftKey && e.metaKey)
+      ) {
         e.preventDefault();
         setOpen((open) => !open);
       }

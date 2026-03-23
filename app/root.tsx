@@ -9,7 +9,7 @@ import { Footer } from "./components/footer";
 import { Header } from "./components/header";
 
 const OrchestraTools = lazy(() =>
-  import("@/features/dev/index.ts").then(({ OrchestraTools }) => ({ default: OrchestraTools })),
+  import("../features/dev").then(({ OrchestraTools }) => ({ default: OrchestraTools })),
 );
 
 export function Layout({ children }: { children: React.ReactNode }) {

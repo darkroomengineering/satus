@@ -12,8 +12,11 @@ export function useStudio() {
   useEffect(() => {
     if (hasStudio && !studioPackage) {
       void import("@theatre/studio").then((pkg) => {
-        studioPackage = pkg.default;
-        setStudio(pkg.default);
+        // CJS interop: studio instance is double-wrapped
+        const raw = pkg.default as unknown as Record<string, unknown>;
+        const studio = (raw?.default ?? raw) as IStudio;
+        studioPackage = studio;
+        setStudio(studio);
       });
     }
   }, [hasStudio]);

@@ -1,10 +1,10 @@
 import { Suspense, lazy } from "react";
 import { Link, Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 import { ReactTempus } from "tempus/react";
-import { RealViewport } from "@/components/real-viewport";
-import { ThemeProvider } from "@/components/theme";
-import "@/styles/css/index.css";
-import "@/styles/css/media.css";
+import { RealViewport } from "~/components/real-viewport";
+import { ThemeProvider } from "~/components/theme";
+import "~/styles/css/index.css";
+import "~/styles/css/media.css";
 import { Footer } from "./components/footer";
 import { Header } from "./components/header";
 

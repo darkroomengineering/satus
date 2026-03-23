@@ -1,6 +1,6 @@
-import { Image } from "@/components/image";
-import { Link } from "@/components/link";
-import { Marquee } from "@/components/marquee";
+import { Image } from "~/components/image";
+import { Link } from "~/components/link";
+import { Marquee } from "~/components/marquee";
 import type { Route } from "./+types/components";
 
 export function meta(_args: Route.MetaArgs) {

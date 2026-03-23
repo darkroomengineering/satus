@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import tunnel from "tunnel-rat";
-import { useDeviceDetection } from "@/hooks/use-device-detection";
+import { useDeviceDetection } from "~/hooks/use-device-detection";
 import { useWebGLStore } from "../../store";
 
 const WebGLCanvas = lazy(() =>

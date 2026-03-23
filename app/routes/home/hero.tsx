@@ -1,5 +1,5 @@
 import cn from "clsx";
-import { Link } from "@/components/link";
+import { Link } from "~/components/link";
 import s from "./hero.module.css";
 
 const INSTALL_COMMAND = "bunx degit darkroomengineering/satus my-project";

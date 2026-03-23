@@ -4,7 +4,7 @@ import type { LenisRef, LenisProps as ReactLenisProps } from "lenis/react";
 import { ReactLenis } from "lenis/react";
 import { lazy, Suspense, useEffect, useRef } from "react";
 import { useTempus } from "tempus/react";
-import { useStore } from "@/hooks/store";
+import { useStore } from "~/hooks/store";
 
 const LenisScrollTriggerSync = lazy(() => import("./scroll-trigger"));
 

@@ -1,5 +1,5 @@
 import cn from "clsx";
-import { Link } from "@/components/link";
+import { Link } from "~/components/link";
 import s from "./getting-started.module.css";
 
 const COMMANDS = [

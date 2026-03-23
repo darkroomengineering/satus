@@ -1,6 +1,6 @@
 import { useMediaQuery } from "hamo";
 import { useEffect, useState } from "react";
-import { breakpoints } from "@/styles/layout";
+import { breakpoints } from "~/styles/layout";
 
 // GPU detection stub — replace with real import when WebGL is ported
 interface GPUCapability {

@@ -29,11 +29,7 @@
     "noUncheckedIndexedAccess": true,
     "rootDirs": [".", ".react-router/types"],
     "paths": {
-      "~/*": ["./app/*"],
-      "@/*": ["./*"],
-      "@/hooks/*": ["./hooks/*"],
-      "@/styles/*": ["./styles/*"],
-      "@/utils/*": ["./utils/*"]
+      "~/*": ["./*"]
     }
   }
 }

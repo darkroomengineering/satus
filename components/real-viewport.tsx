@@ -1,5 +1,5 @@
 import { useEffect, useRef, useSyncExternalStore } from "react";
-import { mutate } from "@/utils/raf";
+import { mutate } from "~/utils/raf";
 
 /**
  * Viewport values available for subscription

@@ -1,6 +1,6 @@
 import cn from "clsx";
 import { useLocation } from "react-router";
-import { Link } from "@/components/link";
+import { Link } from "~/components/link";
 
 const LINKS = [
   { href: "/", label: "home" },

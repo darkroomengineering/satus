@@ -9,7 +9,7 @@
  */
 
 // Standard context type
-export type { StandardContext } from "@/utils/context";
+export type { StandardContext } from "~/utils/context";
 export { useStore } from "./store";
 export { useDeviceDetection } from "./use-device-detection";
 export { type UseScrollTriggerOptions, useScrollTrigger } from "./use-scroll-trigger";

@@ -1,7 +1,7 @@
 import type { SanityDocument } from "@sanity/client";
 import { Link } from "react-router";
-import { client } from "@/integrations/sanity/client";
-import { allArticlesQuery } from "@/integrations/sanity/queries";
+import { client } from "~/integrations/sanity/client";
+import { allArticlesQuery } from "~/integrations/sanity/queries";
 import type { Route } from "./+types/sanity";
 
 export function meta(_args: Route.MetaArgs) {

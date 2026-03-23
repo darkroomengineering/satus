@@ -1,5 +1,5 @@
 import cn from "clsx";
-import { Marquee } from "@/components/marquee";
+import { Marquee } from "~/components/marquee";
 import s from "./presets.module.css";
 
 const PRESETS = [

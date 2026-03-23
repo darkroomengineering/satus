@@ -1,4 +1,4 @@
-import { Wrapper } from "@/components/wrapper";
+import { Wrapper } from "~/components/wrapper";
 import type { Route } from "./+types/home";
 import { Features } from "./home/features";
 import { GettingStarted } from "./home/getting-started";

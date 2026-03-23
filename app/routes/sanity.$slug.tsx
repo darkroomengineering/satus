@@ -1,9 +1,9 @@
 import type { SanityDocument } from "@sanity/client";
 import { isRouteErrorResponse, Link, useRouteError } from "react-router";
-import { Image } from "@/components/image";
-import { client } from "@/integrations/sanity/client";
-import { urlForImage } from "@/integrations/sanity/image";
-import { articleQuery } from "@/integrations/sanity/queries";
+import { Image } from "~/components/image";
+import { client } from "~/integrations/sanity/client";
+import { urlForImage } from "~/integrations/sanity/image";
+import { articleQuery } from "~/integrations/sanity/queries";
 import type { Route } from "./+types/sanity.$slug";
 
 export function meta({ loaderData }: Route.MetaArgs) {

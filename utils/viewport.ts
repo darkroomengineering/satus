@@ -27,7 +27,7 @@
  * A 100px element designed at 1728px will be ~58px at 1000px viewport.
  */
 
-import { screens } from "@/styles/layout";
+import { screens } from "~/styles/layout";
 
 /**
  * Scales a pixel value relative to the desktop design width.

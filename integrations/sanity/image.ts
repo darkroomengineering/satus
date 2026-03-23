@@ -1,5 +1,5 @@
 import { createImageUrlBuilder } from "@sanity/image-url";
-import { env } from "@/env";
+import { env } from "~/env";
 
 const builder = createImageUrlBuilder({
   projectId: env.PUBLIC_SANITY_PROJECT_ID!,

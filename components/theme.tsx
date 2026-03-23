@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useLocation } from "react-router";
-import { type ThemeName, type Themes, themes } from "@/styles/colors";
-import type { StandardContext } from "@/utils/context";
+import { type ThemeName, type Themes, themes } from "~/styles/colors";
+import type { StandardContext } from "~/utils/context";
 
 export interface ThemeState {
   name: ThemeName;

@@ -1,6 +1,6 @@
 import { lazy, useState } from "react";
-import { Image as DRImage, type ImageProps as DRImageProps } from "@/components/image";
-import { useDeviceDetection } from "@/hooks/use-device-detection";
+import { Image as DRImage, type ImageProps as DRImageProps } from "~/components/image";
+import { useDeviceDetection } from "~/hooks/use-device-detection";
 import { useWebGLElement } from "../../hooks/use-webgl-element";
 import { WebGLTunnel } from "../tunnel";
 

@@ -1,6 +1,6 @@
 import { colors, themeNames, themes } from "./colors";
 import { easings } from "./easings";
-import { breakpoints, customSizes, layout, screens } from "./layout.mjs";
+import { breakpoints, customSizes, layout, screens } from "./layout";
 import { fonts, typography } from "./typography";
 
 const config = {

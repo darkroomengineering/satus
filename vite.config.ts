@@ -20,7 +20,7 @@ export default defineConfig({
     reactRouter(),
     svgr(),
     watchStyles(),
-    prependCss("./styles/css/root.css"),
+    prependCss("./styles/css/media.css"),
   ],
   envPrefix: "PUBLIC_",
   resolve: {
@@ -29,14 +29,10 @@ export default defineConfig({
   css: {
     transformer: "lightningcss",
     lightningcss: {
-      cssModules: true,
       drafts: {
         customMedia: true,
       },
       visitor: composeVisitors([lightningcssFunctions()]),
     },
-  },
-  build: {
-    cssMinify: "lightningcss",
   },
 });

@@ -3,6 +3,7 @@ import { ReactTempus } from "tempus/react";
 import { RealViewport } from "@/components/real-viewport";
 import { Theme } from "@/components/theme";
 import "@/styles/css/index.css";
+import "@/styles/css/media.css";
 import { Footer } from "./components/footer";
 import { Header } from "./components/header";
 

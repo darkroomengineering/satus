@@ -6,7 +6,7 @@ const watchFiles = [
   "styles/colors.ts",
   "styles/typography.ts",
   "styles/easings.ts",
-  "styles/layout.mjs",
+  "styles/layout.ts",
 ];
 
 export function watchStyles(): Plugin {

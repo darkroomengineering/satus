@@ -1,19 +1,12 @@
-import type {
-  CustomAtRules,
-  Function as LightningCssFunction,
-  Visitor,
-} from "lightningcss";
+import type { CustomAtRules, Function as LightningCssFunction, Visitor } from "lightningcss";
 
-function buildFunction(
-  args: LightningCssFunction["arguments"],
-  calc: (value: number) => string,
-) {
+function buildFunction(args: LightningCssFunction["arguments"], calc: (value: number) => string) {
   if (!args || args.length !== 1) {
     throw new Error(`Invalid arguments: ${args}`);
   }
 
-  if (args[0].type !== "token" || args[0].value.type !== "number") {
-    throw new Error(`Invalid pixel value: ${args[0].value}`);
+  if (args[0]?.type !== "token" || args[0]?.value?.type !== "number") {
+    throw new Error(`Invalid pixel value: ${args[0]?.value}`);
   }
 
   return { raw: calc(args[0].value.value) };

@@ -3,9 +3,8 @@ import tailwindcss from "@tailwindcss/vite";
 import { composeVisitors } from "lightningcss";
 import { defineConfig } from "vite-plus";
 import svgr from "vite-plugin-svgr";
+import { darkroomStyling } from "./styles/scripts/vite/darkroom-styling";
 import { lightningcssFunctions } from "./styles/scripts/vite/lightningcss-functions";
-import { prependCss } from "./styles/scripts/vite/prepend-css";
-import { watchStyles } from "./styles/scripts/vite/watch-styles";
 
 export default defineConfig({
   staged: {
@@ -19,8 +18,7 @@ export default defineConfig({
     tailwindcss(),
     reactRouter(),
     svgr(),
-    watchStyles(),
-    prependCss("./styles/css/media.css"),
+    darkroomStyling(),
   ],
   envPrefix: "PUBLIC_",
   resolve: {

@@ -1,5 +1,5 @@
 import type { Config } from "../config";
-import { formatObject, scalingCalc } from "./utils";
+import { atRule, block, comment, mapEntries, prop, scalingCalc, variables } from "./css";
 
 export function generateTailwind({
   breakpoints,
@@ -13,119 +13,111 @@ export function generateTailwind({
   Config,
   "breakpoints" | "colors" | "customSizes" | "easings" | "fonts" | "themes" | "typography"
 >) {
-  // Theme
-  const themeEntries = Object.entries(themes);
-  const firstTheme = themeEntries[0]?.[1] ?? {};
-  const theme = `/** Custom theme **/
-@theme {
-	--breakpoint-*: initial;
-	${formatObject(breakpoints, ([name, value]) => `--breakpoint-${name}: ${value}px;`)}
+  const firstTheme = Object.values(themes)[0] ?? {};
 
-  --color-*: initial;
-	${formatObject(firstTheme, ([key, value]) => `--color-${key}: ${value};`)}
-  ${formatObject(colors, ([key, value]) => `--color-${key}: ${value};`)}
-    
-  --spacing-*: initial;
-	--spacing-0: 0;
-	--spacing-safe: var(--safe);
-	--spacing-gap: var(--gap);
-  ${formatObject(customSizes, ([key]) => `--spacing-${key}: var(--${key});`)}
+  // @theme block — registers design tokens with Tailwind
+  const theme = atRule("theme", [
+    // Breakpoints
+    "--breakpoint-*: initial;",
+    ...mapEntries(breakpoints, (name, value) => `--breakpoint-${name}: ${value}px;`),
+    "",
+    // Colors (default theme + base palette)
+    "--color-*: initial;",
+    ...variables(firstTheme, "color"),
+    ...variables(colors, "color"),
+    "",
+    // Spacing
+    "--spacing-*: initial;",
+    "--spacing-0: 0;",
+    "--spacing-safe: var(--safe);",
+    "--spacing-gap: var(--gap);",
+    ...mapEntries(customSizes, (key) => `--spacing-${key}: var(--${key});`),
+    "",
+    // Fonts
+    "--font-*: initial;",
+    ...mapEntries(fonts, (name, value) => `--font-${name}: ${value};`),
+    "",
+    // Easings
+    "--ease-*: initial;",
+    ...variables(easings, "ease"),
+  ]);
 
-  --font-*: initial;
-  ${formatObject(fonts, ([name, value]) => `--font-${name}: ${value};`)}
+  // Theme overwrites: [data-theme=name] { --color-*: value; }
+  const themeOverwrites = [
+    comment("Custom theme overwrites"),
+    ...mapEntries(themes, (name, value) => block(`[data-theme=${name}]`, variables(value, "color"))),
+  ].join("\n");
 
-  --ease-*: initial;
-  ${formatObject(easings, ([name, value]) => `--ease-${name}: ${value};`)}
-}`;
-
-  // Theme overwrites
-  const themeOverwrites = `
-/** Custom theme overwrites **/
-${formatObject(
-  themes,
-  ([name, value]) => `[data-theme=${name}] {
-  ${formatObject(value, ([key, value]) => `--color-${key}: ${value};`)}
-}`,
-  "\n",
-)}
-  `;
-
-  // Utilities
-  const utilities = `
-/** Custom static utilities **/
-${Object.entries(typography)
-  .map(
-    ([name, value]) => `@utility ${name} {
-  ${Object.entries(value)
-    .filter((entry) => entry?.[0] && entry?.[1])
-    .filter((entry) => entry !== undefined)
-    .map(([key, value]) => {
-      if (key === "font-size") {
-        if (typeof value === "number") {
-          return `@apply dr-text-${value};`;
+  // Typography utilities
+  const typographyUtilities = mapEntries(typography, (name, style) => {
+    const declarations = Object.entries(style)
+      .filter(([, v]) => v !== undefined && v !== null)
+      .flatMap(([key, value]) => {
+        if (key === "font-size") {
+          if (typeof value === "number") return [`@apply dr-text-${value};`];
+          const v = value as { mobile: number; desktop: number };
+          return [
+            prop("font-size", scalingCalc(v.mobile)),
+            atRule(`variant dt`, [prop("font-size", scalingCalc(v.desktop))]),
+          ];
         }
+        if (typeof value === "object" && value !== null) {
+          const v = value as { mobile: string; desktop: string };
+          return [
+            prop(key, v.mobile),
+            atRule(`variant dt`, [prop(key, v.desktop)]),
+          ];
+        }
+        return [prop(key, String(value))];
+      });
 
-        return [
-          `font-size: ${scalingCalc(value.mobile)};`,
-          `@variant dt { font-size: ${scalingCalc(value.desktop)}; }`,
-        ].join("\n\t");
-      }
+    return atRule(`utility ${name}`, declarations);
+  });
 
-      if (typeof value === "object") {
-        return [`${key}: ${value.mobile};`, `@variant dt { ${key}: ${value.desktop}; }`].join(
-          "\n\t",
-        );
-      }
+  const utilities = [
+    comment("Custom static utilities"),
+    // Typography presets
+    ...typographyUtilities,
+    "",
+    // Responsive visibility
+    atRule("utility desktop-only", [
+      atRule("media (--mobile)", ["display: none !important;"]),
+    ]),
+    atRule("utility mobile-only", [
+      atRule("media (--desktop)", ["display: none !important;"]),
+    ]),
+    "",
+    // Layout grid
+    atRule("utility dr-grid", [
+      "display: grid;",
+      "grid-template-columns: repeat(var(--columns), 1fr);",
+      "column-gap: var(--gap);",
+    ]),
+    atRule("utility dr-layout-block", [
+      "margin-inline: auto;",
+      "width: calc(100% - 2 * var(--safe));",
+    ]),
+    atRule("utility dr-layout-block-inner", [
+      "padding-inline: var(--safe);",
+      "width: 100%;",
+    ]),
+    atRule("utility dr-layout-grid", [
+      "@apply dr-layout-block dr-grid;",
+    ]),
+    atRule("utility dr-layout-grid-inner", [
+      "@apply dr-layout-block-inner dr-grid;",
+    ]),
+  ].join("\n");
 
-      return `${key}: ${value};`;
-    })
-    .join("\n\t")}
-}`,
-  )
-  .join("\n")}
+  // Custom variants
+  const variants = [
+    comment("Custom variants"),
+    ...mapEntries(
+      themes,
+      (name) =>
+        `@custom-variant ${name} (&:where([data-theme=${name}], [data-theme=${name}] *));`,
+    ),
+  ].join("\n");
 
-@utility desktop-only {
-  @media (--mobile) {
-    display: none !important;
-  }
-}
-
-@utility mobile-only {
-  @media (--desktop) {
-    display: none !important;
-  }
-}
-
-@utility dr-grid {
-	display: grid;
-	grid-template-columns: repeat(var(--columns), 1fr);
-	column-gap: var(--gap);
-}
-
-@utility dr-layout-block {
-	margin-inline: auto;
-  width: calc(100% - 2 * var(--safe));
-}
-
-@utility dr-layout-block-inner {
-	padding-inline: var(--safe);
-	width: 100%;
-}
-
-@utility dr-layout-grid {
-	@apply dr-layout-block dr-grid;
-}
-
-@utility dr-layout-grid-inner {
-	@apply dr-layout-block-inner dr-grid;
-}`;
-
-  // Variants
-  const variants = `
-/** Custom variants **/
-${Object.keys(themes)
-  .map((name) => `@custom-variant ${name} (&:where([data-theme=${name}], [data-theme=${name}] *));`)
-  .join("\n")}`;
-
-  return [theme, themeOverwrites, utilities, variants].join("\n");
+  return [theme, themeOverwrites, utilities, variants].join("\n\n");
 }

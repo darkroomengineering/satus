@@ -1,4 +1,6 @@
-import { types } from "@theatre/core";
+import theatreCore from "@theatre/core";
+
+const { types } = theatreCore;
 import { useRef } from "react";
 import type { Group as ThreeGroup } from "three";
 import { useCurrentSheet } from ".";

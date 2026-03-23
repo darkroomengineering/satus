@@ -1,5 +1,6 @@
 import { useFrame, useThree } from "@react-three/fiber";
-import { types } from "@theatre/core";
+import theatreCore from "@theatre/core";
+const { types } = theatreCore;
 import { useEffect, useRef } from "react";
 import { useCurrentSheet } from "../../../dev/theatre";
 import { useTheatre } from "../../../dev/theatre/hooks/use-theatre";

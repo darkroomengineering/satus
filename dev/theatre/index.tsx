@@ -1,6 +1,9 @@
 "use client";
 
-import { getProject, type IProject, type ISheet, onChange } from "@theatre/core";
+import type { IProject, ISheet } from "@theatre/core";
+import theatreCore from "@theatre/core";
+
+const { getProject, onChange } = theatreCore;
 import {
   createContext,
   type PropsWithChildren,

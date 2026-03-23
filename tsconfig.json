@@ -1,6 +1,6 @@
 {
   "include": [".react-router/types/**/*", "**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "build", "styles/scripts"],
+  "exclude": ["node_modules", "build"],
   "compilerOptions": {
     "target": "ES2023",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],

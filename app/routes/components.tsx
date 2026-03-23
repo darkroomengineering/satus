@@ -1,6 +1,7 @@
 import { Image } from "~/components/image";
 import { Link } from "~/components/link";
 import { Marquee } from "~/components/marquee";
+import { Wrapper } from "~/components/wrapper";
 import type { Route } from "./+types/components";
 
 export function meta(_args: Route.MetaArgs) {
@@ -12,7 +13,7 @@ export function meta(_args: Route.MetaArgs) {
 
 export default function Components() {
   return (
-    <div className="flex min-h-dvh flex-col gap-16 pt-32 pb-24 font-mono">
+    <Wrapper className="gap-16 pt-32 pb-24 font-mono">
       <header className="px-safe">
         <h1 className="dt:text-[13px] text-[12px] uppercase opacity-50">Components</h1>
       </header>
@@ -57,6 +58,6 @@ export default function Components() {
           <span className="px-4 text-2xl uppercase opacity-40">•</span>
         </Marquee>
       </section>
-    </div>
+    </Wrapper>
   );
 }

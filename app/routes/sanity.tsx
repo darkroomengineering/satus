@@ -1,5 +1,6 @@
 import type { SanityDocument } from "@sanity/client";
 import { Link } from "react-router";
+import { Wrapper } from "~/components/wrapper";
 import { client } from "~/integrations/sanity/client";
 import { allArticlesQuery } from "~/integrations/sanity/queries";
 import type { Route } from "./+types/sanity";
@@ -20,7 +21,7 @@ export default function SanityPage({ loaderData }: Route.ComponentProps) {
   const { articles } = loaderData;
 
   return (
-    <div className="max-dt:dr-px-16 flex min-h-dvh grow items-center justify-center font-mono uppercase">
+    <Wrapper className="max-dt:dr-px-16 items-center justify-center font-mono uppercase">
       <div className="flex flex-col items-center gap-gap">
         <h2 className="text-center">Sanity</h2>
         {articles && articles.length > 0 ? (
@@ -37,6 +38,6 @@ export default function SanityPage({ loaderData }: Route.ComponentProps) {
           <p className="opacity-50">No articles found. Add content in Sanity Studio.</p>
         )}
       </div>
-    </div>
+    </Wrapper>
   );
 }

@@ -18,3 +18,8 @@ const customSizes = {
 };
 
 export { breakpoints, customSizes, layout, screens };
+
+export type Breakpoints = typeof breakpoints;
+export type Screens = typeof screens;
+export type Layout = typeof layout;
+export type CustomSizes = typeof customSizes;

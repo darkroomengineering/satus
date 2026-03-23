@@ -17,7 +17,9 @@ const typography: TypeStyles = {
 
 export { fonts, typography };
 
-// UTIL TYPES
+export type Fonts = typeof fonts;
+export type Typography = TypeStyles;
+
 type TypeStyles = Record<
   string,
   {

@@ -19,3 +19,5 @@ export const easings = {
   "in-out-circ": "cubic-bezier(0.785, 0.135, 0.15, 0.86)",
   gleasing: "cubic-bezier(0.4, 0, 0, 1)",
 };
+
+export type Easings = typeof easings;

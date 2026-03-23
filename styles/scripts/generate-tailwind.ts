@@ -1,4 +1,7 @@
-import type { Config } from "../config";
+import type { Colors, Themes } from "../colors";
+import type { Easings } from "../easings";
+import type { Breakpoints, CustomSizes } from "../layout";
+import type { Fonts, Typography } from "../typography";
 import { atRule, block, comment, mapEntries, prop, scalingCalc, variables } from "./css";
 
 export function generateTailwind({
@@ -9,10 +12,15 @@ export function generateTailwind({
   fonts,
   themes,
   typography,
-}: Pick<
-  Config,
-  "breakpoints" | "colors" | "customSizes" | "easings" | "fonts" | "themes" | "typography"
->) {
+}: {
+  breakpoints: Breakpoints;
+  colors: Colors;
+  customSizes: CustomSizes;
+  easings: Easings;
+  fonts: Fonts;
+  themes: Themes;
+  typography: Typography;
+}) {
   const firstTheme = Object.values(themes)[0] ?? {};
 
   // @theme block — registers design tokens with Tailwind

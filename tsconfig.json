@@ -32,8 +32,7 @@
       "@/*": ["./*"],
       "@/hooks/*": ["./hooks/*"],
       "@/styles/*": ["./styles/*"],
-      "@/utils/*": ["./utils/*"],
-      "@/config": ["./styles/config.ts"]
+      "@/utils/*": ["./utils/*"]
     }
   }
 }

@@ -1,4 +1,6 @@
-import type { Config } from "../config";
+import type { Colors } from "../colors";
+import type { Easings } from "../easings";
+import type { CustomSizes, Layout, Screens } from "../layout";
 import { atRule, block, mapEntries, prop, scalingCalc, variable } from "./css";
 
 export function generateRoot({
@@ -7,7 +9,13 @@ export function generateRoot({
   easings,
   layout,
   screens,
-}: Pick<Config, "colors" | "customSizes" | "easings" | "layout" | "screens">) {
+}: {
+  colors: Colors;
+  customSizes: CustomSizes;
+  easings: Easings;
+  layout: Layout;
+  screens: Screens;
+}) {
   return block(":root", [
     // Device dimensions
     variable("device-width", screens.mobile.width),

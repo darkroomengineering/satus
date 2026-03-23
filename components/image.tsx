@@ -1,6 +1,6 @@
 import cn from "clsx";
 import type { ComponentProps } from "react";
-import { breakpoints } from "@/styles/config";
+import { breakpoints } from "@/styles/layout";
 
 export interface ImageProps extends ComponentProps<"img"> {
   /** CSS object-fit property */

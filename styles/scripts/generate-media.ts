@@ -1,7 +1,7 @@
-import type { Config } from "../config";
+import type { Breakpoints } from "../layout";
 import { atRule } from "./css";
 
-export function generateMedia({ breakpoints }: Pick<Config, "breakpoints">) {
+export function generateMedia({ breakpoints }: { breakpoints: Breakpoints }) {
   return [
     atRule(`custom-media --hover (hover: hover)`),
     atRule(`custom-media --mobile (width <= ${breakpoints.dt - 0.02}px)`),

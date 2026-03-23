@@ -8,8 +8,8 @@ import "@/styles/css/media.css";
 import { Footer } from "./components/footer";
 import { Header } from "./components/header";
 
-const OrchestraTools = lazy(() => import("../features/dev"));
-const GlobalCanvas = lazy(() => import("../features/webgl/components/global-canvas"));
+const OrchestraTools = lazy(() => import("../dev"));
+const GlobalCanvas = lazy(() => import("../webgl/components/global-canvas"));
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (

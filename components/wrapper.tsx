@@ -1,6 +1,6 @@
 import cn from "clsx";
 import type { LenisOptions } from "lenis";
-import { Canvas } from "../features/webgl/components/canvas";
+import { Canvas } from "../webgl/components/canvas";
 import { Lenis } from "./lenis";
 
 interface WrapperProps extends React.HTMLAttributes<HTMLElement> {

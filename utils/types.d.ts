@@ -1,31 +1,14 @@
-// Type augmentations and module declarations
-
-// React CSS custom properties support
 import "react";
 
+// Allow CSS custom properties in React's style prop
 declare module "react" {
   interface CSSProperties {
     [key: `--${string}`]: string | number;
   }
 }
 
-// Global window extensions
 declare global {
   interface Window {
-    hbspt?: {
-      forms: {
-        create: (options: {
-          portalId?: string;
-          formId: string;
-          target: string;
-          submitButtonClass?: string;
-          errorMessageClass?: string;
-          cssClass?: string;
-          onFormReady?: () => void;
-          onFormSubmitted?: () => void;
-        }) => void;
-      };
-    };
     THEATRE_PROJECT_ID?: string;
   }
 }

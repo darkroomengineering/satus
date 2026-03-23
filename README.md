@@ -9,25 +9,25 @@ A React Router starter with React 19, Tailwind CSS v4, and optional WebGL. _Satu
 | Tool    | Version   |
 | ------- | --------- |
 | Node.js | >= 22.0.0 |
-| pnpm    | >= 10.0.0 |
+| Bun     | >= 1.3.5  |
 
 ## Quick Start
 
 ```bash
-pnpm install
+bun install
 cp .env.example .env.local
-pnpm dev
+bun dev
 ```
 
 ## Tech Stack
 
-| Category     | Technologies                              |
-| ------------ | ----------------------------------------- |
+| Category     | Technologies                               |
+| ------------ | ------------------------------------------ |
 | Framework    | React Router 7 (SSR), React 19, TypeScript |
 | Styling      | Tailwind CSS v4, CSS Modules, Lightning CSS |
 | Optional     | React Three Fiber, GSAP, Theatre.js, Sanity |
-| Tooling      | Vite+, pnpm, Oxlint, Oxfmt               |
-| Env          | t3-env, Valibot                           |
+| Tooling      | Vite 8, Bun, Oxlint, Oxfmt                 |
+| Env          | t3-env, Valibot                            |
 
 ## Project Structure
 
@@ -45,11 +45,12 @@ webgl/                  # 3D graphics system (R3F)
 ## Commands
 
 ```bash
-vp dev               # Dev server
-vp build             # Production build
-vp check             # Lint + format + typecheck
-vp lint              # Oxlint
-vp fmt               # Oxfmt
+bun dev              # Dev server
+bun run build        # Production build
+bun run check        # Lint + format + typecheck
+bun run lint         # Oxlint
+bun run format       # Oxfmt
+bun run typecheck    # TypeScript check
 ```
 
 ## Key Conventions

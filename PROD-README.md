@@ -3,22 +3,22 @@
 ## Quick Start
 
 ```bash
-pnpm install
+bun install
 vercel link && vercel env pull
-pnpm dev
+bun dev
 ```
 
 ## Scripts
 
 | Command          | Description        |
 | ---------------- | ------------------ |
-| `vp dev`         | Development server |
-| `vp build`       | Production build   |
-| `vp check`       | Lint + typecheck   |
+| `bun dev`        | Development server |
+| `bun run build`  | Production build   |
+| `bun run check`  | Lint + typecheck   |
 
 ## Tech Stack
 
-React Router 7 (SSR), React 19, TypeScript, Tailwind CSS v4, Vite+
+React Router 7 (SSR), React 19, TypeScript, Tailwind CSS v4, Vite 8
 
 ## Project Structure
 
@@ -39,11 +39,11 @@ Push to `main` branch for Vercel deployment.
 
 ## Troubleshooting
 
-| Issue               | Solution                     |
-| ------------------- | ---------------------------- |
-| Build fails         | `pnpm install` + check envs |
-| Styles not updating | Restart dev server           |
-| CMS not connecting  | Check Sanity env vars        |
+| Issue               | Solution                    |
+| ------------------- | --------------------------- |
+| Build fails         | `bun install` + check envs |
+| Styles not updating | Restart dev server          |
+| CMS not connecting  | Check Sanity env vars       |
 
 ---
 

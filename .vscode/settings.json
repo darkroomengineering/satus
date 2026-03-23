@@ -5,6 +5,5 @@
     "source.fixAll.oxc": "explicit"
   },
   "css.lint.unknownAtRules": "ignore",
-  "tailwindCSS.experimental.configFile": "styles/css/tailwind.css",
-  "oxc.fmt.configPath": "./vite.config.ts"
+  "tailwindCSS.experimental.configFile": "styles/css/tailwind.css"
 }

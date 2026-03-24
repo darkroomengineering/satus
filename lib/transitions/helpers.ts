@@ -42,6 +42,7 @@ export function wrapExit(
   fn: ExitFunction,
   resolvers: Map<string, () => void>,
   info: TransitionInfo,
+  enter: () => void,
 ): ExitHandle {
   let cleanup: CleanupFunction | null = null;
 
@@ -57,7 +58,7 @@ export function wrapExit(
     resolvers.set(id, done);
 
     try {
-      const result = fn(done, info);
+      const result = fn({ done, enter, info });
       if (isCleanup(result)) {
         cleanup = result;
       } else if (isThenable(result)) {
@@ -91,7 +92,7 @@ export function runEnter(fn: EnterFunction, info: TransitionInfo): EnterHandle {
   let cleanup: CleanupFunction | null = null;
 
   try {
-    const result = fn(info);
+    const result = fn({ info });
     if (isCleanup(result)) {
       cleanup = result;
       return { promise: Promise.resolve(), cleanup };
@@ -129,19 +130,20 @@ export function collectExits(
   eventMap: Map<string, TransitionEventCallbacks>,
   resolvers: Map<string, () => void>,
   info: TransitionInfo,
+  enter: () => void,
 ): CollectedHandle {
   const cleanups: CleanupFunction[] = [];
   const promises: Array<Promise<void>> = [];
 
   for (const [id, fn] of exitMap) {
-    const handle = wrapExit(id, fn, resolvers, info);
+    const handle = wrapExit(id, fn, resolvers, info, enter);
     promises.push(handle.promise);
     if (handle.cleanup) cleanups.push(handle.cleanup);
   }
 
   for (const [id, config] of eventMap) {
     if (config.onExit) {
-      const handle = wrapExit(`evt:${id}`, config.onExit, resolvers, info);
+      const handle = wrapExit(`evt:${id}`, config.onExit, resolvers, info, enter);
       promises.push(handle.promise);
       if (handle.cleanup) cleanups.push(handle.cleanup);
     }

@@ -21,6 +21,8 @@ export type { TransitionDebugState, DebugPageState } from "./debug";
 export type {
   Thenable,
   CleanupFunction,
+  ExitContext,
+  EnterContext,
   InitialFunction,
   TransitionPhase,
   TransitionDirection,

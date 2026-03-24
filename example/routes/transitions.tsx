@@ -3,9 +3,11 @@ import { Outlet, useLocation } from "react-router";
 import { Link } from "~/components/link";
 
 const PAGES = [
-  { href: "/transitions/red", label: "Red", color: "bg-red" },
-  { href: "/transitions/blue", label: "Blue", color: "bg-blue" },
-  { href: "/transitions/green", label: "Green", color: "bg-green" },
+  { href: "/transitions/auto-done", label: "Auto-Done", desc: "return tween" },
+  { href: "/transitions/callback", label: "Callback", desc: "done()" },
+  { href: "/transitions/cleanup", label: "Cleanup", desc: "reversal" },
+  { href: "/transitions/initial", label: "Initial", desc: "overlap prep" },
+  { href: "/transitions/no-transition", label: "None", desc: "instant" },
 ];
 
 export default function TransitionsLayout() {
@@ -14,7 +16,7 @@ export default function TransitionsLayout() {
   return (
     <>
       <Outlet />
-      <nav className="fixed bottom-safe left-1/2 z-10 flex -translate-x-1/2 gap-2 font-mono text-[11px]">
+      <nav className="fixed bottom-safe left-1/2 z-10 flex max-w-[90vw] -translate-x-1/2 gap-1 overflow-x-auto font-mono text-[10px]">
         {PAGES.map((page) => {
           const active = pathname === page.href;
           return (
@@ -22,14 +24,14 @@ export default function TransitionsLayout() {
               key={page.href}
               href={page.href}
               className={cn(
-                "flex items-center gap-2 border px-4 py-2 transition-colors",
+                "flex flex-col items-center border px-3 py-2 transition-colors",
                 active
                   ? "border-white/30 bg-white/10"
                   : "border-white/10 bg-white/5 hover:border-white/20",
               )}
             >
-              <div className={cn("size-2 rounded-full", page.color)} />
-              <span className={active ? "opacity-100" : "opacity-50"}>{page.label}</span>
+              <span className={active ? "opacity-100" : "opacity-60"}>{page.label}</span>
+              <span className="opacity-30">{page.desc}</span>
             </Link>
           );
         })}

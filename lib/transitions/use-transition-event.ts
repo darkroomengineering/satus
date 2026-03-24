@@ -10,10 +10,8 @@ export interface TransitionEventConfig {
  * Participate in page transitions from a persistent component
  * (header, footer, WebGL canvas, etc.) that stays mounted across navigations.
  *
- * - `onExit(done, info)`: runs alongside page exit animations. Call `done()`
- *   or return a thenable when finished. `info` contains `from`, `to`, `direction`.
- *
- * - `onEnter(info)`: runs after the new page has mounted.
+ * - `onExit({ done, enter, info })`: runs alongside page exit animations.
+ * - `onEnter({ info })`: runs after the new page has mounted.
  */
 export function useTransitionEvent(config: TransitionEventConfig): void {
   const context = useContext(TransitionContext);
@@ -28,13 +26,13 @@ export function useTransitionEvent(config: TransitionEventConfig): void {
     if (!context) return;
 
     return context.registerEvent(id, {
-      onExit: (done, info) => {
+      onExit: (ctx) => {
         if (onExitRef.current) {
-          return onExitRef.current(done, info);
+          return onExitRef.current(ctx);
         }
-        done();
+        ctx.done();
       },
-      onEnter: (info) => onEnterRef.current?.(info),
+      onEnter: (ctx) => onEnterRef.current?.(ctx),
     });
   }, [context, id]);
 }

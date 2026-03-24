@@ -18,15 +18,18 @@ export interface RouteTransitionConfig {
   initial?: InitialFunction;
 
   /**
-   * Animate out. Call `done()` or return a thenable (GSAP tween / Promise).
-   * Receives `info` as second argument so the exiting page knows where
-   * the user is navigating to.
+   * Animate out. Receives `{ done, enter, info }`.
+   * - `done()` signals exit completion
+   * - `enter()` triggers the next page's enter early (before done)
+   * - Return a `Thenable` for auto-done
+   * - Return a `function` for cleanup on interruption
    */
   exit?: ExitFunction;
 
   /**
-   * Animate in. Runs after the page has mounted following a transition.
-   * Receives `info` with `from`, `to`, and `direction`.
+   * Animate in. Receives `{ info }`.
+   * Runs after the exiting page calls done() (or enter() for early start).
+   * Not called on initial page load.
    */
   enter?: EnterFunction;
 }
@@ -66,14 +69,14 @@ export function useRouteTransition(config: RouteTransitionConfig): {
   useEffect(() => {
     if (!context) return;
 
-    const exitWrapper: ExitFunction = (done, info) => {
+    const exitWrapper: ExitFunction = (ctx) => {
       if (exitRef.current) {
-        return exitRef.current(done, info);
+        return exitRef.current(ctx);
       }
-      done();
+      ctx.done();
     };
 
-    const enterWrapper: EnterFunction = (info) => enterRef.current?.(info);
+    const enterWrapper: EnterFunction = (ctx) => enterRef.current?.(ctx);
 
     const unregisterExit = context.registerExit(id, exitWrapper);
     const unregisterEnter = context.registerEnter(id, enterWrapper);

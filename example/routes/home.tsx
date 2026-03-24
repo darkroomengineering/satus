@@ -1,30 +1,33 @@
+import { useLayoutEffect } from "react";
 import { Wrapper } from "~/components/wrapper";
+import { PALETTES, useShaderStore } from "../store";
 import type { Route } from "./+types/home";
-import { Features } from "./home/features";
-import { GettingStarted } from "./home/getting-started";
 import { Hero } from "./home/hero";
-import { Presets } from "./home/presets";
-import { ValueProps } from "./home/value-props";
+import { Philosophy } from "./home/philosophy";
+import { StackSection } from "./home/stack-section";
 
 export function meta(_args: Route.MetaArgs) {
   return [
     { title: "Satus" },
     {
       name: "description",
-      content:
-        "React Router starter by darkroom.engineering — React 19, TypeScript strict, Tailwind v4",
+      content: "React Router starter by Darkroom Engineering — React 19, TypeScript, Tailwind v4",
     },
   ];
 }
 
 export default function Home() {
+  const setTargetPalette = useShaderStore((s) => s.setTargetPalette);
+
+  useLayoutEffect(() => {
+    setTargetPalette(PALETTES.home);
+  }, [setTargetPalette]);
+
   return (
     <Wrapper>
       <Hero />
-      <ValueProps />
-      <Features />
-      <Presets />
-      <GettingStarted />
+      <StackSection />
+      <Philosophy />
     </Wrapper>
   );
 }

@@ -1,0 +1,52 @@
+.page {
+  display: flex;
+  flex-direction: column;
+}
+
+.heroSection {
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.title {
+  font-family: var(--font-mono);
+  font-size: calc(48 / 375 * 100vw);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  line-height: 0.9;
+  color: var(--color-secondary);
+  text-align: center;
+
+  @media (--desktop) {
+    font-size: calc(140 / 1440 * 100vw);
+    letter-spacing: 0.25em;
+  }
+}
+
+.textSection {
+  min-height: 80svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(60 / 375 * 100vw) var(--safe);
+
+  @media (--desktop) {
+    padding: calc(120 / 1440 * 100vw) calc(200 / 1440 * 100vw);
+  }
+}
+
+.bodyText {
+  font-family: var(--font-mono);
+  font-size: calc(24 / 375 * 100vw);
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--color-secondary);
+  max-width: calc(900 / 1440 * 100vw);
+
+  @media (--desktop) {
+    font-size: calc(36 / 1440 * 100vw);
+  }
+}

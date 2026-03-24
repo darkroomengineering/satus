@@ -1,0 +1,47 @@
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(16 / 375 * 100vw) var(--safe);
+  font-family: var(--font-mono);
+  font-size: calc(10 / 375 * 100vw);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  mix-blend-mode: difference;
+
+  @media (--desktop) {
+    padding: calc(24 / 1440 * 100vw) var(--safe);
+    font-size: calc(11 / 1440 * 100vw);
+  }
+}
+
+.links,
+.right {
+  display: flex;
+  align-items: center;
+  gap: calc(20 / 375 * 100vw);
+
+  @media (--desktop) {
+    gap: calc(32 / 1440 * 100vw);
+  }
+}
+
+.link {
+  color: var(--color-secondary);
+  text-decoration: none;
+  opacity: 0.4;
+  transition: opacity 0.3s ease;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.active {
+  opacity: 1;
+}

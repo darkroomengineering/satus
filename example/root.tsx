@@ -4,11 +4,13 @@ import { ReactTempus } from "tempus/react";
 import { RealViewport } from "~/components/real-viewport";
 import { ThemeProvider } from "~/components/theme";
 import { TransitionRouter } from "~/lib/transitions";
+import { WebGLTunnel } from "~/webgl/components/tunnel";
 import "~/styles/css/index.css";
 import "~/styles/css/media.css";
+import { BackgroundShader } from "./components/background-shader";
 import { Footer } from "./components/footer";
-import { Header } from "./components/header";
-import { TransitionDebug } from "./components/transition-debug";
+import { Nav } from "./components/nav";
+import { PersistentWebGL } from "./components/persistent-webgl";
 
 const OrchestraTools = lazy(() => import("../dev"));
 const GlobalCanvas = lazy(() => import("../webgl/components/global-canvas"));
@@ -34,16 +36,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <ThemeProvider theme="dark" global>
-      <Header />
-      <TransitionRouter mode="overlap">
-        <TransitionDebug />
-      </TransitionRouter>
+      <Nav />
+      <TransitionRouter mode="overlap">{null}</TransitionRouter>
       <Footer />
       <RealViewport />
       <ReactTempus />
       <Suspense fallback={null}>
-        <GlobalCanvas />
+        <GlobalCanvas forceWebGL />
       </Suspense>
+      <PersistentWebGL>
+        <WebGLTunnel>
+          <BackgroundShader />
+        </WebGLTunnel>
+      </PersistentWebGL>
       {process.env.NODE_ENV === "development" && (
         <Suspense fallback={null}>
           <OrchestraTools />

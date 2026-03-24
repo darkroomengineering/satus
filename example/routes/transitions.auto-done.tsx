@@ -30,14 +30,13 @@ export default function AutoDonePage() {
         duration: 1.5,
         ease: "power3.in",
       }),
-    enter: () => {
+    enter: () =>
       gsap.to(pageRef.current, {
         opacity: 1,
         y: 0,
         duration: 1.2,
         ease: "power3.out",
-      });
-    },
+      }),
   });
 
   return (

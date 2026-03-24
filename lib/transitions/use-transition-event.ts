@@ -22,17 +22,21 @@ export function useTransitionEvent(config: TransitionEventConfig): void {
   onExitRef.current = config.onExit;
   onEnterRef.current = config.onEnter;
 
-  useEffect(() => {
-    if (!context) return;
+  const registerRef = useRef(context);
+  registerRef.current = context;
 
-    return context.registerEvent(id, {
-      onExit: (ctx) => {
+  useEffect(() => {
+    const ctx = registerRef.current;
+    if (!ctx) return;
+
+    return ctx.registerEvent(id, {
+      onExit: (exitCtx) => {
         if (onExitRef.current) {
-          return onExitRef.current(ctx);
+          return onExitRef.current(exitCtx);
         }
-        ctx.done();
+        exitCtx.done();
       },
-      onEnter: (ctx) => onEnterRef.current?.(ctx),
+      onEnter: (enterCtx) => onEnterRef.current?.(enterCtx),
     });
-  }, [context, id]);
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 }

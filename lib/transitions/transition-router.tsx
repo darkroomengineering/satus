@@ -27,6 +27,7 @@ import {
 } from "./context";
 import { collectExits, collectEnters, runCleanups, type CollectedHandle } from "./helpers";
 import type { TransitionPageState } from "./context";
+// TransitionPageState used for building page states in overlap mode
 
 // ---------------------------------------------------------------------------
 // TransitionRouter — top-level component
@@ -253,7 +254,14 @@ function WaitMode({
     registerEvent,
   };
 
-  return <TransitionContext.Provider value={contextValue}>{children}</TransitionContext.Provider>;
+  const outlet = useOutlet();
+
+  return (
+    <TransitionContext.Provider value={contextValue}>
+      {outlet}
+      {children}
+    </TransitionContext.Provider>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -269,8 +277,7 @@ interface RenderedPage {
 /** Handle exposed by PresencePage */
 interface PresencePageHandle {
   interrupt: () => Promise<void>;
-  triggerEnters: () => void;
-  getPhase: () => TransitionPhase;
+  triggerEnters: (onComplete?: () => void) => void;
 }
 
 function OverlapMode({
@@ -364,22 +371,54 @@ function OverlapMode({
   const latestPage = pages[pages.length - 1];
   const firstExiting = pages.length > 1 ? pages[0] : null;
 
-  // enter() trigger — idempotent, triggers entering page's animations.
-  // Called automatically when all exits complete, or manually from exit via info.enter().
-  const enterTriggeredRef = useRef(false);
-  const triggerEnter = useCallback(() => {
-    if (enterTriggeredRef.current) return;
-    enterTriggeredRef.current = true;
-    const enteringKey = latestPage?.key;
-    if (enteringKey) {
-      pageHandles.current.get(enteringKey)?.triggerEnters();
-    }
-  }, [latestPage?.key]);
+  // Per-page phases reported by PresencePage via onPhaseChange callback.
+  const [pagePhases, setPagePhases] = useState<Map<string, TransitionPhase>>(() => new Map());
 
-  // Reset enter trigger when transition starts
+  const handlePhaseChange = useCallback((key: string, newPhase: TransitionPhase) => {
+    setPagePhases((prev) => {
+      const next = new Map(prev);
+      next.set(key, newPhase);
+      return next;
+    });
+  }, []);
+
+  // Overlap-level phase tracks where we are in the transition lifecycle.
+  const [overlapPhase, setOverlapPhase] = useState<"idle" | "exiting" | "entering">("idle");
+
+  // enter() trigger — idempotent, triggers entering page's animations.
+  // When enters complete, removes the exiting page.
+  const enterTriggeredRef = useRef(false);
+  const exitingKeyRef = useRef<string | null>(null);
+  const triggerEnter = useCallback(
+    (exitingKey?: string) => {
+      if (exitingKey) exitingKeyRef.current = exitingKey;
+      if (enterTriggeredRef.current) return;
+      enterTriggeredRef.current = true;
+      setOverlapPhase("entering");
+      const enteringKey = latestPage?.key;
+      if (enteringKey) {
+        // Report entering phase directly from the parent
+        handlePhaseChange(enteringKey, "entering");
+        pageHandles.current.get(enteringKey)?.triggerEnters(() => {
+          // Enters complete → report idle, remove exiting page
+          handlePhaseChange(enteringKey, "idle");
+          setOverlapPhase("idle");
+          if (exitingKeyRef.current) {
+            removePage(exitingKeyRef.current);
+            exitingKeyRef.current = null;
+          }
+        });
+      }
+    },
+    [latestPage?.key, removePage, handlePhaseChange],
+  );
+
+  // Reset when transition starts / ends
   const prevTransitioningRef = useRef(false);
   if (isTransitioning && !prevTransitioningRef.current) {
     enterTriggeredRef.current = false;
+    // Can't setState during render, but we need overlapPhase to be "exiting"
+    // for the first render with 2 pages. Use the derived value below instead.
   }
 
   // Build info
@@ -407,29 +446,40 @@ function OverlapMode({
     prevTransitioningRef.current = isTransitioning;
   });
 
-  // When exiting page completes → trigger enter if not already triggered
+  // When exiting page completes → trigger enter, remove page after enters finish
   const onPageExitComplete = useCallback(
     (key: string) => {
-      triggerEnter();
-      removePage(key);
+      triggerEnter(key);
     },
-    [triggerEnter, removePage],
+    [triggerEnter],
   );
 
-  // Debug + document attribute: report at actual lifecycle moments
+  // Sync overlapPhase when transition starts
   useEffect(() => {
-    document.documentElement.dataset.transitionPhase = isTransitioning ? "exiting" : "idle";
+    if (isTransitioning) {
+      setOverlapPhase((prev) => (prev === "idle" ? "exiting" : prev));
+    }
   }, [isTransitioning]);
 
-  // Build page states for the top-level context by reading actual phase from handles
-  const pageStates: TransitionPageState[] = pages.map((page) => {
-    const handle = pageHandles.current.get(page.key);
-    const phase = handle?.getPhase() ?? (page.key === latestPage?.key ? "idle" : "exiting");
-    return { key: page.key, pathname: page.pathname, phase };
-  });
+  useEffect(() => {
+    document.documentElement.dataset.transitionPhase =
+      overlapPhase === "idle" ? "idle" : overlapPhase;
+  }, [overlapPhase]);
+
+  const pageStates: TransitionPageState[] = pages.map((page) => ({
+    key: page.key,
+    pathname: page.pathname,
+    phase: pagePhases.get(page.key) ?? "idle",
+  }));
+
+  const topPhase: TransitionPhase = isTransitioning
+    ? overlapPhase === "idle"
+      ? "exiting"
+      : overlapPhase
+    : "idle";
 
   const topContextValue: TransitionContextValue = {
-    phase: isTransitioning ? "exiting" : "idle",
+    phase: topPhase,
     from: infoRef.current?.from ?? null,
     to: infoRef.current?.to ?? null,
     mode: "overlap",
@@ -459,6 +509,7 @@ function OverlapMode({
               timeout={timeout}
               onExitComplete={() => onPageExitComplete(page.key)}
               onEnterRequest={triggerEnter}
+              onPhaseChange={(p) => handlePhaseChange(page.key, p)}
               style={
                 !isPresent
                   ? {
@@ -492,11 +543,21 @@ interface PresencePageProps {
   timeout: number;
   onExitComplete: () => void;
   onEnterRequest: () => void;
+  onPhaseChange: (phase: TransitionPhase) => void;
   style?: React.CSSProperties | undefined;
 }
 
 const PresencePage = forwardRef(function PresencePage(
-  { children, isPresent, info, timeout, onExitComplete, onEnterRequest, style }: PresencePageProps,
+  {
+    children,
+    isPresent,
+    info,
+    timeout,
+    onExitComplete,
+    onEnterRequest,
+    onPhaseChange,
+    style,
+  }: PresencePageProps,
   ref: Ref<PresencePageHandle>,
 ) {
   const regs = useRegistrations();
@@ -505,7 +566,20 @@ const PresencePage = forwardRef(function PresencePage(
   const cleanupsRef = useRef<CleanupFunction[]>([]);
 
   const entersTriggeredRef = useRef(false);
-  const [phase, setPhase] = useState<TransitionPhase>(!isPresent ? "exiting" : "idle");
+  const [phase, setPhaseRaw] = useState<TransitionPhase>(!isPresent ? "exiting" : "idle");
+
+  const onPhaseChangeRef = useRef(onPhaseChange);
+  onPhaseChangeRef.current = onPhaseChange;
+
+  const setPhase = useCallback((p: TransitionPhase) => {
+    setPhaseRaw(p);
+    onPhaseChangeRef.current(p);
+  }, []);
+
+  // Report initial phase on mount
+  useEffect(() => {
+    onPhaseChangeRef.current(phase);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Expose handle to parent
   useImperativeHandle(
@@ -523,20 +597,25 @@ const PresencePage = forwardRef(function PresencePage(
 
         onExitComplete();
       },
-      triggerEnters: () => {
+      triggerEnters: (onComplete?: () => void) => {
         if (entersTriggeredRef.current || !info) return;
         entersTriggeredRef.current = true;
         setPhase("entering");
 
-        // Wait one tick for component effects to register
-        setTimeout(() => {
+        // Use rAF to ensure React commits the "entering" state before
+        // running enters. setTimeout(0) races with React's MessageChannel
+        // scheduler and can cause "entering" to be batched away.
+        requestAnimationFrame(() => {
           const handle = regs.runEnters(info);
           cleanupsRef.current.push(...handle.cleanups);
-        }, 0);
+          void handle.promise.then(() => {
+            setPhase("idle");
+            onComplete?.();
+          });
+        });
       },
-      getPhase: () => phase,
     }),
-    [onExitComplete, info, regs, phase],
+    [onExitComplete, info, regs],
   );
 
   // When isPresent flips to false → run all registered exits

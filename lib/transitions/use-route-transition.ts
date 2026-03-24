@@ -49,9 +49,15 @@ export function useRouteTransition(config: RouteTransitionConfig): {
   exitRef.current = config.exit;
   enterRef.current = config.enter;
 
+  // Capture registration functions in a ref so the effect doesn't re-fire
+  // when the context value object changes (it changes every render due to
+  // pages/phase updates, but the registration functions are stable).
+  const registerRef = useRef(context);
+  registerRef.current = context;
+
   // Apply initial state before first paint when mounting as the ENTERING page.
-  // Only fires for phase "entering" — exiting pages should start visible.
-  // Does NOT fire on cold page load (phase "idle").
+  // Fires when there's an active transition (from/to set) and we're NOT the exiting page.
+  // Does NOT fire on cold page load (from/to are null).
   const phaseOnMount = useRef(context?.phase);
   const infoOnMount = useRef(
     context?.from && context?.to
@@ -60,32 +66,34 @@ export function useRouteTransition(config: RouteTransitionConfig): {
   );
 
   useLayoutEffect(() => {
-    if (phaseOnMount.current !== "entering") return;
     if (!infoOnMount.current) return;
+    if (phaseOnMount.current === "exiting") return;
     initialRef.current?.(infoOnMount.current);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Register exit + enter with TransitionRouter
+  // Register exit + enter — runs once on mount, cleans up on unmount.
+  // Uses ref to avoid re-registering when context object identity changes.
   useEffect(() => {
-    if (!context) return;
+    const ctx = registerRef.current;
+    if (!ctx) return;
 
-    const exitWrapper: ExitFunction = (ctx) => {
+    const exitWrapper: ExitFunction = (exitCtx) => {
       if (exitRef.current) {
-        return exitRef.current(ctx);
+        return exitRef.current(exitCtx);
       }
-      ctx.done();
+      exitCtx.done();
     };
 
-    const enterWrapper: EnterFunction = (ctx) => enterRef.current?.(ctx);
+    const enterWrapper: EnterFunction = (enterCtx) => enterRef.current?.(enterCtx);
 
-    const unregisterExit = context.registerExit(id, exitWrapper);
-    const unregisterEnter = context.registerEnter(id, enterWrapper);
+    const unregisterExit = ctx.registerExit(id, exitWrapper);
+    const unregisterEnter = ctx.registerEnter(id, enterWrapper);
 
     return () => {
       unregisterExit();
       unregisterEnter();
     };
-  }, [context, id]);
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
     phase: context?.phase ?? "idle",

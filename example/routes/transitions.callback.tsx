@@ -44,24 +44,17 @@ export default function CallbackPage() {
     },
     enter: () => {
       const items = blocksRef.current?.children;
-      gsap.to(pageRef.current, { opacity: 1, duration: 0.4 });
-      gsap.to(titleRef.current, {
-        opacity: 1,
-        x: 0,
-        duration: 1.4,
-        ease: "power3.out",
-        delay: 0.1,
-      });
+      const tl = gsap.timeline();
+      tl.to(pageRef.current, { opacity: 1, duration: 0.4 });
+      tl.to(titleRef.current, { opacity: 1, x: 0, duration: 1.4, ease: "power3.out" }, 0.1);
       if (items?.length) {
-        gsap.to(items, {
-          opacity: 1,
-          scale: 1,
-          duration: 0.8,
-          ease: "back.out(1.5)",
-          stagger: 0.2,
-          delay: 0.3,
-        });
+        tl.to(
+          items,
+          { opacity: 1, scale: 1, duration: 0.8, ease: "back.out(1.5)", stagger: 0.2 },
+          0.3,
+        );
       }
+      return () => tl.revert();
     },
   });
 

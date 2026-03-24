@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { Link, Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
+import { Link, Links, Meta, Scripts, ScrollRestoration } from "react-router";
 import { ReactTempus } from "tempus/react";
 import { RealViewport } from "~/components/real-viewport";
 import { ThemeProvider } from "~/components/theme";
@@ -36,7 +36,6 @@ export default function App() {
     <ThemeProvider theme="dark" global>
       <Header />
       <TransitionRouter mode="overlap">
-        <Outlet />
         <TransitionDebug />
       </TransitionRouter>
       <Footer />

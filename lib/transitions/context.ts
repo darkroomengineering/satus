@@ -9,14 +9,15 @@ export interface Thenable {
   then(resolve: (...args: unknown[]) => void, reject?: (...args: unknown[]) => void): unknown;
 }
 
-export type ExitFunction = (done: () => void) => void | Thenable;
-export type EnterFunction = () => void | Thenable;
-
 export interface TransitionInfo {
   from: string;
   to: string;
   direction: TransitionDirection;
 }
+
+export type ExitFunction = (done: () => void, info: TransitionInfo) => void | Thenable;
+export type EnterFunction = (info: TransitionInfo) => void | Thenable;
+export type InitialFunction = (info: TransitionInfo) => void;
 
 export interface TransitionEventCallbacks {
   onExit?: ExitFunction;

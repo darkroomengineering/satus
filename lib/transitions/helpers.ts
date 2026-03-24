@@ -1,4 +1,10 @@
-import type { ExitFunction, EnterFunction, Thenable, TransitionEventCallbacks } from "./context";
+import type {
+  ExitFunction,
+  EnterFunction,
+  Thenable,
+  TransitionEventCallbacks,
+  TransitionInfo,
+} from "./context";
 
 /**
  * Wrap an exit function in a Promise that resolves when done() is called.
@@ -9,6 +15,7 @@ export function wrapExit(
   id: string,
   fn: ExitFunction,
   resolvers: Map<string, () => void>,
+  info: TransitionInfo,
 ): Promise<void> {
   return new Promise<void>((resolve) => {
     let resolved = false;
@@ -22,7 +29,7 @@ export function wrapExit(
     resolvers.set(id, done);
 
     try {
-      const result = fn(done);
+      const result = fn(done, info);
       if (isThenable(result)) {
         result.then(done, (err: unknown) => {
           console.warn("[TransitionRouter] Exit animation error:", err);
@@ -40,9 +47,9 @@ export function wrapExit(
  * Run an enter function. If it returns a thenable, await it.
  * Errors are caught — enter animations are fire-and-forget from the system's perspective.
  */
-export function runEnter(fn: EnterFunction): Promise<void> {
+export function runEnter(fn: EnterFunction, info: TransitionInfo): Promise<void> {
   try {
-    const result = fn();
+    const result = fn(info);
     if (isThenable(result)) {
       return new Promise<void>((resolve) => {
         result.then(
@@ -68,16 +75,17 @@ export function collectExits(
   exitMap: Map<string, ExitFunction>,
   eventMap: Map<string, TransitionEventCallbacks>,
   resolvers: Map<string, () => void>,
+  info: TransitionInfo,
 ): Promise<void> {
   const promises: Array<Promise<void>> = [];
 
   for (const [id, fn] of exitMap) {
-    promises.push(wrapExit(id, fn, resolvers));
+    promises.push(wrapExit(id, fn, resolvers, info));
   }
 
   for (const [id, config] of eventMap) {
     if (config.onExit) {
-      promises.push(wrapExit(`evt:${id}`, config.onExit, resolvers));
+      promises.push(wrapExit(`evt:${id}`, config.onExit, resolvers, info));
     }
   }
 
@@ -90,16 +98,17 @@ export function collectExits(
 export function collectEnters(
   enterMap: Map<string, EnterFunction>,
   eventMap: Map<string, TransitionEventCallbacks>,
+  info: TransitionInfo,
 ): Promise<void> {
   const promises: Array<Promise<void>> = [];
 
   for (const [, fn] of enterMap) {
-    promises.push(runEnter(fn));
+    promises.push(runEnter(fn, info));
   }
 
   for (const [, config] of eventMap) {
     if (config.onEnter) {
-      promises.push(runEnter(config.onEnter));
+      promises.push(runEnter(config.onEnter, info));
     }
   }
 

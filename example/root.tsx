@@ -37,9 +37,9 @@ export default function App() {
       <Header />
       <TransitionRouter mode="overlap">
         <Outlet />
-        <TransitionDebug />
       </TransitionRouter>
       <Footer />
+      <TransitionDebug />
       <RealViewport />
       <ReactTempus />
       <Suspense fallback={null}>

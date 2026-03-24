@@ -1,27 +1,115 @@
-import { useTransitionState } from "~/lib/transitions";
+import { useTransitionDebug } from "~/lib/transitions";
+
+const PHASE_COLOR: Record<string, string> = {
+  idle: "#888",
+  exiting: "#ff4433",
+  entering: "#33ff44",
+};
 
 export function TransitionDebug() {
-  const { phase, from, to } = useTransitionState();
+  const { mode, pages, info, isTransitioning } = useTransitionDebug();
 
   return (
-    <div className="pointer-events-none fixed right-safe bottom-safe z-50 font-mono text-[10px]">
-      <div className="pointer-events-auto flex flex-col gap-1 border border-white/10 bg-black/80 p-3 backdrop-blur-sm">
-        <div className="flex items-center gap-2">
+    <div
+      className="pointer-events-none fixed right-safe bottom-safe z-50"
+      style={{ fontFamily: "SF Mono, Menlo, monospace", fontSize: 10, lineHeight: 1.5 }}
+    >
+      <div
+        className="pointer-events-auto"
+        style={{
+          background: "#0a0a0a",
+          border: "1px solid #222",
+          borderRadius: 6,
+          padding: "8px 10px",
+          minWidth: 200,
+          color: "#ddd",
+        }}
+      >
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
           <div
-            className="size-2 rounded-full"
             style={{
-              backgroundColor: phase === "idle" ? "#666" : phase === "exiting" ? "#f43" : "#3f4",
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              background: isTransitioning ? "#ff4433" : "#333",
+              boxShadow: isTransitioning ? "0 0 6px #ff443388" : "none",
             }}
           />
-          <span className="uppercase tracking-widest opacity-50">transition</span>
+          <span style={{ color: "#999", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+            Transition
+          </span>
+          <span
+            style={{
+              marginLeft: "auto",
+              padding: "1px 5px",
+              background: "#1a1a1a",
+              borderRadius: 3,
+              color: "#999",
+              fontSize: 9,
+            }}
+          >
+            {mode}
+          </span>
         </div>
-        <div className="grid grid-cols-[3rem_1fr] gap-x-3 gap-y-0.5">
-          <span className="opacity-40">phase</span>
-          <code>{phase}</code>
-          <span className="opacity-40">from</span>
-          <code>{from ?? "—"}</code>
-          <span className="opacity-40">to</span>
-          <code>{to ?? "—"}</code>
+
+        {/* Route info */}
+        {info ? (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "4px 0",
+              borderTop: "1px solid #1a1a1a",
+            }}
+          >
+            <span style={{ color: "#aaa" }}>{info.from}</span>
+            <span style={{ color: "#666" }}>{info.direction === "pop" ? "\u2190" : "\u2192"}</span>
+            <span style={{ color: "#ccc" }}>{info.to}</span>
+          </div>
+        ) : (
+          <div style={{ padding: "4px 0", borderTop: "1px solid #1a1a1a", color: "#666" }}>
+            no active transition
+          </div>
+        )}
+
+        {/* Page stack */}
+        <div style={{ borderTop: "1px solid #1a1a1a", paddingTop: 4, marginTop: 4 }}>
+          <div style={{ color: "#999", marginBottom: 3 }}>
+            pages <span style={{ color: "#bbb" }}>({pages.length})</span>
+          </div>
+          {pages.map((page, i) => {
+            const color = PHASE_COLOR[page.phase] ?? "#888";
+            const isCurrent = i === pages.length - 1;
+            return (
+              <div
+                key={page.key}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "2px 0",
+                  borderLeft: `2px solid ${color}`,
+                  paddingLeft: 6,
+                  marginBottom: 1,
+                }}
+              >
+                <span style={{ color: isCurrent ? "#fff" : "#aaa", flex: 1 }}>{page.pathname}</span>
+                <span
+                  style={{
+                    color,
+                    fontSize: 9,
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  {page.phase}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

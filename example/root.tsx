@@ -3,10 +3,12 @@ import { Link, Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-rou
 import { ReactTempus } from "tempus/react";
 import { RealViewport } from "~/components/real-viewport";
 import { ThemeProvider } from "~/components/theme";
+import { TransitionRouter } from "~/lib/transitions";
 import "~/styles/css/index.css";
 import "~/styles/css/media.css";
 import { Footer } from "./components/footer";
 import { Header } from "./components/header";
+import { TransitionDebug } from "./components/transition-debug";
 
 const OrchestraTools = lazy(() => import("../dev"));
 const GlobalCanvas = lazy(() => import("../webgl/components/global-canvas"));
@@ -33,7 +35,10 @@ export default function App() {
   return (
     <ThemeProvider theme="dark" global>
       <Header />
-      <Outlet />
+      <TransitionRouter mode="overlap">
+        <Outlet />
+        <TransitionDebug />
+      </TransitionRouter>
       <Footer />
       <RealViewport />
       <ReactTempus />

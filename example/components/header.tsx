@@ -14,6 +14,7 @@ const LINKS = [
 
 const EXAMPLES = [
   { href: "/components", label: "components" },
+  { href: "/transitions", label: "transitions" },
   { href: "/sanity", label: "sanity" },
 ];
 

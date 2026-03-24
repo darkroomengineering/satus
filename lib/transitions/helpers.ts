@@ -1,23 +1,51 @@
 import type {
   ExitFunction,
   EnterFunction,
+  CleanupFunction,
   Thenable,
   TransitionEventCallbacks,
   TransitionInfo,
 } from "./context";
 
+// ---------------------------------------------------------------------------
+// Return value discrimination
+// ---------------------------------------------------------------------------
+
+function isThenable(value: unknown): value is Thenable {
+  return (
+    value != null &&
+    typeof value !== "function" &&
+    typeof (value as Record<string, unknown>).then === "function"
+  );
+}
+
+function isCleanup(value: unknown): value is CleanupFunction {
+  return typeof value === "function";
+}
+
+// ---------------------------------------------------------------------------
+// Exit handling
+// ---------------------------------------------------------------------------
+
+export interface ExitHandle {
+  promise: Promise<void>;
+  cleanup: CleanupFunction | null;
+}
+
 /**
- * Wrap an exit function in a Promise that resolves when done() is called.
- * If the function returns a thenable, done() is auto-called on resolve.
- * Errors are caught and logged — transitions never get stuck.
+ * Run a single exit function. Returns a handle with:
+ * - `promise` that resolves when done() is called (or auto-done via thenable)
+ * - `cleanup` function if the exit returned one (for interruption)
  */
 export function wrapExit(
   id: string,
   fn: ExitFunction,
   resolvers: Map<string, () => void>,
   info: TransitionInfo,
-): Promise<void> {
-  return new Promise<void>((resolve) => {
+): ExitHandle {
+  let cleanup: CleanupFunction | null = null;
+
+  const promise = new Promise<void>((resolve) => {
     let resolved = false;
     const done = () => {
       if (resolved) return;
@@ -30,7 +58,9 @@ export function wrapExit(
 
     try {
       const result = fn(done, info);
-      if (isThenable(result)) {
+      if (isCleanup(result)) {
+        cleanup = result;
+      } else if (isThenable(result)) {
         result.then(done, (err: unknown) => {
           console.warn("[TransitionRouter] Exit animation error:", err);
           done();
@@ -41,17 +71,33 @@ export function wrapExit(
       done();
     }
   });
+
+  return { promise, cleanup };
+}
+
+// ---------------------------------------------------------------------------
+// Enter handling
+// ---------------------------------------------------------------------------
+
+export interface EnterHandle {
+  promise: Promise<void>;
+  cleanup: CleanupFunction | null;
 }
 
 /**
- * Run an enter function. If it returns a thenable, await it.
- * Errors are caught — enter animations are fire-and-forget from the system's perspective.
+ * Run a single enter function. Returns a handle with promise + cleanup.
  */
-export function runEnter(fn: EnterFunction, info: TransitionInfo): Promise<void> {
+export function runEnter(fn: EnterFunction, info: TransitionInfo): EnterHandle {
+  let cleanup: CleanupFunction | null = null;
+
   try {
     const result = fn(info);
+    if (isCleanup(result)) {
+      cleanup = result;
+      return { promise: Promise.resolve(), cleanup };
+    }
     if (isThenable(result)) {
-      return new Promise<void>((resolve) => {
+      const promise = new Promise<void>((resolve) => {
         result.then(
           () => resolve(),
           (err: unknown) => {
@@ -60,61 +106,102 @@ export function runEnter(fn: EnterFunction, info: TransitionInfo): Promise<void>
           },
         );
       });
+      return { promise, cleanup };
     }
   } catch (err) {
     console.warn("[TransitionRouter] Enter animation error:", err);
   }
-  return Promise.resolve();
+
+  return { promise: Promise.resolve(), cleanup };
 }
 
-/**
- * Run all registered exit functions (page exits + persistent component exits).
- * Returns a Promise that resolves when ALL have completed.
- */
+// ---------------------------------------------------------------------------
+// Collectors — run all registered functions, return combined handle
+// ---------------------------------------------------------------------------
+
+export interface CollectedHandle {
+  promise: Promise<void>;
+  cleanups: CleanupFunction[];
+}
+
 export function collectExits(
   exitMap: Map<string, ExitFunction>,
   eventMap: Map<string, TransitionEventCallbacks>,
   resolvers: Map<string, () => void>,
   info: TransitionInfo,
-): Promise<void> {
+): CollectedHandle {
+  const cleanups: CleanupFunction[] = [];
   const promises: Array<Promise<void>> = [];
 
   for (const [id, fn] of exitMap) {
-    promises.push(wrapExit(id, fn, resolvers, info));
+    const handle = wrapExit(id, fn, resolvers, info);
+    promises.push(handle.promise);
+    if (handle.cleanup) cleanups.push(handle.cleanup);
   }
 
   for (const [id, config] of eventMap) {
     if (config.onExit) {
-      promises.push(wrapExit(`evt:${id}`, config.onExit, resolvers, info));
+      const handle = wrapExit(`evt:${id}`, config.onExit, resolvers, info);
+      promises.push(handle.promise);
+      if (handle.cleanup) cleanups.push(handle.cleanup);
     }
   }
 
-  return promises.length > 0 ? Promise.all(promises).then(() => {}) : Promise.resolve();
+  const promise = promises.length > 0 ? Promise.all(promises).then(() => {}) : Promise.resolve();
+
+  return { promise, cleanups };
 }
 
-/**
- * Run all registered enter functions (page enters + persistent component enters).
- */
 export function collectEnters(
   enterMap: Map<string, EnterFunction>,
   eventMap: Map<string, TransitionEventCallbacks>,
   info: TransitionInfo,
-): Promise<void> {
+): CollectedHandle {
+  const cleanups: CleanupFunction[] = [];
   const promises: Array<Promise<void>> = [];
 
   for (const [, fn] of enterMap) {
-    promises.push(runEnter(fn, info));
+    const handle = runEnter(fn, info);
+    promises.push(handle.promise);
+    if (handle.cleanup) cleanups.push(handle.cleanup);
   }
 
   for (const [, config] of eventMap) {
     if (config.onEnter) {
-      promises.push(runEnter(config.onEnter, info));
+      const handle = runEnter(config.onEnter, info);
+      promises.push(handle.promise);
+      if (handle.cleanup) cleanups.push(handle.cleanup);
+    }
+  }
+
+  const promise = promises.length > 0 ? Promise.all(promises).then(() => {}) : Promise.resolve();
+
+  return { promise, cleanups };
+}
+
+/**
+ * Run all cleanup functions. If any return thenables, wait for them.
+ */
+export function runCleanups(cleanups: CleanupFunction[]): Promise<void> {
+  const promises: Array<Promise<void>> = [];
+
+  for (const fn of cleanups) {
+    try {
+      const result = fn();
+      if (isThenable(result)) {
+        promises.push(
+          new Promise<void>((resolve) => {
+            result.then(
+              () => resolve(),
+              () => resolve(),
+            );
+          }),
+        );
+      }
+    } catch {
+      // Cleanup errors are swallowed
     }
   }
 
   return promises.length > 0 ? Promise.all(promises).then(() => {}) : Promise.resolve();
-}
-
-function isThenable(value: unknown): value is Thenable {
-  return value != null && typeof (value as Record<string, unknown>).then === "function";
 }

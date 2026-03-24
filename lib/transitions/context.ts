@@ -15,8 +15,27 @@ export interface TransitionInfo {
   direction: TransitionDirection;
 }
 
-export type ExitFunction = (done: () => void, info: TransitionInfo) => void | Thenable;
-export type EnterFunction = (info: TransitionInfo) => void | Thenable;
+/** Cleanup function returned from exit/enter. May return a thenable to wait for async cleanup (e.g. reversal). */
+export type CleanupFunction = () => void | Thenable;
+
+/**
+ * Exit animation function.
+ * - Call `done()` when animation finishes.
+ * - Return a `Thenable` (GSAP tween/Promise) for auto-done.
+ * - Return a `function` as a cleanup handler (called on interruption).
+ */
+export type ExitFunction = (
+  done: () => void,
+  info: TransitionInfo,
+) => void | Thenable | CleanupFunction;
+
+/**
+ * Enter animation function.
+ * - Return a `Thenable` for async tracking.
+ * - Return a `function` as a cleanup handler (called on interruption).
+ */
+export type EnterFunction = (info: TransitionInfo) => void | Thenable | CleanupFunction;
+
 export type InitialFunction = (info: TransitionInfo) => void;
 
 export interface TransitionEventCallbacks {

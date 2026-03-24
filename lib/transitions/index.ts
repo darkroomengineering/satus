@@ -20,6 +20,7 @@ export type { TransitionDebugState, DebugPageState } from "./debug";
 // Types
 export type {
   Thenable,
+  CleanupFunction,
   InitialFunction,
   TransitionPhase,
   TransitionDirection,

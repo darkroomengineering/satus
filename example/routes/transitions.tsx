@@ -1,41 +1,39 @@
+import cn from "clsx";
+import { Outlet, useLocation } from "react-router";
 import { Link } from "~/components/link";
-import { Wrapper } from "~/components/wrapper";
-import type { Route } from "./+types/transitions";
 
-export function meta(_args: Route.MetaArgs) {
-  return [{ title: "Transitions — Satus" }];
-}
+const PAGES = [
+  { href: "/transitions/red", label: "Red", color: "bg-red" },
+  { href: "/transitions/blue", label: "Blue", color: "bg-blue" },
+  { href: "/transitions/green", label: "Green", color: "bg-green" },
+];
 
-export default function Transitions() {
+export default function TransitionsLayout() {
+  const { pathname } = useLocation();
+
   return (
-    <Wrapper lenis={false}>
-      <div className="flex min-h-dvh flex-col items-center justify-center gap-10 px-safe font-mono">
-        <h1 className="text-2xl font-light tracking-tight">Page Transitions</h1>
-        <p className="max-w-sm text-center text-sm opacity-50">
-          Navigate between these pages to see transitions. Check the debug panel in the
-          bottom-right.
-        </p>
-        <nav className="flex flex-col gap-3">
-          <Link
-            href="/transitions/red"
-            className="border border-red-500/30 bg-red-500/10 px-8 py-4 text-center text-sm text-red-400 hover:bg-red-500/20"
-          >
-            Red Page — GSAP fade
-          </Link>
-          <Link
-            href="/transitions/blue"
-            className="border border-blue-500/30 bg-blue-500/10 px-8 py-4 text-center text-sm text-blue-400 hover:bg-blue-500/20"
-          >
-            Blue Page — GSAP stagger
-          </Link>
-          <Link
-            href="/transitions/green"
-            className="border border-green-500/30 bg-green-500/10 px-8 py-4 text-center text-sm text-green-400 hover:bg-green-500/20"
-          >
-            Green Page — GSAP timeline
-          </Link>
-        </nav>
-      </div>
-    </Wrapper>
+    <>
+      <Outlet />
+      <nav className="fixed bottom-safe left-1/2 z-10 flex -translate-x-1/2 gap-2 font-mono text-[11px]">
+        {PAGES.map((page) => {
+          const active = pathname === page.href;
+          return (
+            <Link
+              key={page.href}
+              href={page.href}
+              className={cn(
+                "flex items-center gap-2 border px-4 py-2 transition-colors",
+                active
+                  ? "border-white/30 bg-white/10"
+                  : "border-white/10 bg-white/5 hover:border-white/20",
+              )}
+            >
+              <div className={cn("size-2 rounded-full", page.color)} />
+              <span className={active ? "opacity-100" : "opacity-50"}>{page.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+    </>
   );
 }

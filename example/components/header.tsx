@@ -25,7 +25,7 @@ export function Header() {
   );
 
   return (
-    <nav className="fixed top-safe left-safe z-2 flex flex-col font-mono dt:text-[11px] text-[10px] uppercase">
+    <nav className="fixed top-safe left-safe z-10 flex flex-col font-mono dt:text-[11px] text-[10px] uppercase">
       <h1 className="dt:text-[13px] text-[12px]">
         Satus<span className="opacity-50">{pathname}</span>
       </h1>

@@ -10,11 +10,11 @@ bun dev
 
 ## Scripts
 
-| Command          | Description        |
-| ---------------- | ------------------ |
-| `bun dev`        | Development server |
-| `bun run build`  | Production build   |
-| `bun run check`  | Lint + typecheck   |
+| Command         | Description        |
+| --------------- | ------------------ |
+| `bun dev`       | Development server |
+| `bun run build` | Production build   |
+| `bun run check` | Lint + typecheck   |
 
 ## Tech Stack
 
@@ -39,11 +39,11 @@ Push to `main` branch for Vercel deployment.
 
 ## Troubleshooting
 
-| Issue               | Solution                    |
-| ------------------- | --------------------------- |
+| Issue               | Solution                   |
+| ------------------- | -------------------------- |
 | Build fails         | `bun install` + check envs |
-| Styles not updating | Restart dev server          |
-| CMS not connecting  | Check Sanity env vars       |
+| Styles not updating | Restart dev server         |
+| CMS not connecting  | Check Sanity env vars      |
 
 ---
 

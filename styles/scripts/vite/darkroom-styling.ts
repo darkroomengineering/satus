@@ -17,12 +17,7 @@ interface DarkroomStylingOptions {
 
 const defaults: Required<DarkroomStylingOptions> = {
   prependCss: "./styles/css/media.css",
-  watchFiles: [
-    "styles/colors.ts",
-    "styles/typography.ts",
-    "styles/easings.ts",
-    "styles/layout.ts",
-  ],
+  watchFiles: ["styles/colors.ts", "styles/typography.ts", "styles/easings.ts", "styles/layout.ts"],
 };
 
 const banner = `/*
@@ -31,7 +26,15 @@ const banner = `/*
  */`;
 
 function generate() {
-  const tw = generateTailwind({ breakpoints, colors, customSizes, easings, fonts, themes, typography });
+  const tw = generateTailwind({
+    breakpoints,
+    colors,
+    customSizes,
+    easings,
+    fonts,
+    themes,
+    typography,
+  });
   const root = generateRoot({ colors, customSizes, easings, layout, screens });
   const scale = generateScale();
   const media = generateMedia({ breakpoints });

@@ -4,9 +4,7 @@ import { useDeviceDetection } from "~/hooks/use-device-detection";
 import { useWebGLElement } from "../../hooks/use-webgl-element";
 import { WebGLTunnel } from "../tunnel";
 
-const WebGLImage = lazy(() =>
-  import("./webgl"),
-);
+const WebGLImage = lazy(() => import("./webgl"));
 
 /**
  * WebGL-enhanced Image component with visibility optimizations.

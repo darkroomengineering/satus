@@ -64,7 +64,7 @@ import s from "./component.module.css";
 `PUBLIC_` prefix for client (`import.meta.env`), plain for server (`process.env`). Validated with t3-env + valibot.
 
 ```tsx
-import { env } from "~/env";        // client
+import { env } from "~/env"; // client
 import { env } from "~/env.server"; // server (.server.ts or loaders)
 ```
 
@@ -140,15 +140,15 @@ Providers wrap. Standalone components return null and set global state.
 
 ## Key Libraries
 
-| Package    | Purpose                       |
-| ---------- | ----------------------------- |
-| `lenis`    | Smooth scroll                 |
-| `gsap`     | Complex animations            |
-| `tempus`   | RAF management                |
-| `hamo`     | Performance hooks (`useRect`) |
-| `zustand`  | Global state                  |
-| `clsx`     | Class name composition        |
-| `valibot`  | Schema validation (env vars)  |
+| Package   | Purpose                       |
+| --------- | ----------------------------- |
+| `lenis`   | Smooth scroll                 |
+| `gsap`    | Complex animations            |
+| `tempus`  | RAF management                |
+| `hamo`    | Performance hooks (`useRect`) |
+| `zustand` | Global state                  |
+| `clsx`    | Class name composition        |
+| `valibot` | Schema validation (env vars)  |
 
 ## Commands
 

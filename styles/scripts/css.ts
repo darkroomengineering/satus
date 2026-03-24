@@ -58,10 +58,7 @@ export function scalingCalc(value: number): string {
 }
 
 /** Maps an object to `--prefix-key: value;` lines */
-export function variables(
-  obj: Record<string, string | number>,
-  prefix?: string,
-): string[] {
+export function variables(obj: Record<string, string | number>, prefix?: string): string[] {
   return mapEntries(obj, (key, value) =>
     prefix ? variable(`${prefix}-${key}`, value) : variable(key, value),
   );

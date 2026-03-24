@@ -11,9 +11,7 @@ import tunnel from "tunnel-rat";
 import { useDeviceDetection } from "~/hooks/use-device-detection";
 import { useWebGLStore } from "../../store";
 
-const WebGLCanvas = lazy(() =>
-  import("./webgl"),
-);
+const WebGLCanvas = lazy(() => import("./webgl"));
 
 type CanvasContextValue = {
   WebGLTunnel?: ReturnType<typeof tunnel>;

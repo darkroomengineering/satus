@@ -4,7 +4,7 @@ Framework-agnostic page transition system for React Router. Inspired by Framer M
 
 ## Quick Start
 
-Wrap `<Outlet />` in your root layout:
+Wrap your root layout — no `<Outlet />` needed, the router handles it internally:
 
 ```tsx
 import { TransitionRouter } from "~/lib/transitions";
@@ -12,7 +12,7 @@ import { TransitionRouter } from "~/lib/transitions";
 export default function App() {
   return (
     <TransitionRouter>
-      <Outlet />
+      <MyDebugPanel /> {/* optional extras */}
     </TransitionRouter>
   );
 }
@@ -29,17 +29,10 @@ function Hero() {
   useRouteTransition({
     initial: () => gsap.set(ref.current, { opacity: 0, y: 50 }),
     exit: ({ done }) => {
-      const tl = gsap.timeline({ onComplete: done });
-      tl.to(ref.current, { opacity: 0, y: -40 });
-      return () => {
-        tl.reverse();
-        return tl;
-      };
+      gsap.to(ref.current, { opacity: 0, y: -40, onComplete: done });
     },
-    enter: () => {
-      const tl = gsap.timeline();
-      tl.to(ref.current, { opacity: 1, y: 0 });
-      return () => tl.revert();
+    enter: ({ done }) => {
+      gsap.to(ref.current, { opacity: 1, y: 0, onComplete: done });
     },
   });
 
@@ -57,11 +50,7 @@ function Hero() {
 <TransitionRouter mode="wait">
 ```
 
-Uses `useBlocker` to hold navigation. Old page stays mounted as the **real, live React tree** while exit animations play. After all exits complete, navigation proceeds and enter animations run on the new page.
-
-- Old page has correct data, working hooks, real DOM
-- Sequential: exit finishes, then navigation, then enter
-- Persistent components participate via `useTransitionEvent`
+Uses `useBlocker` to hold navigation. Old page stays mounted as the **real, live React tree** while exit animations play. Sequential: exit → navigation → enter.
 
 ### Overlap Mode
 
@@ -69,88 +58,50 @@ Uses `useBlocker` to hold navigation. Old page stays mounted as the **real, live
 <TransitionRouter mode="overlap">
 ```
 
-AnimatePresence-inspired page stack. Both old and new pages are **live React trees** in the DOM simultaneously. Old outlet is frozen via `useOutlet()` and positioned absolutely behind the entering page.
+AnimatePresence-inspired page stack. Both old and new pages are in the DOM simultaneously. Old outlet is frozen via `useOutlet()` and positioned behind the entering page.
 
-- Max 2 pages in the stack at once
-- Exit and enter animations run in parallel
-- Rapid navigation interrupts the oldest page (calls cleanup functions)
-- Each page gets its own `TransitionContext` — no cross-contamination
-
-**Known limitation:** The exiting page's outlet is a cached React element. Hooks that read from React Router's global context (`useLocation`, `useSearchParams`) will return the **new** route's values, not the old ones. Use `usePreservedLoaderData` for stable data. This does not affect GSAP animations since they target DOM refs directly.
-
----
-
-## `<TransitionRouter>` Props
-
-| Prop                | Type                       | Default  | Description                                               |
-| ------------------- | -------------------------- | -------- | --------------------------------------------------------- |
-| `mode`              | `"wait" \| "overlap"`      | `"wait"` | Sequential or parallel transitions                        |
-| `timeout`           | `number`                   | `5000`   | Safety timeout (ms) — force-proceeds if animations hang   |
-| `onTransition`      | `(ctx) => void \| Promise` | —        | Centralized orchestration (see below)                     |
-| `preventTransition` | `(from, to) => boolean`    | —        | Return `true` to skip transition for specific navigations |
-| `onExitStart`       | `(info) => void`           | —        | Fires when exit phase begins                              |
-| `onExitComplete`    | `(info) => void`           | —        | Fires when all exits finish                               |
-| `onEnterStart`      | `(info) => void`           | —        | Fires when enter phase begins                             |
-| `onEnterComplete`   | `(info) => void`           | —        | Fires when all enters finish                              |
-
-### `TransitionInfo`
-
-All callbacks receive:
-
-```tsx
-interface TransitionInfo {
-  from: string; // leaving pathname
-  to: string; // arriving pathname
-  direction: "push" | "pop" | "replace";
-}
-```
-
-### `onTransition` — Centralized Orchestration
-
-When provided, you control the full transition. Without it, exits and enters run automatically.
-
-```tsx
-<TransitionRouter
-  onTransition={async (ctx) => {
-    await ctx.runExits();     // run all registered exit animations
-    await webglDissolve();    // custom work between phases
-    ctx.next();               // proceed with navigation
-  }}
->
-```
-
-Context:
-
-```tsx
-interface TransitionOrchestratorContext {
-  from: string;
-  to: string;
-  direction: "push" | "pop" | "replace";
-  fromElement?: HTMLElement; // exiting page container (overlap only)
-  toElement?: HTMLElement; // entering page container (overlap only)
-  runExits(): Promise<void>;
-  runEnters(): Promise<void>;
-  next(): void; // proceed (wait mode) / finalize (overlap mode)
-}
-```
+- Max 2 pages in the stack
+- Exit and enter sequenced by default (enter waits for exit `done()`)
+- Call `enter()` from within exit to overlap them manually
+- Rapid navigation calls cleanup functions and evicts oldest page
+- Pages with no registered transitions are removed instantly
 
 ---
 
-## `useRouteTransition(config)`
+## API
+
+### `<TransitionRouter>` Props
+
+| Prop                | Type                       | Default  | Description                                                      |
+| ------------------- | -------------------------- | -------- | ---------------------------------------------------------------- |
+| `mode`              | `"wait" \| "overlap"`      | `"wait"` | Sequential or parallel transitions                               |
+| `timeout`           | `number`                   | `5000`   | Safety timeout (ms) — force-proceeds if `done()` is never called |
+| `onTransition`      | `(ctx) => void \| Promise` | —        | Centralized orchestration                                        |
+| `preventTransition` | `(from, to) => boolean`    | —        | Skip transition for specific navigations                         |
+| `onExitStart`       | `(info) => void`           | —        | Fires when exit phase begins                                     |
+| `onExitComplete`    | `(info) => void`           | —        | Fires when all exits finish                                      |
+| `onEnterStart`      | `(info) => void`           | —        | Fires when enter phase begins                                    |
+| `onEnterComplete`   | `(info) => void`           | —        | Fires when all enters finish                                     |
+
+The router renders the outlet internally via `useOutlet()`. Children are rendered alongside for extras (debug panels, persistent UI).
+
+---
+
+### `useRouteTransition(config)`
 
 For components that mount/unmount with the page.
 
 ```tsx
 interface RouteTransitionConfig {
   initial?: (info: TransitionInfo) => void;
-  exit?: (ctx: ExitContext) => void | Thenable | CleanupFunction;
-  enter?: (ctx: EnterContext) => void | Thenable | CleanupFunction;
+  exit?: (ctx: ExitContext) => void | CleanupFunction;
+  enter?: (ctx: EnterContext) => void | CleanupFunction;
 }
 ```
 
-### `initial`
+#### `initial(info)`
 
-Sets the element's state **before first paint** when mounting as the entering page. Runs in `useLayoutEffect` — never on cold page load, only during transitions. Safe for SSR (never fires without JS).
+Sets element state **before first paint** when mounting as the entering page. Only fires during transitions, never on cold page load. SSR-safe.
 
 ```tsx
 initial: (info) => {
@@ -158,32 +109,25 @@ initial: (info) => {
 };
 ```
 
-Use this in overlap mode to hide the entering page while it renders under the exiting one.
+#### `exit({ done, enter, info })`
 
-### `exit`
-
-Receives an object with `{ done, enter, info }`. Destructure what you need:
+Animate out. **Call `done()` when finished.** The system waits for all registered exits to call `done()` before proceeding.
 
 ```tsx
-// Simple — just done()
+// Simple
 exit: ({ done }) => {
   gsap.to(ref.current, { opacity: 0, onComplete: done });
 };
 
-// Auto-done — return thenable, ignore the arg entirely
-exit: () => gsap.to(ref.current, { opacity: 0 });
-
-// With cleanup (for interruption on rapid navigation)
+// Timeline
 exit: ({ done }) => {
   const tl = gsap.timeline({ onComplete: done });
-  tl.to(ref.current, { opacity: 0 });
-  return () => {
-    tl.reverse();
-    return tl; // wait for reversal
-  };
+  tl.to(title, { opacity: 0, y: -40 });
+  tl.to(content, { opacity: 0 }, 0.1);
+  return () => tl.revert(); // cleanup on interruption
 };
 
-// Trigger the next page's enter mid-exit
+// Trigger entering page mid-exit
 exit: ({ done, enter }) => {
   const tl = gsap.timeline({ onComplete: done });
   tl.to(hero, { opacity: 0, duration: 0.5 });
@@ -191,7 +135,7 @@ exit: ({ done, enter }) => {
   tl.to(bg, { opacity: 0, duration: 1.0 }); // still animating
 };
 
-// Route-aware exit
+// Route-aware
 exit: ({ done, info }) => {
   if (info.to === "/gallery") {
     /* special animation */
@@ -202,206 +146,140 @@ exit: ({ done, info }) => {
 
 **`ExitContext`:**
 
-| Field   | Type             | Description                                                                 |
-| ------- | ---------------- | --------------------------------------------------------------------------- |
-| `done`  | `() => void`     | Signal exit completion                                                      |
-| `enter` | `() => void`     | Start the entering page's animations early (idempotent, no-op in wait mode) |
-| `info`  | `TransitionInfo` | Navigation info: `from`, `to`, `direction`                                  |
+| Field   | Type             | Description                                                |
+| ------- | ---------------- | ---------------------------------------------------------- |
+| `done`  | `() => void`     | Signal exit completion. Must be called.                    |
+| `enter` | `() => void`     | Start entering page early (idempotent, no-op in wait mode) |
+| `info`  | `TransitionInfo` | `{ from, to, direction }`                                  |
 
-**Return value** is discriminated by type:
+**Return value:** optionally return a cleanup function, called on interruption (rapid navigation). Same pattern as `useEffect`.
 
-- **`void`** — manual `done()`, no cleanup
-- **`Thenable`** (object with `.then()`) — auto-done when resolved
-- **`function`** — cleanup handler, called on interruption
+#### `enter({ done, info })`
 
-**Sequencing:** In overlap mode, enters wait for exits to call `done()` by default. Call `enter()` from within exit to start enters early (while exit is still running).
-
-### `enter`
-
-Receives `{ info }`. Only runs after a transition — not on initial page load. In overlap mode, runs after the exiting page calls `done()` (or `enter()`).
+Animate in. **Call `done()` when finished.** Only runs after the exiting page calls `done()` (or `enter()` for early start). Not called on initial page load.
 
 ```tsx
 // Simple
-enter: () => {
-  gsap.to(ref.current, { opacity: 1, y: 0, duration: 0.6 });
+enter: ({ done }) => {
+  gsap.to(ref.current, { opacity: 1, y: 0, onComplete: done });
 };
 
-// With info
-enter: ({ info }) => {
-  if (info.from === "/splash") {
-    /* special entrance */
-  }
-  gsap.to(ref.current, { opacity: 1, y: 0, duration: 0.6 });
-};
-
-// With cleanup (interrupted if user navigates away mid-enter)
-enter: () => {
-  const tl = gsap.timeline();
-  tl.to(ref.current, { opacity: 1, y: 0, duration: 0.6 });
+// Timeline with cleanup
+enter: ({ done }) => {
+  const tl = gsap.timeline({ onComplete: done });
+  tl.to(circle, { opacity: 1, scale: 1, duration: 1.5 });
+  tl.to(title, { opacity: 1, y: 0 }, 0.2);
   return () => tl.revert();
 };
 ```
 
-### Return value
+**`EnterContext`:**
+
+| Field  | Type             | Description                              |
+| ------ | ---------------- | ---------------------------------------- |
+| `done` | `() => void`     | Signal enter completion. Must be called. |
+| `info` | `TransitionInfo` | `{ from, to, direction }`                |
+
+#### Return value
 
 ```tsx
 const { phase, isExiting, isEntering } = useRouteTransition({ ... });
 ```
 
-- `phase`: `"idle"` | `"exiting"` | `"entering"`
-- `isExiting` / `isEntering`: convenience booleans
-
 ---
 
-## `useTransitionEvent(config)`
+### `useTransitionEvent(config)`
 
-For **persistent components** (header, footer, WebGL canvas) that stay mounted across navigations.
+For **persistent components** (header, footer, WebGL canvas) that stay mounted across navigations. Same `{ done }` API:
 
 ```tsx
 useTransitionEvent({
-  onExit: ({ done, info }) => {
+  onExit: ({ done }) => {
     gsap.to(menuRef.current, { y: "-100%", onComplete: done });
-    return () => {
-      /* cleanup */
-    };
   },
-  onEnter: ({ info }) => {
-    gsap.from(menuRef.current, { y: "-100%" });
+  onEnter: ({ done }) => {
+    gsap.from(menuRef.current, { y: "-100%", onComplete: done });
   },
 });
 ```
 
-Same completion patterns as `useRouteTransition` — `done()` callback, thenable return, or cleanup function return.
-
-**Note:** In overlap mode, persistent components are outside the per-page contexts. They register on whichever `TransitionContext` wraps them in the tree. Place them inside the `TransitionRouter` to participate.
-
 ---
 
-## `useTransitionState()`
+### `useTransitionState()`
 
-Read-only observer for the current transition state.
+Read-only observer. Returns the full picture:
 
 ```tsx
-const { phase, from, to, isTransitioning } = useTransitionState();
+const { phase, from, to, mode, pages, isTransitioning } = useTransitionState();
 ```
 
-Useful for:
-
-- Disabling UI during transitions
-- Conditional rendering based on transition state
-- Debug panels
+Each page in `pages` has `{ key, pathname, phase }`. Useful for debug panels or any UI that needs to react to transitions.
 
 ---
 
-## `usePreservedLoaderData<T>()`
+### `usePreservedLoaderData<T>()`
 
-Returns loader data frozen at mount time. Prevents data from going stale during exit animations.
-
-```tsx
-// In a route component
-const data = usePreservedLoaderData<typeof loader>();
-```
-
-Use this instead of `useLoaderData()` in components that participate in overlap transitions. The preserved version captures data on first render and never updates — even if React Router's context changes underneath.
-
-Also available: `usePreservedRouteLoaderData<T>(routeId)` for specific route data.
+Returns loader data frozen at mount time. Use instead of `useLoaderData()` in components participating in overlap transitions.
 
 ---
 
-## `useTransitionDebug()`
+## Sequencing
 
-Subscribe to internal transition state from anywhere. Uses `useSyncExternalStore` — no context dependency.
+**Default (overlap mode):** enter waits for exit.
 
-```tsx
-const { mode, pages, info, isTransitioning } = useTransitionDebug();
+```
+exit starts → exit calls done() → enter starts → enter calls done() → cleanup
 ```
 
-Each page in the `pages` array has `{ key, pathname, phase }`. Useful for building debug panels.
+**Early enter:** call `enter()` from within exit to overlap.
+
+```
+exit starts → enter() called mid-exit → enter starts → exit calls done() → enter calls done() → cleanup
+```
+
+**No transitions registered:** page is removed instantly. No waiting.
 
 ---
 
-## CSS Hooks
+## Interruption
 
-`TransitionRouter` sets `data-transition-phase` on `<html>`:
+When a user navigates during an active transition (overlap mode):
 
-```css
-/* Disable links during transitions */
-[data-transition-phase="exiting"] a {
-  pointer-events: none;
-}
-```
+1. Max 2 pages — oldest exiting page is evicted
+2. Cleanup functions from exit/enter are called synchronously
+3. New transition starts
 
-In overlap mode, each page wrapper has `data-transition-page="present"` or `data-transition-page="exiting"`.
-
----
-
-## Interruption & Rapid Navigation
-
-When a user navigates during an active transition:
-
-**Wait mode:** Navigation is ignored while blocked (useBlocker holds it).
-
-**Overlap mode:**
-
-1. Max 2 pages in the stack — oldest exiting page is evicted
-2. All cleanup functions from the evicted page's exit/enter are called
-3. If cleanup returns a thenable (e.g., `tl.reverse()`), the system waits for it
-4. Then the new transition starts
-
-Return cleanup functions from `exit`/`enter` to handle interruption gracefully:
+Return cleanup functions from `exit`/`enter`:
 
 ```tsx
 exit: ({ done }) => {
   const tl = gsap.timeline({ onComplete: done });
   tl.to(ref.current, { opacity: 0, duration: 1.5 });
-
-  // Called if user navigates before exit completes
-  return () => {
-    tl.reverse();
-    return tl; // wait for reversal to finish
-  };
+  return () => tl.revert(); // called on interruption
 };
 ```
 
-If no cleanup is provided, the page is removed immediately on eviction.
+---
+
+## CSS Hooks
+
+`data-transition-phase` on `<html>`: `"idle"` | `"exiting"` | `"entering"`
+
+```css
+[data-transition-phase="exiting"] a {
+  pointer-events: none;
+}
+```
+
+Per-page: `data-transition-page="present"` or `data-transition-page="exiting"`
 
 ---
 
 ## Safety
 
 - `done()` is idempotent — calling twice is safe
-- Thenable returns auto-call `done()` — GSAP tweens just work
-- Errors in exit/enter/cleanup are caught — transitions never get stuck
-- Configurable timeout force-proceeds if animations hang (default 5s)
-- Component unmount auto-unregisters pending exits
-- Zero registered animations = instant transition
-- Error boundary wraps exiting pages in overlap mode — stale context errors are caught gracefully
-
----
-
-## Architecture
-
-```
-TransitionRouter
-├── Wait Mode
-│   ├── useBlocker intercepts navigation
-│   ├── Phase: idle → exiting → [navigation] → entering → idle
-│   ├── Single TransitionContext for the whole tree
-│   └── Old page is the real current route (fully live)
-│
-└── Overlap Mode
-    ├── Detects location change during render
-    ├── Freezes old outlet via useOutlet() ref
-    ├── Renders page stack: [exiting, entering]
-    ├── Each page wrapped in PresencePage with own context
-    ├── Max 2 pages, evicts oldest on rapid navigation
-    └── PresencePage exposes interrupt() for cleanup
-```
-
-Each `PresencePage` (overlap mode) manages its own:
-
-- Registration maps (exit/enter/event callbacks)
-- Exit lifecycle (timeout, completion tracking)
-- Enter lifecycle (deferred to allow effect registration)
-- Cleanup function storage (for interruption)
-- Error boundary (catches stale context in exiting pages)
+- Timeout force-proceeds if `done()` is never called (default 5s)
+- Errors in exit/enter are caught — transitions never get stuck
+- Component unmount auto-resolves pending `done()` calls
+- Zero registered animations = instant transition (no waiting)
+- Error boundary wraps exiting pages in overlap mode

@@ -8,15 +8,6 @@ export function meta(_args: Route.MetaArgs) {
   return [{ title: "Initial — Transitions" }];
 }
 
-/**
- * Pattern: initial() sets the entering page's state before paint.
- * Critical in overlap mode — the page renders under the exiting one.
- * Without initial(), the page would flash in its default visible state
- * before the enter animation sets it to opacity 0.
- *
- * initial() only fires during transitions, never on cold page load.
- * JS disabled = page renders normally.
- */
 export default function InitialPage() {
   const pageRef = useRef<HTMLDivElement>(null);
   const circleRef = useRef<HTMLDivElement>(null);
@@ -25,8 +16,7 @@ export default function InitialPage() {
   const badgeRef = useRef<HTMLDivElement>(null);
 
   useRouteTransition({
-    // Runs in useLayoutEffect before paint — sets "from" state
-    initial: (_info) => {
+    initial: () => {
       gsap.set(circleRef.current, { opacity: 0, scale: 0, rotation: -180 });
       gsap.set(titleRef.current, { opacity: 0, y: 60 });
       gsap.set(descRef.current, { opacity: 0, y: 40 });
@@ -39,23 +29,14 @@ export default function InitialPage() {
       tl.to(titleRef.current, { opacity: 0, y: -40, duration: 0.8, ease: "power3.in" }, 0.15);
       tl.to(
         circleRef.current,
-        {
-          opacity: 0,
-          scale: 0.5,
-          rotation: 90,
-          duration: 1.2,
-          ease: "power3.in",
-        },
+        { opacity: 0, scale: 0.5, rotation: 90, duration: 1.2, ease: "power3.in" },
         0.1,
       );
       tl.to(pageRef.current, { opacity: 0, duration: 0.4 }, "-=0.3");
-      return () => {
-        tl.reverse();
-        return tl;
-      };
+      return () => tl.revert();
     },
-    enter: (_info) => {
-      const tl = gsap.timeline();
+    enter: ({ done }) => {
+      const tl = gsap.timeline({ onComplete: done });
       tl.to(circleRef.current, {
         opacity: 1,
         scale: 1,
@@ -81,14 +62,14 @@ export default function InitialPage() {
           Initial
         </h1>
         <p ref={descRef} className="max-w-xs text-center text-sm opacity-40">
-          Uses initial() to set entering state before paint. Prevents flash of un-animated content
-          in overlap mode. Receives info with from/to/direction.
+          Uses initial() to hide elements before paint. Per-element sequenced enter with
+          elastic/back easing.
         </p>
         <div
           ref={badgeRef}
           className="border border-purple/30 bg-purple/10 px-4 py-2 text-[10px] text-purple"
         >
-          initial: (info) =&gt; gsap.set(...)
+          initial() + enter(&#123; done &#125;)
         </div>
       </div>
     </Wrapper>

@@ -72,16 +72,14 @@ function useRegistrations() {
   const enterMap = useRef(new Map<string, EnterFunction>());
   const eventMap = useRef(new Map<string, TransitionEventCallbacks>());
   const exitResolvers = useRef(new Map<string, () => void>());
+  const enterResolvers = useRef(new Map<string, () => void>());
 
   function registerExit(id: string, fn: ExitFunction): () => void {
     exitMap.current.set(id, fn);
     return () => {
       exitMap.current.delete(id);
-      const resolver = exitResolvers.current.get(id);
-      if (resolver) {
-        resolver();
-        exitResolvers.current.delete(id);
-      }
+      exitResolvers.current.get(id)?.();
+      exitResolvers.current.delete(id);
     };
   }
 
@@ -89,6 +87,8 @@ function useRegistrations() {
     enterMap.current.set(id, fn);
     return () => {
       enterMap.current.delete(id);
+      enterResolvers.current.get(id)?.();
+      enterResolvers.current.delete(id);
     };
   }
 
@@ -96,11 +96,10 @@ function useRegistrations() {
     eventMap.current.set(id, config);
     return () => {
       eventMap.current.delete(id);
-      const resolver = exitResolvers.current.get(`evt:${id}`);
-      if (resolver) {
-        resolver();
-        exitResolvers.current.delete(`evt:${id}`);
-      }
+      exitResolvers.current.get(`evt:${id}`)?.();
+      exitResolvers.current.delete(`evt:${id}`);
+      enterResolvers.current.get(`evt:${id}`)?.();
+      enterResolvers.current.delete(`evt:${id}`);
     };
   }
 
@@ -109,7 +108,15 @@ function useRegistrations() {
   }
 
   function runEnters(info: TransitionInfo): CollectedHandle {
-    return collectEnters(enterMap.current, eventMap.current, info);
+    return collectEnters(enterMap.current, eventMap.current, enterResolvers.current, info);
+  }
+
+  function hasExits(): boolean {
+    if (exitMap.current.size > 0) return true;
+    for (const config of eventMap.current.values()) {
+      if (config.onExit) return true;
+    }
+    return false;
   }
 
   return {
@@ -118,6 +125,7 @@ function useRegistrations() {
     registerEvent,
     runExits,
     runEnters,
+    hasExits,
   };
 }
 
@@ -276,7 +284,7 @@ interface RenderedPage {
 
 /** Handle exposed by PresencePage */
 interface PresencePageHandle {
-  interrupt: () => Promise<void>;
+  interrupt: () => void;
   triggerEnters: (onComplete?: () => void) => void;
 }
 
@@ -446,12 +454,19 @@ function OverlapMode({
     prevTransitioningRef.current = isTransitioning;
   });
 
-  // When exiting page completes → trigger enter, remove page after enters finish
+  // When exiting page completes → trigger enter + handle removal
   const onPageExitComplete = useCallback(
-    (key: string) => {
-      triggerEnter(key);
+    (key: string, instant: boolean) => {
+      if (instant) {
+        // No exit animation — remove immediately, trigger enters in parallel
+        removePage(key);
+        triggerEnter();
+      } else {
+        // Had exit animation — keep page until enters complete
+        triggerEnter(key);
+      }
     },
-    [triggerEnter],
+    [triggerEnter, removePage],
   );
 
   // Sync overlapPhase when transition starts
@@ -507,7 +522,7 @@ function OverlapMode({
               isPresent={isPresent}
               info={info}
               timeout={timeout}
-              onExitComplete={() => onPageExitComplete(page.key)}
+              onExitComplete={(instant) => onPageExitComplete(page.key, instant)}
               onEnterRequest={triggerEnter}
               onPhaseChange={(p) => handlePhaseChange(page.key, p)}
               style={
@@ -541,7 +556,7 @@ interface PresencePageProps {
   isPresent: boolean;
   info: TransitionInfo | null;
   timeout: number;
-  onExitComplete: () => void;
+  onExitComplete: (instant: boolean) => void;
   onEnterRequest: () => void;
   onPhaseChange: (phase: TransitionPhase) => void;
   style?: React.CSSProperties | undefined;
@@ -585,34 +600,30 @@ const PresencePage = forwardRef(function PresencePage(
   useImperativeHandle(
     ref,
     () => ({
-      interrupt: async () => {
+      interrupt: () => {
         if (hasExitedRef.current) return;
         hasExitedRef.current = true;
         clearTimeout(timeoutRef.current);
-
-        if (cleanupsRef.current.length > 0) {
-          await runCleanups(cleanupsRef.current);
-          cleanupsRef.current = [];
-        }
-
-        onExitComplete();
+        runCleanups(cleanupsRef.current);
+        cleanupsRef.current = [];
+        onExitComplete(true);
       },
       triggerEnters: (onComplete?: () => void) => {
         if (entersTriggeredRef.current || !info) return;
         entersTriggeredRef.current = true;
         setPhase("entering");
 
-        // Use rAF to ensure React commits the "entering" state before
-        // running enters. setTimeout(0) races with React's MessageChannel
-        // scheduler and can cause "entering" to be batched away.
-        requestAnimationFrame(() => {
+        // Wait one tick for component effects to register
+        setTimeout(() => {
           const handle = regs.runEnters(info);
           cleanupsRef.current.push(...handle.cleanups);
+          // done() is called by each enter callback — promise resolves
+          // when ALL have called done()
           void handle.promise.then(() => {
             setPhase("idle");
             onComplete?.();
           });
-        });
+        }, 0);
       },
     }),
     [onExitComplete, info, regs],
@@ -627,12 +638,20 @@ const PresencePage = forwardRef(function PresencePage(
       if (!hasExitedRef.current) {
         hasExitedRef.current = true;
         console.warn("[TransitionRouter] Page exit timed out — removing");
-        onExitComplete();
+        onExitComplete(true);
       }
     }, timeout);
 
     // Wait one tick for component effects to register
     const timer = setTimeout(() => {
+      if (!regs.hasExits()) {
+        // No exit callbacks — remove immediately, don't wait for enters
+        hasExitedRef.current = true;
+        clearTimeout(timeoutRef.current);
+        onExitComplete(true);
+        return;
+      }
+
       const handle = regs.runExits(info, onEnterRequest);
       cleanupsRef.current = handle.cleanups;
 
@@ -641,7 +660,7 @@ const PresencePage = forwardRef(function PresencePage(
           hasExitedRef.current = true;
           clearTimeout(timeoutRef.current);
           cleanupsRef.current = [];
-          onExitComplete();
+          onExitComplete(false);
         }
       });
     }, 0);
@@ -671,7 +690,7 @@ const PresencePage = forwardRef(function PresencePage(
             if (!hasExitedRef.current) {
               hasExitedRef.current = true;
               clearTimeout(timeoutRef.current);
-              onExitComplete();
+              onExitComplete(true);
             }
           }}
         >

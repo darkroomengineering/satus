@@ -4,56 +4,48 @@ export type TransitionPhase = "idle" | "exiting" | "entering";
 export type TransitionDirection = "push" | "pop" | "replace";
 export type TransitionMode = "wait" | "overlap";
 
-/** Any object with a .then() — covers Promise, GSAP tweens/timelines, etc. */
-export interface Thenable {
-  then(resolve: (...args: unknown[]) => void, reject?: (...args: unknown[]) => void): unknown;
-}
-
 export interface TransitionInfo {
   from: string;
   to: string;
   direction: TransitionDirection;
 }
 
-/** Cleanup function returned from exit/enter. May return a thenable to wait for async cleanup (e.g. reversal). */
-export type CleanupFunction = () => void | Thenable;
+/** Cleanup function returned from exit/enter. Called on interruption. */
+export type CleanupFunction = () => void;
 
 /** Context passed to exit callbacks */
 export interface ExitContext {
-  /** Signal that the exit animation is complete */
+  /** Signal that the exit animation is complete. Must be called. */
   done: () => void;
   /**
-   * Trigger the entering page's animations early, before done() is called.
-   * Idempotent — calling twice is safe. No-op in wait mode.
+   * Trigger the entering page's animations early, before done().
+   * Idempotent. No-op in wait mode.
    * If never called, enters start automatically when done() fires.
    */
   enter: () => void;
-  /** Navigation info: from, to, direction */
+  /** Navigation info */
   info: TransitionInfo;
 }
 
 /** Context passed to enter callbacks */
 export interface EnterContext {
-  /** Navigation info: from, to, direction */
+  /** Signal that the enter animation is complete. Must be called. */
+  done: () => void;
+  /** Navigation info */
   info: TransitionInfo;
 }
 
 /**
- * Exit animation function.
- * - Destructure `{ done }` for simple exits
- * - Destructure `{ done, enter }` to trigger the next page mid-exit
- * - Destructure `{ done, enter, info }` for route-aware transitions
- * - Return a `Thenable` (GSAP tween/Promise) for auto-done
- * - Return a `function` as a cleanup handler (called on interruption)
+ * Exit animation function. Call done() when finished.
+ * Optionally return a cleanup function (called on interruption).
  */
-export type ExitFunction = (ctx: ExitContext) => void | Thenable | CleanupFunction;
+export type ExitFunction = (ctx: ExitContext) => void | CleanupFunction;
 
 /**
- * Enter animation function.
- * - Return a `Thenable` for async tracking
- * - Return a `function` as a cleanup handler (called on interruption)
+ * Enter animation function. Call done() when finished.
+ * Optionally return a cleanup function (called on interruption).
  */
-export type EnterFunction = (ctx: EnterContext) => void | Thenable | CleanupFunction;
+export type EnterFunction = (ctx: EnterContext) => void | CleanupFunction;
 
 export type InitialFunction = (info: TransitionInfo) => void;
 

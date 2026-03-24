@@ -8,29 +8,11 @@ import {
 } from "./context";
 
 export interface RouteTransitionConfig {
-  /**
-   * Set the element's initial state before it becomes visible.
-   * Runs via useLayoutEffect on mount — only during a transition, never on
-   * first page load. Receives `info` with `from`, `to`, and `direction`.
-   *
-   * If JS is disabled this never fires, so the page renders normally.
-   */
+  /** Set element state before first paint. Only during transitions, not cold load. */
   initial?: InitialFunction;
-
-  /**
-   * Animate out. Receives `{ done, enter, info }`.
-   * - `done()` signals exit completion
-   * - `enter()` triggers the next page's enter early (before done)
-   * - Return a `Thenable` for auto-done
-   * - Return a `function` for cleanup on interruption
-   */
+  /** Animate out. Call done() when finished. Return cleanup function for interruption. */
   exit?: ExitFunction;
-
-  /**
-   * Animate in. Receives `{ info }`.
-   * Runs after the exiting page calls done() (or enter() for early start).
-   * Not called on initial page load.
-   */
+  /** Animate in. Call done() when finished. Return cleanup function for interruption. */
   enter?: EnterFunction;
 }
 
@@ -49,15 +31,11 @@ export function useRouteTransition(config: RouteTransitionConfig): {
   exitRef.current = config.exit;
   enterRef.current = config.enter;
 
-  // Capture registration functions in a ref so the effect doesn't re-fire
-  // when the context value object changes (it changes every render due to
-  // pages/phase updates, but the registration functions are stable).
+  // Stable ref to context for registration (avoids re-registering on context value change)
   const registerRef = useRef(context);
   registerRef.current = context;
 
   // Apply initial state before first paint when mounting as the ENTERING page.
-  // Fires when there's an active transition (from/to set) and we're NOT the exiting page.
-  // Does NOT fire on cold page load (from/to are null).
   const phaseOnMount = useRef(context?.phase);
   const infoOnMount = useRef(
     context?.from && context?.to
@@ -71,20 +49,20 @@ export function useRouteTransition(config: RouteTransitionConfig): {
     initialRef.current?.(infoOnMount.current);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Register exit + enter — runs once on mount, cleans up on unmount.
-  // Uses ref to avoid re-registering when context object identity changes.
+  // Register exit + enter — runs once on mount
   useEffect(() => {
     const ctx = registerRef.current;
     if (!ctx) return;
 
     const exitWrapper: ExitFunction = (exitCtx) => {
-      if (exitRef.current) {
-        return exitRef.current(exitCtx);
-      }
+      if (exitRef.current) return exitRef.current(exitCtx);
       exitCtx.done();
     };
 
-    const enterWrapper: EnterFunction = (enterCtx) => enterRef.current?.(enterCtx);
+    const enterWrapper: EnterFunction = (enterCtx) => {
+      if (enterRef.current) return enterRef.current(enterCtx);
+      enterCtx.done();
+    };
 
     const unregisterExit = ctx.registerExit(id, exitWrapper);
     const unregisterEnter = ctx.registerEnter(id, enterWrapper);

@@ -7,11 +7,8 @@ export interface TransitionEventConfig {
 }
 
 /**
- * Participate in page transitions from a persistent component
- * (header, footer, WebGL canvas, etc.) that stays mounted across navigations.
- *
- * - `onExit({ done, enter, info })`: runs alongside page exit animations.
- * - `onEnter({ info })`: runs after the new page has mounted.
+ * Participate in page transitions from a persistent component.
+ * Same API as useRouteTransition — call done() when finished.
  */
 export function useTransitionEvent(config: TransitionEventConfig): void {
   const context = useContext(TransitionContext);
@@ -31,12 +28,13 @@ export function useTransitionEvent(config: TransitionEventConfig): void {
 
     return ctx.registerEvent(id, {
       onExit: (exitCtx) => {
-        if (onExitRef.current) {
-          return onExitRef.current(exitCtx);
-        }
+        if (onExitRef.current) return onExitRef.current(exitCtx);
         exitCtx.done();
       },
-      onEnter: (enterCtx) => onEnterRef.current?.(enterCtx),
+      onEnter: (enterCtx) => {
+        if (onEnterRef.current) return onEnterRef.current(enterCtx);
+        enterCtx.done();
+      },
     });
   }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 }

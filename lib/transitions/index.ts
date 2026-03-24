@@ -15,7 +15,6 @@ export { usePreservedLoaderData, usePreservedRouteLoaderData } from "./use-prese
 
 // Types
 export type {
-  Thenable,
   CleanupFunction,
   ExitContext,
   EnterContext,

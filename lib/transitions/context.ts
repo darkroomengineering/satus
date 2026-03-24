@@ -62,10 +62,18 @@ export interface TransitionEventCallbacks {
   onEnter?: EnterFunction;
 }
 
+export interface TransitionPageState {
+  key: string;
+  pathname: string;
+  phase: TransitionPhase;
+}
+
 export interface TransitionContextValue {
   phase: TransitionPhase;
   from: string | null;
   to: string | null;
+  mode: TransitionMode;
+  pages: TransitionPageState[];
   registerExit: (id: string, fn: ExitFunction) => () => void;
   registerEnter: (id: string, fn: EnterFunction) => () => void;
   registerEvent: (id: string, config: TransitionEventCallbacks) => () => void;

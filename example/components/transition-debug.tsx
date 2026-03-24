@@ -1,4 +1,4 @@
-import { useTransitionDebug } from "~/lib/transitions";
+import { useTransitionState } from "~/lib/transitions";
 
 const PHASE_COLOR: Record<string, string> = {
   idle: "#888",
@@ -7,7 +7,7 @@ const PHASE_COLOR: Record<string, string> = {
 };
 
 export function TransitionDebug() {
-  const { mode, pages, info, isTransitioning } = useTransitionDebug();
+  const { mode, phase, from, to, pages, isTransitioning } = useTransitionState();
 
   return (
     <div
@@ -54,7 +54,7 @@ export function TransitionDebug() {
         </div>
 
         {/* Route info */}
-        {info ? (
+        {from || to ? (
           <div
             style={{
               display: "flex",
@@ -64,53 +64,57 @@ export function TransitionDebug() {
               borderTop: "1px solid #1a1a1a",
             }}
           >
-            <span style={{ color: "#aaa" }}>{info.from}</span>
-            <span style={{ color: "#666" }}>{info.direction === "pop" ? "\u2190" : "\u2192"}</span>
-            <span style={{ color: "#ccc" }}>{info.to}</span>
+            <span style={{ color: "#aaa" }}>{from ?? "—"}</span>
+            <span style={{ color: "#666" }}>{"\u2192"}</span>
+            <span style={{ color: "#ccc" }}>{to ?? "—"}</span>
           </div>
         ) : (
           <div style={{ padding: "4px 0", borderTop: "1px solid #1a1a1a", color: "#666" }}>
-            no active transition
+            {phase}
           </div>
         )}
 
         {/* Page stack */}
-        <div style={{ borderTop: "1px solid #1a1a1a", paddingTop: 4, marginTop: 4 }}>
-          <div style={{ color: "#999", marginBottom: 3 }}>
-            pages <span style={{ color: "#bbb" }}>({pages.length})</span>
-          </div>
-          {pages.map((page, i) => {
-            const color = PHASE_COLOR[page.phase] ?? "#888";
-            const isCurrent = i === pages.length - 1;
-            return (
-              <div
-                key={page.key}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "2px 0",
-                  borderLeft: `2px solid ${color}`,
-                  paddingLeft: 6,
-                  marginBottom: 1,
-                }}
-              >
-                <span style={{ color: isCurrent ? "#fff" : "#aaa", flex: 1 }}>{page.pathname}</span>
-                <span
+        {pages.length > 0 && (
+          <div style={{ borderTop: "1px solid #1a1a1a", paddingTop: 4, marginTop: 4 }}>
+            <div style={{ color: "#999", marginBottom: 3 }}>
+              pages <span style={{ color: "#bbb" }}>({pages.length})</span>
+            </div>
+            {pages.map((page, i) => {
+              const color = PHASE_COLOR[page.phase] ?? "#888";
+              const isCurrent = i === pages.length - 1;
+              return (
+                <div
+                  key={page.key}
                   style={{
-                    color,
-                    fontSize: 9,
-                    fontWeight: 600,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "2px 0",
+                    borderLeft: `2px solid ${color}`,
+                    paddingLeft: 6,
+                    marginBottom: 1,
                   }}
                 >
-                  {page.phase}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+                  <span style={{ color: isCurrent ? "#fff" : "#aaa", flex: 1 }}>
+                    {page.pathname}
+                  </span>
+                  <span
+                    style={{
+                      color,
+                      fontSize: 9,
+                      fontWeight: 600,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                    }}
+                  >
+                    {page.phase}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

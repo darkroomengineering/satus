@@ -26,7 +26,7 @@ import {
   type TransitionEventCallbacks,
 } from "./context";
 import { collectExits, collectEnters, runCleanups, type CollectedHandle } from "./helpers";
-import { setDebugState } from "./debug";
+import type { TransitionPageState } from "./context";
 
 // ---------------------------------------------------------------------------
 // TransitionRouter — top-level component
@@ -240,26 +240,14 @@ function WaitMode({
 
   useEffect(() => {
     document.documentElement.dataset.transitionPhase = phase;
-    setDebugState({
-      mode: "wait",
-      pages: [
-        {
-          key: location.key,
-          pathname: location.pathname,
-          phase,
-          exitCount: 0,
-          enterCount: 0,
-        },
-      ],
-      info: transitionInfoRef.current,
-      isTransitioning: phase !== "idle",
-    });
-  });
+  }, [phase]);
 
   const contextValue: TransitionContextValue = {
     phase,
     from: transitionInfoRef.current?.from ?? null,
     to: transitionInfoRef.current?.to ?? null,
+    mode: "wait",
+    pages: [{ key: location.key, pathname: location.pathname, phase }],
     registerExit,
     registerEnter,
     registerEvent,
@@ -282,9 +270,11 @@ interface RenderedPage {
 interface PresencePageHandle {
   interrupt: () => Promise<void>;
   triggerEnters: () => void;
+  getPhase: () => TransitionPhase;
 }
 
 function OverlapMode({
+  children: externalChildren,
   timeout = 5000,
   onTransition: _onTransition,
   preventTransition,
@@ -426,58 +416,67 @@ function OverlapMode({
     [triggerEnter, removePage],
   );
 
+  // Debug + document attribute: report at actual lifecycle moments
   useEffect(() => {
     document.documentElement.dataset.transitionPhase = isTransitioning ? "exiting" : "idle";
+  }, [isTransitioning]);
 
-    setDebugState({
-      mode: "overlap",
-      pages: pages.map((page) => ({
-        key: page.key,
-        pathname: page.pathname,
-        phase: page.key === latestPage?.key ? (isTransitioning ? "entering" : "idle") : "exiting",
-        exitCount: 0,
-        enterCount: 0,
-      })),
-      info,
-      isTransitioning,
-    });
+  // Build page states for the top-level context by reading actual phase from handles
+  const pageStates: TransitionPageState[] = pages.map((page) => {
+    const handle = pageHandles.current.get(page.key);
+    const phase = handle?.getPhase() ?? (page.key === latestPage?.key ? "idle" : "exiting");
+    return { key: page.key, pathname: page.pathname, phase };
   });
 
+  const topContextValue: TransitionContextValue = {
+    phase: isTransitioning ? "exiting" : "idle",
+    from: infoRef.current?.from ?? null,
+    to: infoRef.current?.to ?? null,
+    mode: "overlap",
+    pages: pageStates,
+    registerExit: () => () => {},
+    registerEnter: () => () => {},
+    registerEvent: () => () => {},
+  };
+
   return (
-    <div data-transition-router="" style={{ position: "relative" }}>
-      {pages.map((page) => {
-        const isPresent = page.key === latestPage?.key;
-        return (
-          <PresencePage
-            key={page.key}
-            ref={(handle) => {
-              if (handle) {
-                pageHandles.current.set(page.key, handle);
-              } else {
-                pageHandles.current.delete(page.key);
+    <TransitionContext.Provider value={topContextValue}>
+      <div data-transition-router="" style={{ position: "relative" }}>
+        {pages.map((page) => {
+          const isPresent = page.key === latestPage?.key;
+          return (
+            <PresencePage
+              key={page.key}
+              ref={(handle) => {
+                if (handle) {
+                  pageHandles.current.set(page.key, handle);
+                } else {
+                  pageHandles.current.delete(page.key);
+                }
+              }}
+              isPresent={isPresent}
+              info={info}
+              timeout={timeout}
+              onExitComplete={() => onPageExitComplete(page.key)}
+              onEnterRequest={triggerEnter}
+              style={
+                !isPresent
+                  ? {
+                      position: "absolute" as const,
+                      inset: 0,
+                      zIndex: 0,
+                      pointerEvents: "none" as const,
+                    }
+                  : { position: "relative" as const, zIndex: 1 }
               }
-            }}
-            isPresent={isPresent}
-            info={info}
-            timeout={timeout}
-            onExitComplete={() => onPageExitComplete(page.key)}
-            onEnterRequest={triggerEnter}
-            style={
-              !isPresent
-                ? {
-                    position: "absolute" as const,
-                    inset: 0,
-                    zIndex: 0,
-                    pointerEvents: "none" as const,
-                  }
-                : { position: "relative" as const, zIndex: 1 }
-            }
-          >
-            {page.outlet}
-          </PresencePage>
-        );
-      })}
-    </div>
+            >
+              {page.outlet}
+            </PresencePage>
+          );
+        })}
+      </div>
+      {externalChildren}
+    </TransitionContext.Provider>
   );
 }
 
@@ -506,6 +505,7 @@ const PresencePage = forwardRef(function PresencePage(
   const cleanupsRef = useRef<CleanupFunction[]>([]);
 
   const entersTriggeredRef = useRef(false);
+  const [phase, setPhase] = useState<TransitionPhase>(!isPresent ? "exiting" : "idle");
 
   // Expose handle to parent
   useImperativeHandle(
@@ -526,6 +526,7 @@ const PresencePage = forwardRef(function PresencePage(
       triggerEnters: () => {
         if (entersTriggeredRef.current || !info) return;
         entersTriggeredRef.current = true;
+        setPhase("entering");
 
         // Wait one tick for component effects to register
         setTimeout(() => {
@@ -533,13 +534,15 @@ const PresencePage = forwardRef(function PresencePage(
           cleanupsRef.current.push(...handle.cleanups);
         }, 0);
       },
+      getPhase: () => phase,
     }),
-    [onExitComplete, info, regs],
+    [onExitComplete, info, regs, phase],
   );
 
   // When isPresent flips to false → run all registered exits
   useEffect(() => {
     if (isPresent || hasExitedRef.current || !info) return;
+    setPhase("exiting");
 
     timeoutRef.current = setTimeout(() => {
       if (!hasExitedRef.current) {
@@ -570,12 +573,12 @@ const PresencePage = forwardRef(function PresencePage(
     };
   }, [isPresent]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const phase: TransitionPhase = !isPresent ? "exiting" : info ? "entering" : "idle";
-
   const contextValue: TransitionContextValue = {
     phase,
     from: info?.from ?? null,
     to: info?.to ?? null,
+    mode: "overlap",
+    pages: [],
     registerExit: regs.registerExit,
     registerEnter: regs.registerEnter,
     registerEvent: regs.registerEvent,

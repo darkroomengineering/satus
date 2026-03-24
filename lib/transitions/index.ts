@@ -13,10 +13,6 @@ export type { TransitionState } from "./use-transition-state";
 
 export { usePreservedLoaderData, usePreservedRouteLoaderData } from "./use-preserved-loader-data";
 
-// Debug
-export { useTransitionDebug } from "./debug";
-export type { TransitionDebugState, DebugPageState } from "./debug";
-
 // Types
 export type {
   Thenable,
@@ -29,5 +25,6 @@ export type {
   TransitionMode,
   TransitionInfo,
   TransitionOrchestratorContext,
+  TransitionPageState,
   TransitionRouterProps,
 } from "./context";

@@ -1,4 +1,4 @@
-import { useContext, useEffect, useId, useRef } from "react";
+import { useContext, useId, useLayoutEffect, useRef } from "react";
 import { TransitionContext, type ExitFunction, type EnterFunction } from "./context";
 
 export interface TransitionEventConfig {
@@ -22,7 +22,7 @@ export function useTransitionEvent(config: TransitionEventConfig): void {
   const registerRef = useRef(context);
   registerRef.current = context;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const ctx = registerRef.current;
     if (!ctx) return;
 

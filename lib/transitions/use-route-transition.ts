@@ -1,4 +1,4 @@
-import { useContext, useEffect, useId, useLayoutEffect, useRef } from "react";
+import { useContext, useId, useLayoutEffect, useRef } from "react";
 import {
   TransitionContext,
   type ExitFunction,
@@ -49,8 +49,9 @@ export function useRouteTransition(config: RouteTransitionConfig): {
     initialRef.current?.(infoOnMount.current);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Register exit + enter — runs once on mount
-  useEffect(() => {
+  // Register exit + enter — runs once on mount (useLayoutEffect guarantees
+  // registration completes before the parent's orchestration useEffect fires)
+  useLayoutEffect(() => {
     const ctx = registerRef.current;
     if (!ctx) return;
 

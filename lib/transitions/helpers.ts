@@ -162,8 +162,8 @@ export function runCleanups(cleanups: CleanupFunction[]): void {
   for (const fn of cleanups) {
     try {
       fn();
-    } catch {
-      // swallow
+    } catch (err) {
+      console.warn("[TransitionRouter] Cleanup error:", err);
     }
   }
 }

@@ -1,4 +1,5 @@
 import { createContext } from "react";
+import type { CollectedHandle } from "./helpers";
 
 export type TransitionPhase = "idle" | "exiting" | "entering";
 export type TransitionDirection = "push" | "pop" | "replace";
@@ -52,6 +53,16 @@ export type InitialFunction = (info: TransitionInfo) => void;
 export interface TransitionEventCallbacks {
   onExit?: ExitFunction;
   onEnter?: EnterFunction;
+}
+
+export interface TransitionRegistry {
+  registerExit: (id: string, fn: ExitFunction) => () => void;
+  registerEnter: (id: string, fn: EnterFunction) => () => void;
+  registerEvent: (id: string, config: TransitionEventCallbacks) => () => void;
+  runExits: (info: TransitionInfo, enter: () => void) => CollectedHandle;
+  runEnters: (info: TransitionInfo) => CollectedHandle;
+  hasExits: () => boolean;
+  clear: () => void;
 }
 
 export interface TransitionPageState {

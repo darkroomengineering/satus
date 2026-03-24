@@ -28,7 +28,7 @@ function Hero() {
 
   useRouteTransition({
     initial: () => gsap.set(ref.current, { opacity: 0, y: 50 }),
-    exit: (done) => {
+    exit: ({ done }) => {
       const tl = gsap.timeline({ onComplete: done });
       tl.to(ref.current, { opacity: 0, y: -40 });
       return () => {
@@ -143,8 +143,8 @@ For components that mount/unmount with the page.
 ```tsx
 interface RouteTransitionConfig {
   initial?: (info: TransitionInfo) => void;
-  exit?: (done: () => void, info: TransitionInfo) => void | Thenable | CleanupFunction;
-  enter?: (info: TransitionInfo) => void | Thenable | CleanupFunction;
+  exit?: (ctx: ExitContext) => void | Thenable | CleanupFunction;
+  enter?: (ctx: EnterContext) => void | Thenable | CleanupFunction;
 }
 ```
 
@@ -162,41 +162,75 @@ Use this in overlap mode to hide the entering page while it renders under the ex
 
 ### `exit`
 
-Animate out. Three completion patterns:
+Receives an object with `{ done, enter, info }`. Destructure what you need:
 
 ```tsx
-// 1. Manual callback
-exit: (done) => {
+// Simple — just done()
+exit: ({ done }) => {
   gsap.to(ref.current, { opacity: 0, onComplete: done });
 };
 
-// 2. Return thenable (auto-done) — GSAP tweens/timelines are thenable
+// Auto-done — return thenable, ignore the arg entirely
 exit: () => gsap.to(ref.current, { opacity: 0 });
 
-// 3. Return cleanup function (for interruption on rapid navigation)
-exit: (done) => {
+// With cleanup (for interruption on rapid navigation)
+exit: ({ done }) => {
   const tl = gsap.timeline({ onComplete: done });
   tl.to(ref.current, { opacity: 0 });
   return () => {
-    tl.reverse(); // smooth reversal
-    return tl; // return thenable to wait for reversal
+    tl.reverse();
+    return tl; // wait for reversal
   };
+};
+
+// Trigger the next page's enter mid-exit
+exit: ({ done, enter }) => {
+  const tl = gsap.timeline({ onComplete: done });
+  tl.to(hero, { opacity: 0, duration: 0.5 });
+  tl.call(() => enter()); // new page starts entering here
+  tl.to(bg, { opacity: 0, duration: 1.0 }); // still animating
+};
+
+// Route-aware exit
+exit: ({ done, info }) => {
+  if (info.to === "/gallery") {
+    /* special animation */
+  }
+  gsap.to(ref.current, { opacity: 0, onComplete: done });
 };
 ```
 
-The return value is discriminated by type:
+**`ExitContext`:**
+
+| Field   | Type             | Description                                                                 |
+| ------- | ---------------- | --------------------------------------------------------------------------- |
+| `done`  | `() => void`     | Signal exit completion                                                      |
+| `enter` | `() => void`     | Start the entering page's animations early (idempotent, no-op in wait mode) |
+| `info`  | `TransitionInfo` | Navigation info: `from`, `to`, `direction`                                  |
+
+**Return value** is discriminated by type:
 
 - **`void`** — manual `done()`, no cleanup
 - **`Thenable`** (object with `.then()`) — auto-done when resolved
-- **`function`** — cleanup handler, called on interruption. May optionally return a thenable for async cleanup (e.g., timeline reversal)
+- **`function`** — cleanup handler, called on interruption
+
+**Sequencing:** In overlap mode, enters wait for exits to call `done()` by default. Call `enter()` from within exit to start enters early (while exit is still running).
 
 ### `enter`
 
-Animate in. Only runs after a transition, not on initial page load.
+Receives `{ info }`. Only runs after a transition — not on initial page load. In overlap mode, runs after the exiting page calls `done()` (or `enter()`).
 
 ```tsx
-// Fire and forget
+// Simple
 enter: () => {
+  gsap.to(ref.current, { opacity: 1, y: 0, duration: 0.6 });
+};
+
+// With info
+enter: ({ info }) => {
+  if (info.from === "/splash") {
+    /* special entrance */
+  }
   gsap.to(ref.current, { opacity: 1, y: 0, duration: 0.6 });
 };
 
@@ -217,18 +251,6 @@ const { phase, isExiting, isEntering } = useRouteTransition({ ... });
 - `phase`: `"idle"` | `"exiting"` | `"entering"`
 - `isExiting` / `isEntering`: convenience booleans
 
-### `info` parameter
-
-Both `exit` and `enter` receive `info: TransitionInfo`:
-
-```tsx
-exit: (done, info) => {
-  if (info.to === "/gallery") {
-    // special exit animation for gallery route
-  }
-};
-```
-
 ---
 
 ## `useTransitionEvent(config)`
@@ -237,13 +259,13 @@ For **persistent components** (header, footer, WebGL canvas) that stay mounted a
 
 ```tsx
 useTransitionEvent({
-  onExit: (done, info) => {
+  onExit: ({ done, info }) => {
     gsap.to(menuRef.current, { y: "-100%", onComplete: done });
     return () => {
       /* cleanup */
     };
   },
-  onEnter: (info) => {
+  onEnter: ({ info }) => {
     gsap.from(menuRef.current, { y: "-100%" });
   },
 });
@@ -329,13 +351,13 @@ When a user navigates during an active transition:
 Return cleanup functions from `exit`/`enter` to handle interruption gracefully:
 
 ```tsx
-exit: (done) => {
+exit: ({ done }) => {
   const tl = gsap.timeline({ onComplete: done });
   tl.to(ref.current, { opacity: 0, duration: 1.5 });
 
   // Called if user navigates before exit completes
   return () => {
-    tl.reverse(); // smooth reversal
+    tl.reverse();
     return tl; // wait for reversal to finish
   };
 };

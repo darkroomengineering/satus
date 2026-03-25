@@ -2,6 +2,7 @@
 @import "tailwindcss/utilities.css";
 @import "./reset.css";
 @import "./fonts.css";
+@import "./media.css";
 @import "./tailwind.css";
 @import "./root.css";
 @import "./global.css";

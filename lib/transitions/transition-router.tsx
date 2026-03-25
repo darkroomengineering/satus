@@ -106,8 +106,14 @@ export function TransitionRouter({
   const location = useLocation();
   const navigationType = useNavigationType();
 
+  // Monotonically increasing page key — ensures React always mounts fresh
+  // components for each navigation. Using location.key would cause React to
+  // reuse component instances on back-navigation (same key), skipping initial()
+  // and producing invisible enter animations.
+  const navIdRef = useRef(0);
+
   const [pages, dispatch] = useReducer(pageReducer, [
-    { key: location.key, outlet, pathname: location.pathname },
+    { key: "page-0", outlet, pathname: location.pathname },
   ]);
   const [phase, setPhase] = useState<TransitionPhase>("idle");
 
@@ -188,7 +194,11 @@ export function TransitionRouter({
     if (preventTransition?.(prevPathname ?? location.pathname, location.pathname)) {
       dispatch({
         type: "SKIP_NAVIGATE",
-        page: { key: location.key, outlet, pathname: location.pathname },
+        page: {
+          key: pages[pages.length - 1]?.key ?? "page-0",
+          outlet,
+          pathname: location.pathname,
+        },
       });
       return;
     }
@@ -200,12 +210,11 @@ export function TransitionRouter({
       cleanupsRef.current = [];
       isTransitioningRef.current = false;
 
-      for (const [key, reg] of pageRegistries.current) {
-        if (key !== location.key) {
-          reg.clear();
-          pageRegistries.current.delete(key);
-        }
+      // Clear ALL page registries — we're aborting, start fresh
+      for (const reg of pageRegistries.current.values()) {
+        reg.clear();
       }
+      pageRegistries.current.clear();
     }
 
     // Start new transition
@@ -219,9 +228,10 @@ export function TransitionRouter({
       direction,
     };
 
+    navIdRef.current++;
     dispatch({
       type: "NAVIGATE",
-      page: { key: location.key, outlet, pathname: location.pathname },
+      page: { key: `page-${navIdRef.current}`, outlet, pathname: location.pathname },
       frozenOutlet: prevOutlet,
     });
 
@@ -357,9 +367,17 @@ export function TransitionRouter({
     const hasGlobalExits = globalRegistry.hasExits();
 
     if (!hasPageExits && !hasGlobalExits) {
-      // No exits registered — trigger enters immediately
-      triggerEnters();
-      return () => clearTimeout(timeoutIdRef.current);
+      // No exits — defer enters by one frame so initial()'s anime.js
+      // duration:0 animations have time to apply. Without this, enter
+      // callbacks fire before initial state is set, causing invisible
+      // animations (element already at final state).
+      const rafId = requestAnimationFrame(() => {
+        triggerEnters();
+      });
+      return () => {
+        cancelAnimationFrame(rafId);
+        clearTimeout(timeoutIdRef.current);
+      };
     }
 
     // In wait mode, enter() from exit callbacks is a no-op (enters wait for all exits).

@@ -1,4 +1,4 @@
-import gsap from "gsap";
+import { animate, createTimeline } from "animejs";
 import { useLenis } from "lenis/react";
 import { useLayoutEffect, useRef } from "react";
 import { ProgressText } from "~/components/progress-text";
@@ -34,20 +34,20 @@ export default function About() {
 
   useRouteTransition({
     initial: () => {
-      gsap.set(pageRef.current, { opacity: 0, y: 50 });
-      gsap.set(titleRef.current, { opacity: 0, y: 80 });
+      animate(pageRef.current!, { opacity: 0, y: 50, duration: 0 });
+      animate(titleRef.current!, { opacity: 0, y: 80, duration: 0 });
     },
     exit: ({ done, enter }) => {
       const runExit = () => {
-        const tl = gsap.timeline({ onComplete: done });
-        tl.call(() => enter(), [], 0.3);
-        tl.to(titleRef.current, { opacity: 0, y: -50, duration: 0.7, ease: "power3.in" }, 0);
-        tl.to(pageRef.current, { opacity: 0, duration: 0.5 }, 0.15);
+        const tl = createTimeline({ onComplete: done });
+        tl.call(() => enter(), 300);
+        tl.add(titleRef.current!, { opacity: 0, y: -50, duration: 700, ease: "inQuart" }, 0);
+        tl.add(pageRef.current!, { opacity: 0, duration: 500 }, 150);
         return tl;
       };
 
       if (lenis && lenis.scroll > 0) {
-        let tl: gsap.core.Timeline | undefined;
+        let tl: ReturnType<typeof createTimeline> | undefined;
         lenis.scrollTo(0, {
           onComplete: () => {
             tl = runExit();
@@ -60,9 +60,9 @@ export default function About() {
       return () => tl.revert();
     },
     enter: ({ done }) => {
-      const tl = gsap.timeline({ onComplete: done });
-      tl.to(pageRef.current, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" });
-      tl.to(titleRef.current, { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0.1);
+      const tl = createTimeline({ onComplete: done });
+      tl.add(pageRef.current!, { opacity: 1, y: 0, duration: 800, ease: "outCubic" });
+      tl.add(titleRef.current!, { opacity: 1, y: 0, duration: 1200, ease: "outQuart" }, 100);
       return () => tl.revert();
     },
   });

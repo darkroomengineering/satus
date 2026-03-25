@@ -1,4 +1,4 @@
-import gsap from "gsap";
+import { animate, createTimeline, stagger } from "animejs";
 import { useLenis } from "lenis/react";
 import { useLayoutEffect, useRef } from "react";
 import { Wrapper } from "~/components/wrapper";
@@ -14,7 +14,7 @@ export function meta(_args: Route.MetaArgs) {
 const FEATURES = [
   {
     title: "Page Transitions",
-    desc: "Overlap mode with GSAP choreography. Exit, enter, crossfade — all orchestrated.",
+    desc: "Overlap mode with anime.js choreography. Exit, enter, crossfade — all orchestrated.",
   },
   {
     title: "WebGL Canvas",
@@ -52,37 +52,37 @@ export default function Features() {
 
   useRouteTransition({
     initial: () => {
-      gsap.set(pageRef.current, { opacity: 0, y: 60 });
-      gsap.set(titleRef.current, { opacity: 0, y: 40 });
+      animate(pageRef.current!, { opacity: 0, y: 60, duration: 0 });
+      animate(titleRef.current!, { opacity: 0, y: 40, duration: 0 });
       if (gridRef.current?.children) {
-        gsap.set(gridRef.current.children, { opacity: 0, y: 80, scale: 0.9 });
+        animate(gridRef.current.children, { opacity: 0, y: 80, scale: 0.9, duration: 0 });
       }
     },
     exit: ({ done, enter }) => {
       const runExit = () => {
-        const tl = gsap.timeline({ onComplete: done });
-        tl.call(() => enter(), [], 0.25);
+        const tl = createTimeline({ onComplete: done });
+        tl.call(() => enter(), 250);
         if (gridRef.current?.children) {
-          tl.to(
+          tl.add(
             Array.from(gridRef.current.children).reverse(),
             {
               opacity: 0,
               y: -40,
               scale: 0.9,
-              duration: 0.5,
-              ease: "power2.in",
-              stagger: 0.04,
+              duration: 500,
+              ease: "inCubic",
+              delay: stagger(40),
             },
             0,
           );
         }
-        tl.to(titleRef.current, { opacity: 0, y: -30, duration: 0.5, ease: "power3.in" }, 0.05);
-        tl.to(pageRef.current, { opacity: 0, duration: 0.4 }, "-=0.3");
+        tl.add(titleRef.current!, { opacity: 0, y: -30, duration: 500, ease: "inQuart" }, 50);
+        tl.add(pageRef.current!, { opacity: 0, duration: 400 }, 400);
         return tl;
       };
 
       if (lenis && lenis.scroll > 0) {
-        let tl: gsap.core.Timeline | undefined;
+        let tl: ReturnType<typeof createTimeline> | undefined;
         lenis.scrollTo(0, {
           onComplete: () => {
             tl = runExit();
@@ -95,21 +95,21 @@ export default function Features() {
       return () => tl.revert();
     },
     enter: ({ done }) => {
-      const tl = gsap.timeline({ onComplete: done });
-      tl.to(pageRef.current, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" });
-      tl.to(titleRef.current, { opacity: 1, y: 0, duration: 1.0, ease: "power3.out" }, 0.1);
+      const tl = createTimeline({ onComplete: done });
+      tl.add(pageRef.current!, { opacity: 1, y: 0, duration: 600, ease: "outCubic" });
+      tl.add(titleRef.current!, { opacity: 1, y: 0, duration: 1000, ease: "outQuart" }, 100);
       if (gridRef.current?.children) {
-        tl.to(
+        tl.add(
           gridRef.current.children,
           {
             opacity: 1,
             y: 0,
             scale: 1,
-            duration: 1.0,
-            ease: "power3.out",
-            stagger: 0.06,
+            duration: 1000,
+            ease: "outQuart",
+            delay: stagger(60),
           },
-          0.15,
+          150,
         );
       }
       return () => tl.revert();

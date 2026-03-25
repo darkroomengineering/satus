@@ -21,13 +21,13 @@ bun dev
 
 ## Tech Stack
 
-| Category  | Technologies                                |
-| --------- | ------------------------------------------- |
-| Framework | React Router 7 (SSR), React 19, TypeScript  |
-| Styling   | Tailwind CSS v4, CSS Modules, Lightning CSS |
-| Optional  | React Three Fiber, GSAP, Theatre.js, Sanity |
-| Tooling   | Vite 8, Bun, Oxlint, Oxfmt                  |
-| Env       | t3-env, Valibot                             |
+| Category  | Technologies                                    |
+| --------- | ----------------------------------------------- |
+| Framework | React Router 7 (SSR), React 19, TypeScript      |
+| Styling   | Tailwind CSS v4, CSS Modules, Lightning CSS     |
+| Optional  | React Three Fiber, Anime.js, Theatre.js, Sanity |
+| Tooling   | Vite 8, Bun, Oxlint, Oxfmt                      |
+| Env       | t3-env, Valibot                                 |
 
 ## Project Structure
 

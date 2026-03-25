@@ -1,5 +1,5 @@
 import cn from "clsx";
-import gsap from "gsap";
+import { createTimeline } from "animejs";
 import { useRef } from "react";
 import { useLocation } from "react-router";
 import { Link } from "~/components/link";
@@ -18,20 +18,20 @@ export function Nav() {
 
   useTransitionEvent({
     onExit: ({ done }) => {
-      const tl = gsap.timeline({ onComplete: done });
-      tl.to(navRef.current, {
+      const tl = createTimeline({ onComplete: done });
+      tl.add(navRef.current!, {
         opacity: 0.3,
-        duration: 0.4,
-        ease: "power2.in",
+        duration: 400,
+        ease: "inCubic",
       });
       return () => tl.revert();
     },
     onEnter: ({ done }) => {
-      const tl = gsap.timeline({ onComplete: done });
-      tl.to(navRef.current, {
+      const tl = createTimeline({ onComplete: done });
+      tl.add(navRef.current!, {
         opacity: 1,
-        duration: 0.6,
-        ease: "power2.out",
+        duration: 600,
+        ease: "outCubic",
       });
       return () => tl.revert();
     },

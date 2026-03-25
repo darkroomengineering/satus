@@ -1,10 +1,16 @@
 import cn from "clsx";
-import { SplitText as GSAPSplitText } from "gsap/SplitText";
+import { splitText as animeSplitText } from "animejs";
 import { useEffect, useImperativeHandle, useRef, useState } from "react";
-// import { useIsVisualEditor } from '@/lib/integrations/storyblok/use-is-visual-editor'
 import s from "./split-text.module.css";
 
 // @refresh reset
+
+interface SplitResult {
+  chars: HTMLElement[];
+  words: HTMLElement[];
+  lines: HTMLElement[];
+  revert: () => void;
+}
 
 interface SplitTextProps {
   children: React.ReactNode;
@@ -15,10 +21,10 @@ interface SplitTextProps {
   mask?: boolean;
 }
 
-interface SplitTextRef {
+export interface SplitTextRef {
   getNode: () => HTMLElement | null;
-  getSplitText: () => GSAPSplitText | null;
-  splittedText: GSAPSplitText | null;
+  getSplitText: () => SplitResult | null;
+  splittedText: SplitResult | null;
 }
 
 export function SplitText({
@@ -32,11 +38,9 @@ export function SplitText({
 }: SplitTextProps & {
   ref?: React.RefObject<SplitTextRef | null> | ((node: SplitTextRef | null) => void);
 }) {
-  // const isVisualEditor = useIsVisualEditor()
-
   const splitRef = useRef<HTMLDivElement>(null);
-  const splittedRef = useRef<GSAPSplitText | null>(null);
-  const [splittedText, setSplittedText] = useState<GSAPSplitText | null>(null);
+  const splittedRef = useRef<SplitResult | null>(null);
+  const [splittedText, setSplittedText] = useState<SplitResult | null>(null);
 
   useEffect(() => {
     function findDeepestElement(element: HTMLElement | null): HTMLElement | null {
@@ -55,48 +59,38 @@ export function SplitText({
 
     splittedRef.current?.revert();
 
-    const split = GSAPSplitText.create(findDeepestElement(splitRef.current), {
-      type,
-      ...(mask && { mask: type }),
-      autoSplit: true,
-      wordsClass: "word",
-      linesClass: "line",
-      charsClass: "char",
-      onSplit: (splitted) => {
-        splittedRef.current = splitted;
-        setSplittedText(splitted);
-      },
-    });
+    const target = findDeepestElement(splitRef.current);
+    if (!target) return;
+
+    const splitOptions: Record<string, boolean | { wrap: string }> = {};
+    if (type === "chars" || type === "words") {
+      splitOptions.words = mask ? { wrap: "clip" } : true;
+    }
+    if (type === "chars") {
+      splitOptions.chars = true;
+    }
+    if (type === "lines") {
+      splitOptions.lines = true;
+    }
+
+    const result = animeSplitText(target, splitOptions) as unknown as SplitResult;
+    splittedRef.current = result;
+    setSplittedText(result);
 
     return () => {
-      split.revert();
+      result.revert();
     };
   }, [type, mask]);
 
   useImperativeHandle(
     ref,
     () => ({
-      // timeline,
       getSplitText: () => splittedRef.current,
       getNode: () => splitRef.current,
       splittedText,
     }),
     [splittedText],
   );
-
-  // if (isVisualEditor) {
-  //   return (
-  //     <Tag
-  //       className={cn(s.splitText, className)}
-  //       ref={splitRef}
-  //       style={{
-  //         opacity: willAppear ? 0 : 1,
-  //       }}
-  //     >
-  //       {children}
-  //     </Tag>
-  //   )
-  // }
 
   return (
     <Tag

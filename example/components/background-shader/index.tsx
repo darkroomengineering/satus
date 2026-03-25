@@ -1,5 +1,5 @@
 import { useFrame, useThree } from "@react-three/fiber";
-import gsap from "gsap";
+import { createTimeline } from "animejs";
 import { useLayoutEffect, useRef } from "react";
 import type { Texture } from "three";
 import { Color, ShaderMaterial, Vector2 } from "three";
@@ -112,26 +112,26 @@ export function BackgroundShader() {
     onExit: ({ done }) => {
       const store = storeRef.current;
       const obj = { distortion: 0, colorMix: 0 };
-      const tl = gsap.timeline({ onComplete: done });
-      tl.to(obj, {
+      const tl = createTimeline({ onComplete: done });
+      tl.add(obj, {
         distortion: 1,
-        duration: 0.8,
-        ease: "power2.inOut",
+        duration: 800,
+        ease: "inOutCubic",
         onUpdate: () => {
           store.setState({ distortion: obj.distortion });
         },
       });
-      tl.to(
+      tl.add(
         obj,
         {
           colorMix: 1,
-          duration: 0.8,
-          ease: "power2.inOut",
+          duration: 800,
+          ease: "inOutCubic",
           onUpdate: () => {
             store.setState({ colorMix: obj.colorMix });
           },
         },
-        0.2,
+        200,
       );
       return () => tl.revert();
     },
@@ -139,16 +139,16 @@ export function BackgroundShader() {
       const store = storeRef.current;
       const state = store.getState();
       const obj = { distortion: state.distortion };
-      const tl = gsap.timeline({
+      const tl = createTimeline({
         onComplete: () => {
           store.getState().commitPalette();
           done();
         },
       });
-      tl.to(obj, {
+      tl.add(obj, {
         distortion: 0,
-        duration: 1.2,
-        ease: "power3.out",
+        duration: 1200,
+        ease: "outQuart",
         onUpdate: () => {
           store.setState({ distortion: obj.distortion });
         },

@@ -6,7 +6,7 @@ const STACK = [
   { name: "React 19", detail: "Compiler + Transitions" },
   { name: "Tailwind v4", detail: "Lightning CSS" },
   { name: "R3F + Three.js", detail: "WebGL / WebGPU" },
-  { name: "GSAP", detail: "Animation" },
+  { name: "Anime.js", detail: "Animation" },
   { name: "Lenis", detail: "Smooth Scroll" },
 ] as const;
 

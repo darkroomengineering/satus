@@ -1,6 +1,6 @@
 # Transitions
 
-Framework-agnostic page transition system for React Router. Inspired by Framer Motion's AnimatePresence but decoupled from any animation library — works with GSAP, CSS, WebGL, or anything that can call a callback.
+Framework-agnostic page transition system for React Router. Inspired by Framer Motion's AnimatePresence but decoupled from any animation library — works with anime.js, CSS, WebGL, or anything that can call a callback.
 
 ## Quick Start
 
@@ -21,18 +21,23 @@ export default function App() {
 Add transitions to any page component:
 
 ```tsx
+import { animate, createTimeline } from "animejs";
 import { useRouteTransition } from "~/lib/transitions";
 
 function Hero() {
   const ref = useRef<HTMLDivElement>(null);
 
   useRouteTransition({
-    initial: () => gsap.set(ref.current, { opacity: 0, y: 50 }),
+    initial: () => animate(ref.current, { opacity: 0, y: 50, duration: 0 }),
     exit: ({ done }) => {
-      gsap.to(ref.current, { opacity: 0, y: -40, onComplete: done });
+      const tl = createTimeline({ onComplete: done });
+      tl.add(ref.current, { opacity: 0, y: -40, duration: 500 });
+      return () => tl.revert();
     },
     enter: ({ done }) => {
-      gsap.to(ref.current, { opacity: 1, y: 0, onComplete: done });
+      const tl = createTimeline({ onComplete: done });
+      tl.add(ref.current, { opacity: 1, y: 0, duration: 600 });
+      return () => tl.revert();
     },
   });
 
@@ -105,7 +110,7 @@ Sets element state **before first paint** when mounting as the entering page. On
 
 ```tsx
 initial: (info) => {
-  gsap.set(ref.current, { opacity: 0, y: 50 });
+  animate(ref.current, { opacity: 0, y: 50, duration: 0 });
 };
 ```
 
@@ -116,23 +121,23 @@ Animate out. **Call `done()` when finished.** The system waits for all registere
 ```tsx
 // Simple
 exit: ({ done }) => {
-  gsap.to(ref.current, { opacity: 0, onComplete: done });
+  animate(ref.current, { opacity: 0, duration: 500, onComplete: done });
 };
 
 // Timeline
 exit: ({ done }) => {
-  const tl = gsap.timeline({ onComplete: done });
-  tl.to(title, { opacity: 0, y: -40 });
-  tl.to(content, { opacity: 0 }, 0.1);
+  const tl = createTimeline({ onComplete: done });
+  tl.add(title, { opacity: 0, y: -40, duration: 500 });
+  tl.add(content, { opacity: 0, duration: 400 }, 100);
   return () => tl.revert(); // cleanup on interruption
 };
 
 // Trigger entering page mid-exit
 exit: ({ done, enter }) => {
-  const tl = gsap.timeline({ onComplete: done });
-  tl.to(hero, { opacity: 0, duration: 0.5 });
+  const tl = createTimeline({ onComplete: done });
+  tl.add(hero, { opacity: 0, duration: 500 });
   tl.call(() => enter()); // new page starts entering here
-  tl.to(bg, { opacity: 0, duration: 1.0 }); // still animating
+  tl.add(bg, { opacity: 0, duration: 1000 }); // still animating
 };
 
 // Route-aware
@@ -140,7 +145,7 @@ exit: ({ done, info }) => {
   if (info.to === "/gallery") {
     /* special animation */
   }
-  gsap.to(ref.current, { opacity: 0, onComplete: done });
+  animate(ref.current, { opacity: 0, duration: 500, onComplete: done });
 };
 ```
 
@@ -161,14 +166,14 @@ Animate in. **Call `done()` when finished.** Only runs after the exiting page ca
 ```tsx
 // Simple
 enter: ({ done }) => {
-  gsap.to(ref.current, { opacity: 1, y: 0, onComplete: done });
+  animate(ref.current, { opacity: 1, y: 0, duration: 600, onComplete: done });
 };
 
 // Timeline with cleanup
 enter: ({ done }) => {
-  const tl = gsap.timeline({ onComplete: done });
-  tl.to(circle, { opacity: 1, scale: 1, duration: 1.5 });
-  tl.to(title, { opacity: 1, y: 0 }, 0.2);
+  const tl = createTimeline({ onComplete: done });
+  tl.add(circle, { opacity: 1, scale: 1, duration: 1500 });
+  tl.add(title, { opacity: 1, y: 0, duration: 800 }, 200);
   return () => tl.revert();
 };
 ```
@@ -195,10 +200,14 @@ For **persistent components** (header, footer, WebGL canvas) that stay mounted a
 ```tsx
 useTransitionEvent({
   onExit: ({ done }) => {
-    gsap.to(menuRef.current, { y: "-100%", onComplete: done });
+    const tl = createTimeline({ onComplete: done });
+    tl.add(menuRef.current, { y: "-100%", duration: 400 });
+    return () => tl.revert();
   },
   onEnter: ({ done }) => {
-    gsap.from(menuRef.current, { y: "-100%", onComplete: done });
+    const tl = createTimeline({ onComplete: done });
+    tl.add(menuRef.current, { y: "0%", duration: 400 });
+    return () => tl.revert();
   },
 });
 ```
@@ -253,8 +262,8 @@ Return cleanup functions from `exit`/`enter`:
 
 ```tsx
 exit: ({ done }) => {
-  const tl = gsap.timeline({ onComplete: done });
-  tl.to(ref.current, { opacity: 0, duration: 1.5 });
+  const tl = createTimeline({ onComplete: done });
+  tl.add(ref.current, { opacity: 0, duration: 1500 });
   return () => tl.revert(); // called on interruption
 };
 ```

@@ -2,19 +2,16 @@ import type { LenisOptions } from "lenis";
 import "lenis/dist/lenis.css";
 import type { LenisRef, LenisProps as ReactLenisProps } from "lenis/react";
 import { ReactLenis } from "lenis/react";
-import { lazy, Suspense, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useTempus } from "tempus/react";
 import { useStore } from "~/hooks/store";
-
-const LenisScrollTriggerSync = lazy(() => import("./scroll-trigger"));
 
 interface LenisProps extends Omit<ReactLenisProps, "ref"> {
   root: boolean;
   options: LenisOptions;
-  syncScrollTrigger?: boolean;
 }
 
-export function Lenis({ root, options, syncScrollTrigger = false }: LenisProps) {
+export function Lenis({ root, options }: LenisProps) {
   const lenisRef = useRef<LenisRef>(null);
   const isNavOpened = useStore((state: { isNavOpened: boolean }) => state.isNavOpened);
 
@@ -41,12 +38,6 @@ export function Lenis({ root, options, syncScrollTrigger = false }: LenisProps) 
         prevent: (node: Element | null) =>
           node?.nodeName === "VERCEL-LIVE-FEEDBACK" || node?.id === "theatrejs-studio-root",
       }}
-    >
-      {syncScrollTrigger && root && (
-        <Suspense fallback={null}>
-          <LenisScrollTriggerSync />
-        </Suspense>
-      )}
-    </ReactLenis>
+    />
   );
 }

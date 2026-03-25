@@ -13,7 +13,7 @@ app/
   routes/               # Route modules (loaders, components, meta)
   components/           # Route-specific components (header, footer)
 components/             # Reusable: image, link, wrapper, theme, lenis, marquee, fold,
-                        # scrollbar, real-viewport, scroll-restoration, gsap, split-text, progress-text
+                        # scrollbar, real-viewport, scroll-restoration, animejs, split-text, progress-text
 hooks/                  # Custom hooks + Zustand store
 utils/                  # Pure utilities (math, easings, animation, raf, fetch, strings, viewport)
 styles/                 # Design system config, generated CSS, Vite plugin, Lightning CSS functions
@@ -143,7 +143,7 @@ Providers wrap. Standalone components return null and set global state.
 | Package   | Purpose                       |
 | --------- | ----------------------------- |
 | `lenis`   | Smooth scroll                 |
-| `gsap`    | Complex animations            |
+| `animejs` | Complex animations            |
 | `tempus`  | RAF management                |
 | `hamo`    | Performance hooks (`useRect`) |
 | `zustand` | Global state                  |

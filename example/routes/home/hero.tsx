@@ -2,7 +2,7 @@ import gsap from "gsap";
 import { useLenis } from "lenis/react";
 import { useRef } from "react";
 import { Marquee } from "~/components/marquee";
-import { SplitText } from "~/components/split-text";
+import { SplitText } from "~/components/split-text.client";
 import { useRouteTransition } from "~/lib/transitions";
 import s from "./hero.module.css";
 

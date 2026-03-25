@@ -3,6 +3,8 @@ import * as v from "valibot";
 
 export const env = createEnv({
   server: {
+    NODE_ENV: v.picklist(["development", "production", "test"]),
+
     // Sanity
     SANITY_API_READ_TOKEN: v.string(),
 
@@ -21,6 +23,10 @@ export const env = createEnv({
 
     // Turnstile
     // CLOUDFLARE_TURNSTILE_SECRET_KEY: v.string(),
+
+    // Password protection (optional)
+    SITE_PASSWORD: v.optional(v.string()),
+    SESSION_SECRET: v.optional(v.string()),
   },
 
   runtimeEnv: process.env,

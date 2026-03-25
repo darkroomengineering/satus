@@ -1,6 +1,7 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, type PropsWithChildren } from "react";
 import { Link, Links, Meta, Scripts, ScrollRestoration } from "react-router";
 import { Lenis } from "~/components/lenis";
+import { middleware as passwordMiddleware } from "~/lib/password-protection";
 import { RAF } from "~/components/raf";
 import { RealViewport } from "~/components/real-viewport";
 import { ThemeProvider } from "~/components/theme";
@@ -12,11 +13,14 @@ import { BackgroundShader } from "./components/background-shader";
 import { Footer } from "./components/footer";
 import { Nav } from "./components/nav";
 import { PersistentWebGL } from "./components/persistent-webgl";
+import type { Route } from "./+types/root";
+
+export const middleware: Route.MiddlewareFunction[] = [passwordMiddleware];
 
 const OrchestraTools = lazy(() => import("../dev"));
 const GlobalCanvas = lazy(() => import("../webgl/components/global-canvas"));
 
-export function Layout({ children }: { children: React.ReactNode }) {
+export function Layout({ children }: PropsWithChildren) {
   return (
     <html lang="en" dir="ltr" suppressHydrationWarning>
       <head>

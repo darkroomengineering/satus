@@ -42,7 +42,7 @@ export default function App() {
       <RealViewport />
       <ReactTempus />
       <Suspense fallback={null}>
-        <GlobalCanvas forceWebGL />
+        <GlobalCanvas forceWebGL dpr={process.env.NODE_ENV === "development" ? 0.5 : undefined} />
       </Suspense>
       <PersistentWebGL>
         <WebGLTunnel>

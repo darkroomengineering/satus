@@ -164,7 +164,6 @@ export class Flowmap {
     this.mask.read?.dispose();
     this.mask.write?.dispose();
     this.material.dispose();
-    this.program.mesh.geometry.dispose();
     this.program.scene.clear();
 
     return null;

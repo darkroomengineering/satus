@@ -8,6 +8,7 @@ export function PersistentWebGL({ children }: PropsWithChildren) {
   useLayoutEffect(() => {
     activate();
     setActive(true);
+    return () => setActive(false);
   }, [activate, setActive]);
 
   const WebGLTunnel = getWebGLTunnel();

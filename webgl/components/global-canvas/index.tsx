@@ -25,6 +25,8 @@ type GlobalCanvasProps = {
   className?: string;
   /** Force WebGL renderer (skip WebGPU). Defaults to false. */
   forceWebGL?: boolean;
+  /** Override device pixel ratio. Defaults to [1, detected DPR]. */
+  dpr?: number | [number, number] | undefined;
 };
 
 /**
@@ -84,6 +86,7 @@ export default function GlobalCanvas({
   alpha = true,
   className,
   forceWebGL = false,
+  dpr,
 }: GlobalCanvasProps) {
   const { isActivated, isActive, getWebGLTunnel, getDOMTunnel } = useWebGLStore();
   const [rendererType, setRendererType] = useState<"webgpu" | "webgl" | null>(null);
@@ -133,7 +136,7 @@ export default function GlobalCanvas({
           setRendererType(type);
           return renderer;
         }}
-        dpr={[1, capability.dpr]}
+        dpr={dpr ?? [1, capability.dpr]}
         orthographic
         frameloop="never"
         linear

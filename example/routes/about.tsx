@@ -68,7 +68,7 @@ export default function About() {
   });
 
   return (
-    <Wrapper>
+    <Wrapper lenis={false}>
       <div ref={pageRef} className={s.page}>
         <section className={s.heroSection}>
           <h1 ref={titleRef} className={s.title}>

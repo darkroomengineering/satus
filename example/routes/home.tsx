@@ -24,7 +24,7 @@ export default function Home() {
   }, [setTargetPalette]);
 
   return (
-    <Wrapper>
+    <Wrapper lenis={false}>
       <Hero />
       <StackSection />
       <Philosophy />

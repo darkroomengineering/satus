@@ -117,7 +117,7 @@ export default function Features() {
   });
 
   return (
-    <Wrapper>
+    <Wrapper lenis={false}>
       <div ref={pageRef} className={s.page}>
         <h1 ref={titleRef} className={s.title}>
           Features

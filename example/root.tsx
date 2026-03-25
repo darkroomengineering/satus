@@ -1,6 +1,7 @@
 import { Suspense, lazy } from "react";
 import { Link, Links, Meta, Scripts, ScrollRestoration } from "react-router";
 import { ReactTempus } from "tempus/react";
+import { Lenis } from "~/components/lenis";
 import { RealViewport } from "~/components/real-viewport";
 import { ThemeProvider } from "~/components/theme";
 import { TransitionRouter } from "~/lib/transitions";
@@ -39,6 +40,7 @@ export default function App() {
       <Nav />
       <TransitionRouter mode="overlap">{null}</TransitionRouter>
       <Footer />
+      <Lenis root options={{}} />
       <RealViewport />
       <ReactTempus />
       <Suspense fallback={null}>

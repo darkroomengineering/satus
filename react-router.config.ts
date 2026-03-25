@@ -1,7 +1,9 @@
+import { vercelPreset } from "@vercel/react-router/vite";
 import type { Config } from "@react-router/dev/config";
 
 export default {
   ssr: true,
+  presets: [vercelPreset()],
 
   // Marketing site (default) — switch to "app" and delete example/ to start your project
   appDirectory: "example",

@@ -357,17 +357,6 @@ function OverlapMode({
     return reg;
   }
 
-  // Preserved stylesheet clones — kept alive during transitions so CSS Modules
-  // don't lose styles when React Router removes old route <link> tags from <head>.
-  const preservedLinksRef = useRef<HTMLLinkElement[]>([]);
-
-  function removePreservedLinks() {
-    for (const link of preservedLinksRef.current) {
-      link.remove();
-    }
-    preservedLinksRef.current = [];
-  }
-
   // Finish a transition — clean up and remove exiting page.
   // `generation` prevents stale callbacks from old transitions (after rapid navigation).
   function finishTransition(exitingKey: string, generation: number) {
@@ -376,7 +365,6 @@ function OverlapMode({
     isTransitioningRef.current = false;
     clearTimeout(timeoutIdRef.current);
     cleanupsRef.current = [];
-    removePreservedLinks();
     setPhase("idle");
     dispatch({ type: "REMOVE_PAGE", key: exitingKey });
     pageRegistries.current.get(exitingKey)?.clear();
@@ -384,28 +372,27 @@ function OverlapMode({
   }
 
   // ---------------------------------------------------------------------------
-  // Preserve stylesheets during transitions (production CSS Module fix)
-  // React Router's <Links> removes old route stylesheets from <head> on navigation,
-  // even when the old page is still in the DOM during exit animations.
-  // MutationObserver re-adds removed <link> tags as clones before the browser paints.
+  // Preserve stylesheets permanently (production CSS Module fix)
+  // React Router's <Links> removes old route stylesheets from <head> on navigation.
+  // CSS Modules are scoped (unique class names), already cached/parsed, and harmless
+  // to keep — so we re-add any removed stylesheet unconditionally.
   // See: https://github.com/remix-run/react-router/issues/14413
   // ---------------------------------------------------------------------------
   useEffect(() => {
-    const observer = new MutationObserver((mutations) => {
-      if (!isTransitioningRef.current) return;
+    const preserved = new Set<string>();
 
+    const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
         for (const node of mutation.removedNodes) {
           if (
             node instanceof HTMLLinkElement &&
             node.rel === "stylesheet" &&
             node.href &&
-            !node.dataset.transitionPreserved
+            !preserved.has(node.href)
           ) {
+            preserved.add(node.href);
             const clone = node.cloneNode(true) as HTMLLinkElement;
-            clone.dataset.transitionPreserved = "true";
             document.head.appendChild(clone);
-            preservedLinksRef.current.push(clone);
           }
         }
       }
@@ -415,7 +402,6 @@ function OverlapMode({
 
     return () => {
       observer.disconnect();
-      removePreservedLinks();
     };
   }, []);
 
@@ -455,7 +441,7 @@ function OverlapMode({
       clearTimeout(timeoutIdRef.current);
       runCleanups(cleanupsRef.current);
       cleanupsRef.current = [];
-      removePreservedLinks();
+
       isTransitioningRef.current = false;
 
       // Clear evicted page registries (anything that's not the new page)
@@ -574,7 +560,7 @@ function OverlapMode({
         if (isStale()) return;
         onEnterCompleteRef.current?.(info);
         clearTimeout(timeoutIdRef.current);
-        removePreservedLinks();
+  
         setPhase("idle");
         isTransitioningRef.current = false;
         cleanupsRef.current = [];

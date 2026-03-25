@@ -284,7 +284,6 @@ interface PageEntry {
 type PageAction =
   | { type: "NAVIGATE"; page: PageEntry; frozenOutlet: ReactNode }
   | { type: "SKIP_NAVIGATE"; page: PageEntry }
-  | { type: "SYNC_KEY"; key: string; outlet: ReactNode }
   | { type: "REMOVE_PAGE"; key: string };
 
 function pageReducer(state: PageEntry[], action: PageAction): PageEntry[] {
@@ -296,10 +295,6 @@ function pageReducer(state: PageEntry[], action: PageAction): PageEntry[] {
     }
     case "SKIP_NAVIGATE":
       return [action.page];
-    case "SYNC_KEY":
-      return state.map((p, i) =>
-        i === state.length - 1 ? { ...p, key: action.key, outlet: action.outlet } : p,
-      );
     case "REMOVE_PAGE":
       return state.filter((p) => p.key !== action.key);
   }
@@ -392,9 +387,9 @@ function OverlapMode({
     prevKeyRef.current = location.key;
     prevOutletRef.current = outlet;
 
-    // Same pathname — just sync key
+    // Same pathname — nothing to do. React Router handles data updates internally.
+    // Dispatching SYNC_KEY would change the page key, causing a full remount + stale initial().
     if (location.pathname === prevPathname) {
-      dispatch({ type: "SYNC_KEY", key: location.key, outlet });
       return;
     }
 

@@ -1,7 +1,6 @@
 import { Suspense, lazy } from "react";
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
-import { ReactTempus } from "tempus/react";
-import { AnimeRuntime } from "~/components/animejs";
+import { RAF } from "~/components/raf";
 import { RealViewport } from "~/components/real-viewport";
 import { ThemeProvider } from "~/components/theme";
 import "~/styles/css/index.css";
@@ -32,8 +31,7 @@ export default function App() {
     <ThemeProvider theme="dark" global>
       <Outlet />
       <RealViewport />
-      <ReactTempus />
-      <AnimeRuntime />
+      <RAF />
       <Suspense fallback={null}>
         <GlobalCanvas />
       </Suspense>

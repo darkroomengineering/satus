@@ -560,7 +560,7 @@ function OverlapMode({
         if (isStale()) return;
         onEnterCompleteRef.current?.(info);
         clearTimeout(timeoutIdRef.current);
-  
+
         setPhase("idle");
         isTransitioningRef.current = false;
         cleanupsRef.current = [];

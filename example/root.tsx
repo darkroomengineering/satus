@@ -1,7 +1,7 @@
 import { Suspense, lazy } from "react";
 import { Link, Links, Meta, Scripts, ScrollRestoration } from "react-router";
-import { ReactTempus } from "tempus/react";
 import { Lenis } from "~/components/lenis";
+import { RAF } from "~/components/raf";
 import { RealViewport } from "~/components/real-viewport";
 import { ThemeProvider } from "~/components/theme";
 import { TransitionRouter } from "~/lib/transitions";
@@ -42,7 +42,7 @@ export default function App() {
       <Footer />
       <Lenis root options={{}} />
       <RealViewport />
-      <ReactTempus />
+      <RAF />
       <Suspense fallback={null}>
         <GlobalCanvas forceWebGL dpr={process.env.NODE_ENV === "development" ? 0.5 : undefined} />
       </Suspense>

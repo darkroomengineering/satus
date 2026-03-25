@@ -35,10 +35,10 @@ export function Preload() {
 
   useEffect(() => {
     // if (!loaderLoaded) return
+    let cancelled = false;
 
     async function load() {
-      console.log("WebGL: Preloading...");
-      console.time("WebGL: Preload took:");
+      const start = performance.now();
 
       const invisible: THREE.Object3D[] = [];
       scene.traverse((object: THREE.Object3D) => {
@@ -48,6 +48,9 @@ export function Preload() {
         }
       });
       await gl.compileAsync(scene, camera);
+
+      if (cancelled) return;
+
       const cubeRenderTarget = new WebGLCubeRenderTarget(128);
       const cubeCamera = new CubeCamera(0.01, 100000, cubeRenderTarget);
       cubeCamera.update(gl as THREE.WebGLRenderer, scene as THREE.Scene);
@@ -57,10 +60,14 @@ export function Preload() {
         object.visible = false;
       }
 
-      console.timeEnd("WebGL: Preload took:");
+      console.log(`WebGL: Preload took: ${(performance.now() - start).toFixed(1)}ms`);
     }
 
     void load();
+
+    return () => {
+      cancelled = true;
+    };
   }, [
     camera,
     gl,

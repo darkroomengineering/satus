@@ -157,11 +157,11 @@ export function BackgroundShader() {
     },
   });
 
-  useFrame(({ clock }) => {
+  useFrame((_, delta) => {
     const u = uniformsRef.current;
     const state = storeRef.current.getState();
 
-    u.uTime.value = clock.getElapsedTime();
+    u.uTime.value += delta;
     u.uDistortion.value = state.distortion;
     u.uColorMix.value = state.colorMix;
 

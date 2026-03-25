@@ -75,6 +75,7 @@ export interface TransitionContextValue {
   phase: TransitionPhase;
   from: string | null;
   to: string | null;
+  direction: TransitionDirection | null;
   mode: TransitionMode;
   pages: TransitionPageState[];
   registerExit: (id: string, fn: ExitFunction) => () => void;
@@ -86,8 +87,6 @@ export interface TransitionOrchestratorContext {
   from: string;
   to: string;
   direction: TransitionDirection;
-  fromElement: HTMLElement | undefined;
-  toElement: HTMLElement | undefined;
   runExits: () => Promise<void>;
   runEnters: () => Promise<void>;
   next: () => void;

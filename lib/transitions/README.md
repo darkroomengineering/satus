@@ -47,6 +47,19 @@ function Hero() {
 
 ---
 
+## Architecture
+
+Both modes use the same underlying page-stack mechanism:
+
+1. Navigation happens → new page mounts alongside old page (max 2 in stack)
+2. Exit animations run on the old page
+3. Enter animations run on the new page
+4. Old page is removed from the stack
+
+The `mode` prop controls **when** things are visible and **when** enters can start.
+
+---
+
 ## Modes
 
 ### Wait Mode (default)
@@ -55,7 +68,7 @@ function Hero() {
 <TransitionRouter mode="wait">
 ```
 
-Uses `useBlocker` to hold navigation. Old page stays mounted as the **real, live React tree** while exit animations play. Sequential: exit → navigation → enter.
+Sequential: exit → enter. The entering page is in the DOM during exits (for hook registration and `initial()`) but hidden. Only becomes visible after all exits complete. The `enter()` callback from exit functions is a no-op.
 
 ### Overlap Mode
 
@@ -63,7 +76,7 @@ Uses `useBlocker` to hold navigation. Old page stays mounted as the **real, live
 <TransitionRouter mode="overlap">
 ```
 
-AnimatePresence-inspired page stack. Both old and new pages are in the DOM simultaneously. Old outlet is frozen via `useOutlet()` and positioned behind the entering page.
+Both old and new pages visible simultaneously. Old outlet is frozen via `useOutlet()` and positioned behind the entering page.
 
 - Max 2 pages in the stack
 - Exit and enter sequenced by default (enter waits for exit `done()`)
@@ -106,11 +119,12 @@ interface RouteTransitionConfig {
 
 #### `initial(info)`
 
-Sets element state **before first paint** when mounting as the entering page. Only fires during transitions, never on cold page load. SSR-safe.
+Sets element state **before first paint** when mounting as the entering page. Only fires during transitions, never on cold page load. SSR-safe. Receives the correct `direction` (`"push"`, `"pop"`, or `"replace"`) for directional animations.
 
 ```tsx
 initial: (info) => {
-  animate(ref.current, { opacity: 0, y: 50, duration: 0 });
+  const dir = info.direction === "pop" ? 1 : -1;
+  animate(ref.current, { opacity: 0, x: dir * 100, duration: 0 });
 };
 ```
 
@@ -132,7 +146,7 @@ exit: ({ done }) => {
   return () => tl.revert(); // cleanup on interruption
 };
 
-// Trigger entering page mid-exit
+// Trigger entering page mid-exit (overlap mode only)
 exit: ({ done, enter }) => {
   const tl = createTimeline({ onComplete: done });
   tl.add(hero, { opacity: 0, duration: 500 });
@@ -219,7 +233,7 @@ useTransitionEvent({
 Read-only observer. Returns the full picture:
 
 ```tsx
-const { phase, from, to, mode, pages, isTransitioning } = useTransitionState();
+const { phase, from, to, direction, mode, pages, isTransitioning } = useTransitionState();
 ```
 
 Each page in `pages` has `{ key, pathname, phase }`. Useful for debug panels or any UI that needs to react to transitions.
@@ -228,19 +242,19 @@ Each page in `pages` has `{ key, pathname, phase }`. Useful for debug panels or 
 
 ### `usePreservedLoaderData<T>()`
 
-Returns loader data frozen at mount time. Use instead of `useLoaderData()` in components participating in overlap transitions.
+Returns loader data frozen at mount time. Use instead of `useLoaderData()` in components participating in transitions — prevents data from going stale during exit animations.
 
 ---
 
 ## Sequencing
 
-**Default (overlap mode):** enter waits for exit.
+**Default (both modes):** enter waits for exit.
 
 ```
 exit starts → exit calls done() → enter starts → enter calls done() → cleanup
 ```
 
-**Early enter:** call `enter()` from within exit to overlap.
+**Early enter (overlap mode only):** call `enter()` from within exit to overlap.
 
 ```
 exit starts → enter() called mid-exit → enter starts → exit calls done() → enter calls done() → cleanup
@@ -252,11 +266,11 @@ exit starts → enter() called mid-exit → enter starts → exit calls done() �
 
 ## Interruption
 
-When a user navigates during an active transition (overlap mode):
+When a user navigates during an active transition:
 
 1. Max 2 pages — oldest exiting page is evicted
 2. Cleanup functions from exit/enter are called synchronously
-3. New transition starts
+3. New transition starts from scratch
 
 Return cleanup functions from `exit`/`enter`:
 
@@ -291,4 +305,5 @@ Per-page: `data-transition-page="present"` or `data-transition-page="exiting"`
 - Errors in exit/enter are caught — transitions never get stuck
 - Component unmount auto-resolves pending `done()` calls
 - Zero registered animations = instant transition (no waiting)
-- Error boundary wraps exiting pages in overlap mode
+- Error boundary wraps exiting pages
+- Rapid navigation properly cleans up in-progress transitions via generation counter

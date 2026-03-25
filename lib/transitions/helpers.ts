@@ -33,6 +33,8 @@ export function wrapExit(
       resolve();
     };
 
+    // Resolve any stale resolver for this id (prevents hanging promises from interrupted transitions)
+    resolvers.get(id)?.();
     resolvers.set(id, done);
 
     try {
@@ -75,6 +77,8 @@ export function wrapEnter(
       resolve();
     };
 
+    // Resolve any stale resolver for this id (prevents hanging promises from interrupted transitions)
+    resolvers.get(id)?.();
     resolvers.set(id, done);
 
     try {

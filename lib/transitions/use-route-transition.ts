@@ -39,7 +39,7 @@ export function useRouteTransition(config: RouteTransitionConfig): {
   const phaseOnMount = useRef(context?.phase);
   const infoOnMount = useRef(
     context?.from && context?.to
-      ? { from: context.from, to: context.to, direction: "push" as const }
+      ? { from: context.from, to: context.to, direction: context.direction ?? ("push" as const) }
       : null,
   );
 

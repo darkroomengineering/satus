@@ -30,7 +30,7 @@ export function useTransitionState(): TransitionState {
     from: context?.from ?? null,
     to: context?.to ?? null,
     direction: context?.direction ?? null,
-    mode: context?.mode ?? "wait",
+    mode: context?.mode ?? "swap",
     pages: context?.pages ?? [],
     isTransitioning: phase !== "idle",
   };

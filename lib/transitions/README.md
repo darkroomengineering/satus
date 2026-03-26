@@ -62,21 +62,21 @@ The `mode` prop controls **when** things are visible and **when** enters can sta
 
 ## Modes
 
-### Wait Mode (default)
+### Swap Mode (default)
 
 ```tsx
-<TransitionRouter mode="wait">
+<TransitionRouter mode="swap">
 ```
 
-Sequential: exit → enter. The entering page is in the DOM during exits (for hook registration and `initial()`) but hidden. Only becomes visible after all exits complete. The `enter()` callback from exit functions is a no-op.
+One page at a time. Exit completes, old page is removed, new page enters. The entering page is in the DOM during exits (for hook registration and `initial()`) but hidden. Only becomes visible after all exits complete. The `enter()` callback from exit functions is a no-op.
 
-### Overlap Mode
+### Stack Mode
 
 ```tsx
-<TransitionRouter mode="overlap">
+<TransitionRouter mode="stack">
 ```
 
-Both old and new pages visible simultaneously. Old outlet is frozen via `useOutlet()` and positioned behind the entering page.
+Both pages stacked in the DOM simultaneously. Old outlet is frozen via `useOutlet()` and positioned behind the entering page.
 
 - Max 2 pages in the stack
 - Exit and enter sequenced by default (enter waits for exit `done()`)
@@ -90,18 +90,47 @@ Both old and new pages visible simultaneously. Old outlet is frozen via `useOutl
 
 ### `<TransitionRouter>` Props
 
-| Prop                | Type                       | Default  | Description                                                      |
-| ------------------- | -------------------------- | -------- | ---------------------------------------------------------------- |
-| `mode`              | `"wait" \| "overlap"`      | `"wait"` | Sequential or parallel transitions                               |
-| `timeout`           | `number`                   | `5000`   | Safety timeout (ms) — force-proceeds if `done()` is never called |
-| `onTransition`      | `(ctx) => void \| Promise` | —        | Centralized orchestration                                        |
-| `preventTransition` | `(from, to) => boolean`    | —        | Skip transition for specific navigations                         |
-| `onExitStart`       | `(info) => void`           | —        | Fires when exit phase begins                                     |
-| `onExitComplete`    | `(info) => void`           | —        | Fires when all exits finish                                      |
-| `onEnterStart`      | `(info) => void`           | —        | Fires when enter phase begins                                    |
-| `onEnterComplete`   | `(info) => void`           | —        | Fires when all enters finish                                     |
+| Prop                | Type                                | Default  | Description                                                      |
+| ------------------- | ----------------------------------- | -------- | ---------------------------------------------------------------- |
+| `mode`              | `"swap" \| "stack"`                 | `"swap"` | Swap (one page at a time) or stack (both in DOM)                 |
+| `timeout`           | `number`                            | `5000`   | Safety timeout (ms) — force-proceeds if `done()` is never called |
+| `appear`            | `boolean`                           | `false`  | Enable enter animations on first page load                       |
+| `ready`             | `boolean`                           | `true`   | Gate enter animations — set `false` while a preloader is active  |
+| `onTransition`      | `(ctx) => void \| Promise`          | —        | Centralized orchestration                                        |
+| `preventTransition` | `(from, to, navigation) => boolean` | —        | Skip transition for specific navigations                         |
+| `onExitStart`       | `(info) => void`                    | —        | Fires when exit phase begins                                     |
+| `onExitComplete`    | `(info) => void`                    | —        | Fires when all exits finish                                      |
+| `onEnterStart`      | `(info) => void`                    | —        | Fires when enter phase begins                                    |
+| `onEnterComplete`   | `(info) => void`                    | —        | Fires when all enters finish                                     |
 
 The router renders the outlet internally via `useOutlet()`. Children are rendered alongside for extras (debug panels, persistent UI).
+
+#### `preventTransition`
+
+Receives navigation context for direction-aware control:
+
+```tsx
+preventTransition={(from, to, { direction, trigger }) => {
+  // direction: "push" | "pop" | "replace"
+  // trigger: "link" (client navigation) | "browser" (back/forward buttons)
+  return trigger === "browser"; // instant swap on browser back/forward
+}}
+```
+
+#### `appear` + `ready`
+
+Enable first-load enter animations with optional preloader gating:
+
+```tsx
+const [ready, setReady] = useState(false);
+
+<TransitionRouter appear ready={ready}>
+  ...
+</TransitionRouter>
+<Preloader onLoaded={() => setReady(true)} />
+```
+
+When `appear` is enabled, `initial()` fires on first mount (before paint) and enter animations run once `ready` is `true`. Without `appear`, the first page renders normally with no animation.
 
 ---
 
@@ -119,7 +148,7 @@ interface RouteTransitionConfig {
 
 #### `initial(info)`
 
-Sets element state **before first paint** when mounting as the entering page. Only fires during transitions, never on cold page load. SSR-safe. Receives the correct `direction` (`"push"`, `"pop"`, or `"replace"`) for directional animations.
+Sets element state **before first paint** when mounting as the entering page. Fires during transitions, and on first load when `appear` is enabled. SSR-safe. Receives the correct `direction` (`"push"`, `"pop"`, or `"replace"`) for directional animations.
 
 ```tsx
 initial: (info) => {
@@ -128,7 +157,7 @@ initial: (info) => {
 };
 ```
 
-#### `exit({ done, enter, info })`
+#### `exit({ done, enter, info, ctx })`
 
 Animate out. **Call `done()` when finished.** The system waits for all registered exits to call `done()` before proceeding.
 
@@ -146,7 +175,7 @@ exit: ({ done }) => {
   return () => tl.revert(); // cleanup on interruption
 };
 
-// Trigger entering page mid-exit (overlap mode only)
+// Trigger entering page mid-exit (stack mode only)
 exit: ({ done, enter }) => {
   const tl = createTimeline({ onComplete: done });
   tl.add(hero, { opacity: 0, duration: 500 });
@@ -154,28 +183,27 @@ exit: ({ done, enter }) => {
   tl.add(bg, { opacity: 0, duration: 1000 }); // still animating
 };
 
-// Route-aware
-exit: ({ done, info }) => {
-  if (info.to === "/gallery") {
-    /* special animation */
-  }
+// Route-aware with shared context
+exit: ({ done, info, ctx }) => {
+  ctx.heroRect = heroRef.current.getBoundingClientRect();
   animate(ref.current, { opacity: 0, duration: 500, onComplete: done });
 };
 ```
 
 **`ExitContext`:**
 
-| Field   | Type             | Description                                                |
-| ------- | ---------------- | ---------------------------------------------------------- |
-| `done`  | `() => void`     | Signal exit completion. Must be called.                    |
-| `enter` | `() => void`     | Start entering page early (idempotent, no-op in wait mode) |
-| `info`  | `TransitionInfo` | `{ from, to, direction }`                                  |
+| Field   | Type                      | Description                                                |
+| ------- | ------------------------- | ---------------------------------------------------------- |
+| `done`  | `() => void`              | Signal exit completion. Must be called.                    |
+| `enter` | `() => void`              | Start entering page early (idempotent, no-op in swap mode) |
+| `info`  | `TransitionInfo`          | `{ from, to, direction }`                                  |
+| `ctx`   | `Record<string, unknown>` | Shared context — write data for enter callbacks            |
 
 **Return value:** optionally return a cleanup function, called on interruption (rapid navigation). Same pattern as `useEffect`.
 
-#### `enter({ done, info })`
+#### `enter({ done, info, ctx })`
 
-Animate in. **Call `done()` when finished.** Only runs after the exiting page calls `done()` (or `enter()` for early start). Not called on initial page load.
+Animate in. **Call `done()` when finished.** Only runs after the exiting page calls `done()` (or `enter()` for early start). Also runs on first load when `appear` is enabled.
 
 ```tsx
 // Simple
@@ -183,21 +211,21 @@ enter: ({ done }) => {
   animate(ref.current, { opacity: 1, y: 0, duration: 600, onComplete: done });
 };
 
-// Timeline with cleanup
-enter: ({ done }) => {
-  const tl = createTimeline({ onComplete: done });
-  tl.add(circle, { opacity: 1, scale: 1, duration: 1500 });
-  tl.add(title, { opacity: 1, y: 0, duration: 800 }, 200);
-  return () => tl.revert();
+// Read shared context from exit
+enter: ({ done, ctx }) => {
+  const fromRect = ctx.heroRect as DOMRect | undefined;
+  // use fromRect for FLIP animation...
+  animate(ref.current, { opacity: 1, duration: 800, onComplete: done });
 };
 ```
 
 **`EnterContext`:**
 
-| Field  | Type             | Description                              |
-| ------ | ---------------- | ---------------------------------------- |
-| `done` | `() => void`     | Signal enter completion. Must be called. |
-| `info` | `TransitionInfo` | `{ from, to, direction }`                |
+| Field  | Type                      | Description                                    |
+| ------ | ------------------------- | ---------------------------------------------- |
+| `done` | `() => void`              | Signal enter completion. Must be called.       |
+| `info` | `TransitionInfo`          | `{ from, to, direction }`                      |
+| `ctx`  | `Record<string, unknown>` | Shared context — read data from exit callbacks |
 
 #### Return value
 
@@ -209,7 +237,7 @@ const { phase, isExiting, isEntering } = useRouteTransition({ ... });
 
 ### `useTransitionEvent(config)`
 
-For **persistent components** (header, footer, WebGL canvas) that stay mounted across navigations. Same `{ done }` API:
+For **persistent components** (header, footer, WebGL canvas) that stay mounted across navigations. Same `{ done, ctx }` API:
 
 ```tsx
 useTransitionEvent({
@@ -246,6 +274,30 @@ Returns loader data frozen at mount time. Use instead of `useLoaderData()` in co
 
 ---
 
+## Shared Context (`ctx`)
+
+A plain object available in all exit and enter callbacks, cleared between transitions. Any exit can write to it, any enter can read from it — useful for passing data like bounding rects (FLIP animations), colors, or shared state across hooks and components.
+
+```tsx
+// Component A (exiting page)
+exit: ({ done, ctx }) => {
+  ctx.heroRect = heroRef.current.getBoundingClientRect();
+  ctx.color = "#ff0000";
+  // ...
+};
+
+// Component B (entering page)
+enter: ({ done, ctx }) => {
+  const rect = ctx.heroRect as DOMRect;
+  const color = ctx.color as string;
+  // ...
+};
+```
+
+Typed as `Record<string, unknown>` — cast what you read. The system clears `ctx` to `{}` at the start of each transition.
+
+---
+
 ## Sequencing
 
 **Default (both modes):** enter waits for exit.
@@ -254,7 +306,7 @@ Returns loader data frozen at mount time. Use instead of `useLoaderData()` in co
 exit starts → exit calls done() → [1 frame] → enter starts → enter calls done() → cleanup
 ```
 
-**Early enter (overlap mode only):** call `enter()` from within exit to overlap.
+**Early enter (stack mode only):** call `enter()` from within exit to overlap.
 
 ```
 exit starts → enter() called mid-exit → [1 frame] → enter starts → exit calls done() → enter calls done() → cleanup

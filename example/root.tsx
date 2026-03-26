@@ -47,7 +47,7 @@ export default function App() {
     <ThemeProvider theme="dark" global>
       <Nav />
       <TransitionRouter
-        mode="overlap"
+        mode="stack"
         appear
         ready={ready}
         preventTransition={(_from, _to, { trigger }) => trigger === "browser"}

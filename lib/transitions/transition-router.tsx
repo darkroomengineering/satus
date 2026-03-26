@@ -59,16 +59,16 @@ function getPageStyle(
 ): React.CSSProperties {
   // Exiting page
   if (!isPresent) {
-    if (mode === "wait") {
-      // Wait: exiting page drives layout, visible during exit
+    if (mode === "swap") {
+      // Swap: exiting page drives layout, visible during exit
       return { position: "relative", zIndex: 0, pointerEvents: "none" };
     }
-    // Overlap: exiting page floats behind entering page
+    // Stack: exiting page floats behind entering page
     return { position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none" };
   }
 
-  // Wait mode: hide entering page during exit phase (in DOM for hook registration)
-  if (mode === "wait" && phase === "exiting" && isTransitioning) {
+  // Swap mode: hide entering page during exit phase (in DOM for hook registration)
+  if (mode === "swap" && phase === "exiting" && isTransitioning) {
     return { position: "absolute", inset: 0, visibility: "hidden", pointerEvents: "none" };
   }
 
@@ -93,7 +93,7 @@ function getPageStyle(
 
 export function TransitionRouter({
   children,
-  mode = "wait",
+  mode = "swap",
   timeout = 5000,
   onTransition,
   preventTransition,
@@ -361,8 +361,8 @@ export function TransitionRouter({
 
         cbRef.current.onExitComplete?.(info);
 
-        // Wait mode: remove exiting page before enter phase so it's gone when entering page appears
-        if (mode === "wait") {
+        // Swap mode: remove exiting page before enter phase so it's gone when entering page appears
+        if (mode === "swap") {
           dispatch({ type: "REMOVE_PAGE", key: exitingKey });
           pageRegistries.current.get(exitingKey)?.clear();
           pageRegistries.current.delete(exitingKey);
@@ -382,11 +382,11 @@ export function TransitionRouter({
           if (isStale()) return;
           cbRef.current.onEnterComplete?.(info);
 
-          if (mode === "overlap") {
-            // Overlap: exiting page still in DOM — remove it now
+          if (mode === "stack") {
+            // Stack: exiting page still in DOM — remove it now
             finishTransition(exitingKey, generation);
           } else {
-            // Wait: exiting page already removed above
+            // Swap: exiting page already removed above
             clearTimeout(timeoutIdRef.current);
             setPhase("idle");
             isTransitioningRef.current = false;
@@ -455,9 +455,9 @@ export function TransitionRouter({
       };
     }
 
-    // In wait mode, enter() from exit callbacks is a no-op (enters wait for all exits).
-    // In overlap mode, enter() triggers enters early (pages animate simultaneously).
-    const enterCallback = mode === "overlap" ? triggerEnters : () => {};
+    // In swap mode, enter() from exit callbacks is a no-op (enters wait for all exits).
+    // In stack mode, enter() triggers enters early (pages animate simultaneously).
+    const enterCallback = mode === "stack" ? triggerEnters : () => {};
 
     const pageExitHandle = exitRegistry
       ? exitRegistry.runExits(info, enterCallback, ctxRef.current)

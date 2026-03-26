@@ -3,7 +3,7 @@ import type { CollectedHandle } from "./helpers";
 
 export type TransitionPhase = "idle" | "exiting" | "entering";
 export type TransitionDirection = "push" | "pop" | "replace";
-export type TransitionMode = "wait" | "overlap";
+export type TransitionMode = "swap" | "stack";
 
 export interface TransitionInfo {
   from: string;

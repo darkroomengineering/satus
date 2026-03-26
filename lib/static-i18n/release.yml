@@ -1,0 +1,54 @@
+# Copy this to .github/workflows/release.yml to enable.
+# Update TRANSLATIONS_DIR to point to your translations folder.
+#
+# Manually trigger from GitHub Actions tab → "Release Translations" → Run workflow.
+# Builds all languages, auto-increments version, uploads ZIPs as release assets.
+
+name: Release Translations
+
+on:
+  workflow_dispatch:
+
+env:
+  TRANSLATIONS_DIR: ./translations
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get next version
+        id: version
+        run: |
+          latest=$(gh release list --limit 1 --json tagName --jq '.[0].tagName // empty')
+          if [ -z "$latest" ]; then
+            echo "tag=v1" >> "$GITHUB_OUTPUT"
+          else
+            num=${latest#v}
+            echo "tag=v$((num + 1))" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+
+      - name: Build all languages
+        run: bun lib/static-i18n/build.ts --translations ${{ env.TRANSLATIONS_DIR }}
+
+      - name: Create release and upload ZIPs
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          files: output/*.zip
+          generate_release_notes: true

@@ -17,6 +17,8 @@
 
 # production
 /build
+/dist
+/output
 /public/sw.js
 
 # misc

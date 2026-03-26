@@ -3,12 +3,11 @@ import tailwindcss from "@tailwindcss/vite";
 import { composeVisitors } from "lightningcss";
 import { defineConfig } from "vite";
 import svgr from "vite-plugin-svgr";
-import { staticI18n } from "./lib/static-i18n/vite-plugin.ts";
 import { darkroomStyling } from "./styles/scripts/vite/darkroom-styling.ts";
 import { lightningcssFunctions } from "./styles/scripts/vite/lightningcss-functions.ts";
 
 export default defineConfig({
-  plugins: [tailwindcss(), reactRouter(), svgr(), darkroomStyling(), staticI18n()],
+  plugins: [tailwindcss(), reactRouter(), svgr(), darkroomStyling()],
   envPrefix: "PUBLIC_",
   resolve: {
     tsconfigPaths: true,

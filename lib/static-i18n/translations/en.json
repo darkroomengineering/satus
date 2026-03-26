@@ -1,0 +1,19 @@
+{
+  "locale": { "lang": "en", "dir": "ltr" },
+  "home": {
+    "meta": { "title": "Welcome", "description": "A translated static site" },
+    "title": "Welcome",
+    "subtitle": "This site was built in multiple languages from a single codebase."
+  },
+  "about": {
+    "meta": { "title": "About", "description": "About this project" },
+    "title": "About",
+    "text1": "This is a static site generated from translation JSON files. Each language produces its own standalone build.",
+    "text2": "The build system validates every translation against a schema, builds all languages in parallel, and outputs a ZIP per language."
+  },
+  "contact": {
+    "meta": { "title": "Contact", "description": "Get in touch" },
+    "title": "Contact",
+    "body": "Reach out to us at hello@example.com for any inquiries."
+  }
+}

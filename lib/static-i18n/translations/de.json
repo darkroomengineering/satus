@@ -1,0 +1,19 @@
+{
+  "locale": { "lang": "de", "dir": "ltr" },
+  "home": {
+    "meta": { "title": "Willkommen", "description": "Eine übersetzte statische Webseite" },
+    "title": "Willkommen",
+    "subtitle": "Diese Webseite wurde aus einer einzigen Codebasis in mehreren Sprachen erstellt."
+  },
+  "about": {
+    "meta": { "title": "Über uns", "description": "Über dieses Projekt" },
+    "title": "Über uns",
+    "text1": "Dies ist eine statische Webseite, die aus JSON-Übersetzungsdateien generiert wurde. Jede Sprache erzeugt einen eigenständigen Build.",
+    "text2": "Das Build-System validiert jede Übersetzung gegen ein Schema, baut alle Sprachen parallel und gibt pro Sprache eine ZIP-Datei aus."
+  },
+  "contact": {
+    "meta": { "title": "Kontakt", "description": "Kontaktieren Sie uns" },
+    "title": "Kontakt",
+    "body": "Kontaktieren Sie uns unter hello@example.com für alle Anfragen."
+  }
+}

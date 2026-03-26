@@ -15,7 +15,6 @@ use-route-transition.ts Hook for page components (initial/exit/enter)
 use-transition-event.ts Hook for persistent components (onExit/onEnter)
 use-transition-state.ts Read-only observer hook
 use-preserved-loader-data.ts  Freezes loader data at mount time
-use-stylesheet-fix.ts   MutationObserver workaround for React Router CSS removal
 error-boundary.tsx      Catches errors in exiting pages
 ```
 

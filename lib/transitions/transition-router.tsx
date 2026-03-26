@@ -15,7 +15,6 @@ import {
 } from "./context";
 import { runCleanups } from "./helpers";
 import { createRegistry } from "./registry";
-import { useStylesheetFix } from "./use-stylesheet-fix";
 import { TransitionErrorBoundary } from "./error-boundary";
 
 // ---------------------------------------------------------------------------
@@ -186,9 +185,6 @@ export function TransitionRouter({
     pageRegistries.current.get(exitingKey)?.clear();
     pageRegistries.current.delete(exitingKey);
   }
-
-  // Preserve CSS Module stylesheets across navigations
-  useStylesheetFix();
 
   // ---------------------------------------------------------------------------
   // Navigation detection (useLayoutEffect)

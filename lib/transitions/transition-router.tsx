@@ -101,6 +101,8 @@ export function TransitionRouter({
   onExitComplete,
   onEnterStart,
   onEnterComplete,
+  appear = false,
+  ready = true,
 }: TransitionRouterProps) {
   const outlet = useOutlet();
   const location = useLocation();
@@ -262,6 +264,55 @@ export function TransitionRouter({
   useLayoutEffect(() => {
     prevOutletRef.current = outlet;
   });
+
+  // ---------------------------------------------------------------------------
+  // Appear — first-load enter animation
+  //
+  // When appear is enabled, initial() fires on mount (via useRouteTransition
+  // reading context.appear). Enter animations are gated by the ready prop —
+  // set ready={false} while a preloader is active, flip to true when done.
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    // Only on first load — once a navigation happens, appear is irrelevant
+    if (transitionGenRef.current > 0) return;
+    if (!appear || !ready) return;
+
+    const pageKey = pages[0]?.key;
+    if (!pageKey) return;
+
+    const info: TransitionInfo = {
+      from: location.pathname,
+      to: location.pathname,
+      direction: "push",
+    };
+    infoRef.current = info;
+    isTransitioningRef.current = true;
+
+    const enterRegistry = pageRegistries.current.get(pageKey);
+
+    // Defer by 1 frame (same as normal enters) so initial() applies
+    const rafId = requestAnimationFrame(() => {
+      setPhase("entering");
+      cbRef.current.onEnterStart?.(info);
+
+      const pageHandle = enterRegistry
+        ? enterRegistry.runEnters(info, ctxRef.current)
+        : { promise: Promise.resolve(), cleanups: [] as CleanupFunction[] };
+      const globalHandle = globalRegistry.runEnters(info, ctxRef.current);
+
+      cleanupsRef.current.push(...pageHandle.cleanups, ...globalHandle.cleanups);
+
+      void Promise.all([pageHandle.promise, globalHandle.promise]).then(() => {
+        cbRef.current.onEnterComplete?.(info);
+        setPhase("idle");
+        isTransitioningRef.current = false;
+        infoRef.current = null;
+        cleanupsRef.current = [];
+      });
+    });
+
+    return () => cancelAnimationFrame(rafId);
+  }, [appear, ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---------------------------------------------------------------------------
   // Orchestration (useEffect)
@@ -450,6 +501,11 @@ export function TransitionRouter({
         : "exiting",
   }));
 
+  // appear is a one-shot: only true on the first load, before any navigation.
+  // Once a transition has happened, appear is false so subsequent mounts
+  // (e.g. prevented browser navigations) don't fire initial().
+  const appearActive = appear && transitionGenRef.current === 0;
+
   // Top-level context for persistent components (useTransitionEvent)
   const topContextValue: TransitionContextValue = {
     phase,
@@ -457,6 +513,7 @@ export function TransitionRouter({
     to: infoRef.current?.to ?? null,
     direction,
     mode,
+    appear: appearActive,
     pages: pageStates,
     registerExit: globalRegistry.registerExit,
     registerEnter: globalRegistry.registerEnter,
@@ -482,6 +539,7 @@ export function TransitionRouter({
             to: infoRef.current?.to ?? null,
             direction,
             mode,
+            appear: appearActive,
             pages: pageStates,
             registerExit: pageRegistry.registerExit,
             registerEnter: pageRegistry.registerEnter,

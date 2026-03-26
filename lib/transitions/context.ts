@@ -84,6 +84,8 @@ export interface TransitionContextValue {
   to: string | null;
   direction: TransitionDirection | null;
   mode: TransitionMode;
+  /** Whether first-load enter animations are enabled */
+  appear: boolean;
   pages: TransitionPageState[];
   registerExit: (id: string, fn: ExitFunction) => () => void;
   registerEnter: (id: string, fn: EnterFunction) => () => void;
@@ -113,6 +115,10 @@ export interface TransitionRouterProps {
   onExitComplete?: (info: TransitionInfo) => void;
   onEnterStart?: (info: TransitionInfo) => void;
   onEnterComplete?: (info: TransitionInfo) => void;
+  /** Enable enter animations on first page load. Default: false (SSR-safe). */
+  appear?: boolean;
+  /** Gate enter animations — set to false while a preloader is active. Default: true. */
+  ready?: boolean;
 }
 
 export const TransitionContext = createContext<TransitionContextValue | null>(null);

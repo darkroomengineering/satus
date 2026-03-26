@@ -1,0 +1,18 @@
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: black;
+  pointer-events: none;
+}
+
+.text {
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 300;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}

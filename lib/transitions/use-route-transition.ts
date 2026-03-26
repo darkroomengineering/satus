@@ -8,7 +8,7 @@ import {
 } from "./context";
 
 export interface RouteTransitionConfig {
-  /** Set element state before first paint. Only during transitions, not cold load. */
+  /** Set element state before first paint. Fires during transitions and on first load when appear is enabled. */
   initial?: InitialFunction;
   /** Animate out. Call done() when finished. Return cleanup function for interruption. */
   exit?: ExitFunction;
@@ -35,8 +35,10 @@ export function useRouteTransition(config: RouteTransitionConfig): {
   const registerRef = useRef(context);
   registerRef.current = context;
 
-  // Apply initial state before first paint when mounting as the ENTERING page.
+  // Apply initial state before first paint when mounting as the ENTERING page,
+  // or on first load when appear is enabled.
   const phaseOnMount = useRef(context?.phase);
+  const appearOnMount = useRef(context?.appear);
   const infoOnMount = useRef(
     context?.from && context?.to
       ? { from: context.from, to: context.to, direction: context.direction ?? ("push" as const) }
@@ -44,9 +46,13 @@ export function useRouteTransition(config: RouteTransitionConfig): {
   );
 
   useLayoutEffect(() => {
-    if (!infoOnMount.current) return;
     if (phaseOnMount.current === "exiting") return;
-    initialRef.current?.(infoOnMount.current);
+    if (infoOnMount.current) {
+      initialRef.current?.(infoOnMount.current);
+    } else if (appearOnMount.current) {
+      // First-load appear — fire initial() with synthetic info
+      initialRef.current?.({ from: "", to: "", direction: "push" });
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Register exit + enter — runs once on mount (useLayoutEffect guarantees

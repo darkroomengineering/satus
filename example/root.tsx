@@ -1,4 +1,4 @@
-import { Suspense, lazy, type PropsWithChildren } from "react";
+import { Suspense, lazy, useState, type PropsWithChildren } from "react";
 import { Link, Links, Meta, Scripts, ScrollRestoration } from "react-router";
 import { Lenis } from "~/components/lenis";
 import { middleware as passwordMiddleware } from "~/lib/password-protection";
@@ -14,6 +14,7 @@ import { Footer } from "./components/footer";
 import { Nav } from "./components/nav";
 import { TransitionDebug } from "./components/transition-debug";
 import { PersistentWebGL } from "./components/persistent-webgl";
+import { Preloader } from "./components/preloader";
 import type { Route } from "./+types/root";
 
 export const middleware: Route.MiddlewareFunction[] = [passwordMiddleware];
@@ -40,15 +41,20 @@ export function Layout({ children }: PropsWithChildren) {
 }
 
 export default function App() {
+  const [ready, setReady] = useState(false);
+
   return (
     <ThemeProvider theme="dark" global>
       <Nav />
       <TransitionRouter
         mode="overlap"
+        appear
+        ready={ready}
         preventTransition={(_from, _to, { trigger }) => trigger === "browser"}
       >
         <TransitionDebug />
       </TransitionRouter>
+      <Preloader onLoaded={() => setReady(true)} />
       <Footer />
       <Lenis root options={{}} />
       <RealViewport />

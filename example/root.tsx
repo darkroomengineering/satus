@@ -12,6 +12,7 @@ import "~/styles/css/media.css";
 import { BackgroundShader } from "./components/background-shader";
 import { Footer } from "./components/footer";
 import { Nav } from "./components/nav";
+import { TransitionDebug } from "./components/transition-debug";
 import { PersistentWebGL } from "./components/persistent-webgl";
 import type { Route } from "./+types/root";
 
@@ -46,7 +47,7 @@ export default function App() {
         mode="overlap"
         preventTransition={(_from, _to, { trigger }) => trigger === "browser"}
       >
-        {null}
+        <TransitionDebug />
       </TransitionRouter>
       <Footer />
       <Lenis root options={{}} />

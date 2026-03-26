@@ -278,44 +278,56 @@ export function TransitionRouter({
       finishTransition(exitingKey, generation);
     }, timeout);
 
-    // Enter trigger — idempotent, used both by exit callbacks and after all exits complete
+    // Enter trigger — idempotent, used both by exit callbacks (enter()) and
+    // after all exits complete. Always deferred by 1 requestAnimationFrame so
+    // initial()'s anime.js duration:0 animations have time to apply before
+    // enter callbacks fire. Without this, enter animations start before the
+    // initial state is set, producing invisible animations. This matches
+    // Vue/Nuxt's approach of always inserting a frame between initial state
+    // and animation start.
+    let enterRafId: number | undefined;
+
     const triggerEnters = () => {
       if (isStale() || enterTriggeredRef.current) return;
       enterTriggeredRef.current = true;
 
-      cbRef.current.onExitComplete?.(info);
-
-      // Wait mode: remove exiting page before enter phase so it's gone when entering page appears
-      if (mode === "wait") {
-        dispatch({ type: "REMOVE_PAGE", key: exitingKey });
-        pageRegistries.current.get(exitingKey)?.clear();
-        pageRegistries.current.delete(exitingKey);
-      }
-
-      setPhase("entering");
-      cbRef.current.onEnterStart?.(info);
-
-      const pageHandle = enterRegistry
-        ? enterRegistry.runEnters(info)
-        : { promise: Promise.resolve(), cleanups: [] as CleanupFunction[] };
-      const globalHandle = globalRegistry.runEnters(info);
-
-      cleanupsRef.current.push(...pageHandle.cleanups, ...globalHandle.cleanups);
-
-      void Promise.all([pageHandle.promise, globalHandle.promise]).then(() => {
+      enterRafId = requestAnimationFrame(() => {
         if (isStale()) return;
-        cbRef.current.onEnterComplete?.(info);
 
-        if (mode === "overlap") {
-          // Overlap: exiting page still in DOM — remove it now
-          finishTransition(exitingKey, generation);
-        } else {
-          // Wait: exiting page already removed above
-          clearTimeout(timeoutIdRef.current);
-          setPhase("idle");
-          isTransitioningRef.current = false;
-          cleanupsRef.current = [];
+        cbRef.current.onExitComplete?.(info);
+
+        // Wait mode: remove exiting page before enter phase so it's gone when entering page appears
+        if (mode === "wait") {
+          dispatch({ type: "REMOVE_PAGE", key: exitingKey });
+          pageRegistries.current.get(exitingKey)?.clear();
+          pageRegistries.current.delete(exitingKey);
         }
+
+        setPhase("entering");
+        cbRef.current.onEnterStart?.(info);
+
+        const pageHandle = enterRegistry
+          ? enterRegistry.runEnters(info)
+          : { promise: Promise.resolve(), cleanups: [] as CleanupFunction[] };
+        const globalHandle = globalRegistry.runEnters(info);
+
+        cleanupsRef.current.push(...pageHandle.cleanups, ...globalHandle.cleanups);
+
+        void Promise.all([pageHandle.promise, globalHandle.promise]).then(() => {
+          if (isStale()) return;
+          cbRef.current.onEnterComplete?.(info);
+
+          if (mode === "overlap") {
+            // Overlap: exiting page still in DOM — remove it now
+            finishTransition(exitingKey, generation);
+          } else {
+            // Wait: exiting page already removed above
+            clearTimeout(timeoutIdRef.current);
+            setPhase("idle");
+            isTransitioningRef.current = false;
+            cleanupsRef.current = [];
+          }
+        });
       });
     };
 
@@ -359,7 +371,10 @@ export function TransitionRouter({
           },
         );
       }
-      return () => clearTimeout(timeoutIdRef.current);
+      return () => {
+        if (enterRafId !== undefined) cancelAnimationFrame(enterRafId);
+        clearTimeout(timeoutIdRef.current);
+      };
     }
 
     // Default orchestration — run exits, then enters
@@ -367,15 +382,10 @@ export function TransitionRouter({
     const hasGlobalExits = globalRegistry.hasExits();
 
     if (!hasPageExits && !hasGlobalExits) {
-      // No exits — defer enters by one frame so initial()'s anime.js
-      // duration:0 animations have time to apply. Without this, enter
-      // callbacks fire before initial state is set, causing invisible
-      // animations (element already at final state).
-      const rafId = requestAnimationFrame(() => {
-        triggerEnters();
-      });
+      // No exits — trigger enters directly (RAF deferral is inside triggerEnters)
+      triggerEnters();
       return () => {
-        cancelAnimationFrame(rafId);
+        if (enterRafId !== undefined) cancelAnimationFrame(enterRafId);
         clearTimeout(timeoutIdRef.current);
       };
     }
@@ -395,7 +405,10 @@ export function TransitionRouter({
       triggerEnters();
     });
 
-    return () => clearTimeout(timeoutIdRef.current);
+    return () => {
+      if (enterRafId !== undefined) cancelAnimationFrame(enterRafId);
+      clearTimeout(timeoutIdRef.current);
+    };
   }, [transitionGen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync data attribute

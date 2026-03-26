@@ -251,16 +251,20 @@ Returns loader data frozen at mount time. Use instead of `useLoaderData()` in co
 **Default (both modes):** enter waits for exit.
 
 ```
-exit starts → exit calls done() → enter starts → enter calls done() → cleanup
+exit starts → exit calls done() → [1 frame] → enter starts → enter calls done() → cleanup
 ```
 
 **Early enter (overlap mode only):** call `enter()` from within exit to overlap.
 
 ```
-exit starts → enter() called mid-exit → enter starts → exit calls done() → enter calls done() → cleanup
+exit starts → enter() called mid-exit → [1 frame] → enter starts → exit calls done() → enter calls done() → cleanup
 ```
 
-**No transitions registered:** page is removed instantly. No waiting.
+**No transitions registered:** page appears after 1 frame. No waiting.
+
+### 1-frame enter deferral
+
+Enter animations are always deferred by one `requestAnimationFrame` after exits complete (or immediately if there are no exits). This ensures `initial()`'s animation-library calls (e.g., `animate(el, { opacity: 0, duration: 0 })`) have time to apply before enter callbacks fire. Without this, enter animations can start before the initial state is set, producing invisible animations. This matches Vue/Nuxt's internal approach of inserting a frame between initial state and animation start.
 
 ---
 
@@ -270,7 +274,8 @@ When a user navigates during an active transition:
 
 1. Max 2 pages — oldest exiting page is evicted
 2. Cleanup functions from exit/enter are called synchronously
-3. New transition starts from scratch
+3. Pending RAF for deferred enters is cancelled
+4. New transition starts from scratch
 
 Return cleanup functions from `exit`/`enter`:
 
@@ -281,6 +286,8 @@ exit: ({ done }) => {
   return () => tl.revert(); // called on interruption
 };
 ```
+
+**Tip:** For smoother interruption during enters, consider returning `() => tl.pause()` instead of `() => tl.revert()`. Pausing freezes the element at its current state (e.g., opacity 0.5) while the new page enters on top, rather than snapping back to the initial state.
 
 ---
 

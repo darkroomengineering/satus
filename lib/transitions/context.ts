@@ -104,7 +104,11 @@ export interface TransitionRouterProps {
   mode?: TransitionMode;
   timeout?: number;
   onTransition?: (ctx: TransitionOrchestratorContext) => void | Promise<void>;
-  preventTransition?: (from: string, to: string) => boolean;
+  preventTransition?: (
+    from: string,
+    to: string,
+    navigation: { direction: TransitionDirection; trigger: "link" | "browser" },
+  ) => boolean;
   onExitStart?: (info: TransitionInfo) => void;
   onExitComplete?: (info: TransitionInfo) => void;
   onEnterStart?: (info: TransitionInfo) => void;

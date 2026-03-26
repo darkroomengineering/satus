@@ -42,7 +42,12 @@ export default function App() {
   return (
     <ThemeProvider theme="dark" global>
       <Nav />
-      <TransitionRouter mode="overlap">{null}</TransitionRouter>
+      <TransitionRouter
+        mode="overlap"
+        preventTransition={(_from, _to, { trigger }) => trigger === "browser"}
+      >
+        {null}
+      </TransitionRouter>
       <Footer />
       <Lenis root options={{}} />
       <RealViewport />

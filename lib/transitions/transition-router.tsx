@@ -194,8 +194,19 @@ export function TransitionRouter({
     // Same pathname — skip. React Router handles data updates internally.
     if (location.pathname === prevPathname) return;
 
-    // Prevented navigation — skip animation, swap page instantly
-    if (preventTransition?.(prevPathname ?? location.pathname, location.pathname)) {
+    // Derive direction and trigger before preventTransition check
+    const direction = navigationType.toLowerCase() as TransitionDirection;
+    const trigger = direction === "pop" ? ("browser" as const) : ("link" as const);
+
+    // Prevented navigation — skip animation, swap page instantly.
+    // Clear infoRef so new components don't see stale from/to and skip initial().
+    if (
+      preventTransition?.(prevPathname ?? location.pathname, location.pathname, {
+        direction,
+        trigger,
+      })
+    ) {
+      infoRef.current = null;
       dispatch({
         type: "SKIP_NAVIGATE",
         page: {
@@ -225,8 +236,6 @@ export function TransitionRouter({
     enterTriggeredRef.current = false;
     isTransitioningRef.current = true;
     ctxRef.current = {};
-
-    const direction = navigationType.toLowerCase() as TransitionDirection;
     infoRef.current = {
       from: prevPathname ?? location.pathname,
       to: location.pathname,

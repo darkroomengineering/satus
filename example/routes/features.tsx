@@ -94,7 +94,12 @@ export default function Features() {
       const tl = runExit();
       return () => tl.revert();
     },
-    enter: ({ done }) => {
+    enter: ({ done, ctx }) => {
+      // ctx.titleRect is set by the about page's exit — log it to show shared context working
+      if (ctx.titleRect) {
+        console.log("[Features] Received title rect from previous page:", ctx.titleRect);
+      }
+
       const tl = createTimeline({ onComplete: done });
       tl.add(pageRef.current!, { opacity: 1, y: 0, duration: 600, ease: "outCubic" });
       tl.add(titleRef.current!, { opacity: 1, y: 0, duration: 1000, ease: "outQuart" }, 100);

@@ -125,6 +125,10 @@ export function TransitionRouter({
   const enterTriggeredRef = useRef(false);
   const isTransitioningRef = useRef(false);
 
+  // Shared context object — writable by any exit, readable by any enter.
+  // Cleared at the start of each transition.
+  const ctxRef = useRef<Record<string, unknown>>({});
+
   // Generation counter: ref is source of truth (bumped synchronously in
   // useLayoutEffect), state copy triggers the orchestration useEffect.
   const transitionGenRef = useRef(0);
@@ -220,6 +224,7 @@ export function TransitionRouter({
     // Start new transition
     enterTriggeredRef.current = false;
     isTransitioningRef.current = true;
+    ctxRef.current = {};
 
     const direction = navigationType.toLowerCase() as TransitionDirection;
     infoRef.current = {
@@ -307,9 +312,9 @@ export function TransitionRouter({
         cbRef.current.onEnterStart?.(info);
 
         const pageHandle = enterRegistry
-          ? enterRegistry.runEnters(info)
+          ? enterRegistry.runEnters(info, ctxRef.current)
           : { promise: Promise.resolve(), cleanups: [] as CleanupFunction[] };
-        const globalHandle = globalRegistry.runEnters(info);
+        const globalHandle = globalRegistry.runEnters(info, ctxRef.current);
 
         cleanupsRef.current.push(...pageHandle.cleanups, ...globalHandle.cleanups);
 
@@ -340,17 +345,17 @@ export function TransitionRouter({
         runExits: () => {
           const noop = () => {};
           const pageExitHandle = exitRegistry
-            ? exitRegistry.runExits(info, noop)
+            ? exitRegistry.runExits(info, noop, ctxRef.current)
             : { promise: Promise.resolve(), cleanups: [] as CleanupFunction[] };
-          const globalExitHandle = globalRegistry.runExits(info, noop);
+          const globalExitHandle = globalRegistry.runExits(info, noop, ctxRef.current);
           cleanupsRef.current.push(...pageExitHandle.cleanups, ...globalExitHandle.cleanups);
           return Promise.all([pageExitHandle.promise, globalExitHandle.promise]).then(() => {});
         },
         runEnters: () => {
           const pageHandle = enterRegistry
-            ? enterRegistry.runEnters(info)
+            ? enterRegistry.runEnters(info, ctxRef.current)
             : { promise: Promise.resolve(), cleanups: [] as CleanupFunction[] };
-          const globalHandle = globalRegistry.runEnters(info);
+          const globalHandle = globalRegistry.runEnters(info, ctxRef.current);
           cleanupsRef.current.push(...pageHandle.cleanups, ...globalHandle.cleanups);
           return Promise.all([pageHandle.promise, globalHandle.promise]).then(() => {});
         },
@@ -395,9 +400,9 @@ export function TransitionRouter({
     const enterCallback = mode === "overlap" ? triggerEnters : () => {};
 
     const pageExitHandle = exitRegistry
-      ? exitRegistry.runExits(info, enterCallback)
+      ? exitRegistry.runExits(info, enterCallback, ctxRef.current)
       : { promise: Promise.resolve(), cleanups: [] as CleanupFunction[] };
-    const globalExitHandle = globalRegistry.runExits(info, enterCallback);
+    const globalExitHandle = globalRegistry.runExits(info, enterCallback, ctxRef.current);
 
     cleanupsRef.current.push(...pageExitHandle.cleanups, ...globalExitHandle.cleanups);
 

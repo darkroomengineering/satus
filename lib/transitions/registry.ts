@@ -40,11 +40,11 @@ export function createRegistry(): TransitionRegistry {
         enterResolvers.delete(`evt:${id}`);
       };
     },
-    runExits(info, enter) {
-      return collectExits(exitMap, eventMap, exitResolvers, info, enter);
+    runExits(info, enter, ctx) {
+      return collectExits(exitMap, eventMap, exitResolvers, info, enter, ctx);
     },
-    runEnters(info) {
-      return collectEnters(enterMap, eventMap, enterResolvers, info);
+    runEnters(info, ctx) {
+      return collectEnters(enterMap, eventMap, enterResolvers, info, ctx);
     },
     hasExits() {
       if (exitMap.size > 0) return true;

@@ -4,6 +4,7 @@ import type {
   CleanupFunction,
   TransitionEventCallbacks,
   TransitionInfo,
+  TransitionCtx,
 } from "./context";
 
 // ---------------------------------------------------------------------------
@@ -21,6 +22,7 @@ export function wrapExit(
   resolvers: Map<string, () => void>,
   info: TransitionInfo,
   enter: () => void,
+  ctx: TransitionCtx,
 ): ExitHandle {
   let cleanup: CleanupFunction | null = null;
 
@@ -38,7 +40,7 @@ export function wrapExit(
     resolvers.set(id, done);
 
     try {
-      const result = fn({ done, enter, info });
+      const result = fn({ done, enter, info, ctx });
       if (typeof result === "function") {
         cleanup = result;
       }
@@ -65,6 +67,7 @@ export function wrapEnter(
   fn: EnterFunction,
   resolvers: Map<string, () => void>,
   info: TransitionInfo,
+  ctx: TransitionCtx,
 ): EnterHandle {
   let cleanup: CleanupFunction | null = null;
 
@@ -82,7 +85,7 @@ export function wrapEnter(
     resolvers.set(id, done);
 
     try {
-      const result = fn({ done, info });
+      const result = fn({ done, info, ctx });
       if (typeof result === "function") {
         cleanup = result;
       }
@@ -110,19 +113,20 @@ export function collectExits(
   resolvers: Map<string, () => void>,
   info: TransitionInfo,
   enter: () => void,
+  ctx: TransitionCtx,
 ): CollectedHandle {
   const cleanups: CleanupFunction[] = [];
   const promises: Array<Promise<void>> = [];
 
   for (const [id, fn] of exitMap) {
-    const h = wrapExit(id, fn, resolvers, info, enter);
+    const h = wrapExit(id, fn, resolvers, info, enter, ctx);
     promises.push(h.promise);
     if (h.cleanup) cleanups.push(h.cleanup);
   }
 
   for (const [id, config] of eventMap) {
     if (config.onExit) {
-      const h = wrapExit(`evt:${id}`, config.onExit, resolvers, info, enter);
+      const h = wrapExit(`evt:${id}`, config.onExit, resolvers, info, enter, ctx);
       promises.push(h.promise);
       if (h.cleanup) cleanups.push(h.cleanup);
     }
@@ -138,19 +142,20 @@ export function collectEnters(
   eventMap: Map<string, TransitionEventCallbacks>,
   resolvers: Map<string, () => void>,
   info: TransitionInfo,
+  ctx: TransitionCtx,
 ): CollectedHandle {
   const cleanups: CleanupFunction[] = [];
   const promises: Array<Promise<void>> = [];
 
   for (const [id, fn] of enterMap) {
-    const h = wrapEnter(id, fn, resolvers, info);
+    const h = wrapEnter(id, fn, resolvers, info, ctx);
     promises.push(h.promise);
     if (h.cleanup) cleanups.push(h.cleanup);
   }
 
   for (const [id, config] of eventMap) {
     if (config.onEnter) {
-      const h = wrapEnter(`evt:${id}`, config.onEnter, resolvers, info);
+      const h = wrapEnter(`evt:${id}`, config.onEnter, resolvers, info, ctx);
       promises.push(h.promise);
       if (h.cleanup) cleanups.push(h.cleanup);
     }

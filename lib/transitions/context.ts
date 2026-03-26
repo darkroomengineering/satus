@@ -14,6 +14,9 @@ export interface TransitionInfo {
 /** Cleanup function returned from exit/enter. Called on interruption. */
 export type CleanupFunction = () => void;
 
+/** Shared context object — writable by any exit, readable by any enter. Cleared between transitions. */
+export type TransitionCtx = Record<string, unknown>;
+
 /** Context passed to exit callbacks */
 export interface ExitContext {
   /** Signal that the exit animation is complete. Must be called. */
@@ -26,6 +29,8 @@ export interface ExitContext {
   enter: () => void;
   /** Navigation info */
   info: TransitionInfo;
+  /** Shared context — write data here for enter callbacks to read */
+  ctx: TransitionCtx;
 }
 
 /** Context passed to enter callbacks */
@@ -34,6 +39,8 @@ export interface EnterContext {
   done: () => void;
   /** Navigation info */
   info: TransitionInfo;
+  /** Shared context — read data written by exit callbacks */
+  ctx: TransitionCtx;
 }
 
 /**
@@ -59,8 +66,8 @@ export interface TransitionRegistry {
   registerExit: (id: string, fn: ExitFunction) => () => void;
   registerEnter: (id: string, fn: EnterFunction) => () => void;
   registerEvent: (id: string, config: TransitionEventCallbacks) => () => void;
-  runExits: (info: TransitionInfo, enter: () => void) => CollectedHandle;
-  runEnters: (info: TransitionInfo) => CollectedHandle;
+  runExits: (info: TransitionInfo, enter: () => void, ctx: TransitionCtx) => CollectedHandle;
+  runEnters: (info: TransitionInfo, ctx: TransitionCtx) => CollectedHandle;
   hasExits: () => boolean;
   clear: () => void;
 }

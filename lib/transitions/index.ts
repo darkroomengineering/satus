@@ -26,5 +26,6 @@ export type {
   TransitionOrchestratorContext,
   TransitionPageState,
   TransitionRegistry,
+  TransitionCtx,
   TransitionRouterProps,
 } from "./context";

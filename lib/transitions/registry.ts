@@ -57,6 +57,8 @@ export function createRegistry(): TransitionRegistry {
       exitMap.clear();
       enterMap.clear();
       eventMap.clear();
+      // Resolve pending promises BEFORE clearing resolver maps — this settles
+      // any in-flight Promise.all chains (they'll no-op via isStale checks).
       for (const resolve of exitResolvers.values()) resolve();
       for (const resolve of enterResolvers.values()) resolve();
       exitResolvers.clear();

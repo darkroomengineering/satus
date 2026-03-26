@@ -51,29 +51,41 @@ function pageReducer(state: PageEntry[], action: PageAction): PageEntry[] {
 // Page styles — mode controls visibility during the exit phase
 // ---------------------------------------------------------------------------
 
+// Pre-allocated style objects — avoids creating new references on every render
+const PAGE_STYLE_EXITING_SWAP: React.CSSProperties = {
+  position: "relative",
+  zIndex: 0,
+  pointerEvents: "none",
+};
+const PAGE_STYLE_EXITING_STACK: React.CSSProperties = {
+  position: "absolute",
+  inset: 0,
+  zIndex: 0,
+  pointerEvents: "none",
+};
+const PAGE_STYLE_HIDDEN: React.CSSProperties = {
+  position: "absolute",
+  inset: 0,
+  visibility: "hidden",
+  pointerEvents: "none",
+};
+const PAGE_STYLE_PRESENT: React.CSSProperties = { position: "relative", zIndex: 1 };
+
 function getPageStyle(
   isPresent: boolean,
   mode: TransitionMode,
   phase: TransitionPhase,
   isTransitioning: boolean,
 ): React.CSSProperties {
-  // Exiting page
   if (!isPresent) {
-    if (mode === "swap") {
-      // Swap: exiting page drives layout, visible during exit
-      return { position: "relative", zIndex: 0, pointerEvents: "none" };
-    }
-    // Stack: exiting page floats behind entering page
-    return { position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none" };
+    // Swap: exiting page drives layout. Stack: exiting page floats behind.
+    return mode === "swap" ? PAGE_STYLE_EXITING_SWAP : PAGE_STYLE_EXITING_STACK;
   }
-
-  // Swap mode: hide entering page during exit phase (in DOM for hook registration)
+  // Swap mode: entering page hidden during exit phase (in DOM for hook registration only)
   if (mode === "swap" && phase === "exiting" && isTransitioning) {
-    return { position: "absolute", inset: 0, visibility: "hidden", pointerEvents: "none" };
+    return PAGE_STYLE_HIDDEN;
   }
-
-  // Present page (visible)
-  return { position: "relative", zIndex: 1 };
+  return PAGE_STYLE_PRESENT;
 }
 
 // ---------------------------------------------------------------------------
@@ -108,10 +120,11 @@ export function TransitionRouter({
   const location = useLocation();
   const navigationType = useNavigationType();
 
-  // Monotonically increasing page key — ensures React always mounts fresh
-  // components for each navigation. Using location.key would cause React to
-  // reuse component instances on back-navigation (same key), skipping initial()
-  // and producing invisible enter animations.
+  // CRITICAL: Monotonically increasing page key — ensures React always mounts
+  // fresh components for each navigation. DO NOT replace with location.key.
+  // location.key is reused on back-navigation (same history entry), causing
+  // React to reconcile instead of remount — which skips initial() and produces
+  // invisible enter animations.
   const navIdRef = useRef(0);
 
   const [pages, dispatch] = useReducer(pageReducer, [
@@ -390,6 +403,7 @@ export function TransitionRouter({
             clearTimeout(timeoutIdRef.current);
             setPhase("idle");
             isTransitioningRef.current = false;
+            infoRef.current = null;
             cleanupsRef.current = [];
           }
         });
@@ -436,9 +450,11 @@ export function TransitionRouter({
           },
         );
       }
+      // Don't clear the safety timeout here — if onTransition is synchronous
+      // and never calls next(), the timeout is the only recovery path.
+      // finishTransition clears it when the transition actually completes.
       return () => {
         if (enterRafId !== undefined) cancelAnimationFrame(enterRafId);
-        clearTimeout(timeoutIdRef.current);
       };
     }
 
@@ -455,8 +471,9 @@ export function TransitionRouter({
       };
     }
 
-    // In swap mode, enter() from exit callbacks is a no-op (enters wait for all exits).
-    // In stack mode, enter() triggers enters early (pages animate simultaneously).
+    // Core mode difference: the enter() callback passed to exit animations.
+    // Stack: enter() triggers entering page mid-exit (both pages animate simultaneously).
+    // Swap: enter() is a no-op — enters always wait for ALL exits to call done().
     const enterCallback = mode === "stack" ? triggerEnters : () => {};
 
     const pageExitHandle = exitRegistry
@@ -566,6 +583,10 @@ export function TransitionRouter({
           );
         })}
       </div>
+      {/* Children render outside the page stack but inside the top-level
+          TransitionContext. This is where persistent components (debug panels,
+          headers) go — they can use useTransitionEvent to participate in
+          transitions without being part of the page lifecycle. */}
       {children}
     </TransitionContext.Provider>
   );

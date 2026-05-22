@@ -63,7 +63,7 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.8",
+    "@biomejs/biome": "2.4.15",
     "@clack/prompts": "^1.0.0",
     "@csstools/postcss-global-data": "^4.0.0",
     "@hubspot/api-client": "^13.5.0",

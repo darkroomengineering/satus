@@ -8,6 +8,7 @@ import { type PropsWithChildren, Suspense } from 'react'
 import { ReactTempus } from 'tempus/react'
 import { Link } from '@/components/ui/link'
 import { RealViewport } from '@/components/ui/real-viewport'
+import { env } from '@/lib/env'
 import { OptionalFeatures } from '@/lib/features'
 import { isSanityConfigured } from '@/lib/integrations/check-integration'
 import { SanityLive } from '@/lib/integrations/sanity/live'
@@ -20,8 +21,7 @@ const APP_NAME = AppData.name
 const APP_DEFAULT_TITLE = 'Satūs'
 const APP_TITLE_TEMPLATE = '%s - Satūs'
 const APP_DESCRIPTION = AppData.description
-const APP_BASE_URL =
-  process.env.NEXT_PUBLIC_BASE_URL ?? 'https://localhost:3000'
+const APP_BASE_URL = env.NEXT_PUBLIC_BASE_URL ?? 'https://localhost:3000'
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_BASE_URL),

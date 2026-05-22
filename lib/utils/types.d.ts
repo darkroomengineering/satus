@@ -9,6 +9,13 @@ declare module 'react' {
   }
 }
 
+// SVGs are loaded as React components via @svgr/webpack (see next.config.ts)
+declare module '*.svg' {
+  import type { FC, SVGProps } from 'react'
+  const content: FC<SVGProps<SVGSVGElement>>
+  export default content
+}
+
 // Global window extensions
 declare global {
   interface Window {

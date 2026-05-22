@@ -1,4 +1,4 @@
-import { groq } from 'next-sanity'
+import groq from 'groq'
 
 // Helper for rich text content with link projections
 const richTextWithLinks = `

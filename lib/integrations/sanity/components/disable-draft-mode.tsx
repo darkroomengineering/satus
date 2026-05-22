@@ -1,15 +1,18 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { useDraftModeEnvironment } from 'next-sanity/hooks'
+import { useVisualEditingEnvironment } from 'next-sanity/hooks'
 import { Link } from '@/components/ui/link'
 
 export function DisableDraftMode() {
-  const environment = useDraftModeEnvironment()
+  const environment = useVisualEditingEnvironment()
   const pathname = usePathname()
 
-  // Only show the disable draft mode button when outside of Presentation Tool
-  if (environment !== 'live' && environment !== 'unknown') {
+  // Hide the disable draft mode button when inside the Presentation tool (it owns its own controls there).
+  if (
+    environment === 'presentation-iframe' ||
+    environment === 'presentation-window'
+  ) {
     return null
   }
 

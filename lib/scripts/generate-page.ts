@@ -105,159 +105,87 @@ const generatePageContent = (
   options: PageOptions
 ): string => {
   const { webgl, sanity, shopify, theme = 'dark' } = options
-
-  // Capitalize first letter for title
   const title = pageName.charAt(0).toUpperCase() + pageName.slice(1)
 
-  // Build imports
-  const imports: string[] = []
-  imports.push(`import type { Metadata } from 'next'`)
-  imports.push(`import { Wrapper } from '@/components/layout/wrapper'`)
-
-  // Integration-specific imports
+  const imports: string[] = [
+    `import type { Metadata } from 'next'`,
+    `import { Wrapper } from '@/components/layout/wrapper'`,
+  ]
   if (sanity || shopify) {
     imports.push(
       `import { NotConfigured } from '@/components/ui/not-configured'`
     )
   }
-
   if (sanity) {
     imports.push(
-      `import { isSanityConfigured } from '@/lib/integrations/check-integration'`
-    )
-    imports.push(`import { sanityFetch } from 'next-sanity/live'`)
-    imports.push(
-      `import { pageQuery } from '@/lib/integrations/sanity/queries'`
-    )
-    imports.push(
-      `import type { Page } from '@/lib/integrations/sanity/sanity.types'`
-    )
-    imports.push(
+      `import { isSanityConfigured } from '@/lib/integrations/check-integration'`,
+      `import { sanityFetch } from 'next-sanity/live'`,
+      `import { pageQuery } from '@/lib/integrations/sanity/queries'`,
+      `import type { Page } from '@/lib/integrations/sanity/sanity.types'`,
       `import { generateSanityMetadata } from '@/lib/utils/metadata'`
     )
   }
-
   if (shopify) {
     imports.push(
-      `import { isShopifyConfigured } from '@/lib/integrations/check-integration'`
+      `import { isShopifyConfigured } from '@/lib/integrations/check-integration'`,
+      `import { Cart } from '@/lib/integrations/shopify/cart'`
     )
-    imports.push(`import { Cart } from '@/lib/integrations/shopify/cart'`)
   }
 
-  // Build wrapper props
-  const wrapperProps: string[] = [`theme="${theme}"`]
-  if (webgl) {
-    wrapperProps.push('webgl')
-  }
+  const wrapperProps = [`theme="${theme}"`, ...(webgl ? ['webgl'] : [])].join(
+    ' '
+  )
 
-  // Build component body based on integrations
-  let componentBody: string
-
-  if (sanity && shopify) {
-    // Both integrations
-    componentBody = `  // Show setup instructions if integrations are not configured
-  if (!isSanityConfigured()) {
+  const guard = (integration: 'Sanity' | 'Shopify', check: string) =>
+    `  if (!${check}()) {
     return (
       <Wrapper theme="${theme}">
-        <NotConfigured integration="Sanity" />
+        <NotConfigured integration="${integration}" />
       </Wrapper>
     )
-  }
+  }`
 
-  if (!isShopifyConfigured()) {
-    return (
-      <Wrapper theme="${theme}">
-        <NotConfigured integration="Shopify" />
-      </Wrapper>
-    )
-  }
-
-  const { data } = await sanityFetch({
-    query: pageQuery,
-    params: { slug: '${pageName}' },
-  })
-
-  return (
-    <Wrapper ${wrapperProps.join(' ')}>
-      <Cart>
-        <section className="dr-py-100">
-          <div className="container">
-            <h1>${title}</h1>
-            {/* Your content here */}
-            {/* Use data from Sanity: {data?.title} */}
-          </div>
-        </section>
-      </Cart>
-    </Wrapper>
-  )`
-  } else if (sanity) {
-    // Sanity only
-    componentBody = `  // Show setup instructions if Sanity is not configured
-  if (!isSanityConfigured()) {
-    return (
-      <Wrapper theme="${theme}">
-        <NotConfigured integration="Sanity" />
-      </Wrapper>
-    )
-  }
-
-  const { data } = await sanityFetch({
-    query: pageQuery,
-    params: { slug: '${pageName}' },
-  })
-
-  return (
-    <Wrapper ${wrapperProps.join(' ')}>
-      <section className="dr-py-100">
-        <div className="container">
-          <h1>${title}</h1>
-          {/* Your content here */}
-          {/* Use data from Sanity: {data?.title} */}
-        </div>
-      </section>
-    </Wrapper>
-  )`
-  } else if (shopify) {
-    // Shopify only
-    componentBody = `  // Show setup instructions if Shopify is not configured
-  if (!isShopifyConfigured()) {
-    return (
-      <Wrapper theme="${theme}">
-        <NotConfigured integration="Shopify" />
-      </Wrapper>
-    )
-  }
-
-  return (
-    <Wrapper ${wrapperProps.join(' ')}>
-      <Cart>
-        <section className="dr-py-100">
-          <div className="container">
-            <h1>${title}</h1>
-            {/* Your content here */}
-          </div>
-        </section>
-      </Cart>
-    </Wrapper>
-  )`
-  } else {
-    // No integrations
-    componentBody = `  return (
-    <Wrapper ${wrapperProps.join(' ')}>
-      <section className="dr-py-100">
-        <div className="container">
-          <h1>${title}</h1>
-          {/* Your content here */}
-        </div>
-      </section>
-    </Wrapper>
-  )`
-  }
-
-  // Build metadata export
-  let metadataExport: string
+  const preludeParts: string[] = []
+  if (sanity) preludeParts.push(guard('Sanity', 'isSanityConfigured'))
+  if (shopify) preludeParts.push(guard('Shopify', 'isShopifyConfigured'))
   if (sanity) {
-    metadataExport = `
+    preludeParts.push(`  const { data } = await sanityFetch({
+    query: pageQuery,
+    params: { slug: '${pageName}' },
+  })`)
+  }
+
+  // Section indent shifts when wrapped in <Cart>
+  const sectionIndent = shopify ? '        ' : '      '
+  const contentIndent = shopify ? '          ' : '        '
+  const itemIndent = shopify ? '            ' : '          '
+  const sanityHint = sanity
+    ? `\n${itemIndent}{/* Use data from Sanity: {data?.title} */}`
+    : ''
+
+  const sectionJSX = `${sectionIndent}<section className="dr-py-100">
+${contentIndent}<div className="container">
+${itemIndent}<h1>${title}</h1>
+${itemIndent}{/* Your content here */}${sanityHint}
+${contentIndent}</div>
+${sectionIndent}</section>`
+
+  const inner = shopify
+    ? `      <Cart>
+${sectionJSX}
+      </Cart>`
+    : sectionJSX
+
+  const returnBlock = `  return (
+    <Wrapper ${wrapperProps}>
+${inner}
+    </Wrapper>
+  )`
+
+  const body = [...preludeParts, returnBlock].join('\n\n')
+
+  const metadataExport = sanity
+    ? `
 export async function generateMetadata(): Promise<Metadata> {
   if (!isSanityConfigured()) {
     return {
@@ -284,22 +212,20 @@ export async function generateMetadata(): Promise<Metadata> {
     type: 'website',
   })
 }`
-  } else {
-    metadataExport = `
+    : `
 export const metadata: Metadata = {
   title: '${title}',
   description: '${title} page description',
 }`
-  }
 
-  // Determine if component should be async
-  const isAsync = sanity ?? shopify
+  // Only Sanity requires top-level await for sanityFetch; Shopify-only pages stay sync.
+  const isAsync = sanity
 
   return `${imports.join('\n')}
 ${metadataExport}
 
 export default ${isAsync ? 'async ' : ''}function ${title}Page() {
-${componentBody}
+${body}
 }
 `
 }

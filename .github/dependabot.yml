@@ -1,9 +1,13 @@
 # Dependabot configuration
 # https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+#
+# Patch/minor bumps that pass the Test workflow are auto-merged by
+# .github/workflows/automerge-dependabot.yml. Major bumps stay open
+# for human review.
 
 version: 2
 updates:
-  # Keep GitHub Actions up to date
+  # GitHub Actions
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -11,5 +15,14 @@ updates:
     commit-message:
       prefix: "ci"
 
-  # Note: npm/bun dependencies are NOT auto-updated by design.
-  # Devs should control their update cadence via `bun update`.
+  # npm / bun runtime + dev deps
+  # Each dependency is raised as its own PR so the auto-merge workflow
+  # can parse the "from A to B" version transition from the PR title.
+  # Grouping the updates would defeat the auto-merge title parser.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(deps)"
+    open-pull-requests-limit: 10

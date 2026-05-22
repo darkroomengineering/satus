@@ -1,10 +1,13 @@
+export {
+  mailchimpContactAction,
+  mailchimpSubscriptionAction,
+} from './action'
 export type {
   ContactData,
   MailchimpConfig,
   SubscriptionData,
-} from './action'
+} from './mailchimp-client'
 export {
   addContactToMailchimp,
-  mailchimpContactAction,
-  mailchimpSubscriptionAction,
-} from './action'
+  addSubscriberToMailchimp,
+} from './mailchimp-client'

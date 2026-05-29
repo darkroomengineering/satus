@@ -104,7 +104,11 @@ type ViewportProps = ComponentProps<typeof BaseToast.Viewport> & {
 }
 
 function Viewport({ className, ...props }: ViewportProps) {
-  return <BaseToast.Viewport className={cn(s.viewport, className)} {...props} />
+  return (
+    <BaseToast.Portal>
+      <BaseToast.Viewport className={cn(s.viewport, className)} {...props} />
+    </BaseToast.Portal>
+  )
 }
 
 function Root({ className, ...props }: ComponentProps<typeof BaseToast.Root>) {
@@ -139,6 +143,7 @@ function Close({
 
 export const Toast = {
   Provider,
+  Portal: BaseToast.Portal,
   Viewport,
   Root,
   Title,

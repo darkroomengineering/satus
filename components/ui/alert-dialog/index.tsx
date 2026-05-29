@@ -99,9 +99,7 @@ function AlertDialog({
         <BaseAlertDialog.Backdrop
           {...(s.backdrop && { className: s.backdrop })}
         />
-        <BaseAlertDialog.Popup
-          {...(cn(s.popup, className) && { className: cn(s.popup, className) })}
-        >
+        <BaseAlertDialog.Popup className={cn(s.popup, className)}>
           <BaseAlertDialog.Title {...(s.title && { className: s.title })}>
             {title}
           </BaseAlertDialog.Title>

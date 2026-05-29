@@ -9,22 +9,22 @@
     - The "html" element is excluded, otherwise a bug in Chrome breaks the CSS hyphens property (https://github.com/elad2412/the-new-css-reset/issues/36)
  */
 *:where(
-    :not(
-        html,
-        iframe,
-        canvas,
-        img,
-        svg,
-        video,
-        audio,
-        dialog,
-        vercel-live-feedback,
-        nextjs-portal,
-        #theatrejs-studio-root,
-        .sc-default,
-        :where(select, option)
-      ):not(svg *, symbol *)
-  ) {
+  :not(
+    html,
+    iframe,
+    canvas,
+    img,
+    svg,
+    video,
+    audio,
+    dialog,
+    vercel-live-feedback,
+    nextjs-portal,
+    #theatrejs-studio-root,
+    .sc-default,
+    :where(select, option)
+  ):not(svg *, symbol *)
+) {
   all: unset;
   display: revert;
 }
@@ -34,13 +34,6 @@
 *::before,
 *::after {
   box-sizing: border-box;
-}
-
-/* Fix mobile Safari increase font-size on landscape mode */
-html {
-  -moz-text-size-adjust: none;
-  -webkit-text-size-adjust: none;
-  text-size-adjust: none;
 }
 
 /* Reapply the pointer cursor for anchor tags */
@@ -146,7 +139,7 @@ display:revert; revert to element instead of attribute */
   appearance: none;
 }
 
-/* Improve text rendering */
+/* Fix mobile Safari font-size on landscape mode; improve text rendering */
 html {
   text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;

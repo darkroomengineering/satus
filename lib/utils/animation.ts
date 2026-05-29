@@ -30,7 +30,6 @@ import { clamp, mapRange } from './math'
 export { type EasingName, easings } from './easings'
 export { clamp, lerp, mapRange, modulo, truncate } from './math'
 export { batch, measure, mutate } from './raf'
-export { desktopVH, desktopVW, mobileVH, mobileVW } from './viewport'
 
 /**
  * Calculates staggered progress for an element in a sequence.

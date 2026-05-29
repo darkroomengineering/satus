@@ -9,7 +9,6 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useEffect, useState } from 'react'
 
 const isDevelopment = process.env.NODE_ENV === 'development'
 
@@ -42,14 +41,6 @@ const GSAPRuntime = dynamic(
  * No manual useMemo/useCallback needed.
  */
 export function OptionalFeatures() {
-  const [isClient, setIsClient] = useState(false)
-
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
-
-  if (!isClient) return null
-
   return (
     <>
       {/* GSAP Runtime - always included (lightweight) */}

@@ -40,13 +40,15 @@ export type ImageProps = Omit<NextImageProps, 'objectFit' | 'alt'> & {
 }
 
 // Base64 encoding for blur placeholders (works in browser and Node.js)
-const toBase64 = (str: string) =>
-  typeof window === 'undefined'
+function toBase64(str: string): string {
+  return typeof window === 'undefined'
     ? Buffer.from(str).toString('base64')
     : btoa(str)
+}
 
 // Helper to generate blur placeholder with transparent background by default
-const generateShimmer = (w: number, h: number) => `
+function generateShimmer(w: number, h: number): string {
+  return `
   <svg width="${w}" height="${h}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <defs>
       <linearGradient id="g">
@@ -59,24 +61,25 @@ const generateShimmer = (w: number, h: number) => `
     <rect id="r" width="${w}" height="${h}" fill="url(#g)" />
     <animate xlink:href="#r" attributeName="x" from="-${w}" to="${w}" dur="1s" repeatCount="indefinite"  />
   </svg>`
+}
 
 // Helper to determine if blur placeholder should be used
-const shouldUseBlurPlaceholder = (
+function shouldUseBlurPlaceholder(
   src: NextImageProps['src'],
   placeholder: string,
   blurDataURL: string | undefined
-): boolean => {
+): boolean {
   if (!src) return false
   const isSvg = typeof src === 'string' && src.includes('.svg')
   return !isSvg && placeholder === 'blur' && !blurDataURL
 }
 
 // Helper to generate blur data URL
-const generateBlurDataURL = (
+function generateBlurDataURL(
   shouldUse: boolean,
   aspectRatio: number | undefined,
   existingBlurDataURL: string | undefined
-): string | undefined => {
+): string | undefined {
   if (!(shouldUse && aspectRatio)) return existingBlurDataURL
 
   const shimmerSvg = generateShimmer(700, Math.round(700 / aspectRatio))
@@ -84,12 +87,12 @@ const generateBlurDataURL = (
 }
 
 // Helper to determine final placeholder value
-const getFinalPlaceholder = (
+function getFinalPlaceholder(
   shouldUse: boolean,
   aspectRatio: number | undefined,
   blurDataURL: string | undefined,
   originalPlaceholder: NextImageProps['placeholder']
-): NextImageProps['placeholder'] => {
+): NextImageProps['placeholder'] {
   if (!shouldUse) {
     return originalPlaceholder === 'blur' && !blurDataURL
       ? 'empty'

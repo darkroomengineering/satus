@@ -107,34 +107,35 @@ function Viewport({ className, ...props }: ViewportProps) {
   return <BaseToast.Viewport className={cn(s.viewport, className)} {...props} />
 }
 
-// Re-export compound components with styling
-const Root = ({
-  className,
-  ...props
-}: ComponentProps<typeof BaseToast.Root>) => (
-  <BaseToast.Root className={cn(s.root, className)} {...props} />
-)
+function Root({ className, ...props }: ComponentProps<typeof BaseToast.Root>) {
+  return <BaseToast.Root className={cn(s.root, className)} {...props} />
+}
 
-const Title = ({
+function Title({
   className,
   ...props
-}: ComponentProps<typeof BaseToast.Title>) => (
-  <BaseToast.Title className={cn(s.title, className)} {...props} />
-)
+}: ComponentProps<typeof BaseToast.Title>) {
+  return <BaseToast.Title className={cn(s.title, className)} {...props} />
+}
 
-const Description = ({
+function Description({
   className,
   ...props
-}: ComponentProps<typeof BaseToast.Description>) => (
-  <BaseToast.Description className={cn(s.description, className)} {...props} />
-)
+}: ComponentProps<typeof BaseToast.Description>) {
+  return (
+    <BaseToast.Description
+      className={cn(s.description, className)}
+      {...props}
+    />
+  )
+}
 
-const Close = ({
+function Close({
   className,
   ...props
-}: ComponentProps<typeof BaseToast.Close>) => (
-  <BaseToast.Close className={cn(s.close, className)} {...props} />
-)
+}: ComponentProps<typeof BaseToast.Close>) {
+  return <BaseToast.Close className={cn(s.close, className)} {...props} />
+}
 
 export const Toast = {
   Provider,

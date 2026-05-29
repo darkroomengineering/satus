@@ -10,7 +10,7 @@ import { Link } from '@/components/ui/link'
 import { RealViewport } from '@/components/ui/real-viewport'
 import { env } from '@/lib/env'
 import { OptionalFeatures } from '@/lib/features'
-import { isSanityConfigured } from '@/lib/integrations/check-integration'
+import { isConfigured } from '@/lib/integrations/registry'
 import { SanityLive } from '@/lib/integrations/sanity/live'
 import { themes } from '@/lib/styles/colors'
 import { fontsVariable } from '@/lib/styles/fonts'
@@ -85,7 +85,7 @@ export const viewport: Viewport = {
 
 export default async function Layout({ children }: PropsWithChildren) {
   const { isEnabled: isDraftMode } = await draftMode()
-  const sanityConfigured = isSanityConfigured()
+  const sanityConfigured = isConfigured('sanity')
 
   return (
     <html

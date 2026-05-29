@@ -188,28 +188,30 @@ function ChevronIcon() {
 
 // Compound component exports for advanced usage
 const Root = BaseSelect.Root
-const Trigger = ({
+
+function Trigger({
   className,
   ...props
-}: ComponentProps<typeof BaseSelect.Trigger>) => (
-  <BaseSelect.Trigger className={cn(s.trigger, className)} {...props} />
-)
+}: ComponentProps<typeof BaseSelect.Trigger>) {
+  return <BaseSelect.Trigger className={cn(s.trigger, className)} {...props} />
+}
+
 const Value = BaseSelect.Value
 const Icon = BaseSelect.Icon
 const Portal = BaseSelect.Portal
 const Positioner = BaseSelect.Positioner
-const Popup = ({
+
+function Popup({
   className,
   ...props
-}: ComponentProps<typeof BaseSelect.Popup>) => (
-  <BaseSelect.Popup className={cn(s.popup, className)} {...props} />
-)
-const Item = ({
-  className,
-  ...props
-}: ComponentProps<typeof BaseSelect.Item>) => (
-  <BaseSelect.Item className={cn(s.option, className)} {...props} />
-)
+}: ComponentProps<typeof BaseSelect.Popup>) {
+  return <BaseSelect.Popup className={cn(s.popup, className)} {...props} />
+}
+
+function Item({ className, ...props }: ComponentProps<typeof BaseSelect.Item>) {
+  return <BaseSelect.Item className={cn(s.option, className)} {...props} />
+}
+
 const ItemIndicator = BaseSelect.ItemIndicator
 const ItemText = BaseSelect.ItemText
 const Group = BaseSelect.Group

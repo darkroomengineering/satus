@@ -1,5 +1,3 @@
-'use client'
-
 import { Tooltip } from '@/components/ui/tooltip'
 
 export function TooltipDemo() {

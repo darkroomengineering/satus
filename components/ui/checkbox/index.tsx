@@ -53,25 +53,34 @@ function Checkbox({
   labelClassName,
   ...props
 }: CheckboxProps) {
-  const checkboxElement = (
-    <BaseCheckbox.Root
-      {...(cn(s.root, className) && { className: cn(s.root, className) })}
-      {...props}
-    >
-      <BaseCheckbox.Indicator {...(s.indicator && { className: s.indicator })}>
-        <CheckIcon />
-      </BaseCheckbox.Indicator>
-    </BaseCheckbox.Root>
-  )
-
   if (!label) {
-    return checkboxElement
+    return (
+      <BaseCheckbox.Root
+        {...(cn(s.root, className) && { className: cn(s.root, className) })}
+        {...props}
+      >
+        <BaseCheckbox.Indicator
+          {...(s.indicator && { className: s.indicator })}
+        >
+          <CheckIcon />
+        </BaseCheckbox.Indicator>
+      </BaseCheckbox.Root>
+    )
   }
 
   return (
     // biome-ignore lint/a11y/noLabelWithoutControl: Base UI checkbox is wrapped in label for accessibility
     <label className={cn(s.container, labelClassName)}>
-      {checkboxElement}
+      <BaseCheckbox.Root
+        {...(cn(s.root, className) && { className: cn(s.root, className) })}
+        {...props}
+      >
+        <BaseCheckbox.Indicator
+          {...(s.indicator && { className: s.indicator })}
+        >
+          <CheckIcon />
+        </BaseCheckbox.Indicator>
+      </BaseCheckbox.Root>
       <span className={s.label}>{label}</span>
     </label>
   )
@@ -98,22 +107,24 @@ function CheckIcon() {
 }
 
 // Compound components
-const Root = ({
+function Root({
   className,
   ...props
-}: ComponentProps<typeof BaseCheckbox.Root>) => (
-  <BaseCheckbox.Root className={cn(s.root, className)} {...props} />
-)
+}: ComponentProps<typeof BaseCheckbox.Root>) {
+  return <BaseCheckbox.Root className={cn(s.root, className)} {...props} />
+}
 
-const Indicator = ({
+function Indicator({
   className,
   children,
   ...props
-}: ComponentProps<typeof BaseCheckbox.Indicator>) => (
-  <BaseCheckbox.Indicator className={cn(s.indicator, className)} {...props}>
-    {children ?? <CheckIcon />}
-  </BaseCheckbox.Indicator>
-)
+}: ComponentProps<typeof BaseCheckbox.Indicator>) {
+  return (
+    <BaseCheckbox.Indicator className={cn(s.indicator, className)} {...props}>
+      {children ?? <CheckIcon />}
+    </BaseCheckbox.Indicator>
+  )
+}
 
 Checkbox.Root = Root
 Checkbox.Indicator = Indicator

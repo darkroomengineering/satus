@@ -217,38 +217,3 @@ export function CheckboxesField({
     </Field.Root>
   )
 }
-
-// For backward compatibility
-export const InputSelector = {
-  inputType: ({
-    props,
-    className,
-    idx,
-  }: {
-    props: Omit<InputFieldProps, 'className' | 'idx'>
-    className?: string
-    idx: number
-  }) => {
-    return (
-      <InputField {...props} idx={idx} key={idx} className={className ?? ''} />
-    )
-  },
-  multipleOption: ({
-    props,
-    className,
-    idx,
-  }: {
-    props: Omit<CheckboxesFieldProps, 'className' | 'idx'>
-    className?: string
-    idx: number
-  }) => {
-    return (
-      <CheckboxesField
-        {...props}
-        idx={idx}
-        key={idx}
-        className={className ?? ''}
-      />
-    )
-  },
-}

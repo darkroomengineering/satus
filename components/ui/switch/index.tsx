@@ -44,42 +44,42 @@ type SwitchProps = Omit<ComponentProps<typeof BaseSwitch.Root>, 'children'> & {
 }
 
 function Switch({ label, className, labelClassName, ...props }: SwitchProps) {
-  const switchElement = (
-    <BaseSwitch.Root
-      {...(cn(s.root, className) && { className: cn(s.root, className) })}
-      {...props}
-    >
-      <BaseSwitch.Thumb {...(s.thumb && { className: s.thumb })} />
-    </BaseSwitch.Root>
-  )
-
   if (!label) {
-    return switchElement
+    return (
+      <BaseSwitch.Root
+        {...(cn(s.root, className) && { className: cn(s.root, className) })}
+        {...props}
+      >
+        <BaseSwitch.Thumb {...(s.thumb && { className: s.thumb })} />
+      </BaseSwitch.Root>
+    )
   }
 
   return (
     // biome-ignore lint/a11y/noLabelWithoutControl: Base UI switch is wrapped in label for accessibility
     <label className={cn(s.container, labelClassName)}>
-      {switchElement}
+      <BaseSwitch.Root
+        {...(cn(s.root, className) && { className: cn(s.root, className) })}
+        {...props}
+      >
+        <BaseSwitch.Thumb {...(s.thumb && { className: s.thumb })} />
+      </BaseSwitch.Root>
       <span className={s.label}>{label}</span>
     </label>
   )
 }
 
 // Compound components
-const Root = ({
-  className,
-  ...props
-}: ComponentProps<typeof BaseSwitch.Root>) => (
-  <BaseSwitch.Root className={cn(s.root, className)} {...props} />
-)
+function Root({ className, ...props }: ComponentProps<typeof BaseSwitch.Root>) {
+  return <BaseSwitch.Root className={cn(s.root, className)} {...props} />
+}
 
-const Thumb = ({
+function Thumb({
   className,
   ...props
-}: ComponentProps<typeof BaseSwitch.Thumb>) => (
-  <BaseSwitch.Thumb className={cn(s.thumb, className)} {...props} />
-)
+}: ComponentProps<typeof BaseSwitch.Thumb>) {
+  return <BaseSwitch.Thumb className={cn(s.thumb, className)} {...props} />
+}
 
 Switch.Root = Root
 Switch.Thumb = Thumb

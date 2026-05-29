@@ -17,68 +17,6 @@ export const metadata = {
   description: 'Component library showcase',
 }
 
-const COMPONENTS = [
-  {
-    name: 'Menu',
-    description: 'Dropdown menus with keyboard navigation',
-    demo: <MenuDemo />,
-  },
-  {
-    name: 'Select',
-    description: 'Custom select with controlled mode',
-    demo: <SelectDemo />,
-  },
-  {
-    name: 'Accordion',
-    description: 'Expandable sections using Base UI Collapsible',
-    demo: <AccordionDemo />,
-  },
-  {
-    name: 'Tabs',
-    description: 'Tab navigation',
-    demo: <TabsDemo />,
-  },
-  {
-    name: 'Tooltip',
-    description: 'Hover hints with arrow',
-    demo: <TooltipDemo />,
-  },
-  {
-    name: 'Alert Dialog',
-    description: 'Confirmation dialogs',
-    demo: <AlertDialogDemo />,
-  },
-  {
-    name: 'Switch',
-    description: 'Toggle switches',
-    demo: <SwitchDemo />,
-  },
-  {
-    name: 'Checkbox',
-    description: 'Accessible checkboxes',
-    demo: <CheckboxDemo />,
-  },
-  {
-    name: 'Link',
-    description: 'Auto-detects internal vs external',
-    demo: <LinkDemo />,
-  },
-  {
-    name: 'Marquee',
-    description: 'Infinite scroll with velocity',
-    demo: <MarqueeDemo />,
-  },
-] as const
-
-const ADDITIONAL = [
-  { name: 'Form', description: 'See /hubspot for validation example' },
-  { name: 'Image', description: 'Optimized next/image wrapper' },
-  { name: 'Scrollbar', description: 'Custom scrollbar (requires Lenis)' },
-  { name: 'SanityImage', description: 'Sanity CMS image component' },
-  { name: 'RealViewport', description: 'Viewport measurement utility' },
-  { name: 'Toast', description: 'Notification toasts' },
-] as const
-
 export default function ComponentsPage() {
   return (
     <Wrapper theme="dark">
@@ -95,36 +33,123 @@ export default function ComponentsPage() {
         <div className="col-span-full dt:col-start-3 dt:col-end-8">
           <h2 className={s.sectionTitle}>Library</h2>
           <div className={s.components}>
-            {COMPONENTS.map((component) => (
-              <div key={component.name} className={s.component}>
-                <div className={s.componentHeader}>
-                  <span className={s.componentName}>{component.name}</span>
-                  <span className={s.componentDescription}>
-                    {component.description}
-                  </span>
-                </div>
-                <div className={s.componentDemo}>{component.demo}</div>
+            <div className={s.component}>
+              <div className={s.componentHeader}>
+                <span className={s.componentName}>Menu</span>
+                <span className={s.componentDescription}>
+                  Dropdown menus with keyboard navigation
+                </span>
               </div>
-            ))}
+              <div className={s.componentDemo}>
+                <MenuDemo />
+              </div>
+            </div>
+
+            <div className={s.component}>
+              <div className={s.componentHeader}>
+                <span className={s.componentName}>Select</span>
+                <span className={s.componentDescription}>
+                  Custom select with controlled mode
+                </span>
+              </div>
+              <div className={s.componentDemo}>
+                <SelectDemo />
+              </div>
+            </div>
+
+            <div className={s.component}>
+              <div className={s.componentHeader}>
+                <span className={s.componentName}>Accordion</span>
+                <span className={s.componentDescription}>
+                  Expandable sections using Base UI Collapsible
+                </span>
+              </div>
+              <div className={s.componentDemo}>
+                <AccordionDemo />
+              </div>
+            </div>
+
+            <div className={s.component}>
+              <div className={s.componentHeader}>
+                <span className={s.componentName}>Tabs</span>
+                <span className={s.componentDescription}>Tab navigation</span>
+              </div>
+              <div className={s.componentDemo}>
+                <TabsDemo />
+              </div>
+            </div>
+
+            <div className={s.component}>
+              <div className={s.componentHeader}>
+                <span className={s.componentName}>Tooltip</span>
+                <span className={s.componentDescription}>
+                  Hover hints with arrow
+                </span>
+              </div>
+              <div className={s.componentDemo}>
+                <TooltipDemo />
+              </div>
+            </div>
+
+            <div className={s.component}>
+              <div className={s.componentHeader}>
+                <span className={s.componentName}>Alert Dialog</span>
+                <span className={s.componentDescription}>
+                  Confirmation dialogs
+                </span>
+              </div>
+              <div className={s.componentDemo}>
+                <AlertDialogDemo />
+              </div>
+            </div>
+
+            <div className={s.component}>
+              <div className={s.componentHeader}>
+                <span className={s.componentName}>Switch</span>
+                <span className={s.componentDescription}>Toggle switches</span>
+              </div>
+              <div className={s.componentDemo}>
+                <SwitchDemo />
+              </div>
+            </div>
+
+            <div className={s.component}>
+              <div className={s.componentHeader}>
+                <span className={s.componentName}>Checkbox</span>
+                <span className={s.componentDescription}>
+                  Accessible checkboxes
+                </span>
+              </div>
+              <div className={s.componentDemo}>
+                <CheckboxDemo />
+              </div>
+            </div>
+
+            <div className={s.component}>
+              <div className={s.componentHeader}>
+                <span className={s.componentName}>Link</span>
+                <span className={s.componentDescription}>
+                  Auto-detects internal vs external
+                </span>
+              </div>
+              <div className={s.componentDemo}>
+                <LinkDemo />
+              </div>
+            </div>
+
+            <div className={s.component}>
+              <div className={s.componentHeader}>
+                <span className={s.componentName}>Marquee</span>
+                <span className={s.componentDescription}>
+                  Infinite scroll with velocity
+                </span>
+              </div>
+              <div className={s.componentDemo}>
+                <MarqueeDemo />
+              </div>
+            </div>
           </div>
         </div>
-
-        <aside
-          className={cn(s.aside, 'col-span-full dt:col-start-9 dt:col-end-12')}
-        >
-          <h3 className={s.asideTitle}>Additional</h3>
-          <p className={s.asideDescription}>Available but not demoed here</p>
-          <ul className={s.additional}>
-            {ADDITIONAL.map((item) => (
-              <li key={item.name} className={s.additionalItem}>
-                <span className={s.additionalName}>{item.name}</span>
-                <span className={s.additionalDescription}>
-                  {item.description}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </aside>
       </section>
     </Wrapper>
   )

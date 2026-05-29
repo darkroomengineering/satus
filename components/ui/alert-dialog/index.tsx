@@ -136,39 +136,45 @@ function AlertDialog({
 const Root = BaseAlertDialog.Root
 const Trigger = BaseAlertDialog.Trigger
 const Portal = BaseAlertDialog.Portal
-
-const Backdrop = ({
-  className,
-  ...props
-}: ComponentProps<typeof BaseAlertDialog.Backdrop>) => (
-  <BaseAlertDialog.Backdrop className={cn(s.backdrop, className)} {...props} />
-)
-
-const Popup = ({
-  className,
-  ...props
-}: ComponentProps<typeof BaseAlertDialog.Popup>) => (
-  <BaseAlertDialog.Popup className={cn(s.popup, className)} {...props} />
-)
-
-const Title = ({
-  className,
-  ...props
-}: ComponentProps<typeof BaseAlertDialog.Title>) => (
-  <BaseAlertDialog.Title className={cn(s.title, className)} {...props} />
-)
-
-const Description = ({
-  className,
-  ...props
-}: ComponentProps<typeof BaseAlertDialog.Description>) => (
-  <BaseAlertDialog.Description
-    className={cn(s.description, className)}
-    {...props}
-  />
-)
-
 const Close = BaseAlertDialog.Close
+
+function Backdrop({
+  className,
+  ...props
+}: ComponentProps<typeof BaseAlertDialog.Backdrop>) {
+  return (
+    <BaseAlertDialog.Backdrop
+      className={cn(s.backdrop, className)}
+      {...props}
+    />
+  )
+}
+
+function Popup({
+  className,
+  ...props
+}: ComponentProps<typeof BaseAlertDialog.Popup>) {
+  return <BaseAlertDialog.Popup className={cn(s.popup, className)} {...props} />
+}
+
+function Title({
+  className,
+  ...props
+}: ComponentProps<typeof BaseAlertDialog.Title>) {
+  return <BaseAlertDialog.Title className={cn(s.title, className)} {...props} />
+}
+
+function Description({
+  className,
+  ...props
+}: ComponentProps<typeof BaseAlertDialog.Description>) {
+  return (
+    <BaseAlertDialog.Description
+      className={cn(s.description, className)}
+      {...props}
+    />
+  )
+}
 
 AlertDialog.Root = Root
 AlertDialog.Trigger = Trigger

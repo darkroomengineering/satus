@@ -1,5 +1,5 @@
 import { useMediaQuery } from 'hamo'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { breakpoints } from '@/styles/config'
 import {
   detectGPUCapability,
@@ -27,7 +27,7 @@ import { usePreferredReducedMotion } from './use-sync-external'
  *     isReducedMotion,
  *     hasGPU,
  *     gpuCapability,
- *     isLowPowerMode,
+ *     isTouchOnly,
  *     dpr,
  *     isSafari
  *   } = useDeviceDetection()
@@ -37,7 +37,7 @@ import { usePreferredReducedMotion } from './use-sync-external'
  *     // Disable animations
  *   }
  *
- *   if (hasGPU && !isLowPowerMode) {
+ *   if (hasGPU && !isTouchOnly) {
  *     // Enable GPU features
  *   }
  *
@@ -53,10 +53,10 @@ import { usePreferredReducedMotion } from './use-sync-external'
  * @example
  * ```tsx
  * // Performance optimizations
- * const { isLowPowerMode, dpr, isReducedMotion, gpuCapability } = useDeviceDetection()
+ * const { isTouchOnly, dpr, isReducedMotion, gpuCapability } = useDeviceDetection()
  *
- * // Reduce quality on low-power devices
- * const quality = isLowPowerMode ? 'low' : 'high'
+ * // Reduce quality on touch-only devices
+ * const quality = isTouchOnly ? 'low' : 'high'
  * const pixelRatio = Math.min(dpr || 1, 2) // Cap DPR
  *
  * // Respect user motion preferences
@@ -73,35 +73,31 @@ export function useDeviceDetection() {
   const isDesktop = useMediaQuery(`(min-width: ${breakpoint}px)`)
   const isReducedMotion = usePreferredReducedMotion()
 
-  const [gpuCapability, setGpuCapability] = useState<GPUCapability>(() => ({
-    hasWebGPU: false,
-    hasWebGL2: false,
-    hasWebGL1: false,
-    hasGPU: false,
-    preferredRenderer: 'none',
-    dpr: 1,
-    isLowPower: false,
-  }))
-
-  const [isSafari, setIsSafari] = useState<boolean | undefined>(undefined)
-
-  // Check for low power mode with fallback for unsupported browsers
-  const isLowPowerMode = useMediaQuery(
-    '(any-pointer: coarse) and (hover: none)'
+  const [gpuCapability] = useState<GPUCapability>(() =>
+    typeof window !== 'undefined'
+      ? detectGPUCapability()
+      : {
+          hasWebGPU: false,
+          hasWebGL2: false,
+          hasWebGL1: false,
+          hasGPU: false,
+          preferredRenderer: 'none',
+          dpr: 1,
+          isLowPower: false,
+        }
   )
 
-  useEffect(() => {
-    // Detect GPU capabilities at runtime
-    const capability = detectGPUCapability()
-    setGpuCapability(capability)
+  const [isSafari] = useState<boolean | undefined>(() =>
+    typeof navigator !== 'undefined'
+      ? /^(?<safariCheck>(?!chrome|android).)*safari/i.test(navigator.userAgent)
+      : undefined
+  )
 
-    setIsSafari(
-      /^(?<safariCheck>(?!chrome|android).)*safari/i.test(navigator.userAgent)
-    )
-  }, [])
+  // Detects coarse-pointer / no-hover devices (touch-only, e.g. phones/tablets)
+  const isTouchOnly = useMediaQuery('(any-pointer: coarse) and (hover: none)')
 
-  // GPU is available if device has capability AND is not in low-power mode
-  const hasGPU = gpuCapability.hasGPU && !isLowPowerMode
+  // GPU is available if device has capability AND is not touch-only
+  const hasGPU = gpuCapability.hasGPU && !isTouchOnly
 
   return {
     // Screen size
@@ -118,7 +114,7 @@ export function useDeviceDetection() {
     gpuCapability,
 
     // Performance
-    isLowPowerMode,
+    isTouchOnly,
     dpr: gpuCapability.dpr,
 
     // Browser

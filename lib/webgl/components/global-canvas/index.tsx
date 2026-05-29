@@ -4,7 +4,7 @@ import { OrthographicCamera } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import cn from 'clsx'
 import dynamic from 'next/dynamic'
-import { Suspense, useState } from 'react'
+import { Suspense } from 'react'
 import { SheetProvider } from '@/lib/dev/theatre'
 import { useWebGLStore } from '@/lib/webgl/store'
 import { createRenderer } from '@/lib/webgl/utils/create-renderer'
@@ -88,9 +88,6 @@ export function GlobalCanvas({
 }: GlobalCanvasProps) {
   const { isActivated, isActive, getWebGLTunnel, getDOMTunnel } =
     useWebGLStore()
-  const [rendererType, setRendererType] = useState<'webgpu' | 'webgl' | null>(
-    null
-  )
 
   // Get device capabilities for renderer config
   const capability = detectGPUCapability()
@@ -125,7 +122,7 @@ export function GlobalCanvas({
     >
       <Canvas
         gl={async (props) => {
-          const { renderer, type } = await createRenderer({
+          const { renderer } = await createRenderer({
             canvas: props.canvas as HTMLCanvasElement,
             alpha,
             antialias: !postprocessing && capability.dpr < 2,
@@ -134,7 +131,6 @@ export function GlobalCanvas({
             depth: !postprocessing,
             forceWebGL,
           })
-          setRendererType(type)
           return renderer
         }}
         dpr={[1, capability.dpr]}
@@ -168,22 +164,6 @@ export function GlobalCanvas({
         </SheetProvider>
       </Canvas>
       <DOMTunnel.Out />
-      {/* Renderer indicator (dev only) */}
-      {process.env.NODE_ENV === 'development' && rendererType && (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 8,
-            right: 8,
-            fontSize: 10,
-            opacity: 0.5,
-            pointerEvents: 'none',
-            fontFamily: 'monospace',
-          }}
-        >
-          {rendererType === 'webgpu' ? '🚀 WebGPU' : '🎮 WebGL'}
-        </div>
-      )}
     </div>
   )
 }

@@ -59,3 +59,4 @@ next-env.d.ts
 # claude
 .claude
 AGENTS.md
+plans

@@ -1,75 +1,36 @@
-import {
-  MeshBasicMaterial,
-  type MeshBasicMaterialParameters,
-  type WebGLProgramParametersWithUniforms,
-} from 'three'
-
-// install glsl-literal https://marketplace.visualstudio.com/items?itemName=boyswan.glsl-literal
-
-const RANDOM = Math.random()
+import type { MeshBasicMaterialParameters } from 'three'
+import { uniform } from 'three/tsl'
+import { MeshBasicNodeMaterial } from 'three/webgpu'
 
 interface OptionsType extends MeshBasicMaterialParameters {}
 
-export class GenericMaterial extends MeshBasicMaterial {
-  uniforms: {
+export class GenericMaterial extends MeshBasicNodeMaterial {
+  // Exposed as a uniforms-shape-compatible field so callers using
+  // .uniforms.uTime.value = ... continue to work unchanged.
+  readonly uniforms: {
     uTime: { value: number }
   }
-  override defines?: Record<string, string>
-  options?: OptionsType
+
+  private readonly _uTime = uniform(0)
 
   constructor({ ...props }: OptionsType = {}) {
     super({ ...props })
 
-    this.uniforms = {
-      uTime: { value: 0 },
-    }
-
-    this.defines = {}
-
-    this.customProgramCacheKey = () =>
-      this.constructor.name +
-      JSON.stringify(props) +
-      (process.env.NODE_ENV === 'development' && RANDOM) // allow HMR
-  }
-
-  override onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
     if (process.env.NODE_ENV === 'development') {
-      console.log(`WebGL: compiling ${this.constructor.name}`)
+      console.log(`WebGPU: compiling ${this.constructor.name}`)
     }
 
-    // uniforms
-    shader.uniforms = {
-      ...shader.uniforms,
-      ...this.uniforms,
+    // Expose a legacy-compatible uniforms object that proxies the TSL node
+    const uTimeNode = this._uTime
+    this.uniforms = {
+      uTime: {
+        get value() {
+          return uTimeNode.value as number
+        },
+        set value(v: number) {
+          uTimeNode.value = v
+        },
+      },
     }
-
-    // defines
-    shader.defines = {
-      ...shader.defines,
-      ...this.defines,
-    }
-
-    // vertex shader
-    shader.vertexShader = shader.vertexShader.replace(
-      'void main() {',
-      /*glsl*/ `      
-            void main() {
-          `
-    )
-
-    // fragment shader
-    shader.fragmentShader = shader.fragmentShader.replace(
-      'void main() {',
-      /*glsl*/ `
-            void main() {
-          `
-    )
-
-    shader.fragmentShader = shader.fragmentShader.replace(
-      'vec4 diffuseColor = vec4( diffuse, opacity );',
-      /*glsl*/ `
-            vec4 diffuseColor = vec4( diffuse, opacity );
-          `
-    )
   }
 }

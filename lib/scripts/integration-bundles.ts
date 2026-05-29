@@ -164,7 +164,7 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
           // Remove the WebGL component render
           {
             regex:
-              '\\s*\\{/\\* WebGL/WebGPU Canvas - lazy loaded, only mounts when <Wrapper webgl> is used \\*/\\}\\n\\s*<LazyGlobalCanvas />',
+              '\\s*\\{/\\* WebGL/WebGPU Canvas - lazy loaded, only mounts when <Wrapper webgl> is used \\*/\\}\\n\\s*<LazyGlobalCanvas[^>]*/>',
             flags: 'gm',
           },
         ],

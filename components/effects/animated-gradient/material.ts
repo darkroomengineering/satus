@@ -1,38 +1,78 @@
+/**
+ * AnimatedGradientMaterial — TSL NodeMaterial port
+ *
+ * Replaces the onBeforeCompile GLSL approach with MeshBasicNodeMaterial
+ * so the effect compiles to WGSL on WebGPURenderer and GLSL on WebGLRenderer.
+ *
+ * Visual behaviour preserved:
+ *  - Linear color gradient sampled from a CanvasTexture strip
+ *  - FBM noise warp via mx_fractal_noise_float (replaces hand-written simplex FBM)
+ *  - Optional radial falloff
+ *  - Flowmap / fluid UV distortion
+ *  - Downward "drip" effect with per-column speed variation
+ *  - Dithered alpha edge (hash-based noise)
+ */
+
+import { Texture, Vector2 } from 'three'
 import {
-  MeshBasicMaterial,
-  type Texture,
-  Vector2,
-  type WebGLProgramParametersWithUniforms,
-} from 'three'
+  clamp,
+  Fn,
+  float,
+  hash,
+  If,
+  mx_fractal_noise_float,
+  screenUV,
+  smoothstep,
+  texture,
+  uniform,
+  uv,
+  vec2,
+  vec3,
+  vec4,
+} from 'three/tsl'
+import type { TextureNode } from 'three/webgpu'
+import { MeshBasicNodeMaterial } from 'three/webgpu'
 import type { Flowmap } from '@/webgl/utils/flowmaps/flowmap-sim'
 import type { Fluid } from '@/webgl/utils/fluid/fluid-sim'
-import { NOISE } from '@/webgl/utils/noise'
 
-export class AnimatedGradientMaterial extends MeshBasicMaterial {
-  private uniforms: {
-    uTime: { value: number }
-    uAmplitude: { value: number }
-    uFrequency: { value: number }
-    uResolution: { value: Vector2 }
-    uAspect: { value: Vector2 }
-    uColorAmplitude: { value: number }
-    uColorFrequency: { value: number }
-    uColorsTexture: { value: Texture | null }
-    uOffset: { value: number }
-    uQuantize: { value: number }
-    uFlowmap: { value: Texture | null }
-    uDpr: { value: number }
-    uDrip: { value: number }
-  }
+// ---------------------------------------------------------------------------
+// TSL FBM using mx_fractal_noise_float (2 octaves matches original NUM_OCTAVES 2)
+// Signature: mx_fractal_noise_float(position, octaves, lacunarity, diminish, amplitude)
+//
+// Plain helper (not wrapped in Fn): mx_fractal_noise_float is already a TSL
+// function node, so an extra Fn wrapper buys nothing and only trips Fn's
+// generic inference (TS2590 "union too complex"). Each call inlines the same
+// materialx node subgraph — identical result and cost.
+// ---------------------------------------------------------------------------
+function fbm(p: ReturnType<typeof vec3>) {
+  return mx_fractal_noise_float(p, 2, 2.0, 0.5, 1.0)
+}
 
-  override defines: {
-    USE_RADIAL: boolean
-    USE_FLOWMAP: boolean
-    USE_UV: boolean
-  }
+// Shared empty texture used as a placeholder until real textures are assigned
+const EMPTY_TEXTURE = new Texture()
 
-  resolution: Vector2
-  aspect: Vector2
+export class AnimatedGradientMaterial extends MeshBasicNodeMaterial {
+  // Scalar uniforms
+  private readonly _uTime = uniform(0)
+  private readonly _uAmplitude = uniform(2)
+  private readonly _uFrequency = uniform(0.33)
+  private readonly _uColorAmplitude = uniform(2)
+  private readonly _uColorFrequency = uniform(0.33)
+  private readonly _uOffset = uniform(0)
+  private readonly _uQuantize = uniform(0)
+  private readonly _uDrip = uniform(0.6)
+
+  // Vector2 uniform for aspect correction — expose underlying Vector2 for direct mutation
+  private readonly _uAspect = uniform(new Vector2(1, 1))
+
+  // TextureNode references — updated via .value when textures change
+  private readonly _colorsTextureNode: TextureNode
+  private readonly _flowmapTextureNode: TextureNode
+
+  // Exposed for the webgl.tsx setters that call .set(x, y) on the Vector2
+  // resolution is kept as a dummy Vector2 — screenUV in TSL is renderer-aware
+  readonly resolution: Vector2 = new Vector2(0, 0)
+  readonly aspect: Vector2
 
   constructor({
     frequency = 0.33,
@@ -52,208 +92,184 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
     radial?: boolean
     flowmap?: Flowmap | Fluid
     drip?: number
-  }) {
-    super({
-      transparent: true,
-    })
+  } = {}) {
+    super({ transparent: true })
 
-    this.uniforms = {
-      uTime: { value: 0 },
-      uAmplitude: { value: amplitude },
-      uFrequency: { value: frequency },
-      uResolution: { value: new Vector2(0, 0) },
-      uAspect: { value: new Vector2(1, 1) },
-      uColorAmplitude: { value: colorAmplitude },
-      uColorFrequency: { value: colorFrequency },
-      uColorsTexture: { value: null },
-      uOffset: { value: radial ? Math.random() * 1000 : 0 },
-      uQuantize: { value: quantize },
-      uFlowmap: { value: flowmap?.uniform?.value ?? null },
-      uDpr: { value: 1 },
-      uDrip: { value: drip },
-    }
+    this._uAmplitude.value = amplitude
+    this._uFrequency.value = frequency
+    this._uColorAmplitude.value = colorAmplitude
+    this._uColorFrequency.value = colorFrequency
+    this._uQuantize.value = quantize
+    this._uOffset.value = radial ? Math.random() * 1000 : 0
+    this._uDrip.value = drip
 
-    this.defines = {
-      USE_RADIAL: radial,
-      USE_FLOWMAP: !!flowmap,
-      USE_UV: true,
-    }
+    this.aspect = this._uAspect.value as Vector2
 
-    this.resolution = this.uniforms.uResolution.value
-    this.aspect = this.uniforms.uAspect.value
+    // Build texture nodes with placeholder; callers update .value later
+    this._colorsTextureNode = texture(EMPTY_TEXTURE) as TextureNode
+    this._flowmapTextureNode = texture(
+      flowmap?.uniform?.value ?? EMPTY_TEXTURE
+    ) as TextureNode
+
+    this._buildNodes(!!flowmap, radial)
   }
 
-  override onBeforeCompile(parameters: WebGLProgramParametersWithUniforms) {
-    parameters.uniforms = {
-      ...parameters.uniforms,
-      ...this.uniforms,
-    }
+  private _buildNodes(hasFlowmap: boolean, radial: boolean): void {
+    const uTime = this._uTime
+    const uAmplitude = this._uAmplitude
+    const uFrequency = this._uFrequency
+    const uAspect = this._uAspect
+    const uColorAmplitude = this._uColorAmplitude
+    const uColorFrequency = this._uColorFrequency
+    const uOffset = this._uOffset
+    const uQuantize = this._uQuantize
+    const uDrip = this._uDrip
+    const colorsTextureNode = this._colorsTextureNode
+    const flowmapTextureNode = this._flowmapTextureNode
 
-    parameters.defines = {
-      ...parameters.defines,
-      ...this.defines,
-    }
+    const gradientNode = Fn(() => {
+      // -----------------------------------------------------------------
+      // Aspect-corrected screen-space UV (matches original vertex/fragment)
+      // screenUV is 0..1; adjust for non-square viewport aspect.
+      // -----------------------------------------------------------------
+      const sUV = screenUV.toVar()
+      sUV.addAssign(uAspect.sub(1).mul(0.5))
+      sUV.divAssign(uAspect)
 
-    parameters.vertexShader = parameters.vertexShader.replace(
-      'void main() {',
-      /* glsl */ `uniform vec2 uAspect;
-      
-      void main() {`
-    )
-
-    parameters.vertexShader = parameters.vertexShader.replace(
-      '#include <uv_vertex>',
-      /* glsl */ `
-      #include <uv_vertex>
-      vUv += (uAspect - 1.) * 0.5;
-      vUv /= uAspect;
-      `
-    )
-
-    parameters.fragmentShader = parameters.fragmentShader.replace(
-      'void main() {',
-      /* glsl */ `
-      ${NOISE.FBM_3D(2)}
-
-      uniform vec2 uAspect;
-      uniform float uColorAmplitude;
-      uniform float uColorFrequency;
-      uniform float uAmplitude;
-      uniform float uFrequency;
-      uniform vec2 uResolution;
-      uniform float uTime;
-      uniform sampler2D uColorsTexture;
-      uniform float uOffset;
-      uniform float uQuantize;
-      uniform sampler2D uFlowmap;
-      uniform float uDpr;
-      uniform float uDrip;
-
-      void main() {`
-    )
-
-    parameters.fragmentShader = parameters.fragmentShader.replace(
-      'vec4 diffuseColor = vec4( diffuse, opacity );',
-      /* glsl */ `
-      vec2 fragCoord = gl_FragCoord.xy;
-
-      vec2 screenUV = fragCoord / (uResolution.xy * uDpr);
-      screenUV += (uAspect - 1.) * 0.5;
-      screenUV /= uAspect;
-
-      # ifdef USE_FLOWMAP
-        vec4 flow = texture2D(uFlowmap, fragCoord / (uResolution.xy * uDpr));
-        flow *= 0.0025;
-
-        screenUV += flow.rg;
-      # endif
-
-      // Liquid drip: each horizontal column drips at a different speed,
-      // creating organic finger-like tendrils flowing downward.
-      // A low-frequency horizontal noise sample determines per-column speed,
-      // then we shift screenUV.y downward proportionally to time.
-      float columnVariation = fbm(vec3(screenUV.x * 1.8, 0.0, uTime * 0.15 + uOffset));
-      float dripSpeed = uDrip * (0.5 + columnVariation * 1.5);
-      vec2 dripUV = screenUV;
-      dripUV.y -= uTime * dripSpeed;
-
-      float noiseColor = fbm(vec3(dripUV * uColorFrequency, (uTime + uOffset + 1000.)));
-      noiseColor *= uColorAmplitude;
-      noiseColor = clamp(noiseColor, 0., 1.);
-
-      vec3 color = texture2D(uColorsTexture, vec2(0.,noiseColor)).rgb;
-
-      float noiseAlpha = fbm(vec3(dripUV * uFrequency, uTime + uOffset));
-      noiseAlpha *= uAmplitude;
-      noiseAlpha = clamp(noiseAlpha, 0., 1.);
-
-      #ifdef USE_RADIAL
-        float radialGradient = 1. - distance(vUv, vec2(0.5)) * 2.;
-        radialGradient = smoothstep(0., 1., radialGradient);
-        radialGradient = clamp(radialGradient, 0., 1.);
-        noiseAlpha *= radialGradient;
-      #endif
-
-      float alpha = noiseAlpha;
-
-      if(uQuantize > 0.) {
-        alpha = ceil(alpha * uQuantize) / uQuantize;
+      // -----------------------------------------------------------------
+      // Flowmap UV distortion
+      // -----------------------------------------------------------------
+      if (hasFlowmap) {
+        const flow = flowmapTextureNode.xy.mul(0.0025)
+        sUV.addAssign(flow)
       }
-      
-      alpha = alpha - rand(fragCoord) * 0.05;
 
-      vec4 diffuseColor = vec4( color, alpha );
+      // -----------------------------------------------------------------
+      // Drip: per-column downward offset driven by low-frequency noise
+      // -----------------------------------------------------------------
+      const colPos = vec3(sUV.x.mul(1.8), 0.0, uTime.mul(0.15).add(uOffset))
+      const columnVariation = fbm(colPos)
+      const dripSpeed = uDrip.mul(float(0.5).add(columnVariation.mul(1.5)))
+      const dripUV = vec2(sUV.x, sUV.y.sub(uTime.mul(dripSpeed))).toVar()
 
-      // diffuseColor = texture2D(uFlowmap, fragCoord / (uResolution.xy * uDpr));
-      `
-    )
+      // -----------------------------------------------------------------
+      // Color channel FBM
+      // -----------------------------------------------------------------
+      const colorPos = vec3(
+        dripUV.mul(uColorFrequency),
+        uTime.add(uOffset).add(1000.0)
+      )
+      const noiseColor = clamp(fbm(colorPos).mul(uColorAmplitude), 0.0, 1.0)
+      const sampledColor = colorsTextureNode.sample(vec2(0.0, noiseColor)).rgb
+
+      // -----------------------------------------------------------------
+      // Alpha channel FBM
+      // -----------------------------------------------------------------
+      const alphaPos = vec3(dripUV.mul(uFrequency), uTime.add(uOffset))
+      let noiseAlpha = clamp(fbm(alphaPos).mul(uAmplitude), 0.0, 1.0)
+
+      // -----------------------------------------------------------------
+      // Radial falloff
+      // -----------------------------------------------------------------
+      if (radial) {
+        const meshUV = uv()
+        const radialGradient = clamp(
+          smoothstep(
+            0.0,
+            1.0,
+            float(1.0).sub(meshUV.sub(0.5).length().mul(2.0))
+          ),
+          0.0,
+          1.0
+        )
+        noiseAlpha = noiseAlpha.mul(radialGradient)
+      }
+
+      // -----------------------------------------------------------------
+      // Quantize
+      // -----------------------------------------------------------------
+      const alpha = noiseAlpha.toVar()
+      If(uQuantize.greaterThan(0.0), () => {
+        alpha.assign(alpha.mul(uQuantize).ceil().div(uQuantize))
+      })
+
+      // -----------------------------------------------------------------
+      // Dither: subtract small hash-based noise to soften hard edges
+      // -----------------------------------------------------------------
+      const dither = hash(
+        screenUV.x.mul(10000.0).add(screenUV.y.mul(100.0))
+      ).mul(0.05)
+      alpha.subAssign(dither)
+
+      return vec4(sampledColor, alpha)
+    })()
+
+    this.colorNode = gradientNode
   }
 
-  get dpr() {
-    return this.uniforms.uDpr.value
+  // -----------------------------------------------------------------------
+  // Public API — identical surface to the original MeshBasicMaterial version
+  // -----------------------------------------------------------------------
+
+  // dpr is tracked by webgl.tsx but TSL's screenUV is automatically DPR-aware.
+  // Keep as a no-op getter/setter so the caller doesn't need to change.
+  get dpr(): number {
+    return 1
+  }
+  set dpr(_value: number) {
+    // screenUV handles pixel-ratio automatically in TSL — no-op
   }
 
-  set dpr(value) {
-    this.uniforms.uDpr.value = value
+  get time(): number {
+    return this._uTime.value as number
+  }
+  set time(value: number) {
+    this._uTime.value = value
   }
 
-  get time() {
-    return this.uniforms.uTime.value
+  get frequency(): number {
+    return this._uFrequency.value as number
+  }
+  set frequency(value: number) {
+    this._uFrequency.value = value
   }
 
-  set time(value) {
-    this.uniforms.uTime.value = value
+  get amplitude(): number {
+    return this._uAmplitude.value as number
   }
-
-  get frequency() {
-    return this.uniforms.uFrequency.value
-  }
-
-  set frequency(value) {
-    this.uniforms.uFrequency.value = value
-  }
-
-  get amplitude() {
-    return this.uniforms.uAmplitude.value
-  }
-
-  set amplitude(value) {
-    this.uniforms.uAmplitude.value = value
+  set amplitude(value: number) {
+    this._uAmplitude.value = value
   }
 
   set colorsTexture(value: Texture | null) {
-    this.uniforms.uColorsTexture.value = value
+    this._colorsTextureNode.value = value ?? EMPTY_TEXTURE
   }
 
-  get colorAmplitude() {
-    return this.uniforms.uColorAmplitude.value
+  get colorAmplitude(): number {
+    return this._uColorAmplitude.value as number
+  }
+  set colorAmplitude(value: number) {
+    this._uColorAmplitude.value = value
   }
 
-  set colorAmplitude(value) {
-    this.uniforms.uColorAmplitude.value = value
+  get colorFrequency(): number {
+    return this._uColorFrequency.value as number
+  }
+  set colorFrequency(value: number) {
+    this._uColorFrequency.value = value
   }
 
-  get colorFrequency() {
-    return this.uniforms.uColorFrequency.value
+  get quantize(): number {
+    return this._uQuantize.value as number
+  }
+  set quantize(value: number) {
+    this._uQuantize.value = value
   }
 
-  set colorFrequency(value) {
-    this.uniforms.uColorFrequency.value = value
+  get drip(): number {
+    return this._uDrip.value as number
   }
-
-  get quantize() {
-    return this.uniforms.uQuantize.value
-  }
-
-  set quantize(value) {
-    this.uniforms.uQuantize.value = value
-  }
-
-  get drip() {
-    return this.uniforms.uDrip.value
-  }
-
-  set drip(value) {
-    this.uniforms.uDrip.value = value
+  set drip(value: number) {
+    this._uDrip.value = value
   }
 }

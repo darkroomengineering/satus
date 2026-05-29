@@ -25,10 +25,17 @@ export function GettingStarted() {
       <div className="col-span-full dt:col-start-2 dt:col-end-9">
         <h2 className={s.title}>Get Started</h2>
         <div className={s.commands}>
-          {COMMANDS.map((item) => (
+          {COMMANDS.map((item, index) => (
             <div key={item.cmd} className={s.command}>
-              <span className={s.commandLabel}>{item.label}</span>
-              <code className={s.commandCode}>{item.cmd}</code>
+              <span className={s.commandStep}>
+                <span className={s.commandIndex} aria-hidden="true">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <span className={s.commandLabel}>{item.label}</span>
+              </span>
+              <div className={s.commandBlock}>
+                <code className={s.commandCode}>{item.cmd}</code>
+              </div>
             </div>
           ))}
         </div>
@@ -41,9 +48,25 @@ export function GettingStarted() {
         <div className={s.links}>
           {LINKS.map((link) => (
             <Link key={link.label} href={link.href} className={s.link}>
+              <span className={s.linkArrow} aria-hidden="true">
+                →
+              </span>
               {link.label}
             </Link>
           ))}
+        </div>
+
+        <div className={s.asideNote}>
+          <span className={s.asideNoteText}>
+            Part of the{' '}
+            <Link
+              href="https://oss.darkroom.engineering"
+              className={s.asideNoteLink}
+            >
+              Darkroom OSS
+            </Link>{' '}
+            ecosystem
+          </span>
         </div>
       </div>
     </section>

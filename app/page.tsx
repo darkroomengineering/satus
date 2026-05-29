@@ -16,7 +16,7 @@ import { ValueProps } from './(marketing)/_sections/value-props'
 
 export default function Home() {
   return (
-    <Wrapper theme="dark" lenis={{}}>
+    <Wrapper theme="dark" lenis={{}} webgl>
       <Hero />
       <ValueProps />
       <Features />

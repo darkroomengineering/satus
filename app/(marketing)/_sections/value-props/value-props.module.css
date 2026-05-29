@@ -4,8 +4,7 @@
   padding-top: calc(80 / 375 * 100vw);
   padding-bottom: calc(80 / 375 * 100vw);
   background: var(--color-primary);
-  border-top: 1px solid
-    color-mix(in srgb, var(--color-secondary) 15%, transparent);
+  border-top: 1px solid var(--line);
 
   @media (--desktop) {
     padding-top: calc(120 / 1440 * 100vw);
@@ -16,41 +15,57 @@
 .grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: calc(48 / 375 * 100vw);
+  gap: calc(1 / 375 * 100vw);
 
   @media (--desktop) {
     grid-template-columns: repeat(3, 1fr);
-    gap: calc(64 / 1440 * 100vw);
+    gap: calc(1 / 1440 * 100vw);
   }
 }
 
 .card {
   position: relative;
+  padding: calc(32 / 375 * 100vw) calc(24 / 375 * 100vw);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: calc(4 / 375 * 100vw);
+  transition: border-color var(--duration-fast) ease;
+
+  &:hover {
+    border-color: var(--line-strong);
+  }
+
+  @media (--desktop) {
+    padding: calc(40 / 1440 * 100vw) calc(32 / 1440 * 100vw);
+    border-radius: calc(4 / 1440 * 100vw);
+  }
 }
 
 .index {
   display: block;
   font-family: var(--font-mono);
-  font-size: calc(10 / 375 * 100vw);
-  opacity: 0.3;
+  font-size: calc(11 / 375 * 100vw);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: var(--color-contrast);
   margin-bottom: calc(16 / 375 * 100vw);
 
   @media (--desktop) {
-    font-size: calc(12 / 1440 * 100vw);
+    font-size: calc(13 / 1440 * 100vw);
     margin-bottom: calc(20 / 1440 * 100vw);
   }
 }
 
 .cardTitle {
   font-family: var(--font-mono);
-  font-size: calc(20 / 375 * 100vw);
+  font-size: calc(18 / 375 * 100vw);
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: -0.02em;
   margin-bottom: calc(20 / 375 * 100vw);
 
   @media (--desktop) {
-    font-size: calc(24 / 1440 * 100vw);
+    font-size: calc(22 / 1440 * 100vw);
     margin-bottom: calc(24 / 1440 * 100vw);
   }
 }
@@ -58,23 +73,44 @@
 .features {
   display: flex;
   flex-direction: column;
-  gap: calc(8 / 375 * 100vw);
+  gap: calc(10 / 375 * 100vw);
   list-style: none;
   padding: 0;
   margin: 0;
 
   @media (--desktop) {
-    gap: calc(10 / 1440 * 100vw);
+    gap: calc(12 / 1440 * 100vw);
   }
 }
 
 .feature {
+  display: flex;
+  align-items: baseline;
+  gap: calc(8 / 375 * 100vw);
   font-family: var(--font-mono);
   font-size: calc(12 / 375 * 100vw);
   line-height: 1.4;
   opacity: 0.6;
 
   @media (--desktop) {
+    gap: calc(10 / 1440 * 100vw);
     font-size: calc(13 / 1440 * 100vw);
+  }
+}
+
+.featureDot {
+  flex-shrink: 0;
+  display: inline-block;
+  width: calc(4 / 375 * 100vw);
+  height: calc(4 / 375 * 100vw);
+  border-radius: 50%;
+  background: var(--color-contrast);
+  opacity: 0.7;
+  margin-top: calc(5 / 375 * 100vw);
+
+  @media (--desktop) {
+    width: calc(4 / 1440 * 100vw);
+    height: calc(4 / 1440 * 100vw);
+    margin-top: calc(5 / 1440 * 100vw);
   }
 }

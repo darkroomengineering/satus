@@ -8,18 +8,8 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
 
-  /* Translucent backdrop panel */
-  background-color: color-mix(in srgb, var(--color-primary) 80%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--line);
-  padding: calc((8 * 100) / var(--device-width) * 1vw)
-    calc((12 * 100) / var(--device-width) * 1vw);
-
   @media (--desktop) {
     font-size: calc((11 * 100) / var(--device-width) * 1vw);
-    padding: calc((10 * 100) / var(--device-width) * 1vw)
-      calc((14 * 100) / var(--device-width) * 1vw);
   }
 }
 

@@ -75,7 +75,7 @@ export function WebGLAnimatedGradient({
   quantize = 0,
   radial = false,
   flowmap: hasFlowmap = true,
-  colors = ['#ff0000', '#000000'],
+  colors = ['#e30613', '#000000'],
   speed = 1,
 }: WebGLAnimatedGradientProps) {
   const flowmap = useFlowmap('fluid')

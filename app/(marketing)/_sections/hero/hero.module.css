@@ -10,12 +10,24 @@
   overflow: hidden;
 }
 
-/* WebGL gradient occupies the full hero behind content */
+/* Deep-red radial glow behind the wordmark (CSS, no WebGL — reliable + LCP-safe).
+   Driven by --color-contrast so it tracks the brand red. */
 .gradient {
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 60% 45% at 50% 38%,
+      color-mix(in srgb, var(--color-contrast) 35%, transparent),
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 100% 60% at 50% 118%,
+      color-mix(in srgb, var(--color-contrast) 22%, transparent),
+      transparent 60%
+    );
 }
 
 /* Subtle radial scrim to keep text readable over the gradient */

@@ -3,14 +3,11 @@
 import cn from 'clsx'
 import gsap from 'gsap'
 import { useEffect, useRef, useState } from 'react'
-import { AnimatedGradient } from '@/components/effects/animated-gradient'
 import { Link } from '@/components/ui/link'
 import { usePreferredReducedMotion } from '@/hooks/use-sync-external'
 import s from './hero.module.css'
 
 const INSTALL_COMMAND = 'bunx degit darkroomengineering/satus my-project'
-
-const GRADIENT_COLORS = ['#000000', '#0a0a0a', '#1a0307', '#e30613']
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
@@ -104,15 +101,7 @@ export function Hero() {
 
   return (
     <section className={cn(s.hero, 'dr-layout-grid')}>
-      <AnimatedGradient
-        className={cn(s.gradient)}
-        colors={GRADIENT_COLORS}
-        speed={0.35}
-        amplitude={1.5}
-        frequency={0.28}
-        radial
-        flowmap
-      />
+      <div className={s.gradient} aria-hidden="true" />
 
       <div className={s.scrim} aria-hidden="true" />
 

@@ -1,106 +1,232 @@
 .container {
   display: flex;
-  flex-direction: column;
+  flex-grow: 1;
   align-items: center;
   justify-content: center;
-  min-height: 100dvh;
-  padding: 2rem;
-  text-align: center;
-  font-family: var(--font-mono, monospace);
+  padding: calc(80 / 375 * 100vw) calc(20 / 375 * 100vw);
+
+  @media (--desktop) {
+    padding: calc(120 / 1440 * 100vw) 0;
+  }
 }
 
-.icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
+.panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: calc(460 / 375 * 100vw);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: calc(6 / 375 * 100vw);
+  overflow: hidden;
+
+  @media (--desktop) {
+    max-width: calc(560 / 1440 * 100vw);
+    border-radius: calc(6 / 1440 * 100vw);
+  }
+}
+
+/* ---- Meta block ---- */
+
+.meta {
+  padding: calc(28 / 375 * 100vw) calc(24 / 375 * 100vw);
+  border-bottom: 1px solid var(--line);
+
+  @media (--desktop) {
+    padding: calc(36 / 1440 * 100vw) calc(32 / 1440 * 100vw);
+  }
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: calc(9 / 375 * 100vw);
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.45;
+  margin-bottom: calc(10 / 375 * 100vw);
+
+  @media (--desktop) {
+    font-size: calc(11 / 1440 * 100vw);
+    margin-bottom: calc(12 / 1440 * 100vw);
+  }
 }
 
 .title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: calc(22 / 375 * 100vw);
+  font-weight: 400;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  line-height: 1;
+  color: var(--color-secondary);
+  margin-bottom: calc(10 / 375 * 100vw);
+
+  @media (--desktop) {
+    font-size: calc(32 / 1440 * 100vw);
+    margin-bottom: calc(12 / 1440 * 100vw);
+  }
+}
+
+.accent {
+  color: var(--color-contrast);
 }
 
 .description {
-  color: var(--color-text-secondary, #888);
-  max-width: 400px;
-  margin-bottom: 2rem;
+  font-family: var(--font-mono);
+  font-size: calc(11 / 375 * 100vw);
+  line-height: 1.6;
+  opacity: 0.45;
+
+  @media (--desktop) {
+    font-size: calc(12 / 1440 * 100vw);
+  }
 }
+
+/* ---- Instructions block ---- */
 
 .instructions {
-  background: var(--color-surface, rgba(255, 255, 255, 0.05));
-  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
-  border-radius: 8px;
-  padding: 1.5rem 2rem;
-  text-align: left;
-  max-width: 500px;
-  width: 100%;
+  padding: calc(24 / 375 * 100vw) calc(24 / 375 * 100vw);
+  border-bottom: 1px solid var(--line);
+
+  @media (--desktop) {
+    padding: calc(28 / 1440 * 100vw) calc(32 / 1440 * 100vw);
+  }
 }
 
-.subtitle {
-  font-size: 0.875rem;
-  font-weight: 600;
+.instructionsLabel {
+  font-family: var(--font-mono);
+  font-size: calc(9 / 375 * 100vw);
+  font-weight: 400;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 1rem;
+  color: var(--color-contrast);
+  margin-bottom: calc(14 / 375 * 100vw);
+
+  @media (--desktop) {
+    font-size: calc(10 / 1440 * 100vw);
+    margin-bottom: calc(16 / 1440 * 100vw);
+  }
 }
 
-.steps {
+.steps,
+.stepsAfter {
   list-style: decimal;
-  padding-left: 1.25rem;
+  padding-left: calc(18 / 375 * 100vw);
   margin: 0;
+  font-family: var(--font-mono);
+  font-size: calc(11 / 375 * 100vw);
+  line-height: 1.6;
+  opacity: 0.7;
+
+  @media (--desktop) {
+    padding-left: calc(20 / 1440 * 100vw);
+    font-size: calc(12 / 1440 * 100vw);
+  }
 }
 
 .steps li {
-  margin-bottom: 0.75rem;
-  line-height: 1.5;
+  margin-bottom: calc(8 / 375 * 100vw);
+
+  @media (--desktop) {
+    margin-bottom: calc(8 / 1440 * 100vw);
+  }
 }
 
-.steps code {
-  background: var(--color-code-bg, rgba(255, 255, 255, 0.1));
-  padding: 0.125rem 0.375rem;
-  border-radius: 4px;
-  font-size: 0.875em;
+.stepsAfter {
+  margin-top: calc(10 / 375 * 100vw);
+
+  @media (--desktop) {
+    margin-top: calc(12 / 1440 * 100vw);
+  }
 }
 
-.envList {
-  list-style: none;
-  padding: 0;
-  margin: 0.5rem 0 0;
+/* ---- Env vars block ---- */
+
+.envBlock {
+  display: flex;
+  flex-direction: column;
+  gap: calc(4 / 375 * 100vw);
+  margin-top: calc(10 / 375 * 100vw);
+  padding: calc(12 / 375 * 100vw) calc(14 / 375 * 100vw);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: calc(4 / 375 * 100vw);
+
+  @media (--desktop) {
+    gap: calc(5 / 1440 * 100vw);
+    margin-top: calc(10 / 1440 * 100vw);
+    padding: calc(14 / 1440 * 100vw) calc(16 / 1440 * 100vw);
+    border-radius: calc(4 / 1440 * 100vw);
+  }
 }
 
-.envList li {
-  margin-bottom: 0.25rem;
+.envVar {
+  font-family: var(--font-mono);
+  font-size: calc(10 / 375 * 100vw);
+  color: var(--color-contrast);
+
+  @media (--desktop) {
+    font-size: calc(12 / 1440 * 100vw);
+  }
 }
 
-.envList code {
-  color: var(--color-accent, #00d9ff);
+.code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--surface-2);
+  padding: 0.1em 0.3em;
+  border-radius: 2px;
+  border: 1px solid var(--line);
 }
 
-.docs {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
-}
+/* ---- Footer block ---- */
 
-.docs a {
-  color: var(--color-link, #00d9ff);
-  text-decoration: none;
-}
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(16 / 375 * 100vw);
+  padding: calc(18 / 375 * 100vw) calc(24 / 375 * 100vw);
+  background: var(--surface-2);
 
-.docs a:hover {
-  text-decoration: underline;
+  @media (--desktop) {
+    padding: calc(20 / 1440 * 100vw) calc(32 / 1440 * 100vw);
+  }
 }
 
 .hint {
-  margin-top: 1.5rem;
-  font-size: 0.875rem;
-  color: var(--color-text-secondary, #888);
+  font-family: var(--font-mono);
+  font-size: calc(10 / 375 * 100vw);
+  opacity: 0.45;
+  line-height: 1.5;
+
+  @media (--desktop) {
+    font-size: calc(11 / 1440 * 100vw);
+  }
 }
 
-.hint code {
-  background: var(--color-code-bg, rgba(255, 255, 255, 0.1));
-  padding: 0.125rem 0.375rem;
-  border-radius: 4px;
+.docsLink {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: calc(5 / 375 * 100vw);
+  font-family: var(--font-mono);
+  font-size: calc(10 / 375 * 100vw);
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--color-secondary);
+  opacity: 0.7;
+  transition: opacity var(--duration-fast) ease;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  @media (--desktop) {
+    gap: calc(6 / 1440 * 100vw);
+    font-size: calc(11 / 1440 * 100vw);
+  }
 }

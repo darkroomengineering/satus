@@ -17,137 +17,93 @@ export const metadata = {
   description: 'Component library showcase',
 }
 
+const COMPONENTS = [
+  {
+    name: 'Menu',
+    description: 'Dropdown menus with keyboard navigation',
+    demo: <MenuDemo />,
+  },
+  {
+    name: 'Select',
+    description: 'Custom select with controlled mode',
+    demo: <SelectDemo />,
+  },
+  {
+    name: 'Accordion',
+    description: 'Expandable sections using Base UI Collapsible',
+    demo: <AccordionDemo />,
+  },
+  {
+    name: 'Tabs',
+    description: 'Tab navigation',
+    demo: <TabsDemo />,
+  },
+  {
+    name: 'Tooltip',
+    description: 'Hover hints with arrow',
+    demo: <TooltipDemo />,
+  },
+  {
+    name: 'Alert Dialog',
+    description: 'Confirmation dialogs',
+    demo: <AlertDialogDemo />,
+  },
+  {
+    name: 'Switch',
+    description: 'Toggle switches',
+    demo: <SwitchDemo />,
+  },
+  {
+    name: 'Checkbox',
+    description: 'Accessible checkboxes',
+    demo: <CheckboxDemo />,
+  },
+  {
+    name: 'Link',
+    description: 'Auto-detects internal vs external',
+    demo: <LinkDemo />,
+  },
+  {
+    name: 'Marquee',
+    description: 'Infinite scroll with velocity',
+    demo: <MarqueeDemo />,
+  },
+] as const
+
 export default function ComponentsPage() {
   return (
     <Wrapper theme="dark">
       <section className={cn(s.hero, 'dr-layout-grid')}>
-        <div className="col-span-full dt:col-start-3 dt:col-end-11">
+        <div className="col-span-full dt:col-start-2 dt:col-end-10">
+          <p className={s.label}>UI Library</p>
           <h1 className={s.title}>Components</h1>
           <p className={s.subtitle}>
-            UI library from <code className={s.code}>@/components/ui</code>
+            Accessible primitives from{' '}
+            <code className={s.code}>@/components/ui</code>
           </p>
         </div>
       </section>
 
       <section className={cn(s.list, 'dr-layout-grid')}>
-        <div className="col-span-full dt:col-start-3 dt:col-end-8">
-          <h2 className={s.sectionTitle}>Library</h2>
+        <div className="col-span-full dt:col-start-2 dt:col-end-12">
+          <p className={s.sectionLabel}>Library</p>
           <div className={s.components}>
-            <div className={s.component}>
-              <div className={s.componentHeader}>
-                <span className={s.componentName}>Menu</span>
-                <span className={s.componentDescription}>
-                  Dropdown menus with keyboard navigation
-                </span>
+            {COMPONENTS.map((item, i) => (
+              <div key={item.name} className={s.component}>
+                <div className={s.componentHeader}>
+                  <div className={s.componentMeta}>
+                    <span className={s.componentIndex}>
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span className={s.componentName}>{item.name}</span>
+                  </div>
+                  <span className={s.componentDescription}>
+                    {item.description}
+                  </span>
+                </div>
+                <div className={s.componentDemo}>{item.demo}</div>
               </div>
-              <div className={s.componentDemo}>
-                <MenuDemo />
-              </div>
-            </div>
-
-            <div className={s.component}>
-              <div className={s.componentHeader}>
-                <span className={s.componentName}>Select</span>
-                <span className={s.componentDescription}>
-                  Custom select with controlled mode
-                </span>
-              </div>
-              <div className={s.componentDemo}>
-                <SelectDemo />
-              </div>
-            </div>
-
-            <div className={s.component}>
-              <div className={s.componentHeader}>
-                <span className={s.componentName}>Accordion</span>
-                <span className={s.componentDescription}>
-                  Expandable sections using Base UI Collapsible
-                </span>
-              </div>
-              <div className={s.componentDemo}>
-                <AccordionDemo />
-              </div>
-            </div>
-
-            <div className={s.component}>
-              <div className={s.componentHeader}>
-                <span className={s.componentName}>Tabs</span>
-                <span className={s.componentDescription}>Tab navigation</span>
-              </div>
-              <div className={s.componentDemo}>
-                <TabsDemo />
-              </div>
-            </div>
-
-            <div className={s.component}>
-              <div className={s.componentHeader}>
-                <span className={s.componentName}>Tooltip</span>
-                <span className={s.componentDescription}>
-                  Hover hints with arrow
-                </span>
-              </div>
-              <div className={s.componentDemo}>
-                <TooltipDemo />
-              </div>
-            </div>
-
-            <div className={s.component}>
-              <div className={s.componentHeader}>
-                <span className={s.componentName}>Alert Dialog</span>
-                <span className={s.componentDescription}>
-                  Confirmation dialogs
-                </span>
-              </div>
-              <div className={s.componentDemo}>
-                <AlertDialogDemo />
-              </div>
-            </div>
-
-            <div className={s.component}>
-              <div className={s.componentHeader}>
-                <span className={s.componentName}>Switch</span>
-                <span className={s.componentDescription}>Toggle switches</span>
-              </div>
-              <div className={s.componentDemo}>
-                <SwitchDemo />
-              </div>
-            </div>
-
-            <div className={s.component}>
-              <div className={s.componentHeader}>
-                <span className={s.componentName}>Checkbox</span>
-                <span className={s.componentDescription}>
-                  Accessible checkboxes
-                </span>
-              </div>
-              <div className={s.componentDemo}>
-                <CheckboxDemo />
-              </div>
-            </div>
-
-            <div className={s.component}>
-              <div className={s.componentHeader}>
-                <span className={s.componentName}>Link</span>
-                <span className={s.componentDescription}>
-                  Auto-detects internal vs external
-                </span>
-              </div>
-              <div className={s.componentDemo}>
-                <LinkDemo />
-              </div>
-            </div>
-
-            <div className={s.component}>
-              <div className={s.componentHeader}>
-                <span className={s.componentName}>Marquee</span>
-                <span className={s.componentDescription}>
-                  Infinite scroll with velocity
-                </span>
-              </div>
-              <div className={s.componentDemo}>
-                <MarqueeDemo />
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>

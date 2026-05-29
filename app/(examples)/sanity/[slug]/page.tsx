@@ -44,6 +44,7 @@ export default async function SanityArticlePage({
   return (
     <Wrapper theme="light" className="font-mono uppercase">
       <div className="max-dt:dr-px-16 flex grow items-center justify-center">
+        {/* TODO: remove cast after running `bun run sanity:typegen` to regenerate ArticleQueryResult */}
         <SanityArticle data={data as Article} />
       </div>
     </Wrapper>

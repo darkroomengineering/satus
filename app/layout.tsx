@@ -121,11 +121,13 @@ export default async function Layout({ children }: PropsWithChildren) {
         {/* Optional features - conditionally loaded based on configuration */}
         <OptionalFeatures />
 
+        {/* Sanity Live - renders unconditionally when Sanity is configured for real-time updates */}
+        {sanityConfigured && <SanityLive />}
+
         {/* Sanity Visual Editing - only when draft mode is enabled */}
         {sanityConfigured && isDraftMode && (
           <Suspense fallback={null}>
             <VisualEditing />
-            <SanityLive />
           </Suspense>
         )}
 

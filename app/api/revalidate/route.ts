@@ -36,7 +36,9 @@ export async function POST(request: NextRequest) {
       return new Response('Bad Request', { status: 400 })
     }
 
-    // Revalidate the specific document type
+    // Revalidate the specific document type.
+    // Next 16 Cache Components requires the second (cache-profile) argument;
+    // an empty object selects the default revalidation behavior.
     revalidateTag(body._type, {})
 
     // If there's a slug, revalidate the specific page

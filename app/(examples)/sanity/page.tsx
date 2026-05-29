@@ -30,6 +30,7 @@ export default async function SanityPage() {
   return (
     <Wrapper theme="light" className="font-mono uppercase">
       <div className="max-dt:dr-px-16 flex grow items-center justify-center">
+        {/* TODO: remove cast after running `bun run sanity:typegen` to regenerate PageQueryResult */}
         <SanityTutorial data={data as Page} />
       </div>
     </Wrapper>

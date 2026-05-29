@@ -289,8 +289,8 @@ export const createComponent = async (
 
     // Show what was created
     p.log.success(`Created files:`)
-    p.log.message(`  📄 ${componentDir}/index.tsx`)
-    p.log.message(`  🎨 ${componentDir}/${componentName}.module.css`)
+    p.log.message(`  ${componentDir}/index.tsx`)
+    p.log.message(`  ${componentDir}/${componentName}.module.css`)
 
     // Try to update barrel exports
     await updateBarrelExport(componentPath, componentName)

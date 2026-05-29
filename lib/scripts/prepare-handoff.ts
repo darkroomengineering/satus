@@ -16,7 +16,8 @@
  */
 
 import * as p from '@clack/prompts'
-import { getConfiguredIntegrations } from '@/integrations/check-integration'
+import { getConfigured } from '@/integrations/registry'
+import { INTEGRATION_BUNDLES } from './integration-bundles'
 import {
   parseCliFlags,
   pathExists,
@@ -114,15 +115,25 @@ const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
       return false
     }
 
-    const configuredIntegrations = getConfiguredIntegrations()
+    const configuredIntegrations = getConfigured()
     const content = await Bun.file(envExamplePath).text()
 
-    // Keep only variables for configured integrations
-    const keepPatterns: Record<string, RegExp[]> = {
-      Sanity: [/^NEXT_PUBLIC_SANITY_/, /^SANITY_/],
-      Shopify: [/^SHOPIFY_/],
-      HubSpot: [/^HUBSPOT_/, /^NEXT_PUBLIC_HUBSPOT_/],
-      Mailchimp: [/^MAILCHIMP_/],
+    // Derive keep-prefixes from INTEGRATION_BUNDLES.
+    // bundlePrefixes: bundle-key → list of prefix RegExps derived from each bundle's envVars.
+    // For NEXT_PUBLIC_* vars use the first three underscore-segments as prefix (e.g. NEXT_PUBLIC_SANITY_).
+    // For all others use the first segment (e.g. SHOPIFY_, SANITY_, HUBSPOT_, MAILCHIMP_).
+    const bundlePrefixes: Record<string, RegExp[]> = {}
+    for (const [key, bundle] of Object.entries(INTEGRATION_BUNDLES)) {
+      if (bundle.envVars.length === 0) continue
+      const prefixes = new Set<string>()
+      for (const envVar of bundle.envVars) {
+        const parts = envVar.split('_')
+        const take = parts[0] === 'NEXT' && parts[1] === 'PUBLIC' ? 3 : 1
+        prefixes.add(`${parts.slice(0, take).join('_')}_`)
+      }
+      bundlePrefixes[key] = [...prefixes].map(
+        (prefix) => new RegExp(`^${prefix}`)
+      )
     }
 
     // Always keep these core variables
@@ -157,9 +168,13 @@ const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
       }
 
       if (!shouldKeep) {
-        // Check integration-specific variables
+        // configuredIntegrations contains registry display names (e.g. 'Sanity', 'Shopify').
+        // Match them to bundle keys (e.g. 'sanity', 'shopify') via case-insensitive comparison.
         for (const integration of configuredIntegrations) {
-          const patterns = keepPatterns[integration]
+          const matchedKey = Object.keys(INTEGRATION_BUNDLES).find(
+            (k) => k.toLowerCase() === integration.toLowerCase()
+          )
+          const patterns = matchedKey ? bundlePrefixes[matchedKey] : undefined
           if (patterns) {
             for (const pattern of patterns) {
               if (pattern.test(varName)) {
@@ -243,7 +258,7 @@ const generateInventory = async (dryRun: boolean): Promise<string> => {
   inventory.push('')
 
   // Configured integrations
-  const integrations = getConfiguredIntegrations()
+  const integrations = getConfigured()
   inventory.push('## Active Integrations')
   inventory.push('')
   if (integrations.length > 0) {
@@ -345,7 +360,7 @@ const generateChecklist = async (
   projectName: string,
   dryRun: boolean
 ): Promise<string> => {
-  const integrations = getConfiguredIntegrations()
+  const integrations = getConfigured()
 
   const checklist: string[] = []
 

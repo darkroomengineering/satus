@@ -113,12 +113,12 @@ const generatePageContent = (
   ]
   if (sanity || shopify) {
     imports.push(
+      `import { isConfigured } from '@/lib/integrations/registry'`,
       `import { NotConfigured } from '@/components/ui/not-configured'`
     )
   }
   if (sanity) {
     imports.push(
-      `import { isSanityConfigured } from '@/lib/integrations/check-integration'`,
       `import { sanityFetch } from 'next-sanity/live'`,
       `import { pageQuery } from '@/lib/integrations/sanity/queries'`,
       `import type { Page } from '@/lib/integrations/sanity/sanity.types'`,
@@ -126,18 +126,15 @@ const generatePageContent = (
     )
   }
   if (shopify) {
-    imports.push(
-      `import { isShopifyConfigured } from '@/lib/integrations/check-integration'`,
-      `import { Cart } from '@/lib/integrations/shopify/cart'`
-    )
+    imports.push(`import { Cart } from '@/lib/integrations/shopify/cart'`)
   }
 
   const wrapperProps = [`theme="${theme}"`, ...(webgl ? ['webgl'] : [])].join(
     ' '
   )
 
-  const guard = (integration: 'Sanity' | 'Shopify', check: string) =>
-    `  if (!${check}()) {
+  const guard = (integration: 'Sanity' | 'Shopify', id: string) =>
+    `  if (!isConfigured('${id}')) {
     return (
       <Wrapper theme="${theme}">
         <NotConfigured integration="${integration}" />
@@ -146,8 +143,8 @@ const generatePageContent = (
   }`
 
   const preludeParts: string[] = []
-  if (sanity) preludeParts.push(guard('Sanity', 'isSanityConfigured'))
-  if (shopify) preludeParts.push(guard('Shopify', 'isShopifyConfigured'))
+  if (sanity) preludeParts.push(guard('Sanity', 'sanity'))
+  if (shopify) preludeParts.push(guard('Shopify', 'shopify'))
   if (sanity) {
     preludeParts.push(`  const { data } = await sanityFetch({
     query: pageQuery,
@@ -187,7 +184,7 @@ ${inner}
   const metadataExport = sanity
     ? `
 export async function generateMetadata(): Promise<Metadata> {
-  if (!isSanityConfigured()) {
+  if (!isConfigured('sanity')) {
     return {
       title: '${title}',
       description: '${title} page description',
@@ -274,10 +271,10 @@ export const createPage = async (
 
     // Show what was created
     p.log.success(`Generated files:`)
-    p.log.message(`  📄 ${pageDir}/page.tsx`)
-    p.log.message(`  📁 ${componentsDir}/`)
+    p.log.message(`  ${pageDir}/page.tsx`)
+    p.log.message(`  ${componentsDir}/`)
     if (options.css) {
-      p.log.message(`  🎨 ${pageDir}/${pageName}.module.css`)
+      p.log.message(`  ${pageDir}/${pageName}.module.css`)
     }
 
     // Build next steps message

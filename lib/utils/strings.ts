@@ -32,17 +32,18 @@ export function slugify(text: { toString: () => string }) {
 }
 
 /**
- * Converts first character to lowercase (camelCase format).
+ * Lowercases the first character of a string.
  *
- * @param inputString - String to convert
- * @returns String with lowercase first character
+ * @param inputString - String to transform
+ * @returns String with the first character lowercased
  *
  * @example
  * ```ts
- * convertToCamelCase('HelloWorld') // 'helloWorld'
+ * lowerFirstChar('HelloWorld') // 'helloWorld'
+ * lowerFirstChar('Foo') // 'foo'
  * ```
  */
-export function convertToCamelCase(inputString: string) {
+export function lowerFirstChar(inputString: string) {
   return inputString.charAt(0).toLowerCase() + inputString.slice(1)
 }
 

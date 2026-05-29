@@ -510,12 +510,6 @@ const main = async (): Promise<void> => {
     )
   }
 
-  // Handle cancellation
-  if (p.isCancel(keepIntegrations)) {
-    p.cancel('Setup cancelled')
-    process.exit(0)
-  }
-
   const toRemove = getIntegrationNames().filter(
     (name) => !keepIntegrations.includes(name)
   )

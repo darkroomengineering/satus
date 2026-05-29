@@ -99,7 +99,7 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
     name: 'HubSpot',
     description: 'Marketing forms and newsletter integration',
     dependencies: [],
-    devDependencies: ['@hubspot/api-client'],
+    devDependencies: [],
     folders: ['lib/integrations/hubspot', 'app/(examples)/hubspot'],
     files: [],
     configPatterns: [],
@@ -278,26 +278,3 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
  * Get all integration names
  */
 export const getIntegrationNames = () => Object.keys(INTEGRATION_BUNDLES)
-
-/**
- * Get bundle by name
- */
-export const getBundle = (name: string) => INTEGRATION_BUNDLES[name]
-
-/**
- * Get all dependencies for selected integrations
- */
-export const getDependenciesForIntegrations = (integrations: string[]) => {
-  const deps = new Set<string>()
-  const devDeps = new Set<string>()
-
-  for (const name of integrations) {
-    const bundle = INTEGRATION_BUNDLES[name]
-    if (bundle) {
-      for (const dep of bundle.dependencies) deps.add(dep)
-      for (const dep of bundle.devDependencies) devDeps.add(dep)
-    }
-  }
-
-  return { dependencies: [...deps], devDependencies: [...devDeps] }
-}

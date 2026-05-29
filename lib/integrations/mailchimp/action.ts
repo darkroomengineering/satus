@@ -79,14 +79,6 @@ export async function mailchimpSubscriptionAction(
     run: async (input) => {
       const result = await addSubscriberToMailchimp(input)
       if (!result.success) {
-        if (
-          result.error?.includes('already') ||
-          result.error?.includes('Member Exists') ||
-          result.error?.includes('is already a list member')
-        ) {
-          return { status: 200, message: 'already_subscribed_' }
-        }
-
         let errorMessage = 'subscription_failed_'
         if (
           result.error?.includes('fake') ||

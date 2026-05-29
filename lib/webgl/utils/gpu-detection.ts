@@ -113,7 +113,6 @@ export function detectGPUCapability(): GPUCapability {
  * Check if WebGPU is available (synchronous check).
  *
  * Note: This only checks if the API exists, not if it's fully functional.
- * Use `initWebGPU()` for full initialization.
  */
 export function isWebGPUAvailable(): boolean {
   if (typeof window === 'undefined') return false
@@ -125,42 +124,4 @@ export function isWebGPUAvailable(): boolean {
  */
 export function isGPUAvailable(): boolean {
   return detectGPUCapability().hasGPU
-}
-
-/**
- * Initialize WebGPU adapter and device.
- *
- * Returns null if WebGPU is not available or initialization fails.
- *
- * @example
- * ```tsx
- * const gpu = await initWebGPU()
- * if (gpu) {
- *   // Use WebGPU
- * } else {
- *   // Fall back to WebGL
- * }
- * ```
- */
-export async function initWebGPU(): Promise<{
-  adapter: GPUAdapter
-  device: GPUDevice
-} | null> {
-  if (!isWebGPUAvailable()) {
-    return null
-  }
-
-  try {
-    const adapter = await navigator.gpu.requestAdapter()
-    if (!adapter) {
-      console.warn('WebGPU: No adapter found, falling back to WebGL')
-      return null
-    }
-
-    const device = await adapter.requestDevice()
-    return { adapter, device }
-  } catch (error) {
-    console.warn('WebGPU initialization failed, falling back to WebGL:', error)
-    return null
-  }
 }

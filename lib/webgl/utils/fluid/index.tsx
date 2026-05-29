@@ -122,9 +122,9 @@ export function useFluidSim() {
     }
   )
 
-  // Update fluid simulation each frame
-  useFrame(() => {
-    fluid.update()
+  // Update fluid simulation each frame (delta keeps the sim frame-rate independent)
+  useFrame((_state, delta) => {
+    fluid.update(delta)
   }, -10)
 
   return fluid

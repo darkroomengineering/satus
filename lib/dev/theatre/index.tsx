@@ -9,7 +9,6 @@ import {
   useEffect,
   useImperativeHandle,
   useLayoutEffect,
-  useMemo,
   useRef,
   useState,
 } from 'react'
@@ -33,14 +32,18 @@ export function TheatreProjectProvider({
     if (project) {
       isLoadingRef.current = false
       window.THEATRE_PROJECT_ID = project.address.projectId
-      console.log(`Theatre: project ${id} loaded`)
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Theatre: project ${id} loaded`)
+      }
     }
   }, [project, id])
 
   useLayoutEffect(() => {
     if (config) {
       if (!isLoadingRef.current) {
-        console.log(`Theatre: project ${id} loading...`)
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`Theatre: project ${id} loading...`)
+        }
         isLoadingRef.current = true
         fetch(config)
           .then((response) => response.json())
@@ -82,10 +85,7 @@ export function useSheet(sheetId?: string, instanceId?: string) {
   const project = useCurrentProject()
   const currentSheet = useContext(SheetContext)
 
-  const sheet = useMemo(
-    () => (sheetId ? project?.sheet(sheetId, instanceId) : currentSheet),
-    [project, sheetId, instanceId, currentSheet]
-  )
+  const sheet = sheetId ? project?.sheet(sheetId, instanceId) : currentSheet
 
   return sheet
 }

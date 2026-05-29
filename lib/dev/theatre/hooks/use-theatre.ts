@@ -5,7 +5,7 @@ import type {
   ISheetObject,
   UnknownShorthandCompoundProps,
 } from '@theatre/core'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useStudio } from './use-studio'
 
 export function useTheatreObject(
@@ -16,16 +16,31 @@ export function useTheatreObject(
 ) {
   const [object, setObject] = useState<ISheetObject>()
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: this is fine
+  // Serialize config to a stable string only when the object reference changes.
+  // This avoids re-serializing on every render while still detecting real config changes.
+  const configRef = useRef(config)
+  const configKeyRef = useRef(JSON.stringify(config))
+  if (configRef.current !== config) {
+    const next = JSON.stringify(config)
+    if (next !== configKeyRef.current) {
+      configKeyRef.current = next
+    }
+    configRef.current = config
+  }
+  const configKey = configKeyRef.current
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: deps spread is intentional
   useEffect(() => {
     if (!sheet) return
 
-    setObject(sheet?.object(theatreKey, config, { reconfigure: true }))
+    setObject(
+      sheet?.object(theatreKey, configRef.current, { reconfigure: true })
+    )
 
     return () => {
       sheet.detachObject(theatreKey)
     }
-  }, [JSON.stringify(config), sheet, theatreKey, ...deps])
+  }, [configKey, sheet, theatreKey, ...deps])
 
   return object
 }
@@ -53,7 +68,7 @@ export function useTheatre<Config extends UnknownShorthandCompoundProps>(
   const [values, setValues] = useState({})
   const lazyValues = useRef({})
 
-  const getLazyValues = useCallback(() => lazyValues.current, [])
+  const getLazyValues = () => lazyValues.current
 
   useEffect(() => {
     if (object) {
@@ -70,19 +85,16 @@ export function useTheatre<Config extends UnknownShorthandCompoundProps>(
 
   const studio = useStudio()
 
-  const set = useCallback(
-    (values: NonNullable<typeof object>['props']) => {
-      if (studio && object) {
-        studio.transaction(({ set }) => {
-          set(object.props, {
-            ...object.value,
-            ...values,
-          })
+  const set = (values: NonNullable<typeof object>['props']) => {
+    if (studio && object) {
+      studio.transaction(({ set }) => {
+        set(object.props, {
+          ...object.value,
+          ...values,
         })
-      }
-    },
-    [studio, object]
-  )
+      })
+    }
+  }
 
   return { get: getLazyValues, values, set, object }
 }

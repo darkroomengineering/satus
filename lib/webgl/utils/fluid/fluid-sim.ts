@@ -325,8 +325,6 @@ void main () {
  */
 export class Fluid {
   private renderer: WebGLRenderer
-  private simRes: number
-  private dyeRes: number
   private iterations: number
 
   // Make these public so they can be edited at runtime via the controller
@@ -377,8 +375,6 @@ export class Fluid {
     }: FluidOptions = {}
   ) {
     this.renderer = renderer
-    this.simRes = size
-    this.dyeRes = dyeRes
     this.iterations = iterations
     this.densityDissipation = densityDissipation
     this.velocityDissipation = velocityDissipation
@@ -466,10 +462,9 @@ export class Fluid {
       glslVersion: GLSL3,
       uniforms: {
         texelSize,
-        dyeTexelSize: { value: new Vector2(1 / dyeRes, 1 / dyeRes) },
         uVelocity: { value: null },
         uSource: { value: null },
-        dt: { value: 0.016 },
+        dt: { value: 1 / 60 },
         dissipation: { value: 1 },
       },
       vertexShader: baseVertexShader,
@@ -512,7 +507,7 @@ export class Fluid {
         uVelocity: { value: null },
         uCurl: { value: null },
         curl: { value: curlStrength },
-        dt: { value: 0.016 },
+        dt: { value: 1 / 60 },
       },
       vertexShader: baseVertexShader,
       fragmentShader: vorticityShader,
@@ -560,10 +555,10 @@ export class Fluid {
     this.splats.push({ x, y, dx, dy })
   }
 
-  update(): void {
+  update(delta = 1 / 60): void {
+    // Clamp delta to avoid simulation blow-ups on slow frames
+    const dt = Math.min(delta, 1 / 30)
     const renderer = this.renderer
-    const simRes = this.simRes
-    const dyeRes = this.dyeRes
     const iterations = this.iterations
     const densityDissipation = this.densityDissipation
     const velocityDissipation = this.velocityDissipation
@@ -608,6 +603,7 @@ export class Fluid {
       this.velocity.read.texture
     this.vorticityMaterial.uniforms.uCurl!.value = this.curl.texture
     this.vorticityMaterial.uniforms.curl!.value = curlStrength
+    this.vorticityMaterial.uniforms.dt!.value = dt
     this.screen.material = this.vorticityMaterial
     renderer.setRenderTarget(this.velocity.write)
     renderer.render(this.screen, this.screenCamera)
@@ -646,10 +642,7 @@ export class Fluid {
     renderer.render(this.screen, this.screenCamera)
     this.velocity.swap()
 
-    this.advectionMaterial.uniforms.dyeTexelSize!.value.set(
-      1 / simRes,
-      1 / simRes
-    )
+    this.advectionMaterial.uniforms.dt!.value = dt
     this.advectionMaterial.uniforms.uVelocity!.value =
       this.velocity.read.texture
     this.advectionMaterial.uniforms.uSource!.value = this.velocity.read.texture
@@ -659,10 +652,6 @@ export class Fluid {
     renderer.render(this.screen, this.screenCamera)
     this.velocity.swap()
 
-    this.advectionMaterial.uniforms.dyeTexelSize!.value.set(
-      1 / dyeRes,
-      1 / dyeRes
-    )
     this.advectionMaterial.uniforms.uVelocity!.value =
       this.velocity.read.texture
     this.advectionMaterial.uniforms.uSource!.value = this.density.read.texture

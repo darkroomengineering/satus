@@ -83,7 +83,9 @@ export async function createRenderer(
       // WebGPURenderer requires async initialization
       await renderer.init()
 
-      console.info('🚀 Using WebGPU renderer')
+      if (process.env.NODE_ENV === 'development') {
+        console.info('Using WebGPU renderer')
+      }
 
       return {
         renderer: renderer as unknown as WebGLRenderer,
@@ -91,7 +93,9 @@ export async function createRenderer(
         isWebGPU: true,
       }
     } catch (error) {
-      console.warn('WebGPU renderer failed, falling back to WebGL:', error)
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('WebGPU renderer failed, falling back to WebGL:', error)
+      }
     }
   }
 
@@ -108,7 +112,9 @@ export async function createRenderer(
     depth,
   })
 
-  console.info('🎮 Using WebGL renderer')
+  if (process.env.NODE_ENV === 'development') {
+    console.info('Using WebGL renderer')
+  }
 
   return {
     renderer,

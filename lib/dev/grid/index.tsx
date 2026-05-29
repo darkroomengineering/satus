@@ -1,6 +1,5 @@
 import cn from 'clsx'
 import { useWindowSize } from 'hamo'
-import { useMemo } from 'react'
 import s from './grid.module.css'
 
 type GridDebuggerProps = {
@@ -10,18 +9,11 @@ type GridDebuggerProps = {
 export function GridDebugger({
   gridClassName = 'dr-layout-grid',
 }: GridDebuggerProps) {
-  const { width: windowWidth, height: windowHeight } = useWindowSize()
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: columns dependency is needed to adjust on size changes
-  const columns = useMemo(
-    () =>
-      Number.parseInt(
-        getComputedStyle(document.documentElement).getPropertyValue(
-          '--columns'
-        ),
-        10
-      ),
-    [windowWidth, windowHeight]
+  // useWindowSize triggers re-render on resize; columns is re-read from CSS each render
+  useWindowSize()
+  const columns = Number.parseInt(
+    getComputedStyle(document.documentElement).getPropertyValue('--columns'),
+    10
   )
 
   return (

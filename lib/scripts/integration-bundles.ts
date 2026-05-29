@@ -68,8 +68,12 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
     envVars: [
       'NEXT_PUBLIC_SANITY_PROJECT_ID',
       'NEXT_PUBLIC_SANITY_DATASET',
-      'NEXT_PUBLIC_SANITY_STUDIO_URL',
+      'NEXT_PUBLIC_SANITY_API_READ_TOKEN',
+      'SANITY_API_READ_TOKEN',
+      'SANITY_PRIVATE_TOKEN',
       'SANITY_API_WRITE_TOKEN',
+      'SANITY_STUDIO_PROJECT_ID',
+      'SANITY_REVALIDATE_SECRET',
     ],
     barrelExports: [
       { file: 'components/ui/index.ts', pattern: 'sanity-image' },

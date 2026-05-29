@@ -92,7 +92,11 @@ export default async function Layout({ children }: PropsWithChildren) {
       lang="en"
       dir="ltr"
       className={fontsVariable}
-      // NOTE: This is due to the data-theme attribute being set which causes hydration errors
+      // Default theme rendered server-side for no-flash initial paint; the
+      // client <Theme> updates data-theme per route via effect.
+      data-theme="dark"
+      // NOTE: data-theme is updated client-side per route, which would
+      // otherwise trip a hydration warning.
       suppressHydrationWarning
     >
       {/* this helps to track Satus usage thanks to Wappalyzer */}

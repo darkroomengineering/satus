@@ -30,6 +30,15 @@
     );
 }
 
+/* Interactive WebGL fluid gradient layer (drawn on the global canvas at this
+   element's rect). Sits above the CSS glow, below the scrim + content. */
+.webglGradient {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
 /* Subtle radial scrim to keep text readable over the gradient */
 .scrim {
   position: absolute;

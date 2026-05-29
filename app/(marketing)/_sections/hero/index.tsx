@@ -3,11 +3,15 @@
 import cn from 'clsx'
 import gsap from 'gsap'
 import { useEffect, useRef, useState } from 'react'
+import { AnimatedGradient } from '@/components/effects/animated-gradient'
 import { Link } from '@/components/ui/link'
 import { usePreferredReducedMotion } from '@/hooks/use-sync-external'
 import s from './hero.module.css'
 
 const INSTALL_COMMAND = 'bunx degit darkroomengineering/satus my-project'
+
+// Black → Kodak red; warped by the cursor-driven fluid sim (flowmap).
+const GRADIENT_COLORS = ['#000000', '#e30613']
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
@@ -101,7 +105,20 @@ export function Hero() {
 
   return (
     <section className={cn(s.hero, 'dr-layout-grid')}>
+      {/* CSS glow: always-on base + reduced-motion / no-GPU fallback */}
       <div className={s.gradient} aria-hidden="true" />
+      {/* Interactive WebGL fluid layer (cursor-reactive via flowmap) */}
+      {!prefersReducedMotion && (
+        <AnimatedGradient
+          className={cn(s.webglGradient)}
+          colors={GRADIENT_COLORS}
+          speed={0.4}
+          amplitude={1.8}
+          frequency={0.3}
+          radial
+          flowmap
+        />
+      )}
 
       <div className={s.scrim} aria-hidden="true" />
 

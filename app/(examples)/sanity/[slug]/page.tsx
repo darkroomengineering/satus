@@ -8,14 +8,24 @@ import { generateSanityMetadata } from '@/utils/metadata'
 import { SanityArticle } from './_components/article'
 
 export async function generateStaticParams() {
-  // Use client directly for build-time data fetching instead of sanityFetch
-  if (!client) return []
+  // Cache Components requires generateStaticParams to return at least one entry.
+  // When Sanity is unconfigured (no env) or has no articles, emit a placeholder
+  // slug that the page resolves to notFound() — keeps the starter building
+  // without integration env (e.g. in CI). Use the client directly for
+  // build-time fetching instead of sanityFetch.
+  const fallback = [{ slug: 'article-not-found' }]
+
+  if (!client) return fallback
 
   const data = await client.fetch(allArticlesQuery)
+  if (!(data && Array.isArray(data))) return fallback
 
-  if (!(data && Array.isArray(data))) return []
+  const params = data
+    .map((article) => article.slug?.current)
+    .filter((slug): slug is string => Boolean(slug))
+    .map((slug) => ({ slug }))
 
-  return data.map((article) => ({ slug: article.slug?.current ?? '' }))
+  return params.length > 0 ? params : fallback
 }
 
 export default async function SanityArticlePage({

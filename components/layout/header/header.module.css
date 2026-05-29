@@ -124,8 +124,13 @@
   }
 }
 
-/* On mobile, hide nav by default; toggle via data-open */
+/* Left-aligned vertical nav; hidden behind the toggle on mobile */
 .navList {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+
   @media (--mobile) {
     display: none;
     margin-top: calc((4 * 100) / var(--device-width) * 1vw);

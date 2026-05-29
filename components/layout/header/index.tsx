@@ -61,7 +61,7 @@ export function Header() {
           const isActive = pathname === link.href
 
           return (
-            <li key={link.href} className={cn(s.nav, s.navItem)}>
+            <li key={link.href} className={s.navItem}>
               <span className={cn(s.chevron, isActive && s.chevronActive)}>
                 ›
               </span>

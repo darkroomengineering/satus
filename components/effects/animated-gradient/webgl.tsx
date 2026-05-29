@@ -60,6 +60,7 @@ type WebGLAnimatedGradientProps = {
   flowmap?: boolean
   colors?: string[]
   speed?: number
+  drip?: number
 }
 
 /**
@@ -77,6 +78,7 @@ export function WebGLAnimatedGradient({
   flowmap: hasFlowmap = true,
   colors = ['#e30613', '#000000'],
   speed = 1,
+  drip = 0.6,
 }: WebGLAnimatedGradientProps) {
   const flowmap = useFlowmap('fluid')
 
@@ -89,6 +91,7 @@ export function WebGLAnimatedGradient({
         colorFrequency,
         quantize,
         radial,
+        drip,
         ...(hasFlowmap && { flowmap }),
       })
   )
@@ -124,6 +127,10 @@ export function WebGLAnimatedGradient({
   useEffect(() => {
     material.frequency = frequency
   }, [material, frequency])
+
+  useEffect(() => {
+    material.drip = drip
+  }, [material, drip])
 
   const aspect = useObjectFit(rect.width, rect.height, 1, 1, 'contain')
 

@@ -22,6 +22,7 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
     uQuantize: { value: number }
     uFlowmap: { value: Texture | null }
     uDpr: { value: number }
+    uDrip: { value: number }
   }
 
   override defines: {
@@ -41,6 +42,7 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
     quantize = 0,
     radial = false,
     flowmap,
+    drip = 0.6,
   }: {
     frequency?: number
     amplitude?: number
@@ -49,6 +51,7 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
     quantize?: number
     radial?: boolean
     flowmap?: Flowmap | Fluid
+    drip?: number
   }) {
     super({
       transparent: true,
@@ -67,6 +70,7 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
       uQuantize: { value: quantize },
       uFlowmap: { value: flowmap?.uniform?.value ?? null },
       uDpr: { value: 1 },
+      uDrip: { value: drip },
     }
 
     this.defines = {
@@ -123,7 +127,8 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
       uniform float uQuantize;
       uniform sampler2D uFlowmap;
       uniform float uDpr;
-      
+      uniform float uDrip;
+
       void main() {`
     )
 
@@ -143,13 +148,22 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
         screenUV += flow.rg;
       # endif
 
-      float noiseColor = fbm(vec3(screenUV * uColorFrequency, (uTime + uOffset + 1000.)));
+      // Liquid drip: each horizontal column drips at a different speed,
+      // creating organic finger-like tendrils flowing downward.
+      // A low-frequency horizontal noise sample determines per-column speed,
+      // then we shift screenUV.y downward proportionally to time.
+      float columnVariation = fbm(vec3(screenUV.x * 1.8, 0.0, uTime * 0.15 + uOffset));
+      float dripSpeed = uDrip * (0.5 + columnVariation * 1.5);
+      vec2 dripUV = screenUV;
+      dripUV.y -= uTime * dripSpeed;
+
+      float noiseColor = fbm(vec3(dripUV * uColorFrequency, (uTime + uOffset + 1000.)));
       noiseColor *= uColorAmplitude;
       noiseColor = clamp(noiseColor, 0., 1.);
 
       vec3 color = texture2D(uColorsTexture, vec2(0.,noiseColor)).rgb;
 
-      float noiseAlpha = fbm(vec3(screenUV * uFrequency, uTime + uOffset));
+      float noiseAlpha = fbm(vec3(dripUV * uFrequency, uTime + uOffset));
       noiseAlpha *= uAmplitude;
       noiseAlpha = clamp(noiseAlpha, 0., 1.);
 
@@ -233,5 +247,13 @@ export class AnimatedGradientMaterial extends MeshBasicMaterial {
 
   set quantize(value) {
     this.uniforms.uQuantize.value = value
+  }
+
+  get drip() {
+    return this.uniforms.uDrip.value
+  }
+
+  set drip(value) {
+    this.uniforms.uDrip.value = value
   }
 }

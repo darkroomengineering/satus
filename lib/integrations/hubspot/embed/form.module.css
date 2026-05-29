@@ -19,7 +19,9 @@
   :global(.hs-email),
   :global(.hs-phone),
   :global(.hs-fieldtype-number),
-  :global(.hs-fieldtype-text) {
+  :global(.hs-fieldtype-text),
+  :global(.hs-fieldtype-date),
+  :global(.hs-fieldtype-select) {
     input,
     select {
       /* biome-ignore lint: Modifying Hubspot's CSS */
@@ -36,22 +38,8 @@
     }
   }
 
-  :global(.hs-fieldtype-date) {
-    input,
-    select {
-      /* biome-ignore lint: Modifying Hubspot's CSS */
-      width: 100% !important;
-      border: 2px solid var(--color-black);
-      padding: mobile-vw(15px) mobile-vw(21px);
-      border-radius: mobile-vw(8px);
-
-      @media (--desktop) {
-        font-size: desktop-vw(14px);
-        padding: desktop-vw(10px) desktop-vw(16px);
-        border-radius: desktop-vw(8px);
-      }
-    }
-
+  :global(.hs-fieldtype-date),
+  :global(.hs-fieldtype-select) {
     > div:last-of-type {
       position: relative;
 
@@ -99,52 +87,6 @@
 
       @media (--desktop) {
         padding: desktop-vw(6px) desktop-vw(16px);
-      }
-    }
-  }
-
-  :global(.hs-fieldtype-select) {
-    input,
-    select {
-      /* biome-ignore lint: Modifying Hubspot's CSS */
-      width: 100% !important;
-      border: 2px solid var(--color-black);
-      padding: mobile-vw(15px) mobile-vw(21px);
-      border-radius: mobile-vw(8px);
-
-      @media (--desktop) {
-        font-size: desktop-vw(14px);
-        padding: desktop-vw(10px) desktop-vw(16px);
-        border-radius: desktop-vw(8px);
-      }
-    }
-
-    select {
-      /* biome-ignore lint: Modifying Hubspot's CSS */
-      width: 100% !important;
-    }
-
-    > div:last-of-type {
-      position: relative;
-
-      &::after {
-        content: "";
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        right: mobile-vw(10px);
-        width: 5px;
-        height: 5px;
-        border-left: mobile-vw(6px) solid transparent;
-        border-right: mobile-vw(6px) solid transparent;
-        border-top: mobile-vw(6px) solid var(--color-black);
-
-        @media (--desktop) {
-          right: desktop-vw(15px);
-          border-left: desktop-vw(6px) solid transparent;
-          border-right: desktop-vw(6px) solid transparent;
-          border-top: desktop-vw(6px) solid var(--color-black);
-        }
       }
     }
   }

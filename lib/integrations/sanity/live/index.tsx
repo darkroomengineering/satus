@@ -1,5 +1,5 @@
 import { defineLive } from 'next-sanity/live'
-import { isSanityConfigured } from '@/integrations/check-integration'
+import { isConfigured } from '@/integrations/registry'
 import { client } from '../client'
 import { privateToken, publicToken } from '../env'
 
@@ -9,9 +9,9 @@ import { privateToken, publicToken } from '../env'
  * When Sanity is not configured, provides stub implementation
  * that returns null instead of throwing errors.
  */
-const isConfigured = isSanityConfigured() && client
+const sanityReady = isConfigured('sanity') && client
 
-const liveExports = isConfigured
+const liveExports = sanityReady
   ? defineLive({
       client: client!,
       browserToken: publicToken,

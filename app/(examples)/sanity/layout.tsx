@@ -1,5 +1,5 @@
 import { draftMode } from 'next/headers'
-import { isSanityConfigured } from '@/integrations/check-integration'
+import { isConfigured } from '@/integrations/registry'
 import { DisableDraftMode } from '@/integrations/sanity/components/disable-draft-mode'
 
 export default async function SanityLayout({
@@ -8,7 +8,7 @@ export default async function SanityLayout({
   children: React.ReactNode
 }) {
   const { isEnabled: isDraftMode } = await draftMode()
-  const sanityConfigured = isSanityConfigured()
+  const sanityConfigured = isConfigured('sanity')
 
   return (
     <>

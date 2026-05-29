@@ -66,11 +66,11 @@ const INTEGRATION_INFO: Record<
  *
  * @example
  * ```tsx
- * import { isSanityConfigured } from '@/integrations/check-integration'
+ * import { isConfigured } from '@/integrations/registry'
  * import { NotConfigured } from '@/components/ui/not-configured'
  *
  * export default function SanityPage() {
- *   if (!isSanityConfigured()) {
+ *   if (!isConfigured('sanity')) {
  *     return <NotConfigured integration="Sanity" />
  *   }
  *   // ... rest of page

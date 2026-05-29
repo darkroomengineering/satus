@@ -88,14 +88,9 @@ export async function validateFormWithTurnstile(formData: FormData): Promise<{
 }> {
   const turnstileToken = formData.get('cf-turnstile-response')?.toString() || ''
 
-  // In development (localhost), gracefully skip Turnstile validation
-  const isLocalhost =
-    process.env.NODE_ENV === 'development' ||
-    !process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY ||
-    process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY.includes('localhost')
-
-  if (isLocalhost) {
-    console.log('🔧 Development mode: Skipping Turnstile validation')
+  // In development, gracefully skip Turnstile validation
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Development mode: Skipping Turnstile validation')
     return { isValid: true, errors: [] }
   }
 

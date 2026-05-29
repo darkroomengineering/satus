@@ -3,7 +3,11 @@
 import { revalidateTag } from 'next/cache'
 import { cookies, headers } from 'next/headers'
 import { z } from 'zod'
-import { rateLimit, rateLimiters } from '@/lib/utils/rate-limit'
+import {
+  getIPFromHeaders,
+  rateLimit,
+  rateLimiters,
+} from '@/lib/utils/rate-limit'
 import { TAGS } from '../constants'
 import {
   addToCart,
@@ -12,7 +16,7 @@ import {
   removeFromCart,
   updateCart,
 } from '../index'
-import type { AddItemPayload, Cart, CartData } from '../types'
+import type { AddItemPayload, Cart } from '../types'
 
 const addItemSchema = z.object({
   variantId: z.string().min(1, { error: 'Product variant ID is required' }),
@@ -36,7 +40,7 @@ export async function removeItem(
   }
 
   const headersList = await headers()
-  const ip = headersList.get('x-forwarded-for')?.split(',')[0] || 'unknown'
+  const ip = getIPFromHeaders(headersList)
   const rateLimitResult = rateLimit(`cart-remove:${ip}`, rateLimiters.standard)
   if (!rateLimitResult.success) {
     return 'Too many requests. Please try again later.'
@@ -47,7 +51,7 @@ export async function removeItem(
   }
 
   try {
-    const cart = (await getCart(cartId)) as CartData | undefined
+    const cart = await getCart(cartId)
 
     if (!cart) {
       return 'Error fetching cart'
@@ -91,7 +95,7 @@ export async function addItem(
   }
 
   const headersList = await headers()
-  const ip = headersList.get('x-forwarded-for')?.split(',')[0] || 'unknown'
+  const ip = getIPFromHeaders(headersList)
   const rateLimitResult = rateLimit(`cart-add:${ip}`, rateLimiters.standard)
   if (!rateLimitResult.success) {
     return 'Too many requests. Please try again later.'
@@ -129,7 +133,7 @@ export async function updateItemQuantity(
   }
 
   const headersList = await headers()
-  const ip = headersList.get('x-forwarded-for')?.split(',')[0] || 'unknown'
+  const ip = getIPFromHeaders(headersList)
   const rateLimitResult = rateLimit(`cart-update:${ip}`, rateLimiters.standard)
   if (!rateLimitResult.success) {
     return 'Too many requests. Please try again later.'
@@ -141,7 +145,7 @@ export async function updateItemQuantity(
   }
 
   try {
-    const cart = (await getCart(cartId)) as CartData | undefined
+    const cart = await getCart(cartId)
 
     if (!cart) {
       return 'Error fetching cart'

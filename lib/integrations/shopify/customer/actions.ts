@@ -3,7 +3,11 @@
 import { cookies, headers } from 'next/headers'
 import { z } from 'zod'
 import type { FormState } from '@/components/ui/form/types'
-import { rateLimit, rateLimiters } from '@/lib/utils/rate-limit'
+import {
+  getIPFromHeaders,
+  rateLimit,
+  rateLimiters,
+} from '@/lib/utils/rate-limit'
 import { emailSchema } from '@/utils/validation'
 import { shopifyFetch } from '../index'
 import {
@@ -34,7 +38,7 @@ export async function LoginCustomerAction(
 ): Promise<FormState> {
   // Rate limit login attempts to prevent brute force attacks
   const headersList = await headers()
-  const ip = headersList.get('x-forwarded-for')?.split(',')[0] || 'unknown'
+  const ip = getIPFromHeaders(headersList)
   const rateLimitResult = rateLimit(`login:${ip}`, rateLimiters.strict)
 
   if (!rateLimitResult.success) {
@@ -139,7 +143,7 @@ export async function CreateCustomerAction(
 ): Promise<FormState> {
   // Rate limit registration to prevent spam account creation
   const headersList = await headers()
-  const ip = headersList.get('x-forwarded-for')?.split(',')[0] || 'unknown'
+  const ip = getIPFromHeaders(headersList)
   const rateLimitResult = rateLimit(`register:${ip}`, rateLimiters.standard)
 
   if (!rateLimitResult.success) {

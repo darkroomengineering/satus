@@ -7,7 +7,7 @@
  * To add a new integration:
  * 1. Create its Zod env schema in `@/utils/validation`
  * 2. Add an entry here
- * 3. Everything else (check-integration, doctor) picks it up automatically
+ * 3. Everything else (doctor, listing helpers) picks it up automatically
  */
 
 import type { z } from 'zod'

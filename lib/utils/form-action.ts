@@ -1,7 +1,11 @@
 import { headers } from 'next/headers'
 import type { z } from 'zod'
 import type { FormState } from '@/components/ui/form/types'
-import { rateLimit, rateLimiters } from '@/lib/utils/rate-limit'
+import {
+  getIPFromHeaders,
+  rateLimit,
+  rateLimiters,
+} from '@/lib/utils/rate-limit'
 import { parseFormData } from '@/lib/utils/validation'
 
 interface RunFormActionOptions<T> {
@@ -39,7 +43,7 @@ export async function runFormAction<T>({
   run,
 }: RunFormActionOptions<T>): Promise<FormState> {
   const headersList = await headers()
-  const ip = headersList.get('x-forwarded-for')?.split(',')[0] ?? 'unknown'
+  const ip = getIPFromHeaders(headersList)
 
   const rateLimitResult = rateLimit(
     `${rateLimitPrefix}:${ip}`,

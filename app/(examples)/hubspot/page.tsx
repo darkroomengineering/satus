@@ -1,14 +1,14 @@
 import { Wrapper } from '@/components/layout/wrapper'
 import { Form } from '@/components/ui/form'
 import { NotConfigured } from '@/components/ui/not-configured'
-import { isHubSpotConfigured } from '@/integrations/check-integration'
 import { HubspotNewsletterAction } from '@/integrations/hubspot/action'
 import { getForm } from '@/integrations/hubspot/fetch-form'
+import { isConfigured } from '@/integrations/registry'
 import { Subscribe } from './_components/subscribe'
 
 export default async function HubspotPage() {
   // Show setup instructions if HubSpot is not configured
-  if (!isHubSpotConfigured()) {
+  if (!isConfigured('hubspot')) {
     return (
       <Wrapper theme="dark">
         <NotConfigured integration="HubSpot" />

@@ -1,27 +1,30 @@
 import Logo from '@/components/ui/darkroom.svg'
 import { Link } from '@/components/ui/link'
+import s from './footer.module.css'
 
 export function Footer() {
   return (
-    <footer className="flex dt:flex-row flex-col dt:items-end items-center justify-between p-safe font-mono uppercase">
+    <footer className={s.footer}>
       <Link
-        href="https://darkroom.engineering/"
-        className="link"
         aria-label="Darkroom Engineering"
+        className={s.logo}
+        href="https://darkroom.engineering/"
       >
-        <Logo className="dr-w-148 text-secondary" aria-hidden="true" />
+        <Logo aria-hidden="true" className="dr-w-148 text-secondary" />
       </Link>
-      <div>
+      <div className={s.links}>
         <Link
+          className={s.link}
           href="https://github.com/darkroomengineering/satus/generate"
-          className="link"
         >
           use this template
         </Link>
-        {' / '}
+        <span aria-hidden="true" className={s.separator}>
+          /
+        </span>
         <Link
+          className={s.link}
           href="https://github.com/darkroomengineering/satus"
-          className="link"
         >
           github
         </Link>

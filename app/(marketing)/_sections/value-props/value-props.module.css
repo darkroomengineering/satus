@@ -15,11 +15,11 @@
 .grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: calc(1 / 375 * 100vw);
+  gap: calc(16 / 375 * 100vw);
 
   @media (--desktop) {
     grid-template-columns: repeat(3, 1fr);
-    gap: calc(1 / 1440 * 100vw);
+    gap: calc(24 / 1440 * 100vw);
   }
 }
 

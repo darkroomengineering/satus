@@ -112,9 +112,10 @@ export function Hero() {
         <AnimatedGradient
           className={cn(s.webglGradient)}
           colors={GRADIENT_COLORS}
-          speed={0.4}
-          amplitude={1.8}
-          frequency={0.3}
+          speed={1.0}
+          amplitude={2.2}
+          frequency={0.35}
+          drip={1.2}
           radial
           flowmap
         />

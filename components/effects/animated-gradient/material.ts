@@ -145,12 +145,22 @@ export class AnimatedGradientMaterial extends MeshBasicNodeMaterial {
       }
 
       // -----------------------------------------------------------------
-      // Drip: per-column downward offset driven by low-frequency noise
+      // Drip: vertical "melting" flow. Each column gets its own downward
+      // speed + phase from low-frequency noise, and the vertical sampling
+      // is stretched toward the bottom of the viewport (screenUV y=0 is the
+      // bottom) so the red elongates into tendrils that pour downward —
+      // like chemicals dripping off a developing photograph.
       // -----------------------------------------------------------------
-      const colPos = vec3(sUV.x.mul(1.8), 0.0, uTime.mul(0.15).add(uOffset))
+      const colPos = vec3(sUV.x.mul(2.2), 0.0, uTime.mul(0.2).add(uOffset))
       const columnVariation = fbm(colPos)
-      const dripSpeed = uDrip.mul(float(0.5).add(columnVariation.mul(1.5)))
-      const dripUV = vec2(sUV.x, sUV.y.sub(uTime.mul(dripSpeed))).toVar()
+      // Per-column fall speed: some columns drip much faster than others.
+      const dripSpeed = uDrip.mul(float(0.35).add(columnVariation.mul(1.6)))
+      // Vertical stretch grows toward the bottom: features elongate as they fall.
+      const stretch = float(1.0).add(sUV.y.oneMinus().mul(uDrip).mul(1.4))
+      const dripUV = vec2(
+        sUV.x,
+        sUV.y.add(uTime.mul(dripSpeed)).mul(stretch)
+      ).toVar()
 
       // -----------------------------------------------------------------
       // Color channel FBM
@@ -169,15 +179,29 @@ export class AnimatedGradientMaterial extends MeshBasicNodeMaterial {
       let noiseAlpha = clamp(fbm(alphaPos).mul(uAmplitude), 0.0, 1.0)
 
       // -----------------------------------------------------------------
-      // Radial falloff
+      // Radial falloff — warped into dripping tendrils.
+      // The source sits slightly above centre (behind the wordmark) and its
+      // lower edge melts into vertical tendrils that flow toward the bottom
+      // of the viewport over time (mesh uv y=0 is the bottom).
       // -----------------------------------------------------------------
       if (radial) {
         const meshUV = uv()
+        // Per-column vertical drip noise, scrolling downward over time.
+        const dripNoise = fbm(
+          vec3(
+            meshUV.x.mul(5.0),
+            meshUV.y.sub(uTime.mul(0.6)).mul(2.0),
+            uOffset
+          )
+        )
+        const tendril = dripNoise.mul(uDrip).mul(0.18)
+        const warped = vec2(meshUV.x, meshUV.y.add(tendril))
+        const center = vec2(0.5, 0.62)
         const radialGradient = clamp(
           smoothstep(
             0.0,
             1.0,
-            float(1.0).sub(meshUV.sub(0.5).length().mul(2.0))
+            float(1.0).sub(warped.sub(center).length().mul(1.5))
           ),
           0.0,
           1.0

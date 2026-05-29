@@ -167,7 +167,7 @@ export function WebGLAnimatedGradient({
   useFrame(({ clock }) => {
     // Skip expensive updates when off-screen
     if (!visible) return
-    material.time = clock.getElapsedTime() * speed * 0.05
+    material.time = clock.getElapsedTime() * speed * 0.15
   })
 
   return (

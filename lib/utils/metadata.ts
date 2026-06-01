@@ -143,17 +143,18 @@ export function generatePageMetadata(
  * ```
  */
 export function generateSanityMetadata(options: {
+  // Fields are nullable to accept TypeGen query-result types directly
+  // (projections type optional fields as `T | null`).
   document: {
-    title?: string
+    title?: string | null
     metadata?: {
-      title?: string
-      description?: string
-      keywords?: string[]
-      image?: { asset?: { url?: string } }
-      noIndex?: boolean
-    }
-    _updatedAt?: string
-    publishedAt?: string
+      title?: string | null
+      description?: string | null
+      keywords?: string[] | null
+      noIndex?: boolean | null
+    } | null
+    _updatedAt?: string | null
+    publishedAt?: string | null
   }
   url?: string
   type?: 'website' | 'article'
@@ -164,27 +165,29 @@ export function generateSanityMetadata(options: {
   if (!metadata) {
     // Fallback to basic metadata if none provided
     return generatePageMetadata({
-      ...(document.title && { title: document.title }),
+      ...(document.title ? { title: document.title } : {}),
       ...(url && { url }),
       type,
     })
   }
 
+  // Bind to locals so control-flow narrowing strips the `null` before the
+  // values reach generatePageMetadata (which expects `string`, not `string | null`).
+  // Note: OG image is not derived from `metadata.image` — the queries don't
+  // dereference the asset (`asset->{url}`), so generatePageMetadata's default
+  // image is used. Add a resolved url to the query to wire a per-page OG image.
+  const title = metadata.title ?? document.title
+  const { description, keywords, noIndex } = metadata
+  const { publishedAt, _updatedAt } = document
+
   return generatePageMetadata({
-    ...((metadata.title ?? document.title)
-      ? { title: metadata.title ?? document.title }
-      : {}),
-    ...(metadata.description && { description: metadata.description }),
-    ...(metadata.keywords && { keywords: metadata.keywords }),
-    ...(metadata.image?.asset?.url && {
-      image: {
-        url: metadata.image.asset.url,
-      },
-    }),
+    ...(title ? { title } : {}),
+    ...(description ? { description } : {}),
+    ...(keywords ? { keywords } : {}),
     ...(url && { url }),
-    ...(metadata.noIndex !== undefined && { noIndex: metadata.noIndex }),
+    ...(noIndex != null && { noIndex }),
     type,
-    ...(document.publishedAt && { publishedTime: document.publishedAt }),
-    ...(document._updatedAt && { modifiedTime: document._updatedAt }),
+    ...(publishedAt ? { publishedTime: publishedAt } : {}),
+    ...(_updatedAt ? { modifiedTime: _updatedAt } : {}),
   })
 }

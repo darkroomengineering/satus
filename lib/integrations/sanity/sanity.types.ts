@@ -12,6 +12,8 @@
  * ---------------------------------------------------------------------------------
  */
 
+export declare const internalGroqTypeReferenceTo: unique symbol
+
 // Source: schema.json
 export type SanityImageAssetReference = {
   _ref: string
@@ -334,4 +336,195 @@ export type AllSanitySchemaTypes =
   | SanityImageAsset
   | Geopoint
 
-export declare const internalGroqTypeReferenceTo: unique symbol
+// Source: queries.ts
+// Variable: pageQuery
+// Query: *[_type == "page" && slug.current == $slug][0] {    _id,    title,    slug,      content[]{    ...,    markDefs[]{      ...,      _type == "link" => {        ...,        internalLink->{_type, slug, title}      }    }  },      link {    ...,    internalLink->{_type, slug, title}  },    metadata,    publishedAt,    _updatedAt  }
+export type PageQueryResult = {
+  _id: string
+  title: string | null
+  slug: Slug | null
+  content: Array<
+    | {
+        children?: Array<{
+          marks?: string[]
+          text?: string
+          _type: 'span'
+          _key: string
+        }>
+        style?:
+          | 'blockquote'
+          | 'h1'
+          | 'h2'
+          | 'h3'
+          | 'h4'
+          | 'h5'
+          | 'h6'
+          | 'normal'
+        listItem?: 'bullet' | 'number'
+        markDefs: Array<{
+          _key: string
+          _type: 'link'
+          linkType?: 'external' | 'internal'
+          internalLink:
+            | {
+                _type: 'article'
+                slug: Slug | null
+                title: string | null
+              }
+            | {
+                _type: 'page'
+                slug: Slug | null
+                title: string | null
+              }
+            | null
+          externalUrl?: string
+          text?: string
+          openInNewTab?: boolean
+        }> | null
+        level?: number
+        _type: 'block'
+        _key: string
+      }
+    | {
+        asset?: SanityImageAssetReference
+        media?: unknown
+        hotspot?: SanityImageHotspot
+        crop?: SanityImageCrop
+        alt?: string
+        caption?: string
+        _type: 'image'
+        _key: string
+        markDefs: null
+      }
+  > | null
+  link: {
+    _type: 'link'
+    linkType?: 'external' | 'internal'
+    internalLink:
+      | {
+          _type: 'article'
+          slug: Slug | null
+          title: string | null
+        }
+      | {
+          _type: 'page'
+          slug: Slug | null
+          title: string | null
+        }
+      | null
+    externalUrl?: string
+    text?: string
+    openInNewTab?: boolean
+  } | null
+  metadata: Metadata | null
+  publishedAt: string | null
+  _updatedAt: string
+} | null
+
+// Source: queries.ts
+// Variable: articleQuery
+// Query: *[_type == "article" && slug.current == $slug][0] {    _id,    title,    slug,    excerpt,    featuredImage,      content[]{    ...,    markDefs[]{      ...,      _type == "link" => {        ...,        internalLink->{_type, slug, title}      }    }  },    categories,    tags,    author,    publishedAt,    metadata,    _updatedAt  }
+export type ArticleQueryResult = {
+  _id: string
+  title: string | null
+  slug: Slug | null
+  excerpt: string | null
+  featuredImage: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    _type: 'image'
+  } | null
+  content: Array<
+    | {
+        children?: Array<{
+          marks?: string[]
+          text?: string
+          _type: 'span'
+          _key: string
+        }>
+        style?:
+          | 'blockquote'
+          | 'h1'
+          | 'h2'
+          | 'h3'
+          | 'h4'
+          | 'h5'
+          | 'h6'
+          | 'normal'
+        listItem?: 'bullet' | 'number'
+        markDefs: Array<{
+          _key: string
+          _type: 'link'
+          linkType?: 'external' | 'internal'
+          internalLink:
+            | {
+                _type: 'article'
+                slug: Slug | null
+                title: string | null
+              }
+            | {
+                _type: 'page'
+                slug: Slug | null
+                title: string | null
+              }
+            | null
+          externalUrl?: string
+          text?: string
+          openInNewTab?: boolean
+        }> | null
+        level?: number
+        _type: 'block'
+        _key: string
+      }
+    | {
+        asset?: SanityImageAssetReference
+        media?: unknown
+        hotspot?: SanityImageHotspot
+        crop?: SanityImageCrop
+        alt?: string
+        caption?: string
+        _type: 'image'
+        _key: string
+        markDefs: null
+      }
+  > | null
+  categories: string[] | null
+  tags: string[] | null
+  author: string | null
+  publishedAt: string | null
+  metadata: Metadata | null
+  _updatedAt: string
+} | null
+
+// Source: queries.ts
+// Variable: allArticlesQuery
+// Query: *[_type == "article"] | order(publishedAt desc) {    _id,    title,    slug,    excerpt,    featuredImage,    categories,    publishedAt  }
+export type AllArticlesQueryResult = Array<{
+  _id: string
+  title: string | null
+  slug: Slug | null
+  excerpt: string | null
+  featuredImage: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    _type: 'image'
+  } | null
+  categories: string[] | null
+  publishedAt: string | null
+}>
+
+// Query TypeMap
+import '@sanity/client'
+declare module '@sanity/client' {
+  interface SanityQueries {
+    '\n  *[_type == "page" && slug.current == $slug][0] {\n    _id,\n    title,\n    slug,\n    \n  content[]{\n    ...,\n    markDefs[]{\n      ...,\n      _type == "link" => {\n        ...,\n        internalLink->{_type, slug, title}\n      }\n    }\n  }\n,\n    \n  link {\n    ...,\n    internalLink->{_type, slug, title}\n  }\n,\n    metadata,\n    publishedAt,\n    _updatedAt\n  }\n': PageQueryResult
+    '\n  *[_type == "article" && slug.current == $slug][0] {\n    _id,\n    title,\n    slug,\n    excerpt,\n    featuredImage,\n    \n  content[]{\n    ...,\n    markDefs[]{\n      ...,\n      _type == "link" => {\n        ...,\n        internalLink->{_type, slug, title}\n      }\n    }\n  }\n,\n    categories,\n    tags,\n    author,\n    publishedAt,\n    metadata,\n    _updatedAt\n  }\n': ArticleQueryResult
+    '\n  *[_type == "article"] | order(publishedAt desc) {\n    _id,\n    title,\n    slug,\n    excerpt,\n    featuredImage,\n    categories,\n    publishedAt\n  }\n': AllArticlesQueryResult
+  }
+}

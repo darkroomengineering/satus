@@ -3,7 +3,6 @@ import { Wrapper } from '@/components/layout/wrapper'
 import { client } from '@/integrations/sanity/client'
 import { sanityFetch } from '@/integrations/sanity/live'
 import { allArticlesQuery, articleQuery } from '@/integrations/sanity/queries'
-import type { Article } from '@/integrations/sanity/sanity.types'
 import { generateSanityMetadata } from '@/utils/metadata'
 import { SanityArticle } from './_components/article'
 
@@ -44,8 +43,7 @@ export default async function SanityArticlePage({
   return (
     <Wrapper theme="light" className="font-mono uppercase">
       <div className="max-dt:dr-px-16 flex grow items-center justify-center">
-        {/* TODO: remove cast after running `bun run sanity:typegen` to regenerate ArticleQueryResult */}
-        <SanityArticle data={data as Article} />
+        <SanityArticle data={data} />
       </div>
     </Wrapper>
   )

@@ -1,12 +1,19 @@
-import type { Link } from '../sanity.types'
+/**
+ * Structural link shape shared by the raw schema `Link` object and the
+ * dereferenced link projection emitted by TypeGen (`internalLink->{...}`).
+ * Kept permissive so both satisfy it without coupling this util to either type.
+ */
+type LinkLike = {
+  linkType?: string | null
+  externalUrl?: string | null
+  openInNewTab?: boolean | null
+  internalLink?: {
+    _type?: string | null
+    slug?: { current?: string | null } | null
+  } | null
+} | null
 
-type InternalReference = {
-  _type: string
-  slug?: { current: string }
-  title?: string
-}
-
-export const urlForReference = (link: Link): string => {
+export const urlForReference = (link: LinkLike): string => {
   if (!link) return '#'
 
   // External URL
@@ -15,20 +22,17 @@ export const urlForReference = (link: Link): string => {
   }
 
   // Internal reference (dereferenced document with slug)
-  if (
-    link.linkType === 'internal' &&
-    link.internalLink &&
-    typeof link.internalLink === 'object' &&
-    'slug' in link.internalLink
-  ) {
-    const ref = link.internalLink as InternalReference
-    return resolveDocumentUrl(ref._type, ref.slug?.current)
+  if (link.linkType === 'internal' && link.internalLink) {
+    return resolveDocumentUrl(
+      link.internalLink._type ?? undefined,
+      link.internalLink.slug?.current ?? undefined
+    )
   }
 
   return '#'
 }
 
-function resolveDocumentUrl(documentType: string, slug?: string): string {
+function resolveDocumentUrl(documentType?: string, slug?: string): string {
   if (!slug) return '#'
 
   switch (documentType) {
@@ -43,13 +47,13 @@ function resolveDocumentUrl(documentType: string, slug?: string): string {
 }
 
 // Helper to get link attributes
-export const getLinkAttributes = (link: Link | null) => {
+export const getLinkAttributes = (link: LinkLike) => {
   if (!link) return { href: '#', target: undefined, rel: undefined }
 
   const href = urlForReference(link)
   const isExternal =
     link.linkType === 'external' ||
-    (link.externalUrl && !link.externalUrl.startsWith('/'))
+    (link.externalUrl != null && !link.externalUrl.startsWith('/'))
 
   return {
     href,

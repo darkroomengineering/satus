@@ -4,7 +4,6 @@ import { NotConfigured } from '@/components/ui/not-configured'
 import { isConfigured } from '@/integrations/registry'
 import { sanityFetch } from '@/integrations/sanity/live'
 import { pageQuery } from '@/integrations/sanity/queries'
-import type { Page } from '@/integrations/sanity/sanity.types'
 import { generateSanityMetadata } from '@/utils/metadata'
 import { SanityTutorial } from './_components/tutorial'
 
@@ -30,8 +29,7 @@ export default async function SanityPage() {
   return (
     <Wrapper theme="light" className="font-mono uppercase">
       <div className="max-dt:dr-px-16 flex grow items-center justify-center">
-        {/* TODO: remove cast after running `bun run sanity:typegen` to regenerate PageQueryResult */}
-        <SanityTutorial data={data as Page} />
+        <SanityTutorial data={data} />
       </div>
     </Wrapper>
   )

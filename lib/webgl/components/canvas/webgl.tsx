@@ -1,13 +1,17 @@
 'use client'
 
-import { OrthographicCamera } from '@react-three/drei'
+import {
+  AdaptiveDpr,
+  OrthographicCamera,
+  PerformanceMonitor,
+  Preload,
+} from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import cn from 'clsx'
 import { Suspense, useContext } from 'react'
 import { SheetProvider } from '@/lib/dev/theatre'
 import { FlowmapProvider } from '@/webgl/components/flowmap-provider'
 import { PostProcessing } from '@/webgl/components/postprocessing'
-import { Preload } from '@/webgl/components/preload'
 import { RAF } from '@/webgl/components/raf'
 import { CanvasContext } from './'
 import s from './webgl.module.css'
@@ -61,6 +65,8 @@ export function WebGLCanvas({
         style={{ pointerEvents: 'all' }}
       >
         <SheetProvider id="webgl">
+          <PerformanceMonitor />
+          <AdaptiveDpr />
           <OrthographicCamera
             makeDefault
             position={[0, 0, 5000]}
@@ -75,7 +81,7 @@ export function WebGLCanvas({
               <WebGLTunnel.Out />
             </Suspense>
           </FlowmapProvider>
-          <Preload />
+          <Preload all />
         </SheetProvider>
       </Canvas>
       <DOMTunnel.Out />

@@ -1,6 +1,11 @@
 'use client'
 
-import { OrthographicCamera } from '@react-three/drei'
+import {
+  AdaptiveDpr,
+  OrthographicCamera,
+  PerformanceMonitor,
+  Preload,
+} from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import cn from 'clsx'
 import dynamic from 'next/dynamic'
@@ -12,7 +17,6 @@ import { createRenderer } from '@/lib/webgl/utils/create-renderer'
 import { detectGPUCapability } from '@/lib/webgl/utils/gpu-detection'
 import { FlowmapProvider } from '../flowmap-provider'
 import { PostProcessing } from '../postprocessing'
-import { Preload } from '../preload'
 import { RAF } from '../raf'
 import s from './global-canvas.module.css'
 
@@ -153,6 +157,8 @@ export function GlobalCanvas({
         style={{ pointerEvents: isActive ? 'all' : 'none' }}
       >
         <SheetProvider id="webgl">
+          <PerformanceMonitor />
+          <AdaptiveDpr />
           <OrthographicCamera
             makeDefault
             position={[0, 0, 5000]}
@@ -167,7 +173,7 @@ export function GlobalCanvas({
               <WebGLTunnel.Out />
             </Suspense>
           </FlowmapProvider>
-          <Preload />
+          <Preload all />
         </SheetProvider>
       </Canvas>
       <DOMTunnel.Out />

@@ -3,38 +3,34 @@ import { useObjectFit, useWindowSize } from 'hamo'
 import { useEffect, useRef, useState } from 'react'
 import type { Mesh } from 'three'
 import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
-import { LiquidMetalMaterial } from './material'
+import { LiquidDripMaterial } from './material'
 
 // @refresh reset
 
-type WebGLLiquidMetalProps = {
+type WebGLLiquidDripProps = {
   rect: DOMRect
   /** Whether the element is visible in the viewport */
   visible?: boolean
   amplitude?: number
-  /** Time multiplier for blob drift speed (default 1.0) */
+  /** Time multiplier for drip flow speed (default 1.0) */
   speed?: number
 }
 
 /**
- * WebGL liquid-metal metaball mesh — mirrors WebGLAnimatedGradient exactly.
+ * WebGL liquid-drip mesh — mirrors WebGLLiquidMetal exactly.
  *
- * A raymarched fullscreen quad rendering 5 smooth-unioned SDF spheres as
- * liquid red metal, shaded with fresnel + specular + procedural env reflection.
- * The blobs drift, merge, and split like developing-tray chemicals.
+ * A 2D screen-space curtain of red liquid metal that hangs from the top of
+ * the hero and drips downward in organic tendrils clipped to the first fold.
+ * Shaded as glossy red chrome: dark core, Kodak-red fresnel rim, specular
+ * glint, and a procedural studio-reflection gradient.
  */
-export function WebGLLiquidMetal({
+export function WebGLLiquidDrip({
   rect,
   visible = true,
   amplitude = 1.0,
   speed = 1.0,
-}: WebGLLiquidMetalProps) {
-  const [material] = useState(
-    () =>
-      new LiquidMetalMaterial({
-        amplitude,
-      })
-  )
+}: WebGLLiquidDripProps) {
+  const [material] = useState(() => new LiquidDripMaterial({ amplitude }))
 
   useEffect(() => {
     return () => {
@@ -79,8 +75,8 @@ export function WebGLLiquidMetal({
 
   useFrame(({ clock }) => {
     if (!visible) return
-    // Slow, hypnotic motion: 0.12 base scale keeps the blobs languid
-    material.time = clock.getElapsedTime() * speed * 0.12
+    // Slow, viscous drip flow: 0.08 base scale keeps drips languid
+    material.time = clock.getElapsedTime() * speed * 0.08
   })
 
   return (

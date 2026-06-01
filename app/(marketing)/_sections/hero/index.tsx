@@ -3,7 +3,7 @@
 import cn from 'clsx'
 import gsap from 'gsap'
 import { useEffect, useRef, useState } from 'react'
-import { LiquidMetal } from '@/components/effects/liquid-metal'
+import { LiquidDrip } from '@/components/effects/liquid-drip'
 import { Link } from '@/components/ui/link'
 import { usePreferredReducedMotion } from '@/hooks/use-sync-external'
 import s from './hero.module.css'
@@ -107,7 +107,7 @@ export function Hero() {
       <div className={s.gradient} aria-hidden="true" />
       {/* Interactive WebGL liquid red-metal metaball, layered on top. */}
       {!prefersReducedMotion && (
-        <LiquidMetal
+        <LiquidDrip
           className={cn(s.webglGradient)}
           amplitude={1.0}
           speed={1.0}

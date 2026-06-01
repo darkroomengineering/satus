@@ -20,12 +20,12 @@
   background:
     radial-gradient(
       ellipse 60% 45% at 50% 38%,
-      color-mix(in srgb, var(--color-contrast) 35%, transparent),
+      color-mix(in srgb, var(--color-contrast) 12%, transparent),
       transparent 65%
     ),
     radial-gradient(
       ellipse 100% 60% at 50% 118%,
-      color-mix(in srgb, var(--color-contrast) 22%, transparent),
+      color-mix(in srgb, var(--color-contrast) 8%, transparent),
       transparent 60%
     );
 }

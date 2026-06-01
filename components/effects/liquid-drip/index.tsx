@@ -5,8 +5,8 @@ import type { ComponentProps, CSSProperties } from 'react'
 import { WebGLTunnel } from '@/webgl/components/tunnel'
 import { useWebGLElement } from '@/webgl/hooks/use-webgl-element'
 
-const WebGLLiquidMetal = dynamic(
-  () => import('./webgl').then(({ WebGLLiquidMetal }) => WebGLLiquidMetal),
+const WebGLLiquidDrip = dynamic(
+  () => import('./webgl').then(({ WebGLLiquidDrip }) => WebGLLiquidDrip),
   {
     ssr: false,
   }
@@ -44,29 +44,31 @@ const toDOMRect = (
   }),
 })
 
-type LiquidMetalProps = {
+type LiquidDripProps = {
   className?: string
   style?: CSSProperties
-} & Omit<ComponentProps<typeof WebGLLiquidMetal>, 'rect' | 'visible'>
+} & Omit<ComponentProps<typeof WebGLLiquidDrip>, 'rect' | 'visible'>
 
 /**
- * Liquid red-metal metaball hero background effect.
+ * Liquid red-metal drip hero background effect.
  *
- * Raymarched metaballs (smooth-unioned SDF spheres) that drift, merge,
- * and split like chemicals developing in a darkroom tray.
- * Shaded as liquid red metal: dark core, Kodak-red fresnel rim, specular,
- * and a procedural environment reflection.
+ * A 2D screen-space curtain of glossy red liquid metal that hangs from the top
+ * of the hero section and drips downward in organic tendrils toward the bottom
+ * of the first fold. The hero's overflow:hidden clips it to the viewport.
  *
- * Drop-in replacement for <AnimatedGradient> — same useWebGLElement/WebGLTunnel
+ * Shaded as red chrome: dark floor, Kodak-red fresnel rim, tight Blinn-Phong
+ * specular, and a procedural studio-reflection gradient.
+ *
+ * Drop-in replacement for <LiquidMetal> — same useWebGLElement/WebGLTunnel
  * architecture, transparent alpha so it composites over the black hero background.
  */
-export function LiquidMetal({ className, style, ...props }: LiquidMetalProps) {
+export function LiquidDrip({ className, style, ...props }: LiquidDripProps) {
   const { setRef, rect, isVisible } = useWebGLElement<HTMLDivElement>()
 
   return (
     <div ref={setRef} className={className} style={style}>
       <WebGLTunnel>
-        <WebGLLiquidMetal
+        <WebGLLiquidDrip
           rect={toDOMRect(rect)}
           visible={isVisible}
           {...props}

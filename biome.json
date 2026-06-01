@@ -185,6 +185,16 @@
 
   "overrides": [
     {
+      "includes": ["lib/integrations/sanity/sanity.types.ts"],
+      "linter": {
+        "rules": {
+          "nursery": {
+            "useImportsFirst": "off"
+          }
+        }
+      }
+    },
+    {
       "includes": ["**/*.css"],
       "linter": {
         "rules": {

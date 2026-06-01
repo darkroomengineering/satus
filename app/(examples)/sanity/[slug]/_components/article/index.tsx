@@ -1,9 +1,9 @@
 import type { PortableTextBlock } from 'next-sanity'
 import { SanityImage } from '@/components/ui/sanity-image'
 import { RichText } from '@/integrations/sanity/components/rich-text'
-import type { Article } from '@/integrations/sanity/sanity.types'
+import type { ArticleQueryResult } from '@/integrations/sanity/sanity.types'
 
-type SanityArticleProps = NonNullable<Article>
+type SanityArticleProps = NonNullable<ArticleQueryResult>
 
 export function SanityArticle({ data }: { data: SanityArticleProps }) {
   if (!data) return null

@@ -20,27 +20,28 @@
  *
  * ## Design Widths
  *
- * These functions scale values relative to the design viewport:
- * - Desktop: 1728px
+ * These functions scale values relative to the design viewport
+ * (sourced from `@/config` `screens` -- single source of truth):
+ * - Desktop: 1440px
  * - Mobile: 375px
  *
- * A 100px element designed at 1728px will be ~58px at 1000px viewport.
+ * A 100px element designed at 1440px will be ~69px at 1000px viewport.
  */
 
-import { screens } from '@/lib/styles/config'
+import { screens } from '@/config'
 
 /**
  * Scales a pixel value relative to the desktop design width.
  *
- * @param value - Size in pixels at desktop design width (1728px)
+ * @param value - Size in pixels at desktop design width (1440px)
  * @param width - Current viewport width
  * @returns Scaled pixel value
  *
  * @example
  * ```ts
- * // Design has a 200px element at 1728px width
- * // At 864px viewport, it becomes 100px
- * desktopVW(200, 864) // 100
+ * // Design has a 200px element at 1440px width
+ * // At 720px viewport, it becomes 100px
+ * desktopVW(200, 720) // 100
  *
  * // Common usage in resize handler
  * window.addEventListener('resize', () => {

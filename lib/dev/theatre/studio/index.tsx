@@ -2,33 +2,29 @@
 
 import '@theatre/core'
 import type { IStudio } from '@theatre/studio'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import s from './studio.module.css'
 
-let studio: IStudio | undefined
-
-if (typeof window !== 'undefined') {
-  studio = require('@theatre/studio').default
-}
-
-function initializeStudio() {
-  if (studio) {
-    studio.initialize()
-    studio.ui.restore()
-    console.log('Theatre: Studio initialized')
-  }
-}
-
-// initializeStudio()
-
 export function Studio() {
+  const studioRef = useRef<IStudio | undefined>(undefined)
+
   useEffect(() => {
-    initializeStudio()
+    let cancelled = false
+
+    import('@theatre/studio').then((mod) => {
+      if (cancelled) return
+      const studio = mod.default as IStudio
+      studioRef.current = studio
+      studio.initialize()
+      studio.ui.restore()
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Theatre: Studio initialized')
+      }
+    })
 
     return () => {
-      if (studio) {
-        studio.ui.hide()
-      }
+      cancelled = true
+      studioRef.current?.ui.hide()
     }
   }, [])
 
@@ -37,6 +33,7 @@ export function Studio() {
       <button
         type="button"
         onClick={() => {
+          const studio = studioRef.current
           if (!studio) return
 
           const id = window.THEATRE_PROJECT_ID

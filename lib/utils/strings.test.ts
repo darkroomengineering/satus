@@ -7,9 +7,9 @@
 import { describe, expect, it } from 'bun:test'
 import {
   capitalizeFirstLetter,
-  convertToCamelCase,
   isEmptyArray,
   isEmptyObject,
+  lowerFirstChar,
   numberWithCommas,
   slugify,
   twoDigits,
@@ -47,23 +47,23 @@ describe('slugify', () => {
   })
 })
 
-describe('convertToCamelCase', () => {
-  it('should convert first character to lowercase', () => {
-    expect(convertToCamelCase('HelloWorld')).toBe('helloWorld')
-    expect(convertToCamelCase('MyComponent')).toBe('myComponent')
+describe('lowerFirstChar', () => {
+  it('should lowercase the first character', () => {
+    expect(lowerFirstChar('HelloWorld')).toBe('helloWorld')
+    expect(lowerFirstChar('MyComponent')).toBe('myComponent')
   })
 
-  it('should handle already camelCase strings', () => {
-    expect(convertToCamelCase('helloWorld')).toBe('helloWorld')
+  it('should leave already-lowercase first character unchanged', () => {
+    expect(lowerFirstChar('helloWorld')).toBe('helloWorld')
   })
 
   it('should handle single characters', () => {
-    expect(convertToCamelCase('A')).toBe('a')
-    expect(convertToCamelCase('a')).toBe('a')
+    expect(lowerFirstChar('A')).toBe('a')
+    expect(lowerFirstChar('a')).toBe('a')
   })
 
   it('should handle empty strings', () => {
-    expect(convertToCamelCase('')).toBe('')
+    expect(lowerFirstChar('')).toBe('')
   })
 })
 

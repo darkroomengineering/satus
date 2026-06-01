@@ -57,9 +57,6 @@ export async function createRenderer(
     alpha = true,
     antialias = true,
     powerPreference = 'high-performance',
-    precision = 'highp',
-    stencil = false,
-    depth = true,
     forceWebGL = false,
   } = options
 
@@ -83,7 +80,9 @@ export async function createRenderer(
       // WebGPURenderer requires async initialization
       await renderer.init()
 
-      console.info('🚀 Using WebGPU renderer')
+      if (process.env.NODE_ENV === 'development') {
+        console.info('Using WebGPU renderer')
+      }
 
       return {
         renderer: renderer as unknown as WebGLRenderer,
@@ -91,65 +90,36 @@ export async function createRenderer(
         isWebGPU: true,
       }
     } catch (error) {
-      console.warn('WebGPU renderer failed, falling back to WebGL:', error)
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('WebGPU renderer failed, falling back to WebGL:', error)
+      }
     }
   }
 
-  // Fall back to WebGL
-  const { WebGLRenderer } = await import('three')
+  // Fall back to WebGPURenderer's WebGL2 backend (forceWebGL) — NOT the classic
+  // THREE.WebGLRenderer. All effects are TSL NodeMaterials, which only the
+  // WebGPURenderer pipeline can compile; the classic renderer produces an
+  // undefined shader and throws every frame. The WebGL2 backend runs the same
+  // NodeMaterials on browsers without WebGPU (e.g. privacy/Chromium forks) and
+  // on low-power devices.
+  const { WebGPURenderer } = await import('three/webgpu')
 
-  const renderer = new WebGLRenderer({
+  const renderer = new WebGPURenderer({
     canvas,
     alpha,
     antialias: antialias && capability.dpr < 2,
     powerPreference,
-    precision,
-    stencil,
-    depth,
+    forceWebGL: true,
   })
 
-  console.info('🎮 Using WebGL renderer')
+  await renderer.init()
 
-  return {
-    renderer,
-    type: 'webgl',
-    isWebGPU: false,
+  if (process.env.NODE_ENV === 'development') {
+    console.info('Using WebGPU renderer (WebGL2 backend)')
   }
-}
-
-/**
- * Create a WebGL-only renderer (skip WebGPU attempt).
- *
- * Use this when you know you want WebGL, or for compatibility.
- */
-export async function createWebGLRenderer(
-  options: CreateRendererOptions
-): Promise<RendererResult> {
-  const {
-    canvas,
-    alpha = true,
-    antialias = true,
-    powerPreference = 'high-performance',
-    precision = 'highp',
-    stencil = false,
-    depth = true,
-  } = options
-
-  const capability = detectGPUCapability()
-  const { WebGLRenderer } = await import('three')
-
-  const renderer = new WebGLRenderer({
-    canvas,
-    alpha,
-    antialias: antialias && capability.dpr < 2,
-    powerPreference,
-    precision,
-    stencil,
-    depth,
-  })
 
   return {
-    renderer,
+    renderer: renderer as unknown as WebGLRenderer,
     type: 'webgl',
     isWebGPU: false,
   }

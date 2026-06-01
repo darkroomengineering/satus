@@ -23,9 +23,6 @@ export function usePrefetch<T extends HTMLElement = HTMLElement>(
     const element = ref.current
     if (!element) return
 
-    // Reset prefetched state when href changes
-    prefetchedRef.current = false
-
     const handleIntersection = (entries: IntersectionObserverEntry[]) => {
       const [entry] = entries
       if (entry?.isIntersecting && !prefetchedRef.current) {

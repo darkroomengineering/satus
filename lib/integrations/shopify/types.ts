@@ -99,10 +99,6 @@ export interface CartLineInput {
   quantity: number
 }
 
-export interface CartData {
-  lines: CartLine[]
-}
-
 /* Cart actions types */
 export interface AddItemPayload {
   variantId: string

@@ -103,7 +103,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | Function | Signature | Description |
 |----------|-----------|-------------|
 | slugify | `(text) => string` | URL-friendly slug |
-| convertToCamelCase | `(str) => string` | Lowercase first character |
+| lowerFirstChar | `(str) => string` | Lowercase first character |
 | capitalizeFirstLetter | `(str) => string` | Uppercase first character |
 | twoDigits | `(n) => string` | Zero-padded two-digit string |
 | numberWithCommas | `(x) => string` | Thousands separator formatting |
@@ -119,7 +119,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | fromTo | `(entries, from, to, progress, options?) => void` | Declarative progress-based animation |
 | spring | `(current, target, velocity, stiffness?, damping?, dt?) => { value, velocity }` | Spring physics animation |
 
-Re-exports: `clamp`, `lerp`, `mapRange`, `modulo`, `truncate` from math; `easings`, `EasingName` from easings; `measure`, `mutate`, `batch` from raf; `desktopVW`, `mobileVW`, `desktopVH`, `mobileVH` from viewport.
+Re-exports: `clamp`, `lerp`, `mapRange`, `modulo`, `truncate` from math; `easings`, `EasingName` from easings; `measure`, `mutate`, `batch` from raf.
 
 ### Easings (`@/utils/easings`)
 
@@ -146,12 +146,14 @@ Re-exports: `clamp`, `lerp`, `mapRange`, `modulo`, `truncate` from math; `easing
 
 ### Viewport (`@/utils/viewport`)
 
+JS counterparts to the CSS `desktop-vw()` / `mobile-vw()` functions -- for px-from-Figma fluid scaling in canvas/WebGL/resize handlers where CSS can't reach. Design reference from `@/config` `screens`: desktop 1440x816, mobile 375x650.
+
 | Function | Signature | Description |
 |----------|-----------|-------------|
-| desktopVW | `(value, width) => number` | Scale px relative to desktop design width (1728px) |
+| desktopVW | `(value, width) => number` | Scale px relative to desktop design width (1440px) |
 | mobileVW | `(value, width) => number` | Scale px relative to mobile design width (375px) |
-| desktopVH | `(value, height) => number` | Scale px relative to desktop design height |
-| mobileVH | `(value, height) => number` | Scale px relative to mobile design height |
+| desktopVH | `(value, height) => number` | Scale px relative to desktop design height (816px) |
+| mobileVH | `(value, height) => number` | Scale px relative to mobile design height (650px) |
 
 ### Metadata (`@/utils/metadata`)
 

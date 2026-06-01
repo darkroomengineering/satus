@@ -1,9 +1,11 @@
-import type { Client } from '@hubspot/api-client'
 import { fetchWithTimeout } from '@/utils/fetch'
 
-type HubspotFormResponse = Awaited<
-  ReturnType<Client['marketing']['forms']['formsApi']['getById']>
->
+interface HubspotFormResponse {
+  fieldGroups: Array<{ fields: unknown[] }>
+  legalConsentOptions?: unknown
+  displayOptions: { submitButtonText?: string }
+  configuration: { postSubmitAction: { type: string; value: string | null } }
+}
 
 interface HubSpotFormField {
   name: string

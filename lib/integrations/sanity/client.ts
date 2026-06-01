@@ -1,5 +1,5 @@
 import { createClient, type SanityClient } from 'next-sanity'
-import { isSanityConfigured } from '@/integrations/check-integration'
+import { isConfigured } from '@/integrations/registry'
 import { apiVersion, dataset, projectId, studioUrl } from './env'
 
 /**
@@ -15,7 +15,7 @@ import { apiVersion, dataset, projectId, studioUrl } from './env'
  * Token is applied where needed via client.withConfig({ token }) for
  * draft mode, revalidation, or server-side mutations.
  */
-export const client: SanityClient | null = isSanityConfigured()
+export const client: SanityClient | null = isConfigured('sanity')
   ? createClient({
       projectId,
       dataset,

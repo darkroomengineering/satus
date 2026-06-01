@@ -70,61 +70,42 @@ const COMPONENTS = [
   },
 ] as const
 
-const ADDITIONAL = [
-  { name: 'Form', description: 'See /hubspot for validation example' },
-  { name: 'Image', description: 'Optimized next/image wrapper' },
-  { name: 'Scrollbar', description: 'Custom scrollbar (requires Lenis)' },
-  { name: 'SanityImage', description: 'Sanity CMS image component' },
-  { name: 'RealViewport', description: 'Viewport measurement utility' },
-  { name: 'Toast', description: 'Notification toasts' },
-] as const
-
 export default function ComponentsPage() {
   return (
     <Wrapper theme="dark">
       <section className={cn(s.hero, 'dr-layout-grid')}>
-        <div className="col-span-full dt:col-start-3 dt:col-end-11">
+        <div className="col-span-full dt:col-start-2 dt:col-end-10">
+          <p className={s.label}>UI Library</p>
           <h1 className={s.title}>Components</h1>
           <p className={s.subtitle}>
-            UI library from <code className={s.code}>@/components/ui</code>
+            Accessible primitives from{' '}
+            <code className={s.code}>@/components/ui</code>
           </p>
         </div>
       </section>
 
       <section className={cn(s.list, 'dr-layout-grid')}>
-        <div className="col-span-full dt:col-start-3 dt:col-end-8">
-          <h2 className={s.sectionTitle}>Library</h2>
+        <div className="col-span-full dt:col-start-2 dt:col-end-12">
+          <p className={s.sectionLabel}>Library</p>
           <div className={s.components}>
-            {COMPONENTS.map((component) => (
-              <div key={component.name} className={s.component}>
+            {COMPONENTS.map((item, i) => (
+              <div key={item.name} className={s.component}>
                 <div className={s.componentHeader}>
-                  <span className={s.componentName}>{component.name}</span>
+                  <div className={s.componentMeta}>
+                    <span className={s.componentIndex}>
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span className={s.componentName}>{item.name}</span>
+                  </div>
                   <span className={s.componentDescription}>
-                    {component.description}
+                    {item.description}
                   </span>
                 </div>
-                <div className={s.componentDemo}>{component.demo}</div>
+                <div className={s.componentDemo}>{item.demo}</div>
               </div>
             ))}
           </div>
         </div>
-
-        <aside
-          className={cn(s.aside, 'col-span-full dt:col-start-9 dt:col-end-12')}
-        >
-          <h3 className={s.asideTitle}>Additional</h3>
-          <p className={s.asideDescription}>Available but not demoed here</p>
-          <ul className={s.additional}>
-            {ADDITIONAL.map((item) => (
-              <li key={item.name} className={s.additionalItem}>
-                <span className={s.additionalName}>{item.name}</span>
-                <span className={s.additionalDescription}>
-                  {item.description}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </aside>
       </section>
     </Wrapper>
   )

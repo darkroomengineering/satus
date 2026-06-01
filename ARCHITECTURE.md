@@ -105,7 +105,7 @@ lib/
 
 Zod schemas provide type-safe validation at three boundaries:
 
-1. **Environment variables** -- Per-integration schemas validate config at startup via `check-integration.ts` and `doctor.ts`
+1. **Environment variables** -- Per-integration schemas validate config via the registry (`isConfigured()`) and `doctor.ts`
 2. **Server actions** -- `parseFormData()` validates FormData before processing (HubSpot, Mailchimp, Shopify)
 3. **Client forms** -- `zodToValidator()` bridges the same Zod schemas to the form hook's client-side validation
 
@@ -127,7 +127,7 @@ All schemas live in `lib/utils/validation.ts`. The typed env singleton (`lib/env
 
 **New component**: `bun run generate` or add to `components/ui/`
 
-**New integration**: Add Zod env schema in `@/utils/validation`, add entry in `lib/integrations/registry.ts`. Everything else (`check-integration`, `doctor`) derives automatically from the registry.
+**New integration**: Add Zod env schema in `@/utils/validation`, add entry in `lib/integrations/registry.ts`. Everything else (`doctor`, listing helpers) derives automatically from the registry.
 
 **Modify styles**: Edit config in `lib/styles/`, run `bun setup:styles`
 

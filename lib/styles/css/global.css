@@ -13,6 +13,31 @@ html {
   scrollbar-width: thin;
 }
 
+/*
+ * Derived semantic tokens — depth, hairlines, motion.
+ * Surfaces and lines are derived from the active theme's colors via color-mix,
+ * so they adapt automatically across every [data-theme] without new palette
+ * entries. The red `--color-contrast` doubles as the accent.
+ */
+:root {
+  --surface: color-mix(
+    in srgb,
+    var(--color-secondary) 4%,
+    var(--color-primary)
+  );
+  --surface-2: color-mix(
+    in srgb,
+    var(--color-secondary) 8%,
+    var(--color-primary)
+  );
+  --line: color-mix(in srgb, var(--color-secondary) 14%, transparent);
+  --line-strong: color-mix(in srgb, var(--color-secondary) 28%, transparent);
+
+  --duration-fast: 200ms;
+  --duration: 400ms;
+  --duration-slow: 800ms;
+}
+
 html.overflow-hidden {
   overflow: hidden;
   touch-action: none;
@@ -61,6 +86,8 @@ svg.icon {
 /* Focus states */
 *:focus-visible {
   outline: 2px solid var(--color-contrast);
+  outline-offset: 2px;
+  border-radius: 1px;
 }
 
 html.scrollbar-grabbing,
@@ -68,8 +95,6 @@ img {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -moz-user-select: none;
-  -ms-user-select: none;
-  -o-user-select: none;
   user-select: none;
 }
 
@@ -85,5 +110,20 @@ html.screenshot {
   *:not(:has(canvas), canvas, :has(#orchestra), #orchestra, #orchestra *) {
     /* biome-ignore lint: it's all good */
     opacity: 0 !important;
+  }
+}
+
+/*
+ * Respect reduced-motion: neutralize CSS animations/transitions globally.
+ * GSAP and WebGL animations gate themselves via usePreferredReducedMotion().
+ */
+@media (--reduced-motion) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+    scroll-behavior: auto;
   }
 }

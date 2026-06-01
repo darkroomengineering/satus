@@ -16,7 +16,8 @@
  */
 
 import * as p from '@clack/prompts'
-import { getConfiguredIntegrations } from '@/integrations/check-integration'
+import { getConfigured } from '@/integrations/registry'
+import { INTEGRATION_BUNDLES } from './integration-bundles'
 import {
   parseCliFlags,
   pathExists,
@@ -33,6 +34,8 @@ interface HandoffOptions {
   removeBranding: boolean
   updatePackageJson: boolean
   cleanupEnvVars: boolean
+  generateInventory: boolean
+  generateChecklist: boolean
 }
 
 /**
@@ -114,18 +117,25 @@ const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
       return false
     }
 
-    const configuredIntegrations = getConfiguredIntegrations()
     const content = await Bun.file(envExamplePath).text()
 
-    // Keep only variables for configured integrations
-    const keepPatterns: Record<string, RegExp[]> = {
-      Sanity: [/^NEXT_PUBLIC_SANITY_/, /^SANITY_/],
-      Shopify: [/^SHOPIFY_/],
-      HubSpot: [/^HUBSPOT_/, /^NEXT_PUBLIC_HUBSPOT_/],
-      Mailchimp: [/^MAILCHIMP_/],
+    // Keep env vars that belong to a configured integration, matched by exact
+    // name against each bundle's declared envVars (the single source of truth in
+    // INTEGRATION_BUNDLES) -- the same strategy setup-project uses. getConfigured()
+    // returns registry display names (e.g. 'Sanity'), mapped to bundle keys
+    // case-insensitively.
+    const keepVars = new Set<string>()
+    for (const displayName of getConfigured()) {
+      const bundleKey = Object.keys(INTEGRATION_BUNDLES).find(
+        (k) => k.toLowerCase() === displayName.toLowerCase()
+      )
+      const bundle = bundleKey ? INTEGRATION_BUNDLES[bundleKey] : undefined
+      if (bundle) {
+        for (const envVar of bundle.envVars) keepVars.add(envVar)
+      }
     }
 
-    // Always keep these core variables
+    // Core variables unrelated to any single integration are always kept.
     const alwaysKeep = [
       /^NEXT_PUBLIC_BASE_URL$/,
       /^NEXT_PUBLIC_GOOGLE_/,
@@ -135,47 +145,13 @@ const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
     ]
 
     const lines = content.split('\n')
-    const filteredLines: string[] = []
-
-    for (const line of lines) {
+    const filteredLines = lines.filter((line) => {
       const trimmed = line.trim()
-      if (!trimmed || trimmed.startsWith('#')) {
-        filteredLines.push(line)
-        continue
-      }
-
-      // Check if this variable should be kept
-      let shouldKeep = false
+      // Preserve blank lines and comments.
+      if (!trimmed || trimmed.startsWith('#')) return true
       const varName = trimmed.split('=')[0] ?? ''
-
-      // Always keep core variables
-      for (const pattern of alwaysKeep) {
-        if (pattern.test(varName)) {
-          shouldKeep = true
-          break
-        }
-      }
-
-      if (!shouldKeep) {
-        // Check integration-specific variables
-        for (const integration of configuredIntegrations) {
-          const patterns = keepPatterns[integration]
-          if (patterns) {
-            for (const pattern of patterns) {
-              if (pattern.test(varName)) {
-                shouldKeep = true
-                break
-              }
-            }
-            if (shouldKeep) break
-          }
-        }
-      }
-
-      if (shouldKeep) {
-        filteredLines.push(line)
-      }
-    }
+      return keepVars.has(varName) || alwaysKeep.some((re) => re.test(varName))
+    })
 
     const newContent = filteredLines.join('\n')
 
@@ -243,7 +219,7 @@ const generateInventory = async (dryRun: boolean): Promise<string> => {
   inventory.push('')
 
   // Configured integrations
-  const integrations = getConfiguredIntegrations()
+  const integrations = getConfigured()
   inventory.push('## Active Integrations')
   inventory.push('')
   if (integrations.length > 0) {
@@ -345,7 +321,7 @@ const generateChecklist = async (
   projectName: string,
   dryRun: boolean
 ): Promise<string> => {
-  const integrations = getConfiguredIntegrations()
+  const integrations = getConfigured()
 
   const checklist: string[] = []
 
@@ -448,6 +424,8 @@ const runHandoff = async (options: HandoffOptions): Promise<void> => {
     removeBranding: doRemoveBranding,
     updatePackageJson: doUpdatePackageJson,
     cleanupEnvVars: doCleanupEnvVars,
+    generateInventory: doGenerateInventory,
+    generateChecklist: doGenerateChecklist,
   } = options
 
   const s = p.spinner()
@@ -492,14 +470,18 @@ const runHandoff = async (options: HandoffOptions): Promise<void> => {
   }
 
   // Generate inventory
-  s.start('Generating component inventory...')
-  await generateInventory(dryRun)
-  s.stop('Component inventory generated')
+  if (doGenerateInventory) {
+    s.start('Generating component inventory...')
+    await generateInventory(dryRun)
+    s.stop('Component inventory generated')
+  }
 
   // Generate checklist
-  s.start('Generating deployment checklist...')
-  await generateChecklist(projectName, dryRun)
-  s.stop('Deployment checklist generated')
+  if (doGenerateChecklist) {
+    s.start('Generating deployment checklist...')
+    await generateChecklist(projectName, dryRun)
+    s.stop('Deployment checklist generated')
+  }
 }
 
 /**
@@ -612,17 +594,28 @@ const main = async (): Promise<void> => {
     removeBranding: actionsArray.includes('removeBranding'),
     updatePackageJson: actionsArray.includes('updatePackageJson'),
     cleanupEnvVars: actionsArray.includes('cleanupEnvVars'),
+    generateInventory: actionsArray.includes('generateInventory'),
+    generateChecklist: actionsArray.includes('generateChecklist'),
   })
 
   // Done
   if (dryRun) {
     p.outro('Dry run complete. Run without --dry-run to apply changes.')
   } else {
+    const generated: string[] = []
+    if (actionsArray.includes('generateInventory')) {
+      generated.push('  - INVENTORY.md (component list)')
+    }
+    if (actionsArray.includes('generateChecklist')) {
+      generated.push('  - DEPLOYMENT-CHECKLIST.md (launch tasks)')
+    }
+    if (actionsArray.includes('swapReadme')) {
+      generated.push('  - README.original.md (backup)')
+    }
     p.note(
-      'Generated files:\n' +
-        '  - INVENTORY.md (component list)\n' +
-        '  - DEPLOYMENT-CHECKLIST.md (launch tasks)\n' +
-        '  - README.original.md (backup)\n\n' +
+      (generated.length
+        ? `Generated files:\n${generated.join('\n')}\n\n`
+        : '') +
         'Next steps:\n' +
         '  1. Review generated files\n' +
         '  2. Update README with project-specific info\n' +

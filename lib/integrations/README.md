@@ -14,12 +14,6 @@ if (isConfigured('sanity')) {
 }
 ```
 
-Individual check functions are still available for backward compatibility:
-
-```ts
-import { isSanityConfigured } from '@/integrations/check-integration'
-```
-
 Typed environment access is available via:
 
 ```ts

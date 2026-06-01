@@ -58,11 +58,7 @@ function Tooltip({ content, children, side = 'top', className }: TooltipProps) {
         />
         <BaseTooltip.Portal>
           <BaseTooltip.Positioner side={side} sideOffset={8}>
-            <BaseTooltip.Popup
-              {...(cn(s.popup, className) && {
-                className: cn(s.popup, className),
-              })}
-            >
+            <BaseTooltip.Popup className={cn(s.popup, className)}>
               <BaseTooltip.Arrow {...(s.arrow && { className: s.arrow })} />
               {content}
             </BaseTooltip.Popup>
@@ -78,29 +74,34 @@ const Provider = BaseTooltip.Provider
 const Root = BaseTooltip.Root
 const Trigger = BaseTooltip.Trigger
 const Portal = BaseTooltip.Portal
-const Positioner = ({
+
+function Positioner({
   className,
   sideOffset = 8,
   ...props
-}: ComponentProps<typeof BaseTooltip.Positioner>) => (
-  <BaseTooltip.Positioner
-    {...(className && { className })}
-    sideOffset={sideOffset}
-    {...props}
-  />
-)
-const Popup = ({
+}: ComponentProps<typeof BaseTooltip.Positioner>) {
+  return (
+    <BaseTooltip.Positioner
+      {...(className && { className })}
+      sideOffset={sideOffset}
+      {...props}
+    />
+  )
+}
+
+function Popup({
   className,
   ...props
-}: ComponentProps<typeof BaseTooltip.Popup>) => (
-  <BaseTooltip.Popup className={cn(s.popup, className)} {...props} />
-)
-const Arrow = ({
+}: ComponentProps<typeof BaseTooltip.Popup>) {
+  return <BaseTooltip.Popup className={cn(s.popup, className)} {...props} />
+}
+
+function Arrow({
   className,
   ...props
-}: ComponentProps<typeof BaseTooltip.Arrow>) => (
-  <BaseTooltip.Arrow className={cn(s.arrow, className)} {...props} />
-)
+}: ComponentProps<typeof BaseTooltip.Arrow>) {
+  return <BaseTooltip.Arrow className={cn(s.arrow, className)} {...props} />
+}
 
 // Attach compound components
 Tooltip.Provider = Provider

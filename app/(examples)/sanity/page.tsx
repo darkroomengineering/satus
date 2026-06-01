@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { Wrapper } from '@/components/layout/wrapper'
 import { NotConfigured } from '@/components/ui/not-configured'
-import { isSanityConfigured } from '@/integrations/check-integration'
+import { isConfigured } from '@/integrations/registry'
 import { sanityFetch } from '@/integrations/sanity/live'
 import { pageQuery } from '@/integrations/sanity/queries'
 import type { Page } from '@/integrations/sanity/sanity.types'
@@ -12,7 +12,7 @@ const SLUG = 'sanity'
 
 export default async function SanityPage() {
   // Show setup instructions if Sanity is not configured
-  if (!isSanityConfigured()) {
+  if (!isConfigured('sanity')) {
     return (
       <Wrapper theme="light">
         <NotConfigured integration="Sanity" />
@@ -30,6 +30,7 @@ export default async function SanityPage() {
   return (
     <Wrapper theme="light" className="font-mono uppercase">
       <div className="max-dt:dr-px-16 flex grow items-center justify-center">
+        {/* TODO: remove cast after running `bun run sanity:typegen` to regenerate PageQueryResult */}
         <SanityTutorial data={data as Page} />
       </div>
     </Wrapper>

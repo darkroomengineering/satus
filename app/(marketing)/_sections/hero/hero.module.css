@@ -7,52 +7,99 @@
   justify-content: center;
   text-align: center;
   background: var(--color-primary);
+  overflow: hidden;
+}
+
+/* Deep-red radial glow behind the wordmark (CSS, no WebGL — reliable + LCP-safe).
+   Driven by --color-contrast so it tracks the brand red. */
+.gradient {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 60% 45% at 50% 38%,
+      color-mix(in srgb, var(--color-contrast) 12%, transparent),
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 100% 60% at 50% 118%,
+      color-mix(in srgb, var(--color-contrast) 8%, transparent),
+      transparent 60%
+    );
+}
+
+/* Interactive WebGL fluid gradient layer (drawn on the global canvas at this
+   element's rect). Sits above the CSS glow, below the scrim + content. */
+.webglGradient {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Subtle radial scrim to keep text readable over the gradient */
+.scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(
+    ellipse 80% 60% at 50% 50%,
+    transparent 30%,
+    color-mix(in srgb, var(--color-primary) 60%, transparent) 100%
+  );
+  pointer-events: none;
 }
 
 .content {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   padding: calc(100 / 375 * 100vw) 0;
-  gap: calc(24 / 375 * 100vw);
+  gap: calc(20 / 375 * 100vw);
 
   @media (--desktop) {
-    padding: calc(140 / 1440 * 100vw) 0;
-    gap: calc(28 / 1440 * 100vw);
+    padding: calc(120 / 1440 * 100vw) 0;
+    gap: calc(24 / 1440 * 100vw);
   }
 }
 
 .badge {
   display: inline-flex;
-  padding: calc(8 / 375 * 100vw) calc(16 / 375 * 100vw);
+  padding: calc(7 / 375 * 100vw) calc(14 / 375 * 100vw);
   font-family: var(--font-mono);
   font-size: calc(9 / 375 * 100vw);
   text-transform: uppercase;
   letter-spacing: 0.15em;
-  border: 1px solid color-mix(in srgb, var(--color-secondary) 30%, transparent);
-  opacity: 0.6;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  border-radius: calc(3 / 375 * 100vw);
 
   @media (--desktop) {
-    padding: calc(10 / 1440 * 100vw) calc(20 / 1440 * 100vw);
+    padding: calc(9 / 1440 * 100vw) calc(18 / 1440 * 100vw);
     font-size: calc(11 / 1440 * 100vw);
+    border-radius: calc(3 / 1440 * 100vw);
   }
 }
 
 .title {
   font-family: var(--font-mono);
-  font-size: calc(72 / 375 * 100vw);
+  font-size: calc(80 / 375 * 100vw);
   font-weight: 400;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.22em;
   line-height: 0.9;
   color: var(--color-secondary);
-  margin-top: calc(8 / 375 * 100vw);
+  margin-top: calc(4 / 375 * 100vw);
 
   @media (--desktop) {
-    font-size: calc(180 / 1440 * 100vw);
-    letter-spacing: 0.25em;
-    margin-top: calc(12 / 1440 * 100vw);
+    font-size: calc(200 / 1440 * 100vw);
+    letter-spacing: 0.28em;
+    margin-top: calc(8 / 1440 * 100vw);
   }
 }
 
@@ -60,21 +107,19 @@
   font-family: var(--font-mono);
   font-size: calc(9 / 375 * 100vw);
   line-height: 1.6;
-  opacity: 0.4;
+  opacity: 0.45;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  margin-top: calc(12 / 375 * 100vw);
 
   @media (--desktop) {
     font-size: calc(11 / 1440 * 100vw);
-    margin-top: calc(20 / 1440 * 100vw);
   }
 }
 
 .link {
   text-decoration: underline;
   text-underline-offset: 0.25em;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--duration-fast) ease;
 
   &:hover {
     opacity: 1;
@@ -85,15 +130,15 @@
   display: flex;
   align-items: center;
   gap: calc(12 / 375 * 100vw);
-  margin-top: calc(20 / 375 * 100vw);
-  padding: calc(14 / 375 * 100vw) calc(20 / 375 * 100vw);
-  background: var(--color-secondary);
-  color: var(--color-primary);
+  padding: calc(13 / 375 * 100vw) calc(18 / 375 * 100vw);
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  border-radius: calc(4 / 375 * 100vw);
 
   @media (--desktop) {
     gap: calc(16 / 1440 * 100vw);
-    margin-top: calc(32 / 1440 * 100vw);
-    padding: calc(16 / 1440 * 100vw) calc(28 / 1440 * 100vw);
+    padding: calc(14 / 1440 * 100vw) calc(24 / 1440 * 100vw);
+    border-radius: calc(4 / 1440 * 100vw);
   }
 }
 
@@ -102,9 +147,10 @@
   font-size: calc(11 / 375 * 100vw);
   white-space: nowrap;
   letter-spacing: 0.01em;
+  color: var(--color-secondary);
 
   @media (--desktop) {
-    font-size: calc(14 / 1440 * 100vw);
+    font-size: calc(13 / 1440 * 100vw);
   }
 }
 
@@ -114,7 +160,7 @@
   justify-content: center;
   padding: calc(4 / 375 * 100vw);
   opacity: 0.5;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--duration-fast) ease;
   cursor: pointer;
   background: none;
   border: none;
@@ -133,12 +179,10 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: calc(12 / 375 * 100vw);
-  margin-top: calc(12 / 375 * 100vw);
+  gap: calc(10 / 375 * 100vw);
 
   @media (--desktop) {
-    gap: calc(16 / 1440 * 100vw);
-    margin-top: calc(16 / 1440 * 100vw);
+    gap: calc(12 / 1440 * 100vw);
   }
 }
 
@@ -146,36 +190,43 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: calc(12 / 375 * 100vw) calc(24 / 375 * 100vw);
+  padding: calc(11 / 375 * 100vw) calc(22 / 375 * 100vw);
   font-family: var(--font-mono);
   font-size: calc(10 / 375 * 100vw);
   text-transform: uppercase;
   letter-spacing: 0.12em;
   text-decoration: none;
-  transition: all 0.2s ease;
+  border-radius: calc(3 / 375 * 100vw);
+  transition:
+    background var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    opacity var(--duration-fast) ease;
 
   @media (--desktop) {
-    padding: calc(14 / 1440 * 100vw) calc(32 / 1440 * 100vw);
+    padding: calc(13 / 1440 * 100vw) calc(28 / 1440 * 100vw);
     font-size: calc(12 / 1440 * 100vw);
+    border-radius: calc(3 / 1440 * 100vw);
   }
 }
 
 .primary {
-  background: var(--color-secondary);
+  background: var(--color-contrast);
   color: var(--color-primary);
-  border: 1px solid var(--color-secondary);
+  border: 1px solid var(--color-contrast);
 
   &:hover {
     background: transparent;
-    color: var(--color-secondary);
+    color: var(--color-contrast);
+    border-color: var(--color-contrast);
   }
 }
 
 .secondary {
   background: transparent;
   color: var(--color-secondary);
-  border: 1px solid color-mix(in srgb, var(--color-secondary) 40%, transparent);
-  opacity: 0.6;
+  border: 1px solid var(--line-strong);
+  opacity: 0.7;
 
   &:hover {
     opacity: 1;
@@ -188,6 +239,7 @@
   bottom: calc(28 / 375 * 100vw);
   left: 50%;
   transform: translateX(-50%);
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -198,6 +250,10 @@
   letter-spacing: 0.2em;
   opacity: 0.3;
   animation: bounce 2s ease-in-out infinite;
+
+  @media (--reduced-motion) {
+    animation: none;
+  }
 
   @media (--desktop) {
     bottom: calc(40 / 1440 * 100vw);

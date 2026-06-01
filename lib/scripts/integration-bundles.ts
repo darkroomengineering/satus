@@ -68,8 +68,12 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
     envVars: [
       'NEXT_PUBLIC_SANITY_PROJECT_ID',
       'NEXT_PUBLIC_SANITY_DATASET',
-      'NEXT_PUBLIC_SANITY_STUDIO_URL',
+      'NEXT_PUBLIC_SANITY_API_READ_TOKEN',
+      'SANITY_API_READ_TOKEN',
+      'SANITY_PRIVATE_TOKEN',
       'SANITY_API_WRITE_TOKEN',
+      'SANITY_STUDIO_PROJECT_ID',
+      'SANITY_REVALIDATE_SECRET',
     ],
     barrelExports: [
       { file: 'components/ui/index.ts', pattern: 'sanity-image' },
@@ -99,7 +103,7 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
     name: 'HubSpot',
     description: 'Marketing forms and newsletter integration',
     dependencies: [],
-    devDependencies: ['@hubspot/api-client'],
+    devDependencies: [],
     folders: ['lib/integrations/hubspot', 'app/(examples)/hubspot'],
     files: [],
     configPatterns: [],
@@ -160,7 +164,7 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
           // Remove the WebGL component render
           {
             regex:
-              '\\s*\\{/\\* WebGL/WebGPU Canvas - lazy loaded, only mounts when <Wrapper webgl> is used \\*/\\}\\n\\s*<LazyGlobalCanvas />',
+              '\\s*\\{/\\* WebGL/WebGPU Canvas - lazy loaded, only mounts when <Wrapper webgl> is used \\*/\\}\\n\\s*<LazyGlobalCanvas[^>]*/>',
             flags: 'gm',
           },
         ],
@@ -278,26 +282,3 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
  * Get all integration names
  */
 export const getIntegrationNames = () => Object.keys(INTEGRATION_BUNDLES)
-
-/**
- * Get bundle by name
- */
-export const getBundle = (name: string) => INTEGRATION_BUNDLES[name]
-
-/**
- * Get all dependencies for selected integrations
- */
-export const getDependenciesForIntegrations = (integrations: string[]) => {
-  const deps = new Set<string>()
-  const devDeps = new Set<string>()
-
-  for (const name of integrations) {
-    const bundle = INTEGRATION_BUNDLES[name]
-    if (bundle) {
-      for (const dep of bundle.dependencies) deps.add(dep)
-      for (const dep of bundle.devDependencies) devDeps.add(dep)
-    }
-  }
-
-  return { dependencies: [...deps], devDependencies: [...devDeps] }
-}

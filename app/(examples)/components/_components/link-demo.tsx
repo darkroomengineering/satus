@@ -1,5 +1,3 @@
-'use client'
-
 import { Link } from '@/components/ui/link'
 
 export function LinkDemo() {

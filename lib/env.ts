@@ -24,13 +24,17 @@ const envSchema = z.object({
   // Sanity (supports both Satus and Vercel Marketplace conventions)
   NEXT_PUBLIC_SANITY_PROJECT_ID: z.string().optional(),
   NEXT_PUBLIC_SANITY_DATASET: z.string().optional(),
+  // Public read token; NEXT_PUBLIC_ variant supports Vercel Marketplace installs
   NEXT_PUBLIC_SANITY_API_READ_TOKEN: z.string().optional(),
+  // Server-side fallback read token (non-NEXT_PUBLIC_ variant for Vercel Marketplace)
   SANITY_API_READ_TOKEN: z.string().optional(),
+  // Private server-side token for mutations (Satus convention)
   SANITY_PRIVATE_TOKEN: z.string().optional(),
+  // Alias for SANITY_PRIVATE_TOKEN used by Vercel Marketplace provisioning
   SANITY_API_WRITE_TOKEN: z.string().optional(),
-  SANITY_API_TOKEN: z.string().optional(),
+  // Vercel Marketplace may provision project ID under this name (Studio convention)
   SANITY_STUDIO_PROJECT_ID: z.string().optional(),
-  SANITY_STUDIO_DATASET: z.string().optional(),
+  // Webhook secret for on-demand revalidation (app/api/revalidate)
   SANITY_REVALIDATE_SECRET: z.string().optional(),
 
   // Shopify
@@ -54,6 +58,7 @@ const envSchema = z.object({
   // Analytics
   NEXT_PUBLIC_GOOGLE_ANALYTICS: z.string().optional(),
   NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID: z.string().optional(),
+  NEXT_PUBLIC_FACEBOOK_APP_ID: z.string().optional(),
 })
 
 type Env = z.infer<typeof envSchema>
@@ -62,7 +67,7 @@ type Env = z.infer<typeof envSchema>
  * Validated environment variables with full TypeScript IntelliSense.
  *
  * All fields are optional -- integrations check their own requirements
- * via `check-integration.ts`. This object provides type-safe access
+ * via the registry's `isConfigured()`. This object provides type-safe access
  * without runtime validation overhead (parsing happens once at import).
  */
 export const env: Env = envSchema.parse(process.env)

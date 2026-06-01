@@ -9,6 +9,12 @@
  */
 
 import * as p from '@clack/prompts'
+import {
+  cancelGuard,
+  toCamelCase,
+  toPascalCase,
+  withSpinner,
+} from './generate-shared'
 import { createDir } from './utils'
 
 interface ComponentOptions {
@@ -24,66 +30,60 @@ export interface ComponentConfig {
 /**
  * Interactive prompts for component configuration
  */
-export const promptComponentConfig = async (): Promise<ComponentConfig> => {
-  const category = await p.select({
-    message: 'Which category should this component belong to?',
-    options: [
-      {
-        value: 'ui',
-        label: 'UI Components',
-        hint: 'Reusable primitives (buttons, inputs, etc.)',
-      },
-      {
-        value: 'layout',
-        label: 'Layout Components',
-        hint: 'Site structure (navigation, footer, etc.)',
-      },
-      {
-        value: 'effects',
-        label: 'Effects Components',
-        hint: 'Animations and visual enhancements',
-      },
-      {
-        value: 'blocks',
-        label: 'Block Components',
-        hint: 'Pre-built page sections',
-      },
-    ],
-  })
+export async function promptComponentConfig(): Promise<ComponentConfig> {
+  const category = cancelGuard(
+    await p.select({
+      message: 'Which category should this component belong to?',
+      options: [
+        {
+          value: 'ui',
+          label: 'UI Components',
+          hint: 'Reusable primitives (buttons, inputs, etc.)',
+        },
+        {
+          value: 'layout',
+          label: 'Layout Components',
+          hint: 'Site structure (navigation, footer, etc.)',
+        },
+        {
+          value: 'effects',
+          label: 'Effects Components',
+          hint: 'Animations and visual enhancements',
+        },
+        {
+          value: 'blocks',
+          label: 'Block Components',
+          hint: 'Pre-built page sections',
+        },
+      ],
+    }),
+    'Component generation cancelled'
+  )
 
-  if (p.isCancel(category)) {
-    p.cancel('Component generation cancelled')
-    process.exit(0)
-  }
-
-  const name = await p.text({
-    message: 'What should the component be called?',
-    placeholder: 'button, hero-section, animated-text',
-    validate: (value) => {
-      if (!value) return 'Component name is required'
-      if (!/^[a-z][a-z0-9-]*$/.test(value)) {
-        return 'Component name must be kebab-case (lowercase with hyphens)'
-      }
-      return undefined
-    },
-  })
-
-  if (p.isCancel(name)) {
-    p.cancel('Component generation cancelled')
-    process.exit(0)
-  }
+  const name = cancelGuard(
+    await p.text({
+      message: 'What should the component be called?',
+      placeholder: 'button, hero-section, animated-text',
+      validate: (value) => {
+        if (!value) return 'Component name is required'
+        if (!/^[a-z][a-z0-9-]*$/.test(value)) {
+          return 'Component name must be kebab-case (lowercase with hyphens)'
+        }
+        return undefined
+      },
+    }),
+    'Component generation cancelled'
+  )
 
   const componentPath = `${category}/${name}`
 
-  const isClientComponent = await p.confirm({
-    message: "Should this be a client component ('use client')?",
-    initialValue: false,
-  })
-
-  if (p.isCancel(isClientComponent)) {
-    p.cancel('Component generation cancelled')
-    process.exit(0)
-  }
+  const isClientComponent = cancelGuard(
+    await p.confirm({
+      message: "Should this be a client component ('use client')?",
+      initialValue: false,
+    }),
+    'Component generation cancelled'
+  )
 
   return {
     path: componentPath,
@@ -95,32 +95,12 @@ export const promptComponentConfig = async (): Promise<ComponentConfig> => {
 }
 
 /**
- * Convert kebab-case to PascalCase
- */
-const toPascalCase = (str: string): string =>
-  str
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join('')
-
-/**
- * Convert kebab-case to camelCase
- */
-const toCamelCase = (str: string): string =>
-  str
-    .split('-')
-    .map((word, index) =>
-      index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)
-    )
-    .join('')
-
-/**
  * Generate component index.tsx content
  */
-const generateComponentContent = (
+function generateComponentContent(
   componentName: string,
   options: ComponentOptions
-): string => {
+): string {
   const { client } = options
   const pascalName = toPascalCase(componentName)
   const cssClassName = toCamelCase(componentName)
@@ -164,7 +144,7 @@ export function ${pascalName}({
 /**
  * Generate CSS module content
  */
-const generateCssContent = (componentName: string): string => {
+function generateCssContent(componentName: string): string {
   const cssClassName = toCamelCase(componentName)
 
   return `/* ${componentName}.module.css */
@@ -178,10 +158,10 @@ const generateCssContent = (componentName: string): string => {
 /**
  * Update barrel export file
  */
-const updateBarrelExport = async (
+async function updateBarrelExport(
   componentPath: string,
   componentName: string
-): Promise<void> => {
+): Promise<void> {
   const pathParts = componentPath.split('/')
   const category = pathParts[0] ?? 'components'
   const barrelPath = `components/${category}/index.ts`
@@ -253,60 +233,55 @@ export { ${pascalName} } from './${componentName}'
 /**
  * Generate component files and directories
  */
-export const createComponent = async (
+export async function createComponent(
   componentPath: string,
   options: ComponentOptions
-): Promise<void> => {
-  const s = p.spinner()
+): Promise<void> {
+  const pathParts = componentPath.split('/')
+  const componentName = pathParts[pathParts.length - 1] ?? ''
 
-  try {
-    const pathParts = componentPath.split('/')
-    const componentName = pathParts[pathParts.length - 1] ?? ''
-
-    // Validate component name
-    if (!/^[a-z][a-z0-9-]*$/.test(componentName)) {
-      throw new Error(
-        'Component name must be kebab-case (lowercase with hyphens)'
-      )
-    }
-
-    // Create directory structure
-    const componentDir = `components/${componentPath}`
-
-    s.start(`Generating component "${componentPath}"`)
-
-    // Create component directory (cross-platform)
-    await createDir(componentDir)
-
-    // Generate and write files
-    const componentContent = generateComponentContent(componentName, options)
-    const cssContent = generateCssContent(componentName)
-
-    await Bun.write(`${componentDir}/index.tsx`, componentContent)
-    await Bun.write(`${componentDir}/${componentName}.module.css`, cssContent)
-
-    s.stop(`Component "${componentPath}" generated successfully!`)
-
-    // Show what was created
-    p.log.success(`Created files:`)
-    p.log.message(`  📄 ${componentDir}/index.tsx`)
-    p.log.message(`  🎨 ${componentDir}/${componentName}.module.css`)
-
-    // Try to update barrel exports
-    await updateBarrelExport(componentPath, componentName)
-
-    const pascalName = toPascalCase(componentName)
-
-    p.note(
-      `Next steps:\n` +
-        `  1. Customize ${componentDir}/index.tsx\n` +
-        `  2. Style in ${componentDir}/${componentName}.module.css\n` +
-        `  3. Import: \`import { ${pascalName} } from '@/components/${componentPath}'\``
+  // Validate component name
+  if (!/^[a-z][a-z0-9-]*$/.test(componentName)) {
+    throw new Error(
+      'Component name must be kebab-case (lowercase with hyphens)'
     )
-  } catch (error) {
-    s.stop(`Failed to create component "${componentPath}"`)
-    throw error instanceof Error ? error : new Error(String(error))
   }
+
+  const componentDir = `components/${componentPath}`
+
+  await withSpinner(
+    `Generating component "${componentPath}"`,
+    `Component "${componentPath}" generated successfully!`,
+    `Failed to create component "${componentPath}"`,
+    async () => {
+      // Create component directory (cross-platform)
+      await createDir(componentDir)
+
+      // Generate and write files
+      const componentContent = generateComponentContent(componentName, options)
+      const cssContent = generateCssContent(componentName)
+
+      await Bun.write(`${componentDir}/index.tsx`, componentContent)
+      await Bun.write(`${componentDir}/${componentName}.module.css`, cssContent)
+    }
+  )
+
+  // Show what was created
+  p.log.success(`Created files:`)
+  p.log.message(`  ${componentDir}/index.tsx`)
+  p.log.message(`  ${componentDir}/${componentName}.module.css`)
+
+  // Try to update barrel exports
+  await updateBarrelExport(componentPath, componentName)
+
+  const pascalName = toPascalCase(componentName)
+
+  p.note(
+    `Next steps:\n` +
+      `  1. Customize ${componentDir}/index.tsx\n` +
+      `  2. Style in ${componentDir}/${componentName}.module.css\n` +
+      `  3. Import: \`import { ${pascalName} } from '@/components/${componentPath}'\``
+  )
 }
 
 // Export functions for use by unified create script

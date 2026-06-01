@@ -1,0 +1,111 @@
+.scene {
+  position: relative;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.intro {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding-top: calc(var(--header-height) + calc(60 / 375 * 100vw));
+  padding-bottom: calc(60 / 375 * 100vw);
+  padding-inline: calc(20 / 375 * 100vw);
+  pointer-events: none;
+  height: 0;
+  overflow: visible;
+
+  @media (--desktop) {
+    padding-top: calc(var(--header-height) + calc(80 / 1440 * 100vw));
+    padding-bottom: calc(80 / 1440 * 100vw);
+    padding-inline: 0;
+  }
+}
+
+.label {
+  display: inline-flex;
+  padding: calc(7 / 375 * 100vw) calc(14 / 375 * 100vw);
+  font-family: var(--font-mono);
+  font-size: calc(9 / 375 * 100vw);
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  border-radius: calc(3 / 375 * 100vw);
+  margin-bottom: calc(20 / 375 * 100vw);
+
+  @media (--desktop) {
+    padding: calc(9 / 1440 * 100vw) calc(18 / 1440 * 100vw);
+    font-size: calc(11 / 1440 * 100vw);
+    border-radius: calc(3 / 1440 * 100vw);
+    margin-bottom: calc(24 / 1440 * 100vw);
+  }
+}
+
+.title {
+  font-family: var(--font-mono);
+  font-size: calc(48 / 375 * 100vw);
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  line-height: 0.9;
+  color: var(--color-secondary);
+  margin-bottom: calc(16 / 375 * 100vw);
+
+  @media (--desktop) {
+    font-size: calc(100 / 1440 * 100vw);
+    margin-bottom: calc(20 / 1440 * 100vw);
+  }
+}
+
+.description {
+  font-family: var(--font-mono);
+  font-size: calc(11 / 375 * 100vw);
+  line-height: 1.7;
+  opacity: 0.55;
+  margin-bottom: calc(28 / 375 * 100vw);
+
+  @media (--desktop) {
+    font-size: calc(13 / 1440 * 100vw);
+    margin-bottom: calc(36 / 1440 * 100vw);
+  }
+}
+
+.scrollHint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(6 / 375 * 100vw);
+  font-family: var(--font-mono);
+  font-size: calc(8 / 375 * 100vw);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.35;
+  animation: nudge 2s ease-in-out infinite;
+
+  @media (--reduced-motion) {
+    animation: none;
+  }
+
+  @media (--desktop) {
+    gap: calc(8 / 1440 * 100vw);
+    font-size: calc(10 / 1440 * 100vw);
+  }
+}
+
+@keyframes nudge {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(5px);
+  }
+}

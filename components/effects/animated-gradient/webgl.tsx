@@ -60,6 +60,7 @@ type WebGLAnimatedGradientProps = {
   flowmap?: boolean
   colors?: string[]
   speed?: number
+  drip?: number
 }
 
 /**
@@ -75,8 +76,9 @@ export function WebGLAnimatedGradient({
   quantize = 0,
   radial = false,
   flowmap: hasFlowmap = true,
-  colors = ['#ff0000', '#000000'],
+  colors = ['#e30613', '#000000'],
   speed = 1,
+  drip = 0.6,
 }: WebGLAnimatedGradientProps) {
   const flowmap = useFlowmap('fluid')
 
@@ -89,6 +91,7 @@ export function WebGLAnimatedGradient({
         colorFrequency,
         quantize,
         radial,
+        drip,
         ...(hasFlowmap && { flowmap }),
       })
   )
@@ -125,6 +128,10 @@ export function WebGLAnimatedGradient({
     material.frequency = frequency
   }, [material, frequency])
 
+  useEffect(() => {
+    material.drip = drip
+  }, [material, drip])
+
   const aspect = useObjectFit(rect.width, rect.height, 1, 1, 'contain')
 
   useEffect(() => {
@@ -160,7 +167,7 @@ export function WebGLAnimatedGradient({
   useFrame(({ clock }) => {
     // Skip expensive updates when off-screen
     if (!visible) return
-    material.time = clock.getElapsedTime() * speed * 0.05
+    material.time = clock.getElapsedTime() * speed * 0.15
   })
 
   return (

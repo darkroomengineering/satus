@@ -39,6 +39,13 @@ function PresetCard({ preset }: { preset: (typeof PRESETS)[number] }) {
 export function Presets() {
   return (
     <section className={s.section}>
+      <div className={cn(s.header, 'dr-layout-grid')}>
+        <div className="col-span-full dt:col-start-2 dt:col-end-12">
+          <span className={s.sectionLabel}>Presets</span>
+          <h2 className={s.sectionTitle}>Pick your starting point</h2>
+        </div>
+      </div>
+
       <Marquee className={s.marquee} speed={0.4} pauseOnHover repeat={4}>
         <div className={s.marqueeContent}>
           {PRESETS.map((preset) => (

@@ -66,11 +66,11 @@ const INTEGRATION_INFO: Record<
  *
  * @example
  * ```tsx
- * import { isSanityConfigured } from '@/integrations/check-integration'
+ * import { isConfigured } from '@/integrations/registry'
  * import { NotConfigured } from '@/components/ui/not-configured'
  *
  * export default function SanityPage() {
- *   if (!isSanityConfigured()) {
+ *   if (!isConfigured('sanity')) {
  *     return <NotConfigured integration="Sanity" />
  *   }
  *   // ... rest of page
@@ -91,42 +91,64 @@ export function NotConfigured({
 
   return (
     <div className={cn(s.container, className)}>
-      <div className={s.icon}>⚙️</div>
-      <h1 className={s.title}>{integration} Not Configured</h1>
+      <div className={s.panel}>
+        <div className={s.meta}>
+          <div className={s.label}>Not Configured</div>
+          <h1 className={s.title}>
+            <span className={s.accent}>{integration}</span>
+          </h1>
+          {finalDescription && (
+            <p className={s.description}>{finalDescription}</p>
+          )}
+        </div>
 
-      {finalDescription && <p className={s.description}>{finalDescription}</p>}
+        <div className={s.instructions}>
+          <div className={s.instructionsLabel}>Setup</div>
+          <ol className={s.steps}>
+            <li>
+              Copy <code className={s.code}>.env.example</code> to{' '}
+              <code className={s.code}>.env.local</code>
+            </li>
+            <li>Add the required environment variables:</li>
+          </ol>
 
-      <div className={s.instructions}>
-        <h2 className={s.subtitle}>Setup Instructions</h2>
-        <ol className={s.steps}>
-          <li>
-            Copy <code>.env.example</code> to <code>.env.local</code>
-          </li>
-          <li>
-            Add the following environment variables:
-            {finalEnvVars.length > 0 && (
-              <ul className={s.envList}>
-                {finalEnvVars.map((envVar) => (
-                  <li key={envVar}>
-                    <code>{envVar}</code>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </li>
-          <li>Restart the development server</li>
-        </ol>
+          {finalEnvVars.length > 0 && (
+            <div className={s.envBlock}>
+              {finalEnvVars.map((envVar) => (
+                <div key={envVar} className={s.envVar}>
+                  <code>{envVar}</code>
+                </div>
+              ))}
+            </div>
+          )}
 
-        {finalDocsUrl && (
-          <p className={s.docs}>
-            <Link href={finalDocsUrl}>View {integration} Documentation →</Link>
-          </p>
-        )}
-      </div>
+          <ol className={s.stepsAfter} start={3}>
+            <li>Restart the development server</li>
+          </ol>
+        </div>
 
-      <div className={s.hint}>
-        <strong>Hint:</strong> Run <code>bun run setup:project</code> to remove
-        unused integrations.
+        <div className={s.footer}>
+          <div className={s.hint}>
+            Run <code className={s.code}>bun run setup:project</code> to remove
+            unused integrations.
+          </div>
+          {finalDocsUrl && (
+            <Link href={finalDocsUrl} className={s.docsLink}>
+              View {integration} Docs
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <path d="M7 17L17 7M7 7h10v10" />
+              </svg>
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   )

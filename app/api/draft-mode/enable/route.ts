@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
 import { defineEnableDraftMode } from 'next-sanity/draft-mode'
-import { isSanityConfigured } from '@/integrations/check-integration'
+import { isConfigured } from '@/integrations/registry'
 import { client } from '@/integrations/sanity/client'
 import { privateToken } from '@/integrations/sanity/env'
 
 // Only enable draft mode if Sanity is configured
 const draftModeHandler =
-  isSanityConfigured() && client
+  isConfigured('sanity') && client
     ? defineEnableDraftMode({
         client: client.withConfig({ token: privateToken }),
       })

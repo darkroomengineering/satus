@@ -75,16 +75,14 @@ export function Theme({
     },
   }
 
+  // NOTE: the global theme is applied to <html> via the effect above (and a
+  // server-rendered default in the root layout for no-flash initial paint).
+  // We intentionally do NOT render an inline <script> here: scripts inside
+  // client components never execute on client navigation and trigger a React
+  // "Encountered a script tag while rendering" error.
   return (
-    <>
-      {global && (
-        <script>
-          {`document.documentElement.setAttribute('data-theme', '${currentTheme}');`}
-        </script>
-      )}
-      <ThemeContextInternal.Provider value={contextValue}>
-        {children}
-      </ThemeContextInternal.Provider>
-    </>
+    <ThemeContextInternal.Provider value={contextValue}>
+      {children}
+    </ThemeContextInternal.Provider>
   )
 }

@@ -202,36 +202,6 @@ export const copyToClipboard = async (text: string): Promise<boolean> => {
   }
 }
 
-// ============================================================================
-// Spawn Utilities
-// ============================================================================
-
-/**
- * Spawn a process with inherited stdio (cross-platform)
- * Uses Bun.spawn with proper defaults
- */
-export const spawn = (
-  args: string[],
-  options: {
-    env?: Record<string, string | undefined>
-    cwd?: string
-    stdin?: 'inherit' | 'pipe'
-    stdout?: 'inherit' | 'pipe'
-    stderr?: 'inherit' | 'pipe'
-  } = {}
-) => {
-  const spawnOptions: Parameters<typeof Bun.spawn>[1] = {
-    stdin: options.stdin ?? 'inherit',
-    stdout: options.stdout ?? 'inherit',
-    stderr: options.stderr ?? 'inherit',
-  }
-
-  if (options.cwd) spawnOptions.cwd = options.cwd
-  if (options.env) spawnOptions.env = options.env
-
-  return Bun.spawn(args, spawnOptions)
-}
-
 /**
  * Build environment with FORCE_COLOR enabled
  * Removes NO_COLOR to prevent warnings

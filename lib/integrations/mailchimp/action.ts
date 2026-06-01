@@ -8,6 +8,7 @@ import {
   addContactToMailchimp,
   addSubscriberToMailchimp,
 } from './mailchimp-client'
+import type { TurnstileValidationResult } from './turnstile'
 import { validateFormWithTurnstile } from './turnstile'
 
 const contactSchema = z.object({
@@ -23,6 +24,16 @@ const subscriptionSchema = z.object({
   lastName: z.string().optional(),
 })
 
+function turnstileError(validation: TurnstileValidationResult): FormState {
+  return {
+    status: 400,
+    message: 'invalid_input_',
+    fieldErrors: {
+      turnstile: validation.errors[0] ?? 'security_verification_required_',
+    },
+  }
+}
+
 // Contact form action
 export async function mailchimpContactAction(
   _initialState: FormState,
@@ -30,14 +41,7 @@ export async function mailchimpContactAction(
 ): Promise<FormState> {
   const turnstileValidation = await validateFormWithTurnstile(formData)
   if (!turnstileValidation.isValid) {
-    return {
-      status: 400,
-      message: 'invalid_input_',
-      fieldErrors: {
-        turnstile:
-          turnstileValidation.errors[0] ?? 'security_verification_required_',
-      },
-    }
+    return turnstileError(turnstileValidation)
   }
 
   return runFormAction({
@@ -65,14 +69,7 @@ export async function mailchimpSubscriptionAction(
 ): Promise<FormState> {
   const turnstileValidation = await validateFormWithTurnstile(formData)
   if (!turnstileValidation.isValid) {
-    return {
-      status: 400,
-      message: 'invalid_input_',
-      fieldErrors: {
-        turnstile:
-          turnstileValidation.errors[0] ?? 'security_verification_required_',
-      },
-    }
+    return turnstileError(turnstileValidation)
   }
 
   return runFormAction({
@@ -82,14 +79,6 @@ export async function mailchimpSubscriptionAction(
     run: async (input) => {
       const result = await addSubscriberToMailchimp(input)
       if (!result.success) {
-        if (
-          result.error?.includes('already') ||
-          result.error?.includes('Member Exists') ||
-          result.error?.includes('is already a list member')
-        ) {
-          return { status: 200, message: 'already_subscribed_' }
-        }
-
         let errorMessage = 'subscription_failed_'
         if (
           result.error?.includes('fake') ||

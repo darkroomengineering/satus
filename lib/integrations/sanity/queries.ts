@@ -1,4 +1,4 @@
-import groq from 'groq'
+import { defineQuery } from 'next-sanity'
 
 // Helper for rich text content with link projections
 const richTextWithLinks = `
@@ -22,7 +22,7 @@ const linkWithLabel = `
 `
 
 // Page queries
-export const pageQuery = groq`
+export const pageQuery = defineQuery(`
   *[_type == "page" && slug.current == $slug][0] {
     _id,
     title,
@@ -33,10 +33,10 @@ export const pageQuery = groq`
     publishedAt,
     _updatedAt
   }
-`
+`)
 
 // Article queries
-export const articleQuery = groq`
+export const articleQuery = defineQuery(`
   *[_type == "article" && slug.current == $slug][0] {
     _id,
     title,
@@ -51,9 +51,9 @@ export const articleQuery = groq`
     metadata,
     _updatedAt
   }
-`
+`)
 
-export const allArticlesQuery = groq`
+export const allArticlesQuery = defineQuery(`
   *[_type == "article"] | order(publishedAt desc) {
     _id,
     title,
@@ -63,4 +63,4 @@ export const allArticlesQuery = groq`
     categories,
     publishedAt
   }
-`
+`)

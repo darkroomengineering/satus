@@ -27,7 +27,7 @@ export async function revalidate(req: NextRequest): Promise<NextResponse> {
 
   if (!secret || secret !== process.env.SHOPIFY_REVALIDATION_SECRET) {
     console.error('Invalid revalidation secret.')
-    return NextResponse.json({ status: 200 })
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   if (!(isCollectionUpdate || isProductUpdate)) {

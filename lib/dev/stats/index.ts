@@ -1,14 +1,16 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useRef } from 'react'
 import _Stats from 'stats-gl'
 import { useTempus } from 'tempus/react'
 import s from './stats.module.css'
 
 export function Stats() {
-  const stats = useMemo(
-    () =>
-      new _Stats({ minimal: false } as ConstructorParameters<typeof _Stats>[0]),
-    []
-  )
+  const statsRef = useRef<_Stats | null>(null)
+  if (!statsRef.current) {
+    statsRef.current = new _Stats({
+      minimal: false,
+    } as ConstructorParameters<typeof _Stats>[0])
+  }
+  const stats = statsRef.current
 
   useEffect(() => {
     const domElement = (stats as unknown as { dom: HTMLElement }).dom

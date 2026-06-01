@@ -112,16 +112,17 @@ export function rateLimit(
 }
 
 /**
- * Get client IP from request headers
- * Works with Vercel, Cloudflare, and standard proxies
+ * Extract client IP from a Headers object.
+ * Works with Vercel, Cloudflare, and standard proxies.
+ * Accepts both the Web API `Headers` and Next.js `ReadonlyHeaders`.
+ *
+ * Priority: x-forwarded-for → cf-connecting-ip → x-real-ip → 'unknown'
  */
-export function getClientIP(request: Request): string {
-  const headers = request.headers
-
-  // Vercel
+export function getIPFromHeaders(headers: Pick<Headers, 'get'>): string {
+  // Vercel / standard proxy
   const forwardedFor = headers.get('x-forwarded-for')
   if (forwardedFor) {
-    return forwardedFor.split(',')[0]?.trim() || 'unknown'
+    return forwardedFor.split(',')[0]?.trim() ?? 'unknown'
   }
 
   // Cloudflare
@@ -137,6 +138,14 @@ export function getClientIP(request: Request): string {
   }
 
   return 'unknown'
+}
+
+/**
+ * Get client IP from a Request object.
+ * Works with Vercel, Cloudflare, and standard proxies.
+ */
+export function getClientIP(request: Request): string {
+  return getIPFromHeaders(request.headers)
 }
 
 // Pre-configured rate limiters for common use cases

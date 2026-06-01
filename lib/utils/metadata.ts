@@ -111,7 +111,7 @@ export function generatePageMetadata(
       ],
     },
     other: {
-      'fb:app_id': process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '',
+      'fb:app_id': env.NEXT_PUBLIC_FACEBOOK_APP_ID ?? '',
     },
   }
 

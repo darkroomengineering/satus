@@ -10,7 +10,7 @@ import { Link } from '@/components/ui/link'
 import { RealViewport } from '@/components/ui/real-viewport'
 import { env } from '@/lib/env'
 import { OptionalFeatures } from '@/lib/features'
-import { isSanityConfigured } from '@/lib/integrations/check-integration'
+import { isConfigured } from '@/lib/integrations/registry'
 import { SanityLive } from '@/lib/integrations/sanity/live'
 import { themes } from '@/lib/styles/colors'
 import { fontsVariable } from '@/lib/styles/fonts'
@@ -85,14 +85,18 @@ export const viewport: Viewport = {
 
 export default async function Layout({ children }: PropsWithChildren) {
   const { isEnabled: isDraftMode } = await draftMode()
-  const sanityConfigured = isSanityConfigured()
+  const sanityConfigured = isConfigured('sanity')
 
   return (
     <html
       lang="en"
       dir="ltr"
       className={fontsVariable}
-      // NOTE: This is due to the data-theme attribute being set which causes hydration errors
+      // Default theme rendered server-side for no-flash initial paint; the
+      // client <Theme> updates data-theme per route via effect.
+      data-theme="dark"
+      // NOTE: data-theme is updated client-side per route, which would
+      // otherwise trip a hydration warning.
       suppressHydrationWarning
     >
       {/* this helps to track Satus usage thanks to Wappalyzer */}
@@ -121,11 +125,13 @@ export default async function Layout({ children }: PropsWithChildren) {
         {/* Optional features - conditionally loaded based on configuration */}
         <OptionalFeatures />
 
+        {/* Sanity Live - renders unconditionally when Sanity is configured for real-time updates */}
+        {sanityConfigured && <SanityLive />}
+
         {/* Sanity Visual Editing - only when draft mode is enabled */}
         {sanityConfigured && isDraftMode && (
           <Suspense fallback={null}>
             <VisualEditing />
-            <SanityLive />
           </Suspense>
         )}
 

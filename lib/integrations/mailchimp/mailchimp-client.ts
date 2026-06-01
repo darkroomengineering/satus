@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { fetchWithTimeout } from '@/utils/fetch'
 
 export interface MailchimpConfig {
@@ -42,6 +43,11 @@ function getMailchimpConfig(): MailchimpConfig {
   return { apiKey, serverPrefix, audienceId }
 }
 
+// Compute the MD5 subscriber hash Mailchimp uses for member lookup
+function subscriberHash(email: string): string {
+  return createHash('md5').update(email.trim().toLowerCase()).digest('hex')
+}
+
 // Base Mailchimp API client
 async function makeMailchimpRequest(
   endpoint: string,
@@ -63,6 +69,22 @@ async function makeMailchimpRequest(
   })
 }
 
+// Apply tags to a member via the dedicated tags endpoint
+async function applyMemberTags(
+  audienceId: string,
+  email: string,
+  tags: string[]
+): Promise<void> {
+  const hash = subscriberHash(email)
+  const body = {
+    tags: tags.map((name) => ({ name, status: 'active' })),
+  }
+  await makeMailchimpRequest(`/lists/${audienceId}/members/${hash}/tags`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
 // Add or update a contact in Mailchimp
 export async function addContactToMailchimp(
   contactData: ContactData
@@ -75,25 +97,30 @@ export async function addContactToMailchimp(
     const firstName = nameParts[0] || ''
     const lastName = nameParts.slice(1).join(' ') || ''
 
+    const hash = subscriberHash(contactData.email)
+
     const subscriberData = {
       email_address: contactData.email,
-      status: 'subscribed', // Use 'pending' for double opt-in, 'subscribed' for single
+      status_if_new: 'subscribed',
+      status: 'subscribed',
       merge_fields: {
         FNAME: firstName,
         LNAME: lastName,
       },
-      tags: ['contact-form'],
     }
 
     const response = await makeMailchimpRequest(
-      `/lists/${audienceId}/members`,
+      `/lists/${audienceId}/members/${hash}`,
       {
-        method: 'POST',
+        method: 'PUT',
         body: JSON.stringify(subscriberData),
       }
     )
 
     if (response.ok) {
+      // Apply the contact-form tag via the dedicated tags endpoint
+      await applyMemberTags(audienceId, contactData.email, ['contact-form'])
+
       // Add a note about the contact form submission
       const data = (await response.json()) as { id: string }
       const subscriberId = data.id
@@ -130,25 +157,29 @@ export async function addSubscriberToMailchimp(
   try {
     const { audienceId } = getMailchimpConfig()
 
+    const hash = subscriberHash(subscriptionData.email)
+
     const subscriberData = {
       email_address: subscriptionData.email,
-      status: 'subscribed', // Use 'pending' for double opt-in, 'subscribed' for single
+      status_if_new: 'subscribed',
+      status: 'subscribed',
       merge_fields: {
         FNAME: subscriptionData.firstName ?? '',
         LNAME: subscriptionData.lastName ?? '',
       },
-      tags: ['newsletter'],
     }
 
     const response = await makeMailchimpRequest(
-      `/lists/${audienceId}/members`,
+      `/lists/${audienceId}/members/${hash}`,
       {
-        method: 'POST',
+        method: 'PUT',
         body: JSON.stringify(subscriberData),
       }
     )
 
     if (response.ok) {
+      // Apply the newsletter tag via the dedicated tags endpoint
+      await applyMemberTags(audienceId, subscriptionData.email, ['newsletter'])
       return { success: true }
     }
 

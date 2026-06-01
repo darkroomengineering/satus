@@ -2,7 +2,9 @@
 
 import cn from 'clsx'
 import { usePathname } from 'next/navigation'
+import { useState } from 'react'
 import { Link } from '@/components/ui/link'
+import s from './header.module.css'
 
 // Navigation links - customize for your project
 const LINKS = [
@@ -26,29 +28,49 @@ const EXAMPLES = [
 
 export function Header() {
   const pathname = usePathname()
+  const [menuOpen, setMenuOpen] = useState(false)
+
   const isExamplePage = EXAMPLES.some(
     (ex) => pathname === ex.href || pathname.startsWith(`${ex.href}/`)
   )
 
   return (
-    <nav className="fixed top-safe left-safe z-2 flex flex-col font-mono dt:text-[11px] text-[10px] uppercase">
-      {/* Root level: Logo + current path */}
-      <h1 className="dt:text-[13px] text-[12px]">
-        Satūs<span className="opacity-50">{pathname}</span>
-      </h1>
+    <header className={s.header}>
+      {/* Brand: logo + live pathname */}
+      <div className={s.brand}>
+        <span>Satūs</span>
+        <span className={s.brandPath}>{pathname}</span>
+      </div>
+
+      {/* Mobile menu toggle */}
+      <button
+        aria-expanded={menuOpen}
+        aria-controls="header-nav"
+        aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+        className={s.menuToggle}
+        onClick={() => setMenuOpen((prev) => !prev)}
+        type="button"
+      >
+        {menuOpen ? '✕ close' : '≡ menu'}
+      </button>
 
       {/* Level 1: Main navigation */}
-      <ul className="dr-pl-12 mt-1 flex flex-col gap-px">
+      <ul className={cn(s.navList, menuOpen && s.navListOpen)} id="header-nav">
         {LINKS.map((link) => {
           const isExternal = 'external' in link && link.external
+          const isActive = pathname === link.href
+
           return (
-            <li key={link.href} className="flex items-center gap-1">
-              <span className="w-2 opacity-50">
-                {pathname === link.href ? '›' : ''}
+            <li key={link.href} className={s.navItem}>
+              <span className={cn(s.chevron, isActive && s.chevronActive)}>
+                ›
               </span>
               <Link
+                className={cn(
+                  s.navLink,
+                  isActive ? s.navLinkActive : s.navLinkDim
+                )}
                 href={link.href}
-                className="link"
                 {...(isExternal && {
                   target: '_blank',
                   rel: 'noopener noreferrer',
@@ -60,33 +82,48 @@ export function Header() {
             </li>
           )
         })}
-        {/* Examples with nested level 2 */}
-        <li className="flex flex-col">
-          <div className="flex items-center gap-1">
-            <span className="w-2 opacity-50">{isExamplePage ? '›' : ''}</span>
-            <span>examples</span>
+
+        {/* Examples group with nested level 2 */}
+        <li className={s.examplesGroup}>
+          <div className={cn(s.navItem, s.examplesLabel)}>
+            <span className={cn(s.chevron, isExamplePage && s.chevronActive)}>
+              ›
+            </span>
+            <span
+              className={cn(
+                s.navLink,
+                isExamplePage ? s.navLinkActive : s.navLinkDim
+              )}
+            >
+              examples
+            </span>
           </div>
+
           {/* Level 2: Examples sub-navigation */}
-          <ul className="dr-pl-12 mt-px flex flex-col gap-px">
-            {EXAMPLES.map((link) => (
-              <li key={link.href} className="flex items-center gap-1">
-                <span className="w-2 opacity-50">
-                  {pathname === link.href ? '›' : ''}
-                </span>
-                <Link
-                  href={link.href}
-                  className={cn(
-                    'link transition-opacity hover:opacity-100',
-                    pathname === link.href ? 'opacity-100' : 'opacity-40'
-                  )}
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
+          <ul className={cn(s.nav, s.examplesList)}>
+            {EXAMPLES.map((link) => {
+              const isActive =
+                pathname === link.href || pathname.startsWith(`${link.href}/`)
+              return (
+                <li key={link.href} className={s.navItem}>
+                  <span className={cn(s.chevron, isActive && s.chevronActive)}>
+                    ›
+                  </span>
+                  <Link
+                    className={cn(
+                      s.navLink,
+                      isActive ? s.navLinkActive : s.navLinkDim
+                    )}
+                    href={link.href}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              )
+            })}
           </ul>
         </li>
       </ul>
-    </nav>
+    </header>
   )
 }

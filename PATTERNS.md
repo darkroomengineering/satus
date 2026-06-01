@@ -144,18 +144,18 @@ export function ProductView({ product }: { product: Product }) {
 All integrations are optional, self-contained in `lib/integrations/{name}/`.
 
 ```tsx
-import { isSanityConfigured } from '@/integrations/check-integration'
+import { isConfigured } from '@/integrations/registry'
 import { NotConfigured } from '@/components/ui/not-configured'
 
 export default async function SanityPage() {
-  if (!isSanityConfigured()) {
+  if (!isConfigured('sanity')) {
     return <NotConfigured integration="Sanity" />   // renders setup instructions
   }
   // ... normal page logic
 }
 ```
 
-Available checks: `isSanityConfigured()`, `isShopifyConfigured()`, `isHubSpotConfigured()`, `isMailchimpConfigured()`, `isTurnstileConfigured()`.
+Available checks: `isConfigured('sanity')`, `isConfigured('shopify')`, `isConfigured('hubspot')`, `isConfigured('mailchimp')`, `isConfigured('turnstile')`.
 
 #### Integration Registry
 
@@ -171,7 +171,7 @@ if (isConfigured('sanity')) { /* ... */ }
 const active = getConfigured() // ['Sanity', 'Shopify', ...]
 ```
 
-Adding a new integration: add its Zod schema to `@/utils/validation`, then add one entry to the registry. `check-integration.ts`, `doctor.ts`, and listing functions derive automatically.
+Adding a new integration: add its Zod schema to `@/utils/validation`, then add one entry to the registry. `doctor.ts` and listing functions derive automatically.
 
 `NotConfigured` auto-detects env vars and docs URL for known integrations. Pass custom props for new ones:
 
@@ -287,7 +287,7 @@ import cn from 'clsx'                              // default import
 | CSS Modules + Tailwind | Any styled component | `components/ui/select/index.tsx` |
 | Standard Context | Shared state across tree | `components/ui/form/index.tsx` |
 | Server/Client split | Pages with interactive parts | Any `app/` route |
-| Integration optionality | New third-party service | `lib/integrations/check-integration.ts` |
+| Integration optionality | New third-party service | `lib/integrations/registry.ts` |
 | WebGL lifecycle | DOM-synced 3D elements | `lib/webgl/hooks/use-webgl-element.ts` |
 | useRef instantiation | Persistent objects | Any WebGL or animation component |
 

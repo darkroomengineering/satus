@@ -5,6 +5,7 @@ import { Canvas } from '@react-three/fiber'
 import cn from 'clsx'
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
+import { useShallow } from 'zustand/react/shallow'
 import { SheetProvider } from '@/lib/dev/theatre'
 import { useWebGLStore } from '@/lib/webgl/store'
 import { createRenderer } from '@/lib/webgl/utils/create-renderer'
@@ -86,8 +87,14 @@ export function GlobalCanvas({
   className,
   forceWebGL = false,
 }: GlobalCanvasProps) {
-  const { isActivated, isActive, getWebGLTunnel, getDOMTunnel } =
-    useWebGLStore()
+  const { isActivated, isActive, getWebGLTunnel, getDOMTunnel } = useWebGLStore(
+    useShallow((s) => ({
+      isActivated: s.isActivated,
+      isActive: s.isActive,
+      getWebGLTunnel: s.getWebGLTunnel,
+      getDOMTunnel: s.getDOMTunnel,
+    }))
+  )
 
   // Get device capabilities for renderer config
   const capability = detectGPUCapability()

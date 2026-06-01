@@ -19,7 +19,7 @@ import { z } from 'zod'
 const envSchema = z.object({
   // Core
   NODE_ENV: z.enum(['development', 'production', 'test']).optional(),
-  NEXT_PUBLIC_BASE_URL: z.string().optional(),
+  NEXT_PUBLIC_BASE_URL: z.url().optional(),
 
   // Sanity (supports both Satus and Vercel Marketplace conventions)
   NEXT_PUBLIC_SANITY_PROJECT_ID: z.string().optional(),

@@ -112,7 +112,7 @@ lib/
 ## TypeScript
 
 - `strict: true` plus: `noImplicitOverride`, `exactOptionalPropertyTypes`, `useUnknownInCatchVariables`, `noFallthroughCasesInSwitch`, `noImplicitReturns`, `noUnusedLocals`, `noUnusedParameters`, `noUncheckedIndexedAccess`, `noUncheckedSideEffectImports`
-- Target: ES2023, module: ESNext, moduleResolution: bundler
+- Target: ESNext, module: ESNext, moduleResolution: bundler
 - `verbatimModuleSyntax: true` -- use `import type` for type-only imports
 - Prefer `interface` for object shapes, `type` for unions/intersections
 - Props extend `ComponentProps<'element'>` when wrapping HTML elements

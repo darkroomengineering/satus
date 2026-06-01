@@ -1,44 +1,52 @@
 /**
- * LiquidDripMaterial — TSL 2D screen-space dripping liquid metal
+ * LiquidDripMaterial — TSL raymarched darkroom-developer curtain
  *
- * A fullscreen 2D curtain renderer — glossy red liquid metal that hangs from
- * the top of the hero and drips downward in organic tendrils, clipped to the
- * first fold (overflow:hidden on the hero section).
+ * A full-width sheet of clear developer chemical clings to the top edge of the
+ * hero and bleeds downward in thin rivulets — like fixer running off a print
+ * hung to dry. Raymarched (orthographic) so the sheet + rivulets carry real 3D
+ * normals, shaded as a translucent/glassy fluid (near-transparent body read via
+ * a bright wet meniscus + sharp glints, faint safelight-red tint). NOT chrome.
  *
- * Architecture mirrors AnimatedGradientMaterial exactly:
- *  - MeshBasicNodeMaterial subclass { transparent: true }
- *  - Uniforms exposed as typed getters/setters
- *  - colorNode built via TSL Fn()
+ * Physics / interactivity:
+ *  - Rivulets grow down out of the curtain; a bead swells at the tip, pinches
+ *    off and falls away off-screen while the thread drains back up, then loops.
+ *  - `spawnDrop(uvx)` releases a fresh drop at a clicked column (8 slots, so
+ *    rapid clicks never cancel a still-falling drop).
+ *  - `setObstacles(rects)` registers UI boxes the liquid flows AROUND: the drip
+ *    field is x-warped to bend around them and the boxes are carved out so no
+ *    liquid renders over the content.
  *
- * 2D field approach:
- *  - Dripping curtain: metal hangs from top, per-column lower boundary b(x,t)
- *  - 5 animated drip tendrils with Gaussian protrusions that slowly oscillate
- *  - Fractal noise on boundary for organic wobble
- *  - Coverage: smoothstep around boundary → 1 (metal) / 0 (transparent)
- *  - Faux normal from 2 finite-difference taps in x and y
- *  - Shading: red-chrome metallic — Fresnel + Blinn-Phong + env gradient
+ * Pinned to the viewport (static fullscreen quad — see webgl.tsx).
  *
- * Public API (mirrors AnimatedGradientMaterial):
- *  time, amplitude, dpr (no-op), aspect (Vector2), resolution (Vector2)
+ * Pipeline: MeshBasicNodeMaterial { transparent } on the WebGPURenderer.
+ * Linear color space + NoToneMapping → LINEAR color constants.
+ *
+ * TS2590 discipline: heavy logic in plain-JS helpers (NOT Fn-wrapped) with
+ * explicit FloatNode/Vec3Node signatures + `as unknown as` casts at chain
+ * breaks. The Fn() body holds only the march loop + final color assembly.
  */
 
-import { Vector2 } from 'three'
+import { Vector2, Vector4 } from 'three'
 import {
+  abs,
+  Break,
   clamp,
-  cos,
   dot,
-  exp,
   Fn,
   float,
+  fract,
+  If,
+  Loop,
+  length,
   max,
+  min,
   mix,
-  mx_fractal_noise_float,
   normalize,
   pow,
   screenUV,
+  sign,
   sin,
   smoothstep,
-  sqrt,
   uniform,
   vec3,
   vec4,
@@ -46,21 +54,46 @@ import {
 import type { Node } from 'three/webgpu'
 import { MeshBasicNodeMaterial } from 'three/webgpu'
 
-// Convenience alias: a float-typed TSL node with full arithmetic method chaining
 type FloatNode = Node<'float'>
-
-// Vec3Node: derive the concrete type once via type-query so casts stay simple.
 const _v3sample = vec3(0, 0, 0)
 type Vec3Node = typeof _v3sample
+const _v2u = uniform(new Vector2())
+type Vec2Uniform = typeof _v2u
+const _v4u = uniform(new Vector4())
+type Vec4Uniform = typeof _v4u
+
+// World half-height the view maps to (worldY ∈ [-SCALE/2, +SCALE/2]).
+const VIEW_SCALE = 2.0
+const SHEET_Y = 1.04
+// Continuous curtain band: ONE wide horizontal cylinder (along x), not discrete
+// lobes — so the chemical reads as a single connected sheet, never as blobs.
+const CURTAIN_R = 0.4
+const CURTAIN_LEN = 6.0
+// Concurrent click-drop slots: enough that rapid clicking never recycles a
+// still-falling user drop (round-robin only reuses after this many).
+const CLICK_SLOTS = 8
+const OBSTACLE_SLOTS = 4
+// Inactive obstacle: far below the view, zero size.
+const OBSTACLE_OFF = new Vector4(0, -100, 0, 0)
 
 export class LiquidDripMaterial extends MeshBasicNodeMaterial {
   private readonly _uTime = uniform(0)
   private readonly _uAmplitude = uniform(1.0)
+  private readonly _uResolution = uniform(new Vector2(1, 1))
 
-  // Exposed for webgl.tsx API compatibility (aspect.set(x,y), resolution.set(x,y))
-  // The drip field works in raw 0..1 UV space so aspect is not used in the shader.
-  readonly aspect: Vector2 = new Vector2(1, 1)
-  readonly resolution: Vector2 = new Vector2(0, 0)
+  private readonly _uClicks: Vec2Uniform[] = Array.from(
+    { length: CLICK_SLOTS },
+    () => uniform(new Vector2(0, -1000))
+  )
+  private _clickIndex = 0
+
+  // UI obstacles in world coords: (centerX, centerY, halfW, halfH).
+  private readonly _uObstacles: Vec4Uniform[] = Array.from(
+    { length: OBSTACLE_SLOTS },
+    () => uniform(OBSTACLE_OFF.clone())
+  )
+
+  readonly resolution = this._uResolution.value as Vector2
 
   constructor({ amplitude = 1.0 }: { amplitude?: number } = {}) {
     super({ transparent: true })
@@ -70,267 +103,353 @@ export class LiquidDripMaterial extends MeshBasicNodeMaterial {
 
   private _buildNodes(): void {
     const uTime = this._uTime
+    const uAmp = this._uAmplitude
+    const uRes = this._uResolution
+    const clicks = this._uClicks
+    const obstacles = this._uObstacles
 
-    // ------------------------------------------------------------------
-    // Helper: organic boundary noise — slow fractal noise on x-axis
-    // Low-frequency fractal noise (2 octaves) for wobbly-edge drift.
-    // ------------------------------------------------------------------
-    const noiseEdge = (sx: FloatNode): FloatNode => {
-      return mx_fractal_noise_float(
-        vec3(sx.mul(1.8), uTime.mul(0.09), float(3.7)),
-        2,
-        2.0,
-        0.5,
-        1.0
-      ) as unknown as FloatNode
-    }
+    const sdSphere = (p: Vec3Node, c: Vec3Node, r: FloatNode): FloatNode =>
+      length(p.sub(c)).sub(r) as unknown as FloatNode
 
-    // ------------------------------------------------------------------
-    // Helper: Gaussian drip tendril contribution at column sx.
-    // cx = drip center x (0..1), w = width, depth = how far it drips down.
-    // Returns value in ~0..depth range (bell-shaped around cx).
-    // NOT Fn-wrapped — plain JS helper to avoid TS2590.
-    // ------------------------------------------------------------------
-    const dripTendril = (
-      sx: FloatNode,
-      cx: number,
-      w: number,
-      depth: FloatNode
+    const sdRivuletCore = (
+      p: Vec3Node,
+      x: FloatNode,
+      yTop: FloatNode,
+      yBot: FloatNode,
+      r: FloatNode
     ): FloatNode => {
-      const diff = sx.sub(cx) as unknown as FloatNode
-      // Gaussian: exp(-diff²/w²)
-      const exponent = diff
-        .mul(diff)
-        .div(w * w)
-        .mul(-1.0) as unknown as FloatNode
-      const bell = exp(exponent) as unknown as FloatNode
-      return bell.mul(depth) as unknown as FloatNode
+      const cy = clamp(p.y, yBot, yTop) as unknown as FloatNode
+      const near = vec3(x, cy, float(0.0)) as unknown as Vec3Node
+      return length(p.sub(near)).sub(r) as unknown as FloatNode
     }
 
-    // ------------------------------------------------------------------
-    // Drip boundary Y — the lower edge of the metal curtain.
-    // sy: 1=top, 0=bottom in WebGL screenUV convention.
-    // "Inside metal" = sy > boundaryY(sx).
-    // Base coverage: metal fills top ~35% (boundaryY ≈ 0.65).
-    // Drip tendrils push boundaryY lower → tendrils reach toward y≈0.
-    // ------------------------------------------------------------------
-    const boundaryY = (sx: FloatNode): FloatNode => {
-      const base = float(0.65)
-
-      // Organic wobble: ±0.04 along the edge
-      const wobble = noiseEdge(sx).mul(0.04) as unknown as FloatNode
-
-      // Tendril 1 — left-center, deep
-      const d1len = sin(uTime.mul(0.31))
-        .mul(0.15)
-        .add(0.32) as unknown as FloatNode
-      const d1 = dripTendril(sx, 0.28, 0.065, d1len)
-
-      // Tendril 2 — center, deepest
-      const d2len = sin(uTime.mul(0.23).add(1.9))
-        .mul(0.18)
-        .add(0.38) as unknown as FloatNode
-      const d2 = dripTendril(sx, 0.52, 0.055, d2len)
-
-      // Tendril 3 — right-center
-      const d3len = sin(uTime.mul(0.41).add(3.3))
-        .mul(0.12)
-        .add(0.25) as unknown as FloatNode
-      const d3 = dripTendril(sx, 0.74, 0.06, d3len)
-
-      // Tendril 4 — far left, narrow
-      const d4len = sin(uTime.mul(0.19).add(5.1))
-        .mul(0.1)
-        .add(0.18) as unknown as FloatNode
-      const d4 = dripTendril(sx, 0.12, 0.04, d4len)
-
-      // Tendril 5 — far right
-      const d5len = cos(uTime.mul(0.27).add(0.8))
-        .mul(0.13)
-        .add(0.22) as unknown as FloatNode
-      const d5 = dripTendril(sx, 0.88, 0.05, d5len)
-
-      // Subtracting drip depth from base → tendrils reach downward
-      return base
-        .sub(wobble)
-        .sub(d1)
-        .sub(d2)
-        .sub(d3)
-        .sub(d4)
-        .sub(d5) as unknown as FloatNode
+    // 2D rounded-box distance (extruded in z) for a UI obstacle.
+    const sdObstacle = (p: Vec3Node, o: Vec4Uniform): FloatNode => {
+      const qx = abs(p.x.sub(o.x)).sub(o.z) as unknown as FloatNode
+      const qy = abs(p.y.sub(o.y)).sub(o.w) as unknown as FloatNode
+      const ax = max(qx, float(0.0)) as unknown as FloatNode
+      const ay = max(qy, float(0.0)) as unknown as FloatNode
+      const outside = length(vec3(ax, ay, float(0.0))) as unknown as FloatNode
+      const inside = min(max(qx, qy), float(0.0)) as unknown as FloatNode
+      return outside.add(inside).sub(0.04) as unknown as FloatNode
     }
 
-    // ------------------------------------------------------------------
-    // Coverage field: 1 = inside metal (above boundary), 0 = transparent.
-    // E = edge softness — small for a crisp-but-liquid drip edge.
-    // ------------------------------------------------------------------
-    const coverageAt = (sx: FloatNode, sy: FloatNode): FloatNode => {
-      const bY = boundaryY(sx)
-      const E = float(0.018)
-      return smoothstep(bY.sub(E), bY.add(E), sy) as unknown as FloatNode
-    }
-
-    // ------------------------------------------------------------------
-    // Red-chrome metallic shading — plain JS helper (NOT Fn-wrapped).
-    // Given coverage + screen coords, returns litColor + alpha.
-    // Copied from the approved LiquidMetalMaterial shading block.
-    // ------------------------------------------------------------------
-    const shadeDrip = (
-      coverage: FloatNode,
-      sx: FloatNode,
-      sy: FloatNode
-    ): { litColor: Vec3Node; alpha: FloatNode } => {
-      // Faux normal from central-difference gradient (2 extra field evals)
-      const H = 0.025
-      const fieldPx = coverageAt(sx.add(H) as unknown as FloatNode, sy)
-      const fieldMx = coverageAt(sx.sub(H) as unknown as FloatNode, sy)
-      const fieldPy = coverageAt(sx, sy.add(H) as unknown as FloatNode)
-      const fieldMy = coverageAt(sx, sy.sub(H) as unknown as FloatNode)
-
-      // Gradient: points toward the higher-coverage (metal interior) region
-      const gx = fieldPx.sub(fieldMx) as unknown as FloatNode
-      const gy = fieldPy.sub(fieldMy) as unknown as FloatNode
-
-      // Bend tangentially (0.45 gives metallic curvature at the drip edge)
-      const BEND = float(0.45)
-      const nxRaw = gx.mul(BEND) as unknown as FloatNode
-      const nyRaw = gy.mul(BEND) as unknown as FloatNode
-
-      // nz from unit-sphere constraint: sqrt(max(1 - nx²-ny², 0))
-      const nzSq = float(1.0)
-        .sub(nxRaw.mul(nxRaw))
-        .sub(nyRaw.mul(nyRaw)) as unknown as FloatNode
-      const nz = sqrt(max(nzSq, float(0.0))) as unknown as FloatNode
-
-      const normal = normalize(vec3(nxRaw, nyRaw, nz)) as unknown as Vec3Node
-
-      // Orthographic view direction always (0,0,1)
-      const viewDir = vec3(
-        float(0.0),
-        float(0.0),
-        float(1.0)
-      ) as unknown as Vec3Node
-
-      // ── Red-chrome metallic shading ──────────────────────────────────
-      // Chrome reflects its environment across the WHOLE surface (not just
-      // the rim), so the reflected studio gradient is the body of the metal;
-      // a tight specular glint + a sharp fresnel rim sell the gloss.
-
-      // Sharp fresnel rim
-      const NdotV = clamp(
-        dot(normal, viewDir),
+    const smin = (a: FloatNode, b: FloatNode, k: number): FloatNode => {
+      const h = clamp(
+        float(0.5).add(b.sub(a).mul(0.5 / k)),
         float(0.0),
         float(1.0)
       ) as unknown as FloatNode
-      const fresnel = pow(
-        float(1.0).sub(NdotV),
-        float(4.0)
+      return mix(b, a, h).sub(
+        float(k).mul(h).mul(float(1.0).sub(h))
+      ) as unknown as FloatNode
+    }
+
+    // Smooth subtract surface `b` from `a` (carve): smax(a, -b).
+    const ssub = (a: FloatNode, b: FloatNode, k: number): FloatNode =>
+      smin(a.mul(-1.0), b, k).mul(-1.0) as unknown as FloatNode
+
+    // X-domain warp: repel the sample x away from each obstacle within its
+    // vertical band so straight rivulets bend AROUND the UI boxes.
+    const warpX = (p: Vec3Node): FloatNode => {
+      let wx = p.x as unknown as FloatNode
+      for (const o of obstacles) {
+        const dx = p.x.sub(o.x) as unknown as FloatNode
+        const yInfl = float(1.0).sub(
+          smoothstep(o.w, o.w.add(0.3), abs(p.y.sub(o.y)))
+        ) as unknown as FloatNode
+        const pushMag = max(
+          float(0.0),
+          o.z.add(0.13).sub(abs(dx))
+        ) as unknown as FloatNode
+        const push = sign(dx).mul(pushMag).mul(yInfl) as unknown as FloatNode
+        wx = wx.add(push) as unknown as FloatNode
+      }
+      return wx
+    }
+
+    const addRivulet = (
+      p: Vec3Node,
+      field: FloatNode,
+      cx: number,
+      rate: number,
+      offset: number,
+      baseLen: number,
+      baseR: number
+    ): FloatNode => {
+      const phase = fract(uTime.mul(rate).add(offset)) as unknown as FloatNode
+      const x = float(cx).add(
+        sin(uTime.mul(0.18).add(offset)).mul(0.02)
+      ) as unknown as FloatNode
+      const yTop = float(SHEET_Y - 0.36)
+
+      // Head descends out of the curtain, accelerating, and exits the bottom of
+      // the view — it never shrinks away in place.
+      const descend = phase
+        .mul(phase)
+        .mul(2.4)
+        .mul(uAmp) as unknown as FloatNode
+      const headY = yTop.sub(descend) as unknown as FloatNode
+
+      // The thread FOLLOWS the head (up to `baseLen` reach) so the drip stays
+      // welded to the curtain — reading as developer running off the print, not
+      // a free-floating drop — until the head finally pulls away near the bottom.
+      const reach = min(
+        descend,
+        float(baseLen).mul(uAmp)
+      ) as unknown as FloatNode
+      const yBot = yTop.sub(reach) as unknown as FloatNode
+
+      const appear = smoothstep(
+        float(0.0),
+        float(0.08),
+        phase
+      ) as unknown as FloatNode
+      // ease out only once the head is already off-screen → no visible pop
+      const exit = float(1.0).sub(
+        smoothstep(float(0.85), float(1.0), phase)
       ) as unknown as FloatNode
 
-      // Full-surface reflection: red-tinted studio environment mapped by normal.
-      // Dark "floor" at drip tips, Kodak red through the middle, hot near-white
-      // "sky" reflection at the top sheet.
-      const up = clamp(
-        normal.y.mul(0.5).add(0.5),
-        float(0.0),
-        float(1.0)
+      // thin tendril, thinning further the longer it has stretched
+      const taper = float(1.0).sub(
+        smoothstep(float(0.0), float(1.4), reach).mul(0.5)
       ) as unknown as FloatNode
-      const envFloor = vec3(
+      const threadR = float(baseR)
+        .mul(0.6)
+        .mul(appear)
+        .mul(exit)
+        .mul(taper) as unknown as FloatNode
+      let d = smin(field, sdRivuletCore(p, x, yTop, yBot, threadR), 0.09)
+
+      // Heavy teardrop head: swells in, holds its volume, and rides the head
+      // position off the bottom of the view.
+      const headR = float(baseR)
+        .mul(1.45)
+        .mul(smoothstep(float(0.04), float(0.24), phase))
+        .mul(exit) as unknown as FloatNode
+      const headC = vec3(x, headY, float(0.0)) as unknown as Vec3Node
+      d = smin(d, sdSphere(p, headC, headR), 0.07)
+      return d
+    }
+
+    const addClickDrop = (
+      p: Vec3Node,
+      field: FloatNode,
+      slot: Vec2Uniform
+    ): FloatNode => {
+      const elapsed = uTime.sub(slot.y) as unknown as FloatNode
+      const fallDist = elapsed
+        .mul(0.3)
+        .add(elapsed.mul(elapsed).mul(0.7)) as unknown as FloatNode
+      const fallY = float(SHEET_Y - 0.05).sub(fallDist) as unknown as FloatNode
+      // Swell in, then keep volume while falling off the bottom — like the
+      // ambient rivulets, the drop leaves the view instead of vanishing in
+      // place, so spamming clicks never cancels a still-falling drop.
+      const grow = smoothstep(
+        float(0.0),
         float(0.12),
-        float(0.008),
-        float(0.03)
-      ) as unknown as Vec3Node
-      const envMid = vec3(
-        float(0.85),
-        float(0.05),
-        float(0.1)
-      ) as unknown as Vec3Node
-      const envSky = vec3(
-        float(1.0),
-        float(0.5),
-        float(0.42)
-      ) as unknown as Vec3Node
-      const envLow = mix(
-        envFloor,
-        envMid,
-        smoothstep(float(0.0), float(0.55), up)
-      ) as unknown as Vec3Node
-      const envColor = mix(
-        envLow,
-        envSky,
-        smoothstep(float(0.6), float(1.0), up)
-      ) as unknown as Vec3Node
-
-      // Tight, hot specular glint (the wet-metal highlight)
-      const lightDir = normalize(
-        vec3(float(0.5), float(0.85), float(0.7))
-      ) as unknown as Vec3Node
-      const halfVec = normalize(lightDir.add(viewDir)) as unknown as Vec3Node
-      const NdotH = clamp(
-        dot(normal, halfVec),
-        float(0.0),
-        float(1.0)
+        elapsed
       ) as unknown as FloatNode
-      const specular = pow(NdotH, float(280.0)).mul(2.6) as unknown as FloatNode
-      const specColor = vec3(
-        float(1.0),
-        float(0.92),
-        float(0.85)
-      ) as unknown as Vec3Node
-
-      // Bright red-white fresnel rim (the chrome edge)
-      const rimColor = vec3(
-        float(1.0),
-        float(0.32),
-        float(0.28)
-      ) as unknown as Vec3Node
-
-      // Combine: full-surface reflection + rim + specular glint
-      const litColor = envColor
-        .add(rimColor.mul(fresnel).mul(0.7))
-        .add(specColor.mul(specular)) as unknown as Vec3Node
-
-      // Alpha: pure coverage — transparent off the metal
-      const alpha = clamp(
-        coverage,
-        float(0.0),
-        float(1.0)
-      ) as unknown as FloatNode
-
-      return { litColor, alpha }
+      const r = float(0.085).mul(grow) as unknown as FloatNode
+      const c = vec3(slot.x, fallY, float(0.0)) as unknown as Vec3Node
+      return smin(field, sdSphere(p, c, r), 0.07)
     }
 
-    // ------------------------------------------------------------------
-    // Main shading node — kept small so TS can infer it without TS2590
-    // ------------------------------------------------------------------
-    const liquidDripNode = Fn(() => {
-      // screenUV: x=0 left→1 right, y=0 bottom→1 top (WebGL convention)
-      const sUV = screenUV.toVar()
-      const sx = sUV.x.toVar() // 0..1, left to right
-      const sy = sUV.y.toVar() // 0..1, bottom to top
+    // Continuous full-width curtain: a horizontal cylinder (capsule along x) at
+    // the top, whose center undulates in y with x+time so the visible bottom
+    // edge waves like chemical bleeding off a hung print. Because the capsule is
+    // one unbroken primitive spanning well past the screen edges, it reads as a
+    // single connected sheet — NOT a row of blobs.
+    const sdCurtainBand = (p: Vec3Node): FloatNode => {
+      const wave = sin(p.x.mul(1.1).add(uTime.mul(0.5)))
+        .mul(0.06)
+        .add(sin(p.x.mul(2.3).sub(uTime.mul(0.33))).mul(0.035))
+        .add(
+          sin(p.x.mul(4.6).add(uTime.mul(0.21))).mul(0.018)
+        ) as unknown as FloatNode
+      const cx = clamp(
+        p.x,
+        float(-CURTAIN_LEN),
+        float(CURTAIN_LEN)
+      ) as unknown as FloatNode
+      const dxv = p.x.sub(cx) as unknown as FloatNode
+      const dy = p.y.add(wave).sub(SHEET_Y) as unknown as FloatNode
+      return length(vec3(dxv, dy, p.z)).sub(CURTAIN_R) as unknown as FloatNode
+    }
 
-      // Compute coverage (curtain + drips)
-      const cov = coverageAt(
-        sx as unknown as FloatNode,
-        sy as unknown as FloatNode
-      )
+    // Scene SDF: sheet (real p) + rivulets/drops (warped p, bending around UI) −
+    // carved UI boxes.
+    const map = (p: Vec3Node): FloatNode => {
+      let d = sdCurtainBand(p)
 
-      // Shade: faux normal → fresnel → specular → env gradient → litColor + alpha
-      const { litColor, alpha } = shadeDrip(
-        cov,
-        sx as unknown as FloatNode,
-        sy as unknown as FloatNode
-      )
+      // Drips bend around the UI via the x-warp.
+      const pw = vec3(warpX(p), p.y, p.z) as unknown as Vec3Node
+      d = addRivulet(pw, d, -1.7, 0.2, 0.0, 1.15, 0.034)
+      d = addRivulet(pw, d, -0.85, 0.26, 1.6, 1.35, 0.03)
+      d = addRivulet(pw, d, -0.1, 0.22, 3.0, 1.0, 0.042)
+      d = addRivulet(pw, d, 0.8, 0.3, 0.8, 1.25, 0.031)
+      d = addRivulet(pw, d, 1.6, 0.24, 2.3, 1.4, 0.036)
 
-      return vec4(litColor, alpha)
+      for (const c of clicks) {
+        d = addClickDrop(pw, d, c as Vec2Uniform)
+      }
+
+      // Carve the UI boxes so liquid never renders over the content.
+      for (const o of obstacles) {
+        d = ssub(d, sdObstacle(p, o), 0.05)
+      }
+      return d
+    }
+
+    const calcNormal = (p: Vec3Node): Vec3Node => {
+      const k = 0.0015
+      const e1 = vec3(1.0, -1.0, -1.0) as unknown as Vec3Node
+      const e2 = vec3(-1.0, -1.0, 1.0) as unknown as Vec3Node
+      const e3 = vec3(-1.0, 1.0, -1.0) as unknown as Vec3Node
+      const e4 = vec3(1.0, 1.0, 1.0) as unknown as Vec3Node
+      const n = e1
+        .mul(map(p.add(e1.mul(k)) as unknown as Vec3Node))
+        .add(e2.mul(map(p.add(e2.mul(k)) as unknown as Vec3Node)))
+        .add(e3.mul(map(p.add(e3.mul(k)) as unknown as Vec3Node)))
+        .add(e4.mul(map(p.add(e4.mul(k)) as unknown as Vec3Node)))
+      return normalize(n) as unknown as Vec3Node
+    }
+
+    const shadeGel = (
+      n: Vec3Node,
+      viewDir: Vec3Node
+    ): { color: Vec3Node; alpha: FloatNode } => {
+      const NdotV = clamp(
+        dot(n, viewDir),
+        float(0.0),
+        float(1.0)
+      ) as unknown as FloatNode
+
+      const fres = pow(
+        float(1.0).sub(NdotV),
+        float(2.2)
+      ) as unknown as FloatNode
+
+      const l1 = normalize(vec3(0.4, 0.85, 0.5)) as unknown as Vec3Node
+      const l2 = normalize(vec3(-0.35, 0.55, 0.75)) as unknown as Vec3Node
+      const h1 = normalize(l1.add(viewDir)) as unknown as Vec3Node
+      const h2 = normalize(l2.add(viewDir)) as unknown as Vec3Node
+      const s1 = pow(
+        clamp(dot(n, h1), float(0.0), float(1.0)),
+        float(150.0)
+      ).mul(1.7) as unknown as FloatNode
+      const s2 = pow(
+        clamp(dot(n, h2), float(0.0), float(1.0)),
+        float(90.0)
+      ).mul(0.7) as unknown as FloatNode
+      const glintAmt = s1.add(s2) as unknown as FloatNode
+      const glint = vec3(1.0, 0.92, 0.88).mul(glintAmt) as unknown as Vec3Node
+
+      const body = vec3(0.05, 0.005, 0.008) as unknown as Vec3Node
+      const rim = vec3(0.85, 0.16, 0.14).mul(
+        fres.mul(0.75)
+      ) as unknown as Vec3Node
+      const color = body.add(rim).add(glint) as unknown as Vec3Node
+
+      const alpha = clamp(
+        float(0.16).add(fres.mul(0.55)).add(glintAmt.mul(0.6)),
+        float(0.0),
+        float(1.0)
+      ) as unknown as FloatNode
+
+      return { color, alpha }
+    }
+
+    const liquidGelNode = Fn(() => {
+      const aspect = uRes.x.div(uRes.y) as unknown as FloatNode
+      const wx = screenUV.x
+        .sub(0.5)
+        .mul(aspect)
+        .mul(VIEW_SCALE) as unknown as FloatNode
+      const wy = float(0.5)
+        .sub(screenUV.y)
+        .mul(VIEW_SCALE) as unknown as FloatNode
+
+      const ro = vec3(wx, wy, 2.0).toVar()
+      const rd = vec3(0.0, 0.0, -1.0).toVar()
+
+      const t = float(0.0).toVar()
+      const hit = float(0.0).toVar()
+      const pHit = vec3(0.0, 0.0, 0.0).toVar()
+
+      Loop(48, () => {
+        const p = ro.add(rd.mul(t)).toVar()
+        const d = map(p as unknown as Vec3Node)
+        If(d.lessThan(0.001), () => {
+          hit.assign(1.0)
+          pHit.assign(p)
+          Break()
+        })
+        t.addAssign(d.mul(0.9))
+        If(t.greaterThan(4.0), () => {
+          Break()
+        })
+      })
+
+      const normal = calcNormal(pHit as unknown as Vec3Node)
+      const viewDir = vec3(0.0, 0.0, 1.0) as unknown as Vec3Node
+      const shaded = shadeGel(normal, viewDir)
+
+      return vec4(shaded.color, hit.mul(shaded.alpha))
     })()
 
-    this.colorNode = liquidDripNode
+    this.colorNode = liquidGelNode
   }
 
   // ---------------------------------------------------------------------------
-  // Public API — mirrors AnimatedGradientMaterial surface
+  // Public API
   // ---------------------------------------------------------------------------
+
+  /** Release a fresh drop at a clicked column (uvx in 0..1 across the screen). */
+  spawnDrop(uvx: number): void {
+    const res = this._uResolution.value as Vector2
+    const aspect = res.y > 0 ? res.x / res.y : 1
+    const cx = (uvx - 0.5) * aspect * VIEW_SCALE
+    const slot = this._uClicks[this._clickIndex]
+    if (slot) {
+      ;(slot.value as Vector2).set(cx, this._uTime.value as number)
+      this._clickIndex = (this._clickIndex + 1) % this._uClicks.length
+    }
+  }
+
+  /**
+   * Register UI boxes (in CSS px, viewport-relative) that the liquid flows
+   * around. Converted to the shader's world space using the current resolution.
+   */
+  setObstacles(
+    rects: ReadonlyArray<{
+      left: number
+      top: number
+      width: number
+      height: number
+    }>
+  ): void {
+    const res = this._uResolution.value as Vector2
+    const vw = res.x || 1
+    const vh = res.y || 1
+    const aspect = vw / vh
+    for (let i = 0; i < this._uObstacles.length; i++) {
+      const slot = this._uObstacles[i]
+      if (!slot) continue
+      const rect = rects[i]
+      if (!rect) {
+        ;(slot.value as Vector4).copy(OBSTACLE_OFF)
+        continue
+      }
+      const cxPx = rect.left + rect.width / 2
+      const cyPx = rect.top + rect.height / 2
+      const cx = (cxPx / vw - 0.5) * aspect * VIEW_SCALE
+      const cy = (0.5 - cyPx / vh) * VIEW_SCALE
+      const hw = ((rect.width / vw) * aspect * VIEW_SCALE) / 2
+      const hh = ((rect.height / vh) * VIEW_SCALE) / 2
+      ;(slot.value as Vector4).set(cx, cy, hw, hh)
+    }
+  }
 
   get time(): number {
     return this._uTime.value as number
@@ -344,13 +463,5 @@ export class LiquidDripMaterial extends MeshBasicNodeMaterial {
   }
   set amplitude(v: number) {
     this._uAmplitude.value = v
-  }
-
-  // TSL's screenUV is DPR-aware — no-op for API compatibility
-  get dpr(): number {
-    return 1
-  }
-  set dpr(_v: number) {
-    /* no-op */
   }
 }

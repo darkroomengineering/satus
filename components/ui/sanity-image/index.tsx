@@ -32,7 +32,7 @@ export function SanityImage({
 
   return (
     <Image
-      src={urlForImage(image).width(maxWidth).url()}
+      src={urlForImage(image).width(maxWidth).auto('format').quality(80).url()}
       alt={alt ?? image.alt ?? ''}
       aspectRatio={aspectRatio}
       sizes={`(max-width: ${maxWidth}px) 100vw, ${maxWidth}px`}

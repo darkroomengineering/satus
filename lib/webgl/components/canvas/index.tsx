@@ -9,6 +9,7 @@ import {
   useState,
 } from 'react'
 import tunnel from 'tunnel-rat'
+import { useShallow } from 'zustand/react/shallow'
 import { useDeviceDetection } from '@/lib/hooks/use-device-detection'
 import { useWebGLStore } from '@/lib/webgl/store'
 
@@ -82,7 +83,14 @@ export function Canvas({
   const shouldRender = root && (hasGPU || force)
 
   // Global store for GlobalCanvas mode
-  const { activate, setActive, getWebGLTunnel, getDOMTunnel } = useWebGLStore()
+  const { activate, setActive, getWebGLTunnel, getDOMTunnel } = useWebGLStore(
+    useShallow((s) => ({
+      activate: s.activate,
+      setActive: s.setActive,
+      getWebGLTunnel: s.getWebGLTunnel,
+      getDOMTunnel: s.getDOMTunnel,
+    }))
+  )
 
   // Local tunnels for legacy mode
   const [localWebGLTunnel] = useState(() => (local ? tunnel() : null))

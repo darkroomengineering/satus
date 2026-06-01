@@ -3,15 +3,12 @@
 import cn from 'clsx'
 import gsap from 'gsap'
 import { useEffect, useRef, useState } from 'react'
-import { AnimatedGradient } from '@/components/effects/animated-gradient'
+import { LiquidMetal } from '@/components/effects/liquid-metal'
 import { Link } from '@/components/ui/link'
 import { usePreferredReducedMotion } from '@/hooks/use-sync-external'
 import s from './hero.module.css'
 
 const INSTALL_COMMAND = 'bunx degit darkroomengineering/satus my-project'
-
-// Black → Kodak red; warped by the cursor-driven fluid sim (flowmap).
-const GRADIENT_COLORS = ['#000000', '#e30613']
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
@@ -105,19 +102,15 @@ export function Hero() {
 
   return (
     <section className={cn(s.hero, 'dr-layout-grid')}>
-      {/* CSS glow: always-on base + reduced-motion / no-GPU fallback */}
+      {/* CSS glow base: always-on, performant, on-brand (also the
+          reduced-motion / no-GPU fallback). */}
       <div className={s.gradient} aria-hidden="true" />
-      {/* Interactive WebGL fluid layer (cursor-reactive via flowmap) */}
+      {/* Interactive WebGL liquid red-metal metaball, layered on top. */}
       {!prefersReducedMotion && (
-        <AnimatedGradient
+        <LiquidMetal
           className={cn(s.webglGradient)}
-          colors={GRADIENT_COLORS}
+          amplitude={1.0}
           speed={1.0}
-          amplitude={2.2}
-          frequency={0.35}
-          drip={1.2}
-          radial
-          flowmap
         />
       )}
 

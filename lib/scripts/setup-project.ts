@@ -13,6 +13,7 @@
  */
 
 import * as p from '@clack/prompts'
+import { applyCodeTransforms } from './ast-transforms'
 import {
   type CodeTransform,
   getIntegrationNames,
@@ -111,50 +112,6 @@ const removeMarketingHomepage = async (dryRun: boolean): Promise<void> => {
     await Bun.write(resolvePath('app/page.tsx'), BLANK_HOMEPAGE)
   }
   await removeDir('app/(marketing)', dryRun)
-}
-
-/**
- * Apply code transformations to a file
- */
-const applyCodeTransforms = async (
-  transforms: CodeTransform[],
-  dryRun: boolean
-): Promise<number> => {
-  let totalChanges = 0
-
-  for (const transform of transforms) {
-    try {
-      const fullPath = resolvePath(transform.file)
-      const file = Bun.file(fullPath)
-
-      if (!(await file.exists())) continue
-
-      let content = await file.text()
-      let fileChanged = false
-
-      for (const { regex, flags } of transform.patterns) {
-        const pattern = new RegExp(regex, flags)
-        const newContent = content.replace(pattern, '')
-
-        if (newContent !== content) {
-          content = newContent
-          fileChanged = true
-        }
-      }
-
-      if (fileChanged) {
-        if (!dryRun) {
-          await Bun.write(fullPath, content)
-        }
-        totalChanges++
-      }
-    } catch (error) {
-      // Log but continue on error
-      console.error(`Failed to transform ${transform.file}:`, error)
-    }
-  }
-
-  return totalChanges
 }
 
 /**

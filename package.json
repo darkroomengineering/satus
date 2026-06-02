@@ -94,6 +94,7 @@
     "sanity": "^5.28.0",
     "storybook": "^10.4.2",
     "tailwindcss": "^4.3.0",
+    "ts-morph": "^25.0.0",
     "typescript": "^6.0.3"
   },
   "trustedDependencies": [

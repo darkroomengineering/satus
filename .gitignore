@@ -53,6 +53,7 @@ yarn-error.log*
 .npmrc
 
 *storybook.log
+storybook-static
 certificates
 
 next-env.d.ts

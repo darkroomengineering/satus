@@ -18,6 +18,8 @@
 import * as p from '@clack/prompts'
 import { getConfigured } from '@/integrations/registry'
 import { INTEGRATION_BUNDLES } from './integration-bundles'
+import { renderDeploymentChecklist } from './templates/deployment-checklist'
+import { renderInventory } from './templates/inventory'
 import {
   parseCliFlags,
   pathExists,
@@ -25,6 +27,43 @@ import {
   removeFile,
   resolvePath,
 } from './utils'
+
+/** Current date as an ISO `YYYY-MM-DD` string for generated-document headers. */
+const today = (): string => new Date().toISOString().split('T')[0] ?? ''
+
+/**
+ * Scan a components directory for `*\/index.tsx` entries and return the sorted
+ * component names (the leading directory of each match). Returns `null` if the
+ * directory cannot be scanned, so the caller can render a fallback line.
+ */
+const scanComponentDir = async (dir: string): Promise<string[] | null> => {
+  try {
+    const components = await Array.fromAsync(
+      new Bun.Glob('*/index.tsx').scan({ cwd: resolvePath(dir) })
+    )
+    return components.sort().map((comp) => comp.replace('/index.tsx', ''))
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Scan `app/` for page routes, excluding the `(examples)` group. Returns the
+ * processed, sorted routes, or `null` if the scan fails.
+ */
+const scanPages = async (): Promise<string[] | null> => {
+  try {
+    const pages = await Array.fromAsync(
+      new Bun.Glob('**/page.tsx').scan({ cwd: resolvePath('app') })
+    )
+    return pages
+      .sort()
+      .map((page) => page.replace('/page.tsx', '').replace('page.tsx', '/'))
+      .filter((route) => !route.includes('(examples)'))
+  } catch {
+    return null
+  }
+}
 
 interface HandoffOptions {
   dryRun: boolean
@@ -208,104 +247,21 @@ const swapReadme = async (
 }
 
 /**
- * Generate component inventory
+ * Generate component inventory.
+ *
+ * Scans the component and page directories, then renders the markdown via the
+ * `inventory` template. The document content lives in
+ * `./templates/inventory.ts`.
  */
 const generateInventory = async (dryRun: boolean): Promise<string> => {
-  const inventory: string[] = []
-
-  inventory.push('# Component Inventory')
-  inventory.push('')
-  inventory.push(`Generated: ${new Date().toISOString().split('T')[0]}`)
-  inventory.push('')
-
-  // Configured integrations
-  const integrations = getConfigured()
-  inventory.push('## Active Integrations')
-  inventory.push('')
-  if (integrations.length > 0) {
-    for (const integration of integrations) {
-      inventory.push(`- ${integration}`)
-    }
-  } else {
-    inventory.push('- None configured')
-  }
-  inventory.push('')
-
-  // Scan components directory
-  inventory.push('## UI Components')
-  inventory.push('')
-  try {
-    const uiComponents = await Array.fromAsync(
-      new Bun.Glob('*/index.tsx').scan({
-        cwd: resolvePath('components/ui'),
-      })
-    )
-    for (const comp of uiComponents.sort()) {
-      const name = comp.replace('/index.tsx', '')
-      inventory.push(`- \`${name}\``)
-    }
-  } catch {
-    inventory.push('- Could not scan components')
-  }
-  inventory.push('')
-
-  // Scan layout components
-  inventory.push('## Layout Components')
-  inventory.push('')
-  try {
-    const layoutComponents = await Array.fromAsync(
-      new Bun.Glob('*/index.tsx').scan({
-        cwd: resolvePath('components/layout'),
-      })
-    )
-    for (const comp of layoutComponents.sort()) {
-      const name = comp.replace('/index.tsx', '')
-      inventory.push(`- \`${name}\``)
-    }
-  } catch {
-    inventory.push('- Could not scan layout components')
-  }
-  inventory.push('')
-
-  // Scan effects components
-  inventory.push('## Effect Components')
-  inventory.push('')
-  try {
-    const effectComponents = await Array.fromAsync(
-      new Bun.Glob('*/index.tsx').scan({
-        cwd: resolvePath('components/effects'),
-      })
-    )
-    for (const comp of effectComponents.sort()) {
-      const name = comp.replace('/index.tsx', '')
-      inventory.push(`- \`${name}\``)
-    }
-  } catch {
-    inventory.push('- Could not scan effect components')
-  }
-  inventory.push('')
-
-  // Scan pages
-  inventory.push('## Pages')
-  inventory.push('')
-  try {
-    const pages = await Array.fromAsync(
-      new Bun.Glob('**/page.tsx').scan({
-        cwd: resolvePath('app'),
-      })
-    )
-    for (const page of pages.sort()) {
-      const route = page.replace('/page.tsx', '').replace('page.tsx', '/')
-      // Skip example pages
-      if (!route.includes('(examples)')) {
-        inventory.push(`- \`/${route}\``)
-      }
-    }
-  } catch {
-    inventory.push('- Could not scan pages')
-  }
-
-  const content = inventory.join('\n')
+  const content = renderInventory({
+    date: today(),
+    integrations: getConfigured(),
+    uiComponents: await scanComponentDir('components/ui'),
+    layoutComponents: await scanComponentDir('components/layout'),
+    effectComponents: await scanComponentDir('components/effects'),
+    pages: await scanPages(),
+  })
 
   if (!dryRun) {
     await Bun.write(resolvePath('INVENTORY.md'), content)
@@ -315,95 +271,20 @@ const generateInventory = async (dryRun: boolean): Promise<string> => {
 }
 
 /**
- * Generate deployment checklist
+ * Generate deployment checklist.
+ *
+ * Renders the markdown via the `deployment-checklist` template. The document
+ * content lives in `./templates/deployment-checklist.ts`.
  */
 const generateChecklist = async (
   projectName: string,
   dryRun: boolean
 ): Promise<string> => {
-  const integrations = getConfigured()
-
-  const checklist: string[] = []
-
-  checklist.push(`# ${projectName} - Deployment Checklist`)
-  checklist.push('')
-  checklist.push(`Generated: ${new Date().toISOString().split('T')[0]}`)
-  checklist.push('')
-
-  checklist.push('## Pre-Deployment')
-  checklist.push('')
-  checklist.push(
-    '- [ ] All environment variables configured in hosting platform'
-  )
-  checklist.push('- [ ] Custom domain configured')
-  checklist.push('- [ ] SSL certificate active')
-  checklist.push('- [ ] Build passes without errors (`bun run build`)')
-  checklist.push('- [ ] TypeScript passes without errors (`bun typecheck`)')
-  checklist.push('')
-
-  if (integrations.includes('Sanity')) {
-    checklist.push('## Sanity CMS')
-    checklist.push('')
-    checklist.push('- [ ] Production dataset selected')
-    checklist.push('- [ ] CORS origins configured for production domain')
-    checklist.push('- [ ] Webhook configured for revalidation')
-    checklist.push('  - URL: `https://your-domain.com/api/revalidate`')
-    checklist.push('- [ ] API tokens rotated for production')
-    checklist.push('')
-  }
-
-  if (integrations.includes('Shopify')) {
-    checklist.push('## Shopify')
-    checklist.push('')
-    checklist.push('- [ ] Storefront API access token configured')
-    checklist.push('- [ ] Webhooks configured for product/collection updates')
-    checklist.push('- [ ] Test checkout flow in production')
-    checklist.push('')
-  }
-
-  if (integrations.includes('HubSpot')) {
-    checklist.push('## HubSpot')
-    checklist.push('')
-    checklist.push('- [ ] API access token configured')
-    checklist.push('- [ ] Form IDs updated for production forms')
-    checklist.push('- [ ] Test form submissions')
-    checklist.push('')
-  }
-
-  checklist.push('## Performance')
-  checklist.push('')
-  checklist.push('- [ ] Lighthouse score > 90 for Performance')
-  checklist.push('- [ ] Lighthouse score > 90 for Accessibility')
-  checklist.push('- [ ] Images optimized and using next/image')
-  checklist.push('- [ ] No console errors in production')
-  checklist.push('')
-
-  checklist.push('## SEO')
-  checklist.push('')
-  checklist.push('- [ ] Meta titles and descriptions set for all pages')
-  checklist.push('- [ ] Open Graph images configured')
-  checklist.push('- [ ] robots.txt configured correctly')
-  checklist.push('- [ ] sitemap.xml generating correctly')
-  checklist.push('- [ ] Canonical URLs set')
-  checklist.push('')
-
-  checklist.push('## Analytics')
-  checklist.push('')
-  checklist.push('- [ ] Google Analytics or Tag Manager configured')
-  checklist.push('- [ ] Cookie consent implemented (if required)')
-  checklist.push('- [ ] Privacy policy page exists')
-  checklist.push('')
-
-  checklist.push('## Post-Deployment')
-  checklist.push('')
-  checklist.push('- [ ] Verify all pages load correctly')
-  checklist.push('- [ ] Test all forms and interactions')
-  checklist.push('- [ ] Verify analytics receiving data')
-  checklist.push('- [ ] Test on mobile devices')
-  checklist.push('- [ ] Test in different browsers')
-  checklist.push('')
-
-  const content = checklist.join('\n')
+  const content = renderDeploymentChecklist({
+    projectName,
+    integrations: getConfigured(),
+    date: today(),
+  })
 
   if (!dryRun) {
     await Bun.write(resolvePath('DEPLOYMENT-CHECKLIST.md'), content)

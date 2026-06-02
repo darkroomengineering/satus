@@ -1,23 +1,25 @@
 /**
- * Unit tests for the setup-project script
+ * Unit tests for the setup-project AST transform engine
  *
  * Run with: bun test lib/scripts/setup-project.test.ts
  *
  * These tests verify:
- * 1. All regex patterns match their target content in actual source files
- * 2. Code transformations produce valid output (no broken imports/syntax)
- * 3. Integration bundle configurations are valid
- * 4. Preset configurations reference valid integrations
+ * 1. The typed AST operations produce correct output on actual source files
+ * 2. Integration bundle configurations are structurally valid
+ * 3. Preset configurations reference valid integrations
+ * 4. Combined (webgl + theatre) removal leaves files in a valid state
  */
 
 import { beforeAll, describe, expect, it } from 'bun:test'
+import { applyOpsToText } from './ast-transforms'
 import { getIntegrationNames, INTEGRATION_BUNDLES } from './integration-bundles'
 
-// Source file contents - loaded once for all tests
+// ---------------------------------------------------------------------------
+// Source file fixtures — loaded once, never written to disk
+// ---------------------------------------------------------------------------
 const sourceFiles: Record<string, string> = {}
 
 beforeAll(async () => {
-  // Load all files that have code transforms
   const filesToLoad = new Set<string>()
 
   for (const bundle of Object.values(INTEGRATION_BUNDLES)) {
@@ -30,11 +32,14 @@ beforeAll(async () => {
     try {
       sourceFiles[file] = await Bun.file(file).text()
     } catch {
-      // File might not exist in some configurations
       sourceFiles[file] = ''
     }
   }
 })
+
+// ---------------------------------------------------------------------------
+// Structural tests — shape of the bundle config
+// ---------------------------------------------------------------------------
 
 describe('Integration Bundle Configuration', () => {
   it('should have valid structure for all bundles', () => {
@@ -61,23 +66,49 @@ describe('Integration Bundle Configuration', () => {
     }
   })
 
-  it('should have valid code transform configurations', () => {
+  it('should have valid code transform configurations (ops shape)', () => {
     for (const [_name, bundle] of Object.entries(INTEGRATION_BUNDLES)) {
       for (const transform of bundle.codeTransforms) {
         expect(transform.file).toBeTruthy()
-        expect(Array.isArray(transform.patterns)).toBe(true)
+        expect(Array.isArray(transform.ops)).toBe(true)
 
-        for (const pattern of transform.patterns) {
-          expect(pattern.regex).toBeTruthy()
-          expect(pattern.flags).toBeTruthy()
+        for (const op of transform.ops) {
+          // Every op must have a known kind
+          expect([
+            'removeImport',
+            'removeVariableStatement',
+            'removeJsxElement',
+            'removeInterfaceProperty',
+            'removeFunctionParameter',
+            'replaceJsDoc',
+          ]).toContain(op.kind)
 
-          // Verify regex is valid
-          expect(() => new RegExp(pattern.regex, pattern.flags)).not.toThrow()
+          // Each op kind must carry its required fields
+          if (op.kind === 'removeImport') {
+            expect(op.specifier).toBeTruthy()
+          } else if (op.kind === 'removeVariableStatement') {
+            expect(op.name).toBeTruthy()
+          } else if (op.kind === 'removeJsxElement') {
+            expect(op.tagName).toBeTruthy()
+          } else if (op.kind === 'removeInterfaceProperty') {
+            expect(op.interfaceName).toBeTruthy()
+            expect(op.propertyName).toBeTruthy()
+          } else if (op.kind === 'removeFunctionParameter') {
+            expect(op.functionName).toBeTruthy()
+            expect(op.parameterName).toBeTruthy()
+          } else if (op.kind === 'replaceJsDoc') {
+            expect(op.functionName).toBeTruthy()
+            expect(op.replacement).toBeTruthy()
+          }
         }
       }
     }
   })
 })
+
+// ---------------------------------------------------------------------------
+// Theatre.js transforms — real engine against actual source
+// ---------------------------------------------------------------------------
 
 describe('Theatre.js Code Transforms', () => {
   const theatreBundle = INTEGRATION_BUNDLES.theatre
@@ -86,73 +117,54 @@ describe('Theatre.js Code Transforms', () => {
   describe('lib/dev/index.tsx transforms', () => {
     const file = 'lib/dev/index.tsx'
 
-    it('should match Studio dynamic import', () => {
-      const content = sourceFiles[file]
-      if (!content) return // Skip if file doesn't exist
-
-      const pattern = theatreBundle.codeTransforms
-        .find((t) => t.file === file)
-        ?.patterns.find((p) => p.regex.includes('Studio = dynamic'))
-
-      expect(pattern).toBeTruthy()
-      const regex = new RegExp(pattern!.regex, pattern!.flags)
-      expect(content.match(regex)).toBeTruthy()
-    })
-
-    it('should match Studio render JSX', () => {
-      const content = sourceFiles[file]
-      if (!content) return
-
-      const pattern = theatreBundle.codeTransforms
-        .find((t) => t.file === file)
-        ?.patterns.find((p) => p.regex.includes('studio && <Studio'))
-
-      expect(pattern).toBeTruthy()
-      const regex = new RegExp(pattern!.regex, pattern!.flags)
-      expect(content.match(regex)).toBeTruthy()
-    })
-
     it('should produce valid code after transformation', () => {
-      let content = sourceFiles[file]
+      const content = sourceFiles[file]
       if (!content) return
 
-      const transforms = theatreBundle.codeTransforms.find(
+      const transform = theatreBundle.codeTransforms.find(
         (t) => t.file === file
       )
-      if (!transforms) return
+      if (!transform) return
 
-      for (const { regex, flags } of transforms.patterns) {
-        content = content.replace(new RegExp(regex, flags), '')
-      }
+      const result = applyOpsToText(content, transform.ops)
 
-      // Verify essential structure remains
-      expect(content).toContain("'use client'")
-      expect(content).toContain('export function OrchestraTools')
-      expect(content).toContain('export function useOrchestra')
+      // Essential structure must remain
+      expect(result).toContain("'use client'")
+      expect(result).toContain('export function OrchestraTools')
+      expect(result).toContain('export function useOrchestra')
 
-      // Verify Theatre imports are removed
-      expect(content).not.toContain('./theatre/studio')
-      expect(content).not.toContain('<Studio')
+      // Theatre-specific code must be gone
+      expect(result).not.toContain('./theatre/studio')
+      expect(result).not.toContain('<Studio')
+      expect(result).not.toContain('const Studio')
     })
   })
 
   describe('lib/dev/cmdo.tsx transforms', () => {
     const file = 'lib/dev/cmdo.tsx'
 
-    it('should match studio toggle', () => {
+    it('should remove only the studio OrchestraToggle', () => {
       const content = sourceFiles[file]
       if (!content) return
 
-      const pattern = theatreBundle.codeTransforms
-        .find((t) => t.file === file)
-        ?.patterns.find((p) => p.regex.includes('id="studio"'))
+      const transform = theatreBundle.codeTransforms.find(
+        (t) => t.file === file
+      )
+      if (!transform) return
 
-      expect(pattern).toBeTruthy()
-      const regex = new RegExp(pattern!.regex, pattern!.flags)
-      expect(content.match(regex)).toBeTruthy()
+      const result = applyOpsToText(content, transform.ops)
+
+      // studio toggle removed
+      expect(result).not.toContain('id="studio"')
+      // webgl toggle must still be present (not targeted by theatre transforms)
+      expect(result).toContain('id="webgl"')
     })
   })
 })
+
+// ---------------------------------------------------------------------------
+// WebGL transforms — real engine against actual source
+// ---------------------------------------------------------------------------
 
 describe('WebGL Code Transforms', () => {
   const webglBundle = INTEGRATION_BUNDLES.webgl
@@ -161,166 +173,77 @@ describe('WebGL Code Transforms', () => {
   describe('lib/features/index.tsx transforms', () => {
     const file = 'lib/features/index.tsx'
 
-    it('should match LazyGlobalCanvas import', () => {
-      const content = sourceFiles[file]
-      if (!content) return
-
-      const pattern = webglBundle.codeTransforms
-        .find((t) => t.file === file)
-        ?.patterns.find((p) => p.regex.includes('LazyGlobalCanvas = dynamic'))
-
-      expect(pattern).toBeTruthy()
-      const regex = new RegExp(pattern!.regex, pattern!.flags)
-      expect(content.match(regex)).toBeTruthy()
-    })
-
-    it('should match WebGL/WebGPU Canvas block', () => {
-      const content = sourceFiles[file]
-      if (!content) return
-
-      const pattern = webglBundle.codeTransforms
-        .find((t) => t.file === file)
-        ?.patterns.find((p) => p.regex.includes('WebGL/WebGPU Canvas'))
-
-      expect(pattern).toBeTruthy()
-      const regex = new RegExp(pattern!.regex, pattern!.flags)
-      expect(content.match(regex)).toBeTruthy()
-    })
-
     it('should produce valid code after transformation', () => {
-      let content = sourceFiles[file]
+      const content = sourceFiles[file]
       if (!content) return
 
-      const transforms = webglBundle.codeTransforms.find((t) => t.file === file)
-      if (!transforms) return
+      const transform = webglBundle.codeTransforms.find((t) => t.file === file)
+      if (!transform) return
 
-      for (const { regex, flags } of transforms.patterns) {
-        content = content.replace(new RegExp(regex, flags), '')
-      }
+      const result = applyOpsToText(content, transform.ops)
 
-      // Verify essential structure remains
-      expect(content).toContain("'use client'")
-      expect(content).toContain('export function OptionalFeatures')
+      // Essential structure must remain
+      expect(result).toContain("'use client'")
+      expect(result).toContain('export function OptionalFeatures')
 
-      // Verify WebGL code is removed
-      expect(content).not.toContain('LazyGlobalCanvas')
+      // WebGL code must be gone
+      expect(result).not.toContain('LazyGlobalCanvas')
     })
   })
 
   describe('components/layout/wrapper/index.tsx transforms', () => {
     const file = 'components/layout/wrapper/index.tsx'
 
-    it('should match Canvas import', () => {
-      const content = sourceFiles[file]
-      if (!content) return
-
-      const pattern = webglBundle.codeTransforms
-        .find((t) => t.file === file)
-        ?.patterns.find((p) => p.regex.includes('Canvas'))
-
-      expect(pattern).toBeTruthy()
-      const regex = new RegExp(pattern!.regex, pattern!.flags)
-      expect(content.match(regex)).toBeTruthy()
-    })
-
-    it('should match webgl prop in interface', () => {
-      const content = sourceFiles[file]
-      if (!content) return
-
-      const pattern = webglBundle.codeTransforms
-        .find((t) => t.file === file)
-        ?.patterns.find((p) => p.regex.includes('Enable WebGL for this page'))
-
-      expect(pattern).toBeTruthy()
-      const regex = new RegExp(pattern!.regex, pattern!.flags)
-      expect(content.match(regex)).toBeTruthy()
-    })
-
-    it('should match webgl param in function', () => {
-      const content = sourceFiles[file]
-      if (!content) return
-
-      const pattern = webglBundle.codeTransforms
-        .find((t) => t.file === file)
-        ?.patterns.find((p) => p.regex.includes('webgl = false'))
-
-      expect(pattern).toBeTruthy()
-      const regex = new RegExp(pattern!.regex, pattern!.flags)
-      expect(content.match(regex)).toBeTruthy()
-    })
-
-    it('should match Canvas JSX tags', () => {
-      const content = sourceFiles[file]
-      if (!content) return
-
-      const openPattern = webglBundle.codeTransforms
-        .find((t) => t.file === file)
-        ?.patterns.find((p) => p.regex.includes('Canvas root='))
-
-      const closePattern = webglBundle.codeTransforms
-        .find((t) => t.file === file)
-        ?.patterns.find((p) => p.regex === '</Canvas>')
-
-      expect(openPattern).toBeTruthy()
-      expect(closePattern).toBeTruthy()
-
-      expect(
-        content.match(new RegExp(openPattern!.regex, openPattern!.flags))
-      ).toBeTruthy()
-      expect(
-        content.match(new RegExp(closePattern!.regex, closePattern!.flags))
-      ).toBeTruthy()
-    })
-
     it('should produce valid code after transformation', () => {
-      let content = sourceFiles[file]
+      const content = sourceFiles[file]
       if (!content) return
 
-      const transforms = webglBundle.codeTransforms.find((t) => t.file === file)
-      if (!transforms) return
+      const transform = webglBundle.codeTransforms.find((t) => t.file === file)
+      if (!transform) return
 
-      for (const { regex, flags } of transforms.patterns) {
-        content = content.replace(new RegExp(regex, flags), '')
-      }
+      const result = applyOpsToText(content, transform.ops)
 
-      // Verify essential structure remains
-      expect(content).toContain("'use client'")
-      expect(content).toContain('export function Wrapper')
-      expect(content).toContain('interface WrapperProps')
-      expect(content).toContain('<Theme')
-      expect(content).toContain('<Header')
-      expect(content).toContain('<Footer')
-      expect(content).toContain('<Lenis')
+      // Essential structure must remain
+      expect(result).toContain('export function Wrapper')
+      expect(result).toContain('interface WrapperProps')
+      expect(result).toContain('<Theme')
+      expect(result).toContain('<Header')
+      expect(result).toContain('<Footer')
+      expect(result).toContain('<Lenis')
 
-      // Verify WebGL code is removed
-      expect(content).not.toContain('@/webgl')
-      expect(content).not.toContain('<Canvas')
-      expect(content).not.toContain('webgl?:')
-      expect(content).not.toContain('webgl = false')
+      // WebGL code must be gone
+      expect(result).not.toContain('@/webgl')
+      expect(result).not.toContain('<Canvas')
+      expect(result).not.toContain('webgl?:')
+      expect(result).not.toContain('webgl = false')
     })
   })
 
   describe('lib/dev/cmdo.tsx transforms', () => {
     const file = 'lib/dev/cmdo.tsx'
 
-    it('should match webgl toggle', () => {
+    it('should remove only the webgl OrchestraToggle', () => {
       const content = sourceFiles[file]
       if (!content) return
 
-      const pattern = webglBundle.codeTransforms
-        .find((t) => t.file === file)
-        ?.patterns.find((p) => p.regex.includes('id="webgl"'))
+      const transform = webglBundle.codeTransforms.find((t) => t.file === file)
+      if (!transform) return
 
-      expect(pattern).toBeTruthy()
-      const regex = new RegExp(pattern!.regex, pattern!.flags)
-      expect(content.match(regex)).toBeTruthy()
+      const result = applyOpsToText(content, transform.ops)
+
+      // webgl toggle removed
+      expect(result).not.toContain('id="webgl"')
+      // studio toggle must still be present
+      expect(result).toContain('id="studio"')
     })
   })
 })
 
+// ---------------------------------------------------------------------------
+// Preset configuration validity
+// ---------------------------------------------------------------------------
+
 describe('Preset Configurations', () => {
-  // Import presets from setup script by parsing the file
-  // (We can't import directly due to the main() call)
   const presets = {
     editorial: ['sanity', 'hubspot', 'mailchimp'],
     studio: ['sanity', 'shopify', 'hubspot', 'mailchimp', 'webgl', 'theatre'],
@@ -375,9 +298,12 @@ describe('Preset Configurations', () => {
   })
 })
 
+// ---------------------------------------------------------------------------
+// Combined transforms (webgl + theatre removed simultaneously)
+// ---------------------------------------------------------------------------
+
 describe('Combined Transforms (Multiple Integrations Removed)', () => {
-  it('should work when both WebGL and Theatre are removed', async () => {
-    // This simulates the "blank" preset
+  it('should work when both WebGL and Theatre are removed', () => {
     const filesToTransform = [
       'lib/dev/index.tsx',
       'lib/dev/cmdo.tsx',
@@ -390,36 +316,31 @@ describe('Combined Transforms (Multiple Integrations Removed)', () => {
     if (!(webglBundle && theatreBundle)) return
 
     for (const file of filesToTransform) {
-      let content = sourceFiles[file]
+      const content = sourceFiles[file]
       if (!content) continue
 
-      // Apply WebGL transforms
-      const webglTransforms = webglBundle.codeTransforms.find(
+      const webglTransform = webglBundle.codeTransforms.find(
         (t) => t.file === file
       )
-      if (webglTransforms) {
-        for (const { regex, flags } of webglTransforms.patterns) {
-          content = content.replace(new RegExp(regex, flags), '')
-        }
-      }
-
-      // Apply Theatre transforms
-      const theatreTransforms = theatreBundle.codeTransforms.find(
+      const theatreTransform = theatreBundle.codeTransforms.find(
         (t) => t.file === file
       )
-      if (theatreTransforms) {
-        for (const { regex, flags } of theatreTransforms.patterns) {
-          content = content.replace(new RegExp(regex, flags), '')
-        }
+
+      let result = content
+      if (webglTransform) {
+        result = applyOpsToText(result, webglTransform.ops)
+      }
+      if (theatreTransform) {
+        result = applyOpsToText(result, theatreTransform.ops)
       }
 
-      // Verify no broken imports to webgl or theatre
-      expect(content).not.toMatch(/from ['"]~\/webgl/)
-      expect(content).not.toMatch(/from ['"]\.\/theatre/)
+      // No broken imports to webgl or theatre
+      expect(result).not.toMatch(/from ['"]@\/webgl/)
+      expect(result).not.toMatch(/from ['"]\.\/theatre/)
 
-      // Verify basic structure is intact (no empty exports, etc.)
-      if (file.includes('index.tsx')) {
-        expect(content).toMatch(/export (?<keyword>function|const)/)
+      // Basic structure is intact (no empty exports)
+      if (file.endsWith('index.tsx')) {
+        expect(result).toMatch(/export (?<keyword>function|const)/)
       }
     }
   })

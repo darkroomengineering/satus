@@ -12,16 +12,88 @@ export interface BarrelExport {
   pattern: string
 }
 
+// ---------------------------------------------------------------------------
+// Typed AST operation union
+// Each variant is resilient to whitespace / formatting changes because it
+// targets named constructs (imports, variables, JSX tags) rather than text.
+// ---------------------------------------------------------------------------
+
+/** Remove a top-level import declaration by its module specifier. */
+export interface RemoveImportOp {
+  kind: 'removeImport'
+  /** The module specifier string to match exactly, e.g. '@/webgl/components/canvas' */
+  specifier: string
+}
+
+/** Remove a top-level `const NAME = …` variable statement by name. */
+export interface RemoveVariableStatementOp {
+  kind: 'removeVariableStatement'
+  /** The variable name to remove, e.g. 'LazyGlobalCanvas' */
+  name: string
+}
+
+/**
+ * Remove (or unwrap) a JSX element by its tag name.
+ *
+ * - `attribute` — optional {name, value} pair that must match to disambiguate
+ *   elements sharing the same tag (e.g. OrchestraToggle with id="webgl").
+ * - `unwrap` — when true, keep the element's children and remove only the
+ *   opening / closing tags (e.g. strip <Canvas> but keep its content).
+ */
+export interface RemoveJsxElementOp {
+  kind: 'removeJsxElement'
+  /** JSX tag name, e.g. 'LazyGlobalCanvas', 'Canvas', 'OrchestraToggle' */
+  tagName: string
+  /** Optional attribute to match for disambiguation */
+  attribute?: { name: string; value: string }
+  /** When true, keep children and remove only the tags */
+  unwrap?: boolean
+}
+
+/** Remove a property (with its leading JSDoc) from a named interface. */
+export interface RemoveInterfacePropertyOp {
+  kind: 'removeInterfaceProperty'
+  /** Interface name, e.g. 'WrapperProps' */
+  interfaceName: string
+  /** Property name, e.g. 'webgl' */
+  propertyName: string
+}
+
+/** Remove a named parameter from a function's destructured props argument. */
+export interface RemoveFunctionParameterOp {
+  kind: 'removeFunctionParameter'
+  /** Exported function name, e.g. 'Wrapper' */
+  functionName: string
+  /** Parameter name as it appears in the destructured binding, e.g. 'webgl' */
+  parameterName: string
+}
+
+/**
+ * Replace the entire JSDoc block on a named function with a provided string.
+ * Used when multiple partial-text edits to the JSDoc would be brittle; a full
+ * replacement is simpler and guarantees the result is well-formed.
+ */
+export interface ReplaceJsDocOp {
+  kind: 'replaceJsDoc'
+  /** Name of the function whose JSDoc to replace */
+  functionName: string
+  /** The replacement JSDoc text (must include /** … * /) */
+  replacement: string
+}
+
+export type AstOperation =
+  | RemoveImportOp
+  | RemoveVariableStatementOp
+  | RemoveJsxElementOp
+  | RemoveInterfacePropertyOp
+  | RemoveFunctionParameterOp
+  | ReplaceJsDocOp
+
 export interface CodeTransform {
-  /** Path to the file to transform */
+  /** Path to the file to transform (relative to project root) */
   file: string
-  /** Regex patterns to remove from the file (with flags) */
-  patterns: Array<{
-    /** The regex pattern as a string */
-    regex: string
-    /** Regex flags (e.g., 'gm' for global multiline) */
-    flags: string
-  }>
+  /** Typed AST operations to apply */
+  ops: AstOperation[]
 }
 
 export interface IntegrationBundle {
@@ -154,83 +226,94 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
     codeTransforms: [
       {
         file: 'lib/features/index.tsx',
-        patterns: [
-          // Remove the LazyGlobalCanvas import
-          {
-            regex:
-              'const LazyGlobalCanvas = dynamic\\([\\s\\S]*?\\{ ssr: false \\}\\s*\\)\\s*',
-            flags: 'gm',
-          },
-          // Remove the WebGL component render
-          {
-            regex:
-              '\\s*\\{/\\* WebGL/WebGPU Canvas - lazy loaded, only mounts when <Wrapper webgl> is used \\*/\\}\\n\\s*<LazyGlobalCanvas[^>]*/>',
-            flags: 'gm',
-          },
+        ops: [
+          // Remove `const LazyGlobalCanvas = dynamic(…)`
+          { kind: 'removeVariableStatement', name: 'LazyGlobalCanvas' },
+          // Remove `<LazyGlobalCanvas />` (and its preceding JSX comment)
+          { kind: 'removeJsxElement', tagName: 'LazyGlobalCanvas' },
         ],
       },
       {
         file: 'lib/dev/cmdo.tsx',
-        patterns: [
-          // Remove the webgl toggle
+        ops: [
+          // Remove only the webgl OrchestraToggle (disambiguate by id attr)
           {
-            regex:
-              '\\s*<OrchestraToggle id="webgl" defaultValue=\\{true\\}>\\s*🧊\\s*</OrchestraToggle>',
-            flags: 'gm',
+            kind: 'removeJsxElement',
+            tagName: 'OrchestraToggle',
+            attribute: { name: 'id', value: 'webgl' },
           },
         ],
       },
       {
         file: 'components/layout/wrapper/index.tsx',
-        patterns: [
-          // Remove Canvas import
+        ops: [
+          // Remove `import { Canvas } from '@/webgl/components/canvas'`
           {
-            regex: "import \\{ Canvas \\} from '@/webgl/components/canvas'\\n",
-            flags: 'gm',
+            kind: 'removeImport',
+            specifier: '@/webgl/components/canvas',
           },
-          // Remove webgl prop JSDoc comment
+          // Remove `webgl?: boolean` from WrapperProps interface
           {
-            regex:
-              '\\n  /\\*\\*\\n   \\* Enable WebGL for this page\\.[\\s\\S]*?\\*/\\n  webgl\\?: boolean',
-            flags: 'gm',
+            kind: 'removeInterfaceProperty',
+            interfaceName: 'WrapperProps',
+            propertyName: 'webgl',
           },
-          // Remove webgl param from function
+          // Remove `webgl = false` from the Wrapper function destructured params
           {
-            regex: '\\n  webgl = false,',
-            flags: 'gm',
+            kind: 'removeFunctionParameter',
+            functionName: 'Wrapper',
+            parameterName: 'webgl',
           },
-          // Replace <Canvas root={webgl}> with nothing (keep children)
+          // Unwrap <Canvas root={webgl}>…</Canvas> (keep children)
           {
-            regex: '<Canvas root=\\{webgl\\}>',
-            flags: 'gm',
+            kind: 'removeJsxElement',
+            tagName: 'Canvas',
+            unwrap: true,
           },
-          // Replace </Canvas> with nothing
+          // Replace the full JSDoc on Wrapper with a WebGL-free version.
+          // A single replacement is safer than multiple partial-text edits on the
+          // JSDoc because ts-morph's description/tag APIs require exact tag shapes,
+          // and the block mixes freeform paragraphs with @param/@example tags.
           {
-            regex: '</Canvas>',
-            flags: 'gm',
-          },
-          // Remove WebGL example from JSDoc
-          {
-            regex:
-              '\\n \\* @example\\n \\* ```tsx\\n \\* // With WebGL content[\\s\\S]*?\\* ```',
-            flags: 'gm',
-          },
-          // Remove @param webgl line
-          {
-            regex:
-              '\\n \\* @param props\\.webgl - Whether to activate WebGL for this page',
-            flags: 'gm',
-          },
-          // Remove WebGL benefits documentation block
-          {
-            regex:
-              "\\n \\* When `webgl` is true[\\s\\S]*?\\* - \\*\\*Zero overhead\\*\\*: Non-WebGL pages don't trigger any WebGL code",
-            flags: 'gm',
-          },
-          // Clean up JSDoc title (remove ", and WebGL")
-          {
-            regex: ', and WebGL',
-            flags: 'gm',
+            kind: 'replaceJsDoc',
+            functionName: 'Wrapper',
+            replacement: `/**
+ * Main page wrapper component providing theme and smooth scrolling.
+ *
+ * This component serves as the root container for pages, automatically handling
+ * theme application, smooth scrolling, and layout structure.
+ * It includes navigation and footer.
+ *
+ * @param props - Component props
+ * @param props.theme - Color theme to apply to the page
+ * @param props.lenis - Whether to enable smooth scrolling with Lenis
+ * @param props.children - Page content
+ * @param props.className - Additional CSS classes
+ *
+ * @example
+ * \`\`\`tsx
+ * // Basic usage with theme
+ * export default function Page() {
+ *   return (
+ *     <Wrapper theme="dark">
+ *       <section>My page content</section>
+ *     </Wrapper>
+ *   )
+ * }
+ * \`\`\`
+ *
+ * @example
+ * \`\`\`tsx
+ * // Disable smooth scrolling
+ * export default function StaticPage() {
+ *   return (
+ *     <Wrapper lenis={false}>
+ *       <section>Content without smooth scroll</section>
+ *     </Wrapper>
+ *   )
+ * }
+ * \`\`\`
+ */`,
           },
         ],
       },
@@ -250,27 +333,21 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
     codeTransforms: [
       {
         file: 'lib/dev/index.tsx',
-        patterns: [
-          // Remove the Studio import
-          {
-            regex:
-              '// Dynamically load debug tools\\s*const Studio = dynamic\\([\\s\\S]*?\\{ ssr: false \\}\\s*\\)\\s*',
-            flags: 'gm',
-          },
-          // Remove the Studio render
-          {
-            regex: '\\s*\\{studio && <Studio />\\}',
-            flags: 'gm',
-          },
+        ops: [
+          // Remove `const Studio = dynamic(…)` variable declaration
+          { kind: 'removeVariableStatement', name: 'Studio' },
+          // Remove `{studio && <Studio />}` JSX expression
+          { kind: 'removeJsxElement', tagName: 'Studio' },
         ],
       },
       {
         file: 'lib/dev/cmdo.tsx',
-        patterns: [
-          // Remove the studio toggle
+        ops: [
+          // Remove only the studio OrchestraToggle (disambiguate by id attr)
           {
-            regex: '\\s*<OrchestraToggle id="studio">⚙️</OrchestraToggle>',
-            flags: 'gm',
+            kind: 'removeJsxElement',
+            tagName: 'OrchestraToggle',
+            attribute: { name: 'id', value: 'studio' },
           },
         ],
       },

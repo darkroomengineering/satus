@@ -87,6 +87,7 @@
     "react-scan": "^0.5.7",
     "sanity": "^5.28.0",
     "tailwindcss": "^4.3.0",
+    "ts-morph": "^25.0.0",
     "typescript": "^6.0.3"
   },
   "trustedDependencies": [

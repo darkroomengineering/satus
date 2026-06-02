@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 import {
   createContext,
   type PropsWithChildren,
-  useContext,
+  use,
   useLayoutEffect,
   useState,
 } from 'react'
@@ -141,5 +141,5 @@ export function Canvas({
  * Hook to access the Canvas context (tunnels for WebGL and DOM content).
  */
 export function useCanvas() {
-  return useContext(CanvasContext) as Required<CanvasContextValue>
+  return use(CanvasContext) as Required<CanvasContextValue>
 }

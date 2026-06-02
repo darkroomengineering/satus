@@ -68,7 +68,7 @@ export function InputField({
       disabled={disabled}
     >
       {label && (
-        <Field.Label {...(s.label && { className: s.label })}>
+        <Field.Label htmlFor={id} {...(s.label && { className: s.label })}>
           {label}
           {required && <span aria-hidden="true"> *</span>}
         </Field.Label>
@@ -132,7 +132,7 @@ export function TextareaField({
       disabled={disabled}
     >
       {label && (
-        <Field.Label {...(s.label && { className: s.label })}>
+        <Field.Label htmlFor={id} {...(s.label && { className: s.label })}>
           {label}
           {required && <span aria-hidden="true"> *</span>}
         </Field.Label>

@@ -66,6 +66,7 @@ export async function Product() {
           src={product.images[0]?.url ?? ''}
           alt={product.images[0]?.altText ?? ''}
           fill
+          sizes="(max-width: 800px) 100vw, 50vw"
         />
       </div>
       <aside className="dr-gap-16 dt:dr-w-col-6 flex flex-col text-center">

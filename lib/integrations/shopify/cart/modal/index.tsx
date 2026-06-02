@@ -3,7 +3,7 @@
 import cn from 'clsx'
 import { useRouter } from 'next/navigation'
 import type { KeyboardEvent, ReactNode } from 'react'
-import { createContext, useContext, useState } from 'react'
+import { createContext, use, useState } from 'react'
 import { Image } from '@/components/ui/image'
 import { Link } from '@/components/ui/link'
 import { removeItem, updateItemQuantity } from '../actions'
@@ -49,7 +49,7 @@ const ModalContext = createContext<ModalContextType>({
 })
 
 export function useCartModal(): ModalContextType {
-  return useContext(ModalContext)
+  return use(ModalContext)
 }
 
 interface CartModalProps {

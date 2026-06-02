@@ -1,7 +1,7 @@
 'use client'
 
 import cn from 'clsx'
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, use, useEffect, useState } from 'react'
 import { mutate } from '@/utils/raf'
 import s from './form.module.css'
 import { useForm } from './hook'
@@ -62,7 +62,7 @@ const FormContext = createContext<FormContextStandard | null>(null)
  * ```
  */
 export function useFormContext(): FormContextStandard {
-  const context = useContext(FormContext)
+  const context = use(FormContext)
   if (!context) {
     throw new Error('useFormContext must be used within a Form')
   }

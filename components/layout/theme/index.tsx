@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, use, useEffect, useState } from 'react'
 import type { Themes } from '@/styles/colors'
 import { type ThemeName, themes } from '@/styles/config'
 import type { StandardContext } from '@/utils/context'
@@ -34,7 +34,7 @@ const ThemeContextInternal = createContext<ThemeContextStandard | null>(null)
  * ```
  */
 export function useTheme(): ThemeContextStandard {
-  const context = useContext(ThemeContextInternal)
+  const context = use(ThemeContextInternal)
   if (!context) {
     throw new Error('useTheme must be used within a Theme provider')
   }

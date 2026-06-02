@@ -8,7 +8,7 @@ import {
 } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import cn from 'clsx'
-import { Suspense, useContext } from 'react'
+import { Suspense, use } from 'react'
 import { SheetProvider } from '@/lib/dev/theatre'
 import { FlowmapProvider } from '@/webgl/components/flowmap-provider'
 import { PostProcessing } from '@/webgl/components/postprocessing'
@@ -37,7 +37,7 @@ export function WebGLCanvas({
   ...props
 }: WebGLCanvasProps) {
   // Use context directly for local tunnels
-  const { WebGLTunnel, DOMTunnel } = useContext(CanvasContext)
+  const { WebGLTunnel, DOMTunnel } = use(CanvasContext)
 
   if (!(WebGLTunnel && DOMTunnel)) {
     return null

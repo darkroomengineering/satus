@@ -12,7 +12,7 @@ import {
   type ReactNode,
   type Ref,
   type SetStateAction,
-  useContext,
+  use,
   useId,
   useImperativeHandle,
   useState,
@@ -66,11 +66,11 @@ const AccordionContext = createContext(
 )
 
 function useAccordionsGroupContext() {
-  return useContext(AccordionsGroupContext)
+  return use(AccordionsGroupContext)
 }
 
 function useAccordionContext() {
-  return useContext(AccordionContext)
+  return use(AccordionContext)
 }
 
 /**

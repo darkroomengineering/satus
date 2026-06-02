@@ -2,12 +2,7 @@
 
 import { Toast as BaseToast } from '@base-ui/react/toast'
 import cn from 'clsx'
-import {
-  type ComponentProps,
-  createContext,
-  type ReactNode,
-  useContext,
-} from 'react'
+import { type ComponentProps, createContext, type ReactNode, use } from 'react'
 import s from './toast.module.css'
 
 /**
@@ -54,7 +49,7 @@ type ToastContextValue = {
 const ToastContext = createContext<ToastContextValue | null>(null)
 
 export function useToast() {
-  const context = useContext(ToastContext)
+  const context = use(ToastContext)
   if (!context) {
     throw new Error('useToast must be used within a Toast.Provider')
   }

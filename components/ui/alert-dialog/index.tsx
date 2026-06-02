@@ -92,7 +92,11 @@ function AlertDialog({
             >
             return <triggerEl.type {...triggerEl.props} {...props} />
           }
-          return <button {...props}>{trigger}</button>
+          return (
+            <button type="button" {...props}>
+              {trigger}
+            </button>
+          )
         }}
       />
       <BaseAlertDialog.Portal>

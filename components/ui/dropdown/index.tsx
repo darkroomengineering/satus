@@ -4,11 +4,15 @@ import cn from 'clsx'
 import { Activity, useEffect, useState } from 'react'
 import s from './dropdown.module.css'
 
+// Stable reference reused across renders so memoized children don't see a new
+// array identity every render when `options` is omitted.
+const EMPTY_OPTIONS: readonly string[] = []
+
 type DropdownProps = {
   className?: string
   placeholder?: string
   defaultValue?: number
-  options?: string[]
+  options?: readonly string[]
   onChange?: (value: number) => void
 }
 
@@ -16,7 +20,7 @@ export function Dropdown({
   className,
   placeholder = 'Select Option',
   defaultValue,
-  options = [],
+  options = EMPTY_OPTIONS,
   onChange,
 }: DropdownProps) {
   const [isOpened, setIsOpened] = useState(false)

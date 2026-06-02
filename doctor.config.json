@@ -3,6 +3,7 @@
   "rules": {
     "react-doctor/server-auth-actions": "off",
     "react-doctor/no-unknown-property": "off",
-    "react-doctor/no-pure-black-background": "off"
+    "react-doctor/no-pure-black-background": "off",
+    "react-doctor/jsx-no-constructed-context-values": "off"
   }
 }

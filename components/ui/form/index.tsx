@@ -132,16 +132,21 @@ function FormProvider<T = unknown>({
   useEffect(() => {
     if (!formState) return
 
+    let resetTimer: ReturnType<typeof setTimeout> | undefined
     if (formState.status === 200) {
       onSuccess?.(formState as FormState<T>)
       // Reset form after success
       mutate(() => {
-        setTimeout(() => {
+        resetTimer = setTimeout(() => {
           setKey(crypto.randomUUID())
         }, 2000)
       })
     } else if (formState.status >= 400) {
       onError?.(formState as FormState<T>)
+    }
+
+    return () => {
+      if (resetTimer) clearTimeout(resetTimer)
     }
   }, [formState, onSuccess, onError, setKey])
 
@@ -194,31 +199,17 @@ export function SubmitButton({
 }: SubmitButtonProps) {
   const { state } = useFormContext()
   const { isReady, isPending, formState } = state
-  const [buttonText, setButtonText] = useState(defaultText)
-
   const isSuccess = formState?.status === 200
   const isError = formState?.status && formState.status >= 400
 
-  useEffect(() => {
-    if (isSuccess) {
-      setButtonText(successText)
-    } else if (isError) {
-      setButtonText(errorText)
-    } else if (isPending) {
-      setButtonText(pendingText)
-    } else {
-      setButtonText(children?.toString() ?? defaultText)
-    }
-  }, [
-    isPending,
-    isSuccess,
-    isError,
-    successText,
-    errorText,
-    pendingText,
-    defaultText,
-    children,
-  ])
+  let buttonText = children?.toString() ?? defaultText
+  if (isSuccess) {
+    buttonText = successText
+  } else if (isError) {
+    buttonText = errorText
+  } else if (isPending) {
+    buttonText = pendingText
+  }
 
   return (
     <button
@@ -250,7 +241,7 @@ export function Messages({ className, ...props }: MessagesProps) {
   const { errors, formState } = state
 
   const allErrors = [
-    ...errors.filter((e) => e.state).map((e) => e.message),
+    ...errors.flatMap((e) => (e.state ? [e.message] : [])),
     ...(formState?.status && formState.status >= 400
       ? [formState.message]
       : []),

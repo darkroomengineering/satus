@@ -1,7 +1,14 @@
+import type { Metadata } from 'next'
 import { Wrapper } from '@/components/layout/wrapper'
 import { TheatreProjectProvider } from '@/dev/theatre'
 import { Box } from './_components/box'
 import s from './r3f.module.css'
+
+export const metadata: Metadata = {
+  title: 'WebGL + R3F — Satūs',
+  description:
+    'React Three Fiber and Theatre.js demo: a scroll-driven 3D animation sequence showcasing WebGL integration in a Next.js App Router page.',
+}
 
 export default function R3FPage() {
   return (

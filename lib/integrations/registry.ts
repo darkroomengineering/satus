@@ -75,16 +75,16 @@ export function isConfigured(id: IntegrationId): boolean {
  * Get all configured integration names
  */
 export function getConfigured(): string[] {
-  return Object.values(integrations)
-    .filter((entry) => entry.envSchema.safeParse(process.env).success)
-    .map((entry) => entry.name)
+  return Object.values(integrations).flatMap((entry) =>
+    entry.envSchema.safeParse(process.env).success ? [entry.name] : []
+  )
 }
 
 /**
  * Get all unconfigured integration names
  */
 export function getUnconfigured(): string[] {
-  return Object.values(integrations)
-    .filter((entry) => !entry.envSchema.safeParse(process.env).success)
-    .map((entry) => entry.name)
+  return Object.values(integrations).flatMap((entry) =>
+    entry.envSchema.safeParse(process.env).success ? [] : [entry.name]
+  )
 }

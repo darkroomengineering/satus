@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { Wrapper } from '@/components/layout/wrapper'
 import { Form } from '@/components/ui/form'
 import { NotConfigured } from '@/components/ui/not-configured'
@@ -5,6 +6,12 @@ import { HubspotNewsletterAction } from '@/integrations/hubspot/action'
 import { getForm } from '@/integrations/hubspot/fetch-form'
 import { isConfigured } from '@/integrations/registry'
 import { Subscribe } from './_components/subscribe'
+
+export const metadata: Metadata = {
+  title: 'HubSpot Integration — Satūs',
+  description:
+    'Example HubSpot Forms integration: server-validated newsletter subscription with Zod and Next.js server actions.',
+}
 
 export default async function HubspotPage() {
   // Show setup instructions if HubSpot is not configured

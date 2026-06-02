@@ -26,3 +26,11 @@ updates:
     commit-message:
       prefix: "chore(deps)"
     open-pull-requests-limit: 10
+    # hamo and tempus are first-party Darkroom packages with no stable v1 yet
+    # (npm only carries 1.0.0-dev.* prereleases, and the `latest` dist-tag lags
+    # behind the dev versions we depend on). They are pinned to exact dev
+    # versions and bumped manually — automating them would auto-merge
+    # prereleases or chase a nonexistent stable release. See #157.
+    ignore:
+      - dependency-name: "hamo"
+      - dependency-name: "tempus"

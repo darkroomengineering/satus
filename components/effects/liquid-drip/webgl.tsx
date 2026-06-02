@@ -66,13 +66,13 @@ export function WebGLLiquidDrip({
     material.time = clock.getElapsedTime() * speed * 0.3
   })
 
-  function handleClick(event: ThreeEvent<MouseEvent>) {
+  function spawnDropAtPointer(event: ThreeEvent<MouseEvent>) {
     if (event.uv) material.spawnDrop(event.uv.x)
   }
 
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: <mesh> is an R3F WebGL object, not a DOM element; the click is a decorative easter-egg with no keyboard path required
-    <mesh matrixAutoUpdate={false} ref={meshRef} onClick={handleClick}>
+    <mesh matrixAutoUpdate={false} ref={meshRef} onClick={spawnDropAtPointer}>
       <planeGeometry />
       <primitive object={material} />
     </mesh>

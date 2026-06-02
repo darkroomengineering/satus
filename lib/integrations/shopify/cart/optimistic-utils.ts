@@ -66,13 +66,13 @@ const reconcilingActions: Record<
 
 function updateItem(state: Cart, action: UpdateItemAction): Cart {
   const { merchandiseId, updateType } = action.payload
-  const updatedLines = state.lines
-    .map((item) =>
+  const updatedLines = state.lines.flatMap((item): CartLine[] => {
+    const updated =
       item.merchandise.id === merchandiseId
         ? updateCartItem(item, updateType)
         : item
-    )
-    .filter(Boolean) as CartLine[]
+    return updated ? [updated] : []
+  })
 
   if (isEmptyArray(updatedLines)) {
     return {

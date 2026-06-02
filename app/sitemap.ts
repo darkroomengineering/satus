@@ -53,24 +53,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       )
 
       // Add pages to sitemap (exclude noIndex pages)
-      const pageEntries: MetadataRoute.Sitemap = pages
-        .filter((page) => !page.metadata?.noIndex)
-        .map((page) => ({
-          url: `${APP_BASE_URL}/sanity/${page.slug.current}`,
-          lastModified: new Date(page._updatedAt),
-          changeFrequency: 'weekly' as const,
-          priority: 0.8,
-        }))
+      const pageEntries: MetadataRoute.Sitemap = pages.flatMap((page) =>
+        page.metadata?.noIndex
+          ? []
+          : [
+              {
+                url: `${APP_BASE_URL}/sanity/${page.slug.current}`,
+                lastModified: new Date(page._updatedAt),
+                changeFrequency: 'weekly' as const,
+                priority: 0.8,
+              },
+            ]
+      )
 
       // Add articles to sitemap (exclude noIndex articles)
-      const articleEntries: MetadataRoute.Sitemap = articles
-        .filter((article) => !article.metadata?.noIndex)
-        .map((article) => ({
-          url: `${APP_BASE_URL}/sanity/${article.slug.current}`,
-          lastModified: new Date(article._updatedAt),
-          changeFrequency: 'weekly' as const,
-          priority: 0.7,
-        }))
+      const articleEntries: MetadataRoute.Sitemap = articles.flatMap(
+        (article) =>
+          article.metadata?.noIndex
+            ? []
+            : [
+                {
+                  url: `${APP_BASE_URL}/sanity/${article.slug.current}`,
+                  lastModified: new Date(article._updatedAt),
+                  changeFrequency: 'weekly' as const,
+                  priority: 0.7,
+                },
+              ]
+      )
 
       return [...baseRoutes, ...pageEntries, ...articleEntries]
     } catch (error) {

@@ -1,11 +1,11 @@
 import { type ThreeEvent, useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import type { Mesh } from 'three'
 import { LiquidDripMaterial } from './material'
 
 // @refresh reset
 
-type WebGLLiquidDripProps = {
+export type WebGLLiquidDripProps = {
   /** Whether the source element is in the viewport (gates animation). */
   visible?: boolean
   amplitude?: number
@@ -16,16 +16,23 @@ type WebGLLiquidDripProps = {
 /**
  * WebGL darkroom-developer drip mesh.
  *
- * A screen-space shader (screenUV-based) pinned to the viewport: the quad is
- * sized to the canvas and positioned statically, so the effect does NOT follow
- * page scroll. Clicking releases a fresh drop at the clicked column.
+ * A screen-space shader pinned to the viewport (static fullscreen quad — does
+ * NOT follow page scroll): a clear developer-chemical sheet at the top that
+ * bleeds downward in rivulets. Clicking releases a fresh drop at that column.
  */
 export function WebGLLiquidDrip({
   visible = true,
   amplitude = 1.0,
   speed = 1.0,
 }: WebGLLiquidDripProps) {
-  const [material] = useState(() => new LiquidDripMaterial({ amplitude }))
+  // useRef (not useState) for the imperative material instance — the project's
+  // canonical pattern for class instantiation. Created once; `amplitude` flows
+  // in via the effect below, which is the single source of truth for it.
+  const materialRef = useRef<LiquidDripMaterial | null>(null)
+  if (!materialRef.current) {
+    materialRef.current = new LiquidDripMaterial()
+  }
+  const material = materialRef.current
 
   useEffect(() => {
     return () => {
@@ -43,7 +50,7 @@ export function WebGLLiquidDrip({
     material.resolution.set(size.width, size.height)
   }, [material, size])
 
-  const meshRef = useRef<Mesh>(null!)
+  const meshRef = useRef<Mesh | null>(null)
 
   // Pin the quad to the full viewport (static — does not scroll with the page).
   useLayoutEffect(() => {
@@ -64,7 +71,7 @@ export function WebGLLiquidDrip({
   }
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: <mesh> is an R3F WebGL object, not a DOM element
+    // biome-ignore lint/a11y/noStaticElementInteractions: <mesh> is an R3F WebGL object, not a DOM element; the click is a decorative easter-egg with no keyboard path required
     <mesh matrixAutoUpdate={false} ref={meshRef} onClick={handleClick}>
       <planeGeometry />
       <primitive object={material} />

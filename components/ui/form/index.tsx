@@ -132,16 +132,21 @@ function FormProvider<T = unknown>({
   useEffect(() => {
     if (!formState) return
 
+    let resetTimer: ReturnType<typeof setTimeout> | undefined
     if (formState.status === 200) {
       onSuccess?.(formState as FormState<T>)
       // Reset form after success
       mutate(() => {
-        setTimeout(() => {
+        resetTimer = setTimeout(() => {
           setKey(crypto.randomUUID())
         }, 2000)
       })
     } else if (formState.status >= 400) {
       onError?.(formState as FormState<T>)
+    }
+
+    return () => {
+      if (resetTimer) clearTimeout(resetTimer)
     }
   }, [formState, onSuccess, onError, setKey])
 

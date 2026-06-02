@@ -194,31 +194,17 @@ export function SubmitButton({
 }: SubmitButtonProps) {
   const { state } = useFormContext()
   const { isReady, isPending, formState } = state
-  const [buttonText, setButtonText] = useState(defaultText)
-
   const isSuccess = formState?.status === 200
   const isError = formState?.status && formState.status >= 400
 
-  useEffect(() => {
-    if (isSuccess) {
-      setButtonText(successText)
-    } else if (isError) {
-      setButtonText(errorText)
-    } else if (isPending) {
-      setButtonText(pendingText)
-    } else {
-      setButtonText(children?.toString() ?? defaultText)
-    }
-  }, [
-    isPending,
-    isSuccess,
-    isError,
-    successText,
-    errorText,
-    pendingText,
-    defaultText,
-    children,
-  ])
+  let buttonText = children?.toString() ?? defaultText
+  if (isSuccess) {
+    buttonText = successText
+  } else if (isError) {
+    buttonText = errorText
+  } else if (isPending) {
+    buttonText = pendingText
+  }
 
   return (
     <button

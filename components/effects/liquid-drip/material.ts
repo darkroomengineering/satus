@@ -7,14 +7,11 @@
  * normals, shaded as a translucent/glassy fluid (near-transparent body read via
  * a bright wet meniscus + sharp glints, faint safelight-red tint). NOT chrome.
  *
- * Physics / interactivity:
+ * Motion / interactivity:
  *  - Rivulets grow down out of the curtain; a bead swells at the tip, pinches
  *    off and falls away off-screen while the thread drains back up, then loops.
  *  - `spawnDrop(uvx)` releases a fresh drop at a clicked column (8 slots, so
  *    rapid clicks never cancel a still-falling drop).
- *  - `setObstacles(rects)` registers UI boxes the liquid flows AROUND: the drip
- *    field is x-warped to bend around them and the boxes are carved out so no
- *    liquid renders over the content.
  *
  * Pinned to the viewport (static fullscreen quad — see webgl.tsx).
  *
@@ -26,9 +23,8 @@
  * breaks. The Fn() body holds only the march loop + final color assembly.
  */
 
-import { Vector2, Vector4 } from 'three'
+import { Vector2 } from 'three'
 import {
-  abs,
   Break,
   clamp,
   dot,
@@ -38,13 +34,11 @@ import {
   If,
   Loop,
   length,
-  max,
   min,
   mix,
   normalize,
   pow,
   screenUV,
-  sign,
   sin,
   smoothstep,
   uniform,
@@ -59,8 +53,6 @@ const _v3sample = vec3(0, 0, 0)
 type Vec3Node = typeof _v3sample
 const _v2u = uniform(new Vector2())
 type Vec2Uniform = typeof _v2u
-const _v4u = uniform(new Vector4())
-type Vec4Uniform = typeof _v4u
 
 // World half-height the view maps to (worldY ∈ [-SCALE/2, +SCALE/2]).
 const VIEW_SCALE = 2.0
@@ -72,9 +64,6 @@ const CURTAIN_LEN = 6.0
 // Concurrent click-drop slots: enough that rapid clicking never recycles a
 // still-falling user drop (round-robin only reuses after this many).
 const CLICK_SLOTS = 8
-const OBSTACLE_SLOTS = 4
-// Inactive obstacle: far below the view, zero size.
-const OBSTACLE_OFF = new Vector4(0, -100, 0, 0)
 
 export class LiquidDripMaterial extends MeshBasicNodeMaterial {
   private readonly _uTime = uniform(0)
@@ -87,17 +76,10 @@ export class LiquidDripMaterial extends MeshBasicNodeMaterial {
   )
   private _clickIndex = 0
 
-  // UI obstacles in world coords: (centerX, centerY, halfW, halfH).
-  private readonly _uObstacles: Vec4Uniform[] = Array.from(
-    { length: OBSTACLE_SLOTS },
-    () => uniform(OBSTACLE_OFF.clone())
-  )
-
   readonly resolution = this._uResolution.value as Vector2
 
-  constructor({ amplitude = 1.0 }: { amplitude?: number } = {}) {
+  constructor() {
     super({ transparent: true })
-    this._uAmplitude.value = amplitude
     this._buildNodes()
   }
 
@@ -106,7 +88,6 @@ export class LiquidDripMaterial extends MeshBasicNodeMaterial {
     const uAmp = this._uAmplitude
     const uRes = this._uResolution
     const clicks = this._uClicks
-    const obstacles = this._uObstacles
 
     const sdSphere = (p: Vec3Node, c: Vec3Node, r: FloatNode): FloatNode =>
       length(p.sub(c)).sub(r) as unknown as FloatNode
@@ -123,18 +104,8 @@ export class LiquidDripMaterial extends MeshBasicNodeMaterial {
       return length(p.sub(near)).sub(r) as unknown as FloatNode
     }
 
-    // 2D rounded-box distance (extruded in z) for a UI obstacle.
-    const sdObstacle = (p: Vec3Node, o: Vec4Uniform): FloatNode => {
-      const qx = abs(p.x.sub(o.x)).sub(o.z) as unknown as FloatNode
-      const qy = abs(p.y.sub(o.y)).sub(o.w) as unknown as FloatNode
-      const ax = max(qx, float(0.0)) as unknown as FloatNode
-      const ay = max(qy, float(0.0)) as unknown as FloatNode
-      const outside = length(vec3(ax, ay, float(0.0))) as unknown as FloatNode
-      const inside = min(max(qx, qy), float(0.0)) as unknown as FloatNode
-      return outside.add(inside).sub(0.04) as unknown as FloatNode
-    }
-
     const smin = (a: FloatNode, b: FloatNode, k: number): FloatNode => {
+      if (k === 0) return a
       const h = clamp(
         float(0.5).add(b.sub(a).mul(0.5 / k)),
         float(0.0),
@@ -143,29 +114,6 @@ export class LiquidDripMaterial extends MeshBasicNodeMaterial {
       return mix(b, a, h).sub(
         float(k).mul(h).mul(float(1.0).sub(h))
       ) as unknown as FloatNode
-    }
-
-    // Smooth subtract surface `b` from `a` (carve): smax(a, -b).
-    const ssub = (a: FloatNode, b: FloatNode, k: number): FloatNode =>
-      smin(a.mul(-1.0), b, k).mul(-1.0) as unknown as FloatNode
-
-    // X-domain warp: repel the sample x away from each obstacle within its
-    // vertical band so straight rivulets bend AROUND the UI boxes.
-    const warpX = (p: Vec3Node): FloatNode => {
-      let wx = p.x as unknown as FloatNode
-      for (const o of obstacles) {
-        const dx = p.x.sub(o.x) as unknown as FloatNode
-        const yInfl = float(1.0).sub(
-          smoothstep(o.w, o.w.add(0.3), abs(p.y.sub(o.y)))
-        ) as unknown as FloatNode
-        const pushMag = max(
-          float(0.0),
-          o.z.add(0.13).sub(abs(dx))
-        ) as unknown as FloatNode
-        const push = sign(dx).mul(pushMag).mul(yInfl) as unknown as FloatNode
-        wx = wx.add(push) as unknown as FloatNode
-      }
-      return wx
     }
 
     const addRivulet = (
@@ -277,26 +225,18 @@ export class LiquidDripMaterial extends MeshBasicNodeMaterial {
       return length(vec3(dxv, dy, p.z)).sub(CURTAIN_R) as unknown as FloatNode
     }
 
-    // Scene SDF: sheet (real p) + rivulets/drops (warped p, bending around UI) −
-    // carved UI boxes.
+    // Scene SDF: the curtain band, the ambient rivulets, and the click drops.
     const map = (p: Vec3Node): FloatNode => {
       let d = sdCurtainBand(p)
 
-      // Drips bend around the UI via the x-warp.
-      const pw = vec3(warpX(p), p.y, p.z) as unknown as Vec3Node
-      d = addRivulet(pw, d, -1.7, 0.2, 0.0, 1.15, 0.034)
-      d = addRivulet(pw, d, -0.85, 0.26, 1.6, 1.35, 0.03)
-      d = addRivulet(pw, d, -0.1, 0.22, 3.0, 1.0, 0.042)
-      d = addRivulet(pw, d, 0.8, 0.3, 0.8, 1.25, 0.031)
-      d = addRivulet(pw, d, 1.6, 0.24, 2.3, 1.4, 0.036)
+      d = addRivulet(p, d, -1.7, 0.2, 0.0, 1.15, 0.034)
+      d = addRivulet(p, d, -0.85, 0.26, 1.6, 1.35, 0.03)
+      d = addRivulet(p, d, -0.1, 0.22, 3.0, 1.0, 0.042)
+      d = addRivulet(p, d, 0.8, 0.3, 0.8, 1.25, 0.031)
+      d = addRivulet(p, d, 1.6, 0.24, 2.3, 1.4, 0.036)
 
       for (const c of clicks) {
-        d = addClickDrop(pw, d, c as Vec2Uniform)
-      }
-
-      // Carve the UI boxes so liquid never renders over the content.
-      for (const o of obstacles) {
-        d = ssub(d, sdObstacle(p, o), 0.05)
+        d = addClickDrop(p, d, c as Vec2Uniform)
       }
       return d
     }
@@ -386,7 +326,10 @@ export class LiquidDripMaterial extends MeshBasicNodeMaterial {
           Break()
         })
         t.addAssign(d.mul(0.9))
-        If(t.greaterThan(4.0), () => {
+        // All geometry sits within z ∈ [−CURTAIN_R, +CURTAIN_R] around z = 0, so
+        // a ray from z = 2 confirms a miss by ~t = 2.4; 2.8 leaves margin while
+        // sparing the empty lower screen the full march depth.
+        If(t.greaterThan(2.8), () => {
           Break()
         })
       })
@@ -414,40 +357,6 @@ export class LiquidDripMaterial extends MeshBasicNodeMaterial {
     if (slot) {
       ;(slot.value as Vector2).set(cx, this._uTime.value as number)
       this._clickIndex = (this._clickIndex + 1) % this._uClicks.length
-    }
-  }
-
-  /**
-   * Register UI boxes (in CSS px, viewport-relative) that the liquid flows
-   * around. Converted to the shader's world space using the current resolution.
-   */
-  setObstacles(
-    rects: ReadonlyArray<{
-      left: number
-      top: number
-      width: number
-      height: number
-    }>
-  ): void {
-    const res = this._uResolution.value as Vector2
-    const vw = res.x || 1
-    const vh = res.y || 1
-    const aspect = vw / vh
-    for (let i = 0; i < this._uObstacles.length; i++) {
-      const slot = this._uObstacles[i]
-      if (!slot) continue
-      const rect = rects[i]
-      if (!rect) {
-        ;(slot.value as Vector4).copy(OBSTACLE_OFF)
-        continue
-      }
-      const cxPx = rect.left + rect.width / 2
-      const cyPx = rect.top + rect.height / 2
-      const cx = (cxPx / vw - 0.5) * aspect * VIEW_SCALE
-      const cy = (0.5 - cyPx / vh) * VIEW_SCALE
-      const hw = ((rect.width / vw) * aspect * VIEW_SCALE) / 2
-      const hh = ((rect.height / vh) * VIEW_SCALE) / 2
-      ;(slot.value as Vector4).set(cx, cy, hw, hh)
     }
   }
 

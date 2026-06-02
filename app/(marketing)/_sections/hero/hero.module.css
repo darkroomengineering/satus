@@ -49,25 +49,6 @@
   pointer-events: none;
 }
 
-/* Subtle radial scrim to keep text readable over the gradient */
-.scrim {
-  /* Full-bleed (the section is inset by the layout gutter): break out to 100vw
-     so the readability vignette reaches the edges. */
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 100vw;
-  height: 100%;
-  margin-left: -50vw;
-  z-index: 1;
-  background: radial-gradient(
-    ellipse 80% 60% at 50% 50%,
-    transparent 30%,
-    color-mix(in srgb, var(--color-primary) 60%, transparent) 100%
-  );
-  pointer-events: none;
-}
-
 .content {
   position: relative;
   z-index: 2;

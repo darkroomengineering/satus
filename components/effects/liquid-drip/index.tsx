@@ -1,9 +1,10 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import type { ComponentProps, CSSProperties } from 'react'
+import type { CSSProperties } from 'react'
 import { WebGLTunnel } from '@/webgl/components/tunnel'
 import { useWebGLElement } from '@/webgl/hooks/use-webgl-element'
+import type { WebGLLiquidDripProps } from './webgl'
 
 const WebGLLiquidDrip = dynamic(
   () => import('./webgl').then(({ WebGLLiquidDrip }) => WebGLLiquidDrip),
@@ -15,7 +16,7 @@ const WebGLLiquidDrip = dynamic(
 type LiquidDripProps = {
   className?: string
   style?: CSSProperties
-} & Omit<ComponentProps<typeof WebGLLiquidDrip>, 'visible'>
+} & Omit<WebGLLiquidDripProps, 'visible'>
 
 /**
  * Darkroom-developer drip hero effect.

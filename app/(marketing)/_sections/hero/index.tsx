@@ -115,8 +115,6 @@ export function Hero() {
         />
       )}
 
-      <div className={s.scrim} aria-hidden="true" />
-
       <div
         className={cn(s.content, 'col-span-full dt:col-start-3 dt:col-end-11')}
       >

@@ -83,13 +83,20 @@ jobs:
         continue-on-error: true
 
       - name: Run Lighthouse
-        if: steps.vercel_info.outputs.skip != 'true' && steps.await.outcome == 'success'
+        # Also require a non-empty preview URL: an empty URL would otherwise run
+        # Lighthouse against bare "https://" and report junk scores.
+        # This workflow REPORTS scores (as a commit comment) but intentionally
+        # does NOT gate/fail on them — scores are advisory, not a merge blocker.
+        if: steps.vercel_info.outputs.skip != 'true' && steps.await.outcome == 'success' && steps.vercel_url.outputs.preview_url != ''
         id: lighthouse
         uses: treosh/lighthouse-ci-action@v12
         env:
           LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
         with:
           urls: https://${{ steps.vercel_url.outputs.preview_url }}
+          # Average 3 runs to smooth out single-run cold-start variance (a cold
+          # run can score 10-20 points below a warmed one).
+          runs: 3
           uploadArtifacts: true
           temporaryPublicStorage: true
 

@@ -6,7 +6,10 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  background: var(--color-primary);
+  /* Transparent so the fixed global WebGL canvas (z-index:-1) shows through;
+     the black body background fills everything the blob doesn't cover. An
+     opaque background here would occlude the canvas entirely. */
+  background: transparent;
   overflow: hidden;
 }
 
@@ -33,16 +36,29 @@
 /* Interactive WebGL fluid gradient layer (drawn on the global canvas at this
    element's rect). Sits above the CSS glow, below the scrim + content. */
 .webglGradient {
+  /* Full-bleed: the section is inset by the layout `--safe` gutter, but the
+     WebGL curtain must span the whole viewport. Break out to 100vw so the mesh
+     (sized to this element's rect) reaches edge to edge with no black bar. */
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 50%;
+  width: 100vw;
+  height: 100%;
+  margin-left: -50vw;
   z-index: 0;
   pointer-events: none;
 }
 
 /* Subtle radial scrim to keep text readable over the gradient */
 .scrim {
+  /* Full-bleed (the section is inset by the layout gutter): break out to 100vw
+     so the readability vignette reaches the edges. */
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 50%;
+  width: 100vw;
+  height: 100%;
+  margin-left: -50vw;
   z-index: 1;
   background: radial-gradient(
     ellipse 80% 60% at 50% 50%,

@@ -102,11 +102,12 @@ export function Hero() {
 
   return (
     <section className={cn(s.hero, 'dr-layout-grid')}>
-      {/* CSS glow base: always-on, performant, on-brand (also the
-          reduced-motion / no-GPU fallback). */}
-      <div className={s.gradient} aria-hidden="true" />
-      {/* Interactive WebGL liquid red-metal metaball, layered on top. */}
-      {!prefersReducedMotion && (
+      {/* WebGL chemical-drip effect is the hero visual. The CSS radial glow is
+          only the reduced-motion / no-GPU fallback (otherwise it tints the
+          edges and competes with the effect). */}
+      {prefersReducedMotion ? (
+        <div className={s.gradient} aria-hidden="true" />
+      ) : (
         <LiquidDrip
           className={cn(s.webglGradient)}
           amplitude={1.0}

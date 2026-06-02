@@ -1,14 +1,20 @@
 /**
  * Simple in-memory rate limiter
  *
- * For production with multiple serverless instances, consider upgrading to:
- * - @upstash/ratelimit with Redis
- * - Vercel KV
+ * ⚠️ Serverless / Vercel limitation — read before relying on this in prod:
+ * the counter lives in a module-level `Map`, so it is scoped to a single
+ * process/isolate. On Vercel (and any horizontally-scaled host) requests are
+ * spread across multiple function instances and regions, each with its OWN
+ * counter — and instances are recycled on cold starts. A client hitting N
+ * instances effectively gets N× the limit, and a cold start resets the window.
+ * Treat this as best-effort, per-instance throttling, NOT a global guarantee.
  *
- * This implementation works well for:
- * - Development
- * - Single-server deployments
- * - Edge functions (per-isolate limiting)
+ * For a durable, cross-instance limit, swap the `store` for a shared backend:
+ * - `@upstash/ratelimit` with Upstash Redis (recommended on Vercel)
+ * - any Redis / KV reachable from the function
+ *
+ * Works well as-is for: local development, single-server deployments, and
+ * coarse per-isolate abuse-dampening at the edge.
  */
 
 interface RateLimitEntry {

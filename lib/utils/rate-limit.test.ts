@@ -137,6 +137,29 @@ describe('rateLimit', () => {
     expect(r3.remaining).toBe(0)
     expect(r4.remaining).toBe(0)
   })
+
+  it('counts against a single per-process store (serverless multi-instance limitation)', () => {
+    // The limiter's state lives in one module-level Map, so every call in THIS
+    // process shares a counter. That is exactly why it does not hold across
+    // Vercel/serverless instances: each isolate has its own Map and its own
+    // counter, so the same identifier is limited independently per instance
+    // (and resets on cold start). This test pins the per-process-shared-state
+    // contract so the limitation is explicit, not incidental.
+    const id = uniqueId()
+    const config = { limit: 3, windowSeconds: 60 }
+
+    // Simulate two "callers" (e.g. two requests) routed to the SAME instance:
+    // they share the counter and are limited together.
+    expect(rateLimit(id, config).remaining).toBe(2)
+    expect(rateLimit(id, config).remaining).toBe(1)
+    expect(rateLimit(id, config).remaining).toBe(0)
+    expect(rateLimit(id, config).success).toBe(false)
+
+    // A DIFFERENT identifier (the closest thing a unit test can do to "another
+    // instance") keeps a fully independent budget — mirroring how a second
+    // serverless isolate would not see the first isolate's count.
+    expect(rateLimit(uniqueId(), config).success).toBe(true)
+  })
 })
 
 describe('getClientIP', () => {

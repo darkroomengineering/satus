@@ -80,6 +80,37 @@ type PresetKey = keyof typeof PROJECT_PRESETS
 interface SetupOptions {
   dryRun: boolean
   keepIntegrations: string[]
+  /** Replace the demo marketing homepage with a blank starter page. */
+  cleanMarketing: boolean
+}
+
+/**
+ * Minimal homepage written when the user opts to drop the demo marketing page.
+ * Mirrors the reset documented in the header of `app/page.tsx`.
+ */
+const BLANK_HOMEPAGE = `import { Wrapper } from '@/components/layout/wrapper'
+
+export default function Home() {
+  return (
+    <Wrapper theme="dark" lenis={{}}>
+      <main />
+    </Wrapper>
+  )
+}
+`
+
+/**
+ * Replace the showcase homepage with a blank page and remove the demo sections.
+ * This is the "fresh start" path documented in `app/page.tsx`: rewrite
+ * `app/page.tsx`, then delete `app/(marketing)` (which only holds `_sections`).
+ */
+const removeMarketingHomepage = async (dryRun: boolean): Promise<void> => {
+  if (dryRun) {
+    p.log.message('  Would replace app/page.tsx with a blank homepage')
+  } else {
+    await Bun.write(resolvePath('app/page.tsx'), BLANK_HOMEPAGE)
+  }
+  await removeDir('app/(marketing)', dryRun)
 }
 
 /**
@@ -292,8 +323,16 @@ const updateBarrelExports = async (
  * Main setup function
  */
 const setup = async (options: SetupOptions): Promise<void> => {
-  const { dryRun, keepIntegrations } = options
+  const { dryRun, keepIntegrations, cleanMarketing } = options
   const integrationNames = getIntegrationNames()
+
+  // Replace the demo homepage first (independent of integration removal).
+  if (cleanMarketing) {
+    const ms = p.spinner()
+    ms.start('Replacing demo marketing homepage...')
+    await removeMarketingHomepage(dryRun)
+    ms.stop('Replaced demo homepage with a blank starter page')
+  }
 
   // Determine what to remove
   const toRemove = integrationNames.filter(
@@ -510,11 +549,22 @@ const main = async (): Promise<void> => {
     )
   }
 
+  // Offer to drop the demo marketing homepage for a clean slate.
+  const cleanMarketing = await p.confirm({
+    message: 'Replace the demo marketing homepage with a blank starter page?',
+    initialValue: false,
+  })
+
+  if (p.isCancel(cleanMarketing)) {
+    p.cancel('Setup cancelled')
+    process.exit(0)
+  }
+
   const toRemove = getIntegrationNames().filter(
     (name) => !keepIntegrations.includes(name)
   )
 
-  if (toRemove.length === 0) {
+  if (toRemove.length === 0 && !cleanMarketing) {
     p.log.success('Keeping all integrations. No changes needed!')
     p.outro('Run: bun dev')
     return
@@ -529,9 +579,15 @@ const main = async (): Promise<void> => {
     )
   }
 
-  p.log.message(
-    `  Remove: ${toRemove.map((k) => INTEGRATION_BUNDLES[k]?.name).join(', ')}`
-  )
+  if (toRemove.length > 0) {
+    p.log.message(
+      `  Remove: ${toRemove.map((k) => INTEGRATION_BUNDLES[k]?.name).join(', ')}`
+    )
+  }
+
+  if (cleanMarketing) {
+    p.log.message('  Homepage: replace demo with a blank starter page')
+  }
 
   // Confirm
   const proceed = await p.confirm({
@@ -544,7 +600,11 @@ const main = async (): Promise<void> => {
   }
 
   // Run setup
-  await setup({ dryRun, keepIntegrations: keepIntegrations as string[] })
+  await setup({
+    dryRun,
+    keepIntegrations: keepIntegrations as string[],
+    cleanMarketing,
+  })
 
   // Done
   if (dryRun) {

@@ -13,7 +13,7 @@
  * updated each frame inside the R3F render loop.
  */
 
-import { createContext, useContext } from 'react'
+import { createContext, use } from 'react'
 import { useFlowmapSim } from '@/webgl/utils/flowmaps'
 import type { Flowmap } from '@/webgl/utils/flowmaps/flowmap-sim'
 import { useFluidSim } from '@/webgl/utils/fluid'
@@ -60,7 +60,7 @@ export const FlowmapContext = createContext<FlowmapContextType>(
  * ```
  */
 export function useFlowmap(type: 'fluid' | 'flowmap' = 'flowmap') {
-  const { fluid, flowmap } = useContext(FlowmapContext)
+  const { fluid, flowmap } = use(FlowmapContext)
 
   if (type === 'fluid') return fluid
   return flowmap

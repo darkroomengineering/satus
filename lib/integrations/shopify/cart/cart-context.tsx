@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { createContext, useContext, useOptimistic } from 'react'
+import { createContext, use, useOptimistic } from 'react'
 import type { StandardContext } from '@/utils/context'
 import type { Cart, Product, ProductVariant } from '../types'
 import { CartModal } from './modal'
@@ -58,7 +58,7 @@ const CartContext = createContext<CartContextStandard | null>(null)
  * ```
  */
 export function useCartContext(): CartContextStandard {
-  const context = useContext(CartContext)
+  const context = use(CartContext)
   if (!context) {
     throw new Error('useCartContext must be used within a CartProvider')
   }

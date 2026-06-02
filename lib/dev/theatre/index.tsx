@@ -5,7 +5,7 @@ import {
   createContext,
   type PropsWithChildren,
   type Ref,
-  useContext,
+  use,
   useEffect,
   useImperativeHandle,
   useLayoutEffect,
@@ -76,14 +76,14 @@ export function TheatreProjectProvider({
 }
 
 export function useCurrentProject() {
-  return useContext(TheatreProjectContext)
+  return use(TheatreProjectContext)
 }
 
 export const SheetContext = createContext<ISheet | undefined>(undefined)
 
 export function useSheet(sheetId?: string, instanceId?: string) {
   const project = useCurrentProject()
-  const currentSheet = useContext(SheetContext)
+  const currentSheet = use(SheetContext)
 
   const sheet = sheetId ? project?.sheet(sheetId, instanceId) : currentSheet
 
@@ -126,5 +126,5 @@ export function SheetProvider({
 }
 
 export function useCurrentSheet() {
-  return useContext(SheetContext)
+  return use(SheetContext)
 }

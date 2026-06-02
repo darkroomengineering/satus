@@ -101,7 +101,10 @@ export default async function Layout({ children }: PropsWithChildren) {
       suppressHydrationWarning
     >
       {/* this helps to track Satus usage thanks to Wappalyzer */}
-      <Script async>{`window.satusVersion = '${AppData.version}';`}</Script>
+      <Script
+        id="satus-version"
+        async
+      >{`window.satusVersion = '${AppData.version}';`}</Script>
       <body>
         <ReactScanProvider />
         {/* Skip link for keyboard navigation accessibility */}

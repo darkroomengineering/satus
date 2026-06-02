@@ -6,7 +6,7 @@ import {
   createContext,
   type HTMLAttributes,
   type ReactNode,
-  useContext,
+  use,
   useRef,
 } from 'react'
 import s from './fold.module.css'
@@ -14,7 +14,7 @@ import s from './fold.module.css'
 const FoldContext = createContext(false)
 
 export function useFold() {
-  return useContext(FoldContext)
+  return use(FoldContext)
 }
 
 type FoldProps = HTMLAttributes<HTMLDivElement> & {

@@ -6,6 +6,7 @@ import Script from 'next/script'
 import { VisualEditing } from 'next-sanity/visual-editing'
 import { type PropsWithChildren, Suspense } from 'react'
 import { ReactTempus } from 'tempus/react'
+import { ReactScanProvider } from '@/components/react-scan-provider'
 import { Link } from '@/components/ui/link'
 import { RealViewport } from '@/components/ui/real-viewport'
 import { env } from '@/lib/env'
@@ -102,6 +103,7 @@ export default async function Layout({ children }: PropsWithChildren) {
       {/* this helps to track Satus usage thanks to Wappalyzer */}
       <Script async>{`window.satusVersion = '${AppData.version}';`}</Script>
       <body>
+        <ReactScanProvider />
         {/* Skip link for keyboard navigation accessibility */}
         <Suspense fallback={null}>
           <Link

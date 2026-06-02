@@ -66,13 +66,17 @@ type Option<T = string> = {
   disabled?: boolean
 }
 
+// Stable reference reused across renders so memoized children don't see a new
+// array identity every render when `options` is omitted.
+const EMPTY_OPTIONS: readonly never[] = []
+
 type SelectProps<T = string> = {
   /** CSS class for the trigger element */
   className?: string
   /** Label displayed above the select */
   label?: string
   /** Options to display in the dropdown */
-  options?: Option<T>[]
+  options?: readonly Option<T>[]
   /** Placeholder text when no value is selected */
   placeholder?: string
   /** Custom icon for the trigger */
@@ -94,7 +98,7 @@ type SelectProps<T = string> = {
 function Select<T extends string = string>({
   className,
   label,
-  options = [],
+  options = EMPTY_OPTIONS,
   placeholder = 'Select an option',
   icon,
   value,

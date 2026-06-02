@@ -60,3 +60,7 @@ next-env.d.ts
 .claude
 AGENTS.md
 plans
+
+# react-doctor — ignore generated diagnostics, keep the curated suppression list
+.react-doctor/*
+!.react-doctor/false-positives.md

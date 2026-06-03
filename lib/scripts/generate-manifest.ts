@@ -55,6 +55,20 @@ interface ExportSig {
   sig: string
 }
 
+/**
+ * Format a ts-morph type string for the manifest. Strips the machine-specific
+ * `import("/abs/path/node_modules/...").` qualifiers the compiler emits for
+ * inferred types (they bake an absolute path into the output and make it
+ * non-deterministic across checkouts), collapses whitespace, and truncates.
+ */
+function formatTypeText(raw: string): string {
+  const cleaned = raw
+    .replace(/import\("[^"]*"\)\./g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return cleaned.length > 80 ? `${cleaned.slice(0, 77)}...` : cleaned
+}
+
 function getExportedSignatures(
   project: Project,
   filePath: string
@@ -85,18 +99,16 @@ function getExportedSignatures(
         const v = decl.asKindOrThrow(SyntaxKind.VariableDeclaration)
         const typeNode = v.getTypeNode()
         if (typeNode) {
-          sig = typeNode.getText()
+          sig = formatTypeText(typeNode.getText())
         } else {
           const init = v.getInitializer()
           if (init) {
-            const t = init.getType().getText()
-            sig = t.length > 80 ? `${t.slice(0, 77)}...` : t
+            sig = formatTypeText(init.getType().getText())
           }
         }
       } else if (decl.getKind() === SyntaxKind.TypeAliasDeclaration) {
         const ta = decl.asKindOrThrow(SyntaxKind.TypeAliasDeclaration)
-        const t = ta.getTypeNode()?.getText() ?? ''
-        sig = t.length > 80 ? `${t.slice(0, 77)}...` : t
+        sig = formatTypeText(ta.getTypeNode()?.getText() ?? '')
       }
 
       const clean = sig.replace(/\n\s*/g, ' ').trim()

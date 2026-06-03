@@ -179,15 +179,15 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 |--------|-----------|
 | parseFormData | `(schema: z.ZodType<T>, formData: FormData) => FormState<T> | { success: true; data: T }` |
 | zodToValidator | `(schema: z.ZodType) => (value: string) => boolean` |
-| emailSchema | `import("/Users/frz/Developer/@darkroom/satus/node_modules/zod/v4/classic/sche...` |
-| phoneSchema | `import("/Users/frz/Developer/@darkroom/satus/node_modules/zod/v4/classic/sche...` |
-| sanityEnvSchema | `import("/Users/frz/Developer/@darkroom/satus/node_modules/zod/v4/classic/sche...` |
-| shopifyEnvSchema | `import("/Users/frz/Developer/@darkroom/satus/node_modules/zod/v4/classic/sche...` |
-| hubspotEnvSchema | `import("/Users/frz/Developer/@darkroom/satus/node_modules/zod/v4/classic/sche...` |
-| mailchimpEnvSchema | `import("/Users/frz/Developer/@darkroom/satus/node_modules/zod/v4/classic/sche...` |
-| turnstileEnvSchema | `import("/Users/frz/Developer/@darkroom/satus/node_modules/zod/v4/classic/sche...` |
-| analyticsEnvSchema | `import("/Users/frz/Developer/@darkroom/satus/node_modules/zod/v4/classic/sche...` |
-| coreEnvSchema | `import("/Users/frz/Developer/@darkroom/satus/node_modules/zod/v4/classic/sche...` |
+| emailSchema | `ZodEmail` |
+| phoneSchema | `ZodString` |
+| sanityEnvSchema | `ZodObject<{ NEXT_PUBLIC_SANITY_PROJECT_ID: ZodString; NEXT_PUBLIC_SANITY_DATA...` |
+| shopifyEnvSchema | `ZodObject<{ SHOPIFY_STORE_DOMAIN: ZodString; SHOPIFY_STOREFRONT_ACCESS_TOKEN:...` |
+| hubspotEnvSchema | `ZodObject<{ HUBSPOT_ACCESS_TOKEN: ZodOptional<ZodString>; NEXT_PUBLIC_HUBSPOT...` |
+| mailchimpEnvSchema | `ZodObject<{ MAILCHIMP_API_KEY: ZodString; MAILCHIMP_SERVER_PREFIX: ZodString;...` |
+| turnstileEnvSchema | `ZodObject<{ NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY: ZodString; CLOUDFLARE_...` |
+| analyticsEnvSchema | `ZodObject<{ NEXT_PUBLIC_GOOGLE_ANALYTICS: ZodOptional<ZodString>; NEXT_PUBLIC...` |
+| coreEnvSchema | `ZodObject<{ NEXT_PUBLIC_BASE_URL: ZodURL; }, $strip>` |
 
 ### Viewport (`@/utils/viewport`)
 
@@ -222,7 +222,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | getConfigured | `() => string[]` |
 | getUnconfigured | `() => string[]` |
 | IntegrationEntry |  |
-| integrations | `{ readonly sanity: { readonly name: "Sanity"; readonly envSchema: import("/Us...` |
+| integrations | `{ readonly sanity: { readonly name: "Sanity"; readonly envSchema: ZodObject<{...` |
 | IntegrationId | `keyof typeof integrations` |
 
 ---

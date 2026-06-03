@@ -10,6 +10,7 @@ import {
   isEmptyArray,
   lowerFirstChar,
   slugify,
+  stripHtmlTags,
 } from './strings'
 
 describe('slugify', () => {
@@ -103,5 +104,29 @@ describe('isEmptyArray', () => {
   it('should return true for null/undefined', () => {
     expect(isEmptyArray(null as unknown as unknown[])).toBe(true)
     expect(isEmptyArray(undefined as unknown as unknown[])).toBe(true)
+  })
+})
+
+describe('stripHtmlTags', () => {
+  it('removes simple and nested tags', () => {
+    expect(stripHtmlTags('<p>Hello</p>')).toBe('Hello')
+    expect(stripHtmlTags('I agree to the <a href="/x">terms</a>')).toBe(
+      'I agree to the terms'
+    )
+  })
+
+  it('drops an unterminated tag without leaving <script', () => {
+    const result = stripHtmlTags('safe <script')
+    expect(result).toBe('safe ')
+    expect(result).not.toContain('<script')
+  })
+
+  it('cannot reassemble a tag from the remainder', () => {
+    expect(stripHtmlTags('<scr<script>ipt>')).not.toContain('<')
+  })
+
+  it('leaves plain text untouched', () => {
+    expect(stripHtmlTags('No tags here')).toBe('No tags here')
+    expect(stripHtmlTags('')).toBe('')
   })
 })

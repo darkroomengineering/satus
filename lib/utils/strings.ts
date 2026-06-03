@@ -85,3 +85,36 @@ export function isEmptyArray(arr: string | unknown[]) {
   if (!arr) return true
   return Array.isArray(arr) && arr.length === 0
 }
+
+/**
+ * Strip all HTML tags to plain text via a single linear scan.
+ *
+ * Deliberately NOT a regex replace: `str.replace(/<[^>]*>/g, '')` is an
+ * incomplete sanitizer (CodeQL js/incomplete-multi-character-sanitization) that
+ * can leave an unterminated `<script` or reassemble a tag from the remainder. A
+ * character scan drops everything between `<` and the next `>` in one pass and
+ * discards a trailing unterminated tag, so the output can never contain markup.
+ *
+ * @param input - Possibly-HTML string (e.g. HubSpot rich text)
+ * @returns Plain text with all tags removed
+ *
+ * @example
+ * ```ts
+ * stripHtmlTags('<p>Hello</p>')  // 'Hello'
+ * stripHtmlTags('safe <script')  // 'safe ' (unterminated tag dropped)
+ * ```
+ */
+export function stripHtmlTags(input: string): string {
+  let output = ''
+  let insideTag = false
+  for (const char of input) {
+    if (char === '<') {
+      insideTag = true
+    } else if (char === '>') {
+      insideTag = false
+    } else if (!insideTag) {
+      output += char
+    }
+  }
+  return output
+}

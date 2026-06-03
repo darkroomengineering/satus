@@ -8,11 +8,8 @@ import { describe, expect, it } from 'bun:test'
 import {
   capitalizeFirstLetter,
   isEmptyArray,
-  isEmptyObject,
   lowerFirstChar,
-  numberWithCommas,
   slugify,
-  twoDigits,
 } from './strings'
 
 describe('slugify', () => {
@@ -84,62 +81,6 @@ describe('capitalizeFirstLetter', () => {
 
   it('should handle empty strings', () => {
     expect(capitalizeFirstLetter('')).toBe('')
-  })
-})
-
-describe('twoDigits', () => {
-  it('should pad single digit numbers with zero', () => {
-    expect(twoDigits(0)).toBe('00')
-    expect(twoDigits(5)).toBe('05')
-    expect(twoDigits(9)).toBe('09')
-  })
-
-  it('should not pad two-digit numbers', () => {
-    expect(twoDigits(10)).toBe('10')
-    expect(twoDigits(23)).toBe('23')
-    expect(twoDigits(99)).toBe('99')
-  })
-
-  it('should handle numbers greater than 99', () => {
-    expect(twoDigits(100)).toBe('100')
-    expect(twoDigits(999)).toBe('999')
-  })
-})
-
-describe('numberWithCommas', () => {
-  it('should add commas as thousands separators', () => {
-    expect(numberWithCommas(1000)).toBe('1,000')
-    expect(numberWithCommas(1234)).toBe('1,234')
-    expect(numberWithCommas(1234567)).toBe('1,234,567')
-  })
-
-  it('should not add commas to numbers less than 1000', () => {
-    expect(numberWithCommas(999)).toBe('999')
-    expect(numberWithCommas(1)).toBe('1')
-    expect(numberWithCommas(0)).toBe('0')
-  })
-
-  it('should handle objects with toString', () => {
-    const obj = { toString: () => '1234567' }
-    expect(numberWithCommas(obj)).toBe('1,234,567')
-  })
-})
-
-describe('isEmptyObject', () => {
-  it('should return true for empty objects', () => {
-    expect(isEmptyObject({})).toBe(true)
-  })
-
-  it('should return false for non-empty objects', () => {
-    expect(isEmptyObject({ a: 1 })).toBe(false)
-    expect(isEmptyObject({ key: 'value' })).toBe(false)
-  })
-
-  it('should return true for null/undefined', () => {
-    expect(isEmptyObject(null as unknown as Record<string, unknown>)).toBe(true)
-    expect(isEmptyObject(undefined as unknown as Record<string, unknown>)).toBe(
-      true
-    )
   })
 })
 

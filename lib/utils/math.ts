@@ -215,22 +215,3 @@ export function distance(
 ): number {
   return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 }
-
-/**
- * Normalizes a value to a 0-1 range.
- *
- * @param min - Range minimum
- * @param max - Range maximum
- * @param value - Value to normalize
- * @returns Normalized value (0-1)
- *
- * @example
- * ```ts
- * normalize(0, 100, 50)  // 0.5
- * normalize(0, 100, 0)   // 0
- * normalize(0, 100, 100) // 1
- * ```
- */
-export function normalize(min: number, max: number, value: number): number {
-  return (value - min) / (max - min)
-}

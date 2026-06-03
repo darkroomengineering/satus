@@ -12,7 +12,6 @@ import {
   lerp,
   mapRange,
   modulo,
-  normalize,
   radToDeg,
   roundTo,
   truncate,
@@ -199,23 +198,5 @@ describe('distance', () => {
 
   it('should be symmetric', () => {
     expect(distance(0, 0, 3, 4)).toBe(distance(3, 4, 0, 0))
-  })
-})
-
-describe('normalize', () => {
-  it('should normalize value to 0-1 range', () => {
-    expect(normalize(0, 100, 50)).toBe(0.5)
-    expect(normalize(0, 100, 0)).toBe(0)
-    expect(normalize(0, 100, 100)).toBe(1)
-  })
-
-  it('should handle non-zero min values', () => {
-    expect(normalize(50, 100, 75)).toBe(0.5)
-    expect(normalize(-100, 100, 0)).toBe(0.5)
-  })
-
-  it('should extrapolate outside range', () => {
-    expect(normalize(0, 100, 150)).toBe(1.5)
-    expect(normalize(0, 100, -50)).toBe(-0.5)
   })
 })

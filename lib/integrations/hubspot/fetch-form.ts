@@ -118,7 +118,19 @@ function apiParser(id: string, data: HubspotFormResponse) {
     (data?.legalConsentOptions as HubSpotLegalConsentOptions)
       ?.communicationsCheckboxes || null
 
-  const removeHTML = (htmlText: string) => htmlText.replace(/<[^>]*>/g, '')
+  // Strip HTML tags to plain text. A single regex pass is an incomplete
+  // sanitizer (CodeQL js/incomplete-multi-character-sanitization): removing one
+  // tag can reassemble another, and an unterminated `<script` is never matched.
+  // Loop until the result is stable, and drop any unterminated trailing tag.
+  const removeHTML = (htmlText: string) => {
+    let current = htmlText
+    let previous = ''
+    while (current !== previous) {
+      previous = current
+      current = current.replace(/<[^>]*>/g, '').replace(/<[^>]*$/g, '')
+    }
+    return current
+  }
 
   return {
     portalId: process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID,

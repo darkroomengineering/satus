@@ -6,7 +6,7 @@ Next.js App Router pages and routes.
 
 ```
 app/
-├── page.tsx              # Homepage (redirects to marketing)
+├── page.tsx              # Homepage (renders the marketing homepage directly)
 ├── layout.tsx            # Root layout
 ├── (marketing)/          # DELETE - Satūs marketing homepage
 ├── (examples)/           # DELETE - Demo pages (components, r3f, etc.)

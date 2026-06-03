@@ -78,7 +78,7 @@ Subscribe to viewport values with optional selector for granular updates.
 | `vw` | `number` | Viewport width / 100 |
 | `dvh` | `number` | Dynamic viewport height / 100 |
 | `svh` | `number` | Small viewport height / 100 |
-| `lvh` | `number` | Large viewport height / 100 |
+| `lvh` | `number` | Large viewport height - currently a passthrough stub (always `1`, maps to `1vh`) |
 | `scrollbarWidth` | `number` | Scrollbar width in pixels |
 
 ## CSS Variables
@@ -90,7 +90,7 @@ Available after `<RealViewport />` mounts:
 | `--vw` | Viewport width unit | `width: calc(100 * var(--vw))` |
 | `--dvh` | Dynamic viewport height | `height: calc(100 * var(--dvh))` |
 | `--svh` | Small viewport height | `min-height: calc(100 * var(--svh))` |
-| `--lvh` | Large viewport height | `max-height: calc(100 * var(--lvh))` |
+| `--lvh` | Large viewport height (passthrough stub: always `1vh`) | `max-height: calc(100 * var(--lvh))` |
 | `--scrollbar-width` | Scrollbar width | `width: calc(100vw - var(--scrollbar-width))` |
 
 ## Performance

@@ -15,7 +15,7 @@ SHOPIFY_REVALIDATION_SECRET="your-secret"
 ### Cart Provider
 
 ```tsx
-import { Cart } from '@/lib/integrations/shopify/cart'
+import { Cart } from '@/integrations/shopify/cart'
 
 export default function Layout({ children }) {
   return <Cart>{children}</Cart>
@@ -25,7 +25,7 @@ export default function Layout({ children }) {
 ### Add to Cart
 
 ```tsx
-import { AddToCart } from '@/lib/integrations/shopify/cart/add-to-cart'
+import { AddToCart } from '@/integrations/shopify/cart/add-to-cart'
 
 <AddToCart product={product} variant={variant} quantity={1} />
 ```
@@ -33,7 +33,7 @@ import { AddToCart } from '@/lib/integrations/shopify/cart/add-to-cart'
 ### Cart Context
 
 ```tsx
-import { useCartContext } from '@/lib/integrations/shopify/cart/cart-context'
+import { useCartContext } from '@/integrations/shopify/cart/cart-context'
 
 const { state, actions, meta } = useCartContext()
 const { cart } = state
@@ -44,7 +44,7 @@ const quantity = meta?.totalQuantity()
 ### Products
 
 ```tsx
-import { getProducts, getProduct } from '@/lib/integrations/shopify'
+import { getProducts, getProduct } from '@/integrations/shopify'
 
 const products = await getProducts({ sortKey: 'CREATED_AT' })
 const product = await getProduct('product-handle')
@@ -55,7 +55,7 @@ const product = await getProduct('product-handle')
 All Shopify server actions validate input with Zod schemas:
 - **Cart actions** (`addItem`, `updateItemQuantity`, `removeItem`): validate variant IDs, quantity bounds (1-99), rate limiting
 - **Customer actions** (`LoginCustomerAction`, `CreateCustomerAction`): validate email format, password length, rate limiting
-- **Error handling**: All errors are proper `Error` instances with `error.cause` containing the original error and query
+- **Error handling**: Actions return plain error strings or `FormState` objects on failure; there is no `Error` instance wrapping
 
 Env vars are validated via `shopifyEnvSchema` in the integration registry.
 

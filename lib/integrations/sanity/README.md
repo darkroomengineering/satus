@@ -118,7 +118,7 @@ export async function generateMetadata({ params }) {
 
 ## Creating New Content Types
 
-1. **Create schema** in `schemaTypes/`:
+1. **Create schema** in `schemas/`:
 
 ```typescript
 import { defineField, defineType } from 'sanity'
@@ -134,7 +134,7 @@ export const landing = defineType({
 })
 ```
 
-2. **Add to schema index** in `schemaTypes/index.ts`
+2. **Add to schema index** in `schemas/index.ts`
 3. **Create query** in `queries.ts`
 4. **Create page** in `app/`
 

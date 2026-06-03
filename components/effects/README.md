@@ -10,6 +10,7 @@ Animation and visual effect components built with GSAP.
 | `animated-gradient/` | WebGL animated gradient background |
 | `split-text/` | Text splitting for character/word/line animations |
 | `progress-text/` | Scroll-based text reveal animation |
+| `liquid-drip/` | WebGL liquid drip effect (`LiquidDrip`) |
 
 ## GSAP Runtime
 

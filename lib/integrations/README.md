@@ -71,15 +71,15 @@ import { RichText } from '@/integrations/sanity/components/rich-text'
 const { data } = await sanityFetch({ query: pageQuery })
 
 // Shopify
-import { Cart, AddToCart } from '@/lib/integrations/shopify/cart'
+import { Cart, AddToCart } from '@/integrations/shopify/cart'
 <Cart><AddToCart product={product} /></Cart>
 
 // HubSpot
-import { EmbedHubspotForm } from '@/lib/integrations/hubspot/embed'
+import { EmbedHubspotForm } from '@/integrations/hubspot/embed'
 <EmbedHubspotForm formId="your-form-id" />
 
 // Mailchimp
-import { mailchimpSubscriptionAction } from '@/lib/integrations/mailchimp'
+import { mailchimpSubscriptionAction } from '@/integrations/mailchimp'
 <Form action={mailchimpSubscriptionAction}>...</Form>
 ```
 

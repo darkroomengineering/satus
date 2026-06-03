@@ -32,6 +32,8 @@
     "doctor": "bun ./lib/scripts/doctor.ts",
     "setup:styles": "bun ./lib/styles/scripts/setup-styles.ts",
     "generate": "bun ./lib/scripts/generate.ts",
+    "generate:manifest": "bun ./lib/scripts/generate-manifest.ts",
+    "manifest:check": "bun ./lib/scripts/generate-manifest.ts --check",
     "handoff": "bun ./lib/scripts/prepare-handoff.ts",
     "sanity:extract": "cd lib/integrations/sanity && bun --env-file ../../../.env.local sanity schema extract",
     "sanity:typegen": "cd lib/integrations/sanity && bun --env-file ../../../.env.local sanity typegen generate && bun biome check --write --unsafe",

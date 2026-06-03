@@ -29,3 +29,7 @@ jobs:
 
       - name: Run checks
         run: bun run check
+
+      # COMPONENTS.md is generated from code; fail if it has drifted.
+      - name: Check generated manifest
+        run: bun run manifest:check

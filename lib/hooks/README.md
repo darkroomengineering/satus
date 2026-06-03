@@ -13,7 +13,6 @@ import { useDeviceDetection, useMediaQuery } from '@/hooks'
 | `useDeviceDetection` | Detect mobile/desktop/tablet |
 | `usePrefetch` | Prefetch routes on visibility |
 | `useStore` | Global Zustand store |
-| `useMediaQuery` | CSS media query subscription |
 | `useOnlineStatus` | Network online/offline status |
 | `usePreferredColorScheme` | System theme preference |
 | `usePreferredReducedMotion` | Reduced motion preference |

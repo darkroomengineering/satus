@@ -32,7 +32,7 @@ Clears draft mode cookies and redirects to homepage.
 
 ## Revalidation Webhook
 
-Receives webhooks from Sanity/Shopify to revalidate cached content.
+Receives Sanity webhooks to revalidate cached content.
 
 ```
 POST /api/revalidate
@@ -49,22 +49,13 @@ POST /api/revalidate
 SANITY_REVALIDATE_SECRET=your-secret-here
 ```
 
-### Shopify Webhook Setup
-
-1. Shopify Admin → Settings → Notifications → Webhooks
-2. Add webhook for product/collection updates
-3. URL: `https://your-domain.com/api/revalidate?secret=YOUR_SECRET`
-
-```bash
-# .env.local
-SHOPIFY_REVALIDATION_SECRET=your-secret-here
-```
+The route uses `parseBody` from `next-sanity/webhook` to verify the Sanity signature. It is Sanity-only; Shopify cache invalidation is handled separately via `revalidateTag`.
 
 ## Security
 
-- Webhooks require a secret token for authentication
-- Rate limiting is applied to prevent abuse
-- Invalid requests return 200 to prevent retry loops (standard webhook practice)
+- Webhooks require a secret token for authentication (`SANITY_REVALIDATE_SECRET`)
+- Rate limiting is applied to prevent abuse (429 on excess requests)
+- Invalid signature returns 401; malformed body returns 400
 
 ## Adding New Endpoints
 

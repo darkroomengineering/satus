@@ -15,13 +15,13 @@ import { generateSanityMetadata } from '@/utils/metadata'
 
 | Module | Functions |
 |--------|-----------|
-| `math` | `clamp`, `lerp`, `mapRange`, `modulo`, `normalize`, `distance` |
+| `math` | `clamp`, `lerp`, `mapRange`, `truncate`, `modulo`, `roundTo`, `degToRad`, `radToDeg`, `distance` |
 | `easings` | All easing functions (`easeOutCubic`, etc.) |
 | `animation` | `fromTo`, `stagger`, `ease`, `spring` |
 | `raf` | `measure`, `mutate`, `batch` (DOM batching) |
-| `viewport` | `desktopVW`, `mobileVW` |
+| `viewport` | `desktopVW`, `mobileVW`, `desktopVH`, `mobileVH` |
 | `fetch` | `fetchWithTimeout`, `fetchJSON` |
-| `strings` | `slugify`, `mergeRefs`, `capitalizeFirstLetter` |
+| `strings` | `slugify`, `lowerFirstChar`, `capitalizeFirstLetter`, `isEmptyArray`, `stripHtmlTags` |
 | `metadata` | `generatePageMetadata`, `generateSanityMetadata` |
 | `validation` | `emailSchema`, `phoneSchema`, `sanityEnvSchema`, `shopifyEnvSchema`, `hubspotEnvSchema`, `mailchimpEnvSchema`, `turnstileEnvSchema`, `analyticsEnvSchema`, `coreEnvSchema`, `parseFormData`, `zodToValidator` |
 | `rate-limit` | `rateLimit`, `getClientIP`, `rateLimiters` |

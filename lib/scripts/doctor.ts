@@ -102,6 +102,11 @@ const checks: Check[] = [
     fix: 'Run: bun run setup:styles',
   },
   {
+    name: 'AGENTS.md exists',
+    check: () => existsSync(join(ROOT, 'AGENTS.md')),
+    fix: 'Create AGENTS.md in project root (canonical engineering standards)',
+  },
+  {
     name: 'CLAUDE.md exists',
     check: () => existsSync(join(ROOT, 'CLAUDE.md')),
     fix: 'Create CLAUDE.md in project root',

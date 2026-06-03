@@ -59,7 +59,6 @@ certificates
 next-env.d.ts
 # claude
 .claude
-AGENTS.md
 plans
 
 # react-doctor — ignore generated diagnostics, keep the curated suppression list

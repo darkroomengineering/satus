@@ -54,14 +54,14 @@ lib/                    # Everything non-UI
 
 | Area | Documentation |
 |------|---------------|
-| Engineering Standards | [AGENTS.md](AGENTS.md) — Canonical rules for all AI tools and contributors |
-| Architecture | [ARCHITECTURE.md](ARCHITECTURE.md) — Key decisions & patterns |
-| Customization | [BOUNDARIES.md](BOUNDARIES.md) — What to modify vs what's framework |
-| Components | [COMPONENTS.md](COMPONENTS.md) — Complete component/hook/utility inventory |
-| App Router | [app/README.md](app/README.md) — Pages, layouts, routing |
-| Components | [components/README.md](components/README.md) — UI reference |
-| Library | [lib/README.md](lib/README.md) — Hooks, utils, integrations |
-| Integrations | [lib/integrations/README.md](lib/integrations/README.md) — Sanity, Shopify, etc. |
+| Engineering Standards | [AGENTS.md](AGENTS.md) - Canonical rules for all AI tools and contributors |
+| Architecture | [ARCHITECTURE.md](ARCHITECTURE.md) - Key decisions, patterns, customization |
+| Component Inventory | [COMPONENTS.md](COMPONENTS.md) - Auto-generated component/hook/utility manifest |
+| Changelog | [CHANGELOG.md](CHANGELOG.md) - Release history and versioning policy |
+| App Router | [app/README.md](app/README.md) - Pages, layouts, routing |
+| Components | [components/README.md](components/README.md) - UI reference |
+| Library | [lib/README.md](lib/README.md) - Hooks, utils, integrations |
+| Integrations | [lib/integrations/README.md](lib/integrations/README.md) - Sanity, Shopify, etc. |
 
 ## Scripts
 
@@ -107,4 +107,4 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for deployment checklist and cache strate
 
 ## License
 
-MIT — Built by [darkroom.engineering](https://darkroom.engineering)
+MIT - Built by [darkroom.engineering](https://darkroom.engineering)

@@ -21,8 +21,8 @@ const value = compute(a, b)
 ### CSS Modules + Tailwind
 
 Both are used intentionally:
-- **Tailwind** (80%) — spacing, colors, typography
-- **CSS Modules** — complex animations, custom layouts, CSS specificity
+- **Tailwind** (80%): spacing, colors, typography
+- **CSS Modules**: complex animations, custom layouts, CSS specificity
 
 Import CSS modules as `s`:
 
@@ -122,6 +122,15 @@ All schemas live in `lib/utils/validation.ts`. The typed env singleton (`lib/env
 - [ ] Webhooks configured (Sanity, Shopify)
 - [ ] Cache invalidation tested
 - [ ] Performance score > 90
+
+## Customization Boundaries
+
+One decision drives how you work in this repo: **are you building your project, or extending the starter?**
+
+- **Building your project** (pages, content, styling): modify freely. `app/` is yours.
+- **Extending the starter** (new shared primitives): add alongside the existing ones rather than rewriting them.
+
+This keeps upstream updates smooth. When you create new components instead of modifying starter ones, and keep your pages and content separate from starter utilities, pulling satus updates stays low-conflict. There are no strict folder rules beyond that: `components/` for UI, `lib/` for everything else.
 
 ## Extending
 

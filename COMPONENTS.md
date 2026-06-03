@@ -171,6 +171,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | lowerFirstChar | `(inputString: string)` |
 | capitalizeFirstLetter | `(inputString: string)` |
 | isEmptyArray | `(arr: string | unknown[])` |
+| stripHtmlTags | `(input: string) => string` |
 
 ### Validation (`@/utils/validation`)
 
@@ -178,15 +179,15 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 |--------|-----------|
 | parseFormData | `(schema: z.ZodType<T>, formData: FormData) => FormState<T> | { success: true; data: T }` |
 | zodToValidator | `(schema: z.ZodType) => (value: string) => boolean` |
-| emailSchema | `import("/Users/frz/Developer/@darkroom/satus/.claude/worktrees/agent-a98040a3...` |
-| phoneSchema | `import("/Users/frz/Developer/@darkroom/satus/.claude/worktrees/agent-a98040a3...` |
-| sanityEnvSchema | `import("/Users/frz/Developer/@darkroom/satus/.claude/worktrees/agent-a98040a3...` |
-| shopifyEnvSchema | `import("/Users/frz/Developer/@darkroom/satus/.claude/worktrees/agent-a98040a3...` |
-| hubspotEnvSchema | `import("/Users/frz/Developer/@darkroom/satus/.claude/worktrees/agent-a98040a3...` |
-| mailchimpEnvSchema | `import("/Users/frz/Developer/@darkroom/satus/.claude/worktrees/agent-a98040a3...` |
-| turnstileEnvSchema | `import("/Users/frz/Developer/@darkroom/satus/.claude/worktrees/agent-a98040a3...` |
-| analyticsEnvSchema | `import("/Users/frz/Developer/@darkroom/satus/.claude/worktrees/agent-a98040a3...` |
-| coreEnvSchema | `import("/Users/frz/Developer/@darkroom/satus/.claude/worktrees/agent-a98040a3...` |
+| emailSchema | `import("/Users/frz/Developer/@darkroom/satus/node_modules/zod/v4/classic/sche...` |
+| phoneSchema | `import("/Users/frz/Developer/@darkroom/satus/node_modules/zod/v4/classic/sche...` |
+| sanityEnvSchema | `import("/Users/frz/Developer/@darkroom/satus/node_modules/zod/v4/classic/sche...` |
+| shopifyEnvSchema | `import("/Users/frz/Developer/@darkroom/satus/node_modules/zod/v4/classic/sche...` |
+| hubspotEnvSchema | `import("/Users/frz/Developer/@darkroom/satus/node_modules/zod/v4/classic/sche...` |
+| mailchimpEnvSchema | `import("/Users/frz/Developer/@darkroom/satus/node_modules/zod/v4/classic/sche...` |
+| turnstileEnvSchema | `import("/Users/frz/Developer/@darkroom/satus/node_modules/zod/v4/classic/sche...` |
+| analyticsEnvSchema | `import("/Users/frz/Developer/@darkroom/satus/node_modules/zod/v4/classic/sche...` |
+| coreEnvSchema | `import("/Users/frz/Developer/@darkroom/satus/node_modules/zod/v4/classic/sche...` |
 
 ### Viewport (`@/utils/viewport`)
 

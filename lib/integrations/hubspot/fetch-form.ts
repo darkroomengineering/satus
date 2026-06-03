@@ -1,4 +1,5 @@
 import { fetchWithTimeout } from '@/utils/fetch'
+import { stripHtmlTags } from '@/utils/strings'
 
 interface HubspotFormResponse {
   fieldGroups: Array<{ fields: unknown[] }>
@@ -118,20 +119,6 @@ function apiParser(id: string, data: HubspotFormResponse) {
     (data?.legalConsentOptions as HubSpotLegalConsentOptions)
       ?.communicationsCheckboxes || null
 
-  // Strip HTML tags to plain text. A single regex pass is an incomplete
-  // sanitizer (CodeQL js/incomplete-multi-character-sanitization): removing one
-  // tag can reassemble another, and an unterminated `<script` is never matched.
-  // Loop until the result is stable, and drop any unterminated trailing tag.
-  const removeHTML = (htmlText: string) => {
-    let current = htmlText
-    let previous = ''
-    while (current !== previous) {
-      previous = current
-      current = current.replace(/<[^>]*>/g, '').replace(/<[^>]*$/g, '')
-    }
-    return current
-  }
-
   return {
     portalId: process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID,
     id: id,
@@ -160,13 +147,13 @@ function apiParser(id: string, data: HubspotFormResponse) {
       ? {
           required: true,
           subscriptionTypeId: legalConsentOptions[0].subscriptionTypeId,
-          label: removeHTML(legalConsentOptions[0].label),
+          label: stripHtmlTags(legalConsentOptions[0].label),
           disclaimer: [
-            removeHTML(
+            stripHtmlTags(
               (data.legalConsentOptions as HubSpotLegalConsentOptions)
                 .privacyText || ''
             ),
-            removeHTML(
+            stripHtmlTags(
               (data.legalConsentOptions as HubSpotLegalConsentOptions)
                 .consentToProcessText || ''
             ),

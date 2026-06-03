@@ -26,13 +26,26 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 - `AGENTS.md` as the single source of truth for engineering standards; `CLAUDE.md`
   and `.cursor/rules` reduced to thin pointers (#175).
+- Auto-generated `COMPONENTS.md` manifest via `bun run generate:manifest`, with
+  `bun run manifest:check` to catch drift in CI (#178).
 - `SECURITY.md` security policy with private vulnerability reporting (#174).
 - This `CHANGELOG.md`, and `package.json` version synced to the release tag.
+
+### Changed
+
+- Consolidated root docs: folded `BOUNDARIES.md` into `ARCHITECTURE.md` and
+  refreshed the doc maps in `README.md` and `AGENTS.md` (#177).
 
 ### Fixed
 
 - Shopify cart `addItem` now validates input before creating a cart, so invalid
   requests no longer leave an orphaned cart and cookie behind (#173).
+
+### Security
+
+- Hardened HubSpot form HTML stripping into a complete `stripHtmlTags` parser
+  (a character scan, not regex), resolving the CodeQL
+  `js/incomplete-multi-character-sanitization` alert (#179, #180).
 
 ### Removed
 

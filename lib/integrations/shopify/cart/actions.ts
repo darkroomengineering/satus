@@ -77,14 +77,27 @@ export async function addItem(
   _prevState: unknown,
   { variantId, quantity = 1 }: AddItemPayload
 ): Promise<string> {
+  const headersList = await headers()
+  const ip = getIPFromHeaders(headersList)
+  const rateLimitResult = rateLimit(`cart-add:${ip}`, rateLimiters.standard)
+  if (!rateLimitResult.success) {
+    return 'Too many requests. Please try again later.'
+  }
+
+  // Validate input before creating a cart, so an invalid request doesn't leave
+  // an orphaned cart + cookie behind.
+  const parsed = addItemSchema.safeParse({ variantId, quantity })
+  if (!parsed.success) {
+    return parsed.error.issues[0]?.message ?? 'Invalid input'
+  }
+
   const _cookies = await cookies()
   let cartId = _cookies.get('cartId')?.value
-  let cart: unknown
 
   // This is here because cookie can only be set server side
   // and useFormState executes the addItem action in the server
   if (!cartId) {
-    cart = await createCart()
+    const cart = await createCart()
     cartId = (cart as { id: string }).id
     _cookies.set('cartId', cartId, {
       httpOnly: true,
@@ -93,18 +106,6 @@ export async function addItem(
       maxAge: 60 * 60 * 24 * 30, // 30 days
       path: '/',
     })
-  }
-
-  const headersList = await headers()
-  const ip = getIPFromHeaders(headersList)
-  const rateLimitResult = rateLimit(`cart-add:${ip}`, rateLimiters.standard)
-  if (!rateLimitResult.success) {
-    return 'Too many requests. Please try again later.'
-  }
-
-  const parsed = addItemSchema.safeParse({ variantId, quantity })
-  if (!parsed.success) {
-    return parsed.error.issues[0]?.message ?? 'Invalid input'
   }
 
   try {

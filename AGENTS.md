@@ -427,8 +427,10 @@ Pre-commit hook (lefthook) runs in parallel on staged files: Biome check + tsgo 
 
 | Document | Purpose |
 |----------|---------|
-| `ARCHITECTURE.md` | Key architectural decisions and patterns |
-| `BOUNDARIES.md` | What to customize vs what is framework |
+| `ARCHITECTURE.md` | Architectural decisions, patterns, and customization boundaries |
+| `COMPONENTS.md` | Auto-generated component / hook / utility inventory |
+| `CHANGELOG.md` | Release history and versioning policy |
+| `SECURITY.md` | Security policy and vulnerability reporting |
 | `components/README.md` | Component inventory and conventions |
 | `lib/README.md` | Library structure overview |
 | `lib/integrations/README.md` | Per-integration docs (Sanity, Shopify, HubSpot) |
@@ -439,7 +441,7 @@ Pre-commit hook (lefthook) runs in parallel on staged files: Biome check + tsgo 
 
 ## Versioning
 
-TODO: Document semver-for-a-template semantics here (what constitutes a breaking change for a starter template, how consumer projects track upstream).
+Satus follows [Semantic Versioning](https://semver.org), read from the perspective of a project that forked it: **MAJOR** = changes that break a fork on update (removing or renaming a core primitive, restructuring directories or path aliases, dropping an integration, a Node.js / Next.js major); **MINOR** = additive (new components, hooks, utilities, integrations); **PATCH** = fixes, dependency bumps, docs, internal refactors. `package.json` tracks the latest release tag, and forks track upstream by rebasing onto it (no long-term support branches). Full policy and release history: [`CHANGELOG.md`](./CHANGELOG.md).
 
 ---
 

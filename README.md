@@ -10,13 +10,13 @@ A modern Next.js 16 starter with React 19, Tailwind CSS v4, and optional WebGL. 
 
 ## Features
 
-- Next.js 16 App Router with React 19.2 and strict TypeScript
-- Tailwind CSS v4 with CSS Modules
-- Optional WebGL via React Three Fiber, plus GSAP
-- Pluggable integrations: Sanity, Shopify, and HubSpot
-- Interactive setup that scaffolds only the integrations you pick
-- One-command client handoff that strips branding, swaps in the prod README, and generates a component inventory
-- Bun, Biome, and Turbopack tooling
+- **Next.js 16 + React 19** — App Router with React 19.2 and strict TypeScript out of the box
+- **Tailwind v4** — Tailwind CSS v4 alongside CSS Modules
+- **Optional WebGL** — React Three Fiber and GSAP, enabled only when you need them
+- **Pluggable integrations** — Sanity, Shopify, and HubSpot wired and ready
+- **Interactive setup** — scaffolds only the integrations you pick
+- **One-command handoff** — strips branding, swaps in the prod README, and generates a component inventory
+- **Modern tooling** — Bun, Biome, and Turbopack
 
 ## Requirements
 

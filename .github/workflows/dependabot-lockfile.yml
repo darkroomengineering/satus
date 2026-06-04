@@ -1,0 +1,76 @@
+name: Dependabot lockfile
+
+# Dependabot bumps package.json but not bun.lock, so Test's
+# `bun install --frozen-lockfile` fails on every Dependabot PR
+# ("lockfile had changes, but lockfile is frozen"). This regenerates bun.lock
+# and commits it back to the PR branch so Test passes and the bumped lockfile
+# lands on main when the PR squash-merges.
+#
+# Uses a PAT (not GITHUB_TOKEN) for the push, on a normal `pull_request`
+# trigger:
+#   - A GITHUB_TOKEN push would NOT retrigger Test (loop protection), so
+#     automerge — which gates on Test success — would never fire.
+#   - Dependabot-triggered `pull_request` runs also get a read-only
+#     GITHUB_TOKEN, so it cannot push at all.
+# A PAT push both has write access and retriggers Test, giving fully hands-off
+# automerge. Staying on `pull_request` (not pull_request_target) keeps this off
+# CodeQL's privileged-checkout radar.
+#
+# SETUP (one time): create a fine-grained PAT scoped to this repo with
+# Contents: Read and write, then add it under
+#   Settings → Secrets and variables → Dependabot → New repository secret
+#   name: DEPENDABOT_PAT
+# It must live in the *Dependabot* secrets store (not Actions secrets) —
+# Dependabot-triggered runs can only read Dependabot secrets. Until it is set,
+# this workflow no-ops (it does not fail Dependabot PRs).
+
+on:
+  pull_request:
+
+permissions:
+  contents: read # GITHUB_TOKEN stays read-only; the PAT performs the write
+
+jobs:
+  sync-lockfile:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify PAT is configured
+        id: check
+        env:
+          DEPENDABOT_PAT: ${{ secrets.DEPENDABOT_PAT }}
+        run: |
+          if [ -n "$DEPENDABOT_PAT" ]; then
+            echo "has_pat=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::DEPENDABOT_PAT not set — add it under Settings → Secrets and variables → Dependabot. Skipping lockfile sync."
+            echo "has_pat=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v6
+        if: steps.check.outputs.has_pat == 'true'
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.DEPENDABOT_PAT }}
+
+      - uses: oven-sh/setup-bun@v2
+        if: steps.check.outputs.has_pat == 'true'
+        with:
+          bun-version: latest
+
+      - name: Regenerate bun.lock (no lifecycle scripts)
+        if: steps.check.outputs.has_pat == 'true'
+        run: bun install --ignore-scripts
+
+      - name: Commit lockfile if it changed
+        if: steps.check.outputs.has_pat == 'true'
+        run: |
+          if git diff --quiet -- bun.lock; then
+            echo "bun.lock already in sync — nothing to do."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bun.lock
+          git commit -m "chore: sync bun.lock with Dependabot bump"
+          git push

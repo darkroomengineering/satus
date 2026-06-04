@@ -8,6 +8,16 @@ A modern Next.js 16 starter with React 19, Tailwind CSS v4, and optional WebGL. 
 
 > **Note**: This README is for template developers. For client handoff, see [PROD-README.md](PROD-README.md).
 
+## Features
+
+- Next.js 16 App Router with React 19.2 and strict TypeScript
+- Tailwind CSS v4 with CSS Modules
+- Optional WebGL via React Three Fiber, plus GSAP
+- Pluggable integrations: Sanity, Shopify, and HubSpot
+- Interactive setup that scaffolds only the integrations you pick
+- One-command client handoff that strips branding, swaps in the prod README, and generates a component inventory
+- Bun, Biome, and Turbopack tooling
+
 ## Requirements
 
 | Tool | Version | Notes |

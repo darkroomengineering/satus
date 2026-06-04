@@ -213,8 +213,10 @@ export function fromTo(
 /**
  * Creates a spring-based animation value.
  *
- * For CSS springs, use the Motion MCP tool instead.
- * This is for JavaScript-driven spring animations.
+ * Prefer a CSS spring — a generated `linear()` easing — when the target is a
+ * DOM style: it runs on the compositor thread, off the main thread. Reach for
+ * this JS spring only when the value must drive non-CSS state each frame
+ * (canvas, WebGL, scroll position).
  *
  * @param current - Current value
  * @param target - Target value

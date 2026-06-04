@@ -1,0 +1,55 @@
+name: Dependabot lockfile
+
+# Dependabot bumps package.json but not bun.lock, so Test's
+# `bun install --frozen-lockfile` fails on every Dependabot PR
+# ("lockfile had changes, but lockfile is frozen"). This job regenerates
+# bun.lock and commits it back to the PR branch so Test can pass and the
+# bumped lockfile lands on main when the PR squash-merges.
+#
+# Why pull_request_target (not pull_request): Dependabot-triggered
+# `pull_request` runs receive a read-only GITHUB_TOKEN and cannot push. A
+# `pull_request_target` run executes in the base-repo context and gets a
+# writable token. To keep that write-privileged context safe, the job is
+# scoped strictly to dependabot[bot] and installs with --ignore-scripts, so
+# no dependency lifecycle scripts execute here.
+#
+# Caveat: a commit pushed with GITHUB_TOKEN does not retrigger the Test
+# workflow, so after the lockfile is synced the PR's Test check may need one
+# manual re-run before automerge fires. For fully hands-off automerge, add a
+# PAT and push with it instead of GITHUB_TOKEN.
+
+on:
+  pull_request_target:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-lockfile:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Regenerate bun.lock (no lifecycle scripts)
+        run: bun install --ignore-scripts
+
+      - name: Commit lockfile if it changed
+        run: |
+          if git diff --quiet -- bun.lock; then
+            echo "bun.lock already in sync — nothing to do."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bun.lock
+          git commit -m "chore: sync bun.lock with Dependabot bump"
+          git push

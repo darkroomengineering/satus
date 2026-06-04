@@ -40,6 +40,7 @@ import { useOrchestra } from '@/lib/dev'
 | [styles/](styles/README.md) | CSS & Tailwind config | ❌ Core |
 | [utils/](utils/README.md) | Pure utilities (math, fetch, metadata, strings, animation, validation) | ❌ Core |
 | `env.ts` | Typed environment variables (Zod-validated singleton) | ❌ Core |
+| [features/](features/README.md) | Optional runtime features (WebGL, dev tools, GSAP) | ✅ Yes |
 | [integrations/](integrations/README.md) | Sanity, Shopify, HubSpot | ✅ Yes |
 | [webgl/](webgl/README.md) | 3D graphics with R3F | ✅ Yes |
 | [dev/](dev/README.md) | Debug tools (CMD+O) | ✅ Yes |

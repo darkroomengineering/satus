@@ -130,6 +130,8 @@ bun setup:styles
 `css/root.css` (custom properties) and `css/tailwind.css` (`@theme` + utilities)
 are **generated** by `bun setup:styles`. Hand-edits are overwritten on the next run.
 
+`css/global.css` is **not generated** — it houses the `[data-reveal]` reveal-animation contract (used by `useReveal`) and the global `prefers-reduced-motion` neutralizer. Edit it directly when adjusting global animation defaults.
+
 ## Troubleshooting
 
 - **Tokens missing / `var(--color-*)` resolves to nothing, `dr-*` classes do nothing, or `mobile-vw()` is left unparsed** — the generated CSS is stale. `bun dev` runs the generator in **watch mode** and `bun run build` runs it first, so this normally self-heals; if the watcher isn't running (CI, a one-off script, or it didn't pick up a change), regenerate manually with `bun setup:styles`.

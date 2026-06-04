@@ -6,29 +6,11 @@ Key architectural decisions and patterns for teams working with this codebase.
 
 ### React Compiler (No Manual Memoization)
 
-React Compiler is enabled. **Do not** use `useMemo`, `useCallback`, or `React.memo`:
-
-```tsx
-// ❌ Don't
-const memoizedValue = useMemo(() => compute(a, b), [a, b])
-
-// ✅ Do
-const value = compute(a, b)
-```
-
-**Exception**: Use `useRef` for object instantiation to prevent infinite loops.
+React Compiler is enabled — no `useMemo`, `useCallback`, or `React.memo`. See AGENTS.md § No manual memoization.
 
 ### CSS Modules + Tailwind
 
-Both are used intentionally:
-- **Tailwind** (80%): spacing, colors, typography
-- **CSS Modules**: complex animations, custom layouts, CSS specificity
-
-Import CSS modules as `s`:
-
-```tsx
-import s from './component.module.css'
-```
+Tailwind for layout/spacing/color; CSS Modules for complex animations and custom layouts. See AGENTS.md § Styling split.
 
 ### Custom Image/Link Components
 
@@ -84,6 +66,10 @@ Root Layout → LazyGlobalCanvas (mounts on first WebGL page)
 
 Context survives navigation. See [lib/webgl/README.md](lib/webgl/README.md).
 
+## Animation
+
+Use `useReveal` (CSS-driven, compositor thread) for reveal-on-scroll and entrance animations. Reserve GSAP for orchestration, scrubbing, and pinning. Always honor `prefers-reduced-motion` — `useReveal` short-circuits automatically; CSS global neutralizer is in `global.css`. See AGENTS.md § Animation.
+
 ## File Organization
 
 ```
@@ -113,7 +99,7 @@ All schemas live in `lib/utils/validation.ts`. The typed env singleton (`lib/env
 
 ### Request Proxy
 
-`proxy.ts` (project root) handles cross-cutting request concerns for Next.js 16. Currently configured with rate limiting for `/api/*` routes. Security headers remain in `next.config.ts` (they're static configuration).
+`proxy.ts` handles cross-cutting concerns (rate limiting for `/api/*`). See AGENTS.md for usage guidance.
 
 ## Deployment Checklist
 

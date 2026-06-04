@@ -27,8 +27,6 @@ import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 
 // Effects Components (GSAPRuntime is auto-loaded via OptionalFeatures - do not import manually)
-import { SplitText } from '@/components/effects/split-text'
-import { AnimatedGradient } from '@/components/effects/animated-gradient'
 ```
 
 ## Component Inventory
@@ -84,10 +82,7 @@ Built on [Base UI](https://base-ui.com/) for accessibility.
 | Component | Purpose |
 |-----------|---------|
 | `gsap/` | GSAP + Tempus integration (auto-loaded) |
-| `split-text/` | Text animation utilities |
-| `animated-gradient/` | WebGL gradients |
 | `progress-text/` | Scroll-based text reveal |
-| `liquid-drip/` | WebGL liquid drip effect |
 
 ## Best Practices
 

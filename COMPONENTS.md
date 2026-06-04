@@ -50,11 +50,8 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 
 | Component | Import | Type |
 |-----------|--------|------|
-| AnimatedGradient | `@/components/effects/animated-gradient` | Client |
 | Gsap | `@/components/effects/gsap` | Client |
-| LiquidDrip | `@/components/effects/liquid-drip` | Client |
 | ProgressText | `@/components/effects/progress-text` | Client |
-| SplitText | `@/components/effects/split-text` | Client |
 
 ---
 

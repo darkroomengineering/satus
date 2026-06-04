@@ -17,7 +17,7 @@ import { generateSanityMetadata } from '@/utils/metadata'
 |--------|-----------|
 | `math` | `clamp`, `lerp`, `mapRange`, `truncate`, `modulo`, `roundTo`, `degToRad`, `radToDeg`, `distance` |
 | `easings` | All easing functions (`easeOutCubic`, etc.) |
-| `animation` | `fromTo`, `stagger`, `ease`, `spring` |
+| `animation` | `fromTo`, `stagger`, `ease`, `spring` (prefer CSS `linear()` easing for simple springs — runs off the main thread; `spring()` is the JS fallback for canvas/WebGL/scroll-driven values) |
 | `raf` | `measure`, `mutate`, `batch` (DOM batching) |
 | `viewport` | `desktopVW`, `mobileVW`, `desktopVH`, `mobileVH` |
 | `fetch` | `fetchWithTimeout`, `fetchJSON` |

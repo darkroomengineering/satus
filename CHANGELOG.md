@@ -24,6 +24,8 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Added
 
+- `useReveal` hook (`lib/hooks/use-reveal.ts`) — reveal-on-scroll primitive animating `transform`/`opacity` on the compositor thread via a `[data-reveal]`/`[data-reveal-item]` CSS contract in `global.css`; degrades to visible without JS and honors reduced-motion. (#189)
+- Animation standards section in AGENTS.md — CSS/`useReveal` for reveals, GSAP for orchestration. (#189)
 - `AGENTS.md` as the single source of truth for engineering standards; `CLAUDE.md`
   and `.cursor/rules` reduced to thin pointers (#175).
 - Auto-generated `COMPONENTS.md` manifest via `bun run generate:manifest`, with
@@ -33,6 +35,9 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Changed
 
+- `/` now redirects to `/components` (was the marketing homepage); forks should replace `app/page.tsx` with their own homepage. (#188)
+- `spring()` (`lib/utils/animation.ts`) documentation now steers to CSS `linear()` easing for off-thread springs. (#189)
+- Dependabot PRs now auto-sync `bun.lock` via a `pull_request_target` workflow, so they pass the frozen-lockfile install in CI. (#190)
 - Consolidated root docs: folded `BOUNDARIES.md` into `ARCHITECTURE.md` and
   refreshed the doc maps in `README.md` and `AGENTS.md` (#177).
 
@@ -49,6 +54,8 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Removed
 
+- In-repo marketing homepage — the `app/(marketing)` landing sections (hero, features, value-props, getting-started, presets) and marketing-only WebGL effects (`animated-gradient`, `liquid-drip`, `split-text`). Satus is a starter kit; its marketing lives at oss.darkroom.engineering/satus. (#188)
+- `/home` rewrite + redirect and the `assets.darkroom.engineering` image `remotePattern` from `next.config.ts`. (#188)
 - Dead code: orphaned WebGL GLSL utilities (`noise` / `blend` / `functions`) and
   unused `lib/utils` helpers (`normalize`, `isEmptyObject`, `twoDigits`,
   `numberWithCommas`) (#172).

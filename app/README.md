@@ -6,9 +6,8 @@ Next.js App Router pages and routes.
 
 ```
 app/
-├── page.tsx              # Homepage (renders the marketing homepage directly)
+├── page.tsx              # Redirects / → /components (replace with your own homepage)
 ├── layout.tsx            # Root layout
-├── (marketing)/          # DELETE - Satūs marketing homepage
 ├── (examples)/           # DELETE - Demo pages (components, r3f, etc.)
 ├── api/
 │   ├── draft-mode/       # Sanity draft mode
@@ -24,7 +23,6 @@ app/
 **Quick cleanup (manual):**
 ```bash
 rm -rf "app/(examples)"     # Remove example pages (r3f, sanity, shopify, etc.)
-rm -rf "app/(marketing)"    # Remove marketing homepage
 ```
 
 **Or use the interactive setup:**

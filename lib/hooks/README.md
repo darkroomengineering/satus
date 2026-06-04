@@ -3,13 +3,15 @@
 Custom React hooks for common patterns.
 
 ```tsx
-import { useDeviceDetection, useMediaQuery } from '@/hooks'
+import { useDeviceDetection } from '@/hooks'
+import { useMediaQuery } from 'hamo'
 ```
 
 ## Available Hooks
 
 | Hook | Purpose |
 |------|---------|
+| `useReveal` | Reveal-on-scroll via IntersectionObserver — CSS-driven, compositor-thread; reduced-motion + no-JS safe |
 | `useDeviceDetection` | Detect mobile/desktop/tablet |
 | `usePrefetch` | Prefetch routes on visibility |
 | `useStore` | Global Zustand store |
@@ -17,6 +19,23 @@ import { useDeviceDetection, useMediaQuery } from '@/hooks'
 | `usePreferredColorScheme` | System theme preference |
 | `usePreferredReducedMotion` | Reduced motion preference |
 | `useDocumentVisibility` | Tab visibility state |
+
+## useReveal
+
+Reveal children on scroll using IntersectionObserver. Toggles `data-reveal` on the container; children marked `data-reveal-item` animate `transform`/`opacity` on the compositor thread. The CSS contract lives in `lib/styles/css/global.css`. Per-container knobs: `--reveal-transform`, `--reveal-stagger`, `--reveal-duration`. Degrades to visible without JS; short-circuits under `prefers-reduced-motion`.
+
+```tsx
+import { useReveal } from '@/hooks'
+
+function Cards({ items }) {
+  const ref = useReveal<HTMLDivElement>()
+  return (
+    <div ref={ref}>
+      {items.map((i) => <div key={i.id} data-reveal-item>{i.name}</div>)}
+    </div>
+  )
+}
+```
 
 ## Browser API Hooks
 
@@ -79,13 +98,14 @@ import { usePreferredReducedMotion } from '@/hooks'
 function AnimatedComponent() {
   const prefersReducedMotion = usePreferredReducedMotion()
 
-  const duration = prefersReducedMotion ? 0 : 300
+  // Pass as a CSS custom property or GSAP duration — CSS transitions
+  // and useReveal already short-circuit automatically.
+  const duration = prefersReducedMotion ? 0 : 0.3
 
   return (
-    <motion.div
-      animate={{ opacity: 1 }}
-      transition={{ duration: duration / 1000 }}
-    />
+    <div style={{ '--duration': `${duration}s` } as React.CSSProperties}>
+      {/* children animate via CSS transition using var(--duration) */}
+    </div>
   )
 }
 ```

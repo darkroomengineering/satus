@@ -107,10 +107,6 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'assets.darkroom.engineering',
-      },
-      {
-        protocol: 'https',
         hostname: 'cdn.shopify.com',
       },
       {
@@ -161,19 +157,6 @@ const nextConfig: NextConfig = {
           value: 'strict-origin-when-cross-origin',
         },
       ],
-    },
-  ],
-  redirects: async () => [
-    {
-      source: '/home',
-      destination: '/',
-      permanent: true,
-    },
-  ],
-  rewrites: async () => [
-    {
-      source: '/',
-      destination: '/home',
     },
   ],
 }

@@ -88,7 +88,7 @@
     "@typescript/native-preview": "7.0.0-dev.20260602.1",
     "babel-plugin-react-compiler": "^1.0.0",
     "cross-env": "^10.1.0",
-    "deslop-cli": "0.0.14",
+    "deslop-cli": "0.0.17",
     "lefthook": "^2.1.9",
     "postcss-functions": "^4.0.2",
     "postcss-preset-env": "^11.3.0",

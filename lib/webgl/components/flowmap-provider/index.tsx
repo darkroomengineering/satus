@@ -30,9 +30,7 @@ type FlowmapContextType = {
   flowmap: Flowmap
 }
 
-export const FlowmapContext = createContext<FlowmapContextType>(
-  {} as FlowmapContextType
-)
+export const FlowmapContext = createContext<FlowmapContextType | null>(null)
 
 /**
  * Retrieves the active GPU simulation instance from context.
@@ -60,7 +58,13 @@ export const FlowmapContext = createContext<FlowmapContextType>(
  * ```
  */
 export function useFlowmap(type: 'fluid' | 'flowmap' = 'flowmap') {
-  const { fluid, flowmap } = use(FlowmapContext)
+  const context = use(FlowmapContext)
+
+  if (!context) {
+    throw new Error('useFlowmap must be used within a FlowmapProvider')
+  }
+
+  const { fluid, flowmap } = context
 
   if (type === 'fluid') return fluid
   return flowmap

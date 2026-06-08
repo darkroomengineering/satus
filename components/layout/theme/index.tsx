@@ -52,11 +52,18 @@ export function Theme({
 }) {
   const pathname = usePathname()
 
+  // `currentTheme` defaults to the route's `theme` prop but can still be
+  // overridden at runtime via the `setTheme` action. When the prop changes
+  // (navigation), we re-sync *during render* — React's recommended replacement
+  // for a setState-in-effect "mirror". This avoids the wasted extra render and
+  // breaks the effect chain into the data-theme effect below.
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
   const [currentTheme, setCurrentTheme] = useState(theme)
-
-  useEffect(() => {
+  const [prevTheme, setPrevTheme] = useState(theme)
+  if (theme !== prevTheme) {
+    setPrevTheme(theme)
     setCurrentTheme(theme)
-  }, [theme])
+  }
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: we need to trigger on path change
   useEffect(() => {

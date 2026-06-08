@@ -144,9 +144,7 @@ export function TextareaField({
         placeholder={placeholder}
         rows={rows}
         className={s.textarea}
-        ref={reg.ref}
-        onChange={reg.onChange}
-        onBlur={reg.onBlur}
+        {...reg}
       />
       {error?.state && error.message && (
         <Field.Error {...(s.errorMessage && { className: s.errorMessage })}>
@@ -200,7 +198,7 @@ export function CheckboxesField({
         name={name}
         id="hidden"
         value={JSON.stringify(selected)}
-        ref={reg.ref}
+        {...reg}
       />
       <div className={s.options}>
         {options.map(({ label, value }) => (

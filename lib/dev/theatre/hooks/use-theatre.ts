@@ -16,26 +16,17 @@ export function useTheatreObject(
 ) {
   const [object, setObject] = useState<ISheetObject>()
 
-  // Serialize config to a stable string only when the object reference changes.
-  // This avoids re-serializing on every render while still detecting real config changes.
-  const configRef = useRef(config)
-  const configKeyRef = useRef(JSON.stringify(config))
-  if (configRef.current !== config) {
-    const next = JSON.stringify(config)
-    if (next !== configKeyRef.current) {
-      configKeyRef.current = next
-    }
-    configRef.current = config
-  }
-  const configKey = configKeyRef.current
+  // Serialize config to a value-stable key for the effect dependency below.
+  // JSON.stringify yields an equal string for equal content even when `config`'s
+  // identity changes each render, so the effect re-runs only on real changes —
+  // without reading/writing refs during render (which the compiler can't track).
+  const configKey = JSON.stringify(config)
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: deps spread is intentional
   useEffect(() => {
     if (!sheet) return
 
-    setObject(
-      sheet?.object(theatreKey, configRef.current, { reconfigure: true })
-    )
+    setObject(sheet?.object(theatreKey, config, { reconfigure: true }))
 
     return () => {
       sheet.detachObject(theatreKey)
@@ -61,7 +52,9 @@ export function useTheatre<Config extends UnknownShorthandCompoundProps>(
   { onValuesChange, lazy = true, deps = [] }: UseTheatreOptions<Config> = {}
 ) {
   const onValuesChangeRef = useRef(onValuesChange)
-  onValuesChangeRef.current = onValuesChange
+  useEffect(() => {
+    onValuesChangeRef.current = onValuesChange
+  })
 
   const object = useTheatreObject(sheet, theatreKey, config, deps)
 

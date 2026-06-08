@@ -169,22 +169,21 @@ export function useViewport<T>(selector: (state: ViewportValues) => T): T
 export function useViewport<T>(
   selector?: (state: ViewportValues) => T
 ): ViewportValues | T {
-  // Cache selector and its result to prevent unnecessary re-renders
-  const selectorRef = useRef(selector)
+  // Cache the last result so getSnapshot returns a stable reference while the
+  // underlying state is unchanged (useSyncExternalStore requires a cached
+  // snapshot). The selector is read straight from the render closure — no ref
+  // needed: getSnapshotWithSelector is rebuilt each render with the current
+  // selector, and the stable subscription is `subscribe`, not this function.
   const resultRef = useRef<T | ViewportValues | undefined>(undefined)
   const stateRef = useRef<ViewportValues | undefined>(undefined)
 
-  // Update selector ref on each render (selector may be inline function)
-  selectorRef.current = selector
-
-  // Create a stable getSnapshot that integrates the selector
-  // This ensures useSyncExternalStore only triggers re-renders
-  // when the selected value actually changes
+  // getSnapshot integrating the selector: only returns a new reference when the
+  // selected value actually changes, so subscribers re-render only on real changes.
   const getSnapshotWithSelector = (): T | ViewportValues => {
     const nextState = getSnapshot()
 
     // If no selector, return full state
-    if (!selectorRef.current) {
+    if (!selector) {
       return nextState
     }
 
@@ -194,7 +193,7 @@ export function useViewport<T>(
     }
 
     // Compute new result
-    const nextResult = selectorRef.current(nextState)
+    const nextResult = selector(nextState)
 
     // If result is the same (by value for primitives), return cached
     if (Object.is(resultRef.current, nextResult)) {
@@ -209,7 +208,7 @@ export function useViewport<T>(
 
   const getServerSnapshotWithSelector = (): T | ViewportValues => {
     const state = getServerSnapshot()
-    return selectorRef.current ? selectorRef.current(state) : state
+    return selector ? selector(state) : state
   }
 
   return useSyncExternalStore(

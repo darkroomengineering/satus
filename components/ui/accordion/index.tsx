@@ -61,9 +61,7 @@ const AccordionsGroupContext = createContext(
     setCurrentId: Dispatch<SetStateAction<string | undefined>>
   }
 )
-const AccordionContext = createContext(
-  {} as { isOpen: boolean; toggle: () => void; id: string }
-)
+const AccordionContext = createContext({} as { isOpen: boolean; id: string })
 
 function useAccordionsGroupContext() {
   return use(AccordionsGroupContext)
@@ -136,10 +134,10 @@ function Root({ children, className, ref, defaultOpen = false }: RootProps) {
   }))
 
   return (
-    <AccordionContext.Provider value={{ isOpen, toggle, id }}>
+    <AccordionContext.Provider value={{ isOpen, id }}>
       <Collapsible.Root
         open={isOpen}
-        onOpenChange={() => toggle()}
+        onOpenChange={toggle}
         className={cn(s.accordion, className)}
       >
         {typeof children === 'function' ? children({ isOpen }) : children}

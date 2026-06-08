@@ -14,7 +14,6 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | Accordion | `@/components/ui/accordion` | Client |
 | AlertDialog | `@/components/ui/alert-dialog` | Client |
 | Checkbox | `@/components/ui/checkbox` | Client |
-| Dropdown | `@/components/ui/dropdown` | Client |
 | Fold | `@/components/ui/fold` | Client |
 | Form | `@/components/ui/form` | Client |
 | Image | `@/components/ui/image` | Client |

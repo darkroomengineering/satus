@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { cache } from 'react'
 import { Wrapper } from '@/components/layout/wrapper'
 import { client } from '@/integrations/sanity/client'
 import { sanityFetch } from '@/integrations/sanity/live'
@@ -27,16 +28,22 @@ export async function generateStaticParams() {
   return params.length > 0 ? params : fallback
 }
 
+// Deduplicate the Sanity fetch across generateMetadata and the page component
+// within the same request using React's request-scoped cache.
+const fetchArticle = cache(async (slug: string) => {
+  return sanityFetch({
+    query: articleQuery,
+    params: { slug },
+  })
+})
+
 export default async function SanityArticlePage({
   params,
 }: {
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const { data } = await sanityFetch({
-    query: articleQuery,
-    params: { slug },
-  })
+  const { data } = await fetchArticle(slug)
 
   if (!data) return notFound()
 
@@ -56,10 +63,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const { data } = await sanityFetch({
-    query: articleQuery,
-    params: { slug },
-  })
+  const { data } = await fetchArticle(slug)
 
   if (!data) return
 

@@ -1,68 +1,26 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { createContext, use, useOptimistic } from 'react'
-import type { StandardContext } from '@/utils/context'
+import { useOptimistic } from 'react'
 import type { Cart, Product, ProductVariant } from '../types'
+import {
+  type CartActions,
+  CartContext,
+  type CartContextStandard,
+  type CartMeta,
+  type CartState,
+} from './cart-store-context'
 import { CartModal } from './modal'
 import type { CartAction } from './optimistic-utils'
 import { cartReconciler } from './optimistic-utils'
 
-// Standard context state
-export interface CartState {
-  cart: Cart | undefined
-}
-
-// Standard context actions
-export interface CartActions {
-  updateCartItem: (
-    merchandiseId: string,
-    updateType: 'plus' | 'minus' | 'delete'
-  ) => void
-  addCartItem: (
-    variant: ProductVariant | undefined,
-    product: Product,
-    quantity?: number
-  ) => void
-}
-
-// Standard context meta (computed values)
-export interface CartMeta {
-  totalQuantity: () => number
-}
-
-// Standard context type
-export type CartContextStandard = StandardContext<
-  CartState,
-  CartActions,
-  CartMeta
->
+export { useCartContext } from './cart-store-context'
+// Re-export types and hook so existing import paths keep working
+export type { CartActions, CartContextStandard, CartMeta, CartState }
 
 interface CartProviderProps {
   children: ReactNode
   cart?: Cart | undefined
-}
-
-const CartContext = createContext<CartContextStandard | null>(null)
-
-/**
- * Hook to access the cart context with standard structure.
- * Returns { state, actions, meta } for new implementations.
- *
- * @example
- * ```tsx
- * const { state, actions, meta } = useCartContext()
- * const { cart } = state
- * const { addCartItem, updateCartItem } = actions
- * const quantity = meta?.totalQuantity()
- * ```
- */
-export function useCartContext(): CartContextStandard {
-  const context = use(CartContext)
-  if (!context) {
-    throw new Error('useCartContext must be used within a CartProvider')
-  }
-  return context
 }
 
 export function CartProvider({ children, cart }: CartProviderProps) {

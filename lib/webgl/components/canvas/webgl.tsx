@@ -13,7 +13,7 @@ import { SheetProvider } from '@/lib/dev/theatre'
 import { FlowmapProvider } from '@/webgl/components/flowmap-provider'
 import { PostProcessing } from '@/webgl/components/postprocessing'
 import { RAF } from '@/webgl/components/raf'
-import { CanvasContext } from './'
+import { CanvasContext } from './canvas-context'
 import s from './webgl.module.css'
 
 type WebGLCanvasProps = React.HTMLAttributes<HTMLDivElement> & {

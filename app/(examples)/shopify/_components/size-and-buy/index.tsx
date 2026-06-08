@@ -2,7 +2,7 @@
 
 import cn from 'clsx'
 import { useState } from 'react'
-import { Dropdown } from '@/components/ui/dropdown'
+import { Select } from '@/components/ui/select'
 import { AddToCart } from '@/integrations/shopify/cart/add-to-cart'
 import type { Product, ProductVariant } from '@/integrations/shopify/types'
 import s from './size-and-buy.module.css'
@@ -12,22 +12,22 @@ export function SizeAndBuy({ product }: { product: Product }) {
     null
   )
 
+  const sizeOptions = (
+    product.options?.find((option) => option.name === 'Size')?.values ?? []
+  ).map((size) => ({ value: size, label: size }))
+
   return (
     <>
-      <Dropdown
+      <Select
         className={cn(
           s.size,
           'dr-w-64 dt:dr-w-67 flex items-center justify-center'
         )}
         placeholder="size"
-        options={
-          product.options?.find((option) => option.name === 'Size')?.values ??
-          []
-        }
-        onChange={(value) => {
-          const selected = product.variants?.[value]?.title
-          const variant = product?.variants.find((variant) =>
-            variant.selectedOptions.every((option) => option.value === selected)
+        options={sizeOptions}
+        onValueChange={(value) => {
+          const variant = product.variants?.find((variant) =>
+            variant.selectedOptions.every((option) => option.value === value)
           ) as ProductVariant
 
           setSelectedVariant(variant)

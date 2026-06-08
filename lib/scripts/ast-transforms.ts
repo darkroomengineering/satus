@@ -83,11 +83,16 @@ function openElementMatchesOp(el: JsxElement, op: RemoveJsxElementOp): boolean {
 // ---------------------------------------------------------------------------
 // Individual operation handlers
 // Each handler receives source text, applies one op, returns new source text.
-// A fresh ts-morph Project per call avoids any inter-op state leakage.
+// Handlers accept a shared in-memory Project to avoid repeated instantiation.
+// Source files are removed from the project after each handler so the next op
+// starts from a clean slate (no stale AST nodes between sequential ops).
 // ---------------------------------------------------------------------------
 
-function applyRemoveImport(sourceText: string, op: RemoveImportOp): string {
-  const project = new Project({ useInMemoryFileSystem: true })
+function applyRemoveImport(
+  project: Project,
+  sourceText: string,
+  op: RemoveImportOp
+): string {
   const sf = project.createSourceFile('__tmp__.tsx', sourceText)
 
   for (const decl of sf.getImportDeclarations()) {
@@ -97,26 +102,32 @@ function applyRemoveImport(sourceText: string, op: RemoveImportOp): string {
     }
   }
 
-  return sf.getFullText()
+  const result = sf.getFullText()
+  project.removeSourceFile(sf)
+  return result
 }
 
 function applyRemoveVariableStatement(
+  project: Project,
   sourceText: string,
   op: RemoveVariableStatementOp
 ): string {
-  const project = new Project({ useInMemoryFileSystem: true })
   const sf = project.createSourceFile('__tmp__.tsx', sourceText)
+  let result = sourceText
 
   for (const stmt of sf.getVariableStatements()) {
     for (const decl of stmt.getDeclarations()) {
       if (decl.getName() === op.name) {
         stmt.remove()
-        return sf.getFullText()
+        result = sf.getFullText()
+        break
       }
     }
+    if (result !== sourceText) break
   }
 
-  return sourceText
+  project.removeSourceFile(sf)
+  return result
 }
 
 /**
@@ -132,13 +143,10 @@ function applyRemoveVariableStatement(
  * wrapping JsxExpression container (handles `{studio && <Studio />}`).
  */
 function applyRemoveJsxElement(
+  project: Project,
   sourceText: string,
   op: RemoveJsxElementOp
 ): string {
-  const project = new Project({
-    useInMemoryFileSystem: true,
-    compilerOptions: { jsx: ts.JsxEmit.ReactJSX },
-  })
   const sf = project.createSourceFile('__tmp__.tsx', sourceText)
 
   const selfClosingMatches = sf
@@ -212,47 +220,69 @@ function applyRemoveJsxElement(
     }
   }
 
-  return sf.getFullText()
+  const result = sf.getFullText()
+  project.removeSourceFile(sf)
+  return result
 }
 
 function applyRemoveInterfaceProperty(
+  project: Project,
   sourceText: string,
   op: RemoveInterfacePropertyOp
 ): string {
-  const project = new Project({ useInMemoryFileSystem: true })
   const sf = project.createSourceFile('__tmp__.tsx', sourceText)
 
   const iface = sf.getInterface(op.interfaceName)
-  if (!iface) return sourceText
+  if (!iface) {
+    project.removeSourceFile(sf)
+    return sourceText
+  }
 
   const prop = iface.getProperty(op.propertyName)
-  if (!prop) return sourceText
+  if (!prop) {
+    project.removeSourceFile(sf)
+    return sourceText
+  }
 
   prop.remove()
-  return sf.getFullText()
+  const result = sf.getFullText()
+  project.removeSourceFile(sf)
+  return result
 }
 
 function applyRemoveFunctionParameter(
+  project: Project,
   sourceText: string,
   op: RemoveFunctionParameterOp
 ): string {
-  const project = new Project({ useInMemoryFileSystem: true })
   const sf = project.createSourceFile('__tmp__.tsx', sourceText)
 
   const fn = sf.getFunction(op.functionName)
-  if (!fn) return sourceText
+  if (!fn) {
+    project.removeSourceFile(sf)
+    return sourceText
+  }
 
   // Props are destructured in the first parameter's object binding pattern.
   const param = fn.getParameters()[0]
-  if (!param) return sourceText
+  if (!param) {
+    project.removeSourceFile(sf)
+    return sourceText
+  }
 
   const binding = param.getNameNode()
-  if (binding.getKind() !== SyntaxKind.ObjectBindingPattern) return sourceText
+  if (binding.getKind() !== SyntaxKind.ObjectBindingPattern) {
+    project.removeSourceFile(sf)
+    return sourceText
+  }
 
   const pattern = binding.asKindOrThrow(SyntaxKind.ObjectBindingPattern)
   const elements = pattern.getElements()
   const target = elements.find((el) => el.getName() === op.parameterName)
-  if (!target) return sourceText
+  if (!target) {
+    project.removeSourceFile(sf)
+    return sourceText
+  }
 
   // BindingElement has no `.remove()`; rebuild the binding pattern text from the
   // remaining elements (each element's text preserves its default value, and a
@@ -260,27 +290,43 @@ function applyRemoveFunctionParameter(
   const kept = elements.filter((el) => el !== target).map((el) => el.getText())
   pattern.replaceWithText(`{ ${kept.join(', ')} }`)
 
-  return sf.getFullText()
+  const result = sf.getFullText()
+  project.removeSourceFile(sf)
+  return result
 }
 
-function applyReplaceJsDoc(sourceText: string, op: ReplaceJsDocOp): string {
-  const project = new Project({ useInMemoryFileSystem: true })
+function applyReplaceJsDoc(
+  project: Project,
+  sourceText: string,
+  op: ReplaceJsDocOp
+): string {
   const sf = project.createSourceFile('__tmp__.tsx', sourceText)
 
   const fn = sf.getFunction(op.functionName)
-  if (!fn) return sourceText
+  if (!fn) {
+    project.removeSourceFile(sf)
+    return sourceText
+  }
 
   const docs = fn.getJsDocs()
-  if (docs.length === 0) return sourceText
+  if (docs.length === 0) {
+    project.removeSourceFile(sf)
+    return sourceText
+  }
 
   // Replace the first (and typically only) JSDoc block.
   // We pass the full /** … */ text directly to replaceWithText; ts-morph
   // treats JSDoc nodes as replaceable text ranges.
   const firstDoc = docs[0]
-  if (!firstDoc) return sourceText
+  if (!firstDoc) {
+    project.removeSourceFile(sf)
+    return sourceText
+  }
 
   firstDoc.replaceWithText(op.replacement)
-  return sf.getFullText()
+  const result = sf.getFullText()
+  project.removeSourceFile(sf)
+  return result
 }
 
 // ---------------------------------------------------------------------------
@@ -290,32 +336,42 @@ function applyReplaceJsDoc(sourceText: string, op: ReplaceJsDocOp): string {
 /**
  * Apply a sequence of typed AST operations to source text (in memory).
  * Returns the transformed text. Safe to call from tests — never touches disk.
+ *
+ * A single in-memory Project is shared across all operations for this call.
+ * JSX compiler options are enabled so the project can parse `.tsx` files for
+ * any op kind — enabling the JSX handlers without affecting non-JSX ops.
+ * Each handler creates and removes its own source file, so no AST state leaks
+ * between sequential ops.
  */
 export function applyOpsToText(
   sourceText: string,
   ops: AstOperation[]
 ): string {
+  const project = new Project({
+    useInMemoryFileSystem: true,
+    compilerOptions: { jsx: ts.JsxEmit.ReactJSX },
+  })
   let text = sourceText
 
   for (const op of ops) {
     switch (op.kind) {
       case 'removeImport':
-        text = applyRemoveImport(text, op)
+        text = applyRemoveImport(project, text, op)
         break
       case 'removeVariableStatement':
-        text = applyRemoveVariableStatement(text, op)
+        text = applyRemoveVariableStatement(project, text, op)
         break
       case 'removeJsxElement':
-        text = applyRemoveJsxElement(text, op)
+        text = applyRemoveJsxElement(project, text, op)
         break
       case 'removeInterfaceProperty':
-        text = applyRemoveInterfaceProperty(text, op)
+        text = applyRemoveInterfaceProperty(project, text, op)
         break
       case 'removeFunctionParameter':
-        text = applyRemoveFunctionParameter(text, op)
+        text = applyRemoveFunctionParameter(project, text, op)
         break
       case 'replaceJsDoc':
-        text = applyReplaceJsDoc(text, op)
+        text = applyReplaceJsDoc(project, text, op)
         break
       // Exhaustiveness — TypeScript ensures all union members are handled above.
     }

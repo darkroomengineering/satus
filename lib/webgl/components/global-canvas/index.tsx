@@ -15,7 +15,6 @@ import { SheetProvider } from '@/lib/dev/theatre'
 import { useWebGLStore } from '@/lib/webgl/store'
 import { createRenderer } from '@/lib/webgl/utils/create-renderer'
 import { detectGPUCapability } from '@/lib/webgl/utils/gpu-detection'
-import { FlowmapProvider } from '../flowmap-provider'
 import { PostProcessing } from '../postprocessing'
 import { RAF } from '../raf'
 import s from './global-canvas.module.css'
@@ -167,12 +166,10 @@ export function GlobalCanvas({
             zoom={1}
           />
           <RAF render={shouldRender} />
-          <FlowmapProvider>
-            {postprocessing && <PostProcessing />}
-            <Suspense>
-              <WebGLTunnel.Out />
-            </Suspense>
-          </FlowmapProvider>
+          {postprocessing && <PostProcessing />}
+          <Suspense>
+            <WebGLTunnel.Out />
+          </Suspense>
           <Preload all />
         </SheetProvider>
       </Canvas>

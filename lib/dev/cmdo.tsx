@@ -47,6 +47,7 @@ export function Cmdo() {
               <OrchestraToggle id="webgl" defaultValue={true}>
                 🧊
               </OrchestraToggle>
+              <OrchestraToggle id="reactScan">🔬</OrchestraToggle>
               <OrchestraToggle id="screenshot">📸</OrchestraToggle>
             </div>
           </Dialog.Popup>

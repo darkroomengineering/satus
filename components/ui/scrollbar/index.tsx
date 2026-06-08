@@ -33,10 +33,10 @@ export function Scrollbar() {
 
       const scroll = mapRange(
         0,
-        innerHeight,
+        innerHeight - thumbHeight,
         e.clientY - start,
         0,
-        lenis.limit + innerHeight + thumbHeight + start
+        lenis.limit
       )
 
       lenis?.scrollTo(scroll, { lerp: 0.2 })

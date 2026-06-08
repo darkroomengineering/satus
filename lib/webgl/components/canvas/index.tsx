@@ -1,17 +1,15 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import {
-  createContext,
-  type PropsWithChildren,
-  use,
-  useLayoutEffect,
-  useState,
-} from 'react'
+import { type PropsWithChildren, use, useLayoutEffect, useState } from 'react'
 import tunnel from 'tunnel-rat'
 import { useShallow } from 'zustand/react/shallow'
 import { useDeviceDetection } from '@/lib/hooks/use-device-detection'
 import { useWebGLStore } from '@/lib/webgl/store'
+import { CanvasContext, type CanvasContextValue } from './canvas-context'
+
+// Re-export CanvasContext so existing import paths keep working
+export { CanvasContext } from './canvas-context'
 
 const WebGLCanvas = dynamic(
   () => import('./webgl').then(({ WebGLCanvas }) => WebGLCanvas),
@@ -19,11 +17,6 @@ const WebGLCanvas = dynamic(
     ssr: false,
   }
 )
-
-type CanvasContextValue = {
-  WebGLTunnel?: ReturnType<typeof tunnel>
-  DOMTunnel?: ReturnType<typeof tunnel>
-}
 
 type CanvasProps = PropsWithChildren<{
   /**
@@ -41,8 +34,6 @@ type CanvasProps = PropsWithChildren<{
    */
   local?: boolean
 }>
-
-export const CanvasContext = createContext<CanvasContextValue>({})
 
 /**
  * Canvas component that provides WebGL context and tunnel system.

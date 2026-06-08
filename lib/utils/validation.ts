@@ -195,3 +195,44 @@ export function parseFormData<T>(
 export function zodToValidator(schema: z.ZodType): (value: string) => boolean {
   return (value: string) => schema.safeParse(value).success
 }
+
+// ---------------------------------------------------------------------------
+// External-boundary response parsing
+// ---------------------------------------------------------------------------
+
+/**
+ * Validate already-parsed JSON from an external API against a Zod schema.
+ *
+ * Use this at every integration boundary instead of casting
+ * `(await res.json()) as T`. On mismatch it throws a descriptive error so the
+ * failure surfaces at the edge — with the offending paths named — rather than
+ * as an opaque property-access crash deep in the call chain (e.g. during a
+ * vendor API version bump).
+ *
+ * @param schema  Zod schema describing the expected response shape.
+ * @param data    The parsed JSON (the result of `await res.json()`).
+ * @param context Optional label for the source, included in the thrown message
+ *                (e.g. `'Shopify Storefront'`, `'HubSpot forms API'`).
+ *
+ * @example
+ * ```ts
+ * const json = await res.json()
+ * const body = parseApiResponse(shopifyEnvelopeSchema, json, 'Shopify Storefront')
+ * ```
+ */
+export function parseApiResponse<T>(
+  schema: z.ZodType<T>,
+  data: unknown,
+  context?: string
+): T {
+  const result = schema.safeParse(data)
+  if (!result.success) {
+    const detail = result.error.issues
+      .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`)
+      .join('; ')
+    throw new Error(
+      `Invalid API response${context ? ` from ${context}` : ''}: ${detail}`
+    )
+  }
+  return result.data
+}

@@ -1,10 +1,17 @@
 import { cacheSignal } from 'react'
+import { z } from 'zod'
 import { fetchWithTimeout } from '@/utils/fetch'
+import { parseApiResponse } from '@/utils/validation'
 import { SHOPIFY_GRAPHQL_API_ENDPOINT } from './constants'
 import type { ShopifyFetchOptions, ShopifyResponse } from './types'
 
 const endpoint = `${process.env.SHOPIFY_STORE_DOMAIN ?? ''}${SHOPIFY_GRAPHQL_API_ENDPOINT}`
 const key = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN ?? ''
+
+const shopifyEnvelopeSchema = z.object({
+  data: z.unknown(),
+  errors: z.array(z.object({ message: z.string() })).optional(),
+})
 
 export async function shopifyFetch<T = Record<string, unknown>>({
   cache = 'force-cache',
@@ -36,14 +43,22 @@ export async function shopifyFetch<T = Record<string, unknown>>({
       ...(tags && { next: { tags } }),
     })
 
-    const body = (await result.json()) as {
-      data: T
-      errors?: Array<{ message: string }>
+    const raw = await result.json()
+    const envelope = parseApiResponse(
+      shopifyEnvelopeSchema,
+      raw,
+      'Shopify Storefront'
+    )
+
+    if (envelope.errors) {
+      throw new Error(
+        envelope.errors[0]?.message ?? 'Unknown Shopify API error'
+      )
     }
 
-    if (body.errors) {
-      throw new Error(body.errors[0]?.message ?? 'Unknown Shopify API error')
-    }
+    // `errors` is always absent past the throw above; omit it so the optional
+    // property stays optional under exactOptionalPropertyTypes.
+    const body = { data: envelope.data as T }
 
     return {
       status: result.status,

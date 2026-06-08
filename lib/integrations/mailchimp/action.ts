@@ -79,13 +79,10 @@ export async function mailchimpSubscriptionAction(
     run: async (input) => {
       const result = await addSubscriberToMailchimp(input)
       if (!result.success) {
-        let errorMessage = 'subscription_failed_'
-        if (
-          result.error?.includes('fake') ||
-          result.error?.includes('invalid')
-        ) {
-          errorMessage = 'invalid_email_'
-        }
+        const errorMessage =
+          result.errorCode === 'invalid_email'
+            ? 'invalid_email_'
+            : 'subscription_failed_'
 
         console.error('Mailchimp subscription failed:', result.error)
         return { status: 500, message: errorMessage }

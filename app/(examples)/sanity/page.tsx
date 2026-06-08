@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { cache } from 'react'
 import { Wrapper } from '@/components/layout/wrapper'
 import { NotConfigured } from '@/components/ui/not-configured'
 import { isConfigured } from '@/integrations/registry'
@@ -8,6 +9,15 @@ import { generateSanityMetadata } from '@/utils/metadata'
 import { SanityTutorial } from './_components/tutorial'
 
 const SLUG = 'sanity'
+
+// Deduplicate the Sanity fetch across generateMetadata and the page component
+// within the same request using React's request-scoped cache.
+const fetchPage = cache(async () => {
+  return sanityFetch({
+    query: pageQuery,
+    params: { slug: SLUG },
+  })
+})
 
 export default async function SanityPage() {
   // Show setup instructions if Sanity is not configured
@@ -19,10 +29,7 @@ export default async function SanityPage() {
     )
   }
 
-  const { data } = await sanityFetch({
-    query: pageQuery,
-    params: { slug: SLUG },
-  })
+  const { data } = await fetchPage()
 
   if (!data) return notFound()
 
@@ -37,10 +44,7 @@ export default async function SanityPage() {
 
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata
 export async function generateMetadata() {
-  const { data } = await sanityFetch({
-    query: pageQuery,
-    params: { slug: SLUG },
-  })
+  const { data } = await fetchPage()
 
   if (!data) return
 

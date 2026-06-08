@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation'
-import { cache } from 'react'
 import { Wrapper } from '@/components/layout/wrapper'
 import { client } from '@/integrations/sanity/client'
 import { sanityFetch } from '@/integrations/sanity/live'
@@ -28,14 +27,17 @@ export async function generateStaticParams() {
   return params.length > 0 ? params : fallback
 }
 
-// Deduplicate the Sanity fetch across generateMetadata and the page component
-// within the same request using React's request-scoped cache.
-const fetchArticle = cache(async (slug: string) => {
+// `sanityFetch` calls `cacheTag()` internally, which under Next's Cache
+// Components (`cacheComponents: true`) is only legal inside a `'use cache'`
+// function. Wrapping here also dedupes the fetch across the page render and
+// `generateMetadata` (slug is passed as an arg so the cache keys per article).
+async function fetchArticle(slug: string) {
+  'use cache'
   return sanityFetch({
     query: articleQuery,
     params: { slug },
   })
-})
+}
 
 export default async function SanityArticlePage({
   params,

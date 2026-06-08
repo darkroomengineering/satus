@@ -25,8 +25,17 @@ const ScrollTriggerDebugger = dynamic(
   { ssr: false }
 )
 
+const ReactScan = dynamic(
+  () =>
+    import('@/components/react-scan-provider').then(
+      ({ ReactScanProvider }) => ReactScanProvider
+    ),
+  { ssr: false }
+)
+
 export function OrchestraTools() {
-  const { stats, grid, studio, dev, minimap, screenshot } = useOrchestra()
+  const { stats, grid, studio, dev, minimap, screenshot, reactScan } =
+    useOrchestra()
 
   useEffect(() => {
     document.documentElement.classList.toggle('dev', Boolean(dev))
@@ -43,6 +52,7 @@ export function OrchestraTools() {
       {stats && <Stats />}
       {grid && <GridDebugger />}
       {minimap && <ScrollTriggerDebugger />}
+      {reactScan && <ReactScan />}
     </>
   )
 }

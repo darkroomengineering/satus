@@ -24,6 +24,8 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Added
 
+- `parseApiResponse` (`lib/utils/validation.ts`) — validates external API responses with Zod at the integration boundary (HubSpot, Mailchimp, Shopify GraphQL envelope), so malformed responses fail clearly at the edge instead of crashing downstream. (#198)
+- React Scan render profiler as an opt-in Orchestra dev tool — toggle 🔬 in the ⌘O palette, off by default (no profiler overhead unless enabled). (#209)
 - `useReveal` hook (`lib/hooks/use-reveal.ts`) — reveal-on-scroll primitive animating `transform`/`opacity` on the compositor thread via a `[data-reveal]`/`[data-reveal-item]` CSS contract in `global.css`; degrades to visible without JS and honors reduced-motion. (#189)
 - Animation standards section in AGENTS.md — CSS/`useReveal` for reveals, GSAP for orchestration. (#189)
 - `AGENTS.md` as the single source of truth for engineering standards; `CLAUDE.md`
@@ -35,6 +37,11 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Changed
 
+- Shopify cart types: named the post-reshape line item (`CartLineItem`), made `Cart.id` required, and removed 11 `as` casts; `removeItem`/`updateItemQuantity` now take the client-held `lineId`, dropping a `getCart` round-trip per mutation. (#198)
+- Mailchimp integration returns typed `MailchimpErrorCode` values instead of sniffing error strings; tag/note writes are best-effort. (#198)
+- WebGL: removed the unused `local` canvas mode and `canvas/webgl.tsx`, dropped vestigial `Scene` inheritance from `Program`, and made the flowmap/fluid sims opt-in instead of booting on every WebGL page. (#199, #206)
+- Sanity example pages wrap `sanityFetch` in a `'use cache'` function for Cache Components (`cacheComponents`) compatibility, which also dedupes the page and `generateMetadata` fetches. (#205, #208)
+- Dev scripts deduped: one shared ts-morph `Project` in `ast-transforms`, reused `toPascalCase`/`cancelGuard`, and renamed the two divergent `updatePackageJson` helpers. (#198)
 - `/` now redirects to `/components` (was the marketing homepage); forks should replace `app/page.tsx` with their own homepage. (#188)
 - `spring()` (`lib/utils/animation.ts`) documentation now steers to CSS `linear()` easing for off-thread springs. (#189)
 - Dependabot PRs now auto-sync `bun.lock` via a `pull_request_target` workflow, so they pass the frozen-lockfile install in CI. (#190)
@@ -43,6 +50,11 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Fixed
 
+- `cacheTag()` crash on `/sanity` and `/sanity/[slug]` under Cache Components — `sanityFetch` calls `cacheTag()`, which must run inside a `'use cache'` function. (#208)
+- `use-webgl-element` attached two `IntersectionObserver`s on mount; now one. (#205)
+- Accordion drove `Collapsible.Root` with a duplicate controller, and the custom scrollbar overshot when dragged on long pages. (#205)
+- React Scan dev panel was hijacked by Lenis smooth scroll; added it to Lenis's `prevent` list. (#207)
+- Turnstile dev-mode bypass collapsed to a single path. (#205)
 - Shopify cart `addItem` now validates input before creating a cart, so invalid
   requests no longer leave an orphaned cart and cookie behind (#173).
 
@@ -54,6 +66,8 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Removed
 
+- Hand-rolled `components/ui/dropdown/` — superseded by the accessible Base UI `Select`. (#202, #205)
+- `lib/utils/animation.ts` re-exports of `clamp` / `lerp` / `mapRange` / `modulo` / `truncate` — import these from `@/utils/math` instead. (#198)
 - In-repo marketing homepage — the `app/(marketing)` landing sections (hero, features, value-props, getting-started, presets) and marketing-only WebGL effects (`animated-gradient`, `liquid-drip`, `split-text`). Satus is a starter kit; its marketing lives at oss.darkroom.engineering/satus. (#188)
 - `/home` rewrite + redirect and the `assets.darkroom.engineering` image `remotePattern` from `next.config.ts`. (#188)
 - Dead code: orphaned WebGL GLSL utilities (`noise` / `blend` / `functions`) and

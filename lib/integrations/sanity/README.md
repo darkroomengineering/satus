@@ -47,18 +47,30 @@ No configuration changes needed — just install from the Marketplace and deploy
 
 ### Fetching Data
 
+This project enables Next.js Cache Components (`cacheComponents: true`), and
+`sanityFetch` calls `cacheTag()` internally — which is only legal inside a
+`'use cache'` function. Wrap fetches in a `'use cache'` helper (this also
+dedupes the fetch across the page and `generateMetadata`):
+
 ```tsx
-import { sanityFetch } from 'next-sanity/live'
+import { sanityFetch } from '@/lib/integrations/sanity/live'
 import { pageQuery } from '@/lib/integrations/sanity/queries'
 
+async function getPage(slug: string) {
+  'use cache'
+  return sanityFetch({ query: pageQuery, params: { slug } })
+}
+
 export default async function Page({ params }) {
-  const { data } = await sanityFetch({ 
-    query: pageQuery, 
-    params: { slug: params.slug } 
-  })
+  const { slug } = await params
+  const { data } = await getPage(slug)
   return <YourComponent data={data} />
 }
 ```
+
+> Calling `sanityFetch` directly in a component (outside `'use cache'`) throws
+> `cacheTag() can only be called inside a "use cache" function` while Cache
+> Components are enabled.
 
 ### Build-time Data Fetching
 
@@ -107,12 +119,15 @@ import { SanityImage } from '@/components/ui/sanity-image'
 
 ### SEO Metadata
 
+Reuse the same `'use cache'` loader so the document is fetched once per request:
+
 ```tsx
 import { generateSanityMetadata } from '@/lib/utils/metadata'
 
 export async function generateMetadata({ params }) {
-  const { data } = await sanityFetch({ query: pageQuery, params })
-  return generateSanityMetadata({ document: data, url: `/page/${params.slug}` })
+  const { slug } = await params
+  const { data } = await getPage(slug) // the 'use cache' helper from above
+  return generateSanityMetadata({ document: data, url: `/page/${slug}` })
 }
 ```
 

@@ -42,9 +42,8 @@ Built on [Base UI](https://base-ui.com/) for accessibility.
 | `image/` | Optimized images (always use this, never `next/image`) |
 | `link/` | Smart navigation (auto-detects external) |
 | `form/` | Form components with validation |
-| `select/` | Custom dropdowns |
+| `select/` | Custom dropdowns (accessible, Base UI) |
 | `menu/` | Dropdown menus |
-| `dropdown/` | Dropdown primitives |
 | `accordion/` | Expandable sections |
 | `tabs/` | Tab navigation |
 | `tooltip/` | Hover hints |

@@ -6,12 +6,18 @@ Debug tools suite. Toggle with `Cmd/Ctrl + O`.
 
 | Tool | Description |
 |------|-------------|
-| Theatre.js (⚙️) | Animation debugging |
-| Stats (📈) | FPS and performance |
 | Grid (🌐) | Layout grid overlay |
-| Minimap (🗺️) | Page navigation |
+| Theatre.js (⚙️) | Animation debugging |
+| Stats (📈) | FPS and performance (stats-gl frame-time / GPU meter) |
 | Dev Mode (🚧) | Development toggle |
+| Minimap (🗺️) | ScrollTrigger navigation |
+| WebGL (🧊) | Global WebGL canvas (on by default) |
+| React Scan (🔬) | React re-render profiler — opt-in, off by default |
 | Screenshot (📸) | Clean UI captures |
+
+React Scan (`react-scan`) is mounted only while its toggle is on, so a normal
+dev session carries no profiler overhead. It overlaps Stats only on the FPS
+readout — Stats is a frame-time/GPU meter, React Scan is a re-render profiler.
 
 ## Usage
 

@@ -19,6 +19,7 @@ interface ModalContextType {
 interface QuantityPayload {
   merchandiseId: string
   quantity: number
+  lineId?: string | undefined
 }
 
 interface QuantityProps {
@@ -35,6 +36,7 @@ interface QuantityButtonProps {
 
 interface RemoveButtonProps {
   merchandiseId: string
+  lineId?: string | undefined
   className?: string
 }
 
@@ -110,26 +112,13 @@ function InnerCart() {
           <div className={s.line} key={id}>
             <div className={s.media}>
               <Image
-                src={
-                  (merchandise?.product?.featuredImage as { url?: string })
-                    ?.url || ''
-                }
-                alt={
-                  (merchandise?.product?.featuredImage as { altText?: string })
-                    ?.altText ?? ''
-                }
-                {...((merchandise?.product?.featuredImage as { width?: number })
-                  ?.width && {
-                  width: (
-                    merchandise.product.featuredImage as { width: number }
-                  ).width,
+                src={merchandise.product.featuredImage?.url ?? ''}
+                alt={merchandise.product.featuredImage?.altText ?? ''}
+                {...(merchandise.product.featuredImage?.width && {
+                  width: merchandise.product.featuredImage.width,
                 })}
-                {...((
-                  merchandise?.product?.featuredImage as { height?: number }
-                )?.height && {
-                  height: (
-                    merchandise.product.featuredImage as { height: number }
-                  ).height,
+                {...(merchandise.product.featuredImage?.height && {
+                  height: merchandise.product.featuredImage.height,
                 })}
               />
             </div>
@@ -145,6 +134,7 @@ function InnerCart() {
 
             <RemoveButton
               merchandiseId={merchandise?.id ?? ''}
+              lineId={id}
               className={s.remove ?? ''}
             />
 
@@ -153,6 +143,7 @@ function InnerCart() {
               payload={{
                 merchandiseId: merchandise?.id ?? '',
                 quantity,
+                lineId: id,
               }}
             />
 
@@ -234,14 +225,14 @@ function QuantityButton({
   )
 }
 
-function RemoveButton({ merchandiseId, className }: RemoveButtonProps) {
+function RemoveButton({ merchandiseId, lineId, className }: RemoveButtonProps) {
   const { actions } = useCartContext()
   const { updateCartItem } = actions
   const router = useRouter()
 
   async function formAction() {
     updateCartItem(merchandiseId, 'delete')
-    await removeItem(null, merchandiseId)
+    await removeItem(null, merchandiseId, lineId)
 
     // Refresh the router to sync server state with optimistic state
     router.refresh()

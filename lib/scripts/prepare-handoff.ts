@@ -17,6 +17,7 @@
 
 import * as p from '@clack/prompts'
 import { getConfigured } from '@/integrations/registry'
+import { cancelGuard } from './generate-shared'
 import { INTEGRATION_BUNDLES } from './integration-bundles'
 import { renderDeploymentChecklist } from './templates/deployment-checklist'
 import { renderInventory } from './templates/inventory'
@@ -103,9 +104,9 @@ const removeBrandingAssets = async (dryRun: boolean): Promise<boolean> => {
 }
 
 /**
- * Update package.json with project-specific information
+ * Update package.json name and description with project-specific information
  */
-const updatePackageJson = async (
+const setPackageJsonNameAndDescription = async (
   projectName: string,
   dryRun: boolean
 ): Promise<boolean> => {
@@ -321,7 +322,7 @@ const runHandoff = async (options: HandoffOptions): Promise<void> => {
   // Update package.json
   if (doUpdatePackageJson) {
     s.start('Updating package.json...')
-    const updated = await updatePackageJson(projectName, dryRun)
+    const updated = await setPackageJsonNameAndDescription(projectName, dryRun)
     s.stop(updated ? 'Updated package.json' : 'No package.json changes needed')
   }
 
@@ -389,10 +390,7 @@ const main = async (): Promise<void> => {
     },
   })
 
-  if (p.isCancel(projectName)) {
-    p.cancel('Handoff cancelled')
-    process.exit(0)
-  }
+  const projectNameValue = cancelGuard(projectName, 'Handoff cancelled')
 
   // Ask what to do
   const actions = await p.multiselect({
@@ -445,15 +443,12 @@ const main = async (): Promise<void> => {
     ],
   })
 
-  if (p.isCancel(actions)) {
-    p.cancel('Handoff cancelled')
-    process.exit(0)
-  }
+  const actionsValue = cancelGuard(actions, 'Handoff cancelled')
 
   // Show summary
   p.log.step('Summary:')
-  p.log.message(`  Project: ${projectName}`)
-  p.log.message(`  Actions: ${(actions as string[]).join(', ')}`)
+  p.log.message(`  Project: ${projectNameValue}`)
+  p.log.message(`  Actions: ${actionsValue.join(', ')}`)
 
   // Confirm
   const proceed = await p.confirm({
@@ -466,17 +461,16 @@ const main = async (): Promise<void> => {
   }
 
   // Run handoff
-  const actionsArray = actions as string[]
   await runHandoff({
     dryRun,
-    projectName: projectName as string,
-    removeExamples: actionsArray.includes('removeExamples'),
-    swapReadme: actionsArray.includes('swapReadme'),
-    removeBranding: actionsArray.includes('removeBranding'),
-    updatePackageJson: actionsArray.includes('updatePackageJson'),
-    cleanupEnvVars: actionsArray.includes('cleanupEnvVars'),
-    generateInventory: actionsArray.includes('generateInventory'),
-    generateChecklist: actionsArray.includes('generateChecklist'),
+    projectName: projectNameValue,
+    removeExamples: actionsValue.includes('removeExamples'),
+    swapReadme: actionsValue.includes('swapReadme'),
+    removeBranding: actionsValue.includes('removeBranding'),
+    updatePackageJson: actionsValue.includes('updatePackageJson'),
+    cleanupEnvVars: actionsValue.includes('cleanupEnvVars'),
+    generateInventory: actionsValue.includes('generateInventory'),
+    generateChecklist: actionsValue.includes('generateChecklist'),
   })
 
   // Done
@@ -484,13 +478,13 @@ const main = async (): Promise<void> => {
     p.outro('Dry run complete. Run without --dry-run to apply changes.')
   } else {
     const generated: string[] = []
-    if (actionsArray.includes('generateInventory')) {
+    if (actionsValue.includes('generateInventory')) {
       generated.push('  - INVENTORY.md (component list)')
     }
-    if (actionsArray.includes('generateChecklist')) {
+    if (actionsValue.includes('generateChecklist')) {
       generated.push('  - DEPLOYMENT-CHECKLIST.md (launch tasks)')
     }
-    if (actionsArray.includes('swapReadme')) {
+    if (actionsValue.includes('swapReadme')) {
       generated.push('  - README.original.md (backup)')
     }
     p.note(

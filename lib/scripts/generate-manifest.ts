@@ -9,21 +9,11 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { Project, SyntaxKind } from 'ts-morph'
+import { toPascalCase } from './generate-shared'
 
 const ROOT = join(import.meta.dir, '..', '..')
 const OUT_FILE = join(ROOT, 'COMPONENTS.md')
 const IS_CHECK = process.argv.includes('--check')
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function pascalCase(str: string): string {
-  return str
-    .split('-')
-    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-    .join('')
-}
 
 function glob(pattern: string): string[] {
   const g = new Bun.Glob(pattern)
@@ -160,7 +150,7 @@ function buildComponentSection(
     const componentDir = parts[parts.length - 1] ?? ''
     const importPath = `${aliasPrefix}/${componentDir}`
     const type = isClientFile(file) ? 'Client' : 'Server'
-    const name = pascalCase(componentDir)
+    const name = toPascalCase(componentDir)
     rows.push(`| ${name} | \`${importPath}\` | ${type} |`)
   }
 
@@ -187,14 +177,14 @@ function buildEffectSection(): string {
     if (file.includes('/index.tsx')) {
       const match = file.match(/components\/effects\/([^/]+)\/index\.tsx$/)
       const dir = match?.[1] ?? ''
-      name = pascalCase(dir)
+      name = toPascalCase(dir)
       importPath = `@/components/effects/${dir}`
     } else {
       const match = file.match(/components\/effects\/([^/]+)\.tsx$/)
       const base = match?.[1] ?? ''
       // Skip webgl sub-files (e.g., animated-gradient/webgl.tsx)
       if (base.includes('webgl')) continue
-      name = pascalCase(base)
+      name = toPascalCase(base)
       importPath = `@/components/effects/${base}`
     }
 
@@ -315,7 +305,7 @@ function buildWebGLSection(): string {
   for (const file of allEntries.sort()) {
     const match = file.match(/lib\/webgl\/components\/([^/]+)\/index\.[tj]sx?$/)
     const dir = match?.[1] ?? ''
-    const name = pascalCase(dir)
+    const name = toPascalCase(dir)
     const importPath = `@/webgl/components/${dir}`
     const type = isClientFile(file) ? 'Client' : 'Server'
     rows.push(`| ${name} | \`${importPath}\` | ${type} |`)

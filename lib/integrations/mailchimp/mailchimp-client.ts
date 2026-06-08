@@ -1,5 +1,7 @@
 import { createHash } from 'node:crypto'
+import { z } from 'zod'
 import { fetchWithTimeout } from '@/utils/fetch'
+import { parseApiResponse } from '@/utils/validation'
 
 export interface MailchimpConfig {
   apiKey: string
@@ -19,6 +21,21 @@ export interface SubscriptionData {
   firstName?: string | undefined
   lastName?: string | undefined
 }
+
+// Typed error codes surfaced to callers
+export type MailchimpErrorCode = 'invalid_email' | 'network_error' | 'api_error'
+
+export interface MailchimpResult {
+  success: boolean
+  errorCode?: MailchimpErrorCode
+  /** Human-readable detail; not for UI routing — use errorCode for that */
+  error?: string
+}
+
+// Zod schema for the Mailchimp member PUT response (only fields we consume)
+const mailchimpMemberResponseSchema = z.object({
+  id: z.string(),
+})
 
 // Mailchimp API error response type
 interface MailchimpErrorResponse {
@@ -69,7 +86,7 @@ async function makeMailchimpRequest(
   })
 }
 
-// Apply tags to a member via the dedicated tags endpoint
+// Apply tags to a member via the dedicated tags endpoint (best-effort)
 async function applyMemberTags(
   audienceId: string,
   email: string,
@@ -85,10 +102,81 @@ async function applyMemberTags(
   })
 }
 
+// ---------------------------------------------------------------------------
+// Private helper: upsert a member via PUT
+// ---------------------------------------------------------------------------
+
+interface UpsertMemberOptions {
+  audienceId: string
+  email: string
+  firstName: string
+  lastName: string
+}
+
+/**
+ * PUT a member into the audience. Returns the validated member response on
+ * success, or a MailchimpResult error on failure.
+ */
+async function upsertMember(
+  opts: UpsertMemberOptions
+): Promise<
+  { ok: true; memberId: string } | { ok: false; result: MailchimpResult }
+> {
+  const { audienceId, email, firstName, lastName } = opts
+  const hash = subscriberHash(email)
+
+  const subscriberData = {
+    email_address: email,
+    status_if_new: 'subscribed',
+    status: 'subscribed',
+    merge_fields: {
+      FNAME: firstName,
+      LNAME: lastName,
+    },
+  }
+
+  const response = await makeMailchimpRequest(
+    `/lists/${audienceId}/members/${hash}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(subscriberData),
+    }
+  )
+
+  if (response.ok) {
+    const json: unknown = await response.json()
+    const member = parseApiResponse(
+      mailchimpMemberResponseSchema,
+      json,
+      'Mailchimp members API'
+    )
+    return { ok: true, memberId: member.id }
+  }
+
+  const errorData = (await response.json()) as MailchimpErrorResponse
+  const detail = errorData.detail || 'Failed to add/update member'
+
+  // Classify the error so callers can branch by code, not string-sniff
+  const lowerDetail = detail.toLowerCase()
+  const errorCode: MailchimpErrorCode =
+    lowerDetail.includes('fake') || lowerDetail.includes('invalid')
+      ? 'invalid_email'
+      : 'api_error'
+
+  return {
+    ok: false,
+    result: { success: false, errorCode, error: detail },
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
 // Add or update a contact in Mailchimp
 export async function addContactToMailchimp(
   contactData: ContactData
-): Promise<{ success: boolean; error?: string }> {
+): Promise<MailchimpResult> {
   try {
     const { audienceId } = getMailchimpConfig()
 
@@ -97,100 +185,86 @@ export async function addContactToMailchimp(
     const firstName = nameParts[0] || ''
     const lastName = nameParts.slice(1).join(' ') || ''
 
-    const hash = subscriberHash(contactData.email)
+    const upsert = await upsertMember({
+      audienceId,
+      email: contactData.email,
+      firstName,
+      lastName,
+    })
 
-    const subscriberData = {
-      email_address: contactData.email,
-      status_if_new: 'subscribed',
-      status: 'subscribed',
-      merge_fields: {
-        FNAME: firstName,
-        LNAME: lastName,
-      },
+    if (!upsert.ok) {
+      return upsert.result
     }
 
-    const response = await makeMailchimpRequest(
-      `/lists/${audienceId}/members/${hash}`,
-      {
-        method: 'PUT',
-        body: JSON.stringify(subscriberData),
-      }
-    )
+    // --- best-effort: tag and note failures do NOT fail the overall op ---
 
-    if (response.ok) {
-      // Apply the contact-form tag via the dedicated tags endpoint
+    try {
       await applyMemberTags(audienceId, contactData.email, ['contact-form'])
+    } catch (err) {
+      console.error('Mailchimp contact tag error (non-fatal):', err)
+    }
 
-      // Add a note about the contact form submission
-      const data = (await response.json()) as { id: string }
-      const subscriberId = data.id
-
-      const noteData = {
-        note: `Contact form submission - Subject: ${contactData.subject}\n\nMessage: ${contactData.message}`,
-      }
-
+    try {
       await makeMailchimpRequest(
-        `/lists/${audienceId}/members/${subscriberId}/notes`,
+        `/lists/${audienceId}/members/${upsert.memberId}/notes`,
         {
           method: 'POST',
-          body: JSON.stringify(noteData),
+          body: JSON.stringify({
+            note: `Contact form submission - Subject: ${contactData.subject}\n\nMessage: ${contactData.message}`,
+          }),
         }
       )
+    } catch (err) {
+      console.error('Mailchimp contact note error (non-fatal):', err)
+    }
 
-      return { success: true }
-    }
-    const errorData = (await response.json()) as MailchimpErrorResponse
-    return {
-      success: false,
-      error: errorData.detail || 'Failed to add contact',
-    }
+    return { success: true }
   } catch (error) {
     console.error('Mailchimp contact error:', error)
-    return { success: false, error: 'Network error occurred' }
+    return {
+      success: false,
+      errorCode: 'network_error',
+      error: 'Network error occurred',
+    }
   }
 }
 
 // Add a subscriber to Mailchimp (for newsletter signups)
 export async function addSubscriberToMailchimp(
   subscriptionData: SubscriptionData
-): Promise<{ success: boolean; error?: string }> {
+): Promise<MailchimpResult> {
   try {
     const { audienceId } = getMailchimpConfig()
 
-    const hash = subscriberHash(subscriptionData.email)
+    const upsert = await upsertMember({
+      audienceId,
+      email: subscriptionData.email,
+      firstName: subscriptionData.firstName ?? '',
+      lastName: subscriptionData.lastName ?? '',
+    })
 
-    const subscriberData = {
-      email_address: subscriptionData.email,
-      status_if_new: 'subscribed',
-      status: 'subscribed',
-      merge_fields: {
-        FNAME: subscriptionData.firstName ?? '',
-        LNAME: subscriptionData.lastName ?? '',
-      },
+    if (!upsert.ok) {
+      console.error(
+        'Mailchimp subscription error:',
+        upsert.result.error || 'Failed to subscribe'
+      )
+      return upsert.result
     }
 
-    const response = await makeMailchimpRequest(
-      `/lists/${audienceId}/members/${hash}`,
-      {
-        method: 'PUT',
-        body: JSON.stringify(subscriberData),
-      }
-    )
-
-    if (response.ok) {
-      // Apply the newsletter tag via the dedicated tags endpoint
+    // best-effort tag application
+    try {
       await applyMemberTags(audienceId, subscriptionData.email, ['newsletter'])
-      return { success: true }
+    } catch (err) {
+      console.error('Mailchimp newsletter tag error (non-fatal):', err)
     }
 
-    const errorData = (await response.json()) as MailchimpErrorResponse
-    console.error(
-      'Mailchimp subscription error:',
-      errorData.detail || 'Failed to subscribe'
-    )
-    return { success: false, error: errorData.detail || 'Failed to subscribe' }
+    return { success: true }
   } catch (error) {
     console.error('Mailchimp subscription error:', error)
-    return { success: false, error: 'Network error occurred' }
+    return {
+      success: false,
+      errorCode: 'network_error',
+      error: 'Network error occurred',
+    }
   }
 }

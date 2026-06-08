@@ -14,6 +14,7 @@
 
 import * as p from '@clack/prompts'
 import { applyCodeTransforms } from './ast-transforms'
+import { cancelGuard } from './generate-shared'
 import {
   type CodeTransform,
   getIntegrationNames,
@@ -115,9 +116,9 @@ const removeMarketingHomepage = async (dryRun: boolean): Promise<void> => {
 }
 
 /**
- * Update package.json to remove dependencies
+ * Remove dependency entries from package.json
  */
-const updatePackageJson = async (
+const removeDepsFromPackageJson = async (
   depsToRemove: string[],
   devDepsToRemove: string[],
   dryRun: boolean
@@ -376,7 +377,7 @@ const setup = async (options: SetupOptions): Promise<void> => {
   // Update package.json
   if (allDeps.length > 0 || allDevDeps.length > 0) {
     s.start('Updating package.json...')
-    const { deps, devDeps } = await updatePackageJson(
+    const { deps, devDeps } = await removeDepsFromPackageJson(
       allDeps,
       allDevDeps,
       dryRun
@@ -488,13 +489,7 @@ const main = async (): Promise<void> => {
       required: false,
     })
 
-    // Handle cancellation
-    if (p.isCancel(customIntegrations)) {
-      p.cancel('Setup cancelled')
-      process.exit(0)
-    }
-
-    keepIntegrations = customIntegrations as string[]
+    keepIntegrations = cancelGuard(customIntegrations, 'Setup cancelled')
   } else {
     // Use preset integrations
     const preset = PROJECT_PRESETS[selectedPreset as PresetKey]

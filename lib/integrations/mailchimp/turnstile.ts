@@ -87,19 +87,5 @@ export async function validateFormWithTurnstile(formData: FormData): Promise<{
   errors: string[]
 }> {
   const turnstileToken = formData.get('cf-turnstile-response')?.toString() || ''
-
-  // In development, gracefully skip Turnstile validation
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Development mode: Skipping Turnstile validation')
-    return { isValid: true, errors: [] }
-  }
-
-  if (!turnstileToken) {
-    return {
-      isValid: false,
-      errors: ['security_verification_required_'],
-    }
-  }
-
-  return await validateTurnstile(turnstileToken)
+  return validateTurnstile(turnstileToken)
 }

@@ -1,34 +1,57 @@
+import { z } from 'zod'
 import { fetchWithTimeout } from '@/utils/fetch'
 import { stripHtmlTags } from '@/utils/strings'
+import { parseApiResponse } from '@/utils/validation'
 
-interface HubspotFormResponse {
-  fieldGroups: Array<{ fields: unknown[] }>
-  legalConsentOptions?: unknown
-  displayOptions: { submitButtonText?: string }
-  configuration: { postSubmitAction: { type: string; value: string | null } }
-}
+// ---------------------------------------------------------------------------
+// Zod schemas for the HubSpot forms API response
+// ---------------------------------------------------------------------------
 
-interface HubSpotFormField {
-  name: string
-  label: string
-  placeholder?: string
-  required: boolean
-  fieldType: string
-  hidden?: boolean
-  helpText?: string
-  options?: Array<{ label: string; value: string }>
-}
+const hubspotFieldSchema = z.object({
+  name: z.string(),
+  label: z.string(),
+  placeholder: z.string().optional(),
+  required: z.boolean(),
+  fieldType: z.string(),
+  hidden: z.boolean().optional(),
+  helpText: z.string().optional(),
+  options: z
+    .array(z.object({ label: z.string(), value: z.string() }))
+    .optional(),
+})
 
-interface HubSpotLegalConsentOption {
-  subscriptionTypeId: string
-  label: string
-}
+const hubspotLegalConsentOptionsSchema = z.object({
+  communicationsCheckboxes: z
+    .array(
+      z.object({
+        subscriptionTypeId: z.string(),
+        label: z.string(),
+      })
+    )
+    .optional(),
+  privacyText: z.string().optional(),
+  consentToProcessText: z.string().optional(),
+})
 
-interface HubSpotLegalConsentOptions {
-  communicationsCheckboxes?: HubSpotLegalConsentOption[]
-  privacyText?: string
-  consentToProcessText?: string
-}
+const hubspotFormResponseSchema = z.object({
+  fieldGroups: z.array(
+    z.object({
+      fields: z.array(hubspotFieldSchema),
+    })
+  ),
+  legalConsentOptions: hubspotLegalConsentOptionsSchema.optional(),
+  displayOptions: z.object({
+    submitButtonText: z.string().optional(),
+  }),
+  configuration: z.object({
+    postSubmitAction: z.object({
+      type: z.string(),
+      value: z.string().nullable(),
+    }),
+  }),
+})
+
+type HubspotFormResponse = z.infer<typeof hubspotFormResponseSchema>
 
 export interface HubSpotParsedForm {
   portalId: string | undefined
@@ -38,7 +61,6 @@ export interface HubSpotParsedForm {
     label: string
     placeholder: string
     required: boolean
-    hubspotType: string
     type: string
     hidden: boolean | undefined
     helpText: string
@@ -63,14 +85,7 @@ export interface HubSpotParsedForm {
 // endpoint is public and doesn't need the full SDK. If server-side form
 // operations grow (e.g., creating forms, managing contacts), consider
 // switching to the SDK which is already installed as a devDependency.
-async function hubspotFormApi(id: string | null | undefined) {
-  // Guard against null/undefined form ID
-  if (!id) {
-    throw new Error(
-      'HubSpot form ID is not configured. Set NEXT_HUBSPOT_FORM_ID in your environment variables.'
-    )
-  }
-
+async function hubspotFormApi(id: string) {
   const accessToken = process.env.HUBSPOT_ACCESS_TOKEN
   if (!accessToken) {
     throw new Error(
@@ -91,47 +106,33 @@ async function hubspotFormApi(id: string | null | undefined) {
   if (!resp.ok) {
     throw new Error(`Failed to fetch form data: ${resp.status}`)
   }
-  const response = (await resp.json()) as HubspotFormResponse
 
-  if (!(response.fieldGroups && Array.isArray(response.fieldGroups))) {
-    throw new Error(
-      'Invalid HubSpot form response: missing fieldGroups property.'
-    )
-  }
+  const json: unknown = await resp.json()
+  const response = parseApiResponse(
+    hubspotFormResponseSchema,
+    json,
+    'HubSpot forms API'
+  )
 
   return apiParser(id, response)
 }
 
 function apiParser(id: string, data: HubspotFormResponse) {
-  const typeSetter = (type: string) => {
-    switch (type) {
-      case 'phone':
-        return 'single_line_text'
-      case 'email':
-        return 'single_line_text'
-      default:
-        return type
-    }
-  }
-
-  // Fix: Use proper type assertion and optional chaining
-  const legalConsentOptions =
-    (data?.legalConsentOptions as HubSpotLegalConsentOptions)
-      ?.communicationsCheckboxes || null
+  const communicationsCheckboxes =
+    data.legalConsentOptions?.communicationsCheckboxes ?? null
+  const firstCheckbox = communicationsCheckboxes?.[0] ?? null
 
   return {
     portalId: process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID,
     id: id,
     inputs: data.fieldGroups
-      .filter((item) => item.fields[0] != null)
-      .map((item) => {
-        const flatData = item.fields[0] as HubSpotFormField
+      .flatMap((item) => (item.fields[0] != null ? [item.fields[0]] : []))
+      .map((flatData) => {
         return {
           name: flatData.name || '',
           label: flatData.label || '',
           placeholder: flatData.placeholder || '',
           required: flatData.required,
-          hubspotType: typeSetter(flatData.fieldType),
           type: flatData.fieldType || '',
           hidden: flatData.hidden,
           helpText: flatData.helpText || '',
@@ -143,20 +144,14 @@ function apiParser(id: string, data: HubspotFormResponse) {
     submitButton: {
       text: data.displayOptions.submitButtonText || 'Submit',
     },
-    legalConsent: legalConsentOptions?.[0]
+    legalConsent: firstCheckbox
       ? {
           required: true,
-          subscriptionTypeId: legalConsentOptions[0].subscriptionTypeId,
-          label: stripHtmlTags(legalConsentOptions[0].label),
+          subscriptionTypeId: firstCheckbox.subscriptionTypeId,
+          label: stripHtmlTags(firstCheckbox.label),
           disclaimer: [
-            stripHtmlTags(
-              (data.legalConsentOptions as HubSpotLegalConsentOptions)
-                .privacyText || ''
-            ),
-            stripHtmlTags(
-              (data.legalConsentOptions as HubSpotLegalConsentOptions)
-                .consentToProcessText || ''
-            ),
+            stripHtmlTags(data.legalConsentOptions?.privacyText || ''),
+            stripHtmlTags(data.legalConsentOptions?.consentToProcessText || ''),
           ],
         }
       : { required: false },
@@ -174,6 +169,14 @@ type GetFormResult = GetFormSuccess | GetFormError
 export async function getForm(
   formId: string | null | undefined = null
 ): Promise<GetFormResult> {
+  // Null-guard in the public wrapper; internal hubspotFormApi only accepts string
+  if (!formId) {
+    return {
+      error:
+        'HubSpot form ID is not configured. Set NEXT_HUBSPOT_FORM_ID in your environment variables.',
+    }
+  }
+
   try {
     const result: GetFormSuccess = {
       form: await hubspotFormApi(formId),

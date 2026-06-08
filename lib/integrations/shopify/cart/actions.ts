@@ -26,11 +26,13 @@ const addItemSchema = z.object({
 const updateQuantitySchema = z.object({
   merchandiseId: z.string().min(1, { error: 'Merchandise ID is required' }),
   quantity: z.number().int().min(0).max(99),
+  lineId: z.string().optional(),
 })
 
 export async function removeItem(
   _prevState: unknown,
-  merchandiseId: string
+  merchandiseId: string,
+  lineId?: string
 ): Promise<string | undefined> {
   const _cookies = await cookies()
   const cartId = _cookies.get('cartId')?.value
@@ -51,6 +53,14 @@ export async function removeItem(
   }
 
   try {
+    // Fast path: caller supplies lineId directly — skip the extra getCart round-trip.
+    if (lineId) {
+      await removeFromCart(cartId, [lineId])
+      revalidateTag(TAGS.cart, {})
+      return undefined
+    }
+
+    // Fallback: resolve lineId from a fresh cart fetch (e.g. callers without lineId).
     const cart = await getCart(cartId)
 
     if (!cart) {
@@ -98,7 +108,7 @@ export async function addItem(
   // and useFormState executes the addItem action in the server
   if (!cartId) {
     const cart = await createCart()
-    cartId = (cart as { id: string }).id
+    cartId = cart.id
     _cookies.set('cartId', cartId, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -122,7 +132,11 @@ export async function addItem(
 
 export async function updateItemQuantity(
   _prevState: unknown,
-  payload: { merchandiseId: string; quantity: number } = {
+  payload: {
+    merchandiseId: string
+    quantity: number
+    lineId?: string | undefined
+  } = {
     merchandiseId: '',
     quantity: 0,
   }
@@ -146,14 +160,22 @@ export async function updateItemQuantity(
     return parsed.error.issues[0]?.message ?? 'Invalid input'
   }
 
+  const { merchandiseId, quantity, lineId } = parsed.data
+
   try {
+    // Fast path: caller supplies lineId directly — skip the extra getCart round-trip.
+    if (lineId) {
+      await updateCart(cartId, [{ id: lineId, merchandiseId, quantity }])
+      revalidateTag(TAGS.cart, {})
+      return undefined
+    }
+
+    // Fallback: resolve lineId from a fresh cart fetch (e.g. callers without lineId).
     const cart = await getCart(cartId)
 
     if (!cart) {
       return 'Error fetching cart'
     }
-
-    const { merchandiseId, quantity } = parsed.data
 
     const lineItem = cart.lines.find(
       (line) => line.merchandise.id === merchandiseId

@@ -45,6 +45,7 @@ export function cartReconciler(
 
 function createEmptyCart(): Cart {
   return {
+    id: '',
     checkoutUrl: '',
     totalQuantity: 0,
     lines: [],

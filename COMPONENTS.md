@@ -80,16 +80,6 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | ease | `(progress: number, easeName: EasingName) => number` |
 | fromTo | `(entries: | number | (number | HTMLElement | null | Element | undefined)[] | HTMLElement | Element | null | undefined, from: FromToValue = 0, to: FromToValue = 1, progress = 0, options: FromToOptions = {}) => void` |
 | spring | `(current: number, target: number, velocity: number, stiffness = 200, damping = 20, deltaTime = 1 / 60) => { value: number; velocity: number }` |
-| EasingName | `keyof typeof easings` |
-| easings | `{ readonly linear: (x: number) => number; readonly easeInQuad: (x: number) =>...` |
-| clamp | `(min: number, input: number, max: number) => number` |
-| lerp | `(start: number, end: number, amount: number) => number` |
-| mapRange | `(inMin: number, inMax: number, input: number, outMin: number, outMax: number, shouldClamp = false) => number` |
-| modulo | `(n: number, d: number) => number` |
-| truncate | `(value: number, decimals: number) => number` |
-| batch | `(reads: { [K in keyof T]: () => T[K] }, write: (results: T) => void) => Promise<void>` |
-| measure | `(fn: () => T) => Promise<T>` |
-| mutate | `(fn: () => T) => Promise<T>` |
 | FromToOptions |  |
 | FromToValue | `| number | Record<string, number | ((index: number) => number)>` |
 
@@ -177,6 +167,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 |--------|-----------|
 | parseFormData | `(schema: z.ZodType<T>, formData: FormData) => FormState<T> | { success: true; data: T }` |
 | zodToValidator | `(schema: z.ZodType) => (value: string) => boolean` |
+| parseApiResponse | `(schema: z.ZodType<T>, data: unknown, context?: string) => T` |
 | emailSchema | `ZodEmail` |
 | phoneSchema | `ZodString` |
 | sanityEnvSchema | `ZodObject<{ NEXT_PUBLIC_SANITY_PROJECT_ID: ZodString; NEXT_PUBLIC_SANITY_DATA...` |

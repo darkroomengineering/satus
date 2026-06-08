@@ -56,30 +56,30 @@ export interface ShopifyCartLineItem {
   }
 }
 
+// After reshaping data — the full post-reshape line-item shape
+export interface CartLineItem {
+  id?: string
+  quantity: number
+  cost: {
+    totalAmount: Money
+  }
+  merchandise: {
+    id: string
+    title: string
+    selectedOptions: Array<{ name: string; value: string }>
+    product: {
+      id: string
+      handle: string
+      title: string
+      featuredImage: Image | null
+    }
+  }
+}
+
 // After reshaping data
 export interface Cart extends DefaultCart {
-  id?: string
-  lines: Array<{
-    id?: string
-    quantity: number
-    cost: {
-      totalAmount: {
-        amount: string
-        currencyCode: string
-      }
-    }
-    merchandise: {
-      id: string
-      title: string
-      selectedOptions: Array<{ name: string; value: string }>
-      product: {
-        id: string
-        handle: string
-        title: string
-        featuredImage: Image | null
-      }
-    }
-  }>
+  id: string
+  lines: CartLineItem[]
   cost: {
     subtotalAmount: Money
     totalAmount: Money
@@ -87,12 +87,8 @@ export interface Cart extends DefaultCart {
   }
 }
 
-export interface CartLine {
-  id?: string
-  merchandise: {
-    id: string
-  }
-}
+// Minimal shape used for cart-mutation payloads (derived from CartLineItem)
+export type CartLine = Pick<CartLineItem, 'id' | 'merchandise'>
 
 export interface CartLineInput {
   merchandiseId: string
@@ -108,6 +104,7 @@ export interface AddItemPayload {
 export interface UpdateItemQuantityPayload {
   merchandiseId: string
   quantity: number
+  lineId?: string | undefined
 }
 
 /* Collection types */

@@ -11,7 +11,6 @@ import {
   type CartState,
 } from './cart-store-context'
 import { CartModal } from './modal'
-import type { CartAction } from './optimistic-utils'
 import { cartReconciler } from './optimistic-utils'
 
 export { useCartContext } from './cart-store-context'
@@ -44,10 +43,12 @@ export function CartProvider({ children, cart }: CartProviderProps) {
     product: Product,
     quantity = 1
   ) {
+    if (!variant) return
+
     updateOptimisticCart({
       type: 'ADD_ITEM',
       payload: { variant, product, quantity },
-    } as CartAction)
+    })
   }
 
   function totalQuantity() {

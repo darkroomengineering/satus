@@ -8,7 +8,31 @@ import {
 } from './mutations/cart'
 import { getCartQuery } from './queries/cart'
 import { removeEdgesAndNodes } from './reshape'
-import type { Cart, CartLineInput, ShopifyCart } from './types'
+import type {
+  Cart,
+  CartLineInput,
+  CartLineItem,
+  ShopifyCart,
+  ShopifyCartLineItem,
+} from './types'
+
+const reshapeCartLineItem = (item: ShopifyCartLineItem): CartLineItem => ({
+  id: item.id,
+  quantity: item.quantity,
+  cost: item.cost,
+  merchandise: {
+    ...item.merchandise,
+    product: {
+      ...item.merchandise.product,
+      featuredImage: item.merchandise.product.featuredImage
+        ? {
+            ...item.merchandise.product.featuredImage,
+            altText: item.merchandise.product.featuredImage.altText ?? '',
+          }
+        : null,
+    },
+  },
+})
 
 const reshapeCart = (cart: ShopifyCart): Cart => {
   const totalTaxAmount = cart.cost?.totalTaxAmount ?? {
@@ -16,13 +40,17 @@ const reshapeCart = (cart: ShopifyCart): Cart => {
     currencyCode: 'USD',
   }
 
+  const lines: CartLineItem[] = removeEdgesAndNodes(cart.lines).map(
+    reshapeCartLineItem
+  )
+
   return {
     ...cart,
     cost: {
       ...cart.cost,
       totalTaxAmount,
     },
-    lines: removeEdgesAndNodes(cart.lines) as Cart['lines'],
+    lines,
   }
 }
 

@@ -3,7 +3,6 @@ import type {
   EdgeNode,
   Image,
   Product,
-  ProductVariant,
   ShopifyImage,
   ShopifyProduct,
 } from './types'
@@ -51,7 +50,7 @@ export const reshapeProduct = (
   return {
     ...rest,
     images: reshapeImages(images, product.title),
-    variants: removeEdgesAndNodes(variants) as ProductVariant[],
+    variants: removeEdgesAndNodes(variants),
   }
 }
 

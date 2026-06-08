@@ -6,8 +6,7 @@ import {
   type AnchorHTMLAttributes,
   type ComponentProps,
   type MouseEvent,
-  useEffect,
-  useState,
+  useSyncExternalStore,
 } from 'react'
 
 type CustomLinkProps = Omit<
@@ -24,6 +23,34 @@ function isExternalHref(href: string) {
   return href.startsWith('http://') || href.startsWith('https://')
 }
 
+// Browser Network Information API (not in the DOM lib types). Present on Chromium.
+function getConnection():
+  | (EventTarget & { effectiveType: string; saveData: boolean })
+  | undefined {
+  return (
+    navigator as Navigator & {
+      connection?: EventTarget & { effectiveType: string; saveData: boolean }
+    }
+  ).connection
+}
+
+// Prefetch on fast, non-data-saving connections. Exposed via useSyncExternalStore
+// so the value is SSR-safe (server snapshot below) without a mount effect, and
+// re-reads if the connection quality changes.
+function subscribeConnection(onChange: () => void) {
+  const connection = getConnection()
+  connection?.addEventListener('change', onChange)
+  return () => connection?.removeEventListener('change', onChange)
+}
+function getShouldPrefetch() {
+  const connection = getConnection()
+  if (!connection) return true
+  return connection.effectiveType === '4g' && !connection.saveData
+}
+function getServerShouldPrefetch() {
+  return false
+}
+
 export function Link({
   href,
   children,
@@ -34,34 +61,19 @@ export function Link({
   const pathname = usePathname()
   const isActive = Boolean(href && pathname === href)
 
-  // Seed external from the SSR-safe URL pattern so hydration starts in agreement; refine on mount if same-host URL targets a different origin.
-  const [isExternal, setIsExternal] = useState(() =>
-    href ? isExternalHref(href) : false
+  // Derived during render straight from `href`. The string check is
+  // deterministic on both server and client, so the SSR markup and the first
+  // client render always agree — no mirror state + effect needed.
+  const isExternal = href ? isExternalHref(href) : false
+
+  // Prefetch hint from the browser Network Information API. Read via
+  // useSyncExternalStore so it's SSR-safe (server snapshot = false) with no
+  // mount effect, and re-reads if the connection quality changes.
+  const shouldPrefetch = useSyncExternalStore(
+    subscribeConnection,
+    getShouldPrefetch,
+    getServerShouldPrefetch
   )
-  const [shouldPrefetch, setShouldPrefetch] = useState(false)
-
-  useEffect(() => {
-    if (!href) return
-
-    try {
-      const url = new URL(href, window.location.href)
-      setIsExternal(url.host !== window.location.host)
-    } catch {
-      setIsExternal(false)
-    }
-
-    const connection = (
-      navigator as Navigator & {
-        connection?: { effectiveType: string; saveData: boolean }
-      }
-    ).connection
-    if (connection) {
-      const { effectiveType, saveData } = connection
-      setShouldPrefetch(effectiveType === '4g' && !saveData)
-    } else {
-      setShouldPrefetch(true)
-    }
-  }, [href])
 
   // No href + onClick → button
   if (!href && onClick) {

@@ -1,16 +1,17 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import _Stats from 'stats-gl'
 import { useTempus } from 'tempus/react'
 import s from './stats.module.css'
 
 export function Stats() {
-  const statsRef = useRef<_Stats | null>(null)
-  if (!statsRef.current) {
-    statsRef.current = new _Stats({
-      minimal: false,
-    } as ConstructorParameters<typeof _Stats>[0])
-  }
-  const stats = statsRef.current
+  // Instantiate once via a lazy state initializer. The instance is stable for
+  // the component's lifetime and — unlike a ref — is safe to read during render.
+  const [stats] = useState(
+    () =>
+      new _Stats({
+        minimal: false,
+      } as ConstructorParameters<typeof _Stats>[0])
+  )
 
   useEffect(() => {
     const domElement = (stats as unknown as { dom: HTMLElement }).dom

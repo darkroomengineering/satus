@@ -26,11 +26,6 @@
 import { type EasingName, easings } from './easings'
 import { clamp, mapRange } from './math'
 
-// Re-export for convenience
-export { type EasingName, easings } from './easings'
-export { clamp, lerp, mapRange, modulo, truncate } from './math'
-export { batch, measure, mutate } from './raf'
-
 /**
  * Calculates staggered progress for an element in a sequence.
  *

@@ -58,7 +58,10 @@ export function Lenis({
         autoToggle: true,
         prevent: (node: Element | null) =>
           node?.nodeName === 'VERCEL-LIVE-FEEDBACK' ||
-          node?.id === 'theatrejs-studio-root',
+          node?.id === 'theatrejs-studio-root' ||
+          // react-scan renders its panel into a shadow root on this host;
+          // composedPath() pierces the shadow boundary so the id is matchable.
+          node?.id === 'react-scan-root',
       }}
     >
       {syncScrollTrigger && root && <LenisScrollTriggerSync />}

@@ -56,6 +56,10 @@ Root Layout → GlobalCanvas (mounts on first webgl page visit)
 | `DOMTunnel` | Portal HTML overlays |
 | `GlobalCanvas` | Persistent canvas (in layout) |
 
+The flowmap and fluid-simulation passes are **opt-in** — they no longer boot on
+every WebGL page. Opt in per page via the flowmap provider/hook (`useFlowmap`
+throws if used outside its provider), so pages that don't use them pay no cost.
+
 ## Hooks
 
 ```tsx

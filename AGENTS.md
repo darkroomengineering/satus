@@ -250,6 +250,12 @@ Available checks: `isConfigured('sanity' | 'shopify' | 'hubspot' | 'mailchimp' |
 
 Adding a new integration: add its Zod schema to `@/utils/validation`, add one entry to `lib/integrations/registry.ts`. The `doctor.ts` and listing helpers derive automatically. See `lib/integrations/README.md`.
 
+Validate external API *responses* at the boundary, not just env config. Pass
+untrusted upstream JSON (GraphQL envelopes, REST payloads) through
+`parseApiResponse(schema, data, context)` (`@/utils/validation`) so a malformed
+response fails clearly at the edge with context instead of crashing downstream.
+The Shopify, HubSpot, and Mailchimp clients all do this.
+
 ### 6. WebGL Element Lifecycle
 
 DOM-synced WebGL via tunnel system. `GlobalCanvas` persists across routes.
@@ -362,11 +368,17 @@ Cache Components are enabled globally (`cacheComponents: true` in `next.config.t
 
 | Data type | Cache strategy |
 |-----------|---------------|
-| Public content | ISR with `revalidate` |
+| Public content | ISR with `revalidate`, inside a `'use cache'` function |
 | User-specific (carts, accounts) | `cache: 'no-store'` - never cache |
 | Real-time (live feeds, prices) | `cache: 'no-store'` |
 
 Critical rules:
+- Any fetch that calls `cacheTag()` (e.g. `sanityFetch`) MUST run inside a
+  `'use cache'` function. Calling it in a bare Server Component throws
+  `cacheTag() can only be called inside a "use cache" function`. Wrap the fetch
+  in a small helper — `async function load() { 'use cache'; return sanityFetch(...) }` —
+  and reuse it across the page body and `generateMetadata` (this also dedupes the
+  request). See `lib/integrations/sanity/README.md`.
 - Wrap cached components in `<Suspense>` boundaries with loading fallbacks
 - Use `revalidateTag()` / `revalidatePath()` in webhook handlers
 - Test with hard refresh (bypasses router cache) AND normal navigation

@@ -9,7 +9,7 @@ import s from './header.module.css'
 // Navigation links - customize for your project
 const LINKS = [
   { href: '/', label: 'home' },
-  { href: '/#features', label: 'features' },
+  { href: 'http://localhost:6006', label: 'storybook', external: true },
   {
     href: 'https://github.com/darkroomengineering/satus',
     label: 'github',

@@ -91,9 +91,9 @@ export function getConfiguredIds(): IntegrationId[] {
 }
 
 /**
- * Get all configured integration names (display names).
- * @deprecated Prefer `getConfiguredIds()` for programmatic use — display names
- * require a fragile lowercase bridge when matched against bundle keys.
+ * Get all configured integration display names, for human-facing output
+ * (handoff summaries, logs). For programmatic matching against bundle keys,
+ * use `getConfiguredIds()`.
  */
 export function getConfigured(): string[] {
   return Object.values(integrations).flatMap((entry) =>

@@ -163,8 +163,6 @@ export interface IntegrationBundle {
   folders: string[]
   /** Individual files to remove */
   files: string[]
-  /** Patterns to check in next.config.ts (for manual cleanup hints) */
-  configPatterns: string[]
   /** Environment variables this integration uses */
   envVars: string[]
   /** Barrel exports to update when this integration is removed */
@@ -189,7 +187,6 @@ export const INTEGRATION_BUNDLES: Partial<
     devDependencies: ['@sanity/vision', 'sanity'],
     folders: ['lib/integrations/sanity', 'components/ui/sanity-image'],
     files: [],
-    configPatterns: ['cdn.sanity.io', '@sanity'],
     envVars: [
       'NEXT_PUBLIC_SANITY_PROJECT_ID',
       'NEXT_PUBLIC_SANITY_DATASET',
@@ -251,7 +248,6 @@ export const INTEGRATION_BUNDLES: Partial<
     devDependencies: [],
     folders: ['lib/integrations/shopify'],
     files: [],
-    configPatterns: ['cdn.shopify.com'],
     envVars: [
       'SHOPIFY_STORE_DOMAIN',
       'SHOPIFY_STOREFRONT_ACCESS_TOKEN',
@@ -282,7 +278,6 @@ export const INTEGRATION_BUNDLES: Partial<
     devDependencies: [],
     folders: ['lib/integrations/hubspot'],
     files: [],
-    configPatterns: [],
     envVars: ['HUBSPOT_ACCESS_TOKEN', 'NEXT_PUBLIC_HUBSPOT_PORTAL_ID'],
     barrelExports: [],
     codeTransforms: [],
@@ -295,7 +290,6 @@ export const INTEGRATION_BUNDLES: Partial<
     devDependencies: [],
     folders: ['lib/integrations/mailchimp'],
     files: [],
-    configPatterns: [],
     envVars: [
       'MAILCHIMP_API_KEY',
       'MAILCHIMP_SERVER_PREFIX',
@@ -312,7 +306,6 @@ export const INTEGRATION_BUNDLES: Partial<
     devDependencies: ['@types/three'],
     folders: ['lib/webgl', 'components/effects/animated-gradient'],
     files: [],
-    configPatterns: ['@react-three', 'three'],
     envVars: [],
     barrelExports: [
       { file: 'components/effects/index.ts', pattern: 'animated-gradient' },
@@ -445,7 +438,6 @@ export const INTEGRATION_BUNDLES: Partial<
     devDependencies: ['@theatre/studio'],
     folders: ['lib/dev/theatre', 'public/config'],
     files: [],
-    configPatterns: [],
     envVars: [],
     barrelExports: [],
     codeTransforms: [

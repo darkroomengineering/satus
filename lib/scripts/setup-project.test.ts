@@ -55,7 +55,6 @@ describe('Integration Bundle Configuration', () => {
       expect(Array.isArray(bundle.devDependencies)).toBe(true)
       expect(Array.isArray(bundle.folders)).toBe(true)
       expect(Array.isArray(bundle.files)).toBe(true)
-      expect(Array.isArray(bundle.configPatterns)).toBe(true)
       expect(Array.isArray(bundle.envVars)).toBe(true)
       expect(Array.isArray(bundle.barrelExports)).toBe(true)
       expect(Array.isArray(bundle.codeTransforms)).toBe(true)

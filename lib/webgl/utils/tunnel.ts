@@ -1,12 +1,11 @@
 /**
- * Local tunnel utility — replaces the abandoned `tunnel-rat` package.
+ * Local tunnel utility.
  *
  * Creates a portal pair (`In` / `Out`) that lets React children be
  * rendered at a different point in the tree, bridging renderer
  * boundaries (e.g. DOM → R3F canvas).
  *
- * API is intentionally minimal: only the `In`/`Out` pair that the
- * repo actually uses (matching tunnel-rat's public interface).
+ * API is intentionally minimal: only the `In`/`Out` pair the repo uses.
  *
  * Implementation notes:
  * - `Out` returns a plain React fragment so it works in both DOM and

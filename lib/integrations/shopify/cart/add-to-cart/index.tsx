@@ -2,6 +2,7 @@
 
 import cn from 'clsx'
 import { useRouter } from 'next/navigation'
+import { startTransition } from 'react'
 import type { Product, ProductVariant } from '@/integrations/shopify/types'
 import { addItem } from '../actions'
 import { useCartContext } from '../cart-context'
@@ -35,11 +36,10 @@ export function AddToCart({
   }
 
   async function formAction() {
-    // Need to force priority
-    setTimeout(() => {
+    startTransition(() => {
       addCartItem(variant, product, quantity)
       openCart()
-    }, 0)
+    })
 
     await addItem(null, {
       variantId: variant?.id || '',

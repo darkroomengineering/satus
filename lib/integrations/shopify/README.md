@@ -53,9 +53,9 @@ const product = await getProduct('product-handle')
 ### Validation
 
 All Shopify server actions validate input with Zod schemas:
-- **Cart actions** (`addItem`, `updateItemQuantity`, `removeItem`): validate variant IDs, quantity bounds (1-99), rate limiting. `updateItemQuantity` and `removeItem` take the client-held `lineId` (the cart line's id) to patch that line directly.
-- **Customer actions** (`LoginCustomerAction`, `CreateCustomerAction`): validate email format, password length, rate limiting
-- **Error handling**: Actions return plain error strings or `FormState` objects on failure; there is no `Error` instance wrapping
+- **Cart actions** (`addItem`, `updateItemQuantity`, `removeItem`): validate variant IDs, quantity bounds (1-99), rate limiting. `updateItemQuantity` and `removeItem` take the client-held `lineId` (the cart line's id) to patch that line directly. All three return `CartActionResult` — `{ ok: true }` on success, `{ ok: false; error: string }` on failure.
+- **Customer actions** (`LoginCustomerAction`, `CreateCustomerAction`): validate email format, password length, rate limiting via `runFormAction`. `LoginCustomerAction` additionally pre-checks a strict rate limit (5 req/min) before the form-action helper runs.
+- **Error handling**: Cart actions use `CartActionResult`; customer actions return `FormState` objects; there is no `Error` instance wrapping
 
 Env vars are validated via `shopifyEnvSchema` in the integration registry.
 Storefront GraphQL responses are validated at the boundary with `parseApiResponse` (`@/utils/validation`) — a malformed envelope throws with context instead of leaking `undefined` downstream.

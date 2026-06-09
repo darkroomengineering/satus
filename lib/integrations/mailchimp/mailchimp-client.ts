@@ -37,13 +37,13 @@ const mailchimpMemberResponseSchema = z.object({
   id: z.string(),
 })
 
-// Mailchimp API error response type
-interface MailchimpErrorResponse {
-  type: string
-  title: string
-  detail: string
-  instance?: string
-}
+// Zod schema for Mailchimp API error responses (only fields we consume)
+const mailchimpErrorResponseSchema = z.object({
+  type: z.string().optional(),
+  title: z.string().optional(),
+  detail: z.string().optional(),
+  instance: z.string().optional(),
+})
 
 // Get Mailchimp configuration from environment variables
 function getMailchimpConfig(): MailchimpConfig {
@@ -153,7 +153,8 @@ async function upsertMember(
     return { ok: true, memberId: member.id }
   }
 
-  const errorData = (await response.json()) as MailchimpErrorResponse
+  const errorJson: unknown = await response.json().catch(() => ({}))
+  const errorData = mailchimpErrorResponseSchema.safeParse(errorJson).data ?? {}
   const detail = errorData.detail || 'Failed to add/update member'
 
   // Classify the error so callers can branch by code, not string-sniff

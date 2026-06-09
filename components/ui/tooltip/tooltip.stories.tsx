@@ -39,3 +39,50 @@ export const RichContent: Story = {
     children: <button type="button">Focus or hover</button>,
   },
 }
+
+export const FourSides: Story = {
+  name: 'Four sides',
+  args: {
+    content: 'Tooltip',
+    children: <button type="button">Hover</button>,
+  },
+  parameters: {
+    layout: 'centered',
+  },
+  render: () => (
+    <div style={{ display: 'flex', gap: '16px', padding: '64px' }}>
+      <Tooltip content="This appears on top" side="top">
+        <button
+          type="button"
+          style={{ padding: '8px 16px', cursor: 'pointer' }}
+        >
+          Top
+        </button>
+      </Tooltip>
+      <Tooltip content="This appears on the right" side="right">
+        <button
+          type="button"
+          style={{ padding: '8px 16px', cursor: 'pointer' }}
+        >
+          Right
+        </button>
+      </Tooltip>
+      <Tooltip content="This appears on the bottom" side="bottom">
+        <button
+          type="button"
+          style={{ padding: '8px 16px', cursor: 'pointer' }}
+        >
+          Bottom
+        </button>
+      </Tooltip>
+      <Tooltip content="This appears on the left" side="left">
+        <button
+          type="button"
+          style={{ padding: '8px 16px', cursor: 'pointer' }}
+        >
+          Left
+        </button>
+      </Tooltip>
+    </div>
+  ),
+}

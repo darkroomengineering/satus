@@ -270,7 +270,9 @@ export async function createPage(
   const nextSteps = [`1. Customize ${pageDir}/page.tsx`]
 
   if (options.sanity) {
-    nextSteps.push(`2. Create a "${pageName}" page in Sanity Studio at /studio`)
+    nextSteps.push(
+      `2. Create a "${pageName}" page in your Sanity Studio (if enabled) or at sanity.io/manage`
+    )
   }
 
   nextSteps.push(`${nextSteps.length + 1}. Add components to ${componentsDir}/`)

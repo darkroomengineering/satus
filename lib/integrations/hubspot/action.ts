@@ -1,3 +1,28 @@
+// USAGE — HubSpot Forms
+// 1. Set env vars: HUBSPOT_ACCESS_TOKEN, NEXT_PUBLIC_HUBSPOT_PORTAL_ID, NEXT_HUBSPOT_FORM_ID
+//
+// 2. Fetch the form definition and render it in a Server Component page:
+//
+//   import { Form } from '@/components/ui/form'
+//   import { HubspotNewsletterAction } from '@/integrations/hubspot/action'
+//   import { getForm } from '@/integrations/hubspot/fetch-form'
+//
+//   export default async function NewsletterPage() {
+//     const result = await getForm(process.env.NEXT_HUBSPOT_FORM_ID)
+//     if ('error' in result) return <p>Form not configured.</p>
+//     return (
+//       <Form action={HubspotNewsletterAction} formId={result.form.id}>
+//         <input type="email" name="email" placeholder="Your email" required />
+//         <button type="submit">Subscribe</button>
+//       </Form>
+//     )
+//   }
+//
+// 3. The server action validates with Zod and posts to the HubSpot Forms v3 API.
+//    Rate limiting is applied automatically via runFormAction.
+//
+// Full walkthrough: see the manual (app/page.tsx) step 5 "Add a plugin".
+
 'use server'
 
 import { z } from 'zod'

@@ -1,28 +1,22 @@
-import localFont from 'next/font/local'
+import { Oswald, Spline_Sans_Mono } from 'next/font/google'
 
-const mono = localFont({
-  src: [
-    {
-      path: '../../public/fonts/ServerMono/ServerMono-Regular.woff2',
-      weight: '400',
-      style: 'normal',
-    },
-  ],
+const display = Oswald({
+  weight: ['400', '700'],
+  subsets: ['latin'],
   display: 'swap',
-  variable: '--next-font-mono',
-  preload: true,
-  adjustFontFallback: 'Arial',
-  fallback: [
-    'ui-monospace',
-    'SFMono-Regular',
-    'Consolas',
-    'Liberation Mono',
-    'Menlo',
-    'monospace',
-  ],
+  variable: '--next-font-display',
+  fallback: ['Arial Narrow', 'Arial', 'sans-serif'],
 })
 
-const fonts = [mono]
+const mono = Spline_Sans_Mono({
+  weight: ['400', '500'],
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--next-font-mono',
+  fallback: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+})
+
+const fonts = [display, mono]
 const fontsVariable = fonts.map((font) => font.variable).join(' ')
 
 export { fontsVariable }

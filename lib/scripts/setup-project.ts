@@ -82,7 +82,7 @@ type PresetKey = keyof typeof PROJECT_PRESETS
 interface SetupOptions {
   dryRun: boolean
   keepIntegrations: string[]
-  /** Replace the demo marketing homepage with a blank starter page. */
+  /** Replace the manual landing page with a blank starter homepage. */
   cleanMarketing: boolean
 }
 
@@ -102,17 +102,18 @@ export default function Home() {
 `
 
 /**
- * Replace the showcase homepage with a blank page and remove the demo sections.
- * This is the "fresh start" path documented in `app/page.tsx`: rewrite
- * `app/page.tsx`, then delete `app/(marketing)` (which only holds `_sections`).
+ * Replace the manual landing page with a blank starter homepage.
+ * Rewrites `app/page.tsx` to the minimal blank starter and removes the
+ * co-located CSS module so no orphan file remains.
  */
-const removeMarketingHomepage = async (dryRun: boolean): Promise<void> => {
+const replaceManualLandingPage = async (dryRun: boolean): Promise<void> => {
   if (dryRun) {
-    p.log.message('  Would replace app/page.tsx with a blank homepage')
+    p.log.message('  Would replace app/page.tsx with a blank starter homepage')
+    p.log.message('  Would delete app/page.module.css (if present)')
   } else {
     await Bun.write(resolvePath('app/page.tsx'), BLANK_HOMEPAGE)
+    await removeFile('app/page.module.css', dryRun)
   }
-  await removeDir('app/(marketing)', dryRun)
 }
 
 /**
@@ -284,12 +285,12 @@ const setup = async (options: SetupOptions): Promise<void> => {
   const { dryRun, keepIntegrations, cleanMarketing } = options
   const integrationNames = getIntegrationNames()
 
-  // Replace the demo homepage first (independent of integration removal).
+  // Replace the manual landing page first (independent of integration removal).
   if (cleanMarketing) {
     const ms = p.spinner()
-    ms.start('Replacing demo marketing homepage...')
-    await removeMarketingHomepage(dryRun)
-    ms.stop('Replaced demo homepage with a blank starter page')
+    ms.start('Replacing manual landing page...')
+    await replaceManualLandingPage(dryRun)
+    ms.stop('Replaced manual landing page with a blank starter homepage')
   }
 
   // Determine what to remove
@@ -501,9 +502,9 @@ const main = async (): Promise<void> => {
     )
   }
 
-  // Offer to drop the demo marketing homepage for a clean slate.
+  // Offer to drop the manual landing page for a clean slate.
   const cleanMarketing = await p.confirm({
-    message: 'Replace the demo marketing homepage with a blank starter page?',
+    message: 'Replace the manual landing page with a blank starter homepage?',
     initialValue: false,
   })
 
@@ -538,7 +539,9 @@ const main = async (): Promise<void> => {
   }
 
   if (cleanMarketing) {
-    p.log.message('  Homepage: replace demo with a blank starter page')
+    p.log.message(
+      '  Homepage: replace manual landing page with a blank starter'
+    )
   }
 
   // Confirm

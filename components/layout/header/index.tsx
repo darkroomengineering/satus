@@ -6,33 +6,36 @@ import { useState } from 'react'
 import { Link } from '@/components/ui/link'
 import s from './header.module.css'
 
+type NavLink = { href: string; label: string; external?: boolean }
+
+// In local dev, link straight to the Storybook dev server. In deployed builds,
+// link to the /storybook proxy (see next.config.ts), shown only when
+// NEXT_PUBLIC_STORYBOOK_URL is configured — so a production build with no
+// Storybook host shows no link.
+const STORYBOOK_HREF =
+  process.env.NODE_ENV === 'development'
+    ? 'http://localhost:6006'
+    : '/storybook/'
+const STORYBOOK_ENABLED =
+  process.env.NODE_ENV === 'development' ||
+  Boolean(process.env.NEXT_PUBLIC_STORYBOOK_URL)
+
 // Navigation links - customize for your project
-const LINKS = [
+const LINKS: NavLink[] = [
   { href: '/', label: 'home' },
-  { href: '/#features', label: 'features' },
+  ...(STORYBOOK_ENABLED
+    ? [{ href: STORYBOOK_HREF, label: 'storybook', external: true }]
+    : []),
   {
     href: 'https://github.com/darkroomengineering/satus',
     label: 'github',
     external: true,
   },
-] as const
-
-// Example pages demonstrating integrations
-const EXAMPLES = [
-  { href: '/components', label: 'components' },
-  { href: '/r3f', label: 'r3f' },
-  { href: '/sanity', label: 'sanity' },
-  { href: '/shopify', label: 'shopify' },
-  { href: '/hubspot', label: 'hubspot' },
 ]
 
 export function Header() {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
-
-  const isExamplePage = EXAMPLES.some(
-    (ex) => pathname === ex.href || pathname.startsWith(`${ex.href}/`)
-  )
 
   return (
     <header className={s.header}>
@@ -82,47 +85,6 @@ export function Header() {
             </li>
           )
         })}
-
-        {/* Examples group with nested level 2 */}
-        <li className={s.examplesGroup}>
-          <div className={cn(s.navItem, s.examplesLabel)}>
-            <span className={cn(s.chevron, isExamplePage && s.chevronActive)}>
-              ›
-            </span>
-            <span
-              className={cn(
-                s.navLink,
-                isExamplePage ? s.navLinkActive : s.navLinkDim
-              )}
-            >
-              examples
-            </span>
-          </div>
-
-          {/* Level 2: Examples sub-navigation */}
-          <ul className={cn(s.nav, s.examplesList)}>
-            {EXAMPLES.map((link) => {
-              const isActive =
-                pathname === link.href || pathname.startsWith(`${link.href}/`)
-              return (
-                <li key={link.href} className={s.navItem}>
-                  <span className={cn(s.chevron, isActive && s.chevronActive)}>
-                    ›
-                  </span>
-                  <Link
-                    className={cn(
-                      s.navLink,
-                      isActive ? s.navLinkActive : s.navLinkDim
-                    )}
-                    href={link.href}
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
-        </li>
       </ul>
     </header>
   )

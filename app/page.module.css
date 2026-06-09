@@ -1,0 +1,198 @@
+.hero {
+  padding-top: calc(120 / 375 * 100vw);
+  padding-bottom: calc(48 / 375 * 100vw);
+  border-bottom: 1px solid var(--line);
+
+  @media (--desktop) {
+    padding-top: calc(160 / 1440 * 100vw);
+    padding-bottom: calc(64 / 1440 * 100vw);
+  }
+}
+
+.kicker {
+  font-family: var(--font-mono);
+  font-size: calc(11 / 375 * 100vw);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-contrast);
+  margin-bottom: calc(16 / 375 * 100vw);
+
+  @media (--desktop) {
+    font-size: calc(12 / 1440 * 100vw);
+    margin-bottom: calc(20 / 1440 * 100vw);
+  }
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: calc(48 / 375 * 100vw);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.04em;
+  line-height: 0.8;
+  color: var(--color-secondary);
+
+  @media (--desktop) {
+    font-size: calc(100 / 1440 * 100vw);
+  }
+}
+
+.lede {
+  font-family: var(--font-mono);
+  font-size: calc(13 / 375 * 100vw);
+  line-height: 1.6;
+  text-wrap: pretty;
+  opacity: 0.55;
+  margin-top: calc(20 / 375 * 100vw);
+  max-width: 60ch;
+
+  @media (--desktop) {
+    font-size: calc(15 / 1440 * 100vw);
+    margin-top: calc(28 / 1440 * 100vw);
+  }
+}
+
+/* Guide */
+.guide {
+  padding-top: calc(48 / 375 * 100vw);
+  padding-bottom: calc(100 / 375 * 100vw);
+
+  @media (--desktop) {
+    padding-top: calc(72 / 1440 * 100vw);
+    padding-bottom: calc(140 / 1440 * 100vw);
+  }
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: calc(16 / 375 * 100vw);
+  align-items: start;
+  padding: calc(28 / 375 * 100vw) 0;
+  border-bottom: 1px solid var(--line);
+
+  &:first-child {
+    padding-top: 0;
+  }
+
+  @media (--desktop) {
+    gap: calc(32 / 1440 * 100vw);
+    padding: calc(36 / 1440 * 100vw) 0;
+  }
+}
+
+.index {
+  font-family: var(--font-mono);
+  font-size: calc(20 / 375 * 100vw);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+  line-height: 1.1;
+  color: var(--color-contrast);
+  opacity: 0.5;
+
+  @media (--desktop) {
+    font-size: calc(28 / 1440 * 100vw);
+  }
+}
+
+.content {
+  min-width: 0;
+}
+
+.stepTitle {
+  font-family: var(--font-display);
+  font-size: calc(15 / 375 * 100vw);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  color: var(--color-secondary);
+  margin-bottom: calc(10 / 375 * 100vw);
+
+  @media (--desktop) {
+    font-size: calc(18 / 1440 * 100vw);
+    margin-bottom: calc(12 / 1440 * 100vw);
+  }
+}
+
+.text {
+  font-family: var(--font-mono);
+  font-size: calc(12 / 375 * 100vw);
+  line-height: 1.65;
+  text-wrap: pretty;
+  opacity: 0.55;
+
+  @media (--desktop) {
+    font-size: calc(13.5 / 1440 * 100vw);
+  }
+}
+
+.text + .text {
+  margin-top: calc(8 / 375 * 100vw);
+
+  @media (--desktop) {
+    margin-top: calc(10 / 1440 * 100vw);
+  }
+}
+
+.link {
+  color: var(--color-secondary);
+  opacity: 0.85;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.inline {
+  font-family: var(--font-mono);
+  color: var(--color-secondary);
+  opacity: 0.9;
+}
+
+.code {
+  margin-top: calc(14 / 375 * 100vw);
+  padding: calc(14 / 375 * 100vw) calc(16 / 375 * 100vw);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: calc(5 / 375 * 100vw);
+  overflow-x: auto;
+
+  @media (--desktop) {
+    margin-top: calc(16 / 1440 * 100vw);
+    padding: calc(16 / 1440 * 100vw) calc(20 / 1440 * 100vw);
+    border-radius: calc(6 / 1440 * 100vw);
+  }
+}
+
+.code code {
+  font-family: var(--font-mono);
+  font-size: calc(12 / 375 * 100vw);
+  line-height: 1.7;
+  white-space: pre;
+  color: var(--color-secondary);
+
+  @media (--desktop) {
+    font-size: calc(13 / 1440 * 100vw);
+  }
+}
+
+.outro {
+  font-family: var(--font-mono);
+  font-size: calc(11 / 375 * 100vw);
+  line-height: 1.6;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-contrast);
+  opacity: 0.6;
+  margin-top: calc(32 / 375 * 100vw);
+  text-align: center;
+
+  @media (--desktop) {
+    font-size: calc(12 / 1440 * 100vw);
+    margin-top: calc(48 / 1440 * 100vw);
+  }
+}

@@ -89,14 +89,14 @@ Run `bun run setup:project` for interactive removal, or manually:
 
 ```bash
 # Sanity (~150-200KB savings)
-rm -rf lib/integrations/sanity app/studio app/(examples)/sanity
+rm -rf lib/integrations/sanity
 bun remove @sanity/asset-utils @sanity/image-url next-sanity sanity
 
 # Shopify (~50-80KB)
-rm -rf lib/integrations/shopify app/(examples)/shopify
+rm -rf lib/integrations/shopify
 
 # HubSpot (~30-50KB)
-rm -rf lib/integrations/hubspot app/(examples)/hubspot
+rm -rf lib/integrations/hubspot
 bun remove @hubspot/api-client
 
 # Mailchimp (~20KB)

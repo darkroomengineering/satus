@@ -1,3 +1,33 @@
+// USAGE — WebGL / React Three Fiber (R3F)
+// 1. Add <GlobalCanvas /> (or <LazyGlobalCanvas />) once in app/layout.tsx:
+//
+//   import { LazyGlobalCanvas } from '@/lib/webgl/components/global-canvas'
+//   export default function Layout({ children }) {
+//     return <html><body>{children}<LazyGlobalCanvas /></body></html>
+//   }
+//
+// 2. On a page that needs 3D content, pass `webgl` to <Wrapper>:
+//
+//   import { Wrapper } from '@/components/layout/wrapper'
+//   import { WebGLTunnel } from '@/lib/webgl/components/tunnel'
+//
+//   export default function MyPage() {
+//     return (
+//       <Wrapper webgl>
+//         <WebGLTunnel>
+//           <My3DScene />   {/* runs inside the R3F Canvas */}
+//         </WebGLTunnel>
+//         <section>HTML content overlaying the 3D canvas</section>
+//       </Wrapper>
+//     )
+//   }
+//
+// 3. Inside the tunnel, use standard R3F hooks (useFrame, useThree, etc.)
+//    and Theatre.js for timeline animation (see lib/dev/theatre).
+//    useWebGLRect syncs a DOM element's bounding box to a mesh position.
+//
+// Full walkthrough: see the manual (app/page.tsx) step 5 "Add a plugin".
+
 'use client'
 
 import {

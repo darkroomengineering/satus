@@ -5,21 +5,16 @@ export function generateTailwind({
   breakpoints,
   colors,
   customSizes,
-  easings,
   fonts,
   themes,
   typography,
 }: Pick<
   Config,
-  | 'breakpoints'
-  | 'colors'
-  | 'customSizes'
-  | 'easings'
-  | 'fonts'
-  | 'themes'
-  | 'typography'
+  'breakpoints' | 'colors' | 'customSizes' | 'fonts' | 'themes' | 'typography'
 >) {
   // Theme
+  // NOTE: @theme is the single source of truth for the raw color palette.
+  // Easings are hand-authored in css/easings.css (static values, no generation needed).
   const themeEntries = Object.entries(themes)
   const firstTheme = themeEntries[0]?.[1] ?? {}
   const theme = `/** Custom theme **/
@@ -30,7 +25,7 @@ export function generateTailwind({
   --color-*: initial;
 	${formatObject(firstTheme, ([key, value]) => `--color-${key}: ${value};`)}
   ${formatObject(colors, ([key, value]) => `--color-${key}: ${value};`)}
-    
+
   --spacing-*: initial;
 	--spacing-0: 0;
 	--spacing-safe: var(--safe);
@@ -39,9 +34,6 @@ export function generateTailwind({
 
   --font-*: initial;
   ${formatObject(fonts, ([name, variableName]) => `--font-${name}: var(${variableName});`)}
-
-  --ease-*: initial;
-  ${formatObject(easings, ([name, value]) => `--ease-${name}: ${value};`)}
 }`
 
   // Theme overwrites

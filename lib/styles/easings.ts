@@ -1,3 +1,11 @@
+/**
+ * Easing values as a JS object — used by animation utilities in lib/utils/easings.ts
+ * and accessible via the @/styles barrel for JavaScript consumers.
+ *
+ * NOTE: The CSS authority for easing custom properties is css/easings.css.
+ * These values are no longer emitted by the generator; they are hand-authored
+ * there as a static @theme block to avoid duplicate declarations.
+ */
 export const easings = {
   'in-quad': 'cubic-bezier(0.55, 0.085, 0.68, 0.53)',
   'in-cubic': 'cubic-bezier(0.55, 0.055, 0.675, 0.19)',

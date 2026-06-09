@@ -170,15 +170,19 @@ const nextConfig: NextConfig = {
       ],
     },
   ],
+  // Storybook's static build uses relative asset paths, so the browser must
+  // sit at /storybook/ (trailing slash) for them to resolve. Skipping Next's
+  // automatic trailing-slash redirect (preview/dev only, gated below) stops
+  // /storybook/ from bouncing back to /storybook and looping with the redirect.
+  ...(STORYBOOK_PROXY_ENABLED ? { skipTrailingSlashRedirect: true } : {}),
   redirects: async () =>
     STORYBOOK_PROXY_ENABLED
       ? [{ source: '/storybook', destination: '/storybook/', permanent: false }]
       : [],
-  // Storybook's static build uses relative asset paths, so proxying the whole
-  // /storybook/* subtree to the standalone deployment works without a base path.
   rewrites: async () =>
     STORYBOOK_PROXY_ENABLED
       ? [
+          { source: '/storybook/', destination: `${STORYBOOK_URL}/` },
           {
             source: '/storybook/:path*',
             destination: `${STORYBOOK_URL}/:path*`,

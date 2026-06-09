@@ -37,9 +37,9 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Changed
 
-- Components are now catalogued in Storybook (`bun storybook`) instead of an in-app `/components` page; added stories for accordion, alert-dialog, checkbox, link, marquee, menu, switch, and tabs.
-- `app/page.tsx` is now a self-contained in-app manual (clone → ship); replace it with your homepage and delete `app/page.module.css` when you start a project.
-- Integrations reframed as opt-in plugins isolated under `lib/integrations` with `// USAGE` notes — precursor to the additive `satus add <plugin>` CLI (#185).
+- Components are now catalogued in Storybook (`bun storybook`) instead of an in-app `/components` page; added stories for accordion, alert-dialog, checkbox, link, marquee, menu, switch, and tabs. (#210)
+- `app/page.tsx` is now a self-contained in-app manual (clone → ship); replace it with your homepage and delete `app/page.module.css` when you start a project. (#210)
+- Integrations reframed as opt-in plugins isolated under `lib/integrations` with `// USAGE` notes — the precursor to the additive `satus add <plugin>` CLI proposed in #185. (#210)
 - Shopify cart types: named the post-reshape line item (`CartLineItem`), made `Cart.id` required, and removed 11 `as` casts; `removeItem`/`updateItemQuantity` now take the client-held `lineId`, dropping a `getCart` round-trip per mutation. (#198)
 - Mailchimp integration returns typed `MailchimpErrorCode` values instead of sniffing error strings; tag/note writes are best-effort. (#198)
 - WebGL: removed the unused `local` canvas mode and `canvas/webgl.tsx`, dropped vestigial `Scene` inheritance from `Program`, and made the flowmap/fluid sims opt-in instead of booting on every WebGL page. (#199, #206)
@@ -52,7 +52,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Removed
 
-- The in-app `/components` showcase, the `app/(examples)/` example routes (R3F, Sanity, Shopify, HubSpot), and the `app/studio/` route — component demos moved to Storybook and integration usage distilled into `// USAGE` comments in `lib/integrations/*`. Only the demo surface is gone; the reusable integration code stays.
+- The in-app `/components` showcase, the `app/(examples)/` example routes (R3F, Sanity, Shopify, HubSpot), and the `app/studio/` route — component demos moved to Storybook and integration usage distilled into `// USAGE` comments in `lib/integrations/*`. Only the demo surface is gone; the reusable integration code stays. (#210)
 
 ### Fixed
 

@@ -296,17 +296,11 @@ export const INTEGRATION_BUNDLES: Partial<
   webgl: {
     name: 'WebGL / 3D',
     description: 'Three.js and React Three Fiber for 3D graphics',
-    dependencies: [
-      '@react-three/drei',
-      '@react-three/fiber',
-      'postprocessing',
-      'three',
-      'tunnel-rat',
-    ],
+    dependencies: ['@react-three/drei', '@react-three/fiber', 'three'],
     devDependencies: ['@types/three'],
     folders: ['lib/webgl', 'components/effects/animated-gradient'],
     files: [],
-    configPatterns: ['@react-three', 'three', 'postprocessing'],
+    configPatterns: ['@react-three', 'three'],
     envVars: [],
     barrelExports: [
       { file: 'components/effects/index.ts', pattern: 'animated-gradient' },
@@ -333,12 +327,6 @@ export const INTEGRATION_BUNDLES: Partial<
             variableName: 'nextConfig',
             propertyPath: 'experimental.optimizePackageImports',
             value: 'three',
-          },
-          {
-            kind: 'removeArrayStringElement',
-            variableName: 'nextConfig',
-            propertyPath: 'experimental.optimizePackageImports',
-            value: 'postprocessing',
           },
         ],
       },
@@ -441,8 +429,8 @@ export const INTEGRATION_BUNDLES: Partial<
   theatre: {
     name: 'Theatre.js',
     description: 'Animation debugging and timeline editor',
-    dependencies: [],
-    devDependencies: ['@theatre/core', '@theatre/studio'],
+    dependencies: ['@theatre/core'],
+    devDependencies: ['@theatre/studio'],
     folders: ['lib/dev/theatre', 'public/config'],
     files: [],
     configPatterns: [],

@@ -139,8 +139,8 @@ are **generated** by `bun setup:styles`. Hand-edits are overwritten on the next 
 
 - `css/easings.css` — hand-authored `@theme` block for all `--ease-*` custom
   properties. Static cubic-bezier strings; update by editing this file directly.
-  Values must stay in sync with `easings.ts` (the JS object used by animation
-  utilities in `lib/utils/easings.ts`).
+  Values must stay in sync with `easings.ts` (the JS object exported via the
+  `@/styles` barrel).
 - `css/global.css` — the `[data-reveal]` reveal-animation contract (used by
   `useReveal`) and the global `prefers-reduced-motion` neutralizer.
 

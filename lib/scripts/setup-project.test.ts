@@ -328,7 +328,6 @@ const nextConfig: NextConfig = {
       '@react-three/fiber',
       'gsap',
       'three',
-      'postprocessing',
       '@sanity/client',
       '@sanity/image-url',
       '@sanity/asset-utils',
@@ -355,7 +354,7 @@ const nextConfig: NextConfig = {
   const nextConfigFormattingVariant = `
 const nextConfig: NextConfig = {
   experimental: {
-    optimizePackageImports: ["@react-three/drei","@react-three/fiber","gsap","three","postprocessing","@sanity/client","@sanity/image-url","@sanity/asset-utils","@portabletext/react"],
+    optimizePackageImports: ["@react-three/drei","@react-three/fiber","gsap","three","@sanity/client","@sanity/image-url","@sanity/asset-utils","@portabletext/react"],
   },
   images: {
     remotePatterns: [{"protocol":"https","hostname":"cdn.shopify.com"},{"protocol":"https","hostname":"cdn.sanity.io"}],
@@ -417,17 +416,14 @@ const nextConfig: NextConfig = {
   })
 
   it('should remove WebGL packages from optimizePackageImports', () => {
-    const webglOps = [
-      '@react-three/drei',
-      '@react-three/fiber',
-      'three',
-      'postprocessing',
-    ].map((value) => ({
-      kind: 'removeArrayStringElement' as const,
-      variableName: 'nextConfig',
-      propertyPath: 'experimental.optimizePackageImports',
-      value,
-    }))
+    const webglOps = ['@react-three/drei', '@react-three/fiber', 'three'].map(
+      (value) => ({
+        kind: 'removeArrayStringElement' as const,
+        variableName: 'nextConfig',
+        propertyPath: 'experimental.optimizePackageImports',
+        value,
+      })
+    )
 
     let result = nextConfigFixture
     for (const op of webglOps) {
@@ -438,7 +434,6 @@ const nextConfig: NextConfig = {
     expect(result).not.toContain('@react-three/fiber')
     expect(result).not.toContain('"three"')
     expect(result).not.toContain("'three'")
-    expect(result).not.toContain('postprocessing')
     // Non-WebGL entries must survive
     expect(result).toContain('gsap')
     expect(result).toContain('@sanity/client')

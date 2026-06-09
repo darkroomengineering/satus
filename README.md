@@ -69,6 +69,8 @@ Satūs keeps integrations — Sanity, Shopify, HubSpot, WebGL — isolated under
 | Optional | React Three Fiber, GSAP, Sanity, Shopify, HubSpot |
 | Tooling | Bun, Biome, Turbopack |
 
+> **Note**: `hamo` and `tempus` are Darkroom-owned packages published on a `dev` pre-release dist-tag. They do not follow semver guarantees — pin exact versions and review changes when bumping.
+
 ## Project Structure
 
 ```

@@ -4,8 +4,6 @@
  */
 
 export { useMediaQuery } from 'hamo'
-// Standard context type
-export type { StandardContext } from '@/utils/context'
 export { useDeviceDetection } from './use-device-detection'
 export { usePrefetch } from './use-prefetch'
 export { useReveal } from './use-reveal'

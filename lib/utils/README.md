@@ -16,16 +16,12 @@ import { generateSanityMetadata } from '@/utils/metadata'
 | Module | Functions |
 |--------|-----------|
 | `math` | `clamp`, `lerp`, `mapRange`, `truncate`, `modulo`, `roundTo`, `degToRad`, `radToDeg`, `distance` |
-| `easings` | All easing functions (`easeOutCubic`, etc.) |
-| `animation` | `fromTo`, `stagger`, `ease`, `spring` (prefer CSS `linear()` easing for simple springs — runs off the main thread; `spring()` is the JS fallback for canvas/WebGL/scroll-driven values) |
 | `raf` | `measure`, `mutate`, `batch` (DOM batching) |
-| `viewport` | `desktopVW`, `mobileVW`, `desktopVH`, `mobileVH` |
 | `fetch` | `fetchWithTimeout`, `fetchJSON` |
 | `strings` | `slugify`, `lowerFirstChar`, `capitalizeFirstLetter`, `isEmptyArray`, `stripHtmlTags` |
 | `metadata` | `generatePageMetadata`, `generateSanityMetadata` |
 | `validation` | `emailSchema`, `phoneSchema`, `sanityEnvSchema`, `shopifyEnvSchema`, `hubspotEnvSchema`, `mailchimpEnvSchema`, `turnstileEnvSchema`, `analyticsEnvSchema`, `coreEnvSchema`, `parseFormData`, `zodToValidator` |
 | `rate-limit` | `rateLimit`, `getClientIP`, `rateLimiters` |
-| `context` | `createStandardContext`, `useStandardContext` |
 
 ## Common Patterns
 
@@ -34,10 +30,6 @@ import { generateSanityMetadata } from '@/utils/metadata'
 clamp(0, value, 100)
 lerp(0, 100, 0.5) // → 50
 mapRange(0, 1000, scrollY, 0, 1)
-
-// Animation
-fromTo(elements, { opacity: 0 }, { opacity: 1 }, progress)
-const curved = ease(0.5, 'easeOutCubic')
 
 // DOM batching (prevents layout thrashing)
 await measure(() => element.getBoundingClientRect())
@@ -77,12 +69,3 @@ In-memory rate limiter for server actions and API routes.
 | `rateLimit` | Check if request should be rate limited |
 | `getClientIP` | Extract client IP from request headers |
 | `rateLimiters` | Pre-configured limits: `strict` (5/min), `standard` (20/min), `relaxed` (60/min) |
-
-### Context (`context.ts`)
-
-Standardized React Context factory with typed `{ state, actions, meta }` shape.
-
-| Export | Description |
-|--------|-------------|
-| `createStandardContext` | Create typed context provider + hook pair |
-| `useStandardContext` | Consume standard context with error boundary |

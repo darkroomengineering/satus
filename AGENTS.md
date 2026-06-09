@@ -114,7 +114,7 @@ export function MyComponent({ variant = 'primary', className, ...props }: MyComp
 ### State management
 
 - Component state: React built-in (`useState`, `useReducer`)
-- Global state: Zustand (stores in `lib/hooks/` or dedicated store files)
+- Global state: Zustand (dedicated store files, e.g. `lib/webgl/store.ts`)
 - Shared sub-tree state: standard context pattern (see Code Patterns below)
 - Standard context shape: `{ state, actions, meta? }` via `lib/utils/context.ts`
 
@@ -183,17 +183,25 @@ import cn from 'clsx'
 <div className={cn(s.root, 'p-4', className)}>             {/* Combined */}
 ```
 
-### 3. Standard Context Pattern
+### 3. Context Pattern
 
-Utility at `lib/utils/context.ts`. Shape is always `{ state, actions, meta? }`.
+Shared contexts (theme, cart, form) use a typed `createContext` with a
+`{ state, actions, meta? }` value shape, plus a hook that throws when used
+outside the provider. See `components/layout/theme/index.tsx` for the
+reference implementation.
 
 ```tsx
-import { createStandardContext, useStandardContext } from '@/utils/context'
-
 interface MyState { count: number }
 interface MyActions { increment: () => void }
+type MyContextValue = { state: MyState; actions: MyActions }
 
-const MyContext = createStandardContext<MyState, MyActions>('MyComponent')
+const MyContext = createContext<MyContextValue | null>(null)
+
+function useMyComponent(): MyContextValue {
+  const context = use(MyContext)
+  if (!context) throw new Error('useMyComponent must be used within MyProvider')
+  return context
+}
 
 function MyProvider({ children }: PropsWithChildren) {
   const [count, setCount] = useState(0)
@@ -205,10 +213,6 @@ function MyProvider({ children }: PropsWithChildren) {
       {children}
     </MyContext.Provider>
   )
-}
-
-function useMyComponent() {
-  return useStandardContext(MyContext, 'useMyComponent')  // throws if outside provider
 }
 ```
 

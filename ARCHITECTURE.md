@@ -59,7 +59,7 @@ Server Components use advanced caching. Key rules:
 Uses lazy GlobalCanvas with visibility-based pausing:
 
 ```
-Root Layout → LazyGlobalCanvas (mounts on first WebGL page)
+Root Layout → GlobalCanvas (lazy-loaded via lib/features, mounts on first WebGL page)
     └─ WebGLTunnel (portals 3D content)
         └─ Your 3D scene
 ```
@@ -79,7 +79,7 @@ components/
 └── effects/   → Animations
 
 lib/
-├── hooks/     → React hooks + Zustand
+├── hooks/     → React hooks
 ├── styles/    → CSS & Tailwind config
 ├── utils/     → Pure utilities
 ├── integrations/ → Third-party (optional)

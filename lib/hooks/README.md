@@ -161,13 +161,8 @@ See [webgl/hooks/](../webgl/hooks/):
 | `useWebGLElement` | Rect + visibility tracking |
 | `useWebGLRect` | DOM-to-WebGL position sync |
 
-## Viewport Hook
+## Viewport
 
-For viewport values, see [components/ui/real-viewport](../../components/ui/real-viewport/README.md):
-
-```tsx
-import { useViewport } from '@/components/ui/real-viewport'
-
-// Only re-renders when dvh changes
-const dvh = useViewport(state => state.dvh)
-```
+There is no viewport hook. Use CSS viewport units (`dvh`, `svh`, `lvh`) directly;
+[components/ui/real-viewport](../../components/ui/real-viewport/README.md) sets the
+`--scrollbar-width` CSS custom property for scrollbar-aware layouts.

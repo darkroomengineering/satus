@@ -10,7 +10,6 @@ Non-UI code: hooks, integrations, styles, and utilities.
 // Hooks
 import { useScrollTrigger, useTransform } from 'hamo'
 import { useDeviceDetection } from '@/lib/hooks/use-device-detection'
-import { useStore } from '@/lib/hooks/store'
 
 // Utilities - explicit imports for better tree-shaking
 import { clamp, lerp } from '@/lib/utils/math'
@@ -36,9 +35,9 @@ import { useOrchestra } from '@/lib/dev'
 
 | Directory | Purpose | Optional? |
 |-----------|---------|-----------|
-| [hooks/](hooks/README.md) | React hooks + Zustand store | ❌ Core |
+| [hooks/](hooks/README.md) | React hooks | ❌ Core |
 | [styles/](styles/README.md) | CSS & Tailwind config | ❌ Core |
-| [utils/](utils/README.md) | Pure utilities (math, fetch, metadata, strings, animation, validation) | ❌ Core |
+| [utils/](utils/README.md) | Pure utilities (math, fetch, metadata, strings, validation) | ❌ Core |
 | `env.ts` | Typed environment variables (Zod-validated singleton) | ❌ Core |
 | [features/](features/README.md) | Optional runtime features (WebGL, dev tools, GSAP) | ✅ Yes |
 | [integrations/](integrations/README.md) | Sanity, Shopify, HubSpot | ✅ Yes |

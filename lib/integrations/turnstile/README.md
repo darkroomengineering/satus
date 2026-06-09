@@ -36,5 +36,5 @@ if (!validation.isValid) {
 ## Notes
 
 - Turnstile requires HTTPS (auto-disabled in development when secret key is absent)
-- Use the `<Turnstile />` component from `@/components/turnstile` to render the widget in forms
+- The server reads the `cf-turnstile-response` field that Cloudflare's client-side widget appends to the form. The starter ships no widget component — render it with [Cloudflare's script](https://developers.cloudflare.com/turnstile/get-started/) and a `data-sitekey` set to `NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY`
 - This module is shared across integrations (Mailchimp, etc.) — do not embed it inside a specific integration bundle

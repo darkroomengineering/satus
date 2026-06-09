@@ -102,7 +102,6 @@ const nextConfig: NextConfig = {
       '@react-three/fiber',
       'gsap',
       'three',
-      'postprocessing',
       '@base-ui/react',
       'lenis',
       'zustand',

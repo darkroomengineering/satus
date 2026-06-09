@@ -1,5 +1,4 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-import type { StandardContext } from '@/utils/context'
 
 // Form state returned by server actions
 export type FormState<T = unknown> = {
@@ -68,7 +67,7 @@ export interface FormProps<T = unknown>
   onError?: (state: FormState<T>) => void
 }
 
-// Standard context state
+// Context state
 export interface FormContextState<T = unknown> {
   formState: FormState<T> | null
   isPending: boolean
@@ -78,23 +77,23 @@ export interface FormContextState<T = unknown> {
   errors: Record<string, FieldError>
 }
 
-// Standard context actions
+// Context actions
 export interface FormContextActions<T = unknown> {
   register: UseFormReturn<T>['register']
   resetForm: () => void
 }
 
-// Standard context meta
+// Context meta
 export interface FormContextMeta {
   formId: string
 }
 
-// Standard context type
-export type FormContextStandard<T = unknown> = StandardContext<
-  FormContextState<T>,
-  FormContextActions<T>,
-  FormContextMeta
->
+// Context value shape
+export type FormContextStandard<T = unknown> = {
+  state: FormContextState<T>
+  actions: FormContextActions<T>
+  meta?: FormContextMeta
+}
 
 // Submit button props
 export interface SubmitButtonProps

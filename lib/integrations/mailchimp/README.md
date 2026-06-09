@@ -16,12 +16,10 @@ Turnstile env vars are configured separately — see `lib/integrations/turnstile
 
 ```tsx
 import { Form, Input, SubmitButton } from '@/components/ui/form'
-import { Turnstile } from '@/components/turnstile'
 import { mailchimpSubscriptionAction } from '@/lib/integrations/mailchimp'
 
 <Form action={mailchimpSubscriptionAction}>
   <Input name="email" type="email" required />
-  <Turnstile />
   <SubmitButton>Subscribe</SubmitButton>
 </Form>
 ```
@@ -45,4 +43,5 @@ Contact and subscription actions validate email format using Zod's `emailSchema`
 ## Notes
 
 - Turnstile requires HTTPS (auto-disabled in development when secret key is absent)
+- The action validates the `cf-turnstile-response` form field — render Cloudflare's Turnstile widget inside the form (see `lib/integrations/turnstile/README.md`)
 - New subscribers appear as "Pending" until email confirmed

@@ -21,6 +21,7 @@ import type {
   CodeTransform,
   RemoveArrayObjectElementOp,
   RemoveArrayStringElementOp,
+  RemoveCallStatementOp,
   RemoveFunctionParameterOp,
   RemoveImportOp,
   RemoveInterfacePropertyOp,
@@ -119,7 +120,8 @@ function applyRemoveVariableStatement(
   const sf = project.createSourceFile('__tmp__.tsx', sourceText)
   let result = sourceText
 
-  for (const stmt of sf.getVariableStatements()) {
+  // Descendant scan so function-scoped consts are found, not just top-level.
+  for (const stmt of sf.getDescendantsOfKind(SyntaxKind.VariableStatement)) {
     for (const decl of stmt.getDeclarations()) {
       if (decl.getName() === op.name) {
         stmt.remove()
@@ -130,6 +132,38 @@ function applyRemoveVariableStatement(
     if (result !== sourceText) break
   }
 
+  project.removeSourceFile(sf)
+  return result
+}
+
+/**
+ * Remove bare call-expression statements by callee name, e.g. the whole
+ * `useTheatre(sheet, …)` statement. Removes every occurrence in the file,
+ * including each statement's attached leading comments.
+ */
+function applyRemoveCallStatement(
+  project: Project,
+  sourceText: string,
+  op: RemoveCallStatementOp
+): string {
+  const sf = project.createSourceFile('__tmp__.tsx', sourceText)
+
+  // Text removal invalidates collected nodes, so re-resolve after each pass.
+  while (true) {
+    const stmt = sf
+      .getDescendantsOfKind(SyntaxKind.ExpressionStatement)
+      .find((s) => {
+        const call = s.getExpression().asKind(SyntaxKind.CallExpression)
+        return call?.getExpression().getText() === op.callee
+      })
+    if (!stmt) break
+
+    // Full start spans the leading trivia (blank line + comments) so the
+    // statement's own comment block is removed with it.
+    sf.removeText(stmt.getFullStart(), stmt.getEnd())
+  }
+
+  const result = sf.getFullText()
   project.removeSourceFile(sf)
   return result
 }
@@ -497,6 +531,9 @@ export function applyOpsToText(
         break
       case 'removeVariableStatement':
         text = applyRemoveVariableStatement(project, text, op)
+        break
+      case 'removeCallStatement':
+        text = applyRemoveCallStatement(project, text, op)
         break
       case 'removeJsxElement':
         text = applyRemoveJsxElement(project, text, op)

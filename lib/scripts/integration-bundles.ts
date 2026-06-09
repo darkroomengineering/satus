@@ -30,11 +30,22 @@ export interface RemoveImportOp {
   specifier: string
 }
 
-/** Remove a top-level `const NAME = …` variable statement by name. */
+/** Remove a `const NAME = …` variable statement by name (any scope depth). */
 export interface RemoveVariableStatementOp {
   kind: 'removeVariableStatement'
   /** The variable name to remove, e.g. 'LazyGlobalCanvas' */
   name: string
+}
+
+/**
+ * Remove a bare call-expression statement by its callee name, e.g. the whole
+ * `useTheatre(sheet, 'fluid simulation', { … })` statement. Matches at any
+ * scope depth; removes every occurrence in the file.
+ */
+export interface RemoveCallStatementOp {
+  kind: 'removeCallStatement'
+  /** The called identifier, e.g. 'useTheatre' */
+  callee: string
 }
 
 /**
@@ -126,6 +137,7 @@ export interface RemoveArrayStringElementOp {
 export type AstOperation =
   | RemoveImportOp
   | RemoveVariableStatementOp
+  | RemoveCallStatementOp
   | RemoveJsxElementOp
   | RemoveInterfacePropertyOp
   | RemoveFunctionParameterOp
@@ -454,6 +466,34 @@ export const INTEGRATION_BUNDLES: Partial<
             kind: 'removeJsxElement',
             tagName: 'OrchestraToggle',
             attribute: { name: 'id', value: 'studio' },
+          },
+        ],
+      },
+      // The webgl fluid/flowmap hooks ship with optional Theatre.js debug
+      // controls. Strip that wiring so webgl keeps working without theatre.
+      {
+        file: 'lib/webgl/utils/fluid/index.tsx',
+        ops: [
+          { kind: 'removeCallStatement', callee: 'useTheatre' },
+          { kind: 'removeVariableStatement', name: 'sheet' },
+          { kind: 'removeImport', specifier: '@theatre/core' },
+          { kind: 'removeImport', specifier: '@/dev/theatre' },
+          {
+            kind: 'removeImport',
+            specifier: '@/dev/theatre/hooks/use-theatre',
+          },
+        ],
+      },
+      {
+        file: 'lib/webgl/utils/flowmaps/index.tsx',
+        ops: [
+          { kind: 'removeCallStatement', callee: 'useTheatre' },
+          { kind: 'removeVariableStatement', name: 'sheet' },
+          { kind: 'removeImport', specifier: '@theatre/core' },
+          { kind: 'removeImport', specifier: '@/dev/theatre' },
+          {
+            kind: 'removeImport',
+            specifier: '@/dev/theatre/hooks/use-theatre',
           },
         ],
       },

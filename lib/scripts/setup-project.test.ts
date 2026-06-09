@@ -82,6 +82,7 @@ describe('Integration Bundle Configuration', () => {
           expect([
             'removeImport',
             'removeVariableStatement',
+            'removeCallStatement',
             'removeJsxElement',
             'removeInterfaceProperty',
             'removeFunctionParameter',
@@ -95,6 +96,8 @@ describe('Integration Bundle Configuration', () => {
             expect(op.specifier).toBeTruthy()
           } else if (op.kind === 'removeVariableStatement') {
             expect(op.name).toBeTruthy()
+          } else if (op.kind === 'removeCallStatement') {
+            expect(op.callee).toBeTruthy()
           } else if (op.kind === 'removeJsxElement') {
             expect(op.tagName).toBeTruthy()
           } else if (op.kind === 'removeInterfaceProperty') {
@@ -175,6 +178,39 @@ describe('Theatre.js Code Transforms', () => {
       expect(result).toContain('id="webgl"')
     })
   })
+
+  // Removing theatre while KEEPING webgl must leave the fluid/flowmap hooks
+  // compiling — all Theatre wiring stripped, simulation logic intact.
+  for (const [file, exportName, simName] of [
+    ['lib/webgl/utils/fluid/index.tsx', 'useFluidSim', 'Fluid'],
+    ['lib/webgl/utils/flowmaps/index.tsx', 'useFlowmapSim', 'Flowmap'],
+  ] as const) {
+    describe(`${file} transforms`, () => {
+      it('should strip Theatre wiring and keep the simulation hook', () => {
+        const content = sourceFiles[file]
+        if (!content) return
+
+        const transform = theatreBundle.codeTransforms.find(
+          (t) => t.file === file
+        )
+        if (!transform) return
+
+        const result = applyOpsToText(content, transform.ops)
+
+        // Theatre wiring must be gone
+        expect(result).not.toContain('@theatre/core')
+        expect(result).not.toContain('@/dev/theatre')
+        expect(result).not.toContain('useTheatre')
+        expect(result).not.toContain('useCurrentSheet')
+        expect(result).not.toContain('sheet')
+
+        // Simulation logic must remain
+        expect(result).toContain(`export function ${exportName}`)
+        expect(result).toContain(simName)
+        expect(result).toContain('useFrame')
+      })
+    })
+  }
 })
 
 // ---------------------------------------------------------------------------

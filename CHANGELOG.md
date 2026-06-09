@@ -41,6 +41,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 ### Changed
 
 - Integration registry is single-source: `INTEGRATION_BUNDLES` keys are typed against `RemovableId` from `lib/integrations/registry`, `prepare-handoff` matches integrations by id, and `next.config.ts` cleanup runs through typed ts-morph AST ops — the regex `updateNextConfig` is deleted.
+- Removing the theatre integration now also strips the Theatre.js debug wiring from the webgl fluid/flowmap hooks (via a new `removeCallStatement` AST op), so keeping webgl without theatre builds cleanly.
 - WebGL: deleted the `flowmap-provider`, `image`, and `postprocessing` components; the tunnel utility is vendored as `lib/webgl/utils/tunnel.ts` (replacing the `tunnel-rat` package); renderer/context typing is honest (no `as` casts); `GlobalCanvas` is lazy-loaded by `lib/features` rather than re-exported as `LazyGlobalCanvas` from `global-canvas`.
 - Integrations: Shopify customer actions run through `runFormAction`; Turnstile validation extracted to `lib/integrations/turnstile` (shared across integrations); the cart reconciler uses a discriminated union and every cart action returns one `CartActionResult` shape; optimistic add wraps in `startTransition`; the Mailchimp error path validates with Zod.
 - App: `error.tsx` and `global-error.tsx` render a shared `ErrorView`; `APP_BASE_URL` is exported once from `lib/env`; `fb:app_id` reads from validated env; `next.config.ts` exports its config directly; dead nav scroll-lock and its orphaned store removed.

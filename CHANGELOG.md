@@ -38,6 +38,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Changed
 
+- Fonts now load via `next/font/google` (Oswald for display, Spline Sans Mono for body) instead of self-hosted woff2 — no font binaries ship in the repo, and the brand type scale (sizes, line-heights, tracking from the Figma spec) is encoded in `lib/styles/typography.ts`. (#210)
 - Components are now catalogued in Storybook (`bun storybook`) instead of an in-app `/components` page; added stories for accordion, alert-dialog, checkbox, link, marquee, menu, switch, and tabs. (#210)
 - `app/page.tsx` is now a self-contained in-app manual (clone → ship); replace it with your homepage and delete `app/page.module.css` when you start a project. (#210)
 - Integrations reframed as opt-in plugins isolated under `lib/integrations` with `// USAGE` notes — the precursor to the additive `satus add <plugin>` CLI proposed in #185. (#210)

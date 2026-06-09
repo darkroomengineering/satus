@@ -24,17 +24,16 @@
 }
 
 .title {
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: calc(48 / 375 * 100vw);
-  font-weight: 400;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
-  line-height: 1;
+  letter-spacing: -0.04em;
+  line-height: 0.8;
   color: var(--color-secondary);
 
   @media (--desktop) {
     font-size: calc(100 / 1440 * 100vw);
-    letter-spacing: 0.2em;
   }
 }
 
@@ -106,11 +105,12 @@
 }
 
 .stepTitle {
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: calc(15 / 375 * 100vw);
-  font-weight: 400;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: -0.01em;
+  line-height: 1;
   color: var(--color-secondary);
   margin-bottom: calc(10 / 375 * 100vw);
 

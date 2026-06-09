@@ -117,9 +117,9 @@ const checks: Check[] = [
     fix: 'Create COMPONENTS.md in project root',
   },
   {
-    name: 'Public fonts directory exists',
-    check: () => existsSync(join(ROOT, 'public/fonts')),
-    fix: 'Add fonts to public/fonts/ directory',
+    name: 'Font config exists',
+    check: () => existsSync(join(ROOT, 'lib/styles/fonts.ts')),
+    fix: 'Configure fonts in lib/styles/fonts.ts (next/font/google)',
   },
   {
     name: 'Git hooks installed (lefthook)',

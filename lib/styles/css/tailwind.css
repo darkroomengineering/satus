@@ -27,7 +27,8 @@
   --spacing-header-height: var(--header-height);
 
   --font-*: initial;
-  --font-mono: var(--next-font-mono);
+  --font-display: var(--next-font-display);
+	--font-mono: var(--next-font-mono);
 
   --ease-*: initial;
   --ease-in-quad: cubic-bezier(0.55, 0.085, 0.68, 0.53);
@@ -75,14 +76,71 @@
   
 
 /** Custom static utilities **/
-@utility test-mono {
+@utility h1 {
+  font-family: var(--next-font-display);
+	font-style: normal;
+	font-weight: 700;
+	line-height: 80%;
+	letter-spacing: -0.05em;
+	font-size: calc(((72 * 100) / var(--device-width)) * 1vw);
+	@variant dt { font-size: calc(((120 * 100) / var(--device-width)) * 1vw); }
+}
+@utility h2 {
+  font-family: var(--next-font-display);
+	font-style: normal;
+	font-weight: 700;
+	line-height: 80%;
+	letter-spacing: -0.03em;
+	font-size: calc(((32 * 100) / var(--device-width)) * 1vw);
+	@variant dt { font-size: calc(((48 * 100) / var(--device-width)) * 1vw); }
+}
+@utility p-big {
   font-family: var(--next-font-mono);
 	font-style: normal;
 	font-weight: 400;
-	line-height: 90%;
-	letter-spacing: 0em;
-	font-size: calc(((20 * 100) / var(--device-width)) * 1vw);
-	@variant dt { font-size: calc(((24 * 100) / var(--device-width)) * 1vw); }
+	line-height: 125%;
+	letter-spacing: -0.02em;
+	font-size: calc(((16 * 100) / var(--device-width)) * 1vw);
+	@variant dt { font-size: calc(((20 * 100) / var(--device-width)) * 1vw); }
+}
+@utility p {
+  font-family: var(--next-font-mono);
+	font-style: normal;
+	font-weight: 400;
+	line-height: 125%;
+	@variant dt { line-height: 120%; }
+	letter-spacing: -0.01em;
+	font-size: calc(((12 * 100) / var(--device-width)) * 1vw);
+	@variant dt { font-size: calc(((14 * 100) / var(--device-width)) * 1vw); }
+}
+@utility caption {
+  font-family: var(--next-font-mono);
+	font-style: normal;
+	font-weight: 400;
+	line-height: 125%;
+	@variant dt { line-height: 120%; }
+	letter-spacing: -0.01em;
+	font-size: calc(((8 * 100) / var(--device-width)) * 1vw);
+	@variant dt { font-size: calc(((10 * 100) / var(--device-width)) * 1vw); }
+}
+@utility cta {
+  font-family: var(--next-font-mono);
+	font-style: normal;
+	font-weight: 400;
+	line-height: 100%;
+	letter-spacing: -0.01em;
+	font-size: calc(((12 * 100) / var(--device-width)) * 1vw);
+	@variant dt { font-size: calc(((14 * 100) / var(--device-width)) * 1vw); }
+}
+@utility link {
+  font-family: var(--next-font-mono);
+	font-style: normal;
+	font-weight: 400;
+	line-height: 125%;
+	@variant dt { line-height: 120%; }
+	letter-spacing: -0.01em;
+	font-size: calc(((12 * 100) / var(--device-width)) * 1vw);
+	@variant dt { font-size: calc(((14 * 100) / var(--device-width)) * 1vw); }
 }
 
 @utility desktop-only {

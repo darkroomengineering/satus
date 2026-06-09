@@ -16,7 +16,7 @@
  */
 
 import * as p from '@clack/prompts'
-import { getConfigured } from '@/integrations/registry'
+import { getConfigured, getConfiguredIds } from '@/integrations/registry'
 import { cancelGuard } from './generate-shared'
 import { INTEGRATION_BUNDLES } from './integration-bundles'
 import { renderDeploymentChecklist } from './templates/deployment-checklist'
@@ -151,17 +151,11 @@ const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
 
     const content = await Bun.file(envExamplePath).text()
 
-    // Keep env vars that belong to a configured integration, matched by exact
-    // name against each bundle's declared envVars (the single source of truth in
-    // INTEGRATION_BUNDLES) -- the same strategy setup-project uses. getConfigured()
-    // returns registry display names (e.g. 'Sanity'), mapped to bundle keys
-    // case-insensitively.
+    // Keep env vars that belong to a configured integration, matched by id
+    // directly against the bundle record — no fragile lowercase bridge needed.
     const keepVars = new Set<string>()
-    for (const displayName of getConfigured()) {
-      const bundleKey = Object.keys(INTEGRATION_BUNDLES).find(
-        (k) => k.toLowerCase() === displayName.toLowerCase()
-      )
-      const bundle = bundleKey ? INTEGRATION_BUNDLES[bundleKey] : undefined
+    for (const id of getConfiguredIds()) {
+      const bundle = INTEGRATION_BUNDLES[id]
       if (bundle) {
         for (const envVar of bundle.envVars) keepVars.add(envVar)
       }
@@ -462,7 +456,7 @@ const main = async (): Promise<void> => {
       generated.push('  - DEPLOYMENT-CHECKLIST.md (launch tasks)')
     }
     if (actionsValue.includes('swapReadme')) {
-      generated.push('  - README.original.md (backup)')
+      generated.push('  - README.original.md (backup, gitignored)')
     }
     p.note(
       (generated.length

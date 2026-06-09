@@ -12,7 +12,12 @@
 
 import { beforeAll, describe, expect, it } from 'bun:test'
 import { applyOpsToText } from './ast-transforms'
-import { getIntegrationNames, INTEGRATION_BUNDLES } from './integration-bundles'
+import {
+  getIntegrationEntries,
+  getIntegrationNames,
+  INTEGRATION_BUNDLES,
+} from './integration-bundles'
+import { PROJECT_PRESETS } from './setup-project'
 
 // ---------------------------------------------------------------------------
 // Source file fixtures — loaded once, never written to disk
@@ -43,7 +48,7 @@ beforeAll(async () => {
 
 describe('Integration Bundle Configuration', () => {
   it('should have valid structure for all bundles', () => {
-    for (const [_name, bundle] of Object.entries(INTEGRATION_BUNDLES)) {
+    for (const [_name, bundle] of getIntegrationEntries()) {
       expect(bundle.name).toBeTruthy()
       expect(bundle.description).toBeTruthy()
       expect(Array.isArray(bundle.dependencies)).toBe(true)
@@ -58,7 +63,7 @@ describe('Integration Bundle Configuration', () => {
   })
 
   it('should have valid barrel export configurations', () => {
-    for (const [_name, bundle] of Object.entries(INTEGRATION_BUNDLES)) {
+    for (const [_name, bundle] of getIntegrationEntries()) {
       for (const barrelExport of bundle.barrelExports) {
         expect(barrelExport.file).toBeTruthy()
         expect(barrelExport.pattern).toBeTruthy()
@@ -67,7 +72,7 @@ describe('Integration Bundle Configuration', () => {
   })
 
   it('should have valid code transform configurations (ops shape)', () => {
-    for (const [_name, bundle] of Object.entries(INTEGRATION_BUNDLES)) {
+    for (const [_name, bundle] of getIntegrationEntries()) {
       for (const transform of bundle.codeTransforms) {
         expect(transform.file).toBeTruthy()
         expect(Array.isArray(transform.ops)).toBe(true)
@@ -81,6 +86,8 @@ describe('Integration Bundle Configuration', () => {
             'removeInterfaceProperty',
             'removeFunctionParameter',
             'replaceJsDoc',
+            'removeArrayObjectElement',
+            'removeArrayStringElement',
           ]).toContain(op.kind)
 
           // Each op kind must carry its required fields
@@ -99,6 +106,14 @@ describe('Integration Bundle Configuration', () => {
           } else if (op.kind === 'replaceJsDoc') {
             expect(op.functionName).toBeTruthy()
             expect(op.replacement).toBeTruthy()
+          } else if (op.kind === 'removeArrayObjectElement') {
+            expect(op.variableName).toBeTruthy()
+            expect(op.propertyPath).toBeTruthy()
+            expect(op.matchProperty).toBeTruthy()
+          } else if (op.kind === 'removeArrayStringElement') {
+            expect(op.variableName).toBeTruthy()
+            expect(op.propertyPath).toBeTruthy()
+            expect(op.value).toBeTruthy()
           }
         }
       }
@@ -244,13 +259,14 @@ describe('WebGL Code Transforms', () => {
 // ---------------------------------------------------------------------------
 
 describe('Preset Configurations', () => {
-  const presets = {
-    editorial: ['sanity', 'hubspot', 'mailchimp'],
-    studio: ['sanity', 'shopify', 'hubspot', 'mailchimp', 'webgl', 'theatre'],
-    boutique: ['shopify', 'hubspot', 'mailchimp'],
-    gallery: ['sanity', 'shopify', 'hubspot', 'mailchimp', 'webgl', 'theatre'],
-    blank: [],
-  }
+  // Derive the preset arrays from the authoritative PROJECT_PRESETS export so
+  // that adding/changing a preset here is a compile error, not a silent drift.
+  const presets = Object.fromEntries(
+    Object.entries(PROJECT_PRESETS).map(([key, preset]) => [
+      key,
+      [...preset.integrations],
+    ])
+  ) as Record<keyof typeof PROJECT_PRESETS, string[]>
 
   const validIntegrations = getIntegrationNames()
 
@@ -295,6 +311,151 @@ describe('Preset Configurations', () => {
 
   it('blank should have no integrations', () => {
     expect(presets.blank).toHaveLength(0)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// AST-based next.config.ts transforms (replaces the old regex updateNextConfig)
+// ---------------------------------------------------------------------------
+
+describe('next.config.ts AST Transforms', () => {
+  // Canonical fixture matching the real next.config.ts shape
+  const nextConfigFixture = `
+const nextConfig: NextConfig = {
+  experimental: {
+    optimizePackageImports: [
+      '@react-three/drei',
+      '@react-three/fiber',
+      'gsap',
+      'three',
+      'postprocessing',
+      '@sanity/client',
+      '@sanity/image-url',
+      '@sanity/asset-utils',
+      '@portabletext/react',
+    ],
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'cdn.shopify.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.sanity.io',
+      },
+    ],
+  },
+}
+`
+
+  // Formatting-variant fixture — indentation and quote style differ from the
+  // canonical fixture; the old regex would have silently missed these entries.
+  const nextConfigFormattingVariant = `
+const nextConfig: NextConfig = {
+  experimental: {
+    optimizePackageImports: ["@react-three/drei","@react-three/fiber","gsap","three","postprocessing","@sanity/client","@sanity/image-url","@sanity/asset-utils","@portabletext/react"],
+  },
+  images: {
+    remotePatterns: [{"protocol":"https","hostname":"cdn.shopify.com"},{"protocol":"https","hostname":"cdn.sanity.io"}],
+  },
+}
+`
+
+  it('should remove cdn.sanity.io from remotePatterns', () => {
+    const result = applyOpsToText(nextConfigFixture, [
+      {
+        kind: 'removeArrayObjectElement',
+        variableName: 'nextConfig',
+        propertyPath: 'images.remotePatterns',
+        matchProperty: { name: 'hostname', value: 'cdn.sanity.io' },
+      },
+    ])
+    expect(result).not.toContain('cdn.sanity.io')
+    expect(result).toContain('cdn.shopify.com')
+  })
+
+  it('should remove cdn.shopify.com from remotePatterns', () => {
+    const result = applyOpsToText(nextConfigFixture, [
+      {
+        kind: 'removeArrayObjectElement',
+        variableName: 'nextConfig',
+        propertyPath: 'images.remotePatterns',
+        matchProperty: { name: 'hostname', value: 'cdn.shopify.com' },
+      },
+    ])
+    expect(result).not.toContain('cdn.shopify.com')
+    expect(result).toContain('cdn.sanity.io')
+  })
+
+  it('should remove @sanity packages from optimizePackageImports', () => {
+    const sanityOps = [
+      '@sanity/client',
+      '@sanity/image-url',
+      '@sanity/asset-utils',
+      '@portabletext/react',
+    ].map((value) => ({
+      kind: 'removeArrayStringElement' as const,
+      variableName: 'nextConfig',
+      propertyPath: 'experimental.optimizePackageImports',
+      value,
+    }))
+
+    let result = nextConfigFixture
+    for (const op of sanityOps) {
+      result = applyOpsToText(result, [op])
+    }
+
+    expect(result).not.toContain('@sanity/client')
+    expect(result).not.toContain('@sanity/image-url')
+    expect(result).not.toContain('@sanity/asset-utils')
+    expect(result).not.toContain('@portabletext/react')
+    // Non-Sanity entries must survive
+    expect(result).toContain('gsap')
+    expect(result).toContain('@react-three/drei')
+  })
+
+  it('should remove WebGL packages from optimizePackageImports', () => {
+    const webglOps = [
+      '@react-three/drei',
+      '@react-three/fiber',
+      'three',
+      'postprocessing',
+    ].map((value) => ({
+      kind: 'removeArrayStringElement' as const,
+      variableName: 'nextConfig',
+      propertyPath: 'experimental.optimizePackageImports',
+      value,
+    }))
+
+    let result = nextConfigFixture
+    for (const op of webglOps) {
+      result = applyOpsToText(result, [op])
+    }
+
+    expect(result).not.toContain('@react-three/drei')
+    expect(result).not.toContain('@react-three/fiber')
+    expect(result).not.toContain('"three"')
+    expect(result).not.toContain("'three'")
+    expect(result).not.toContain('postprocessing')
+    // Non-WebGL entries must survive
+    expect(result).toContain('gsap')
+    expect(result).toContain('@sanity/client')
+  })
+
+  it('should handle formatting variants the old regex would have missed', () => {
+    // cdn.shopify.com removal in compact object notation
+    const result = applyOpsToText(nextConfigFormattingVariant, [
+      {
+        kind: 'removeArrayObjectElement',
+        variableName: 'nextConfig',
+        propertyPath: 'images.remotePatterns',
+        matchProperty: { name: 'hostname', value: 'cdn.shopify.com' },
+      },
+    ])
+    expect(result).not.toContain('cdn.shopify.com')
+    expect(result).toContain('cdn.sanity.io')
   })
 })
 

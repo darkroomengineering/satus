@@ -3,7 +3,12 @@
  *
  * Defines which dependencies, folders, and files belong to each integration.
  * Used by the setup script to selectively remove unused integrations.
+ *
+ * Key types (`IntegrationId`, `RemovableId`) are imported from the registry so
+ * that adding or renaming a key in one place without the other is a compile error.
  */
+
+import type { RemovableId } from '@/integrations/registry'
 
 export interface BarrelExport {
   /** Path to the barrel export file (e.g., 'components/ui/index.ts') */
@@ -81,6 +86,43 @@ export interface ReplaceJsDocOp {
   replacement: string
 }
 
+/**
+ * Remove an object element from an array property nested inside a named
+ * variable declaration.  Designed for `images.remotePatterns` in next.config.ts.
+ *
+ * Matches an array element that is an object literal containing a property
+ * whose name and string value both match the given `matchProperty`.
+ */
+export interface RemoveArrayObjectElementOp {
+  kind: 'removeArrayObjectElement'
+  /**
+   * Dot-separated path from the variable declaration down to the array
+   * property, e.g. `'images.remotePatterns'`.
+   */
+  propertyPath: string
+  /** The variable name that holds the object, e.g. `'nextConfig'`. */
+  variableName: string
+  /** Property name + value that must be present on the target object element. */
+  matchProperty: { name: string; value: string }
+}
+
+/**
+ * Remove a string-literal element from an array property nested inside a named
+ * variable declaration.  Designed for `experimental.optimizePackageImports`.
+ */
+export interface RemoveArrayStringElementOp {
+  kind: 'removeArrayStringElement'
+  /**
+   * Dot-separated path from the variable declaration down to the array
+   * property, e.g. `'experimental.optimizePackageImports'`.
+   */
+  propertyPath: string
+  /** The variable name that holds the object, e.g. `'nextConfig'`. */
+  variableName: string
+  /** The exact string value to remove from the array. */
+  value: string
+}
+
 export type AstOperation =
   | RemoveImportOp
   | RemoveVariableStatementOp
@@ -88,6 +130,8 @@ export type AstOperation =
   | RemoveInterfacePropertyOp
   | RemoveFunctionParameterOp
   | ReplaceJsDocOp
+  | RemoveArrayObjectElementOp
+  | RemoveArrayStringElementOp
 
 export interface CodeTransform {
   /** Path to the file to transform (relative to project root) */
@@ -117,7 +161,9 @@ export interface IntegrationBundle {
   codeTransforms: CodeTransform[]
 }
 
-export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
+export const INTEGRATION_BUNDLES: Partial<
+  Record<RemovableId, IntegrationBundle>
+> = {
   sanity: {
     name: 'Sanity CMS',
     description: 'Headless CMS with visual editing and real-time collaboration',
@@ -145,7 +191,45 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
     barrelExports: [
       { file: 'components/ui/index.ts', pattern: 'sanity-image' },
     ],
-    codeTransforms: [],
+    codeTransforms: [
+      {
+        file: 'next.config.ts',
+        ops: [
+          // Remove cdn.sanity.io from images.remotePatterns
+          {
+            kind: 'removeArrayObjectElement',
+            variableName: 'nextConfig',
+            propertyPath: 'images.remotePatterns',
+            matchProperty: { name: 'hostname', value: 'cdn.sanity.io' },
+          },
+          // Remove @sanity/* packages from experimental.optimizePackageImports
+          {
+            kind: 'removeArrayStringElement',
+            variableName: 'nextConfig',
+            propertyPath: 'experimental.optimizePackageImports',
+            value: '@sanity/client',
+          },
+          {
+            kind: 'removeArrayStringElement',
+            variableName: 'nextConfig',
+            propertyPath: 'experimental.optimizePackageImports',
+            value: '@sanity/image-url',
+          },
+          {
+            kind: 'removeArrayStringElement',
+            variableName: 'nextConfig',
+            propertyPath: 'experimental.optimizePackageImports',
+            value: '@sanity/asset-utils',
+          },
+          {
+            kind: 'removeArrayStringElement',
+            variableName: 'nextConfig',
+            propertyPath: 'experimental.optimizePackageImports',
+            value: '@portabletext/react',
+          },
+        ],
+      },
+    ],
   },
 
   shopify: {
@@ -163,7 +247,20 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
       'SHOPIFY_CUSTOMER_ACCOUNT_API_URL',
     ],
     barrelExports: [],
-    codeTransforms: [],
+    codeTransforms: [
+      {
+        file: 'next.config.ts',
+        ops: [
+          // Remove cdn.shopify.com from images.remotePatterns
+          {
+            kind: 'removeArrayObjectElement',
+            variableName: 'nextConfig',
+            propertyPath: 'images.remotePatterns',
+            matchProperty: { name: 'hostname', value: 'cdn.shopify.com' },
+          },
+        ],
+      },
+    ],
   },
 
   hubspot: {
@@ -215,6 +312,36 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
       { file: 'components/effects/index.ts', pattern: 'animated-gradient' },
     ],
     codeTransforms: [
+      {
+        file: 'next.config.ts',
+        ops: [
+          // Remove WebGL/Three.js packages from experimental.optimizePackageImports
+          {
+            kind: 'removeArrayStringElement',
+            variableName: 'nextConfig',
+            propertyPath: 'experimental.optimizePackageImports',
+            value: '@react-three/drei',
+          },
+          {
+            kind: 'removeArrayStringElement',
+            variableName: 'nextConfig',
+            propertyPath: 'experimental.optimizePackageImports',
+            value: '@react-three/fiber',
+          },
+          {
+            kind: 'removeArrayStringElement',
+            variableName: 'nextConfig',
+            propertyPath: 'experimental.optimizePackageImports',
+            value: 'three',
+          },
+          {
+            kind: 'removeArrayStringElement',
+            variableName: 'nextConfig',
+            propertyPath: 'experimental.optimizePackageImports',
+            value: 'postprocessing',
+          },
+        ],
+      },
       {
         file: 'lib/features/index.tsx',
         ops: [
@@ -347,6 +474,12 @@ export const INTEGRATION_BUNDLES: Record<string, IntegrationBundle> = {
 }
 
 /**
- * Get all integration names
+ * Get all removable integration ids (keys of INTEGRATION_BUNDLES, including
+ * dev-only removables like webgl and theatre).
  */
-export const getIntegrationNames = () => Object.keys(INTEGRATION_BUNDLES)
+export const getIntegrationNames = (): RemovableId[] =>
+  Object.keys(INTEGRATION_BUNDLES) as RemovableId[]
+
+/** Typed entries of INTEGRATION_BUNDLES (defined keys only). */
+export const getIntegrationEntries = (): [RemovableId, IntegrationBundle][] =>
+  Object.entries(INTEGRATION_BUNDLES) as [RemovableId, IntegrationBundle][]

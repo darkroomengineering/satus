@@ -10,13 +10,17 @@ import {
   type JsxAttributeLike,
   type JsxElement,
   type JsxSelfClosingElement,
+  type Node,
   Project,
+  type SourceFile,
   SyntaxKind,
   ts,
 } from 'ts-morph'
 import type {
   AstOperation,
   CodeTransform,
+  RemoveArrayObjectElementOp,
+  RemoveArrayStringElementOp,
   RemoveFunctionParameterOp,
   RemoveImportOp,
   RemoveInterfacePropertyOp,
@@ -329,6 +333,139 @@ function applyReplaceJsDoc(
   return result
 }
 
+/**
+ * Resolve a dot-separated property path from an object-expression node,
+ * returning the deepest PropertyAccessExpression value node or undefined.
+ *
+ * e.g. `resolvePropertyPath(objExpr, 'images.remotePatterns')` returns the
+ * node for the `remotePatterns` array initialiser.
+ */
+function resolvePropertyPath(
+  project: Project,
+  sourceText: string,
+  variableName: string,
+  propertyPath: string
+): { sf: SourceFile; node: Node | undefined } {
+  const sf = project.createSourceFile('__tmp__.ts', sourceText)
+
+  const varDecl = sf
+    .getVariableDeclarations()
+    .find((v) => v.getName() === variableName)
+  if (!varDecl) return { sf, node: undefined }
+
+  const init = varDecl.getInitializer()
+  if (!init || init.getKind() !== SyntaxKind.ObjectLiteralExpression)
+    return { sf, node: undefined }
+
+  const parts = propertyPath.split('.')
+  let current: Node = init
+  for (const part of parts) {
+    if (current.getKind() !== SyntaxKind.ObjectLiteralExpression) {
+      return { sf, node: undefined }
+    }
+    const obj = current.asKindOrThrow(SyntaxKind.ObjectLiteralExpression)
+    const prop = obj
+      .getProperties()
+      .find(
+        (p) =>
+          p.getKind() === SyntaxKind.PropertyAssignment &&
+          p.asKindOrThrow(SyntaxKind.PropertyAssignment).getName() === part
+      )
+    if (!prop) return { sf, node: undefined }
+    const pa = prop.asKindOrThrow(SyntaxKind.PropertyAssignment)
+    current = pa.getInitializer() ?? pa
+  }
+
+  return { sf, node: current }
+}
+
+function applyRemoveArrayObjectElement(
+  project: Project,
+  sourceText: string,
+  op: RemoveArrayObjectElementOp
+): string {
+  const { sf, node } = resolvePropertyPath(
+    project,
+    sourceText,
+    op.variableName,
+    op.propertyPath
+  )
+
+  if (!node || node.getKind() !== SyntaxKind.ArrayLiteralExpression) {
+    project.removeSourceFile(sf)
+    return sourceText
+  }
+
+  const arr = node.asKindOrThrow(SyntaxKind.ArrayLiteralExpression)
+  const elements = arr.getElements()
+
+  for (const el of elements) {
+    if (el.getKind() !== SyntaxKind.ObjectLiteralExpression) continue
+    const obj = el.asKindOrThrow(SyntaxKind.ObjectLiteralExpression)
+    const matchProp = obj.getProperties().find(
+      (p) =>
+        p.getKind() === SyntaxKind.PropertyAssignment &&
+        // Normalize quoted property names ("hostname": …) to bare names.
+        p
+          .asKindOrThrow(SyntaxKind.PropertyAssignment)
+          .getName()
+          .replace(/^['"]|['"]$/g, '') === op.matchProperty.name
+    )
+    if (!matchProp) continue
+    const pa = matchProp.asKindOrThrow(SyntaxKind.PropertyAssignment)
+    const initNode = pa.getInitializer()
+    if (!initNode) continue
+    const initValue =
+      initNode.getKind() === SyntaxKind.StringLiteral
+        ? initNode.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue()
+        : undefined
+    if (initValue !== op.matchProperty.value) continue
+
+    // Found the matching element — remove it from the array
+    arr.removeElement(el)
+    break
+  }
+
+  const result = sf.getFullText()
+  project.removeSourceFile(sf)
+  return result
+}
+
+function applyRemoveArrayStringElement(
+  project: Project,
+  sourceText: string,
+  op: RemoveArrayStringElementOp
+): string {
+  const { sf, node } = resolvePropertyPath(
+    project,
+    sourceText,
+    op.variableName,
+    op.propertyPath
+  )
+
+  if (!node || node.getKind() !== SyntaxKind.ArrayLiteralExpression) {
+    project.removeSourceFile(sf)
+    return sourceText
+  }
+
+  const arr = node.asKindOrThrow(SyntaxKind.ArrayLiteralExpression)
+  const elements = arr.getElements()
+
+  for (const el of elements) {
+    if (el.getKind() !== SyntaxKind.StringLiteral) continue
+    if (
+      el.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue() === op.value
+    ) {
+      arr.removeElement(el)
+      break
+    }
+  }
+
+  const result = sf.getFullText()
+  project.removeSourceFile(sf)
+  return result
+}
+
 // ---------------------------------------------------------------------------
 // Per-file transform runner
 // ---------------------------------------------------------------------------
@@ -372,6 +509,12 @@ export function applyOpsToText(
         break
       case 'replaceJsDoc':
         text = applyReplaceJsDoc(project, text, op)
+        break
+      case 'removeArrayObjectElement':
+        text = applyRemoveArrayObjectElement(project, text, op)
+        break
+      case 'removeArrayStringElement':
+        text = applyRemoveArrayStringElement(project, text, op)
         break
       // Exhaustiveness — TypeScript ensures all union members are handled above.
     }

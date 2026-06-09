@@ -1,11 +1,23 @@
-'use client'
+import type { Meta, StoryObj } from '@storybook/react'
+import { Menu } from './index'
 
-import { Menu } from '@/components/ui/menu'
+const meta = {
+  title: 'UI/Menu',
+  component: Menu.Root,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+} satisfies Meta<typeof Menu.Root>
 
-export function MenuDemo() {
-  return (
+export default meta
+
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  render: () => (
     <Menu.Root>
-      <Menu.Trigger className="dr-rounded-8 dr-px-16 dr-py-10 bg-white/10 hover:bg-white/20">
+      <Menu.Trigger style={{ padding: '8px 16px', cursor: 'pointer' }}>
         Open Menu
         <Menu.Arrow />
       </Menu.Trigger>
@@ -13,21 +25,21 @@ export function MenuDemo() {
         <Menu.Positioner sideOffset={8}>
           <Menu.Popup>
             <Menu.Item onClick={() => console.log('Edit clicked')}>
-              ✏️ Edit
+              Edit
             </Menu.Item>
             <Menu.Item onClick={() => console.log('Duplicate clicked')}>
-              📋 Duplicate
+              Duplicate
             </Menu.Item>
             <Menu.Separator />
             <Menu.Item onClick={() => console.log('Archive clicked')}>
-              📦 Archive
+              Archive
             </Menu.Item>
             <Menu.Item onClick={() => console.log('Delete clicked')}>
-              🗑️ Delete
+              Delete
             </Menu.Item>
           </Menu.Popup>
         </Menu.Positioner>
       </Menu.Portal>
     </Menu.Root>
-  )
+  ),
 }

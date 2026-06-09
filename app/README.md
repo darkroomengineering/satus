@@ -6,13 +6,11 @@ Next.js App Router pages and routes.
 
 ```
 app/
-├── page.tsx              # Redirects / → /components (replace with your own homepage)
+├── page.tsx              # Manual / in-app documentation landing page
 ├── layout.tsx            # Root layout
-├── (examples)/           # DELETE - Demo pages (components, r3f, etc.)
 ├── api/
 │   ├── draft-mode/       # Sanity draft mode
 │   └── revalidate/       # Webhook endpoint
-├── studio/               # Sanity Studio
 ├── loading.tsx           # Global loading
 ├── error.tsx             # Error boundary
 └── not-found.tsx         # 404 page
@@ -20,12 +18,7 @@ app/
 
 ## Getting Started
 
-**Quick cleanup (manual):**
-```bash
-rm -rf "app/(examples)"     # Remove example pages (r3f, sanity, shopify, etc.)
-```
-
-**Or use the interactive setup:**
+**Use the interactive setup:**
 ```bash
 bun run setup:project       # Choose what to keep/remove
 ```

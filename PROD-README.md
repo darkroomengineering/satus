@@ -39,7 +39,7 @@ lib/
 
 ## Content Management
 
-Edit content at `/studio`. Changes publish via webhooks.
+If the Sanity integration is enabled, manage content at [sanity.io/manage](https://sanity.io/manage) or through your project's Sanity Studio. Changes publish via webhooks.
 
 Manual cache clear: `GET https://[domain]/api/revalidate`
 

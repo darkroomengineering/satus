@@ -21,13 +21,7 @@ import { cancelGuard } from './generate-shared'
 import { INTEGRATION_BUNDLES } from './integration-bundles'
 import { renderDeploymentChecklist } from './templates/deployment-checklist'
 import { renderInventory } from './templates/inventory'
-import {
-  parseCliFlags,
-  pathExists,
-  removeDir,
-  removeFile,
-  resolvePath,
-} from './utils'
+import { parseCliFlags, pathExists, removeFile, resolvePath } from './utils'
 
 /** Current date as an ISO `YYYY-MM-DD` string for generated-document headers. */
 const today = (): string => new Date().toISOString().split('T')[0] ?? ''
@@ -60,7 +54,6 @@ const scanPages = async (): Promise<string[] | null> => {
     return pages
       .sort()
       .map((page) => page.replace('/page.tsx', '').replace('page.tsx', '/'))
-      .filter((route) => !route.includes('(examples)'))
   } catch {
     return null
   }
@@ -69,7 +62,6 @@ const scanPages = async (): Promise<string[] | null> => {
 interface HandoffOptions {
   dryRun: boolean
   projectName: string
-  removeExamples: boolean
   swapReadme: boolean
   removeBranding: boolean
   updatePackageJson: boolean
@@ -301,7 +293,6 @@ const runHandoff = async (options: HandoffOptions): Promise<void> => {
   const {
     dryRun,
     projectName,
-    removeExamples,
     swapReadme: doSwapReadme,
     removeBranding: doRemoveBranding,
     updatePackageJson: doUpdatePackageJson,
@@ -333,13 +324,6 @@ const runHandoff = async (options: HandoffOptions): Promise<void> => {
     s.stop(
       cleaned ? 'Cleaned up environment variables' : 'No env vars to clean'
     )
-  }
-
-  // Remove examples
-  if (removeExamples) {
-    s.start('Removing example pages...')
-    const removed = await removeDir('app/(examples)', dryRun)
-    s.stop(removed ? 'Removed example pages' : 'No example pages to remove')
   }
 
   // Swap README
@@ -412,11 +396,6 @@ const main = async (): Promise<void> => {
         hint: 'Remove unused integration env vars from .env.example',
       },
       {
-        value: 'removeExamples',
-        label: 'Remove example pages',
-        hint: 'Removes app/(examples)/ directory',
-      },
-      {
         value: 'swapReadme',
         label: 'Swap README',
         hint: 'Replace README.md with production version',
@@ -436,7 +415,6 @@ const main = async (): Promise<void> => {
       'removeBranding',
       'updatePackageJson',
       'cleanupEnvVars',
-      'removeExamples',
       'swapReadme',
       'generateInventory',
       'generateChecklist',
@@ -464,7 +442,6 @@ const main = async (): Promise<void> => {
   await runHandoff({
     dryRun,
     projectName: projectNameValue,
-    removeExamples: actionsValue.includes('removeExamples'),
     swapReadme: actionsValue.includes('swapReadme'),
     removeBranding: actionsValue.includes('removeBranding'),
     updatePackageJson: actionsValue.includes('updatePackageJson'),

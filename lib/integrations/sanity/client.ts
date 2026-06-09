@@ -1,3 +1,30 @@
+// USAGE — Sanity CMS
+// 1. Set env vars: NEXT_PUBLIC_SANITY_PROJECT_ID, NEXT_PUBLIC_SANITY_DATASET,
+//    NEXT_PUBLIC_SANITY_API_READ_TOKEN, SANITY_API_READ_TOKEN
+// 2. Define schemas in lib/integrations/sanity/schemas/ and register them in schemas/index.ts
+// 3. Fetch data in a Server Component page:
+//
+//   import { sanityFetch } from '@/integrations/sanity/live'
+//   import { pageQuery } from '@/integrations/sanity/queries'
+//
+//   export default async function Page() {
+//     'use cache'
+//     const { data } = await sanityFetch({ query: pageQuery, params: { slug: 'home' } })
+//     return <MyContent data={data} />
+//   }
+//
+// 4. Add `<SanityLive />` to your root layout for real-time preview mode.
+//
+// 5. To re-add the Sanity Studio route (/studio), create:
+//    app/studio/layout.tsx  — disables draft mode on enter (see studio/layout.tsx)
+//    app/studio/[[...tool]]/page.tsx:
+//      'use client'
+//      import { NextStudio } from 'next-sanity/studio'
+//      import config from '@/integrations/sanity/sanity.config'
+//      export default function StudioPage() { return <NextStudio config={config} /> }
+//
+// Full walkthrough: see the manual (app/page.tsx) step 5 "Add a plugin".
+
 import { createClient, type SanityClient } from 'next-sanity'
 import { isConfigured } from '@/integrations/registry'
 import { apiVersion, dataset, projectId, studioUrl } from './env'

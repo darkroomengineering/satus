@@ -37,16 +37,22 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Changed
 
+- Components are now catalogued in Storybook (`bun storybook`) instead of an in-app `/components` page; added stories for accordion, alert-dialog, checkbox, link, marquee, menu, switch, and tabs.
+- `app/page.tsx` is now a self-contained in-app manual (clone → ship); replace it with your homepage and delete `app/page.module.css` when you start a project.
+- Integrations reframed as opt-in plugins isolated under `lib/integrations` with `// USAGE` notes — precursor to the additive `satus add <plugin>` CLI (#185).
 - Shopify cart types: named the post-reshape line item (`CartLineItem`), made `Cart.id` required, and removed 11 `as` casts; `removeItem`/`updateItemQuantity` now take the client-held `lineId`, dropping a `getCart` round-trip per mutation. (#198)
 - Mailchimp integration returns typed `MailchimpErrorCode` values instead of sniffing error strings; tag/note writes are best-effort. (#198)
 - WebGL: removed the unused `local` canvas mode and `canvas/webgl.tsx`, dropped vestigial `Scene` inheritance from `Program`, and made the flowmap/fluid sims opt-in instead of booting on every WebGL page. (#199, #206)
 - Sanity example pages wrap `sanityFetch` in a `'use cache'` function for Cache Components (`cacheComponents`) compatibility, which also dedupes the page and `generateMetadata` fetches. (#205, #208)
 - Dev scripts deduped: one shared ts-morph `Project` in `ast-transforms`, reused `toPascalCase`/`cancelGuard`, and renamed the two divergent `updatePackageJson` helpers. (#198)
-- `/` now redirects to `/components` (was the marketing homepage); forks should replace `app/page.tsx` with their own homepage. (#188)
 - `spring()` (`lib/utils/animation.ts`) documentation now steers to CSS `linear()` easing for off-thread springs. (#189)
 - Dependabot PRs now auto-sync `bun.lock` via a `pull_request_target` workflow, so they pass the frozen-lockfile install in CI. (#190)
 - Consolidated root docs: folded `BOUNDARIES.md` into `ARCHITECTURE.md` and
   refreshed the doc maps in `README.md` and `AGENTS.md` (#177).
+
+### Removed
+
+- The in-app `/components` showcase, the `app/(examples)/` example routes (R3F, Sanity, Shopify, HubSpot), and the `app/studio/` route — component demos moved to Storybook and integration usage distilled into `// USAGE` comments in `lib/integrations/*`. Only the demo surface is gone; the reusable integration code stays.
 
 ### Fixed
 

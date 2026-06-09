@@ -17,22 +17,9 @@ const LINKS = [
   },
 ] as const
 
-// Example pages demonstrating integrations
-const EXAMPLES = [
-  { href: '/components', label: 'components' },
-  { href: '/r3f', label: 'r3f' },
-  { href: '/sanity', label: 'sanity' },
-  { href: '/shopify', label: 'shopify' },
-  { href: '/hubspot', label: 'hubspot' },
-]
-
 export function Header() {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
-
-  const isExamplePage = EXAMPLES.some(
-    (ex) => pathname === ex.href || pathname.startsWith(`${ex.href}/`)
-  )
 
   return (
     <header className={s.header}>
@@ -82,47 +69,6 @@ export function Header() {
             </li>
           )
         })}
-
-        {/* Examples group with nested level 2 */}
-        <li className={s.examplesGroup}>
-          <div className={cn(s.navItem, s.examplesLabel)}>
-            <span className={cn(s.chevron, isExamplePage && s.chevronActive)}>
-              ›
-            </span>
-            <span
-              className={cn(
-                s.navLink,
-                isExamplePage ? s.navLinkActive : s.navLinkDim
-              )}
-            >
-              examples
-            </span>
-          </div>
-
-          {/* Level 2: Examples sub-navigation */}
-          <ul className={cn(s.nav, s.examplesList)}>
-            {EXAMPLES.map((link) => {
-              const isActive =
-                pathname === link.href || pathname.startsWith(`${link.href}/`)
-              return (
-                <li key={link.href} className={s.navItem}>
-                  <span className={cn(s.chevron, isActive && s.chevronActive)}>
-                    ›
-                  </span>
-                  <Link
-                    className={cn(
-                      s.navLink,
-                      isActive ? s.navLinkActive : s.navLinkDim
-                    )}
-                    href={link.href}
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
-        </li>
       </ul>
     </header>
   )

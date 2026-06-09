@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react'
+import { useState } from 'react'
 import { Select } from './index'
 
 const meta = {
@@ -45,5 +46,43 @@ export const Disabled: Story = {
     options: COLOR_OPTIONS,
     placeholder: 'Pick a colour',
     disabled: true,
+  },
+}
+
+const FRUIT_OPTIONS = [
+  { value: 'apple', label: 'Apple' },
+  { value: 'banana', label: 'Banana' },
+  { value: 'orange', label: 'Orange' },
+  { value: 'grape', label: 'Grape' },
+  { value: 'strawberry', label: 'Strawberry' },
+] as const
+
+export const ControlledFruits: Story = {
+  name: 'Controlled (fruits)',
+  render: () => {
+    const [value, setValue] = useState<string>()
+
+    return (
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+          minWidth: 200,
+        }}
+      >
+        <Select
+          options={FRUIT_OPTIONS}
+          value={value ?? ''}
+          onValueChange={setValue}
+          placeholder="Choose a fruit..."
+        />
+        {value && (
+          <p style={{ fontSize: '0.875rem', opacity: 0.7 }}>
+            Selected: {value}
+          </p>
+        )}
+      </div>
+    )
   },
 }

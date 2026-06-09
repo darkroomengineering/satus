@@ -1,6 +1,5 @@
 import type { MetadataRoute } from 'next'
 import { env } from '@/lib/env'
-import { isConfigured } from '@/lib/integrations/registry'
 
 const APP_BASE_URL = env.NEXT_PUBLIC_BASE_URL ?? 'https://localhost:3000'
 
@@ -13,80 +12,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1,
     },
   ]
-
-  // Only fetch Sanity pages if Sanity is configured
-  if (isConfigured('sanity')) {
-    try {
-      const { client } = await import('@/lib/integrations/sanity/client')
-      const { default: groq } = await import('groq')
-
-      // Skip if client is null (shouldn't happen since we check isSanityConfigured)
-      if (!client) return baseRoutes
-
-      // Fetch all published pages and articles
-      const pages = await client.fetch<
-        Array<{
-          slug: { current: string }
-          _updatedAt: string
-          metadata?: { noIndex?: boolean }
-        }>
-      >(
-        groq`*[_type == "page" && defined(slug.current)] {
-          slug,
-          _updatedAt,
-          metadata
-        }`
-      )
-
-      const articles = await client.fetch<
-        Array<{
-          slug: { current: string }
-          _updatedAt: string
-          metadata?: { noIndex?: boolean }
-        }>
-      >(
-        groq`*[_type == "article" && defined(slug.current)] {
-          slug,
-          _updatedAt,
-          metadata
-        }`
-      )
-
-      // Add pages to sitemap (exclude noIndex pages)
-      const pageEntries: MetadataRoute.Sitemap = pages.flatMap((page) =>
-        page.metadata?.noIndex
-          ? []
-          : [
-              {
-                url: `${APP_BASE_URL}/sanity/${page.slug.current}`,
-                lastModified: new Date(page._updatedAt),
-                changeFrequency: 'weekly' as const,
-                priority: 0.8,
-              },
-            ]
-      )
-
-      // Add articles to sitemap (exclude noIndex articles)
-      const articleEntries: MetadataRoute.Sitemap = articles.flatMap(
-        (article) =>
-          article.metadata?.noIndex
-            ? []
-            : [
-                {
-                  url: `${APP_BASE_URL}/sanity/${article.slug.current}`,
-                  lastModified: new Date(article._updatedAt),
-                  changeFrequency: 'weekly' as const,
-                  priority: 0.7,
-                },
-              ]
-      )
-
-      return [...baseRoutes, ...pageEntries, ...articleEntries]
-    } catch (error) {
-      console.error('Error generating sitemap from Sanity:', error)
-      return baseRoutes
-    }
-  }
 
   return baseRoutes
 }

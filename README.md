@@ -8,13 +8,15 @@ A modern Next.js 16 starter with React 19, Tailwind CSS v4, and optional WebGL. 
 
 > **Note**: This README is for template developers. For client handoff, see [PROD-README.md](PROD-README.md).
 
+Run `bun dev` and open [localhost:3000](http://localhost:3000) — the landing page is a step-by-step manual that walks you from a fresh clone to a shippable site. The rest of this README is the reference version.
+
 ## Features
 
 - **Next.js 16 + React 19** — App Router with React 19.2 and strict TypeScript out of the box
 - **Tailwind v4** — Tailwind CSS v4 alongside CSS Modules
-- **Optional WebGL** — React Three Fiber and GSAP, enabled only when you need them
-- **Pluggable integrations** — Sanity, Shopify, and HubSpot wired and ready
-- **Interactive setup** — scaffolds only the integrations you pick
+- **Components in Storybook** — every UI primitive is catalogued in Storybook, isolated with controls and docs
+- **Opt-in integrations** — Sanity, Shopify, HubSpot, and WebGL stay isolated under `lib/integrations` until you configure them
+- **Interactive setup** — strip the integrations you don't need from a fresh clone
 - **One-command handoff** — strips branding, swaps in the prod README, and generates a component inventory
 - **Modern tooling** — Bun, Biome, and Turbopack
 
@@ -29,12 +31,27 @@ A modern Next.js 16 starter with React 19, Tailwind CSS v4, and optional WebGL. 
 
 ```bash
 bun install
-bun run setup:project    # Interactive setup - choose integrations
-cp .env.example .env.local
-bun dev
+cp .env.example .env.local   # set NEXT_PUBLIC_BASE_URL
+bun dev                      # open localhost:3000 for the manual
 ```
 
-Or skip setup and keep everything: `bun install && bun dev`
+Trim what you don't need: `bun run setup:project` strips unused integrations (code, deps, env) interactively.
+
+## Components live in Storybook
+
+UI primitives are catalogued in Storybook rather than on an in-app page — isolated, with controls and autodocs. Source lives in `components/ui`; add a `*.stories.tsx` next to any new component.
+
+```bash
+bun storybook
+```
+
+## Integrations are opt-in plugins
+
+Satūs keeps integrations — Sanity, Shopify, HubSpot, WebGL — isolated under `lib/integrations` (and `lib/webgl`). They only activate once you set their env vars, and each folder carries a `// USAGE` note showing how to wire it in. None is surfaced in the default app.
+
+- **Use one** — set its env vars (see `lib/env.ts`) and follow the `// USAGE` reference in its folder.
+- **Drop the ones you don't need** — `bun run setup:project`.
+- **Coming next** — an additive `satus add <plugin>` CLI that injects an integration into a living project. Design captured in [#185](../../issues/185).
 
 ## Tech Stack
 
@@ -42,23 +59,24 @@ Or skip setup and keep everything: `bun install && bun dev`
 |----------|--------------|
 | Framework | Next.js 16, React 19.2, TypeScript |
 | Styling | Tailwind CSS v4, CSS Modules |
+| Catalogue | Storybook |
 | Optional | React Three Fiber, GSAP, Sanity, Shopify, HubSpot |
 | Tooling | Bun, Biome, Turbopack |
 
 ## Project Structure
 
 ```
-app/                    # Next.js pages and routes
-components/             # UI components
+app/                    # Next.js pages and routes (page.tsx is the manual)
+components/             # UI components (catalogued in Storybook)
 lib/                    # Everything non-UI
   ├── hooks/           # Custom React hooks
-  ├── integrations/    # Third-party services
+  ├── integrations/    # Opt-in plugins (Sanity, Shopify, HubSpot…)
   ├── styles/          # CSS & Tailwind
-  ├── webgl/           # 3D graphics (optional)
+  ├── webgl/           # 3D graphics (opt-in)
   └── dev/             # Debug tools (optional)
 ```
 
-> **Mental model:** UI → `components/`, everything else → `lib/`
+> **Mental model:** UI → `components/`, everything else → `lib/`. Integrations are opt-in plugins, not baked-in defaults.
 
 ## Documentation
 
@@ -66,6 +84,7 @@ lib/                    # Everything non-UI
 |------|---------------|
 | Engineering Standards | [AGENTS.md](AGENTS.md) - Canonical rules for all AI tools and contributors |
 | Architecture | [ARCHITECTURE.md](ARCHITECTURE.md) - Key decisions, patterns, customization |
+| Component Catalogue | Storybook (`bun storybook`) - Isolated UI primitives with docs |
 | Component Inventory | [COMPONENTS.md](COMPONENTS.md) - Auto-generated component/hook/utility manifest |
 | Changelog | [CHANGELOG.md](CHANGELOG.md) - Release history and versioning policy |
 | App Router | [app/README.md](app/README.md) - Pages, layouts, routing |
@@ -78,9 +97,10 @@ lib/                    # Everything non-UI
 ```bash
 bun dev              # Development server
 bun build            # Production build
+bun storybook        # Component catalogue
 bun lint             # Biome linter
 bun run generate     # Generate pages/components
-bun run setup:project  # Configure integrations
+bun run setup:project  # Strip integrations you don't need
 bun run handoff      # Prepare for client delivery
 ```
 
@@ -93,10 +113,10 @@ bun run handoff
 ```
 
 This interactive script:
-- Removes example pages and Satūs branding
-- Swaps README with production version
-- Generates component inventory
-- Updates package.json with project name
+- Removes Satūs branding
+- Swaps README with the production version
+- Generates a component inventory
+- Updates package.json with the project name
 
 ## Key Conventions
 

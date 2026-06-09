@@ -14,7 +14,6 @@ import { useMediaQuery } from 'hamo'
 | `useReveal` | Reveal-on-scroll via IntersectionObserver — CSS-driven, compositor-thread; reduced-motion + no-JS safe |
 | `useDeviceDetection` | Detect mobile/desktop/tablet |
 | `usePrefetch` | Prefetch routes on visibility |
-| `useStore` | Global Zustand store |
 | `useOnlineStatus` | Network online/offline status |
 | `usePreferredColorScheme` | System theme preference |
 | `usePreferredReducedMotion` | Reduced motion preference |

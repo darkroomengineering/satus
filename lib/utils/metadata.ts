@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { env } from '@/lib/env'
+import { APP_BASE_URL, env } from '@/lib/env'
 
 /**
  * Metadata Generation Utilities
@@ -26,8 +26,6 @@ interface GenerateMetadataOptions {
   modifiedTime?: string
   authors?: string[]
 }
-
-const APP_BASE_URL = env.NEXT_PUBLIC_BASE_URL ?? 'https://localhost:3000'
 
 /**
  * Generate complete metadata object for pages
@@ -110,9 +108,9 @@ export function generatePageMetadata(
         },
       ],
     },
-    other: {
-      'fb:app_id': env.NEXT_PUBLIC_FACEBOOK_APP_ID ?? '',
-    },
+    ...(env.NEXT_PUBLIC_FACEBOOK_APP_ID
+      ? { other: { 'fb:app_id': env.NEXT_PUBLIC_FACEBOOK_APP_ID } }
+      : {}),
   }
 
   if (noIndex) {

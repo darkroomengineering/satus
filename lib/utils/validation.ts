@@ -119,11 +119,17 @@ export const analyticsEnvSchema = z
     }
   )
 
-/** Core environment variables required by the application. */
+/**
+ * Core environment variables for the application.
+ * NEXT_PUBLIC_BASE_URL is optional here — lib/env.ts is the single authority
+ * (it falls back to localhost:3000 for dev and warns in production when unset).
+ */
 export const coreEnvSchema = z.object({
-  NEXT_PUBLIC_BASE_URL: z.url({
-    error: 'NEXT_PUBLIC_BASE_URL must be a valid URL',
-  }),
+  NEXT_PUBLIC_BASE_URL: z
+    .url({
+      error: 'NEXT_PUBLIC_BASE_URL must be a valid URL',
+    })
+    .optional(),
 })
 
 // ---------------------------------------------------------------------------

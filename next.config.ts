@@ -193,9 +193,4 @@ const bundleAnalyzerPlugin = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 })
 
-const NextApp = () => {
-  const plugins = [bundleAnalyzerPlugin]
-  return plugins.reduce((config, plugin) => plugin(config), nextConfig)
-}
-
-export default NextApp
+export default bundleAnalyzerPlugin(nextConfig)

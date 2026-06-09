@@ -71,3 +71,24 @@ type Env = z.infer<typeof envSchema>
  * without runtime validation overhead (parsing happens once at import).
  */
 export const env: Env = envSchema.parse(process.env)
+
+/**
+ * Canonical base URL for the application.
+ *
+ * Falls back to `https://localhost:3000` for local development (the dev server
+ * supports --https mode). In production, NEXT_PUBLIC_BASE_URL must be set —
+ * omitting it causes all canonical URLs, sitemaps, and OG images to resolve
+ * to localhost, breaking SEO entirely.
+ */
+export const APP_BASE_URL = env.NEXT_PUBLIC_BASE_URL ?? 'https://localhost:3000'
+
+if (
+  process.env.NODE_ENV === 'production' &&
+  !process.env.NEXT_PUBLIC_BASE_URL
+) {
+  console.warn(
+    '[env] NEXT_PUBLIC_BASE_URL is not set in production. ' +
+      'Canonical URLs, sitemaps, and OG image paths will resolve to localhost, ' +
+      'which harms SEO. Set NEXT_PUBLIC_BASE_URL to your production domain.'
+  )
+}

@@ -242,9 +242,9 @@ describe('coreEnvSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  test('missing field fails', () => {
+  test('missing field passes (optional)', () => {
     const result = coreEnvSchema.safeParse({})
-    expect(result.success).toBe(false)
+    expect(result.success).toBe(true)
   })
 })
 

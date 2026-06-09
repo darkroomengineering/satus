@@ -45,6 +45,8 @@ UI primitives are catalogued in Storybook rather than on an in-app page — isol
 bun storybook
 ```
 
+**Hosting it (optional).** Storybook is its own static build, not a Next route. To serve it at `/storybook` on a deployment, create a second Vercel project from this repo (build command `bun run build-storybook`, output directory `storybook-static`), then set `NEXT_PUBLIC_STORYBOOK_URL` to its URL on the **Preview** environment. The app proxies `/storybook` to it there, and keeps the route disabled in Production by design.
+
 ## Integrations are opt-in plugins
 
 Satūs keeps integrations — Sanity, Shopify, HubSpot, WebGL — isolated under `lib/integrations` (and `lib/webgl`). They only activate once you set their env vars, and each folder carries a `// USAGE` note showing how to wire it in. None is surfaced in the default app.

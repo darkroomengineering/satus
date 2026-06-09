@@ -6,16 +6,32 @@ import { useState } from 'react'
 import { Link } from '@/components/ui/link'
 import s from './header.module.css'
 
+type NavLink = { href: string; label: string; external?: boolean }
+
+// In local dev, link straight to the Storybook dev server. In deployed builds,
+// link to the /storybook proxy (see next.config.ts), shown only when
+// NEXT_PUBLIC_STORYBOOK_URL is configured — so a production build with no
+// Storybook host shows no link.
+const STORYBOOK_HREF =
+  process.env.NODE_ENV === 'development'
+    ? 'http://localhost:6006'
+    : '/storybook/'
+const STORYBOOK_ENABLED =
+  process.env.NODE_ENV === 'development' ||
+  Boolean(process.env.NEXT_PUBLIC_STORYBOOK_URL)
+
 // Navigation links - customize for your project
-const LINKS = [
+const LINKS: NavLink[] = [
   { href: '/', label: 'home' },
-  { href: 'http://localhost:6006', label: 'storybook', external: true },
+  ...(STORYBOOK_ENABLED
+    ? [{ href: STORYBOOK_HREF, label: 'storybook', external: true }]
+    : []),
   {
     href: 'https://github.com/darkroomengineering/satus',
     label: 'github',
     external: true,
   },
-] as const
+]
 
 export function Header() {
   const pathname = usePathname()

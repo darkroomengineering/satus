@@ -1,6 +1,17 @@
 import bundleAnalyzer from '@next/bundle-analyzer'
 import type { NextConfig } from 'next'
 
+// --- Storybook proxy ---------------------------------------------------------
+// Serves the standalone Storybook deployment at /storybook on this domain.
+// Active ONLY when NEXT_PUBLIC_STORYBOOK_URL is set (e.g. on Preview) AND the
+// deployment is not Production — so production never exposes a /storybook route.
+// To drop it entirely: unset the env var, or delete this block + the
+// redirects/rewrites entries below.
+const STORYBOOK_URL = process.env.NEXT_PUBLIC_STORYBOOK_URL?.replace(/\/+$/, '')
+const STORYBOOK_PROXY_ENABLED =
+  Boolean(STORYBOOK_URL) && process.env.VERCEL_ENV !== 'production'
+// -----------------------------------------------------------------------------
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   reactCompiler: true,
@@ -159,6 +170,21 @@ const nextConfig: NextConfig = {
       ],
     },
   ],
+  redirects: async () =>
+    STORYBOOK_PROXY_ENABLED
+      ? [{ source: '/storybook', destination: '/storybook/', permanent: false }]
+      : [],
+  // Storybook's static build uses relative asset paths, so proxying the whole
+  // /storybook/* subtree to the standalone deployment works without a base path.
+  rewrites: async () =>
+    STORYBOOK_PROXY_ENABLED
+      ? [
+          {
+            source: '/storybook/:path*',
+            destination: `${STORYBOOK_URL}/:path*`,
+          },
+        ]
+      : [],
 }
 
 const bundleAnalyzerPlugin = bundleAnalyzer({

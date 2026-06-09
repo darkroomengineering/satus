@@ -2,7 +2,12 @@
 
 import { AlertDialog as BaseAlertDialog } from '@base-ui/react/alert-dialog'
 import cn from 'clsx'
-import type { ComponentProps, ReactNode } from 'react'
+import {
+  type ComponentProps,
+  isValidElement,
+  type ReactElement,
+  type ReactNode,
+} from 'react'
 import s from './alert-dialog.module.css'
 
 /**
@@ -77,48 +82,33 @@ function AlertDialog({
   destructive = false,
   className,
 }: AlertDialogProps) {
+  // When trigger is a ReactElement, pass it as the render prop so Base UI
+  // merges its own trigger props (aria-*, data-*, onClick) correctly without
+  // clobbering the element's existing handlers.
   return (
     <BaseAlertDialog.Root>
       <BaseAlertDialog.Trigger
-        render={(props) => {
-          // Clone the trigger element with dialog trigger props
-          if (
-            typeof trigger === 'object' &&
-            trigger !== null &&
-            'type' in trigger
-          ) {
-            const triggerEl = trigger as React.ReactElement<
-              Record<string, unknown>
-            >
-            return <triggerEl.type {...triggerEl.props} {...props} />
-          }
-          return (
-            <button type="button" {...props}>
-              {trigger}
-            </button>
+        render={
+          isValidElement(trigger) ? (
+            (trigger as ReactElement)
+          ) : (
+            <button type="button">{trigger}</button>
           )
-        }}
+        }
       />
       <BaseAlertDialog.Portal>
-        <BaseAlertDialog.Backdrop
-          {...(s.backdrop && { className: s.backdrop })}
-        />
+        <BaseAlertDialog.Backdrop className={cn(s.backdrop)} />
         <BaseAlertDialog.Popup className={cn(s.popup, className)}>
-          <BaseAlertDialog.Title {...(s.title && { className: s.title })}>
+          <BaseAlertDialog.Title className={cn(s.title)}>
             {title}
           </BaseAlertDialog.Title>
           {description && (
-            <BaseAlertDialog.Description
-              {...(s.description && { className: s.description })}
-            >
+            <BaseAlertDialog.Description className={cn(s.description)}>
               {description}
             </BaseAlertDialog.Description>
           )}
           <div className={s.actions}>
-            <BaseAlertDialog.Close
-              {...(s.cancel && { className: s.cancel })}
-              onClick={onCancel}
-            >
+            <BaseAlertDialog.Close className={cn(s.cancel)} onClick={onCancel}>
               {cancelLabel}
             </BaseAlertDialog.Close>
             <BaseAlertDialog.Close

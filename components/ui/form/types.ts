@@ -41,7 +41,7 @@ export interface UseFormReturn<T = unknown> {
   formState: FormState<T> | null
   formAction: (formData: FormData) => void
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void
-  register: (index: number) => {
+  register: (name: string) => {
     ref: (node: HTMLInputElement | HTMLTextAreaElement | null) => void
     onChange: (
       e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -50,11 +50,11 @@ export interface UseFormReturn<T = unknown> {
       e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => void
   }
-  isActive: boolean[]
-  isValid: boolean[]
+  isActive: Record<string, boolean>
+  isValid: Record<string, boolean>
   isPending: boolean
   isReady: boolean
-  errors: FieldError[]
+  errors: Record<string, FieldError>
 }
 
 // Form component props
@@ -73,9 +73,9 @@ export interface FormContextState<T = unknown> {
   formState: FormState<T> | null
   isPending: boolean
   isReady: boolean
-  isActive: boolean[]
-  isValid: boolean[]
-  errors: FieldError[]
+  isActive: Record<string, boolean>
+  isValid: Record<string, boolean>
+  errors: Record<string, FieldError>
 }
 
 // Standard context actions

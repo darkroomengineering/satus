@@ -56,9 +56,7 @@ function Checkbox({
   if (!label) {
     return (
       <BaseCheckbox.Root className={cn(s.root, className)} {...props}>
-        <BaseCheckbox.Indicator
-          {...(s.indicator && { className: s.indicator })}
-        >
+        <BaseCheckbox.Indicator className={cn(s.indicator)}>
           <CheckIcon />
         </BaseCheckbox.Indicator>
       </BaseCheckbox.Root>
@@ -69,9 +67,7 @@ function Checkbox({
     // biome-ignore lint/a11y/noLabelWithoutControl: Base UI checkbox is wrapped in label for accessibility
     <label className={cn(s.container, labelClassName)}>
       <BaseCheckbox.Root className={cn(s.root, className)} {...props}>
-        <BaseCheckbox.Indicator
-          {...(s.indicator && { className: s.indicator })}
-        >
+        <BaseCheckbox.Indicator className={cn(s.indicator)}>
           <CheckIcon />
         </BaseCheckbox.Indicator>
       </BaseCheckbox.Root>

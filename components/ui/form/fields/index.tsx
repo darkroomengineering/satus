@@ -38,7 +38,6 @@ type InputFieldProps = {
   placeholder?: string
   required?: boolean
   disabled?: boolean
-  idx: number
 }
 
 export function InputField({
@@ -50,25 +49,26 @@ export function InputField({
   placeholder,
   required = false,
   disabled = false,
-  idx,
 }: InputFieldProps) {
   const { state, actions } = useFormContext()
   const { errors, isActive } = state
   const { register } = actions
-  const error = errors[idx]
+  // Use name (or id as fallback) as the registration key — matches the input's name attribute
+  const fieldName = name ?? id
+  const error = errors[fieldName]
 
   return (
     <Field.Root
       className={cn(
         s.field,
-        isActive[idx] && s.active,
+        isActive[fieldName] && s.active,
         error?.state && s.error,
         className
       )}
       disabled={disabled}
     >
       {label && (
-        <Field.Label htmlFor={id} {...(s.label && { className: s.label })}>
+        <Field.Label htmlFor={id} className={cn(s.label)}>
           {label}
           {required && <span aria-hidden="true"> *</span>}
         </Field.Label>
@@ -76,15 +76,15 @@ export function InputField({
       <Field.Control
         type={type}
         id={id}
-        name={name ?? id}
+        name={fieldName}
         required={required}
         placeholder={placeholder}
-        {...(s.input && { className: s.input })}
-        {...register(idx)}
+        className={cn(s.input)}
+        {...register(fieldName)}
         render={<input />}
       />
       {error?.state && error.message && (
-        <Field.Error {...(s.errorMessage && { className: s.errorMessage })}>
+        <Field.Error className={cn(s.errorMessage)}>
           {error.message}
         </Field.Error>
       )}
@@ -101,7 +101,6 @@ type TextareaFieldProps = {
   required?: boolean
   disabled?: boolean
   rows?: number
-  idx: number
 }
 
 export function TextareaField({
@@ -113,33 +112,33 @@ export function TextareaField({
   required = false,
   disabled = false,
   rows = 4,
-  idx,
 }: TextareaFieldProps) {
   const { state, actions } = useFormContext()
   const { errors, isActive } = state
   const { register } = actions
-  const error = errors[idx]
-  const reg = register(idx)
+  const fieldName = name ?? id
+  const error = errors[fieldName]
+  const reg = register(fieldName)
 
   return (
     <Field.Root
       className={cn(
         s.field,
-        isActive[idx] && s.active,
+        isActive[fieldName] && s.active,
         error?.state && s.error,
         className
       )}
       disabled={disabled}
     >
       {label && (
-        <Field.Label htmlFor={id} {...(s.label && { className: s.label })}>
+        <Field.Label htmlFor={id} className={cn(s.label)}>
           {label}
           {required && <span aria-hidden="true"> *</span>}
         </Field.Label>
       )}
       <textarea
         id={id}
-        name={name ?? id}
+        name={fieldName}
         required={required}
         placeholder={placeholder}
         rows={rows}
@@ -147,7 +146,7 @@ export function TextareaField({
         {...reg}
       />
       {error?.state && error.message && (
-        <Field.Error {...(s.errorMessage && { className: s.errorMessage })}>
+        <Field.Error className={cn(s.errorMessage)}>
           {error.message}
         </Field.Error>
       )}
@@ -158,7 +157,6 @@ export function TextareaField({
 type CheckboxesFieldProps = {
   className?: string
   options: { label: string; value: string }[]
-  idx: number
   name?: string
   label?: string
 }
@@ -166,7 +164,6 @@ type CheckboxesFieldProps = {
 export function CheckboxesField({
   className,
   options,
-  idx,
   name = 'interests',
   label = 'Select topics of interest',
 }: CheckboxesFieldProps) {
@@ -180,19 +177,11 @@ export function CheckboxesField({
     )
   }
 
-  const reg = register(idx)
+  const reg = register(name)
 
   return (
-    <Field.Root
-      {...(cn(s.field, s.checkboxGroup, className) && {
-        className: cn(s.field, s.checkboxGroup, className),
-      })}
-    >
-      {label && (
-        <Field.Label {...(s.groupLabel && { className: s.groupLabel })}>
-          {label}
-        </Field.Label>
-      )}
+    <Field.Root className={cn(s.field, s.checkboxGroup, className)}>
+      {label && <Field.Label className={cn(s.groupLabel)}>{label}</Field.Label>}
       <input
         type="hidden"
         name={name}

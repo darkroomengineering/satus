@@ -27,7 +27,7 @@ import type {
  *
  * return (
  *   <form action={formAction} onSubmit={onSubmit}>
- *     <input {...register(0)} />
+ *     <input {...register('email')} name="email" />
  *     <button disabled={!isReady || isPending}>Submit</button>
  *   </form>
  * )
@@ -44,38 +44,29 @@ export function useForm<T = unknown>({
     initialState as FormState<unknown> | null
   )
   const [isPending, startTransition] = useTransition()
-  const [isActive, setIsActive] = useState<boolean[]>([])
-  const [isValid, setIsValid] = useState<boolean[]>([])
-  const [errors, setErrors] = useState<FieldError[]>([])
-  const inputsRefs = useRef<(HTMLInputElement | HTMLTextAreaElement | null)[]>(
-    []
-  )
-  const registeredCount = useRef(0)
+  const [isActive, setIsActive] = useState<Record<string, boolean>>({})
+  const [isValid, setIsValid] = useState<Record<string, boolean>>({})
+  const [errors, setErrors] = useState<Record<string, FieldError>>({})
+  const inputsRefs = useRef<
+    Record<string, HTMLInputElement | HTMLTextAreaElement | null>
+  >({})
 
-  // Initialize state for a specific input when it registers
+  // Initialize state for a field when it first registers
   function initializeInput(
-    index: number,
+    name: string,
     input: HTMLInputElement | HTMLTextAreaElement | null
   ) {
-    setIsActive((prev) => {
-      const next = [...prev]
-      next[index] = false
-      return next
-    })
+    setIsActive((prev) => ({ ...prev, [name]: false }))
     setIsValid((prev) => {
-      const next = [...prev]
-      // Hidden inputs are always valid, others start as invalid until validated
       const isHidden =
         input?.id === 'hidden' ||
         (input instanceof HTMLInputElement && input.type === 'hidden')
-      next[index] = isHidden
-      return next
+      return { ...prev, [name]: isHidden }
     })
-    setErrors((prev) => {
-      const next = [...prev]
-      next[index] = { state: false, message: '' }
-      return next
-    })
+    setErrors((prev) => ({
+      ...prev,
+      [name]: { state: false, message: '' },
+    }))
   }
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -90,58 +81,44 @@ export function useForm<T = unknown>({
     })
   }
 
-  function setToActiveInput(value: string, index: number) {
-    setIsActive((prev) => {
-      const next = [...prev]
-      next[index] = value.length > 0
-      return next
-    })
+  function setToActiveInput(value: string, name: string) {
+    setIsActive((prev) => ({ ...prev, [name]: value.length > 0 }))
   }
 
-  function validate(value: string, index: number) {
-    const element = inputsRefs.current[index]
+  function validate(value: string, name: string) {
+    const element = inputsRefs.current[name]
     if (!element) return
 
     const elementType =
       element instanceof HTMLInputElement ? element.type : 'textarea'
     const validator = validators[element.id] || validators[elementType]
 
-    // If no custom validator, field is valid if it has a value (for required) or always valid (for optional)
     const isRequired = element.required
     let isValidValue: boolean
 
     if (validator) {
-      // Use custom validator
       isValidValue = value === '' ? false : validator(value)
     } else {
-      // No custom validator - valid if has value or not required
       isValidValue = value !== '' || !isRequired
     }
 
-    setIsValid((prev) => {
-      const next = [...prev]
-      next[index] = isValidValue
-      return next
-    })
-
-    setErrors((prev) => {
-      const next = [...prev]
-      next[index] = {
+    setIsValid((prev) => ({ ...prev, [name]: isValidValue }))
+    setErrors((prev) => ({
+      ...prev,
+      [name]: {
         state: !isValidValue && value !== '',
         message: isValidValue ? '' : `Invalid ${element.id || element.name}`,
-      }
-      return next
-    })
+      },
+    }))
   }
 
-  function register(index: number) {
+  function register(name: string) {
     return {
       ref: (node: HTMLInputElement | HTMLTextAreaElement | null) => {
-        const isNewRegistration = !inputsRefs.current[index] && node
-        inputsRefs.current[index] = node
+        const isNewRegistration = !inputsRefs.current[name] && node
+        inputsRefs.current[name] = node
         if (isNewRegistration) {
-          registeredCount.current++
-          initializeInput(index, node)
+          initializeInput(name, node)
         }
       },
       onChange: ({
@@ -149,9 +126,9 @@ export function useForm<T = unknown>({
       }: Parameters<
         ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>
       >[0]) => {
-        setToActiveInput(target.value, index)
+        setToActiveInput(target.value, name)
         if (!onBlur) {
-          validate(target.value, index)
+          validate(target.value, name)
         }
       },
       onBlur: ({
@@ -160,7 +137,7 @@ export function useForm<T = unknown>({
         FocusEventHandler<HTMLInputElement | HTMLTextAreaElement>
       >[0]) => {
         if (onBlur) {
-          validate(target.value, index)
+          validate(target.value, name)
         }
       },
     }
@@ -174,7 +151,10 @@ export function useForm<T = unknown>({
     isActive,
     isValid,
     isPending,
-    isReady: isValid.every(Boolean) && errors.every(({ state }) => !state),
+    isReady:
+      Object.values(isValid).length > 0 &&
+      Object.values(isValid).every(Boolean) &&
+      Object.values(errors).every(({ state }) => !state),
     errors,
   }
 }

@@ -4,8 +4,8 @@ import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip'
 import cn from 'clsx'
 import {
   type ComponentProps,
-  cloneElement,
   isValidElement,
+  type ReactElement,
   type ReactNode,
 } from 'react'
 import s from './tooltip.module.css'
@@ -45,21 +45,18 @@ function Tooltip({ content, children, side = 'top', className }: TooltipProps) {
     <BaseTooltip.Provider>
       <BaseTooltip.Root>
         <BaseTooltip.Trigger
-          render={(triggerProps) => {
-            // If child is a valid element, clone it with trigger props
-            if (isValidElement(children)) {
-              return cloneElement(children, {
-                ...triggerProps,
-              } as Record<string, unknown>)
-            }
-            // Fallback to span wrapper
-            return <span {...triggerProps}>{children}</span>
-          }}
+          render={
+            isValidElement(children) ? (
+              (children as ReactElement)
+            ) : (
+              <span>{children}</span>
+            )
+          }
         />
         <BaseTooltip.Portal>
           <BaseTooltip.Positioner side={side} sideOffset={8}>
             <BaseTooltip.Popup className={cn(s.popup, className)}>
-              <BaseTooltip.Arrow {...(s.arrow && { className: s.arrow })} />
+              <BaseTooltip.Arrow className={cn(s.arrow)} />
               {content}
             </BaseTooltip.Popup>
           </BaseTooltip.Positioner>
@@ -82,7 +79,7 @@ function Positioner({
 }: ComponentProps<typeof BaseTooltip.Positioner>) {
   return (
     <BaseTooltip.Positioner
-      {...(className && { className })}
+      className={className}
       sideOffset={sideOffset}
       {...props}
     />

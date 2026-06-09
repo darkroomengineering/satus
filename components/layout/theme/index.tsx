@@ -4,21 +4,23 @@ import { usePathname } from 'next/navigation'
 import { createContext, use, useEffect, useState } from 'react'
 import type { Themes } from '@/styles/colors'
 import { type ThemeName, themes } from '@/styles/config'
-import type { StandardContext } from '@/utils/context'
 
-// Standard context state
+// Context state
 export interface ThemeState {
   name: ThemeName
   theme: Themes[ThemeName]
 }
 
-// Standard context actions
+// Context actions
 export interface ThemeActions {
   setTheme: (theme: ThemeName) => void
 }
 
-// Standard context type
-export type ThemeContextStandard = StandardContext<ThemeState, ThemeActions>
+// Context value shape
+export type ThemeContextStandard = {
+  state: ThemeState
+  actions: ThemeActions
+}
 
 const ThemeContextInternal = createContext<ThemeContextStandard | null>(null)
 

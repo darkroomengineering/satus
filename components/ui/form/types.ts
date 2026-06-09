@@ -1,5 +1,4 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-import type { StandardContext } from '@/utils/context'
 
 // Form state returned by server actions
 export type FormState<T = unknown> = {
@@ -41,7 +40,7 @@ export interface UseFormReturn<T = unknown> {
   formState: FormState<T> | null
   formAction: (formData: FormData) => void
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void
-  register: (index: number) => {
+  register: (name: string) => {
     ref: (node: HTMLInputElement | HTMLTextAreaElement | null) => void
     onChange: (
       e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -50,11 +49,11 @@ export interface UseFormReturn<T = unknown> {
       e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => void
   }
-  isActive: boolean[]
-  isValid: boolean[]
+  isActive: Record<string, boolean>
+  isValid: Record<string, boolean>
   isPending: boolean
   isReady: boolean
-  errors: FieldError[]
+  errors: Record<string, FieldError>
 }
 
 // Form component props
@@ -68,33 +67,33 @@ export interface FormProps<T = unknown>
   onError?: (state: FormState<T>) => void
 }
 
-// Standard context state
+// Context state
 export interface FormContextState<T = unknown> {
   formState: FormState<T> | null
   isPending: boolean
   isReady: boolean
-  isActive: boolean[]
-  isValid: boolean[]
-  errors: FieldError[]
+  isActive: Record<string, boolean>
+  isValid: Record<string, boolean>
+  errors: Record<string, FieldError>
 }
 
-// Standard context actions
+// Context actions
 export interface FormContextActions<T = unknown> {
   register: UseFormReturn<T>['register']
   resetForm: () => void
 }
 
-// Standard context meta
+// Context meta
 export interface FormContextMeta {
   formId: string
 }
 
-// Standard context type
-export type FormContextStandard<T = unknown> = StandardContext<
-  FormContextState<T>,
-  FormContextActions<T>,
-  FormContextMeta
->
+// Context value shape
+export type FormContextStandard<T = unknown> = {
+  state: FormContextState<T>
+  actions: FormContextActions<T>
+  meta?: FormContextMeta
+}
 
 // Submit button props
 export interface SubmitButtonProps

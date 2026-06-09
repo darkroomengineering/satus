@@ -26,8 +26,18 @@ export type CreateRendererOptions = {
   forceWebGL?: boolean
 }
 
+/**
+ * The renderer returned is always a WebGPURenderer instance (which implements
+ * the WebGL2 backend when WebGPU is unavailable). R3F's Canvas `gl` prop is
+ * typed as WebGLRenderer, so we cast at the boundary — the single commented
+ * cast below is intentional. Callers inside lib/webgl must use WebGPURenderer
+ * or this union type and avoid WebGL-only properties like `capabilities.isWebGL2`.
+ */
+export type RendererInstance = WebGLRenderer // r3f boundary type (see cast below)
+
 export type RendererResult = {
-  renderer: WebGLRenderer
+  /** The renderer — cast to WebGLRenderer for R3F compatibility at the boundary. */
+  renderer: RendererInstance
   type: RendererType
   isWebGPU: boolean
 }
@@ -85,6 +95,8 @@ export async function createRenderer(
       }
 
       return {
+        // Cast is intentional: R3F types expect WebGLRenderer at this boundary.
+        // WebGPURenderer is a superset; the cast is safe for R3F's usage.
         renderer: renderer as unknown as WebGLRenderer,
         type: 'webgpu',
         isWebGPU: true,
@@ -119,6 +131,8 @@ export async function createRenderer(
   }
 
   return {
+    // Cast is intentional: R3F types expect WebGLRenderer at this boundary.
+    // WebGPURenderer is a superset; the cast is safe for R3F's usage.
     renderer: renderer as unknown as WebGLRenderer,
     type: 'webgl',
     isWebGPU: false,

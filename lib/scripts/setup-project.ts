@@ -13,6 +13,7 @@
  */
 
 import * as p from '@clack/prompts'
+import type { RemovableId } from '@/integrations/registry'
 import { applyCodeTransforms } from './ast-transforms'
 import { cancelGuard } from './generate-shared'
 import {
@@ -33,7 +34,7 @@ import {
  *
  * Naming inspired by the darkroom/studio creative aesthetic
  */
-const PROJECT_PRESETS = {
+export const PROJECT_PRESETS = {
   editorial: {
     name: 'Editorial',
     description: 'Content-driven site with Sanity CMS and HubSpot forms',
@@ -75,7 +76,10 @@ const PROJECT_PRESETS = {
     description: 'Just Next.js, styling system, and essential components',
     integrations: [],
   },
-} as const
+} as const satisfies Record<
+  string,
+  { name: string; description: string; integrations: readonly RemovableId[] }
+>
 
 type PresetKey = keyof typeof PROJECT_PRESETS
 
@@ -156,57 +160,6 @@ const removeDepsFromPackageJson = async (
 }
 
 /**
- * Update next.config.ts to remove integration-specific config
- */
-const updateNextConfig = async (
-  patterns: string[],
-  dryRun: boolean
-): Promise<number> => {
-  if (patterns.length === 0) return 0
-
-  const configPath = resolvePath('next.config.ts')
-  let content = await Bun.file(configPath).text()
-  let changes = 0
-
-  // Remove image remote patterns for removed integrations
-  for (const pattern of patterns) {
-    if (pattern.includes('.')) {
-      // It's a hostname pattern - remove from remotePatterns
-      const regex = new RegExp(
-        `\\s*\\{[^}]*hostname:\\s*['"]${pattern.replace('.', '\\.')}['"][^}]*\\},?`,
-        'g'
-      )
-      const newContent = content.replace(regex, '')
-      if (newContent !== content) {
-        content = newContent
-        changes++
-      }
-    }
-  }
-
-  // Remove optimizePackageImports entries
-  for (const pattern of patterns) {
-    if (pattern.startsWith('@')) {
-      const regex = new RegExp(
-        `\\s*['"]${pattern.replace('/', '\\/')}['"],?`,
-        'g'
-      )
-      const newContent = content.replace(regex, '')
-      if (newContent !== content) {
-        content = newContent
-        changes++
-      }
-    }
-  }
-
-  if (changes > 0 && !dryRun) {
-    await Bun.write(configPath, content)
-  }
-
-  return changes
-}
-
-/**
  * Clean up .env.example
  */
 const updateEnvExample = async (
@@ -270,8 +223,10 @@ const updateBarrelExports = async (
         }
         totalChanges++
       }
-    } catch {
-      // Continue if file update fails
+    } catch (err) {
+      p.log.warn(
+        `Could not update barrel export in ${file}: ${err instanceof Error ? err.message : String(err)}`
+      )
     }
   }
 
@@ -361,7 +316,6 @@ const setup = async (options: SetupOptions): Promise<void> => {
   // Collect all deps to remove
   const allDeps: string[] = []
   const allDevDeps: string[] = []
-  const allConfigPatterns: string[] = []
   const allEnvVars: string[] = []
   const allBarrelExports: Array<{ file: string; pattern: string }> = []
 
@@ -370,7 +324,6 @@ const setup = async (options: SetupOptions): Promise<void> => {
     if (!bundle) continue
     allDeps.push(...bundle.dependencies)
     allDevDeps.push(...bundle.devDependencies)
-    allConfigPatterns.push(...bundle.configPatterns)
     allEnvVars.push(...bundle.envVars)
     allBarrelExports.push(...bundle.barrelExports)
   }
@@ -388,17 +341,6 @@ const setup = async (options: SetupOptions): Promise<void> => {
       total > 0
         ? `Removed ${total} dependencies from package.json`
         : 'No dependencies to remove'
-    )
-  }
-
-  // Update next.config.ts
-  if (allConfigPatterns.length > 0) {
-    s.start('Updating next.config.ts...')
-    const changes = await updateNextConfig(allConfigPatterns, dryRun)
-    s.stop(
-      changes > 0
-        ? `Updated next.config.ts (${changes} changes)`
-        : 'No config changes needed'
     )
   }
 
@@ -472,7 +414,7 @@ const main = async (): Promise<void> => {
     process.exit(0)
   }
 
-  let keepIntegrations: string[] = []
+  let keepIntegrations: RemovableId[] = []
 
   if (selectedPreset === 'custom') {
     // Build options for multiselect
@@ -577,8 +519,10 @@ const main = async (): Promise<void> => {
   }
 }
 
-// Run
-main().catch((err) => {
-  p.log.error(`Setup failed: ${err.message}`)
-  process.exit(1)
-})
+// Run only when executed directly (not when imported by tests or other modules)
+if (import.meta.main) {
+  main().catch((err) => {
+    p.log.error(`Setup failed: ${err.message}`)
+    process.exit(1)
+  })
+}

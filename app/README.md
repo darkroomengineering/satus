@@ -12,7 +12,8 @@ app/
 │   ├── draft-mode/       # Sanity draft mode
 │   └── revalidate/       # Webhook endpoint
 ├── loading.tsx           # Global loading
-├── error.tsx             # Error boundary
+├── error.tsx             # Error boundary (thin wrapper over components/ui/error-view)
+├── global-error.tsx      # Root-level error boundary (wraps html+body)
 └── not-found.tsx         # 404 page
 ```
 

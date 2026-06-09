@@ -14,12 +14,12 @@
  * - **`Canvas`** / **`Wrapper`** -- read `isActive` to toggle CSS
  *   visibility and pause the render loop when no page needs WebGL.
  * - **`WebGLTunnel` / `DOMTunnel`** -- use the tunnel getters to
- *   obtain the shared `tunnel-rat` instances for portaling children.
+ *   obtain the shared local tunnel instances for portaling children.
  */
-import tunnel from 'tunnel-rat'
 import { create } from 'zustand'
+import { type TunnelInstance, tunnel } from '@/webgl/utils/tunnel'
 
-type WebGLTunnelInstance = ReturnType<typeof tunnel>
+type WebGLTunnelInstance = TunnelInstance
 
 /**
  * Module-level singleton tunnels.

@@ -8,6 +8,7 @@
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test'
+import { z } from 'zod'
 import { fetchJSON, fetchWithTimeout } from './fetch'
 
 /**
@@ -138,13 +139,11 @@ describe('fetchWithTimeout', () => {
   })
 })
 
-describe('fetchJSON', () => {
-  it('should parse JSON response automatically', async () => {
-    const data = await fetchJSON<{ message: string; count: number }>(
-      `${baseURL}/json`
-    )
-    expect(data.message).toBe('hello')
-    expect(data.count).toBe(42)
+describe('fetchJSON — unvalidated overload (no schema)', () => {
+  it('should return unknown and parse JSON response', async () => {
+    const data = await fetchJSON(`${baseURL}/json`)
+    // Without a schema the return type is unknown; narrow before use
+    expect(data).toEqual({ message: 'hello', count: 42 })
   })
 
   it('should throw on non-ok HTTP status', async () => {
@@ -166,9 +165,46 @@ describe('fetchJSON', () => {
   })
 
   it('should pass through fetch options', async () => {
-    const data = await fetchJSON<{ method: string }>(`${baseURL}/echo-method`, {
-      method: 'POST',
+    const data = await fetchJSON(`${baseURL}/echo-method`, { method: 'POST' })
+    expect(data).toEqual({ method: 'POST' })
+  })
+})
+
+describe('fetchJSON — validated overload (with schema)', () => {
+  const ResponseSchema = z.object({
+    message: z.string(),
+    count: z.number(),
+  })
+
+  it('should return typed data when response matches schema', async () => {
+    const data = await fetchJSON(`${baseURL}/json`, {}, ResponseSchema)
+    // TypeScript knows data.message is string and data.count is number
+    expect(data.message).toBe('hello')
+    expect(data.count).toBe(42)
+  })
+
+  it('should throw a descriptive error when response does not match schema', async () => {
+    const StrictSchema = z.object({
+      nonExistentField: z.string(),
     })
+    await expect(
+      fetchJSON(`${baseURL}/json`, {}, StrictSchema)
+    ).rejects.toThrow('Invalid API response')
+  })
+
+  it('should throw on non-ok HTTP status even with schema', async () => {
+    await expect(
+      fetchJSON(`${baseURL}/error-500`, {}, ResponseSchema)
+    ).rejects.toThrow('HTTP 500: Internal Server Error')
+  })
+
+  it('should pass through fetch options with schema', async () => {
+    const MethodSchema = z.object({ method: z.string() })
+    const data = await fetchJSON(
+      `${baseURL}/echo-method`,
+      { method: 'POST' },
+      MethodSchema
+    )
     expect(data.method).toBe('POST')
   })
 })

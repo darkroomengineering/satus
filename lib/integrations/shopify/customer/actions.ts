@@ -3,6 +3,7 @@
 import { cookies, headers } from 'next/headers'
 import { z } from 'zod'
 import type { FormState } from '@/components/ui/form/types'
+import { runFormAction } from '@/lib/utils/form-action'
 import {
   getIPFromHeaders,
   rateLimit,
@@ -36,7 +37,8 @@ export async function LoginCustomerAction(
   _prevState: FormState | null,
   formData: FormData
 ): Promise<FormState> {
-  // Rate limit login attempts to prevent brute force attacks
+  // Login uses strict rate limiting (5 req/min) to prevent brute-force attacks.
+  // runFormAction applies standard limiting, so we pre-check strict here.
   const headersList = await headers()
   const ip = getIPFromHeaders(headersList)
   const rateLimitResult = rateLimit(`login:${ip}`, rateLimiters.strict)
@@ -48,68 +50,55 @@ export async function LoginCustomerAction(
     }
   }
 
-  const parsed = loginSchema.safeParse({
-    email: formData.get('email'),
-    password: formData.get('password'),
+  return runFormAction({
+    rateLimitPrefix: 'login-form',
+    schema: loginSchema,
+    formData,
+    run: async ({ email, password }) => {
+      try {
+        const res = await shopifyFetch<{
+          customerAccessTokenCreate: {
+            customerAccessToken: {
+              accessToken: string
+              expiresAt: string
+            } | null
+            customerUserErrors: Array<{ message: string }>
+          }
+        }>({
+          query: customerAccessTokenCreateMutation,
+          variables: { input: { email, password } },
+          cache: 'no-store',
+        })
+
+        const { customerAccessToken, customerUserErrors } =
+          res.body.data.customerAccessTokenCreate
+
+        if (customerUserErrors.length) {
+          return {
+            status: 400,
+            message: customerUserErrors[0]?.message ?? 'Unknown error',
+          }
+        }
+
+        if (customerAccessToken) {
+          const _cookies = await cookies()
+          _cookies.set('customerAccessToken', customerAccessToken.accessToken, {
+            expires: new Date(customerAccessToken.expiresAt),
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+          })
+        }
+
+        return { status: 200, message: 'Login successful' }
+      } catch (_error) {
+        return {
+          status: 500,
+          message: 'An unexpected error occurred. Please try again.',
+        }
+      }
+    },
   })
-
-  if (!parsed.success) {
-    const fieldErrors: Record<string, string> = {}
-    for (const issue of parsed.error.issues) {
-      const path = issue.path.join('.')
-      if (path && !fieldErrors[path]) {
-        fieldErrors[path] = issue.message
-      }
-    }
-    return { status: 400, message: 'Invalid input', fieldErrors }
-  }
-
-  const { email, password } = parsed.data
-
-  try {
-    const res = await shopifyFetch<{
-      customerAccessTokenCreate: {
-        customerAccessToken: { accessToken: string; expiresAt: string } | null
-        customerUserErrors: Array<{ message: string }>
-      }
-    }>({
-      query: customerAccessTokenCreateMutation,
-      variables: {
-        input: {
-          email,
-          password,
-        },
-      },
-      cache: 'no-store',
-    })
-
-    const { customerAccessToken, customerUserErrors } =
-      res.body.data.customerAccessTokenCreate
-
-    if (customerUserErrors.length) {
-      return {
-        status: 400,
-        message: customerUserErrors[0]?.message ?? 'Unknown error',
-      }
-    }
-
-    if (customerAccessToken) {
-      const _cookies = await cookies()
-      _cookies.set('customerAccessToken', customerAccessToken.accessToken, {
-        expires: new Date(customerAccessToken.expiresAt),
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-      })
-    }
-
-    return { status: 200, message: 'Login successful' }
-  } catch (_error) {
-    return {
-      status: 500,
-      message: 'An unexpected error occurred. Please try again.',
-    }
-  }
 }
 
 export async function LogoutCustomerAction(
@@ -141,77 +130,45 @@ export async function CreateCustomerAction(
   _prevState: FormState | null,
   formData: FormData
 ): Promise<FormState> {
-  // Rate limit registration to prevent spam account creation
-  const headersList = await headers()
-  const ip = getIPFromHeaders(headersList)
-  const rateLimitResult = rateLimit(`register:${ip}`, rateLimiters.standard)
+  return runFormAction({
+    rateLimitPrefix: 'register',
+    schema: createCustomerSchema,
+    formData,
+    run: async ({ firstName, lastName, email, password }) => {
+      try {
+        const res = await shopifyFetch<{
+          customerCreate: {
+            customer: Customer | null
+            customerUserErrors: Array<{ message: string }>
+          }
+        }>({
+          query: customerCreateMutation,
+          variables: { input: { firstName, lastName, email, password } },
+          cache: 'no-store',
+        })
 
-  if (!rateLimitResult.success) {
-    return {
-      status: 429,
-      message: `Too many registration attempts. Please try again in ${rateLimitResult.resetIn} seconds.`,
-    }
-  }
+        const { customer, customerUserErrors } = res.body.data.customerCreate
 
-  const parsed = createCustomerSchema.safeParse({
-    firstName: formData.get('firstName'),
-    lastName: formData.get('lastName'),
-    email: formData.get('email'),
-    password: formData.get('password'),
+        if (customerUserErrors.length) {
+          return {
+            status: 400,
+            message: customerUserErrors[0]?.message ?? 'Unknown error',
+          }
+        }
+
+        return {
+          status: 200,
+          message: 'Account created successfully',
+          data: customer,
+        }
+      } catch (_error) {
+        return {
+          status: 500,
+          message: 'An unexpected error occurred. Please try again.',
+        }
+      }
+    },
   })
-
-  if (!parsed.success) {
-    const fieldErrors: Record<string, string> = {}
-    for (const issue of parsed.error.issues) {
-      const path = issue.path.join('.')
-      if (path && !fieldErrors[path]) {
-        fieldErrors[path] = issue.message
-      }
-    }
-    return { status: 400, message: 'Invalid input', fieldErrors }
-  }
-
-  const { firstName, lastName, email, password } = parsed.data
-
-  try {
-    const res = await shopifyFetch<{
-      customerCreate: {
-        customer: Customer | null
-        customerUserErrors: Array<{ message: string }>
-      }
-    }>({
-      query: customerCreateMutation,
-      variables: {
-        input: {
-          firstName,
-          lastName,
-          email,
-          password,
-        },
-      },
-      cache: 'no-store',
-    })
-
-    const { customer, customerUserErrors } = res.body.data.customerCreate
-
-    if (customerUserErrors.length) {
-      return {
-        status: 400,
-        message: customerUserErrors[0]?.message ?? 'Unknown error',
-      }
-    }
-
-    return {
-      status: 200,
-      message: 'Account created successfully',
-      data: customer,
-    }
-  } catch (_error) {
-    return {
-      status: 500,
-      message: 'An unexpected error occurred. Please try again.',
-    }
-  }
 }
 
 export async function getCustomer(): Promise<Customer | null> {

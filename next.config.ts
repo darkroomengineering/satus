@@ -102,7 +102,6 @@ const nextConfig: NextConfig = {
       '@react-three/fiber',
       'gsap',
       'three',
-      'postprocessing',
       '@base-ui/react',
       'lenis',
       'zustand',
@@ -193,9 +192,4 @@ const bundleAnalyzerPlugin = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 })
 
-const NextApp = () => {
-  const plugins = [bundleAnalyzerPlugin]
-  return plugins.reduce((config, plugin) => plugin(config), nextConfig)
-}
-
-export default NextApp
+export default bundleAnalyzerPlugin(nextConfig)

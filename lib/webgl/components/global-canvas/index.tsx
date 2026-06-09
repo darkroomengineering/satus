@@ -1,9 +1,11 @@
 // USAGE — WebGL / React Three Fiber (R3F)
-// 1. Add <GlobalCanvas /> (or <LazyGlobalCanvas />) once in app/layout.tsx:
+// 1. Add <GlobalCanvas /> once in app/layout.tsx via OptionalFeatures
+//    (lib/features/index.tsx wraps it in a real dynamic() import — no SSR,
+//    real chunk boundary via import('@/webgl/components/global-canvas')):
 //
-//   import { LazyGlobalCanvas } from '@/lib/webgl/components/global-canvas'
+//   import { OptionalFeatures } from '@/lib/features'
 //   export default function Layout({ children }) {
-//     return <html><body>{children}<LazyGlobalCanvas /></body></html>
+//     return <html><body>{children}<OptionalFeatures /></body></html>
 //   }
 //
 // 2. On a page that needs 3D content, pass `webgl` to <Wrapper>:
@@ -38,22 +40,18 @@ import {
 } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import cn from 'clsx'
-import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { SheetProvider } from '@/lib/dev/theatre'
 import { useWebGLStore } from '@/lib/webgl/store'
 import { createRenderer } from '@/lib/webgl/utils/create-renderer'
 import { detectGPUCapability } from '@/lib/webgl/utils/gpu-detection'
-import { PostProcessing } from '../postprocessing'
 import { RAF } from '../raf'
 import s from './global-canvas.module.css'
 
 type GlobalCanvasProps = {
   /** Enable R3F render loop. Defaults to true. */
   render?: boolean
-  /** Enable post-processing effects. Defaults to false. */
-  postprocessing?: boolean
   /** Enable alpha channel. Defaults to true. */
   alpha?: boolean
   /** Additional CSS class for the container. */
@@ -76,19 +74,19 @@ type GlobalCanvasProps = {
  * Note: We use CSS visibility instead of React Activity because Activity can
  * cause GPU context loss during mode transitions.
  *
- * Place this in your root layout (app/layout.tsx).
+ * Place this in your root layout (app/layout.tsx) via `<OptionalFeatures />`.
  *
  * @example
  * ```tsx
  * // In app/layout.tsx
- * import { GlobalCanvas } from '@/lib/webgl/components/global-canvas'
+ * import { OptionalFeatures } from '@/lib/features'
  *
  * export default function Layout({ children }) {
  *   return (
  *     <html>
  *       <body>
  *         {children}
- *         <GlobalCanvas />
+ *         <OptionalFeatures />
  *       </body>
  *     </html>
  *   )
@@ -115,7 +113,6 @@ type GlobalCanvasProps = {
  */
 export function GlobalCanvas({
   render = true,
-  postprocessing = false,
   alpha = true,
   className,
   forceWebGL = false,
@@ -165,10 +162,10 @@ export function GlobalCanvas({
           const { renderer } = await createRenderer({
             canvas: props.canvas as HTMLCanvasElement,
             alpha,
-            antialias: !postprocessing && capability.dpr < 2,
+            antialias: capability.dpr < 2,
             powerPreference: 'high-performance',
-            stencil: !postprocessing,
-            depth: !postprocessing,
+            stencil: true,
+            depth: true,
             forceWebGL,
           })
           return renderer
@@ -196,7 +193,6 @@ export function GlobalCanvas({
             zoom={1}
           />
           <RAF render={shouldRender} />
-          {postprocessing && <PostProcessing />}
           <Suspense>
             <WebGLTunnel.Out />
           </Suspense>
@@ -207,12 +203,3 @@ export function GlobalCanvas({
     </div>
   )
 }
-
-/**
- * Dynamic import wrapper for GlobalCanvas.
- * Use this to avoid SSR issues and enable code splitting.
- */
-export const LazyGlobalCanvas = dynamic(
-  () => Promise.resolve({ default: GlobalCanvas }),
-  { ssr: false }
-)

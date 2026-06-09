@@ -18,6 +18,9 @@ import {
 } from '../index'
 import type { AddItemPayload, Cart } from '../types'
 
+/** Unified result shape for all cart mutations. */
+export type CartActionResult = { ok: true } | { ok: false; error: string }
+
 const addItemSchema = z.object({
   variantId: z.string().min(1, { error: 'Product variant ID is required' }),
   quantity: z.number().int().min(1).max(99).optional().default(1),
@@ -33,23 +36,23 @@ export async function removeItem(
   _prevState: unknown,
   merchandiseId: string,
   lineId?: string
-): Promise<string | undefined> {
+): Promise<CartActionResult> {
   const _cookies = await cookies()
   const cartId = _cookies.get('cartId')?.value
 
   if (!cartId) {
-    return 'Missing cart ID'
+    return { ok: false, error: 'Missing cart ID' }
   }
 
   const headersList = await headers()
   const ip = getIPFromHeaders(headersList)
   const rateLimitResult = rateLimit(`cart-remove:${ip}`, rateLimiters.standard)
   if (!rateLimitResult.success) {
-    return 'Too many requests. Please try again later.'
+    return { ok: false, error: 'Too many requests. Please try again later.' }
   }
 
   if (!merchandiseId) {
-    return 'Merchandise ID is required'
+    return { ok: false, error: 'Merchandise ID is required' }
   }
 
   try {
@@ -57,14 +60,14 @@ export async function removeItem(
     if (lineId) {
       await removeFromCart(cartId, [lineId])
       revalidateTag(TAGS.cart, {})
-      return undefined
+      return { ok: true }
     }
 
     // Fallback: resolve lineId from a fresh cart fetch (e.g. callers without lineId).
     const cart = await getCart(cartId)
 
     if (!cart) {
-      return 'Error fetching cart'
+      return { ok: false, error: 'Error fetching cart' }
     }
 
     const lineItem = cart.lines.find(
@@ -74,31 +77,34 @@ export async function removeItem(
     if (lineItem?.id) {
       await removeFromCart(cartId, [lineItem.id])
       revalidateTag(TAGS.cart, {})
-      return undefined
+      return { ok: true }
     }
 
-    return 'Item not found in cart'
+    return { ok: false, error: 'Item not found in cart' }
   } catch (_e) {
-    return 'Error removing item from cart'
+    return { ok: false, error: 'Error removing item from cart' }
   }
 }
 
 export async function addItem(
   _prevState: unknown,
   { variantId, quantity = 1 }: AddItemPayload
-): Promise<string> {
+): Promise<CartActionResult> {
   const headersList = await headers()
   const ip = getIPFromHeaders(headersList)
   const rateLimitResult = rateLimit(`cart-add:${ip}`, rateLimiters.standard)
   if (!rateLimitResult.success) {
-    return 'Too many requests. Please try again later.'
+    return { ok: false, error: 'Too many requests. Please try again later.' }
   }
 
   // Validate input before creating a cart, so an invalid request doesn't leave
   // an orphaned cart + cookie behind.
   const parsed = addItemSchema.safeParse({ variantId, quantity })
   if (!parsed.success) {
-    return parsed.error.issues[0]?.message ?? 'Invalid input'
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? 'Invalid input',
+    }
   }
 
   const _cookies = await cookies()
@@ -124,9 +130,9 @@ export async function addItem(
     ])
     revalidateTag(TAGS.cart, {})
 
-    return 'success'
+    return { ok: true }
   } catch (_e) {
-    return 'Error adding item to cart'
+    return { ok: false, error: 'Error adding item to cart' }
   }
 }
 
@@ -140,24 +146,27 @@ export async function updateItemQuantity(
     merchandiseId: '',
     quantity: 0,
   }
-): Promise<string | undefined> {
+): Promise<CartActionResult> {
   const _cookies = await cookies()
   const cartId = _cookies.get('cartId')?.value
 
   if (!cartId) {
-    return 'Missing cart ID'
+    return { ok: false, error: 'Missing cart ID' }
   }
 
   const headersList = await headers()
   const ip = getIPFromHeaders(headersList)
   const rateLimitResult = rateLimit(`cart-update:${ip}`, rateLimiters.standard)
   if (!rateLimitResult.success) {
-    return 'Too many requests. Please try again later.'
+    return { ok: false, error: 'Too many requests. Please try again later.' }
   }
 
   const parsed = updateQuantitySchema.safeParse(payload)
   if (!parsed.success) {
-    return parsed.error.issues[0]?.message ?? 'Invalid input'
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? 'Invalid input',
+    }
   }
 
   const { merchandiseId, quantity, lineId } = parsed.data
@@ -167,14 +176,14 @@ export async function updateItemQuantity(
     if (lineId) {
       await updateCart(cartId, [{ id: lineId, merchandiseId, quantity }])
       revalidateTag(TAGS.cart, {})
-      return undefined
+      return { ok: true }
     }
 
     // Fallback: resolve lineId from a fresh cart fetch (e.g. callers without lineId).
     const cart = await getCart(cartId)
 
     if (!cart) {
-      return 'Error fetching cart'
+      return { ok: false, error: 'Error fetching cart' }
     }
 
     const lineItem = cart.lines.find(
@@ -182,7 +191,7 @@ export async function updateItemQuantity(
     )
 
     if (!lineItem?.id) {
-      return 'Item not found in cart'
+      return { ok: false, error: 'Item not found in cart' }
     }
 
     await updateCart(cartId, [
@@ -193,9 +202,9 @@ export async function updateItemQuantity(
       },
     ])
     revalidateTag(TAGS.cart, {})
-    return undefined
+    return { ok: true }
   } catch (_e) {
-    return 'Error updating item quantity'
+    return { ok: false, error: 'Error updating item quantity' }
   }
 }
 

@@ -1,7 +1,7 @@
 .globalCanvas {
   position: fixed;
   inset: 0;
-  max-height: 100vh;
+  max-height: 100dvh;
   max-width: 100vw;
   pointer-events: none;
   z-index: -1;

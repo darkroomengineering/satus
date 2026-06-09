@@ -89,16 +89,21 @@ See the generated `css/tailwind.css` for the full generated set.
 
 ## Design tokens
 
-Tokens are generated into `css/root.css` as CSS custom properties and exposed to
-Tailwind via the `@theme` directive in `css/tailwind.css`. Key families:
+Layout tokens are generated into `css/root.css`. Color and font tokens are
+registered with Tailwind via `@theme` in `css/tailwind.css`. Easing tokens live
+in the hand-authored `css/easings.css`. Key families:
 
-- **Color** — raw palette (`--color-red`, `--color-blue`, …) plus **theme-aware**
+- **Color** — `@theme` in `css/tailwind.css` is the single source of truth for
+  the raw palette (`--color-red`, `--color-blue`, …) plus **theme-aware**
   `--color-primary` / `--color-secondary` / `--color-contrast`, which are remapped
-  per theme (`light`, `dark`, `evil`, `red`). Set the active theme via the Theme
-  wrapper (e.g. `<Wrapper theme="dark">`), then reference the semantic tokens —
-  never hard-code a hex in a component.
-- **Easing** — `--ease-out-expo`, `--ease-in-out-cubic`, `--ease-gleasing`, … for
-  `transition`/`animation` timing functions.
+  per theme (`light`, `dark`, `evil`, `red`). Tailwind v4 compiles `@theme` into
+  `:root` custom properties, so there is no separate `:root` copy. Set the active
+  theme via the Theme wrapper (e.g. `<Wrapper theme="dark">`), then reference the
+  semantic tokens — never hard-code a hex in a component.
+- **Easing** — `--ease-out-expo`, `--ease-in-out-cubic`, `--ease-gleasing`, … are
+  defined in `css/easings.css` as a hand-authored `@theme` block (static
+  cubic-bezier strings, no generation needed). This eliminates the duplicate
+  declarations that previously appeared in both `root.css` and `tailwind.css`.
 - **Layout** — `--gap`, `--device-width`, and the column grid that powers
   `columns()` and `dr-*-col-*`.
 
@@ -121,16 +126,23 @@ bun setup:styles
 | `colors.ts` | Color palette & per-theme semantic mapping |
 | `typography.ts` | Font sizes & weights |
 | `layout.mjs` | Grid, breakpoints, spacing, device widths |
-| `easings.ts` | Animation curves |
+| `easings.ts` | Easing values as a JS object (animation utilities). CSS authority is `css/easings.css`. |
 | `fonts.ts` | Font loading |
 | `config.ts` | Aggregates the above (imported as `@/config`) |
 
 ## Generated files — do not edit
 
-`css/root.css` (custom properties) and `css/tailwind.css` (`@theme` + utilities)
+`css/root.css` (layout custom properties) and `css/tailwind.css` (`@theme` + utilities)
 are **generated** by `bun setup:styles`. Hand-edits are overwritten on the next run.
 
-`css/global.css` is **not generated** — it houses the `[data-reveal]` reveal-animation contract (used by `useReveal`) and the global `prefers-reduced-motion` neutralizer. Edit it directly when adjusting global animation defaults.
+`css/easings.css` and `css/global.css` are **not generated** — edit them directly.
+
+- `css/easings.css` — hand-authored `@theme` block for all `--ease-*` custom
+  properties. Static cubic-bezier strings; update by editing this file directly.
+  Values must stay in sync with `easings.ts` (the JS object exported via the
+  `@/styles` barrel).
+- `css/global.css` — the `[data-reveal]` reveal-animation contract (used by
+  `useReveal`) and the global `prefers-reduced-motion` neutralizer.
 
 ## Troubleshooting
 

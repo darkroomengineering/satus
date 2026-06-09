@@ -241,7 +241,7 @@ export function Messages({ className, ...props }: MessagesProps) {
   const { errors, formState } = state
 
   const allErrors = [
-    ...errors.flatMap((e) => (e.state ? [e.message] : [])),
+    ...Object.values(errors).flatMap((e) => (e.state ? [e.message] : [])),
     ...(formState?.status && formState.status >= 400
       ? [formState.message]
       : []),

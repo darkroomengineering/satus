@@ -8,7 +8,7 @@ import { type PropsWithChildren, Suspense } from 'react'
 import { ReactTempus } from 'tempus/react'
 import { Link } from '@/components/ui/link'
 import { RealViewport } from '@/components/ui/real-viewport'
-import { env } from '@/lib/env'
+import { APP_BASE_URL, env } from '@/lib/env'
 import { OptionalFeatures } from '@/lib/features'
 import { isConfigured } from '@/lib/integrations/registry'
 import { SanityLive } from '@/lib/integrations/sanity/live'
@@ -21,7 +21,6 @@ const APP_NAME = AppData.name
 const APP_DEFAULT_TITLE = 'Satūs'
 const APP_TITLE_TEMPLATE = '%s - Satūs'
 const APP_DESCRIPTION = AppData.description
-const APP_BASE_URL = env.NEXT_PUBLIC_BASE_URL ?? 'https://localhost:3000'
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_BASE_URL),
@@ -73,9 +72,9 @@ export const metadata: Metadata = {
   authors: [
     { name: 'darkroom.engineering', url: 'https://darkroom.engineering' },
   ],
-  other: {
-    'fb:app_id': process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '',
-  },
+  ...(env.NEXT_PUBLIC_FACEBOOK_APP_ID
+    ? { other: { 'fb:app_id': env.NEXT_PUBLIC_FACEBOOK_APP_ID } }
+    : {}),
 }
 
 export const viewport: Viewport = {

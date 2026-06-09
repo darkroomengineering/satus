@@ -7,7 +7,7 @@
  * To add a new integration:
  * 1. Create its Zod env schema in `@/utils/validation`
  * 2. Add an entry here
- * 3. Everything else (doctor, listing helpers) picks it up automatically
+ * 3. Everything else (doctor, listing helpers, setup scripts) picks it up automatically
  */
 
 import type { z } from 'zod'
@@ -62,7 +62,17 @@ export const integrations = {
   },
 } as const satisfies Record<string, IntegrationEntry>
 
+/** Union of all runtime-detectable integration ids (keys of the registry). */
 export type IntegrationId = keyof typeof integrations
+
+/**
+ * Integrations that are dev-time-only removables with no runtime env detection.
+ * These exist in the setup scripts' bundle record but not in the runtime registry.
+ */
+export const devOnlyRemovables = ['webgl', 'theatre'] as const
+
+/** Union of all ids that can be targeted for removal during project setup. */
+export type RemovableId = IntegrationId | (typeof devOnlyRemovables)[number]
 
 /**
  * Check if a specific integration is configured
@@ -72,7 +82,18 @@ export function isConfigured(id: IntegrationId): boolean {
 }
 
 /**
- * Get all configured integration names
+ * Get all configured integration ids
+ */
+export function getConfiguredIds(): IntegrationId[] {
+  return (Object.keys(integrations) as IntegrationId[]).filter(
+    (id) => integrations[id].envSchema.safeParse(process.env).success
+  )
+}
+
+/**
+ * Get all configured integration display names, for human-facing output
+ * (handoff summaries, logs). For programmatic matching against bundle keys,
+ * use `getConfiguredIds()`.
  */
 export function getConfigured(): string[] {
   return Object.values(integrations).flatMap((entry) =>

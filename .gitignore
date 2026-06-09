@@ -64,3 +64,6 @@ plans
 # react-doctor — ignore generated diagnostics, keep the curated suppression list
 .react-doctor/*
 !.react-doctor/false-positives.md
+
+# prepare-handoff backup — created by `bun run handoff` when swapping README
+README.original.md

@@ -8,6 +8,7 @@ import { Image } from '@/components/ui/image'
 import { Link } from '@/components/ui/link'
 import { removeItem, updateItemQuantity } from '../actions'
 import { useCartContext } from '../cart-store-context'
+import { quantityAction } from '../optimistic-utils'
 import s from './modal.module.css'
 
 interface ModalContextType {
@@ -166,11 +167,6 @@ function InnerCart() {
       </div>
     </>
   )
-}
-
-const quantityAction: Record<'minus' | 'plus', number> = {
-  minus: -1,
-  plus: 1,
 }
 
 function Quantity({ className, payload }: QuantityProps) {

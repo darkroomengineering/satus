@@ -2,14 +2,14 @@
 
 import { z } from 'zod'
 import type { FormState } from '@/components/ui/form/types'
+import type { TurnstileValidationResult } from '@/lib/integrations/turnstile'
+import { validateFormWithTurnstile } from '@/lib/integrations/turnstile'
 import { runFormAction } from '@/lib/utils/form-action'
 import { emailSchema } from '@/utils/validation'
 import {
   addContactToMailchimp,
   addSubscriberToMailchimp,
 } from './mailchimp-client'
-import type { TurnstileValidationResult } from './turnstile'
-import { validateFormWithTurnstile } from './turnstile'
 
 const contactSchema = z.object({
   name: z.string().min(1, { error: 'name_required_' }),

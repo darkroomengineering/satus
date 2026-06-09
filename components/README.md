@@ -53,7 +53,7 @@ Built on [Base UI](https://base-ui.com/) for accessibility.
 | `switch/` | Toggle switches |
 | `fold/` | Scroll-based folding |
 | `scrollbar/` | Custom scrollbars |
-| `real-viewport/` | Viewport CSS properties |
+| `real-viewport/` | Sets the `--scrollbar-width` CSS property |
 | `marquee/` | Infinite scrolling text |
 | `sanity-image/` | Sanity-optimized image component |
 | `scroll-restoration/` | Scroll position restoration |

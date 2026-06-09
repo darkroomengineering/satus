@@ -81,7 +81,8 @@ export function Canvas({ children, root = false, force = false }: CanvasProps) {
 
 /**
  * Hook to access the Canvas context (tunnels for WebGL and DOM content).
+ * Tunnels may be undefined when the Canvas is not yet activated.
  */
 export function useCanvas() {
-  return use(CanvasContext) as Required<CanvasContextValue>
+  return use(CanvasContext)
 }

@@ -34,13 +34,13 @@ export function cartReconciler(
   action: CartAction
 ): Cart {
   const currentCart = state ?? createEmptyCart()
-  const reconcilingAction = reconcilingActions[action.type]
 
-  if (reconcilingAction) {
-    return reconcilingAction(currentCart, action)
+  switch (action.type) {
+    case 'UPDATE_ITEM':
+      return updateItem(currentCart, action)
+    case 'ADD_ITEM':
+      return addItem(currentCart, action)
   }
-
-  return currentCart
 }
 
 function createEmptyCart(): Cart {
@@ -55,14 +55,6 @@ function createEmptyCart(): Cart {
       totalTaxAmount: { amount: '0', currencyCode: 'USD' },
     },
   }
-}
-
-const reconcilingActions: Record<
-  string,
-  (state: Cart, action: CartAction) => Cart
-> = {
-  UPDATE_ITEM: (state, action) => updateItem(state, action as UpdateItemAction),
-  ADD_ITEM: (state, action) => addItem(state, action as AddItemAction),
 }
 
 function updateItem(state: Cart, action: UpdateItemAction): Cart {
@@ -115,7 +107,7 @@ function addItem(state: Cart, action: AddItemAction): Cart {
   }
 }
 
-const quantityAction: Record<'minus' | 'plus', number> = {
+export const quantityAction: Record<'minus' | 'plus', number> = {
   minus: -1,
   plus: 1,
 }

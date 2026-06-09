@@ -6,10 +6,6 @@ import { useEffect } from 'react'
 // Register ScrollTrigger once
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(GSAPScrollTrigger)
-  //   GSAPScrollTrigger.clearScrollMemory('manual')
-  //   GSAPScrollTrigger.defaults({
-  //     markers: process.env.NODE_ENV === 'development',
-  //   })
 }
 
 // Stable, non-reactive handlers. They only call GSAP ScrollTrigger statics and

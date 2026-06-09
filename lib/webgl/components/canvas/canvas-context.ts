@@ -1,11 +1,11 @@
 'use client'
 
 import { createContext } from 'react'
-import type tunnel from 'tunnel-rat'
+import type { TunnelInstance } from '@/webgl/utils/tunnel'
 
 export type CanvasContextValue = {
-  WebGLTunnel?: ReturnType<typeof tunnel>
-  DOMTunnel?: ReturnType<typeof tunnel>
+  WebGLTunnel?: TunnelInstance
+  DOMTunnel?: TunnelInstance
 }
 
 export const CanvasContext = createContext<CanvasContextValue>({})

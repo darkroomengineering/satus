@@ -10,6 +10,7 @@
 
 import * as p from '@clack/prompts'
 import { cancelGuard, withSpinner } from './generate-shared'
+import { getIntegrationEntries } from './integration-bundles'
 import { createDir } from './utils'
 
 interface PageOptions {
@@ -60,11 +61,11 @@ export async function promptPageConfig(): Promise<PageConfig> {
   const integrations = cancelGuard(
     await p.multiselect({
       message: 'Which integrations should this page use?',
-      options: [
-        { value: 'webgl', label: 'WebGL Canvas', hint: 'Enable 3D graphics' },
-        { value: 'sanity', label: 'Sanity CMS', hint: 'Content management' },
-        { value: 'shopify', label: 'Shopify', hint: 'E-commerce' },
-      ],
+      options: getIntegrationEntries().map(([key, bundle]) => ({
+        value: key,
+        label: bundle.name,
+        hint: bundle.description,
+      })),
       required: false,
     }),
     'Page generation cancelled'

@@ -8,22 +8,18 @@ Email subscriptions with Cloudflare Turnstile spam protection.
 MAILCHIMP_API_KEY=your-api-key
 MAILCHIMP_SERVER_PREFIX=us1
 MAILCHIMP_AUDIENCE_ID=your-audience-id
-
-# Spam protection (production only)
-NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY=your-site-key
-CLOUDFLARE_TURNSTILE_SECRET_KEY=your-secret-key
 ```
+
+Turnstile env vars are configured separately — see `lib/integrations/turnstile/README.md`.
 
 ## Usage
 
 ```tsx
 import { Form, Input, SubmitButton } from '@/components/ui/form'
-import { Turnstile } from '@/components/turnstile'
 import { mailchimpSubscriptionAction } from '@/lib/integrations/mailchimp'
 
 <Form action={mailchimpSubscriptionAction}>
   <Input name="email" type="email" required />
-  <Turnstile />
   <SubmitButton>Subscribe</SubmitButton>
 </Form>
 ```
@@ -31,7 +27,7 @@ import { mailchimpSubscriptionAction } from '@/lib/integrations/mailchimp'
 ## Features
 
 - Double opt-in (GDPR compliant)
-- Invisible Turnstile spam protection
+- Invisible Turnstile spam protection (via `lib/integrations/turnstile`)
 - Tag-based segmentation
 
 ## Getting Credentials
@@ -46,5 +42,6 @@ Contact and subscription actions validate email format using Zod's `emailSchema`
 
 ## Notes
 
-- Turnstile requires HTTPS (auto-disabled in development)
+- Turnstile requires HTTPS (auto-disabled in development when secret key is absent)
+- The action validates the `cf-turnstile-response` form field — render Cloudflare's Turnstile widget inside the form (see `lib/integrations/turnstile/README.md`)
 - New subscribers appear as "Pending" until email confirmed

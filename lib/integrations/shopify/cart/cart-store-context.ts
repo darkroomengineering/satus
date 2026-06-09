@@ -1,15 +1,14 @@
 'use client'
 
 import { createContext, use } from 'react'
-import type { StandardContext } from '@/utils/context'
 import type { Cart, Product, ProductVariant } from '../types'
 
-// Standard context state
+// Context state
 export interface CartState {
   cart: Cart | undefined
 }
 
-// Standard context actions
+// Context actions
 export interface CartActions {
   updateCartItem: (
     merchandiseId: string,
@@ -22,17 +21,17 @@ export interface CartActions {
   ) => void
 }
 
-// Standard context meta (computed values)
+// Context meta (computed values)
 export interface CartMeta {
   totalQuantity: () => number
 }
 
-// Standard context type
-export type CartContextStandard = StandardContext<
-  CartState,
-  CartActions,
-  CartMeta
->
+// Context value shape
+export type CartContextStandard = {
+  state: CartState
+  actions: CartActions
+  meta?: CartMeta
+}
 
 export const CartContext = createContext<CartContextStandard | null>(null)
 

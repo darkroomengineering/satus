@@ -47,7 +47,7 @@ function Switch({ label, className, labelClassName, ...props }: SwitchProps) {
   if (!label) {
     return (
       <BaseSwitch.Root className={cn(s.root, className)} {...props}>
-        <BaseSwitch.Thumb {...(s.thumb && { className: s.thumb })} />
+        <BaseSwitch.Thumb className={cn(s.thumb)} />
       </BaseSwitch.Root>
     )
   }
@@ -56,7 +56,7 @@ function Switch({ label, className, labelClassName, ...props }: SwitchProps) {
     // biome-ignore lint/a11y/noLabelWithoutControl: Base UI switch is wrapped in label for accessibility
     <label className={cn(s.container, labelClassName)}>
       <BaseSwitch.Root className={cn(s.root, className)} {...props}>
-        <BaseSwitch.Thumb {...(s.thumb && { className: s.thumb })} />
+        <BaseSwitch.Thumb className={cn(s.thumb)} />
       </BaseSwitch.Root>
       <span className={s.label}>{label}</span>
     </label>

@@ -14,6 +14,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | Accordion | `@/components/ui/accordion` | Client |
 | AlertDialog | `@/components/ui/alert-dialog` | Client |
 | Checkbox | `@/components/ui/checkbox` | Client |
+| ErrorView | `@/components/ui/error-view` | Client |
 | Fold | `@/components/ui/fold` | Client |
 | Form | `@/components/ui/form` | Client |
 | Image | `@/components/ui/image` | Client |
@@ -58,7 +59,6 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 
 | Hook | Import | Signature |
 |------|--------|-----------|
-| useStore | `@/hooks/store` | `` |
 | useDeviceDetection | `@/hooks/use-device-detection` | `()` |
 | usePrefetch | `@/hooks/use-prefetch` | `(href: Route | null | undefined, options?: IntersectionObserverInit)` |
 | useReveal | `@/hooks/use-reveal` | `({ threshold = 0, rootMargin = '0px 0px -25% 0px', once = true, }: UseRevealOptions = {})` |
@@ -71,37 +71,12 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 
 ## Utilities
 
-### Animation (`@/utils/animation`)
-
-| Export | Signature |
-|--------|-----------|
-| stagger | `(index: number, total: number, progress: number, staggerAmount: number) => number` |
-| ease | `(progress: number, easeName: EasingName) => number` |
-| fromTo | `(entries: | number | (number | HTMLElement | null | Element | undefined)[] | HTMLElement | Element | null | undefined, from: FromToValue = 0, to: FromToValue = 1, progress = 0, options: FromToOptions = {}) => void` |
-| spring | `(current: number, target: number, velocity: number, stiffness = 200, damping = 20, deltaTime = 1 / 60) => { value: number; velocity: number }` |
-| FromToOptions |  |
-| FromToValue | `| number | Record<string, number | ((index: number) => number)>` |
-
-### Context (`@/utils/context`)
-
-| Export | Signature |
-|--------|-----------|
-| StandardContext |  |
-
-### Easings (`@/utils/easings`)
-
-| Export | Signature |
-|--------|-----------|
-| easings | `{ readonly linear: (x: number) => number; readonly easeInQuad: (x: number) =>...` |
-| EasingName | `keyof typeof easings` |
-| EasingFunction | `(progress: number) => number` |
-
 ### Fetch (`@/utils/fetch`)
 
 | Export | Signature |
 |--------|-----------|
 | fetchWithTimeout | `(url: string, options: FetchWithTimeoutOptions = {}) => Promise<Response>` |
-| fetchJSON | `(url: string, options: FetchWithTimeoutOptions = {}) => Promise<T>` |
+| fetchJSON | `(url: string, options?: FetchWithTimeoutOptions) => Promise<unknown>` |
 | FetchWithTimeoutOptions |  |
 
 ### Form-action (`@/utils/form-action`)
@@ -175,16 +150,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | mailchimpEnvSchema | `ZodObject<{ MAILCHIMP_API_KEY: ZodString; MAILCHIMP_SERVER_PREFIX: ZodString;...` |
 | turnstileEnvSchema | `ZodObject<{ NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY: ZodString; CLOUDFLARE_...` |
 | analyticsEnvSchema | `ZodObject<{ NEXT_PUBLIC_GOOGLE_ANALYTICS: ZodOptional<ZodString>; NEXT_PUBLIC...` |
-| coreEnvSchema | `ZodObject<{ NEXT_PUBLIC_BASE_URL: ZodURL; }, $strip>` |
-
-### Viewport (`@/utils/viewport`)
-
-| Export | Signature |
-|--------|-----------|
-| desktopVW | `(value: number, width: number) => number` |
-| mobileVW | `(value: number, width: number) => number` |
-| desktopVH | `(value: number, height: number) => number` |
-| mobileVH | `(value: number, height: number) => number` |
+| coreEnvSchema | `ZodObject<{ NEXT_PUBLIC_BASE_URL: ZodOptional<ZodURL>; }, $strip>` |
 
 ---
 
@@ -193,10 +159,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | Component | Import | Type |
 |-----------|--------|------|
 | Canvas | `@/webgl/components/canvas` | Client |
-| FlowmapProvider | `@/webgl/components/flowmap-provider` | Server |
 | GlobalCanvas | `@/webgl/components/global-canvas` | Client |
-| Image | `@/webgl/components/image` | Client |
-| Postprocessing | `@/webgl/components/postprocessing` | Server |
 | Raf | `@/webgl/components/raf` | Server |
 | Tunnel | `@/webgl/components/tunnel` | Client |
 
@@ -207,11 +170,14 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | Export | Signature |
 |--------|-----------|
 | isConfigured | `(id: IntegrationId) => boolean` |
+| getConfiguredIds | `() => IntegrationId[]` |
 | getConfigured | `() => string[]` |
 | getUnconfigured | `() => string[]` |
 | IntegrationEntry |  |
 | integrations | `{ readonly sanity: { readonly name: "Sanity"; readonly envSchema: ZodObject<{...` |
 | IntegrationId | `keyof typeof integrations` |
+| devOnlyRemovables | `readonly ["webgl", "theatre"]` |
+| RemovableId | `IntegrationId | (typeof devOnlyRemovables)[number]` |
 
 ---
 

@@ -386,7 +386,7 @@ Critical rules:
 
 ### Next.js 16 Request Proxy
 
-`proxy.ts` at the project root replaces `middleware.ts` for cross-cutting request concerns. Currently handles rate limiting for `/api/*` routes via `@/utils/rate-limit`. Security headers stay in `next.config.ts`.
+`proxy.ts` at the project root handles cross-cutting request concerns — currently rate limiting for `/api/*` routes via `@/utils/rate-limit`. Security headers stay in `next.config.ts`.
 
 ### Tailwind v4
 
@@ -402,14 +402,13 @@ Configuration is CSS-first - no `tailwind.config.js`. Use `@theme` directive in 
 }
 ```
 
-Key v4 changes:
-- `@import "tailwindcss"` replaces `@tailwind base/components/utilities`
-- CSS variables in arbitrary values: `bg-(--brand-color)` not `bg-[--brand-color]`
-- Stacked variants apply left-to-right (not right-to-left)
+Tailwind v4 conventions:
+- Load Tailwind with `@import "tailwindcss"`
+- CSS variables in arbitrary values: `bg-(--brand-color)`, not `bg-[--brand-color]`
+- Stacked variants apply left-to-right
 - Custom utilities via `@utility`, custom variants via `@variant`
-- Container queries built-in (no plugin)
-- `shadow-sm` renamed to `shadow-xs`, `rounded-sm` to `rounded-xs`, `blur-sm` to `blur-xs`
-- `bg-opacity-*` removed; use `bg-black/50` instead
+- Container queries are built-in (no plugin)
+- Opacity via slash syntax: `bg-black/50`
 
 ---
 

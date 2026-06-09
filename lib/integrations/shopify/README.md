@@ -53,7 +53,7 @@ const product = await getProduct('product-handle')
 ### Validation
 
 All Shopify server actions validate input with Zod schemas:
-- **Cart actions** (`addItem`, `updateItemQuantity`, `removeItem`): validate variant IDs, quantity bounds (1-99), rate limiting. `updateItemQuantity` and `removeItem` take the client-held `lineId` (the cart line's id) and patch that line directly, instead of re-fetching the whole cart first.
+- **Cart actions** (`addItem`, `updateItemQuantity`, `removeItem`): validate variant IDs, quantity bounds (1-99), rate limiting. `updateItemQuantity` and `removeItem` take the client-held `lineId` (the cart line's id) to patch that line directly.
 - **Customer actions** (`LoginCustomerAction`, `CreateCustomerAction`): validate email format, password length, rate limiting
 - **Error handling**: Actions return plain error strings or `FormState` objects on failure; there is no `Error` instance wrapping
 

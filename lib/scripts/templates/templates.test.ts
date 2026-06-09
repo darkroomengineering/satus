@@ -4,8 +4,8 @@
  * Run with: bun test lib/scripts/templates/templates.test.ts
  *
  * The handoff CLI (`bun run handoff`) is interactive, so these tests exercise
- * the pure render functions directly to guarantee the extracted templates
- * produce the same documents the inline generators used to.
+ * the pure render functions directly to guarantee the templates render the
+ * expected handoff documents.
  */
 
 import { describe, expect, it } from 'bun:test'

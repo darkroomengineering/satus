@@ -1,8 +1,7 @@
 /**
  * Next.js Request Proxy
  *
- * Replaces the deprecated middleware.ts pattern for Next.js 16+.
- * Handles cross-cutting concerns for incoming requests.
+ * Handles cross-cutting concerns for incoming requests, before route matching.
  *
  * Customize:
  * - Rate limiting: Adjust rateLimiters config per route pattern

@@ -12,10 +12,10 @@ if (typeof window !== 'undefined') {
   //   })
 }
 
-// Stable, non-reactive handlers. They only call GSAP ScrollTrigger statics, so
-// they belong at module scope. They were previously useEffectEvent functions
-// passed into useLenis() — but Effect Event functions must not be passed to
-// other hooks (rules-of-hooks), and these read no reactive state anyway.
+// Stable, non-reactive handlers. They only call GSAP ScrollTrigger statics and
+// read no reactive state, so they live at module scope rather than as
+// useEffectEvent functions passed into useLenis() — Effect Event functions must
+// not be passed to other hooks (rules-of-hooks).
 function handleUpdate() {
   GSAPScrollTrigger.update()
 }

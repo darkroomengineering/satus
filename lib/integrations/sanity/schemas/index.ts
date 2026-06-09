@@ -2,7 +2,6 @@
  * Sanity Schema Types
  *
  * All schema definitions for Sanity CMS, organized in a flat structure.
- * This replaces the previous documents/objects/singletons directory structure.
  */
 
 import type { SchemaTypeDefinition } from 'sanity'

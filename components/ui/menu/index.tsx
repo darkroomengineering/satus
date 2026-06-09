@@ -6,10 +6,8 @@ import type { ComponentProps, ReactNode } from 'react'
 import s from './menu.module.css'
 
 /**
- * Menu component built on Base UI for accessible dropdown menus.
- *
- * Replaces the legacy Dropdown component with better accessibility,
- * keyboard navigation, and positioning via Floating UI.
+ * Menu component built on Base UI for accessible dropdown menus, with keyboard
+ * navigation and positioning via Floating UI.
  *
  * @example
  * ```tsx

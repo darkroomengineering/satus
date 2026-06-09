@@ -42,7 +42,7 @@ import { mailchimpSubscriptionAction } from '@/lib/integrations/mailchimp'
 
 ### Validation
 
-Contact and subscription actions validate email format using Zod's `emailSchema`. Env vars are validated via `mailchimpEnvSchema` in the integration registry. Error responses use the unified `fieldErrors: Record<string, string>` pattern (legacy Map-based errors have been removed).
+Contact and subscription actions validate email format using Zod's `emailSchema`. Env vars are validated via `mailchimpEnvSchema` in the integration registry. Error responses use the unified `fieldErrors: Record<string, string>` pattern.
 
 ## Notes
 

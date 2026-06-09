@@ -117,11 +117,6 @@ const checks: Check[] = [
     fix: 'Create COMPONENTS.md in project root',
   },
   {
-    name: 'PATTERNS.md exists',
-    check: () => existsSync(join(ROOT, 'PATTERNS.md')),
-    fix: 'Create PATTERNS.md in project root',
-  },
-  {
     name: 'Public fonts directory exists',
     check: () => existsSync(join(ROOT, 'public/fonts')),
     fix: 'Add fonts to public/fonts/ directory',

@@ -1,7 +1,7 @@
 // Type augmentations and module declarations
 
-// Bun globals (`Bun`, `bun:test`, etc.). TypeScript 6 no longer auto-includes
-// the `@types/bun` package (it re-exports `bun-types` via a triple-slash
+// Bun globals (`Bun`, `bun:test`, etc.). `@types/bun` isn't auto-included under
+// TypeScript 6's resolution (it re-exports `bun-types` via a triple-slash
 // reference with an empty `main`), so reference it explicitly here.
 /// <reference types="bun" />
 

@@ -16,7 +16,7 @@ const isDevelopment = process.env.NODE_ENV === 'development'
 const LazyGlobalCanvas = dynamic(
   () =>
     import('@/webgl/components/global-canvas').then((mod) => ({
-      default: mod.LazyGlobalCanvas,
+      default: mod.GlobalCanvas,
     })),
   { ssr: false }
 )

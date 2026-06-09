@@ -54,11 +54,12 @@ Root Layout → GlobalCanvas (mounts on first webgl page visit)
 | `Canvas` | Activates GlobalCanvas for a page |
 | `WebGLTunnel` | Portal 3D content to GlobalCanvas |
 | `DOMTunnel` | Portal HTML overlays |
-| `GlobalCanvas` | Persistent canvas (in layout) |
+| `GlobalCanvas` | Persistent canvas (in layout, loaded via `OptionalFeatures`) |
 
-The flowmap and fluid-simulation passes are **opt-in**: enable them per page via
-the flowmap provider/hook (`useFlowmap` throws if used outside its provider), so
-pages that don't use them pay no cost.
+The flowmap and fluid simulations are **opt-in per-page hooks**: use
+`useFlowmapSim()` from `lib/webgl/utils/flowmaps` or `useFluidSim()` from
+`lib/webgl/utils/fluid` directly inside a WebGLTunnel. Pages that don't use
+them pay no cost.
 
 ## Hooks
 

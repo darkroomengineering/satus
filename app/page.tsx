@@ -11,6 +11,7 @@
  */
 import cn from 'clsx'
 import { Wrapper } from '@/components/layout/wrapper'
+import { Link } from '@/components/ui/link'
 import s from './page.module.css'
 
 export const metadata = {
@@ -43,8 +44,9 @@ const STEPS: Step[] = [
     body: (
       <>
         <p className={s.text}>
-          Copy <code className={s.inline}>.env.example</code> to{' '}
-          <code className={s.inline}>.env</code> and set your{' '}
+          Point the site at your domain: copy{' '}
+          <code className={s.inline}>.env.example</code> to{' '}
+          <code className={s.inline}>.env</code> and set{' '}
           <code className={s.inline}>NEXT_PUBLIC_BASE_URL</code>.
         </p>
         <p className={s.text}>
@@ -121,10 +123,20 @@ const STEPS: Step[] = [
     title: 'Ship',
     body: (
       <>
-        <p className={s.text}>Run the checks, build, and deploy to Vercel.</p>
+        <p className={s.text}>Run the checks and build, then deploy.</p>
         <pre className={s.code}>
           <code>{`bun run check\nbun run build`}</code>
         </pre>
+        <p className={s.text}>
+          Or skip the wait and{' '}
+          <Link
+            className={s.link}
+            href="https://vercel.com/new/clone?repository-url=https://github.com/darkroomengineering/satus&project-name=satus&repository-name=satus"
+          >
+            deploy to Vercel in one click
+          </Link>
+          .
+        </p>
       </>
     ),
   },

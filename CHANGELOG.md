@@ -26,6 +26,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 - Storybook themed to match Satūs: stories render on the site palette through shared CSS tokens (edit the site, the catalogue follows), with a dark/light/red/evil theme toolbar and a branded manager. (#210)
 - Optional `/storybook` route that proxies to a standalone Storybook deployment, enabled per-environment via `NEXT_PUBLIC_STORYBOOK_URL` and force-disabled in Production. (#210)
+- One-click Deploy to Vercel button (README + in-app manual) and clearer domain-setup guidance. (#210)
 - `parseApiResponse` (`lib/utils/validation.ts`) — validates external API responses with Zod at the integration boundary (HubSpot, Mailchimp, Shopify GraphQL envelope), so malformed responses fail clearly at the edge instead of crashing downstream. (#198)
 - React Scan render profiler as an opt-in Orchestra dev tool — toggle 🔬 in the ⌘O palette, off by default (no profiler overhead unless enabled). (#209)
 - `useReveal` hook (`lib/hooks/use-reveal.ts`) — reveal-on-scroll primitive animating `transform`/`opacity` on the compositor thread via a `[data-reveal]`/`[data-reveal-item]` CSS contract in `global.css`; degrades to visible without JS and honors reduced-motion. (#189)

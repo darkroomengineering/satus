@@ -10,6 +10,10 @@ A modern Next.js 16 starter with React 19, Tailwind CSS v4, and optional WebGL. 
 
 Run `bun dev` and open [localhost:3000](http://localhost:3000) — the landing page is a step-by-step manual that walks you from a fresh clone to a shippable site. The rest of this README is the reference version.
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/darkroomengineering/satus&project-name=satus&repository-name=satus)
+
+> After deploying, set `NEXT_PUBLIC_BASE_URL` to your domain in the project's environment variables — it drives SEO, canonical URLs, sitemaps, and social cards.
+
 ## Features
 
 - **Next.js 16 + React 19** — App Router with React 19.2 and strict TypeScript out of the box

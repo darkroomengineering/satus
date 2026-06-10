@@ -59,8 +59,7 @@ export function useForm<T = unknown>({
     setIsActive((prev) => ({ ...prev, [name]: false }))
     setIsValid((prev) => {
       const isHidden =
-        input?.id === 'hidden' ||
-        (input instanceof HTMLInputElement && input.type === 'hidden')
+        input instanceof HTMLInputElement && input.type === 'hidden'
       return { ...prev, [name]: isHidden }
     })
     setErrors((prev) => ({

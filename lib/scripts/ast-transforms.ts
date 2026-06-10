@@ -30,9 +30,11 @@ import type {
   RemoveArrayObjectElementOp,
   RemoveArrayStringElementOp,
   RemoveCallStatementOp,
+  RemoveDestructuredBindingOp,
   RemoveFunctionParameterOp,
   RemoveImportOp,
   RemoveInterfacePropertyOp,
+  RemoveJsxAttributeOp,
   RemoveJsxElementOp,
   RemoveVariableStatementOp,
   ReplaceJsDocOp,
@@ -264,14 +266,27 @@ function applyRemoveJsxElement(
     if (match.kind === 'self') {
       const node = match.node
 
-      // Walk up the parent chain to find the enclosing JsxExpression.
-      // This handles both `{<Foo />}` (direct) and `{cond && <Foo />}`
-      // (wrapped in a BinaryExpression inside the JsxExpression).
-      const parent = node.getParent()
-      const grandParent = parent?.getParent()
-      const enclosingJsxExpr = [parent, grandParent].find(
-        (n) => n?.getKind() === SyntaxKind.JsxExpression
-      )
+      // Walk up the full ancestor chain to find the enclosing JsxExpression.
+      // This handles `{<Foo />}` (direct), `{cond && <Foo />}` (one level of
+      // binary expression), and deeper nesting like
+      // `{a && b && (<Wrapper><Foo /></Wrapper>)}` where Foo is several
+      // levels inside a JsxElement that itself is inside the JsxExpression.
+      // We do NOT stop at JsxElement boundaries here because the element being
+      // removed may be a leaf inside a wrapper (e.g. `<Suspense><Foo/></Suspense>`)
+      // that is itself inside the target JsxExpression.
+      let enclosingJsxExpr: Node | undefined
+      let cursor: Node | undefined = node.getParent()
+      while (cursor) {
+        if (cursor.getKind() === SyntaxKind.JsxExpression) {
+          enclosingJsxExpr = cursor
+          break
+        }
+        // Stop at JSX fragments — they delimit independent rendering scopes
+        if (cursor.getKind() === SyntaxKind.JsxFragment) {
+          break
+        }
+        cursor = cursor.getParent()
+      }
 
       if (enclosingJsxExpr) {
         // Also remove any immediately preceding JSX comment sibling.
@@ -305,15 +320,78 @@ function applyRemoveJsxElement(
           .join('')
         node.replaceWithText(childText)
       } else {
-        // Remove entirely — including any wrapping JsxExpression.
-        const parent = node.getParent()
-        if (parent?.getKind() === SyntaxKind.JsxExpression) {
-          parent.replaceWithText('')
+        // Remove entirely — walk up to find the enclosing JsxExpression so
+        // that `{cond && <Elem>…</Elem>}` is removed whole, not just the tags.
+        let enclosingExpr: Node | undefined
+        let cur: Node | undefined = node.getParent()
+        while (cur) {
+          if (cur.getKind() === SyntaxKind.JsxExpression) {
+            enclosingExpr = cur
+            break
+          }
+          // Stop if we reach another JSX element boundary (don't escape siblings)
+          if (
+            cur.getKind() === SyntaxKind.JsxElement ||
+            cur.getKind() === SyntaxKind.JsxFragment
+          ) {
+            break
+          }
+          cur = cur.getParent()
+        }
+        if (enclosingExpr) {
+          enclosingExpr.replaceWithText('')
         } else {
           node.replaceWithText('')
         }
       }
     }
+  }
+
+  const result = sf.getFullText()
+  project.removeSourceFile(sf)
+  return result
+}
+
+/**
+ * Remove a named attribute from all JSX elements with the given tag name.
+ * Handles both self-closing (`<Foo bar />`) and open/close (`<Foo bar>…</Foo>`)
+ * elements, and both boolean shorthand (`webgl`) and valued (`webgl={true}`)
+ * attribute forms.
+ */
+function applyRemoveJsxAttribute(
+  project: Project,
+  sourceText: string,
+  op: RemoveJsxAttributeOp
+): string {
+  const sf = project.createSourceFile('__tmp__.tsx', sourceText)
+
+  // Collect attribute nodes from self-closing elements
+  const selfClosingAttrs = sf
+    .getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement)
+    .filter((el) => el.getTagNameNode().getText() === op.tagName)
+    .flatMap((el) => {
+      const attr = el.getAttribute(op.attributeName)
+      return attr ? [attr] : []
+    })
+
+  // Collect attribute nodes from open/close elements
+  const openElementAttrs = sf
+    .getDescendantsOfKind(SyntaxKind.JsxElement)
+    .filter(
+      (el) => el.getOpeningElement().getTagNameNode().getText() === op.tagName
+    )
+    .flatMap((el) => {
+      const attr = el.getOpeningElement().getAttribute(op.attributeName)
+      return attr ? [attr] : []
+    })
+
+  // Process in reverse source order to keep positions stable
+  const allAttrs = [...selfClosingAttrs, ...openElementAttrs].sort(
+    (a, b) => b.getPos() - a.getPos()
+  )
+
+  for (const attr of allAttrs) {
+    attr.remove()
   }
 
   const result = sf.getFullText()
@@ -389,6 +467,51 @@ function applyRemoveFunctionParameter(
   const result = sf.getFullText()
   project.removeSourceFile(sf)
   return result
+}
+
+/**
+ * Remove a named binding from a destructured variable declaration at any scope
+ * depth, e.g. `const { stats, grid, studio } = useOrchestra()`.
+ *
+ * The declaration is located by finding a VariableStatement whose binding
+ * pattern contains `bindingName` AND whose initializer text contains
+ * `initializerContains` (substring match). The remaining elements are preserved
+ * verbatim (including defaults and rest elements).
+ */
+function applyRemoveDestructuredBinding(
+  project: Project,
+  sourceText: string,
+  op: RemoveDestructuredBindingOp
+): string {
+  const sf = project.createSourceFile('__tmp__.tsx', sourceText)
+
+  for (const stmt of sf.getDescendantsOfKind(SyntaxKind.VariableStatement)) {
+    for (const decl of stmt.getDeclarations()) {
+      const nameNode = decl.getNameNode()
+      if (nameNode.getKind() !== SyntaxKind.ObjectBindingPattern) continue
+
+      const pattern = nameNode.asKindOrThrow(SyntaxKind.ObjectBindingPattern)
+      const elements = pattern.getElements()
+      const target = elements.find((el) => el.getName() === op.bindingName)
+      if (!target) continue
+
+      // Narrow by initializer text to avoid modifying unrelated destructurings.
+      const initText = decl.getInitializer()?.getText() ?? ''
+      if (!initText.includes(op.initializerContains)) continue
+
+      const kept = elements
+        .filter((el) => el !== target)
+        .map((el) => el.getText())
+      pattern.replaceWithText(`{ ${kept.join(', ')} }`)
+
+      const result = sf.getFullText()
+      project.removeSourceFile(sf)
+      return result
+    }
+  }
+
+  project.removeSourceFile(sf)
+  return sourceText
 }
 
 function applyReplaceJsDoc(
@@ -930,6 +1053,12 @@ export function applyOpsToText(
         break
       case 'removeJsxElement':
         text = applyRemoveJsxElement(project, text, op)
+        break
+      case 'removeJsxAttribute':
+        text = applyRemoveJsxAttribute(project, text, op)
+        break
+      case 'removeDestructuredBinding':
+        text = applyRemoveDestructuredBinding(project, text, op)
         break
       case 'removeInterfaceProperty':
         text = applyRemoveInterfaceProperty(project, text, op)

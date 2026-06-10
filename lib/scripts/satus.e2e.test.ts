@@ -43,6 +43,9 @@ const COPY_FILES = [
   'biome.json',
   'bunfig.toml',
   '.env.example',
+  // Required for typecheck gates: references next/image-types (asset module
+  // declarations) and .next/types/routes.d.ts (stubbed by setup:project).
+  'next-env.d.ts',
 ]
 
 /**
@@ -100,13 +103,39 @@ const runScript = async (
   return { exitCode, stdout, stderr }
 }
 
+/**
+ * Run `bun run typecheck` (tsgo --noEmit) in the temp project directory.
+ * The temp project has node_modules symlinked from the repo, so tsgo is
+ * available without a separate install.
+ */
+const runTypecheck = async (cwd: string): Promise<RunResult> => {
+  const proc = Bun.spawn([process.execPath, 'run', 'typecheck'], {
+    cwd,
+    stdin: 'ignore',
+    stdout: 'pipe',
+    stderr: 'pipe',
+    env: { ...process.env, NO_COLOR: '1' },
+  })
+  const [stdout, stderr, exitCode] = await Promise.all([
+    new Response(proc.stdout).text(),
+    new Response(proc.stderr).text(),
+    proc.exited,
+  ])
+  return { exitCode, stdout, stderr }
+}
+
 /** Subtract: keep only `keep`, removing the rest — no prompts, no install. */
-const runSetup = (cwd: string, keep: string): Promise<RunResult> =>
+const runSetup = (
+  cwd: string,
+  keep: string,
+  extra: string[] = []
+): Promise<RunResult> =>
   runScript(cwd, 'lib/scripts/setup-project.ts', [
     '--keep',
     keep,
     '--yes',
     '--skip-install',
+    ...extra,
   ])
 
 /** Restore: add `plugin` back from this repo as the local payload source. */
@@ -392,5 +421,62 @@ describe('round trip: webgl without theatre', () => {
 
     expectClean(await runAdd(project, 'webgl'), 'satus add webgl (rerun)')
     await expectSnapshotUnchanged(project, snapshot)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Typecheck gate: lean output must pass `tsgo --noEmit`
+//
+// Two lean variants are tested:
+//   1. --keep ''                         (all integrations removed)
+//   2. --keep '' --clean-homepage        (all integrations removed + blank page)
+//
+// These tests run setup:project with --skip-install (node_modules symlinked),
+// then run `bun run typecheck` in the resulting project.  The default timeout
+// (120 s) is sufficient — tsgo is fast even on cold starts.
+// ---------------------------------------------------------------------------
+
+describe('lean typecheck: --keep ""', () => {
+  let project = ''
+
+  afterAll(async () => {
+    if (project) await rm(project, { recursive: true, force: true })
+  })
+
+  it('lean output passes tsgo --noEmit', async () => {
+    project = await createTempProject()
+
+    expectClean(await runSetup(project, ''), 'setup:project --keep "" (lean)')
+
+    const result = await runTypecheck(project)
+    if (result.exitCode !== 0) {
+      throw new Error(
+        `tsgo --noEmit failed on lean output (exit ${result.exitCode})\n--- stdout ---\n${result.stdout}\n--- stderr ---\n${result.stderr}`
+      )
+    }
+  })
+})
+
+describe('lean typecheck: --keep "" --clean-homepage', () => {
+  let project = ''
+
+  afterAll(async () => {
+    if (project) await rm(project, { recursive: true, force: true })
+  })
+
+  it('lean output with clean homepage passes tsgo --noEmit', async () => {
+    project = await createTempProject()
+
+    expectClean(
+      await runSetup(project, '', ['--clean-homepage']),
+      'setup:project --keep "" --clean-homepage'
+    )
+
+    const result = await runTypecheck(project)
+    if (result.exitCode !== 0) {
+      throw new Error(
+        `tsgo --noEmit failed on lean+clean-homepage output (exit ${result.exitCode})\n--- stdout ---\n${result.stdout}\n--- stderr ---\n${result.stderr}`
+      )
+    }
   })
 })

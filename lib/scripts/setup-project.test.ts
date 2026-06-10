@@ -91,6 +91,8 @@ describe('Integration Bundle Configuration', () => {
             'replaceJsDoc',
             'removeArrayObjectElement',
             'removeArrayStringElement',
+            'removeJsxAttribute',
+            'removeDestructuredBinding',
           ]).toContain(op.kind)
 
           // Each op kind must carry its required fields
@@ -119,6 +121,11 @@ describe('Integration Bundle Configuration', () => {
             expect(op.variableName).toBeTruthy()
             expect(op.propertyPath).toBeTruthy()
             expect(op.value).toBeTruthy()
+          } else if (op.kind === 'removeJsxAttribute') {
+            expect(op.tagName).toBeTruthy()
+            expect(op.attributeName).toBeTruthy()
+          } else if (op.kind === 'removeDestructuredBinding') {
+            expect(op.bindingName).toBeTruthy()
           }
         }
       }

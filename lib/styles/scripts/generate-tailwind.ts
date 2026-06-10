@@ -63,16 +63,32 @@ ${Object.entries(typography)
           return `@apply dr-text-${value};`
         }
 
-        return [
-          `font-size: ${scalingCalc(value.mobile)};`,
-          `@variant dt { font-size: ${scalingCalc(value.desktop)}; }`,
-        ].join('\n\t')
+        if (
+          typeof value === 'object' &&
+          value !== null &&
+          'mobile' in value &&
+          'desktop' in value
+        ) {
+          const v = value as { mobile: number; desktop: number }
+          return [
+            `font-size: ${scalingCalc(v.mobile)};`,
+            `@variant dt { font-size: ${scalingCalc(v.desktop)}; }`,
+          ].join('\n\t')
+        }
+
+        return `font-size: ${String(value)};`
       }
 
-      if (typeof value === 'object') {
+      if (
+        typeof value === 'object' &&
+        value !== null &&
+        'mobile' in value &&
+        'desktop' in value
+      ) {
+        const v = value as { mobile: string | number; desktop: string | number }
         return [
-          `${key}: ${value.mobile};`,
-          `@variant dt { ${key}: ${value.desktop}; }`,
+          `${key}: ${v.mobile};`,
+          `@variant dt { ${key}: ${v.desktop}; }`,
         ].join('\n\t')
       }
 

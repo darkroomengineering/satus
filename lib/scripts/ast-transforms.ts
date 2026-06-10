@@ -7,16 +7,23 @@
  */
 
 import {
+  IndentationText,
   type JsxAttributeLike,
   type JsxElement,
   type JsxSelfClosingElement,
   type Node,
   Project,
+  QuoteKind,
   type SourceFile,
   SyntaxKind,
   ts,
 } from 'ts-morph'
 import type {
+  AddArrayObjectElementOp,
+  AddArrayStringElementOp,
+  AddImportOp,
+  AddJsxChildOp,
+  AddVariableStatementOp,
   AstOperation,
   CodeTransform,
   RemoveArrayObjectElementOp,
@@ -83,6 +90,56 @@ function openElementMatchesOp(el: JsxElement, op: RemoveJsxElementOp): boolean {
     if (val !== op.attribute.value) return false
   }
   return true
+}
+
+/**
+ * True when an array element is an object literal containing a property whose
+ * name and string value both match `matchProperty`. Quoted property names
+ * ("hostname": …) are normalized to bare names before comparison.
+ */
+function objectElementMatches(
+  el: Node,
+  matchProperty: { name: string; value: string }
+): boolean {
+  if (el.getKind() !== SyntaxKind.ObjectLiteralExpression) return false
+  const obj = el.asKindOrThrow(SyntaxKind.ObjectLiteralExpression)
+  const matchProp = obj.getProperties().find(
+    (p) =>
+      p.getKind() === SyntaxKind.PropertyAssignment &&
+      // Normalize quoted property names ("hostname": …) to bare names.
+      p
+        .asKindOrThrow(SyntaxKind.PropertyAssignment)
+        .getName()
+        .replace(/^['"]|['"]$/g, '') === matchProperty.name
+  )
+  if (!matchProp) return false
+  const initNode = matchProp
+    .asKindOrThrow(SyntaxKind.PropertyAssignment)
+    .getInitializer()
+  if (!initNode) return false
+  const initValue =
+    initNode.getKind() === SyntaxKind.StringLiteral
+      ? initNode.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue()
+      : undefined
+  return initValue === matchProperty.value
+}
+
+/**
+ * Statement index immediately after the last import declaration, falling back
+ * to just past any directive prologue ('use client', …) when no imports exist.
+ */
+function insertIndexAfterImports(sf: SourceFile): number {
+  const imports = sf.getImportDeclarations()
+  const lastImport = imports[imports.length - 1]
+  if (lastImport) return lastImport.getChildIndex() + 1
+
+  let index = 0
+  for (const stmt of sf.getStatements()) {
+    const expr = stmt.asKind(SyntaxKind.ExpressionStatement)?.getExpression()
+    if (expr?.getKind() !== SyntaxKind.StringLiteral) break
+    index++
+  }
+  return index
 }
 
 // ---------------------------------------------------------------------------
@@ -434,26 +491,7 @@ function applyRemoveArrayObjectElement(
   const elements = arr.getElements()
 
   for (const el of elements) {
-    if (el.getKind() !== SyntaxKind.ObjectLiteralExpression) continue
-    const obj = el.asKindOrThrow(SyntaxKind.ObjectLiteralExpression)
-    const matchProp = obj.getProperties().find(
-      (p) =>
-        p.getKind() === SyntaxKind.PropertyAssignment &&
-        // Normalize quoted property names ("hostname": …) to bare names.
-        p
-          .asKindOrThrow(SyntaxKind.PropertyAssignment)
-          .getName()
-          .replace(/^['"]|['"]$/g, '') === op.matchProperty.name
-    )
-    if (!matchProp) continue
-    const pa = matchProp.asKindOrThrow(SyntaxKind.PropertyAssignment)
-    const initNode = pa.getInitializer()
-    if (!initNode) continue
-    const initValue =
-      initNode.getKind() === SyntaxKind.StringLiteral
-        ? initNode.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue()
-        : undefined
-    if (initValue !== op.matchProperty.value) continue
+    if (!objectElementMatches(el, op.matchProperty)) continue
 
     // Found the matching element — remove it from the array
     arr.removeElement(el)
@@ -501,6 +539,292 @@ function applyRemoveArrayStringElement(
 }
 
 // ---------------------------------------------------------------------------
+// Additive operation handlers
+// Every additive handler is IDEMPOTENT: when the construct it would add is
+// already present, the original source text is returned byte-for-byte
+// unchanged (the no-op paths return `sourceText`, never re-printed text).
+// ---------------------------------------------------------------------------
+
+/**
+ * Add an import declaration given as full source text. The text is parsed in
+ * a throwaway file to extract its module specifier and bindings, so arbitrary
+ * formatting of both the op text and the target file is handled.
+ *
+ * - Existing import from the same specifier: merge missing named imports (and
+ *   a missing default import) into it; no-op when everything is present.
+ * - No existing import: insert after the last import declaration, or after
+ *   the directive prologue ('use client') when the file has no imports.
+ */
+function applyAddImport(
+  project: Project,
+  sourceText: string,
+  op: AddImportOp
+): string {
+  const opSf = project.createSourceFile('__op__.tsx', op.text)
+  const opDecl = opSf.getImportDeclarations()[0]
+  if (!opDecl) {
+    project.removeSourceFile(opSf)
+    return sourceText
+  }
+
+  const specifier = opDecl.getModuleSpecifierValue()
+  const namedImports = opDecl.getNamedImports().map((n) => ({
+    name: n.getName(),
+    alias: n.getAliasNode()?.getText(),
+  }))
+  const defaultImport = opDecl.getDefaultImport()?.getText()
+  project.removeSourceFile(opSf)
+
+  const sf = project.createSourceFile('__tmp__.tsx', sourceText)
+  const existing = sf
+    .getImportDeclarations()
+    .find((d) => d.getModuleSpecifierValue() === specifier)
+
+  if (existing) {
+    let changed = false
+
+    // A namespace import (`import * as X`) cannot carry named/default
+    // bindings; the module is already imported, so treat as present.
+    if (!existing.getNamespaceImport()) {
+      if (defaultImport && !existing.getDefaultImport()) {
+        existing.setDefaultImport(defaultImport)
+        changed = true
+      }
+
+      // Merge missing named imports, compared by imported name so aliased
+      // re-imports of the same binding don't duplicate.
+      const existingNames = new Set(
+        existing.getNamedImports().map((n) => n.getName())
+      )
+      const missing = namedImports.filter((n) => !existingNames.has(n.name))
+      if (missing.length > 0) {
+        existing.addNamedImports(
+          missing.map((n) => (n.alias ? `${n.name} as ${n.alias}` : n.name))
+        )
+        changed = true
+      }
+    }
+
+    const result = changed ? sf.getFullText() : sourceText
+    project.removeSourceFile(sf)
+    return result
+  }
+
+  sf.insertStatements(insertIndexAfterImports(sf), op.text)
+  const result = sf.getFullText()
+  project.removeSourceFile(sf)
+  return result
+}
+
+/**
+ * Append a string-literal element to the array at
+ * `variableName`.`propertyPath`. No-op when an element with the same literal
+ * value (regardless of quote style) already exists.
+ */
+function applyAddArrayStringElement(
+  project: Project,
+  sourceText: string,
+  op: AddArrayStringElementOp
+): string {
+  const { sf, node } = resolvePropertyPath(
+    project,
+    sourceText,
+    op.variableName,
+    op.propertyPath
+  )
+
+  if (!node || node.getKind() !== SyntaxKind.ArrayLiteralExpression) {
+    project.removeSourceFile(sf)
+    return sourceText
+  }
+
+  const arr = node.asKindOrThrow(SyntaxKind.ArrayLiteralExpression)
+  const alreadyPresent = arr
+    .getElements()
+    .some(
+      (el) =>
+        el.getKind() === SyntaxKind.StringLiteral &&
+        el.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue() ===
+          op.value
+    )
+  if (alreadyPresent) {
+    project.removeSourceFile(sf)
+    return sourceText
+  }
+
+  arr.addElement(`'${op.value.replace(/'/g, "\\'")}'`, {
+    useNewLines: arr.getText().includes('\n'),
+  })
+
+  const result = sf.getFullText()
+  project.removeSourceFile(sf)
+  return result
+}
+
+/**
+ * Append an object-literal element (given as source text) to the array at
+ * `variableName`.`propertyPath`. No-op when an element already matches
+ * `matchProperty` — same semantics as removeArrayObjectElement, including
+ * quoted-key normalization.
+ */
+function applyAddArrayObjectElement(
+  project: Project,
+  sourceText: string,
+  op: AddArrayObjectElementOp
+): string {
+  const { sf, node } = resolvePropertyPath(
+    project,
+    sourceText,
+    op.variableName,
+    op.propertyPath
+  )
+
+  if (!node || node.getKind() !== SyntaxKind.ArrayLiteralExpression) {
+    project.removeSourceFile(sf)
+    return sourceText
+  }
+
+  const arr = node.asKindOrThrow(SyntaxKind.ArrayLiteralExpression)
+  const alreadyPresent = arr
+    .getElements()
+    .some((el) => objectElementMatches(el, op.matchProperty))
+  if (alreadyPresent) {
+    project.removeSourceFile(sf)
+    return sourceText
+  }
+
+  arr.addElement(op.objectText, {
+    useNewLines: arr.getText().includes('\n'),
+  })
+
+  const result = sf.getFullText()
+  project.removeSourceFile(sf)
+  return result
+}
+
+/**
+ * Insert a full variable statement. No-op when a variable named `name`
+ * already exists anywhere in the file — descendant scan mirrors
+ * removeVariableStatement, so function-scoped declarations count as present.
+ */
+function applyAddVariableStatement(
+  project: Project,
+  sourceText: string,
+  op: AddVariableStatementOp
+): string {
+  const sf = project.createSourceFile('__tmp__.tsx', sourceText)
+
+  const exists = sf
+    .getDescendantsOfKind(SyntaxKind.VariableDeclaration)
+    .some((d) => d.getName() === op.name)
+  if (exists) {
+    project.removeSourceFile(sf)
+    return sourceText
+  }
+
+  if (op.afterImports === false) {
+    sf.addStatements(op.text)
+  } else {
+    sf.insertStatements(insertIndexAfterImports(sf), op.text)
+  }
+
+  const result = sf.getFullText()
+  project.removeSourceFile(sf)
+  return result
+}
+
+/** JSX child kinds considered when matching an existing child's indentation. */
+const JSX_CHILD_KINDS: SyntaxKind[] = [
+  SyntaxKind.JsxElement,
+  SyntaxKind.JsxSelfClosingElement,
+  SyntaxKind.JsxExpression,
+  SyntaxKind.JsxFragment,
+]
+
+/**
+ * Line indentation of the last element-ish JSX child, when that child sits on
+ * its own line. Returns undefined for inline children (single-line parents).
+ */
+function lastJsxChildIndent(
+  parent: JsxElement,
+  sourceText: string
+): string | undefined {
+  const children = parent
+    .getJsxChildren()
+    .filter((c) => JSX_CHILD_KINDS.includes(c.getKind()))
+  const last = children[children.length - 1]
+  if (!last) return undefined
+
+  const start = last.getStart()
+  const lineStart = sourceText.lastIndexOf('\n', start - 1) + 1
+  const prefix = sourceText.slice(lineStart, start)
+  return /^[ \t]*$/.test(prefix) ? prefix : undefined
+}
+
+/**
+ * Append `childText` as the last child of the first JSX element whose opening
+ * tag matches `parentTagName`. No-op when any JSX element (or self-closing
+ * element) with tag `childTagName` already exists anywhere in the file.
+ *
+ * Indentation heuristic: when the parent's closing tag sits on its own line,
+ * the child goes on its own line matching the last existing child's indent
+ * (or one level past the closing tag). Single-line parents get the child
+ * inserted inline before the closing tag.
+ */
+function applyAddJsxChild(
+  project: Project,
+  sourceText: string,
+  op: AddJsxChildOp
+): string {
+  const sf = project.createSourceFile('__tmp__.tsx', sourceText)
+
+  const childExists =
+    sf
+      .getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement)
+      .some((el) => el.getTagNameNode().getText() === op.childTagName) ||
+    sf
+      .getDescendantsOfKind(SyntaxKind.JsxElement)
+      .some(
+        (el) =>
+          el.getOpeningElement().getTagNameNode().getText() === op.childTagName
+      )
+  if (childExists) {
+    project.removeSourceFile(sf)
+    return sourceText
+  }
+
+  const parent = sf
+    .getDescendantsOfKind(SyntaxKind.JsxElement)
+    .find(
+      (el) =>
+        el.getOpeningElement().getTagNameNode().getText() === op.parentTagName
+    )
+  if (!parent) {
+    project.removeSourceFile(sf)
+    return sourceText
+  }
+
+  const closing = parent.getClosingElement()
+  const closingStart = closing.getStart()
+  const lineStart = sourceText.lastIndexOf('\n', closingStart - 1) + 1
+  const closingLinePrefix = sourceText.slice(lineStart, closingStart)
+
+  if (/^[ \t]*$/.test(closingLinePrefix)) {
+    // Closing tag on its own line — give the child its own indented line.
+    const childIndent =
+      lastJsxChildIndent(parent, sourceText) ?? `${closingLinePrefix}  `
+    sf.insertText(lineStart, `${childIndent}${op.childText}\n`)
+  } else {
+    // Single-line parent (e.g. `<main>{children}</main>`) — insert inline.
+    sf.insertText(closingStart, op.childText)
+  }
+
+  const result = sf.getFullText()
+  project.removeSourceFile(sf)
+  return result
+}
+
+// ---------------------------------------------------------------------------
 // Per-file transform runner
 // ---------------------------------------------------------------------------
 
@@ -521,6 +845,12 @@ export function applyOpsToText(
   const project = new Project({
     useInMemoryFileSystem: true,
     compilerOptions: { jsx: ts.JsxEmit.ReactJSX },
+    // Match house style (Biome: 2-space indent, single quotes) so additive
+    // ops insert text that needs no reformatting.
+    manipulationSettings: {
+      indentationText: IndentationText.TwoSpaces,
+      quoteKind: QuoteKind.Single,
+    },
   })
   let text = sourceText
 
@@ -552,6 +882,21 @@ export function applyOpsToText(
         break
       case 'removeArrayStringElement':
         text = applyRemoveArrayStringElement(project, text, op)
+        break
+      case 'addImport':
+        text = applyAddImport(project, text, op)
+        break
+      case 'addArrayStringElement':
+        text = applyAddArrayStringElement(project, text, op)
+        break
+      case 'addArrayObjectElement':
+        text = applyAddArrayObjectElement(project, text, op)
+        break
+      case 'addVariableStatement':
+        text = applyAddVariableStatement(project, text, op)
+        break
+      case 'addJsxChild':
+        text = applyAddJsxChild(project, text, op)
         break
       // Exhaustiveness — TypeScript ensures all union members are handled above.
     }

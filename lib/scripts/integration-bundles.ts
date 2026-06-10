@@ -134,6 +134,108 @@ export interface RemoveArrayStringElementOp {
   value: string
 }
 
+// ---------------------------------------------------------------------------
+// Additive operations (inverse of the removals above)
+// Every additive op is IDEMPOTENT: when the construct it would add is already
+// present, the source text is returned byte-for-byte unchanged, so applying
+// the same op twice is a no-op.
+// ---------------------------------------------------------------------------
+
+/**
+ * Add a top-level import declaration, given as full source text.
+ *
+ * If an import with the same module specifier already exists, any missing
+ * named imports are merged into it (no-op when all bindings are present).
+ * Otherwise the declaration is inserted after the last existing import, e.g.
+ * re-adding `import { Canvas } from '@/webgl/components/canvas'`.
+ */
+export interface AddImportOp {
+  kind: 'addImport'
+  /** Full import declaration text, e.g. `import { Canvas } from '@/webgl/components/canvas'` */
+  text: string
+}
+
+/**
+ * Append a string-literal element to an array property nested inside a named
+ * variable declaration.  Inverse of `removeArrayStringElement`; designed for
+ * `experimental.optimizePackageImports` in next.config.ts.
+ *
+ * No-op when an element with the same literal value already exists.
+ */
+export interface AddArrayStringElementOp {
+  kind: 'addArrayStringElement'
+  /** The variable name that holds the object, e.g. `'nextConfig'`. */
+  variableName: string
+  /**
+   * Dot-separated path from the variable declaration down to the array
+   * property, e.g. `'experimental.optimizePackageImports'`.
+   */
+  propertyPath: string
+  /** The string value to append to the array. */
+  value: string
+}
+
+/**
+ * Append an object-literal element to an array property nested inside a named
+ * variable declaration.  Inverse of `removeArrayObjectElement`; designed for
+ * `images.remotePatterns` in next.config.ts.
+ *
+ * No-op when an element already matches `matchProperty` (same matching
+ * semantics as `removeArrayObjectElement`, including quoted-key
+ * normalization).
+ */
+export interface AddArrayObjectElementOp {
+  kind: 'addArrayObjectElement'
+  /** The variable name that holds the object, e.g. `'nextConfig'`. */
+  variableName: string
+  /**
+   * Dot-separated path from the variable declaration down to the array
+   * property, e.g. `'images.remotePatterns'`.
+   */
+  propertyPath: string
+  /** The object literal to append, as source text, e.g. `{ protocol: 'https', hostname: 'cdn.sanity.io' }` */
+  objectText: string
+  /** Property name + value identifying an already-present matching element. */
+  matchProperty: { name: string; value: string }
+}
+
+/**
+ * Insert a full variable statement, e.g. re-adding
+ * `const LazyGlobalCanvas = dynamic(…)` to lib/features/index.tsx.
+ *
+ * No-op when a variable named `name` already exists anywhere in the file
+ * (any scope depth, mirroring `removeVariableStatement`).
+ */
+export interface AddVariableStatementOp {
+  kind: 'addVariableStatement'
+  /** The declared variable name used for the idempotency check, e.g. 'LazyGlobalCanvas' */
+  name: string
+  /** Full statement text to insert, e.g. `const LazyGlobalCanvas = dynamic(() => …)` */
+  text: string
+  /**
+   * When true or omitted, insert after the last import declaration.
+   * When false, append at the end of the file.
+   */
+  afterImports?: boolean
+}
+
+/**
+ * Append a JSX child as the last child of the first element whose opening tag
+ * matches `parentTagName`, e.g. re-adding `<Canvas root />` inside <Wrapper>.
+ *
+ * No-op when any JSX element (or self-closing element) with tag
+ * `childTagName` already exists anywhere in the file.
+ */
+export interface AddJsxChildOp {
+  kind: 'addJsxChild'
+  /** Tag name of the parent element to append into, e.g. 'Wrapper' */
+  parentTagName: string
+  /** The JSX child to append, as source text, e.g. `<Canvas root />` */
+  childText: string
+  /** Tag name of the child, used for the idempotency check, e.g. 'Canvas' */
+  childTagName: string
+}
+
 export type AstOperation =
   | RemoveImportOp
   | RemoveVariableStatementOp
@@ -144,6 +246,11 @@ export type AstOperation =
   | ReplaceJsDocOp
   | RemoveArrayObjectElementOp
   | RemoveArrayStringElementOp
+  | AddImportOp
+  | AddArrayStringElementOp
+  | AddArrayObjectElementOp
+  | AddVariableStatementOp
+  | AddJsxChildOp
 
 export interface CodeTransform {
   /** Path to the file to transform (relative to project root) */

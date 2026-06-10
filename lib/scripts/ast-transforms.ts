@@ -10,6 +10,7 @@ import {
   IndentationText,
   type JsxAttributeLike,
   type JsxElement,
+  type JsxFragment,
   type JsxSelfClosingElement,
   type Node,
   Project,
@@ -746,7 +747,7 @@ const JSX_CHILD_KINDS: SyntaxKind[] = [
  * its own line. Returns undefined for inline children (single-line parents).
  */
 function lastJsxChildIndent(
-  parent: JsxElement,
+  parent: JsxElement | JsxFragment,
   sourceText: string
 ): string | undefined {
   const children = parent
@@ -763,8 +764,15 @@ function lastJsxChildIndent(
 
 /**
  * Append `childText` as the last child of the first JSX element whose opening
- * tag matches `parentTagName`. No-op when any JSX element (or self-closing
- * element) with tag `childTagName` already exists anywhere in the file.
+ * tag matches `parentTagName`. Among same-tag candidates, an element that
+ * already contains a direct `childTagName` child wins, so re-added elements
+ * land next to their siblings. `parentTagName: 'Fragment'` falls back to the
+ * first JSX fragment (`<>…</>`) when no `<Fragment>` element matches.
+ *
+ * No-op when any JSX element (or self-closing element) with tag
+ * `childTagName` already exists anywhere in the file — narrowed to elements
+ * whose attribute matches when `op.childAttribute` is provided (so e.g.
+ * `<OrchestraToggle id="webgl">` can be re-added next to other toggles).
  *
  * Indentation heuristic: when the parent's closing tag sits on its own line,
  * the child goes on its own line matching the last existing child's indent
@@ -778,33 +786,86 @@ function applyAddJsxChild(
 ): string {
   const sf = project.createSourceFile('__tmp__.tsx', sourceText)
 
+  const childMatches = (
+    tagName: string,
+    getAttribute: (name: string) => JsxAttributeLike | undefined
+  ): boolean => {
+    if (tagName !== op.childTagName) return false
+    if (!op.childAttribute) return true
+    return (
+      jsxAttrStringValue(getAttribute(op.childAttribute.name)) ===
+      op.childAttribute.value
+    )
+  }
+
   const childExists =
     sf
       .getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement)
-      .some((el) => el.getTagNameNode().getText() === op.childTagName) ||
+      .some((el) =>
+        childMatches(el.getTagNameNode().getText(), (name) =>
+          el.getAttribute(name)
+        )
+      ) ||
     sf
       .getDescendantsOfKind(SyntaxKind.JsxElement)
-      .some(
-        (el) =>
-          el.getOpeningElement().getTagNameNode().getText() === op.childTagName
+      .some((el) =>
+        childMatches(
+          el.getOpeningElement().getTagNameNode().getText(),
+          (name) => el.getOpeningElement().getAttribute(name)
+        )
       )
   if (childExists) {
     project.removeSourceFile(sf)
     return sourceText
   }
 
-  const parent = sf
+  // True when `el` has a direct JSX child whose tag matches the op's child.
+  const hasSameTagChild = (el: JsxElement | JsxFragment): boolean =>
+    el.getJsxChildren().some((child) => {
+      if (child.getKind() === SyntaxKind.JsxSelfClosingElement) {
+        return (
+          child
+            .asKindOrThrow(SyntaxKind.JsxSelfClosingElement)
+            .getTagNameNode()
+            .getText() === op.childTagName
+        )
+      }
+      if (child.getKind() === SyntaxKind.JsxElement) {
+        return (
+          child
+            .asKindOrThrow(SyntaxKind.JsxElement)
+            .getOpeningElement()
+            .getTagNameNode()
+            .getText() === op.childTagName
+        )
+      }
+      return false
+    })
+
+  const candidates = sf
     .getDescendantsOfKind(SyntaxKind.JsxElement)
-    .find(
+    .filter(
       (el) =>
         el.getOpeningElement().getTagNameNode().getText() === op.parentTagName
     )
+
+  let parent: JsxElement | JsxFragment | undefined =
+    candidates.find(hasSameTagChild) ?? candidates[0]
+
+  if (!parent && op.parentTagName === 'Fragment') {
+    const fragments = sf.getDescendantsOfKind(SyntaxKind.JsxFragment)
+    parent = fragments.find(hasSameTagChild) ?? fragments[0]
+  }
+
   if (!parent) {
     project.removeSourceFile(sf)
     return sourceText
   }
 
-  const closing = parent.getClosingElement()
+  const closing =
+    parent.getKind() === SyntaxKind.JsxFragment
+      ? parent.asKindOrThrow(SyntaxKind.JsxFragment).getClosingFragment()
+      : parent.asKindOrThrow(SyntaxKind.JsxElement).getClosingElement()
   const closingStart = closing.getStart()
   const lineStart = sourceText.lastIndexOf('\n', closingStart - 1) + 1
   const closingLinePrefix = sourceText.slice(lineStart, closingStart)

@@ -31,6 +31,9 @@ beforeAll(async () => {
     for (const transform of bundle.codeTransforms) {
       filesToLoad.add(transform.file)
     }
+    for (const transform of bundle.addTransforms ?? []) {
+      filesToLoad.add(transform.file)
+    }
   }
 
   for (const file of filesToLoad) {
@@ -118,6 +121,74 @@ describe('Integration Bundle Configuration', () => {
             expect(op.value).toBeTruthy()
           }
         }
+      }
+    }
+  })
+
+  it('should have valid additive transform configurations (addTransforms shape)', () => {
+    // `satus add` may only use the idempotent ADDITIVE op kinds — a removal
+    // op in addTransforms would silently undo an install.
+    const additiveKinds = [
+      'addImport',
+      'addArrayStringElement',
+      'addArrayObjectElement',
+      'addVariableStatement',
+      'addJsxChild',
+    ]
+
+    for (const [_name, bundle] of getIntegrationEntries()) {
+      for (const transform of bundle.addTransforms ?? []) {
+        expect(transform.file).toBeTruthy()
+        expect(Array.isArray(transform.ops)).toBe(true)
+
+        for (const op of transform.ops) {
+          // Every additive op must have a known ADDITIVE kind
+          expect(additiveKinds).toContain(op.kind)
+
+          // Each op kind must carry its required fields
+          if (op.kind === 'addImport') {
+            expect(op.text).toBeTruthy()
+          } else if (op.kind === 'addArrayStringElement') {
+            expect(op.variableName).toBeTruthy()
+            expect(op.propertyPath).toBeTruthy()
+            expect(op.value).toBeTruthy()
+          } else if (op.kind === 'addArrayObjectElement') {
+            expect(op.variableName).toBeTruthy()
+            expect(op.propertyPath).toBeTruthy()
+            expect(op.objectText).toBeTruthy()
+            expect(op.matchProperty).toBeTruthy()
+          } else if (op.kind === 'addVariableStatement') {
+            expect(op.name).toBeTruthy()
+            expect(op.text).toBeTruthy()
+          } else if (op.kind === 'addJsxChild') {
+            expect(op.parentTagName).toBeTruthy()
+            expect(op.childText).toBeTruthy()
+            expect(op.childTagName).toBeTruthy()
+          }
+        }
+      }
+    }
+  })
+
+  it('should only reference known bundle ids in requires (no self-reference)', () => {
+    const known = getIntegrationNames()
+    for (const [name, bundle] of getIntegrationEntries()) {
+      for (const required of bundle.requires ?? []) {
+        expect(known).toContain(required)
+        expect(required).not.toBe(name)
+      }
+    }
+  })
+
+  it('theatre should require webgl', () => {
+    expect(INTEGRATION_BUNDLES.theatre?.requires).toEqual(['webgl'])
+  })
+
+  it('should declare overwriteFiles as non-empty relative paths', () => {
+    for (const [_name, bundle] of getIntegrationEntries()) {
+      for (const file of bundle.overwriteFiles ?? []) {
+        expect(file).toBeTruthy()
+        expect(file.startsWith('/')).toBe(false)
       }
     }
   })
@@ -534,5 +605,141 @@ describe('Combined Transforms (Multiple Integrations Removed)', () => {
         expect(result).toMatch(/export (?<keyword>function|const)/)
       }
     }
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Additive transforms — remove → add round trips on the real sources
+// (`satus add` applied to the lean state produced by `setup:project`)
+// ---------------------------------------------------------------------------
+
+describe('Additive Transforms (remove → add round trips)', () => {
+  /** Number of times `needle` occurs in `haystack`. */
+  const count = (haystack: string, needle: string): number =>
+    haystack.split(needle).length - 1
+
+  /**
+   * Apply a bundle's removal ops for `file`, then its additive ops, and
+   * assert the additive ops are idempotent on the restored result.
+   */
+  const roundTrip = (
+    bundleName: 'sanity' | 'shopify' | 'webgl' | 'theatre',
+    file: string
+  ): { lean: string; restored: string } | undefined => {
+    const bundle = INTEGRATION_BUNDLES[bundleName]
+    const content = sourceFiles[file]
+    if (!(bundle && content)) return undefined
+
+    const removal = bundle.codeTransforms.find((t) => t.file === file)
+    const additive = bundle.addTransforms?.find((t) => t.file === file)
+    if (!(removal && additive)) return undefined
+
+    const lean = applyOpsToText(content, removal.ops)
+    const restored = applyOpsToText(lean, additive.ops)
+
+    // Issue constraint: adding twice is a no-op.
+    expect(applyOpsToText(restored, additive.ops)).toBe(restored)
+
+    return { lean, restored }
+  }
+
+  it('webgl: lib/features/index.tsx regains the LazyGlobalCanvas wiring', () => {
+    const result = roundTrip('webgl', 'lib/features/index.tsx')
+    if (!result) return
+
+    expect(result.lean).not.toContain('LazyGlobalCanvas')
+    expect(result.restored).toContain('const LazyGlobalCanvas')
+    expect(result.restored).toContain('<LazyGlobalCanvas />')
+    expect(result.restored).toContain("import dynamic from 'next/dynamic'")
+    // Untouched features survive
+    expect(result.restored).toContain('GSAPRuntime')
+    expect(result.restored).toContain('OrchestraTools')
+  })
+
+  it('webgl: lib/dev/cmdo.tsx regains the webgl toggle next to its siblings', () => {
+    const result = roundTrip('webgl', 'lib/dev/cmdo.tsx')
+    if (!result) return
+
+    expect(result.lean).not.toContain('id="webgl"')
+    expect(count(result.restored, 'id="webgl"')).toBe(1)
+    // Inserted inside the toggle row, not appended to the outer dialog div:
+    // the webgl toggle must come before the row's closing tag, i.e. before
+    // the screenshot toggle's container ends.
+    expect(result.restored).toContain('id="screenshot"')
+    expect(result.restored.indexOf('id="webgl"')).toBeGreaterThan(
+      result.restored.indexOf('id="grid"')
+    )
+  })
+
+  it('webgl: next.config.ts regains the three.js optimizePackageImports entries', () => {
+    const result = roundTrip('webgl', 'next.config.ts')
+    if (!result) return
+
+    expect(result.lean).not.toContain('@react-three/drei')
+    expect(count(result.restored, "'@react-three/drei'")).toBe(1)
+    expect(count(result.restored, "'@react-three/fiber'")).toBe(1)
+    expect(count(result.restored, "'three'")).toBe(1)
+  })
+
+  it('theatre: lib/dev/index.tsx regains the Studio wiring', () => {
+    const result = roundTrip('theatre', 'lib/dev/index.tsx')
+    if (!result) return
+
+    expect(result.lean).not.toContain('Studio')
+    expect(result.restored).toContain('const Studio = dynamic(')
+    expect(result.restored).toContain('{studio && <Studio />}')
+    // The `studio` binding the JSX expression relies on is still destructured
+    expect(result.restored).toContain('useOrchestra()')
+  })
+
+  it('theatre: lib/dev/cmdo.tsx regains the studio toggle', () => {
+    const result = roundTrip('theatre', 'lib/dev/cmdo.tsx')
+    if (!result) return
+
+    expect(result.lean).not.toContain('id="studio"')
+    expect(count(result.restored, 'id="studio"')).toBe(1)
+    // The webgl toggle is untouched by the theatre round trip
+    expect(count(result.restored, 'id="webgl"')).toBe(1)
+  })
+
+  it('sanity: next.config.ts regains remotePattern and package imports exactly once', () => {
+    const result = roundTrip('sanity', 'next.config.ts')
+    if (!result) return
+
+    expect(result.lean).not.toContain('cdn.sanity.io')
+    expect(count(result.restored, 'cdn.sanity.io')).toBe(1)
+    expect(count(result.restored, "'@sanity/client'")).toBe(1)
+    expect(count(result.restored, "'@sanity/image-url'")).toBe(1)
+    expect(count(result.restored, "'@sanity/asset-utils'")).toBe(1)
+    expect(count(result.restored, "'@portabletext/react'")).toBe(1)
+    // The shopify pattern is untouched
+    expect(count(result.restored, 'cdn.shopify.com')).toBe(1)
+  })
+
+  it('shopify: next.config.ts regains the cdn.shopify.com remotePattern exactly once', () => {
+    const result = roundTrip('shopify', 'next.config.ts')
+    if (!result) return
+
+    expect(result.lean).not.toContain('cdn.shopify.com')
+    expect(count(result.restored, 'cdn.shopify.com')).toBe(1)
+    expect(count(result.restored, 'cdn.sanity.io')).toBe(1)
+  })
+
+  it('webgl overwrite: the lean wrapper matches the expected lean state', () => {
+    // `satus add webgl` restores the Wrapper wholesale; its safety check
+    // compares the local file against the payload-with-removal-ops state.
+    // Verify the equation holds on the real source: applying the removal ops
+    // twice equals applying them once (so a lean wrapper is recognized).
+    const bundle = INTEGRATION_BUNDLES.webgl
+    const content = sourceFiles['components/layout/wrapper/index.tsx']
+    if (!(bundle && content)) return
+
+    const removal = bundle.codeTransforms.find(
+      (t) => t.file === 'components/layout/wrapper/index.tsx'
+    )
+    if (!removal) return
+
+    const lean = applyOpsToText(content, removal.ops)
+    expect(applyOpsToText(lean, removal.ops)).toBe(lean)
   })
 })

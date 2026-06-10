@@ -429,6 +429,136 @@ describe('addJsxChild', () => {
 })
 
 // ---------------------------------------------------------------------------
+// addJsxChild — fragment parents and attribute-narrowed idempotency
+// ---------------------------------------------------------------------------
+
+describe('addJsxChild (fragment parent)', () => {
+  const fragmentFixture = `export function OptionalFeatures() {
+  return (
+    <>
+      <GSAPRuntime />
+      {isDevelopment && <OrchestraTools />}
+    </>
+  )
+}
+`
+
+  const addLazyCanvas: AstOperation = {
+    kind: 'addJsxChild',
+    parentTagName: 'Fragment',
+    childText: '<LazyGlobalCanvas />',
+    childTagName: 'LazyGlobalCanvas',
+  }
+
+  it("targets the first JSX fragment when parentTagName is 'Fragment'", () => {
+    const result = applyOpsToText(fragmentFixture, [addLazyCanvas])
+
+    expect(result).toContain('<LazyGlobalCanvas />')
+    // Appended as the last fragment child, before the closing `</>`.
+    expect(result.indexOf('<OrchestraTools />')).toBeLessThan(
+      result.indexOf('<LazyGlobalCanvas />')
+    )
+    expect(result.indexOf('<LazyGlobalCanvas />')).toBeLessThan(
+      result.indexOf('</>')
+    )
+    // Adding twice is a no-op.
+    expect(applyOpsToText(result, [addLazyCanvas])).toBe(result)
+  })
+
+  it('inserts a JSX expression child into a fragment', () => {
+    const fixture = `export function OrchestraTools() {
+  return (
+    <>
+      <Cmdo />
+      {stats && <Stats />}
+    </>
+  )
+}
+`
+    const op: AstOperation = {
+      kind: 'addJsxChild',
+      parentTagName: 'Fragment',
+      childText: '{studio && <Studio />}',
+      childTagName: 'Studio',
+    }
+    const result = applyOpsToText(fixture, [op])
+
+    expect(result).toContain('{studio && <Studio />}')
+    expect(result.indexOf('{stats && <Stats />}')).toBeLessThan(
+      result.indexOf('{studio && <Studio />}')
+    )
+    // Adding twice is a no-op (the <Studio /> element now exists).
+    expect(applyOpsToText(result, [op])).toBe(result)
+  })
+
+  it('is a no-op when the file has no fragment and no matching element', () => {
+    const fixture = `export function Thing() {
+  return <div>content</div>
+}
+`
+    expect(applyOpsToText(fixture, [addLazyCanvas])).toBe(fixture)
+  })
+})
+
+describe('addJsxChild (childAttribute disambiguation + sibling-aware parent)', () => {
+  const togglesFixture = `export function Cmdo() {
+  return (
+    <div id="orchestra">
+      <Backdrop />
+      <div className="row">
+        <OrchestraToggle id="grid">G</OrchestraToggle>
+        <OrchestraToggle id="stats">S</OrchestraToggle>
+      </div>
+    </div>
+  )
+}
+`
+
+  const addWebglToggle: AstOperation = {
+    kind: 'addJsxChild',
+    parentTagName: 'div',
+    childText: '<OrchestraToggle id="webgl">W</OrchestraToggle>',
+    childTagName: 'OrchestraToggle',
+    childAttribute: { name: 'id', value: 'webgl' },
+  }
+
+  it('inserts next to same-tag siblings (not into the first tag match)', () => {
+    const result = applyOpsToText(togglesFixture, [addWebglToggle])
+
+    expect(result).toContain('id="webgl"')
+    // Placed after the existing toggles…
+    expect(result.indexOf('id="stats"')).toBeLessThan(
+      result.indexOf('id="webgl"')
+    )
+    // …and inside the inner row div (before its closing tag), not appended
+    // to the outer `<div id="orchestra">`.
+    expect(result.indexOf('id="webgl"')).toBeLessThan(result.indexOf('</div>'))
+    // Adding twice is a no-op.
+    expect(applyOpsToText(result, [addWebglToggle])).toBe(result)
+  })
+
+  it('same-tag siblings with different attributes do not block insertion', () => {
+    // Without childAttribute the existing OrchestraToggles would no-op the
+    // add; with it, only an id="webgl" match blocks.
+    const result = applyOpsToText(togglesFixture, [addWebglToggle])
+    expect(count(result, '<OrchestraToggle')).toBe(3)
+  })
+
+  it('is an exact no-op when the matching attribute already exists', () => {
+    const blocked = applyOpsToText(togglesFixture, [
+      {
+        kind: 'addJsxChild',
+        parentTagName: 'div',
+        childText: '<OrchestraToggle id="grid">G</OrchestraToggle>',
+        childTagName: 'OrchestraToggle',
+        childAttribute: { name: 'id', value: 'grid' },
+      },
+    ])
+    expect(blocked).toBe(togglesFixture)
+  })
+})
+
+// ---------------------------------------------------------------------------
 // Round trips — remove + add (and vice versa) on a realistic
 // next.config-shaped fixture leave the construct present exactly once.
 // ---------------------------------------------------------------------------

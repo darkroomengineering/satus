@@ -85,7 +85,7 @@
     "@types/three": "^0.184.0",
     "@typescript/native-preview": "7.0.0-dev.20260603.1",
     "babel-plugin-react-compiler": "^1.0.0",
-    "deslop-cli": "0.0.17",
+    "deslop-cli": "0.0.22",
     "lefthook": "^2.1.9",
     "postcss-functions": "^4.0.2",
     "postcss-preset-env": "^11.3.0",

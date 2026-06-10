@@ -20,13 +20,6 @@ export type FieldError = {
   message: string
 }
 
-export type RegisterParams = {
-  id: string
-  required?: boolean
-  message?: string
-  validation?: (value: string) => boolean
-}
-
 // Form hook options
 export interface UseFormOptions<T = unknown> {
   action: FormAction<T>

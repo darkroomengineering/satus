@@ -40,6 +40,10 @@ function Harness({
   fields: FieldConfig[]
   snapshot: Snapshot
 }) {
+  // Test harness, never compiled: it deliberately writes refs during render
+  // to expose the hook's return value and to pin registration-prop identity
+  // (the stability the Compiler provides to real fields at build time).
+  'use no memo'
   const form = useForm({ action })
   snapshot.current = form
 

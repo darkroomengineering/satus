@@ -6,8 +6,9 @@
  *
  * This script helps you:
  * 1. Choose which integrations to keep
- * 2. Remove unused code and dependencies
- * 3. Clean up configuration files
+ * 2. Strip to lean core (removes ALL integrations unconditionally)
+ * 3. Re-add the kept integrations additively (same machinery as `satus add`)
+ * 4. Self-prune its own setup machinery from the scaffolded project
  *
  * Non-interactive (CI) usage — skips every prompt:
  *   bun run setup:project --preset <key>           Use a preset's integrations
@@ -17,23 +18,35 @@
  * `--clean-homepage` replaces the manual landing page (default: keep it);
  * `--yes` is accepted alongside either selection flag; `--skip-install`
  * writes package.json without running `bun install` (offline / tests).
- * A successful run
- * records the current git HEAD sha into package.json as `"satus": { "ref" }`,
- * which `bun run satus add` uses to fetch matching integration payloads.
+ * A successful run records the current git HEAD sha into package.json as
+ * `"satus": { "ref" }`, which `bun run satus add` uses to fetch matching
+ * integration payloads.
  *
  * Cross-platform compatible (Windows, macOS, Linux)
  */
 
-import { mkdir } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import * as p from '@clack/prompts'
 import type { RemovableId } from '@/integrations/registry'
 import { applyCodeTransforms } from './ast-transforms'
 import { cancelGuard } from './generate-shared'
 import {
   type CodeTransform,
+  getIntegrationEntries,
   getIntegrationNames,
   INTEGRATION_BUNDLES,
 } from './integration-bundles'
+import type { PayloadPackageJson, PayloadSource } from './payload-source'
+import {
+  addDependencies,
+  appendEnvStubs,
+  applyOverwriteFiles,
+  copyBundleFiles,
+  isInstalled,
+  restoreBarrelExports,
+} from './satus'
 import {
   getFlagValue,
   parseCliFlags,
@@ -99,7 +112,7 @@ type PresetKey = keyof typeof PROJECT_PRESETS
 
 interface SetupOptions {
   dryRun: boolean
-  keepIntegrations: string[]
+  keepIntegrations: RemovableId[]
   /** Replace the manual landing page with a blank starter homepage. */
   cleanMarketing: boolean
   /** Write package.json but skip running `bun install` (offline / tests). */
@@ -267,40 +280,103 @@ const ensureNextTypeStub = async (dryRun: boolean): Promise<void> => {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Phase orchestration helpers (additive model)
+// ---------------------------------------------------------------------------
+
 /**
- * Main setup function
+ * Copy all files the kept integrations need into a temp directory, forming a
+ * "snapshot" that can serve as a local payload source for the add step.
+ *
+ * Captures:
+ *  - Each kept bundle's `folders` (recursive copy)
+ *  - Each kept bundle's `files` and `overwriteFiles` (individual files)
+ *  - The project's package.json (for dependency version pins during re-add)
+ *
+ * Returns a PayloadSource-shaped object with a cleanup() that removes the
+ * temp dir.
  */
-const setup = async (options: SetupOptions): Promise<void> => {
-  const { dryRun, keepIntegrations, cleanMarketing, skipInstall } = options
+const setupSnapshot = async (
+  keepIntegrations: RemovableId[]
+): Promise<PayloadSource> => {
+  const root = await mkdtemp(join(tmpdir(), 'satus-snapshot-'))
+
+  for (const id of keepIntegrations) {
+    const bundle = INTEGRATION_BUNDLES[id]
+    if (!bundle) continue
+
+    // Copy integration folders
+    for (const folder of bundle.folders) {
+      const src = resolvePath(folder)
+      if (await pathExists(src)) {
+        await cp(src, join(root, folder), { recursive: true })
+      }
+    }
+
+    // Copy integration files and overwriteFiles
+    const filesToCopy = [...bundle.files, ...(bundle.overwriteFiles ?? [])]
+    for (const file of filesToCopy) {
+      const src = resolvePath(file)
+      if (await pathExists(src)) {
+        const dest = join(root, file)
+        // Ensure parent directory exists (dirname of join(root, file))
+        const segments = file.split('/')
+        if (segments.length > 1) {
+          const parentRel = segments.slice(0, -1).join('/')
+          await mkdir(join(root, parentRel), { recursive: true })
+        }
+        await cp(src, dest)
+      }
+    }
+  }
+
+  // Capture barrel export files referenced by the kept bundles
+  for (const id of keepIntegrations) {
+    const bundle = INTEGRATION_BUNDLES[id]
+    if (!bundle) continue
+    for (const { file } of bundle.barrelExports) {
+      const src = resolvePath(file)
+      if (await pathExists(src)) {
+        const dest = join(root, file)
+        const segments = file.split('/')
+        if (segments.length > 1) {
+          await mkdir(join(root, segments.slice(0, -1).join('/')), {
+            recursive: true,
+          })
+        }
+        // Only copy if not already captured (multiple bundles may share a barrel)
+        if (!(await pathExists(dest))) {
+          await cp(src, dest)
+        }
+      }
+    }
+  }
+
+  // Capture package.json for version pins
+  const pkgSrc = resolvePath('package.json')
+  if (await pathExists(pkgSrc)) {
+    await cp(pkgSrc, join(root, 'package.json'))
+  }
+
+  return {
+    root,
+    label: 'local snapshot (pre-strip)',
+    cleanup: () => rm(root, { recursive: true, force: true }),
+  }
+}
+
+/**
+ * Apply the UNION of ALL bundles' removals unconditionally — stripping every
+ * integration to leave a lean core.  This is a re-scoping of the prior
+ * "remove unkept" logic to "remove all".
+ */
+const setupLean = async (dryRun: boolean): Promise<void> => {
   const integrationNames = getIntegrationNames()
-
-  // Ensure the Next.js type stub is present so `bun run typecheck` works
-  // immediately after setup without needing to run `bun dev` first.
-  await ensureNextTypeStub(dryRun)
-
-  // Replace the manual landing page first (independent of integration removal).
-  if (cleanMarketing) {
-    const ms = p.spinner()
-    ms.start('Replacing manual landing page...')
-    await replaceManualLandingPage(dryRun)
-    ms.stop('Replaced manual landing page with a blank starter homepage')
-  }
-
-  // Determine what to remove
-  const toRemove = integrationNames.filter(
-    (name) => !keepIntegrations.includes(name)
-  )
-
-  if (toRemove.length === 0) {
-    p.log.success('No integrations to remove. All done!')
-    return
-  }
-
   const s = p.spinner()
 
-  // Collect all code transforms first
+  // Collect ALL code transforms (all bundles, not just the "unkept" ones)
   const allCodeTransforms: CodeTransform[] = []
-  for (const name of toRemove) {
+  for (const name of integrationNames) {
     const bundle = INTEGRATION_BUNDLES[name]
     if (bundle?.codeTransforms) {
       allCodeTransforms.push(...bundle.codeTransforms)
@@ -309,7 +385,7 @@ const setup = async (options: SetupOptions): Promise<void> => {
 
   // Apply code transformations BEFORE removing folders
   if (allCodeTransforms.length > 0) {
-    s.start('Applying code transformations...')
+    s.start('Stripping integrations (code transforms)...')
     const transformChanges = await applyCodeTransforms(
       allCodeTransforms,
       dryRun
@@ -321,8 +397,8 @@ const setup = async (options: SetupOptions): Promise<void> => {
     )
   }
 
-  // Process each integration
-  for (const name of toRemove) {
+  // Remove all integration folders and files
+  for (const name of integrationNames) {
     const bundle = INTEGRATION_BUNDLES[name]
     if (!bundle) continue
 
@@ -330,14 +406,12 @@ const setup = async (options: SetupOptions): Promise<void> => {
 
     const removed: string[] = []
 
-    // Remove folders
     for (const folder of bundle.folders) {
       if (await removeDir(folder, dryRun)) {
         removed.push(folder)
       }
     }
 
-    // Remove files
     for (const file of bundle.files) {
       if (await removeFile(file, dryRun)) {
         removed.push(file)
@@ -351,13 +425,13 @@ const setup = async (options: SetupOptions): Promise<void> => {
     }
   }
 
-  // Collect all deps to remove
+  // Collect all deps / env vars / barrel exports across ALL bundles
   const allDeps: string[] = []
   const allDevDeps: string[] = []
   const allEnvVars: string[] = []
   const allBarrelExports: Array<{ file: string; pattern: string }> = []
 
-  for (const name of toRemove) {
+  for (const name of integrationNames) {
     const bundle = INTEGRATION_BUNDLES[name]
     if (!bundle) continue
     allDeps.push(...bundle.dependencies)
@@ -368,7 +442,7 @@ const setup = async (options: SetupOptions): Promise<void> => {
 
   // Update package.json
   if (allDeps.length > 0 || allDevDeps.length > 0) {
-    s.start('Updating package.json...')
+    s.start('Updating package.json (removing deps)...')
     const { deps, devDeps } = await removeDepsFromPackageJson(
       allDeps,
       allDevDeps,
@@ -403,12 +477,210 @@ const setup = async (options: SetupOptions): Promise<void> => {
         : 'No export updates needed'
     )
   }
+}
 
-  // Run bun install to update lockfile
-  if (!(dryRun || skipInstall)) {
-    s.start('Updating lockfile...')
-    await Bun.$`bun install`.quiet()
-    s.stop('Dependencies updated')
+/**
+ * For each kept integration, run the same add steps as `satus add` uses —
+ * copyBundleFiles, applyOverwriteFiles, addDependencies (from snapshot
+ * package.json), restoreBarrelExports, appendEnvStubs, addTransforms —
+ * using the snapshot as the payload source.
+ *
+ * Also strips absent-integration wiring from freshly copied files (e.g.
+ * keeping webgl without theatre must remove theatre hooks from the copied
+ * fluid/flowmaps — this is the exact same logic `satus add` uses).
+ */
+const setupAddIntegrations = async (
+  keepIntegrations: RemovableId[],
+  source: PayloadSource,
+  dryRun: boolean
+): Promise<void> => {
+  if (keepIntegrations.length === 0) return
+
+  const s = p.spinner()
+
+  // Read the snapshot's package.json for dependency version pins
+  const payloadPkgText = await Bun.file(
+    join(source.root, 'package.json')
+  ).text()
+  const payloadPkg = JSON.parse(payloadPkgText) as PayloadPackageJson
+
+  // Re-add each kept integration in order (respecting requires transitivity
+  // is not needed here — the snapshot already has all files).
+  const addedIntegrationIds = new Set<RemovableId>()
+
+  for (const id of keepIntegrations) {
+    const bundle = INTEGRATION_BUNDLES[id]
+    if (!bundle) continue
+
+    s.start(`Re-adding ${bundle.name}...`)
+    const details: string[] = []
+
+    // Copy bundle folders/files from the snapshot
+    try {
+      const { copied, skipped } = await copyBundleFiles(source, bundle, {
+        dryRun,
+        force: true, // we just stripped everything — always overwrite
+      })
+      if (copied > 0) details.push(`${copied} files copied`)
+      if (skipped > 0) details.push(`${skipped} files kept`)
+    } catch (err) {
+      // Some bundles may have no folders/files (hubspot, mailchimp) — that's fine
+      p.log.warn(
+        `copyBundleFiles for ${bundle.name}: ${err instanceof Error ? err.message : String(err)}`
+      )
+    }
+
+    // Restore overwriteFiles wholesale
+    const overwrite = await applyOverwriteFiles(source, bundle, {
+      dryRun,
+      force: true,
+    })
+    if (overwrite.written.length > 0) {
+      details.push(
+        `${overwrite.written.length} integration-owned files restored`
+      )
+    }
+
+    // Re-add dependencies from the snapshot package.json
+    const deps = await addDependencies(bundle, payloadPkg, { dryRun })
+    if (deps.added.length > 0) {
+      details.push(`${deps.added.length} dependencies re-added`)
+    }
+
+    // Restore barrel exports from the snapshot
+    const barrelChanges = await restoreBarrelExports(source, bundle, { dryRun })
+    if (barrelChanges > 0) {
+      details.push(`${barrelChanges} barrel exports restored`)
+    }
+
+    // Append env stubs
+    const envChanges = await appendEnvStubs(bundle.envVars, dryRun)
+    if (envChanges > 0) details.push(`${envChanges} env stubs appended`)
+
+    // Apply additive code transforms
+    const transformChanges = await applyCodeTransforms(
+      bundle.addTransforms ?? [],
+      dryRun
+    )
+    if (transformChanges > 0) {
+      details.push(`${transformChanges} files re-wired`)
+    }
+
+    addedIntegrationIds.add(id)
+
+    const verb = dryRun ? 'Would re-add' : 'Re-added'
+    const detail = details.length > 0 ? ` (${details.join(', ')})` : ''
+    s.stop(`${verb} ${bundle.name}${detail}`)
+  }
+
+  // Strip absent-integration wiring from freshly copied files.
+  // e.g. keeping webgl without theatre must remove theatre wiring from the
+  // copied fluid/flowmap hooks.  These ops are no-ops on already-lean files.
+  const stripTransforms: CodeTransform[] = []
+  for (const [id, bundle] of getIntegrationEntries()) {
+    if (addedIntegrationIds.has(id)) continue
+    if (await isInstalled(bundle)) continue
+    stripTransforms.push(...bundle.codeTransforms)
+  }
+
+  if (stripTransforms.length > 0) {
+    const stripped = await applyCodeTransforms(stripTransforms, dryRun)
+    if (stripped > 0) {
+      p.log.step(
+        `Stripped absent-integration wiring from ${stripped} copied files`
+      )
+    }
+  }
+}
+
+/**
+ * Self-prune: delete this script's own setup machinery from the scaffolded
+ * project as its last act.  Deletes:
+ *   - lib/scripts/setup-project.ts (this file, last, wrapped in try/catch)
+ *   - lib/scripts/setup-project.test.ts
+ *   - lib/scripts/satus.test.ts
+ *   - lib/scripts/satus.e2e.test.ts
+ *   - lib/scripts/ast-transforms.test.ts
+ *   - lib/scripts/payload-source.test.ts
+ *
+ * Also removes `setup:project` and `test:setup` from package.json scripts.
+ *
+ * KEPT (used by tests that ship with every project):
+ *   - lib/scripts/test-setup.ts (bunfig.toml preloads it for ALL bun tests)
+ *
+ * KEPT (additive machinery, needed by `satus add` in the scaffolded project):
+ *   - lib/scripts/satus.ts and all its deps
+ *   - lib/scripts/ast-transforms.ts, integration-bundles.ts, etc.
+ */
+const selfPrune = async (dryRun: boolean): Promise<void> => {
+  const s = p.spinner()
+  s.start('Self-pruning setup machinery...')
+
+  const filesToDelete = [
+    'lib/scripts/setup-project.test.ts',
+    'lib/scripts/satus.test.ts',
+    'lib/scripts/satus.e2e.test.ts',
+    'lib/scripts/ast-transforms.test.ts',
+    'lib/scripts/payload-source.test.ts',
+  ]
+
+  const deleted: string[] = []
+
+  for (const file of filesToDelete) {
+    if (dryRun) {
+      p.log.message(`  Would delete ${file}`)
+      deleted.push(file)
+    } else if (await removeFile(file, false)) {
+      deleted.push(file)
+    }
+  }
+
+  // Remove setup:project and test:setup from package.json scripts
+  const pkgPath = resolvePath('package.json')
+  const pkg = (await Bun.file(pkgPath).json()) as {
+    scripts?: Record<string, string>
+    [key: string]: unknown
+  }
+  const scriptsRemoved: string[] = []
+  const scripts = pkg.scripts
+  if (scripts) {
+    const scriptKeys = ['setup:project', 'test:setup']
+    for (const key of scriptKeys) {
+      if (key in scripts) {
+        scriptsRemoved.push(key)
+        if (!dryRun) {
+          delete scripts[key]
+        }
+      }
+    }
+    if (scriptsRemoved.length > 0 && !dryRun) {
+      await Bun.write(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
+    }
+  }
+
+  if (dryRun) {
+    if (scriptsRemoved.length > 0) {
+      p.log.message(`  Would remove scripts: ${scriptsRemoved.join(', ')}`)
+    }
+  }
+
+  s.stop(
+    dryRun
+      ? `Would prune ${deleted.length} files and ${scriptsRemoved.length} scripts`
+      : `Pruned ${deleted.length} files and ${scriptsRemoved.length} package.json scripts`
+  )
+
+  // Delete this script itself last (Windows may fail to delete a running script)
+  if (!dryRun) {
+    try {
+      await removeFile('lib/scripts/setup-project.ts', false)
+    } catch {
+      p.log.warn(
+        'Could not delete lib/scripts/setup-project.ts (may need manual removal on Windows)'
+      )
+    }
+  } else {
+    p.log.message('  Would delete lib/scripts/setup-project.ts')
   }
 }
 
@@ -438,6 +710,73 @@ const recordPinnedRef = async (): Promise<void> => {
     await Bun.write(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
   } catch {
     // git not installed / not a repo — the pinned ref is optional metadata
+  }
+}
+
+/**
+ * Main setup orchestration (additive model):
+ *
+ *   1. ensureNextTypeStub
+ *   2. recordPinnedRef (read git HEAD before any writes)
+ *   3. cleanMarketing (if flagged)
+ *   4. snapshot(kept) — capture kept integration files before stripping
+ *   5. setupLean — strip ALL integrations unconditionally
+ *   6. setupAddIntegrations — re-add the kept set from the snapshot
+ *   7. snapshot.cleanup()
+ *   8. selfPrune — delete setup machinery
+ *   9. bun install (unless --skip-install)
+ */
+const setup = async (options: SetupOptions): Promise<void> => {
+  const { dryRun, keepIntegrations, cleanMarketing, skipInstall } = options
+
+  // 1. Ensure the Next.js type stub is present so `bun run typecheck` works
+  //    immediately after setup without needing to run `bun dev` first.
+  await ensureNextTypeStub(dryRun)
+
+  // 2. Record the pinned ref BEFORE any writes (reads git HEAD; metadata only).
+  if (!dryRun) {
+    await recordPinnedRef()
+  }
+
+  // 3. Replace the manual landing page (independent of integration removal).
+  if (cleanMarketing) {
+    const ms = p.spinner()
+    ms.start('Replacing manual landing page...')
+    await replaceManualLandingPage(dryRun)
+    ms.stop('Replaced manual landing page with a blank starter homepage')
+  }
+
+  // 4. Snapshot the kept integration files before stripping.
+  let snapshot: PayloadSource | null = null
+  if (keepIntegrations.length > 0) {
+    const ss = p.spinner()
+    ss.start('Snapshotting kept integration files...')
+    snapshot = await setupSnapshot(keepIntegrations)
+    ss.stop(`Snapshot ready (${snapshot.label})`)
+  }
+
+  // 5. Strip ALL integrations unconditionally to lean core.
+  await setupLean(dryRun)
+
+  // 6. Re-add the kept integrations from the snapshot.
+  if (snapshot) {
+    await setupAddIntegrations(keepIntegrations, snapshot, dryRun)
+  }
+
+  // 7. Cleanup snapshot temp directory.
+  if (snapshot) {
+    await snapshot.cleanup()
+  }
+
+  // 8. Self-prune: delete setup machinery from the scaffolded project.
+  await selfPrune(dryRun)
+
+  // 9. Run bun install to update lockfile.
+  if (!(dryRun || skipInstall)) {
+    const s = p.spinner()
+    s.start('Updating lockfile...')
+    await Bun.$`bun install`.quiet()
+    s.stop('Dependencies updated')
   }
 }
 
@@ -598,23 +937,19 @@ const main = async (): Promise<void> => {
     cleanMarketing = cleanMarketingAnswer
   }
 
+  // Show summary
+  p.log.step('Summary:')
+
   const toRemove = getIntegrationNames().filter(
     (name) => !keepIntegrations.includes(name)
   )
-
-  if (toRemove.length === 0 && !cleanMarketing) {
-    p.log.success('Keeping all integrations. No changes needed!')
-    p.outro('Run: bun dev')
-    return
-  }
-
-  // Show summary
-  p.log.step('Summary:')
 
   if (keepIntegrations.length > 0) {
     p.log.message(
       `  Keep: ${keepIntegrations.map((k) => INTEGRATION_BUNDLES[k]?.name).join(', ')}`
     )
+  } else {
+    p.log.message('  Keep: none (lean core only)')
   }
 
   if (toRemove.length > 0) {
@@ -628,6 +963,8 @@ const main = async (): Promise<void> => {
       '  Homepage: replace manual landing page with a blank starter'
     )
   }
+
+  p.log.message('  Setup machinery: self-pruned after setup')
 
   // Confirm — skipped in non-interactive mode (--preset / --keep imply --yes)
   if (!nonInteractive) {
@@ -644,15 +981,10 @@ const main = async (): Promise<void> => {
   // Run setup
   await setup({
     dryRun,
-    keepIntegrations: keepIntegrations as string[],
+    keepIntegrations,
     cleanMarketing,
     skipInstall,
   })
-
-  // Pin the payload ref for `satus add` (skipped silently without git)
-  if (!dryRun) {
-    await recordPinnedRef()
-  }
 
   // Done
   if (dryRun) {
@@ -666,7 +998,7 @@ const main = async (): Promise<void> => {
         '  4. Run: bun dev',
       'Setup complete!'
     )
-    p.outro('Happy coding! 🚀')
+    p.outro('Happy coding!')
   }
 }
 

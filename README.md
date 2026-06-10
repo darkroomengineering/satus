@@ -83,6 +83,8 @@ Payloads are version-matched: a successful `setup:project` run records the git H
 
 `setup:project` is also drivable non-interactively (CI): `--preset <key>` or `--keep <id,id,...>` selects the integration set, `--yes` confirms it, `--clean-homepage` swaps in a blank starter homepage, and `--skip-install` skips the lockfile update.
 
+When setup completes it removes its own machinery from the project (the setup script and the CLI's test suites) — `satus add`, `generate`, `doctor`, and `dev` stay.
+
 ## Tech Stack
 
 | Category | Technologies |

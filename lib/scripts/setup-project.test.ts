@@ -199,6 +199,32 @@ describe('Integration Bundle Configuration', () => {
       }
     }
   })
+
+  /**
+   * Symmetry invariant: for every bundle, every file named in codeTransforms
+   * must be covered by either overwriteFiles OR an addTransforms entry for
+   * the same file.  This ensures every removal is reversible.
+   *
+   * hubspot and mailchimp have empty codeTransforms and trivially pass.
+   */
+  it('every codeTransform file is covered by overwriteFiles or addTransforms', () => {
+    for (const [name, bundle] of getIntegrationEntries()) {
+      const overwriteSet = new Set(bundle.overwriteFiles ?? [])
+      const addTransformFiles = new Set(
+        (bundle.addTransforms ?? []).map((t) => t.file)
+      )
+
+      for (const transform of bundle.codeTransforms) {
+        const covered =
+          overwriteSet.has(transform.file) ||
+          addTransformFiles.has(transform.file)
+        expect(
+          covered,
+          `Bundle "${name}": codeTransform on "${transform.file}" has no matching overwriteFiles or addTransforms entry`
+        ).toBe(true)
+      }
+    }
+  })
 })
 
 // ---------------------------------------------------------------------------

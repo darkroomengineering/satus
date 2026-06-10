@@ -224,7 +224,9 @@ export function insertBarrelLine(localText: string, line: string): string {
 // Install steps
 // ---------------------------------------------------------------------------
 
-const isInstalled = async (bundle: IntegrationBundle): Promise<boolean> => {
+export const isInstalled = async (
+  bundle: IntegrationBundle
+): Promise<boolean> => {
   const probe = bundleProbePath(bundle)
   if (!probe) return false
   return pathExists(resolvePath(probe))
@@ -235,7 +237,7 @@ const isInstalled = async (bundle: IntegrationBundle): Promise<boolean> => {
  * project. Existing files are kept (unless --force); missing ones are always
  * copied. Fails loudly when the payload lacks a declared folder or file.
  */
-const copyBundleFiles = async (
+export const copyBundleFiles = async (
   source: PayloadSource,
   bundle: IntegrationBundle,
   options: { dryRun: boolean; force: boolean }
@@ -279,7 +281,7 @@ const copyBundleFiles = async (
  * Anything else means local modifications — skip with a warning unless
  * --force.
  */
-const applyOverwriteFiles = async (
+export const applyOverwriteFiles = async (
   source: PayloadSource,
   bundle: IntegrationBundle,
   options: { dryRun: boolean; force: boolean }
@@ -330,7 +332,7 @@ const sortRecord = (record: Record<string, string>): Record<string, string> =>
  * the version declared by the payload source's package.json. Dependencies
  * already present locally keep their existing pin.
  */
-const addDependencies = async (
+export const addDependencies = async (
   bundle: IntegrationBundle,
   payloadPkg: PayloadPackageJson,
   options: { dryRun: boolean }
@@ -383,7 +385,7 @@ const addDependencies = async (
  * SOURCE repo's barrel file and insert it into the local barrel when absent
  * (created when missing). Warns when the payload has no matching barrel/line.
  */
-const restoreBarrelExports = async (
+export const restoreBarrelExports = async (
   source: PayloadSource,
   bundle: IntegrationBundle,
   options: { dryRun: boolean }
@@ -426,7 +428,7 @@ const restoreBarrelExports = async (
 }
 
 /** Append missing env vars as commented stubs to .env.example (created when absent). */
-const appendEnvStubs = async (
+export const appendEnvStubs = async (
   envVars: string[],
   dryRun: boolean
 ): Promise<number> => {

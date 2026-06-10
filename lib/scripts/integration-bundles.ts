@@ -446,6 +446,10 @@ export const INTEGRATION_BUNDLES: Partial<
         ],
       },
     ],
+    // app/layout.tsx has complex Sanity wiring (SanityLive, VisualEditing,
+    // isConfigured call) that cannot be re-injected statement-by-statement
+    // safely.  Restore wholesale from the payload on `satus add sanity`.
+    overwriteFiles: ['app/layout.tsx'],
     addTransforms: [
       {
         file: 'next.config.ts',
@@ -720,9 +724,13 @@ export const INTEGRATION_BUNDLES: Partial<
     // additive op set — re-wrapping children and restoring interface members
     // would need bespoke ops. The file is restored wholesale instead, guarded
     // by the lean-state comparison documented on `overwriteFiles`.
+    // app/error.tsx and app/global-error.tsx carry a `webgl` prop on <Wrapper>
+    // that is removed by codeTransforms; restore them wholesale on `satus add`.
     overwriteFiles: [
       'components/layout/wrapper/index.tsx',
       'lib/hooks/use-device-detection.ts',
+      'app/error.tsx',
+      'app/global-error.tsx',
     ],
     addTransforms: [
       {
@@ -863,9 +871,14 @@ export const INTEGRATION_BUNDLES: Partial<
     // The fluid/flowmap Theatre wiring (sheet const + useTheatre call inside
     // hook bodies) is not re-injectable statement-by-statement — these files
     // are integration-owned and restored wholesale from the payload source.
+    // lib/dev/index.tsx carries the `studio` destructured binding that the
+    // removeDestructuredBinding op strips; restore it wholesale on `satus add`.
+    // lib/dev/cmdo.tsx carries the studio OrchestraToggle; restore wholesale too.
     overwriteFiles: [
       'lib/webgl/utils/fluid/index.tsx',
       'lib/webgl/utils/flowmaps/index.tsx',
+      'lib/dev/index.tsx',
+      'lib/dev/cmdo.tsx',
     ],
     addTransforms: [
       {

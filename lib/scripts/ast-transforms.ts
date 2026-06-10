@@ -653,7 +653,9 @@ function applyAddArrayStringElement(
     return sourceText
   }
 
-  arr.addElement(`'${op.value.replace(/'/g, "\\'")}'`, {
+  // Escape backslashes before quotes so the emitted literal round-trips.
+  const escaped = op.value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")
+  arr.addElement(`'${escaped}'`, {
     useNewLines: arr.getText().includes('\n'),
   })
 

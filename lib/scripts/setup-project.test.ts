@@ -91,6 +91,8 @@ describe('Integration Bundle Configuration', () => {
             'replaceJsDoc',
             'removeArrayObjectElement',
             'removeArrayStringElement',
+            'removeJsxAttribute',
+            'removeDestructuredBinding',
           ]).toContain(op.kind)
 
           // Each op kind must carry its required fields
@@ -119,6 +121,11 @@ describe('Integration Bundle Configuration', () => {
             expect(op.variableName).toBeTruthy()
             expect(op.propertyPath).toBeTruthy()
             expect(op.value).toBeTruthy()
+          } else if (op.kind === 'removeJsxAttribute') {
+            expect(op.tagName).toBeTruthy()
+            expect(op.attributeName).toBeTruthy()
+          } else if (op.kind === 'removeDestructuredBinding') {
+            expect(op.bindingName).toBeTruthy()
           }
         }
       }
@@ -189,6 +196,32 @@ describe('Integration Bundle Configuration', () => {
       for (const file of bundle.overwriteFiles ?? []) {
         expect(file).toBeTruthy()
         expect(file.startsWith('/')).toBe(false)
+      }
+    }
+  })
+
+  /**
+   * Symmetry invariant: for every bundle, every file named in codeTransforms
+   * must be covered by either overwriteFiles OR an addTransforms entry for
+   * the same file.  This ensures every removal is reversible.
+   *
+   * hubspot and mailchimp have empty codeTransforms and trivially pass.
+   */
+  it('every codeTransform file is covered by overwriteFiles or addTransforms', () => {
+    for (const [name, bundle] of getIntegrationEntries()) {
+      const overwriteSet = new Set(bundle.overwriteFiles ?? [])
+      const addTransformFiles = new Set(
+        (bundle.addTransforms ?? []).map((t) => t.file)
+      )
+
+      for (const transform of bundle.codeTransforms) {
+        const covered =
+          overwriteSet.has(transform.file) ||
+          addTransformFiles.has(transform.file)
+        expect(
+          covered,
+          `Bundle "${name}": codeTransform on "${transform.file}" has no matching overwriteFiles or addTransforms entry`
+        ).toBe(true)
       }
     }
   })

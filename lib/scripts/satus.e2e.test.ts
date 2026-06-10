@@ -43,6 +43,9 @@ const COPY_FILES = [
   'biome.json',
   'bunfig.toml',
   '.env.example',
+  // Required for typecheck gates: references next/image-types (asset module
+  // declarations) and .next/types/routes.d.ts (stubbed by setup:project).
+  'next-env.d.ts',
 ]
 
 /**
@@ -100,13 +103,39 @@ const runScript = async (
   return { exitCode, stdout, stderr }
 }
 
+/**
+ * Run `bun run typecheck` (tsgo --noEmit) in the temp project directory.
+ * The temp project has node_modules symlinked from the repo, so tsgo is
+ * available without a separate install.
+ */
+const runTypecheck = async (cwd: string): Promise<RunResult> => {
+  const proc = Bun.spawn([process.execPath, 'run', 'typecheck'], {
+    cwd,
+    stdin: 'ignore',
+    stdout: 'pipe',
+    stderr: 'pipe',
+    env: { ...process.env, NO_COLOR: '1' },
+  })
+  const [stdout, stderr, exitCode] = await Promise.all([
+    new Response(proc.stdout).text(),
+    new Response(proc.stderr).text(),
+    proc.exited,
+  ])
+  return { exitCode, stdout, stderr }
+}
+
 /** Subtract: keep only `keep`, removing the rest — no prompts, no install. */
-const runSetup = (cwd: string, keep: string): Promise<RunResult> =>
+const runSetup = (
+  cwd: string,
+  keep: string,
+  extra: string[] = []
+): Promise<RunResult> =>
   runScript(cwd, 'lib/scripts/setup-project.ts', [
     '--keep',
     keep,
     '--yes',
     '--skip-install',
+    ...extra,
   ])
 
 /** Restore: add `plugin` back from this repo as the local payload source. */
@@ -392,5 +421,266 @@ describe('round trip: webgl without theatre', () => {
 
     expectClean(await runAdd(project, 'webgl'), 'satus add webgl (rerun)')
     await expectSnapshotUnchanged(project, snapshot)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Typecheck gate: lean output must pass `tsgo --noEmit`
+//
+// Two lean variants are tested:
+//   1. --keep ''                         (all integrations removed)
+//   2. --keep '' --clean-homepage        (all integrations removed + blank page)
+//
+// These tests run setup:project with --skip-install (node_modules symlinked),
+// then run `bun run typecheck` in the resulting project.  The default timeout
+// (120 s) is sufficient — tsgo is fast even on cold starts.
+// ---------------------------------------------------------------------------
+
+describe('lean typecheck: --keep ""', () => {
+  let project = ''
+
+  afterAll(async () => {
+    if (project) await rm(project, { recursive: true, force: true })
+  })
+
+  it('lean output passes tsgo --noEmit and self-prune ran', async () => {
+    project = await createTempProject()
+
+    expectClean(await runSetup(project, ''), 'setup:project --keep "" (lean)')
+
+    // Integration folders must be gone
+    expect(await pathExists(join(project, 'lib/integrations/sanity'))).toBe(
+      false
+    )
+    expect(await pathExists(join(project, 'lib/webgl'))).toBe(false)
+
+    // Self-prune: setup machinery deleted
+    expect(
+      await pathExists(join(project, 'lib/scripts/setup-project.ts'))
+    ).toBe(false)
+    expect(
+      await pathExists(join(project, 'lib/scripts/setup-project.test.ts'))
+    ).toBe(false)
+    expect(await pathExists(join(project, 'lib/scripts/satus.test.ts'))).toBe(
+      false
+    )
+    expect(
+      await pathExists(join(project, 'lib/scripts/satus.e2e.test.ts'))
+    ).toBe(false)
+
+    // Self-prune: package.json scripts removed
+    const pkg = (await Bun.file(join(project, 'package.json')).json()) as {
+      scripts?: Record<string, string>
+    }
+    expect(pkg.scripts?.['setup:project']).toBeUndefined()
+    expect(pkg.scripts?.['test:setup']).toBeUndefined()
+
+    // test-setup.ts must survive (bunfig.toml preloads it for all tests)
+    expect(await pathExists(join(project, 'lib/scripts/test-setup.ts'))).toBe(
+      true
+    )
+
+    const result = await runTypecheck(project)
+    if (result.exitCode !== 0) {
+      throw new Error(
+        `tsgo --noEmit failed on lean output (exit ${result.exitCode})\n--- stdout ---\n${result.stdout}\n--- stderr ---\n${result.stderr}`
+      )
+    }
+  })
+})
+
+describe('lean typecheck: --keep "" --clean-homepage', () => {
+  let project = ''
+
+  afterAll(async () => {
+    if (project) await rm(project, { recursive: true, force: true })
+  })
+
+  it('lean output with clean homepage passes tsgo --noEmit and self-prune ran', async () => {
+    project = await createTempProject()
+
+    expectClean(
+      await runSetup(project, '', ['--clean-homepage']),
+      'setup:project --keep "" --clean-homepage'
+    )
+
+    // Self-prune: setup-project.ts deleted
+    expect(
+      await pathExists(join(project, 'lib/scripts/setup-project.ts'))
+    ).toBe(false)
+
+    // test-setup.ts must survive
+    expect(await pathExists(join(project, 'lib/scripts/test-setup.ts'))).toBe(
+      true
+    )
+
+    const result = await runTypecheck(project)
+    if (result.exitCode !== 0) {
+      throw new Error(
+        `tsgo --noEmit failed on lean+clean-homepage output (exit ${result.exitCode})\n--- stdout ---\n${result.stdout}\n--- stderr ---\n${result.stderr}`
+      )
+    }
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Additive setup: --keep sanity — sanity restored, webgl absent, typecheck ok
+// ---------------------------------------------------------------------------
+
+describe('additive setup: --keep sanity', () => {
+  let project = ''
+
+  afterAll(async () => {
+    if (project) await rm(project, { recursive: true, force: true })
+  })
+
+  it('sanity restored from snapshot, webgl absent, typecheck passes', async () => {
+    project = await createTempProject()
+
+    expectClean(
+      await runSetup(project, 'sanity'),
+      'setup:project --keep sanity'
+    )
+
+    // Sanity folder must be present (restored from snapshot)
+    expect(await pathExists(join(project, 'lib/integrations/sanity'))).toBe(
+      true
+    )
+
+    // app/layout.tsx must contain SanityLive (overwriteFiles restores it)
+    const layout = await readProjectFile(project, 'app/layout.tsx')
+    expect(layout).toContain('SanityLive')
+
+    // WebGL must be absent
+    expect(await pathExists(join(project, 'lib/webgl'))).toBe(false)
+
+    // Self-prune ran
+    expect(
+      await pathExists(join(project, 'lib/scripts/setup-project.ts'))
+    ).toBe(false)
+
+    // typecheck
+    const result = await runTypecheck(project)
+    if (result.exitCode !== 0) {
+      throw new Error(
+        `tsgo --noEmit failed on --keep sanity output (exit ${result.exitCode})\n--- stdout ---\n${result.stdout}\n--- stderr ---\n${result.stderr}`
+      )
+    }
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Additive setup: --preset editorial — sanity+hubspot+mailchimp, no webgl
+// ---------------------------------------------------------------------------
+
+describe('additive setup: --preset editorial', () => {
+  let project = ''
+
+  afterAll(async () => {
+    if (project) await rm(project, { recursive: true, force: true })
+  })
+
+  it('editorial preset folders present, webgl absent, typecheck passes', async () => {
+    project = await createTempProject()
+
+    expectClean(
+      await runScript(project, 'lib/scripts/setup-project.ts', [
+        '--preset',
+        'editorial',
+        '--yes',
+        '--skip-install',
+      ]),
+      'setup:project --preset editorial'
+    )
+
+    // Editorial integrations present
+    expect(await pathExists(join(project, 'lib/integrations/sanity'))).toBe(
+      true
+    )
+    expect(await pathExists(join(project, 'lib/integrations/hubspot'))).toBe(
+      true
+    )
+    expect(await pathExists(join(project, 'lib/integrations/mailchimp'))).toBe(
+      true
+    )
+
+    // Non-editorial integrations absent
+    expect(await pathExists(join(project, 'lib/webgl'))).toBe(false)
+    expect(await pathExists(join(project, 'lib/integrations/shopify'))).toBe(
+      false
+    )
+
+    // Self-prune ran
+    expect(
+      await pathExists(join(project, 'lib/scripts/setup-project.ts'))
+    ).toBe(false)
+
+    // typecheck
+    const result = await runTypecheck(project)
+    if (result.exitCode !== 0) {
+      throw new Error(
+        `tsgo --noEmit failed on editorial preset (exit ${result.exitCode})\n--- stdout ---\n${result.stdout}\n--- stderr ---\n${result.stderr}`
+      )
+    }
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Additive setup: --preset studio — all integrations kept, self-prune ran
+// ---------------------------------------------------------------------------
+
+describe('additive setup: --preset studio', () => {
+  let project = ''
+
+  afterAll(async () => {
+    if (project) await rm(project, { recursive: true, force: true })
+  })
+
+  it('studio preset has all integrations, self-prune ran, typecheck passes', async () => {
+    project = await createTempProject()
+
+    expectClean(
+      await runScript(project, 'lib/scripts/setup-project.ts', [
+        '--preset',
+        'studio',
+        '--yes',
+        '--skip-install',
+      ]),
+      'setup:project --preset studio'
+    )
+
+    // All integration folders present
+    expect(await pathExists(join(project, 'lib/integrations/sanity'))).toBe(
+      true
+    )
+    expect(await pathExists(join(project, 'lib/integrations/shopify'))).toBe(
+      true
+    )
+    expect(await pathExists(join(project, 'lib/integrations/hubspot'))).toBe(
+      true
+    )
+    expect(await pathExists(join(project, 'lib/integrations/mailchimp'))).toBe(
+      true
+    )
+    expect(await pathExists(join(project, 'lib/webgl'))).toBe(true)
+    expect(await pathExists(join(project, 'lib/dev/theatre'))).toBe(true)
+
+    // Self-prune ran even when all integrations are kept
+    expect(
+      await pathExists(join(project, 'lib/scripts/setup-project.ts'))
+    ).toBe(false)
+
+    // test-setup.ts survived
+    expect(await pathExists(join(project, 'lib/scripts/test-setup.ts'))).toBe(
+      true
+    )
+
+    // typecheck
+    const result = await runTypecheck(project)
+    if (result.exitCode !== 0) {
+      throw new Error(
+        `tsgo --noEmit failed on studio preset (exit ${result.exitCode})\n--- stdout ---\n${result.stdout}\n--- stderr ---\n${result.stderr}`
+      )
+    }
   })
 })

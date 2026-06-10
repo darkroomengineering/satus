@@ -76,6 +76,42 @@ export interface RemoveInterfacePropertyOp {
   propertyName: string
 }
 
+/**
+ * Remove a named JSX attribute from all JSX elements with a given tag name.
+ * Targets both self-closing and open/close elements.
+ *
+ * @example Remove `webgl` prop from every `<Wrapper webgl …>` usage:
+ * `{ kind: 'removeJsxAttribute', tagName: 'Wrapper', attributeName: 'webgl' }`
+ */
+export interface RemoveJsxAttributeOp {
+  kind: 'removeJsxAttribute'
+  /** Tag name of the element whose attribute to remove, e.g. 'Wrapper' */
+  tagName: string
+  /** Attribute name to remove, e.g. 'webgl' */
+  attributeName: string
+}
+
+/**
+ * Remove a named binding from a destructured variable declaration.
+ *
+ * Targets `const { …, name, … } = expr` statements at any scope depth.
+ * Rebuilt from the remaining elements, preserving defaults and rest elements.
+ *
+ * @example Remove `studio` from `const { stats, grid, studio } = useOrchestra()`
+ * `{ kind: 'removeDestructuredBinding', variableName: 'studio', declarationPattern: 'useOrchestra' }`
+ */
+export interface RemoveDestructuredBindingOp {
+  kind: 'removeDestructuredBinding'
+  /** The binding name to remove, e.g. 'studio' */
+  bindingName: string
+  /**
+   * Substring of the initializer expression text used to narrow the target
+   * declaration (e.g. 'useOrchestra'). Prevents accidentally modifying
+   * unrelated destructurings that happen to bind the same name.
+   */
+  initializerContains: string
+}
+
 /** Remove a named parameter from a function's destructured props argument. */
 export interface RemoveFunctionParameterOp {
   kind: 'removeFunctionParameter'
@@ -258,6 +294,8 @@ export type AstOperation =
   | RemoveVariableStatementOp
   | RemoveCallStatementOp
   | RemoveJsxElementOp
+  | RemoveJsxAttributeOp
+  | RemoveDestructuredBindingOp
   | RemoveInterfacePropertyOp
   | RemoveFunctionParameterOp
   | ReplaceJsDocOp
@@ -331,7 +369,7 @@ export const INTEGRATION_BUNDLES: Partial<
     ],
     devDependencies: ['@sanity/vision', 'sanity'],
     folders: ['lib/integrations/sanity', 'components/ui/sanity-image'],
-    files: [],
+    files: ['app/api/draft-mode/enable/route.ts'],
     envVars: [
       'NEXT_PUBLIC_SANITY_PROJECT_ID',
       'NEXT_PUBLIC_SANITY_DATASET',
@@ -346,6 +384,30 @@ export const INTEGRATION_BUNDLES: Partial<
       { file: 'components/ui/index.ts', pattern: 'sanity-image' },
     ],
     codeTransforms: [
+      {
+        file: 'app/layout.tsx',
+        ops: [
+          // Remove `import { SanityLive } from '@/lib/integrations/sanity/live'`
+          { kind: 'removeImport', specifier: '@/lib/integrations/sanity/live' },
+          // Remove `{sanityConfigured && <SanityLive />}` JSX element
+          { kind: 'removeJsxElement', tagName: 'SanityLive' },
+          // Remove `{sanityConfigured && isDraftMode && (<Suspense>…<VisualEditing/></Suspense>)}`
+          // VisualEditing is from next-sanity, already handled by removing the import below,
+          // but we also remove the JSX element to avoid the dangling reference.
+          { kind: 'removeJsxElement', tagName: 'VisualEditing' },
+          // Remove `import { VisualEditing } from 'next-sanity/visual-editing'`
+          {
+            kind: 'removeImport',
+            specifier: 'next-sanity/visual-editing',
+          },
+          // Remove `const sanityConfigured = isConfigured('sanity')` variable
+          // (no longer used after the two sanity JSX blocks are removed)
+          { kind: 'removeVariableStatement', name: 'sanityConfigured' },
+          // Remove `import { isConfigured } from '@/lib/integrations/registry'`
+          // (only used for sanityConfigured in layout.tsx — now unused)
+          { kind: 'removeImport', specifier: '@/lib/integrations/registry' },
+        ],
+      },
       {
         file: 'next.config.ts',
         ops: [
@@ -384,6 +446,10 @@ export const INTEGRATION_BUNDLES: Partial<
         ],
       },
     ],
+    // app/layout.tsx has complex Sanity wiring (SanityLive, VisualEditing,
+    // isConfigured call) that cannot be re-injected statement-by-statement
+    // safely.  Restore wholesale from the payload on `satus add sanity`.
+    overwriteFiles: ['app/layout.tsx'],
     addTransforms: [
       {
         file: 'next.config.ts',
@@ -505,9 +571,12 @@ export const INTEGRATION_BUNDLES: Partial<
     dependencies: ['@react-three/drei', '@react-three/fiber', 'three'],
     devDependencies: ['@types/three'],
     folders: ['lib/webgl'],
-    files: [],
+    files: ['lib/hooks/use-device-detection.ts'],
     envVars: [],
-    barrelExports: [],
+    barrelExports: [
+      // Remove the useDeviceDetection re-export — the hook is webgl-owned
+      { file: 'lib/hooks/index.ts', pattern: 'use-device-detection' },
+    ],
     codeTransforms: [
       {
         file: 'next.config.ts',
@@ -550,6 +619,29 @@ export const INTEGRATION_BUNDLES: Partial<
             kind: 'removeJsxElement',
             tagName: 'OrchestraToggle',
             attribute: { name: 'id', value: 'webgl' },
+          },
+        ],
+      },
+      {
+        file: 'app/error.tsx',
+        ops: [
+          // Remove the `webgl` prop from `<Wrapper webgl>` — WrapperProps no
+          // longer declares webgl after the webgl integration is removed.
+          {
+            kind: 'removeJsxAttribute',
+            tagName: 'Wrapper',
+            attributeName: 'webgl',
+          },
+        ],
+      },
+      {
+        file: 'app/global-error.tsx',
+        ops: [
+          // Same as error.tsx — strip the dangling `webgl` prop.
+          {
+            kind: 'removeJsxAttribute',
+            tagName: 'Wrapper',
+            attributeName: 'webgl',
           },
         ],
       },
@@ -632,7 +724,14 @@ export const INTEGRATION_BUNDLES: Partial<
     // additive op set — re-wrapping children and restoring interface members
     // would need bespoke ops. The file is restored wholesale instead, guarded
     // by the lean-state comparison documented on `overwriteFiles`.
-    overwriteFiles: ['components/layout/wrapper/index.tsx'],
+    // app/error.tsx and app/global-error.tsx carry a `webgl` prop on <Wrapper>
+    // that is removed by codeTransforms; restore them wholesale on `satus add`.
+    overwriteFiles: [
+      'components/layout/wrapper/index.tsx',
+      'lib/hooks/use-device-detection.ts',
+      'app/error.tsx',
+      'app/global-error.tsx',
+    ],
     addTransforms: [
       {
         file: 'next.config.ts',
@@ -718,6 +817,13 @@ export const INTEGRATION_BUNDLES: Partial<
           { kind: 'removeVariableStatement', name: 'Studio' },
           // Remove `{studio && <Studio />}` JSX expression
           { kind: 'removeJsxElement', tagName: 'Studio' },
+          // Remove `studio` from `const { stats, grid, studio, … } = useOrchestra()`
+          // After the JSX element is gone, `studio` is declared but never read (TS6133).
+          {
+            kind: 'removeDestructuredBinding',
+            bindingName: 'studio',
+            initializerContains: 'useOrchestra',
+          },
         ],
       },
       {
@@ -765,9 +871,14 @@ export const INTEGRATION_BUNDLES: Partial<
     // The fluid/flowmap Theatre wiring (sheet const + useTheatre call inside
     // hook bodies) is not re-injectable statement-by-statement — these files
     // are integration-owned and restored wholesale from the payload source.
+    // lib/dev/index.tsx carries the `studio` destructured binding that the
+    // removeDestructuredBinding op strips; restore it wholesale on `satus add`.
+    // lib/dev/cmdo.tsx carries the studio OrchestraToggle; restore wholesale too.
     overwriteFiles: [
       'lib/webgl/utils/fluid/index.tsx',
       'lib/webgl/utils/flowmaps/index.tsx',
+      'lib/dev/index.tsx',
+      'lib/dev/cmdo.tsx',
     ],
     addTransforms: [
       {

@@ -27,6 +27,7 @@
     "dev:inspect": "bun ./lib/scripts/dev.ts --inspect",
     "lighthouse": "bunx @unlighthouse/cli --site http://localhost:3000",
     "setup:project": "bun ./lib/scripts/setup-project.ts",
+    "satus": "bun ./lib/scripts/satus.ts",
     "test": "bun test",
     "test:setup": "bun test lib/scripts/setup-project.test.ts",
     "doctor": "bun ./lib/scripts/doctor.ts",

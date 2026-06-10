@@ -24,6 +24,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Added
 
+- `bun run satus` plugin CLI — `satus list` shows every integration's installed status, and `satus add <plugin>` restores a stripped integration into a living project: files are copied from the public satus repo (the registry), dependencies re-pinned, and shared files re-wired through idempotent AST operations, so adding twice is a no-op. `setup:project` records the git HEAD sha as `"satus": { "ref": … }` in package.json and `satus add` fetches that pinned ref by default (`--from` uses a local checkout, `--ref` overrides). Both CLIs run non-interactively (`--preset`/`--keep`/`--yes`/`--skip-install`), verified by a network-free round-trip e2e (`lib/scripts/satus.e2e.test.ts`). (#185)
 - Storybook themed to match Satūs: stories render on the site palette through shared CSS tokens (edit the site, the catalogue follows), with a dark/light/red/evil theme toolbar and a branded manager. (#210)
 - Optional `/storybook` route that proxies to a standalone Storybook deployment, enabled per-environment via `NEXT_PUBLIC_STORYBOOK_URL` and force-disabled in Production. (#210)
 - One-click Deploy to Vercel button (README + in-app manual) and clearer domain-setup guidance. (#210)

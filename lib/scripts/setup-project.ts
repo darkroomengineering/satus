@@ -9,6 +9,18 @@
  * 2. Remove unused code and dependencies
  * 3. Clean up configuration files
  *
+ * Non-interactive (CI) usage — skips every prompt:
+ *   bun run setup:project --preset <key>           Use a preset's integrations
+ *   bun run setup:project --keep <id,id,...>       Keep an explicit set ('' = lean)
+ *   bun run setup:project --keep '' --clean-homepage --yes
+ *
+ * `--clean-homepage` replaces the manual landing page (default: keep it);
+ * `--yes` is accepted alongside either selection flag; `--skip-install`
+ * writes package.json without running `bun install` (offline / tests).
+ * A successful run
+ * records the current git HEAD sha into package.json as `"satus": { "ref" }`,
+ * which `bun run satus add` uses to fetch matching integration payloads.
+ *
  * Cross-platform compatible (Windows, macOS, Linux)
  */
 
@@ -22,6 +34,7 @@ import {
   INTEGRATION_BUNDLES,
 } from './integration-bundles'
 import {
+  getFlagValue,
   parseCliFlags,
   pathExists,
   removeDir,
@@ -88,6 +101,8 @@ interface SetupOptions {
   keepIntegrations: string[]
   /** Replace the manual landing page with a blank starter homepage. */
   cleanMarketing: boolean
+  /** Write package.json but skip running `bun install` (offline / tests). */
+  skipInstall: boolean
 }
 
 /**
@@ -237,7 +252,7 @@ const updateBarrelExports = async (
  * Main setup function
  */
 const setup = async (options: SetupOptions): Promise<void> => {
-  const { dryRun, keepIntegrations, cleanMarketing } = options
+  const { dryRun, keepIntegrations, cleanMarketing, skipInstall } = options
   const integrationNames = getIntegrationNames()
 
   // Replace the manual landing page first (independent of integration removal).
@@ -367,7 +382,7 @@ const setup = async (options: SetupOptions): Promise<void> => {
   }
 
   // Run bun install to update lockfile
-  if (!dryRun) {
+  if (!(dryRun || skipInstall)) {
     s.start('Updating lockfile...')
     await Bun.$`bun install`.quiet()
     s.stop('Dependencies updated')
@@ -375,19 +390,77 @@ const setup = async (options: SetupOptions): Promise<void> => {
 }
 
 /**
- * CLI entry point
+ * Record the current git HEAD sha into package.json as the pinned satus ref
+ * (`"satus": { "ref": … }`), used by `satus add` to fetch matching payloads.
+ * Skips silently when git is unavailable — the ref is optional metadata.
  */
-const main = async (): Promise<void> => {
-  const { dryRun } = parseCliFlags()
+const recordPinnedRef = async (): Promise<void> => {
+  try {
+    const proc = Bun.spawn(['git', 'rev-parse', 'HEAD'], {
+      stdout: 'pipe',
+      stderr: 'ignore',
+    })
+    const exitCode = await proc.exited
+    if (exitCode !== 0) return
 
-  console.clear()
+    const sha = (await new Response(proc.stdout).text()).trim()
+    if (!sha) return
 
-  p.intro('Satūs Project Setup')
+    const pkgPath = resolvePath('package.json')
+    const pkg = (await Bun.file(pkgPath).json()) as {
+      satus?: Record<string, unknown>
+      [key: string]: unknown
+    }
+    pkg.satus = { ...(pkg.satus ?? {}), ref: sha }
+    await Bun.write(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
+  } catch {
+    // git not installed / not a repo — the pinned ref is optional metadata
+  }
+}
 
-  if (dryRun) {
-    p.log.warn('Dry run mode - no files will be modified')
+/**
+ * Resolve the integrations to keep from the non-interactive flags.
+ * Returns undefined when neither --preset nor --keep was passed.
+ * Fails loudly on conflicting flags and unknown preset / integration ids.
+ */
+export const resolveKeepFromFlags = (
+  presetFlag: string | undefined,
+  keepFlag: string | undefined
+): RemovableId[] | undefined => {
+  if (presetFlag !== undefined && keepFlag !== undefined) {
+    throw new Error('Use either --preset or --keep, not both')
   }
 
+  if (presetFlag !== undefined) {
+    if (!(presetFlag in PROJECT_PRESETS)) {
+      throw new Error(
+        `Unknown preset "${presetFlag}". Available: ${Object.keys(PROJECT_PRESETS).join(', ')}`
+      )
+    }
+    return [...PROJECT_PRESETS[presetFlag as PresetKey].integrations]
+  }
+
+  if (keepFlag !== undefined) {
+    const ids = keepFlag
+      .split(',')
+      .map((id) => id.trim())
+      .filter((id) => id.length > 0)
+    const known = getIntegrationNames()
+    for (const id of ids) {
+      if (!(known as string[]).includes(id)) {
+        throw new Error(
+          `Unknown integration "${id}". Available: ${known.join(', ')}`
+        )
+      }
+    }
+    return ids as RemovableId[]
+  }
+
+  return undefined
+}
+
+/** Interactive integration selection (preset select or custom multiselect). */
+const promptForIntegrations = async (): Promise<RemovableId[]> => {
   // Build preset options
   const presetOptions = [
     ...Object.entries(PROJECT_PRESETS).map(([key, preset]) => ({
@@ -414,8 +487,6 @@ const main = async (): Promise<void> => {
     process.exit(0)
   }
 
-  let keepIntegrations: RemovableId[] = []
-
   if (selectedPreset === 'custom') {
     // Build options for multiselect
     const integrationOptions = getIntegrationNames().map((key) => ({
@@ -432,27 +503,76 @@ const main = async (): Promise<void> => {
       required: false,
     })
 
-    keepIntegrations = cancelGuard(customIntegrations, 'Setup cancelled')
-  } else {
-    // Use preset integrations
-    const preset = PROJECT_PRESETS[selectedPreset as PresetKey]
-    keepIntegrations = [...preset.integrations]
+    return cancelGuard(customIntegrations, 'Setup cancelled')
+  }
 
-    p.log.step(`Selected preset: ${preset.name}`)
-    p.log.message(
-      `  Includes: ${keepIntegrations.length > 0 ? keepIntegrations.map((k) => INTEGRATION_BUNDLES[k]?.name).join(', ') : 'None'}`
+  // Use preset integrations
+  const preset = PROJECT_PRESETS[selectedPreset as PresetKey]
+  const keepIntegrations = [...preset.integrations]
+
+  p.log.step(`Selected preset: ${preset.name}`)
+  p.log.message(
+    `  Includes: ${keepIntegrations.length > 0 ? keepIntegrations.map((k) => INTEGRATION_BUNDLES[k]?.name).join(', ') : 'None'}`
+  )
+
+  return keepIntegrations
+}
+
+/**
+ * CLI entry point
+ */
+const main = async (): Promise<void> => {
+  const argv = process.argv.slice(2)
+  const { dryRun } = parseCliFlags(argv)
+  const presetFlag = getFlagValue(argv, '--preset')
+  const keepFlag = getFlagValue(argv, '--keep')
+  const yes = argv.includes('--yes')
+  const cleanHomepageFlag = argv.includes('--clean-homepage')
+  const skipInstall = argv.includes('--skip-install')
+
+  // Throws on conflicting / unknown values — fails loudly before any prompt.
+  const flagKeep = resolveKeepFromFlags(presetFlag, keepFlag)
+  const nonInteractive = flagKeep !== undefined
+
+  if (yes && !nonInteractive) {
+    throw new Error(
+      '--yes requires --preset <key> or --keep <id,id,...> to define the integration set'
     )
   }
 
-  // Offer to drop the manual landing page for a clean slate.
-  const cleanMarketing = await p.confirm({
-    message: 'Replace the manual landing page with a blank starter homepage?',
-    initialValue: false,
-  })
+  if (!nonInteractive) {
+    console.clear()
+  }
 
-  if (p.isCancel(cleanMarketing)) {
-    p.cancel('Setup cancelled')
-    process.exit(0)
+  p.intro('Satūs Project Setup')
+
+  if (dryRun) {
+    p.log.warn('Dry run mode - no files will be modified')
+  }
+
+  let keepIntegrations: RemovableId[]
+  let cleanMarketing: boolean
+
+  if (flagKeep !== undefined) {
+    keepIntegrations = flagKeep
+    // Default behavior preserved: the landing page is only replaced when
+    // --clean-homepage is passed explicitly.
+    cleanMarketing = cleanHomepageFlag
+  } else {
+    keepIntegrations = await promptForIntegrations()
+
+    // Offer to drop the manual landing page for a clean slate.
+    const cleanMarketingAnswer = await p.confirm({
+      message: 'Replace the manual landing page with a blank starter homepage?',
+      initialValue: false,
+    })
+
+    if (p.isCancel(cleanMarketingAnswer)) {
+      p.cancel('Setup cancelled')
+      process.exit(0)
+    }
+
+    cleanMarketing = cleanMarketingAnswer
   }
 
   const toRemove = getIntegrationNames().filter(
@@ -486,14 +606,16 @@ const main = async (): Promise<void> => {
     )
   }
 
-  // Confirm
-  const proceed = await p.confirm({
-    message: dryRun ? 'Preview changes?' : 'Proceed with setup?',
-  })
+  // Confirm — skipped in non-interactive mode (--preset / --keep imply --yes)
+  if (!nonInteractive) {
+    const proceed = await p.confirm({
+      message: dryRun ? 'Preview changes?' : 'Proceed with setup?',
+    })
 
-  if (p.isCancel(proceed) || !proceed) {
-    p.cancel('Setup cancelled')
-    process.exit(0)
+    if (p.isCancel(proceed) || !proceed) {
+      p.cancel('Setup cancelled')
+      process.exit(0)
+    }
   }
 
   // Run setup
@@ -501,7 +623,13 @@ const main = async (): Promise<void> => {
     dryRun,
     keepIntegrations: keepIntegrations as string[],
     cleanMarketing,
+    skipInstall,
   })
+
+  // Pin the payload ref for `satus add` (skipped silently without git)
+  if (!dryRun) {
+    await recordPinnedRef()
+  }
 
   // Done
   if (dryRun) {

@@ -2,7 +2,8 @@
  * Integration Bundles Configuration
  *
  * Defines which dependencies, folders, and files belong to each integration.
- * Used by the setup script to selectively remove unused integrations.
+ * Used by the setup script to selectively remove unused integrations, and by
+ * the `satus add` CLI to restore them additively from the public satus repo.
  *
  * Key types (`IntegrationId`, `RemovableId`) are imported from the registry so
  * that adding or renaming a key in one place without the other is a compile error.
@@ -134,6 +135,124 @@ export interface RemoveArrayStringElementOp {
   value: string
 }
 
+// ---------------------------------------------------------------------------
+// Additive operations (inverse of the removals above)
+// Every additive op is IDEMPOTENT: when the construct it would add is already
+// present, the source text is returned byte-for-byte unchanged, so applying
+// the same op twice is a no-op.
+// ---------------------------------------------------------------------------
+
+/**
+ * Add a top-level import declaration, given as full source text.
+ *
+ * If an import with the same module specifier already exists, any missing
+ * named imports are merged into it (no-op when all bindings are present).
+ * Otherwise the declaration is inserted after the last existing import, e.g.
+ * re-adding `import { Canvas } from '@/webgl/components/canvas'`.
+ */
+export interface AddImportOp {
+  kind: 'addImport'
+  /** Full import declaration text, e.g. `import { Canvas } from '@/webgl/components/canvas'` */
+  text: string
+}
+
+/**
+ * Append a string-literal element to an array property nested inside a named
+ * variable declaration.  Inverse of `removeArrayStringElement`; designed for
+ * `experimental.optimizePackageImports` in next.config.ts.
+ *
+ * No-op when an element with the same literal value already exists.
+ */
+export interface AddArrayStringElementOp {
+  kind: 'addArrayStringElement'
+  /** The variable name that holds the object, e.g. `'nextConfig'`. */
+  variableName: string
+  /**
+   * Dot-separated path from the variable declaration down to the array
+   * property, e.g. `'experimental.optimizePackageImports'`.
+   */
+  propertyPath: string
+  /** The string value to append to the array. */
+  value: string
+}
+
+/**
+ * Append an object-literal element to an array property nested inside a named
+ * variable declaration.  Inverse of `removeArrayObjectElement`; designed for
+ * `images.remotePatterns` in next.config.ts.
+ *
+ * No-op when an element already matches `matchProperty` (same matching
+ * semantics as `removeArrayObjectElement`, including quoted-key
+ * normalization).
+ */
+export interface AddArrayObjectElementOp {
+  kind: 'addArrayObjectElement'
+  /** The variable name that holds the object, e.g. `'nextConfig'`. */
+  variableName: string
+  /**
+   * Dot-separated path from the variable declaration down to the array
+   * property, e.g. `'images.remotePatterns'`.
+   */
+  propertyPath: string
+  /** The object literal to append, as source text, e.g. `{ protocol: 'https', hostname: 'cdn.sanity.io' }` */
+  objectText: string
+  /** Property name + value identifying an already-present matching element. */
+  matchProperty: { name: string; value: string }
+}
+
+/**
+ * Insert a full variable statement, e.g. re-adding
+ * `const LazyGlobalCanvas = dynamic(…)` to lib/features/index.tsx.
+ *
+ * No-op when a variable named `name` already exists anywhere in the file
+ * (any scope depth, mirroring `removeVariableStatement`).
+ */
+export interface AddVariableStatementOp {
+  kind: 'addVariableStatement'
+  /** The declared variable name used for the idempotency check, e.g. 'LazyGlobalCanvas' */
+  name: string
+  /** Full statement text to insert, e.g. `const LazyGlobalCanvas = dynamic(() => …)` */
+  text: string
+  /**
+   * When true or omitted, insert after the last import declaration.
+   * When false, append at the end of the file.
+   */
+  afterImports?: boolean
+}
+
+/**
+ * Append a JSX child as the last child of the first element whose opening tag
+ * matches `parentTagName`, e.g. re-adding `<Canvas root />` inside <Wrapper>.
+ *
+ * Parent selection: among same-tag candidates, an element that already
+ * contains a direct child with tag `childTagName` wins, so re-added elements
+ * land next to their siblings (e.g. an OrchestraToggle row). The special
+ * value `parentTagName: 'Fragment'` falls back to the first JSX fragment
+ * (`<>…</>`) when no `<Fragment>` element matches.
+ *
+ * No-op when any JSX element (or self-closing element) with tag
+ * `childTagName` already exists anywhere in the file — narrowed to elements
+ * whose attribute matches when `childAttribute` is provided.
+ */
+export interface AddJsxChildOp {
+  kind: 'addJsxChild'
+  /**
+   * Tag name of the parent element to append into, e.g. 'Wrapper'.
+   * 'Fragment' targets the first JSX fragment when no element matches.
+   */
+  parentTagName: string
+  /** The JSX child to append, as source text, e.g. `<Canvas root />` */
+  childText: string
+  /** Tag name of the child, used for the idempotency check, e.g. 'Canvas' */
+  childTagName: string
+  /**
+   * Optional attribute narrowing the idempotency check: only an existing
+   * `childTagName` element whose attribute matches blocks insertion, so
+   * `<OrchestraToggle id="webgl">` can be re-added next to other toggles.
+   */
+  childAttribute?: { name: string; value: string }
+}
+
 export type AstOperation =
   | RemoveImportOp
   | RemoveVariableStatementOp
@@ -144,6 +263,11 @@ export type AstOperation =
   | ReplaceJsDocOp
   | RemoveArrayObjectElementOp
   | RemoveArrayStringElementOp
+  | AddImportOp
+  | AddArrayStringElementOp
+  | AddArrayObjectElementOp
+  | AddVariableStatementOp
+  | AddJsxChildOp
 
 export interface CodeTransform {
   /** Path to the file to transform (relative to project root) */
@@ -169,6 +293,27 @@ export interface IntegrationBundle {
   barrelExports: BarrelExport[]
   /** Code transformations to apply when this integration is removed */
   codeTransforms: CodeTransform[]
+  /**
+   * Other integrations this one depends on. `satus add` resolves these
+   * transitively and installs dependencies first (e.g. theatre requires
+   * webgl for its r3f bindings and the webgl-hook wiring).
+   */
+  requires?: RemovableId[]
+  /**
+   * Additive code transformations applied by `satus add` — the inverse of
+   * `codeTransforms`, built exclusively from the idempotent add* operations.
+   */
+  addTransforms?: CodeTransform[]
+  /**
+   * Integration-owned files copied wholesale from the payload source on
+   * `satus add`, used where statement-level re-injection would be brittle
+   * (e.g. the Theatre wiring inside the webgl fluid/flowmap hooks, or the
+   * webgl Canvas wiring in the Wrapper). A local file is only overwritten
+   * when it matches the payload version (no-op) or the expected lean state
+   * (payload with this bundle's removal ops applied); anything else is
+   * treated as locally modified and skipped with a warning unless --force.
+   */
+  overwriteFiles?: string[]
 }
 
 export const INTEGRATION_BUNDLES: Partial<
@@ -239,6 +384,46 @@ export const INTEGRATION_BUNDLES: Partial<
         ],
       },
     ],
+    addTransforms: [
+      {
+        file: 'next.config.ts',
+        ops: [
+          // Re-add cdn.sanity.io to images.remotePatterns
+          {
+            kind: 'addArrayObjectElement',
+            variableName: 'nextConfig',
+            propertyPath: 'images.remotePatterns',
+            objectText: "{ protocol: 'https', hostname: 'cdn.sanity.io' }",
+            matchProperty: { name: 'hostname', value: 'cdn.sanity.io' },
+          },
+          // Re-add @sanity/* packages to experimental.optimizePackageImports
+          {
+            kind: 'addArrayStringElement',
+            variableName: 'nextConfig',
+            propertyPath: 'experimental.optimizePackageImports',
+            value: '@sanity/client',
+          },
+          {
+            kind: 'addArrayStringElement',
+            variableName: 'nextConfig',
+            propertyPath: 'experimental.optimizePackageImports',
+            value: '@sanity/image-url',
+          },
+          {
+            kind: 'addArrayStringElement',
+            variableName: 'nextConfig',
+            propertyPath: 'experimental.optimizePackageImports',
+            value: '@sanity/asset-utils',
+          },
+          {
+            kind: 'addArrayStringElement',
+            variableName: 'nextConfig',
+            propertyPath: 'experimental.optimizePackageImports',
+            value: '@portabletext/react',
+          },
+        ],
+      },
+    ],
   },
 
   shopify: {
@@ -264,6 +449,21 @@ export const INTEGRATION_BUNDLES: Partial<
             kind: 'removeArrayObjectElement',
             variableName: 'nextConfig',
             propertyPath: 'images.remotePatterns',
+            matchProperty: { name: 'hostname', value: 'cdn.shopify.com' },
+          },
+        ],
+      },
+    ],
+    addTransforms: [
+      {
+        file: 'next.config.ts',
+        ops: [
+          // Re-add cdn.shopify.com to images.remotePatterns
+          {
+            kind: 'addArrayObjectElement',
+            variableName: 'nextConfig',
+            propertyPath: 'images.remotePatterns',
+            objectText: "{ protocol: 'https', hostname: 'cdn.shopify.com' }",
             matchProperty: { name: 'hostname', value: 'cdn.shopify.com' },
           },
         ],
@@ -304,12 +504,10 @@ export const INTEGRATION_BUNDLES: Partial<
     description: 'Three.js and React Three Fiber for 3D graphics',
     dependencies: ['@react-three/drei', '@react-three/fiber', 'three'],
     devDependencies: ['@types/three'],
-    folders: ['lib/webgl', 'components/effects/animated-gradient'],
+    folders: ['lib/webgl'],
     files: [],
     envVars: [],
-    barrelExports: [
-      { file: 'components/effects/index.ts', pattern: 'animated-gradient' },
-    ],
+    barrelExports: [],
     codeTransforms: [
       {
         file: 'next.config.ts',
@@ -429,6 +627,78 @@ export const INTEGRATION_BUNDLES: Partial<
         ],
       },
     ],
+    // The Wrapper's Canvas wiring (import + interface property + destructured
+    // param + <Canvas> wrapping <main> + JSDoc) cannot be expressed with the
+    // additive op set — re-wrapping children and restoring interface members
+    // would need bespoke ops. The file is restored wholesale instead, guarded
+    // by the lean-state comparison documented on `overwriteFiles`.
+    overwriteFiles: ['components/layout/wrapper/index.tsx'],
+    addTransforms: [
+      {
+        file: 'next.config.ts',
+        ops: [
+          // Re-add WebGL/Three.js packages to experimental.optimizePackageImports
+          {
+            kind: 'addArrayStringElement',
+            variableName: 'nextConfig',
+            propertyPath: 'experimental.optimizePackageImports',
+            value: '@react-three/drei',
+          },
+          {
+            kind: 'addArrayStringElement',
+            variableName: 'nextConfig',
+            propertyPath: 'experimental.optimizePackageImports',
+            value: '@react-three/fiber',
+          },
+          {
+            kind: 'addArrayStringElement',
+            variableName: 'nextConfig',
+            propertyPath: 'experimental.optimizePackageImports',
+            value: 'three',
+          },
+        ],
+      },
+      {
+        file: 'lib/features/index.tsx',
+        ops: [
+          // Ensure the dynamic() helper import is present
+          { kind: 'addImport', text: "import dynamic from 'next/dynamic'" },
+          // Re-add `const LazyGlobalCanvas = dynamic(…)`
+          {
+            kind: 'addVariableStatement',
+            name: 'LazyGlobalCanvas',
+            text: `const LazyGlobalCanvas = dynamic(
+  () =>
+    import('@/webgl/components/global-canvas').then((mod) => ({
+      default: mod.GlobalCanvas,
+    })),
+  { ssr: false }
+)`,
+          },
+          // Re-add `<LazyGlobalCanvas />` inside the OptionalFeatures fragment
+          {
+            kind: 'addJsxChild',
+            parentTagName: 'Fragment',
+            childText: '<LazyGlobalCanvas />',
+            childTagName: 'LazyGlobalCanvas',
+          },
+        ],
+      },
+      {
+        file: 'lib/dev/cmdo.tsx',
+        ops: [
+          // Re-add the webgl OrchestraToggle next to the other toggles
+          {
+            kind: 'addJsxChild',
+            parentTagName: 'div',
+            childText:
+              '<OrchestraToggle id="webgl" defaultValue={true}>🧊</OrchestraToggle>',
+            childTagName: 'OrchestraToggle',
+            childAttribute: { name: 'id', value: 'webgl' },
+          },
+        ],
+      },
+    ],
   },
 
   theatre: {
@@ -486,6 +756,55 @@ export const INTEGRATION_BUNDLES: Partial<
           {
             kind: 'removeImport',
             specifier: '@/dev/theatre/hooks/use-theatre',
+          },
+        ],
+      },
+    ],
+    // The r3f bindings and the webgl-hook wiring below depend on webgl.
+    requires: ['webgl'],
+    // The fluid/flowmap Theatre wiring (sheet const + useTheatre call inside
+    // hook bodies) is not re-injectable statement-by-statement — these files
+    // are integration-owned and restored wholesale from the payload source.
+    overwriteFiles: [
+      'lib/webgl/utils/fluid/index.tsx',
+      'lib/webgl/utils/flowmaps/index.tsx',
+    ],
+    addTransforms: [
+      {
+        file: 'lib/dev/index.tsx',
+        ops: [
+          // Ensure the dynamic() helper import is present
+          { kind: 'addImport', text: "import dynamic from 'next/dynamic'" },
+          // Re-add `const Studio = dynamic(…)`
+          {
+            kind: 'addVariableStatement',
+            name: 'Studio',
+            text: `const Studio = dynamic(
+  () => import('./theatre/studio').then(({ Studio }) => Studio),
+  { ssr: false }
+)`,
+          },
+          // Re-add `{studio && <Studio />}` inside the OrchestraTools fragment
+          // (`studio` still comes from the useOrchestra() destructuring, which
+          // the removal ops leave in place)
+          {
+            kind: 'addJsxChild',
+            parentTagName: 'Fragment',
+            childText: '{studio && <Studio />}',
+            childTagName: 'Studio',
+          },
+        ],
+      },
+      {
+        file: 'lib/dev/cmdo.tsx',
+        ops: [
+          // Re-add the studio OrchestraToggle next to the other toggles
+          {
+            kind: 'addJsxChild',
+            parentTagName: 'div',
+            childText: '<OrchestraToggle id="studio">⚙️</OrchestraToggle>',
+            childTagName: 'OrchestraToggle',
+            childAttribute: { name: 'id', value: 'studio' },
           },
         ],
       },

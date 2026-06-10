@@ -151,6 +151,31 @@ export const parseCliFlags = (
   }
 }
 
+/**
+ * Read the value of a `--flag value` or `--flag=value` CLI argument.
+ *
+ * Returns `undefined` when the flag is absent, and the empty string when the
+ * flag is present without a value (`--keep=` / trailing `--keep`), so callers
+ * can distinguish "not passed" from "passed empty".
+ */
+export const getFlagValue = (
+  argv: string[],
+  flag: string
+): string | undefined => {
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i]
+    if (arg === undefined) continue
+    if (arg === flag) {
+      const next = argv[i + 1]
+      // A following flag (or nothing) means this one carries no value.
+      if (next === undefined || next.startsWith('--')) return ''
+      return next
+    }
+    if (arg.startsWith(`${flag}=`)) return arg.slice(flag.length + 1)
+  }
+  return undefined
+}
+
 // ============================================================================
 // Clipboard Utilities (Cross-platform)
 // ============================================================================

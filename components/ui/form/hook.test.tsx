@@ -2,17 +2,17 @@
  * Tests for the useForm hook's name-keyed registration.
  *
  * Renders the real hook through a harness that mirrors how fields/index.tsx
- * consumes `register(name)`: registration props are memoized per field name
- * (React Compiler does this for the production fields; bun test does not run
- * the compiler) and inputs are keyed by name so reorders move DOM nodes
- * instead of repurposing them.
+ * consumes `register(name)`: each field row pins its registration props for
+ * the row's lifetime (React Compiler provides this stability to the
+ * production fields; bun test does not run the compiler) and rows are keyed
+ * by name so reorders move DOM nodes instead of repurposing them.
  *
  * Run with: bun test components/ui/form/hook.test.tsx
  */
 
 import { afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render } from '@testing-library/react'
-import { useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from './hook'
 import type { FormState, UseFormReturn } from './types'
 
@@ -33,49 +33,49 @@ type FieldConfig = {
 
 type Snapshot = { current: UseFormReturn | null }
 
+function FieldRow({
+  form,
+  field,
+}: {
+  form: UseFormReturn
+  field: FieldConfig
+}) {
+  // One registration per mounted row — the stability React Compiler gives the
+  // production fields. Rows are keyed by name, so a reorder moves the row and
+  // its registration instead of re-registering the input.
+  const [registered] = useState(() => form.register(field.name))
+
+  return (
+    <input
+      id={field.id ?? field.name}
+      name={field.name}
+      type={field.type ?? 'text'}
+      defaultValue={field.defaultValue}
+      required={field.required ?? true}
+      {...registered}
+    />
+  )
+}
+
 function Harness({
   fields,
-  snapshot,
+  onSnapshot,
 }: {
   fields: FieldConfig[]
-  snapshot: Snapshot
+  onSnapshot: (form: UseFormReturn) => void
 }) {
-  // Test harness, never compiled: it deliberately writes refs during render
-  // to expose the hook's return value and to pin registration-prop identity
-  // (the stability the Compiler provides to real fields at build time).
-  'use no memo'
   const form = useForm({ action })
-  snapshot.current = form
 
-  // Mirror React Compiler's memoization of register() in fields/index.tsx:
-  // stable registration props per name keep ref identity stable across
-  // re-renders, so reordering does not detach and re-register inputs.
-  const registrations = useRef<
-    Record<string, ReturnType<UseFormReturn['register']>>
-  >({})
+  // Expose the hook's return value to assertions after each commit.
+  useEffect(() => {
+    onSnapshot(form)
+  }, [form, onSnapshot])
 
   return (
     <form>
-      {fields.map((field) => {
-        let registered = registrations.current[field.name]
-        if (!registered) {
-          registered = form.register(field.name)
-          registrations.current[field.name] = registered
-        }
-        return (
-          <input
-            key={field.name}
-            id={field.id ?? field.name}
-            name={field.name}
-            type={field.type ?? 'text'}
-            defaultValue={field.defaultValue}
-            required={field.required ?? true}
-            ref={registered.ref}
-            onChange={registered.onChange}
-            onBlur={registered.onBlur}
-          />
-        )
-      })}
+      {fields.map((field) => (
+        <FieldRow key={field.name} form={form} field={field} />
+      ))}
     </form>
   )
 }
@@ -95,7 +95,12 @@ describe('useForm registration is keyed by field name', () => {
     const nameField: FieldConfig = { name: 'name' }
 
     const { container, rerender } = render(
-      <Harness fields={[emailField, nameField]} snapshot={snapshot} />
+      <Harness
+        fields={[emailField, nameField]}
+        onSnapshot={(f) => {
+          snapshot.current = f
+        }}
+      />
     )
 
     fireEvent.change(getInput(container, 'email'), {
@@ -108,7 +113,14 @@ describe('useForm registration is keyed by field name', () => {
     expect(snapshot.current?.isActive.email).toBe(true)
     expect(snapshot.current?.errors.name?.state).toBe(false)
 
-    rerender(<Harness fields={[nameField, emailField]} snapshot={snapshot} />)
+    rerender(
+      <Harness
+        fields={[nameField, emailField]}
+        onSnapshot={(f) => {
+          snapshot.current = f
+        }}
+      />
+    )
 
     // The DOM order actually swapped...
     const inputs = container.querySelectorAll('input')
@@ -139,7 +151,12 @@ describe('useForm registration is keyed by field name', () => {
     const companyField: FieldConfig = { name: 'company' }
 
     const { container, rerender } = render(
-      <Harness fields={[emailField, nameField]} snapshot={snapshot} />
+      <Harness
+        fields={[emailField, nameField]}
+        onSnapshot={(f) => {
+          snapshot.current = f
+        }}
+      />
     )
 
     fireEvent.change(getInput(container, 'email'), {
@@ -156,7 +173,9 @@ describe('useForm registration is keyed by field name', () => {
     rerender(
       <Harness
         fields={[emailField, companyField, nameField]}
-        snapshot={snapshot}
+        onSnapshot={(f) => {
+          snapshot.current = f
+        }}
       />
     )
 
@@ -170,7 +189,14 @@ describe('useForm registration is keyed by field name', () => {
     expect(snapshot.current?.errors.name?.state).toBe(false)
 
     // Unmount it again
-    rerender(<Harness fields={[emailField, nameField]} snapshot={snapshot} />)
+    rerender(
+      <Harness
+        fields={[emailField, nameField]}
+        onSnapshot={(f) => {
+          snapshot.current = f
+        }}
+      />
+    )
 
     expect(container.querySelector('input[name="company"]')).toBeNull()
     expect(snapshot.current?.errors.email?.state).toBe(true)
@@ -193,7 +219,9 @@ describe('useForm registration is keyed by field name', () => {
           },
           { name: 'trap', id: 'hidden', type: 'text' },
         ]}
-        snapshot={snapshot}
+        onSnapshot={(f) => {
+          snapshot.current = f
+        }}
       />
     )
 

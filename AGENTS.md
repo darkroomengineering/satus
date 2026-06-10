@@ -439,6 +439,8 @@ bun lint:fix         # Biome lint with auto-fix
 bun run format       # Biome format
 bun run typecheck    # tsgo --noEmit
 bun test             # Unit tests
+bun run setup:project  # Strip unused integrations (non-interactive: --preset/--keep, --yes, --clean-homepage, --skip-install)
+bun run satus        # Plugin CLI: `list`, `add <plugin>` (restore an integration from the satus repo)
 bun run doctor       # Diagnose setup issues
 ```
 

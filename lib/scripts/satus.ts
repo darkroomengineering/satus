@@ -7,7 +7,8 @@
  * the public satus repo and re-wiring shared files via idempotent AST ops:
  *
  *   bun run satus list
- *   bun run satus add <plugin...> [--from path] [--ref ref] [--dry-run] [--force] [--yes]
+ *   bun run satus add <plugin...> [--from path] [--ref ref] [--dry-run]
+ *                                 [--force] [--yes] [--skip-install]
  *
  * Payload source priority: `--from <localPath>` (a satus checkout) →
  * `--ref <gitRef>` → the pinned ref in package.json `satus.ref` → `main`
@@ -48,6 +49,8 @@ export interface AddFlags {
   dryRun: boolean
   force: boolean
   yes: boolean
+  /** Write package.json but skip running `bun install` (offline / tests). */
+  skipInstall: boolean
 }
 
 /**
@@ -59,7 +62,12 @@ export function parseAddArgs(argv: string[]): {
   flags: AddFlags
 } {
   const plugins: string[] = []
-  const flags: AddFlags = { dryRun: false, force: false, yes: false }
+  const flags: AddFlags = {
+    dryRun: false,
+    force: false,
+    yes: false,
+    skipInstall: false,
+  }
 
   const takeValue = (
     flag: '--from' | '--ref',
@@ -93,6 +101,8 @@ export function parseAddArgs(argv: string[]): {
       flags.force = true
     } else if (arg === '--yes') {
       flags.yes = true
+    } else if (arg === '--skip-install') {
+      flags.skipInstall = true
     } else if (arg.startsWith('-')) {
       throw new Error(`Unknown flag: ${arg}`)
     } else {
@@ -611,9 +621,13 @@ const runAdd = async (plugins: string[], flags: AddFlags): Promise<void> => {
     }
 
     if (depsAdded > 0 && !flags.dryRun) {
-      s.start('Installing dependencies...')
-      await Bun.$`bun install`.quiet()
-      s.stop('Dependencies installed')
+      if (flags.skipInstall) {
+        p.log.step('Skipped bun install (--skip-install) — run it manually')
+      } else {
+        s.start('Installing dependencies...')
+        await Bun.$`bun install`.quiet()
+        s.stop('Dependencies installed')
+      }
     }
   } finally {
     await source.cleanup()
@@ -645,6 +659,7 @@ Options for add:
   --dry-run           Print what would happen without writing anything
   --force             Overwrite existing / locally modified files
   --yes               Skip confirmation prompts (CI)
+  --skip-install      Write package.json but do not run bun install
 `
 
 const main = async (): Promise<void> => {

@@ -504,12 +504,10 @@ export const INTEGRATION_BUNDLES: Partial<
     description: 'Three.js and React Three Fiber for 3D graphics',
     dependencies: ['@react-three/drei', '@react-three/fiber', 'three'],
     devDependencies: ['@types/three'],
-    folders: ['lib/webgl', 'components/effects/animated-gradient'],
+    folders: ['lib/webgl'],
     files: [],
     envVars: [],
-    barrelExports: [
-      { file: 'components/effects/index.ts', pattern: 'animated-gradient' },
-    ],
+    barrelExports: [],
     codeTransforms: [
       {
         file: 'next.config.ts',

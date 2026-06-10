@@ -38,7 +38,14 @@ describe('parseAddArgs', () => {
     expect(flags.dryRun).toBe(true)
     expect(flags.yes).toBe(true)
     expect(flags.force).toBe(false)
+    expect(flags.skipInstall).toBe(false)
     expect(flags.ref).toBeUndefined()
+  })
+
+  it('parses --skip-install', () => {
+    const { flags } = parseAddArgs(['shopify', '--skip-install', '--yes'])
+    expect(flags.skipInstall).toBe(true)
+    expect(flags.yes).toBe(true)
   })
 
   it('supports the --flag=value form', () => {

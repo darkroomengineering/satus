@@ -15,7 +15,9 @@
  *   bun run setup:project --keep '' --clean-homepage --yes
  *
  * `--clean-homepage` replaces the manual landing page (default: keep it);
- * `--yes` is accepted alongside either selection flag. A successful run
+ * `--yes` is accepted alongside either selection flag; `--skip-install`
+ * writes package.json without running `bun install` (offline / tests).
+ * A successful run
  * records the current git HEAD sha into package.json as `"satus": { "ref" }`,
  * which `bun run satus add` uses to fetch matching integration payloads.
  *
@@ -99,6 +101,8 @@ interface SetupOptions {
   keepIntegrations: string[]
   /** Replace the manual landing page with a blank starter homepage. */
   cleanMarketing: boolean
+  /** Write package.json but skip running `bun install` (offline / tests). */
+  skipInstall: boolean
 }
 
 /**
@@ -248,7 +252,7 @@ const updateBarrelExports = async (
  * Main setup function
  */
 const setup = async (options: SetupOptions): Promise<void> => {
-  const { dryRun, keepIntegrations, cleanMarketing } = options
+  const { dryRun, keepIntegrations, cleanMarketing, skipInstall } = options
   const integrationNames = getIntegrationNames()
 
   // Replace the manual landing page first (independent of integration removal).
@@ -378,7 +382,7 @@ const setup = async (options: SetupOptions): Promise<void> => {
   }
 
   // Run bun install to update lockfile
-  if (!dryRun) {
+  if (!(dryRun || skipInstall)) {
     s.start('Updating lockfile...')
     await Bun.$`bun install`.quiet()
     s.stop('Dependencies updated')
@@ -524,6 +528,7 @@ const main = async (): Promise<void> => {
   const keepFlag = getFlagValue(argv, '--keep')
   const yes = argv.includes('--yes')
   const cleanHomepageFlag = argv.includes('--clean-homepage')
+  const skipInstall = argv.includes('--skip-install')
 
   // Throws on conflicting / unknown values — fails loudly before any prompt.
   const flagKeep = resolveKeepFromFlags(presetFlag, keepFlag)
@@ -618,6 +623,7 @@ const main = async (): Promise<void> => {
     dryRun,
     keepIntegrations: keepIntegrations as string[],
     cleanMarketing,
+    skipInstall,
   })
 
   // Pin the payload ref for `satus add` (skipped silently without git)

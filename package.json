@@ -72,7 +72,7 @@
     "@csstools/postcss-global-data": "^4.0.0",
     "@happy-dom/global-registrator": "^20.10.2",
     "@next/bundle-analyzer": "16.2.9",
-    "@sanity/vision": "^5.28.0",
+    "@sanity/vision": "^6.1.0",
     "@storybook/addon-mcp": "^0.6.0",
     "@storybook/nextjs-vite": "^10.4.2",
     "@storybook/react": "^10.4.2",

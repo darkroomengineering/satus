@@ -368,13 +368,15 @@ describe('round trip: webgl without theatre', () => {
     // Theatre was not requested and must stay absent
     expect(await pathExists(join(project, 'lib/dev/theatre'))).toBe(false)
 
-    // The payload ships the fluid/flowmap hooks WITH Theatre wiring; with
-    // theatre absent, the add must strip it again — the expected text is the
-    // payload content with theatre's removal ops applied.
+    // The payload ships the fluid/flowmap hooks, the canvas, and the tunnel
+    // WITH Theatre wiring; with theatre absent, the add must strip it again —
+    // the expected text is the payload content with theatre's removal ops applied.
     const expectedOverrides: Record<string, string> = {}
     for (const rel of [
       'lib/webgl/utils/fluid/index.tsx',
       'lib/webgl/utils/flowmaps/index.tsx',
+      'lib/webgl/components/canvas/webgl.tsx',
+      'lib/webgl/components/tunnel/index.tsx',
     ]) {
       const ops = theatre.codeTransforms.find((t) => t.file === rel)?.ops ?? []
       expectedOverrides[rel] = applyOpsToText(await readRepoFile(rel), ops)

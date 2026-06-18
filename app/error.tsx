@@ -10,7 +10,7 @@ interface ErrorPageProps {
 
 export default function ErrorPage({ error, reset }: ErrorPageProps) {
   return (
-    <Wrapper theme="light" className="font-mono" webgl>
+    <Wrapper theme="light" className="font-mono">
       <ErrorView error={error} reset={reset} />
     </Wrapper>
   )

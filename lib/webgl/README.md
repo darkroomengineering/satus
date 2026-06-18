@@ -1,6 +1,6 @@
 # WebGL / WebGPU / React Three Fiber
 
-GPU-accelerated 3D rendering with lazy GlobalCanvas architecture.
+GPU-accelerated 3D rendering with a persistent root canvas.
 
 ## Quick Start
 
@@ -10,7 +10,7 @@ import { WebGLTunnel } from '@/webgl/components/tunnel'
 
 export default function Page() {
   return (
-    <Wrapper webgl>
+    <Wrapper>
       <WebGLTunnel>
         <My3DScene />
       </WebGLTunnel>
@@ -20,7 +20,20 @@ export default function Page() {
 }
 ```
 
-No configuration needed - just add `webgl` prop to enable 3D on any page.
+No configuration needed — the root canvas is mounted once in the shared layout
+(`lib/features`), so any page can portal 3D content into it with `<WebGLTunnel>`.
+
+### Two canvas strategies (pick one)
+
+The canvas is mounted with `<Canvas root>`. Choose **one** place to do it:
+
+- **Shared (default):** `<Canvas root />` lives in the layout (`lib/features`),
+  so the context persists across route navigation. Pages just use
+  `<WebGLTunnel>`.
+- **Per page:** remove the shared canvas and pass `webgl` to the Wrapper
+  (`<Wrapper webgl>`), which mounts the canvas only on that page.
+
+Enabling both mounts two canvases — keep one strategy.
 
 ## Renderer Selection
 
@@ -35,26 +48,24 @@ In development, a badge shows the active renderer: `🚀 WebGPU` or `🎮 WebGL`
 ## Architecture
 
 ```
-Root Layout → GlobalCanvas (mounts on first webgl page visit)
-    └─ CSS visibility:hidden when inactive (RAF paused)
-         └─ WebGLTunnel.Out (portals 3D content)
+<Canvas root> (layout OR per-page Wrapper) → rendered only on WebGL devices
+    └─ WebGLTunnel.Out (portals 3D content from any page)
 ```
 
-**Key benefits:**
-- Zero overhead until first WebGL page
+**Key benefits (shared/layout strategy):**
 - Context persists across navigation (no recreation)
 - Seamless route transitions
 - Shared assets stay loaded
+- No-op on non-WebGL devices
 - WebGPU when available, WebGL fallback
 
 ## Components
 
 | Component | Purpose |
 |-----------|---------|
-| `Canvas` | Activates GlobalCanvas for a page |
-| `WebGLTunnel` | Portal 3D content to GlobalCanvas |
+| `Canvas` | Mounts the canvas via `root` (layout or per-page Wrapper) |
+| `WebGLTunnel` | Portal 3D content into the canvas |
 | `DOMTunnel` | Portal HTML overlays |
-| `GlobalCanvas` | Persistent canvas (in layout) |
 
 ## Hooks
 

@@ -603,6 +603,15 @@ export const INTEGRATION_BUNDLES: Partial<
         ],
       },
       {
+        file: 'lib/features/index.tsx',
+        ops: [
+          // Remove `const LazyWebGLCanvas = dynamic(…)` (the root canvas mount)
+          { kind: 'removeVariableStatement', name: 'LazyWebGLCanvas' },
+          // Remove `<LazyWebGLCanvas root />` (and its preceding JSX comment)
+          { kind: 'removeJsxElement', tagName: 'LazyWebGLCanvas' },
+        ],
+      },
+      {
         file: 'lib/dev/cmdo.tsx',
         ops: [
           // Remove only the webgl OrchestraToggle (disambiguate by id attr)
@@ -610,29 +619,6 @@ export const INTEGRATION_BUNDLES: Partial<
             kind: 'removeJsxElement',
             tagName: 'OrchestraToggle',
             attribute: { name: 'id', value: 'webgl' },
-          },
-        ],
-      },
-      {
-        file: 'app/error.tsx',
-        ops: [
-          // Remove the `webgl` prop from `<Wrapper webgl>` — WrapperProps no
-          // longer declares webgl after the webgl integration is removed.
-          {
-            kind: 'removeJsxAttribute',
-            tagName: 'Wrapper',
-            attributeName: 'webgl',
-          },
-        ],
-      },
-      {
-        file: 'app/global-error.tsx',
-        ops: [
-          // Same as error.tsx — strip the dangling `webgl` prop.
-          {
-            kind: 'removeJsxAttribute',
-            tagName: 'Wrapper',
-            attributeName: 'webgl',
           },
         ],
       },
@@ -711,17 +697,13 @@ export const INTEGRATION_BUNDLES: Partial<
       },
     ],
     // The Wrapper's Canvas wiring (import + interface property + destructured
-    // param + <Canvas> wrapping <main> + JSDoc) cannot be expressed with the
-    // additive op set — re-wrapping children and restoring interface members
-    // would need bespoke ops. The file is restored wholesale instead, guarded
-    // by the lean-state comparison documented on `overwriteFiles`.
-    // app/error.tsx and app/global-error.tsx carry a `webgl` prop on <Wrapper>
-    // that is removed by codeTransforms; restore them wholesale on `satus add`.
+    // param + <Canvas> wrapping <main> + JSDoc) cannot be expressed additively —
+    // re-wrapping children and restoring interface members would need bespoke
+    // ops — so the file is restored wholesale, guarded by the lean-state
+    // comparison documented on `overwriteFiles`.
     overwriteFiles: [
       'components/layout/wrapper/index.tsx',
       'lib/hooks/use-device-detection.ts',
-      'app/error.tsx',
-      'app/global-error.tsx',
     ],
     addTransforms: [
       {
@@ -745,6 +727,32 @@ export const INTEGRATION_BUNDLES: Partial<
             variableName: 'nextConfig',
             propertyPath: 'experimental.optimizePackageImports',
             value: 'three',
+          },
+        ],
+      },
+      {
+        file: 'lib/features/index.tsx',
+        ops: [
+          // Ensure the dynamic() helper import is present
+          { kind: 'addImport', text: "import dynamic from 'next/dynamic'" },
+          // Re-add `const LazyWebGLCanvas = dynamic(…)` (the root canvas mount)
+          {
+            kind: 'addVariableStatement',
+            name: 'LazyWebGLCanvas',
+            text: `const LazyWebGLCanvas = dynamic(
+  () =>
+    import('@/webgl/components/canvas').then((mod) => ({
+      default: mod.Canvas,
+    })),
+  { ssr: false }
+)`,
+          },
+          // Re-add `<LazyWebGLCanvas root />` inside the OptionalFeatures fragment
+          {
+            kind: 'addJsxChild',
+            parentTagName: 'Fragment',
+            childText: '<LazyWebGLCanvas root />',
+            childTagName: 'LazyWebGLCanvas',
           },
         ],
       },

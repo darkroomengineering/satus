@@ -16,7 +16,7 @@ export default function GlobalError({
   return (
     <html lang="en">
       <body>
-        <Wrapper theme="light" className="font-mono" webgl>
+        <Wrapper theme="light" className="font-mono">
           <ErrorView
             error={error}
             reset={reset}

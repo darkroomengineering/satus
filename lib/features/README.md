@@ -11,31 +11,33 @@ Conditionally loaded features for the root layout.
 | Feature | Trigger | Description |
 |---------|---------|-------------|
 | GSAP Runtime | Always loaded | Syncs GSAP with Tempus RAF |
-| WebGL/WebGPU Canvas | `<Wrapper webgl>` | Global Three.js canvas with WebGPU support |
+| WebGL/WebGPU Canvas | Always mounted (shared strategy) | Persistent Three.js canvas with WebGPU support |
 | Dev Tools | Development mode | Orchestra debug panel |
 
 ## WebGL/WebGPU
 
-WebGL works automatically - no configuration needed:
+`OptionalFeatures` mounts the shared root canvas (`<Canvas root />`) so the
+WebGL context persists across navigation. Pages portal 3D content into it with
+`<WebGLTunnel>` — no per-page setup needed:
 
 ```tsx
-// Any page that needs 3D content
-import { Wrapper } from '@/components/layout/wrapper'
+import { WebGLTunnel } from '@/webgl/components/tunnel'
 
 export default function MyPage() {
   return (
-    <Wrapper webgl>
-      {/* Your 3D content via WebGLTunnel */}
+    <Wrapper>
+      <WebGLTunnel>{/* Your 3D content */}</WebGLTunnel>
     </Wrapper>
   )
 }
 ```
 
-How it works:
-1. First visit to a `<Wrapper webgl>` page activates the GlobalCanvas
-2. Canvas persists across navigation (no context recreation)
-3. GPU capability is auto-detected (WebGPU → WebGL 2 → WebGL 1)
-4. Non-WebGL pages have zero overhead
+This is the shared strategy. The per-page alternative is `<Wrapper webgl>`,
+which mounts the canvas on that page instead — pick one (see
+`lib/webgl/README.md`). Either way:
+1. The canvas mounts only on WebGL-capable devices (zero overhead otherwise)
+2. GPU capability is auto-detected (WebGPU → WebGL 2 → WebGL 1)
+3. With the shared strategy, the context persists across navigation
 
 ### Dev Tools
 
@@ -52,7 +54,7 @@ The component:
 1. Waits for client-side hydration
 2. Dynamically imports features with code splitting
 3. Renders with `ssr: false` to avoid hydration issues
-4. WebGL canvas only mounts when first activated
+4. The WebGL canvas mounts only on WebGL-capable devices
 
 ## Adding Custom Features
 

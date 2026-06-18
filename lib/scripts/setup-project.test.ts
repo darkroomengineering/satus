@@ -324,6 +324,29 @@ describe('WebGL Code Transforms', () => {
   const webglBundle = INTEGRATION_BUNDLES.webgl
   if (!webglBundle) throw new Error('WebGL bundle not found')
 
+  describe('lib/features/index.tsx transforms', () => {
+    const file = 'lib/features/index.tsx'
+
+    it('should produce valid code after transformation', () => {
+      const content = sourceFiles[file]
+      if (!content) return
+
+      const transform = webglBundle.codeTransforms.find((t) => t.file === file)
+      if (!transform) return
+
+      const result = applyOpsToText(content, transform.ops)
+
+      // Essential structure must remain
+      expect(result).toContain("'use client'")
+      expect(result).toContain('export function OptionalFeatures')
+      expect(result).toContain('GSAPRuntime')
+
+      // The root WebGL canvas must be gone
+      expect(result).not.toContain('LazyWebGLCanvas')
+      expect(result).not.toContain('@/webgl/components/canvas')
+    })
+  })
+
   describe('components/layout/wrapper/index.tsx transforms', () => {
     const file = 'components/layout/wrapper/index.tsx'
 
@@ -581,6 +604,7 @@ describe('Combined Transforms (Multiple Integrations Removed)', () => {
     const filesToTransform = [
       'lib/dev/index.tsx',
       'lib/dev/cmdo.tsx',
+      'lib/features/index.tsx',
       'components/layout/wrapper/index.tsx',
     ]
 
@@ -653,6 +677,19 @@ describe('Additive Transforms (remove → add round trips)', () => {
 
     return { lean, restored }
   }
+
+  it('webgl: lib/features/index.tsx regains the root canvas wiring', () => {
+    const result = roundTrip('webgl', 'lib/features/index.tsx')
+    if (!result) return
+
+    expect(result.lean).not.toContain('LazyWebGLCanvas')
+    expect(result.restored).toContain('const LazyWebGLCanvas = dynamic(')
+    expect(result.restored).toContain('@/webgl/components/canvas')
+    expect(result.restored).toContain('<LazyWebGLCanvas root />')
+    // Untouched features survive
+    expect(result.restored).toContain('GSAPRuntime')
+    expect(result.restored).toContain('OrchestraTools')
+  })
 
   it('webgl: lib/dev/cmdo.tsx regains the webgl toggle next to its siblings', () => {
     const result = roundTrip('webgl', 'lib/dev/cmdo.tsx')

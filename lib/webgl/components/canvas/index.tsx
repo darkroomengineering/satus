@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { createContext, type PropsWithChildren, use } from 'react'
-import tunnel from 'tunnel-rat'
+import type tunnel from 'tunnel-rat'
 import { useDeviceDetection } from '@/lib/hooks/use-device-detection'
 import { useWebGLStore } from '@/lib/webgl/store'
 
@@ -20,7 +20,10 @@ type CanvasContextValue = {
 
 type CanvasProps = PropsWithChildren<{
   /**
-   * Whether to render the WebGL canvas. Activates the global canvas.
+   * Mount the WebGL canvas, backed by the shared store tunnels. Mount it once
+   * — either in the shared layout (persists across routes) or per page via
+   * `<Wrapper webgl>`. Without it, children fall back to whichever root canvas
+   * is mounted, via {@link useCanvas}.
    */
   root?: boolean
   /** Force WebGL even on mobile/non-WebGL devices */
@@ -30,19 +33,22 @@ type CanvasProps = PropsWithChildren<{
 export const CanvasContext = createContext<CanvasContextValue>({})
 
 /**
- * Canvas component that provides WebGL context and tunnel system.
+ * Canvas component that provides WebGL context and the tunnel system.
  *
- * Uses the GlobalCanvas for persistent context across routes (must be mounted
- * in your root layout).
+ * `root` mounts the actual canvas; mount exactly one across the app (in the
+ * layout for a persistent canvas, or per page via `<Wrapper webgl>`). A
+ * non-root `<Canvas>` mounts nothing and just lets children reach the root
+ * canvas through {@link useCanvas}.
  *
  * @example
  * ```tsx
- * <Canvas root>
- *   <WebGLTunnel>
- *     <My3DScene />
- *   </WebGLTunnel>
- *   <section>HTML content</section>
- * </Canvas>
+ * // Shared canvas, mounted once in the root layout
+ * <Canvas root />
+ *
+ * // Portal content from anywhere
+ * <WebGLTunnel>
+ *   <My3DScene />
+ * </WebGLTunnel>
  * ```
  */
 export function Canvas({
@@ -52,15 +58,15 @@ export function Canvas({
   ...props
 }: CanvasProps) {
   const { isWebGL } = useDeviceDetection()
-  const shouldRender = isWebGL || force
-
-  // Global store for GlobalCanvas mode
   const { getWebGLTunnel, getDOMTunnel } = useWebGLStore()
 
-  const WebGLTunnel = root ? getWebGLTunnel() : tunnel()
-  const DOMTunnel = root ? getDOMTunnel() : tunnel()
+  // Only a root canvas mounts the WebGL surface; it uses the shared store
+  // tunnels so content portals into it from anywhere. A non-root <Canvas> is a
+  // passthrough whose children fall back to the root canvas via useCanvas().
+  const WebGLTunnel = root ? getWebGLTunnel() : undefined
+  const DOMTunnel = root ? getDOMTunnel() : undefined
 
-  // Build context value - provide tunnels when ready and should render
+  const shouldRender = root && (isWebGL || force)
   const contextValue: CanvasContextValue =
     WebGLTunnel && DOMTunnel ? { WebGLTunnel, DOMTunnel } : {}
 

@@ -10,16 +10,14 @@ export function useFluidSim(resolution = 128) {
   const gl = useThree((state) => state.gl)
   const size = useThree((state) => state.size)
 
-  // Use ref to ensure fluid is only created once
-  const [fluid, setFluid] = useState<null | Fluid>(
-    () => new Fluid(gl, { simRes: resolution })
-  )
+  // Created/destroyed by the effect, keyed on gl + resolution.
+  const [fluid, setFluid] = useState<null | Fluid>(null)
 
   useEffect(() => {
     const fluid = new Fluid(gl, { simRes: resolution })
     setFluid(fluid)
     return () => {
-      fluid?.destroy()
+      fluid.destroy()
       setFluid(null)
     }
   }, [resolution, gl])

@@ -236,7 +236,7 @@ const expectDepsMatchPayload = (
 const IDEMPOTENCY_FILES = [
   'package.json',
   'next.config.ts',
-  'lib/features/index.tsx',
+  'components/layout/wrapper/index.tsx',
 ]
 
 const snapshotFiles = async (root: string): Promise<Record<string, string>> => {
@@ -354,9 +354,10 @@ describe('round trip: webgl without theatre', () => {
 
     expect(await pathExists(join(project, 'lib/webgl'))).toBe(false)
     expect(await pathExists(join(project, 'lib/dev/theatre'))).toBe(false)
+    // The lean Wrapper has its Canvas wiring stripped
     expect(
-      await readProjectFile(project, 'lib/features/index.tsx')
-    ).not.toContain('LazyGlobalCanvas')
+      await readProjectFile(project, 'components/layout/wrapper/index.tsx')
+    ).not.toContain('@/webgl/components/canvas')
 
     expectClean(await runAdd(project, 'webgl'), 'satus add webgl')
 
@@ -383,15 +384,11 @@ describe('round trip: webgl without theatre', () => {
     expect(fluid).not.toContain('@theatre/core')
     expect(fluid).not.toContain('useTheatre')
 
-    // Integration-owned Wrapper is restored wholesale from the payload
+    // Integration-owned Wrapper is restored wholesale from the payload,
+    // regaining the <Canvas root={webgl}> wiring
     expect(
       await readProjectFile(project, 'components/layout/wrapper/index.tsx')
     ).toBe(await readRepoFile('components/layout/wrapper/index.tsx'))
-
-    // lib/features/index.tsx regains the LazyGlobalCanvas const + JSX
-    const features = await readProjectFile(project, 'lib/features/index.tsx')
-    expect(features).toContain('const LazyGlobalCanvas = dynamic(')
-    expect(features).toContain('<LazyGlobalCanvas />')
 
     // next.config.ts regains the optimizePackageImports entries
     const nextConfig = await readProjectFile(project, 'next.config.ts')

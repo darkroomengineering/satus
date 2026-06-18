@@ -19,10 +19,8 @@ type WebGLCanvasProps = React.HTMLAttributes<HTMLDivElement> & {
 }
 
 /**
- * Local WebGLCanvas component for legacy (local) canvas mode.
- * Used when Canvas is mounted with local={true}.
- *
- * For GlobalCanvas, see @/webgl/components/global-canvas
+ * The r3f canvas itself. Lazy-loaded by `Canvas` (see ./index) once the
+ * device supports WebGL; reads its tunnels from the surrounding CanvasContext.
  */
 export function WebGLCanvas({
   render = true,

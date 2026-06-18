@@ -10,10 +10,8 @@ export function useFlowmapSim(resolution = 128) {
   const gl = useThree((state) => state.gl)
   const size = useThree((state) => state.size)
 
-  // Use ref to ensure flowmap is only created once
-  const [flowmap, setFlowmap] = useState<Flowmap | null>(
-    () => new Flowmap(gl, { size: resolution })
-  )
+  // Created/destroyed by the effect, keyed on gl + resolution.
+  const [flowmap, setFlowmap] = useState<Flowmap | null>(null)
 
   useEffect(() => {
     const flowmap = new Flowmap(gl, { size: resolution })

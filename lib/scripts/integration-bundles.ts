@@ -603,15 +603,6 @@ export const INTEGRATION_BUNDLES: Partial<
         ],
       },
       {
-        file: 'lib/features/index.tsx',
-        ops: [
-          // Remove `const LazyGlobalCanvas = dynamic(…)`
-          { kind: 'removeVariableStatement', name: 'LazyGlobalCanvas' },
-          // Remove `<LazyGlobalCanvas />` (and its preceding JSX comment)
-          { kind: 'removeJsxElement', tagName: 'LazyGlobalCanvas' },
-        ],
-      },
-      {
         file: 'lib/dev/cmdo.tsx',
         ops: [
           // Remove only the webgl OrchestraToggle (disambiguate by id attr)
@@ -754,32 +745,6 @@ export const INTEGRATION_BUNDLES: Partial<
             variableName: 'nextConfig',
             propertyPath: 'experimental.optimizePackageImports',
             value: 'three',
-          },
-        ],
-      },
-      {
-        file: 'lib/features/index.tsx',
-        ops: [
-          // Ensure the dynamic() helper import is present
-          { kind: 'addImport', text: "import dynamic from 'next/dynamic'" },
-          // Re-add `const LazyGlobalCanvas = dynamic(…)`
-          {
-            kind: 'addVariableStatement',
-            name: 'LazyGlobalCanvas',
-            text: `const LazyGlobalCanvas = dynamic(
-  () =>
-    import('@/webgl/components/global-canvas').then((mod) => ({
-      default: mod.GlobalCanvas,
-    })),
-  { ssr: false }
-)`,
-          },
-          // Re-add `<LazyGlobalCanvas />` inside the OptionalFeatures fragment
-          {
-            kind: 'addJsxChild',
-            parentTagName: 'Fragment',
-            childText: '<LazyGlobalCanvas />',
-            childTagName: 'LazyGlobalCanvas',
           },
         ],
       },

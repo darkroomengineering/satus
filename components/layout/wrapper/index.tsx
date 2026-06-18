@@ -27,8 +27,7 @@ interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
   lenis?: boolean | LenisOptions
   /**
    * Enable WebGL for this page.
-   * Activates the GlobalCanvas and provides tunnel context for WebGLTunnel content.
-   * The GlobalCanvas must be mounted in your root layout for this to work.
+   * Mounts the root Canvas and provides tunnel context for WebGLTunnel content.
    */
   webgl?: boolean
 }
@@ -40,15 +39,8 @@ interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
  * theme application, smooth scrolling, and layout structure.
  * It includes navigation and footer.
  *
- * When `webgl` is true, the GlobalCanvas is activated and WebGLTunnel content
- * is rendered. The GlobalCanvas must be mounted in your root layout.
- *
- * Benefits of GlobalCanvas (vs local canvas):
- * - **No context recreation**: WebGL context persists across route navigation
- * - **Seamless transitions**: No flicker or delay when navigating WebGL routes
- * - **Shared textures**: Preloaded assets stay loaded across routes
- * - **CSS visibility + RAF pausing**: Zero overhead when not visible
- * - **Zero overhead**: Non-WebGL pages don't trigger any WebGL code
+ * When `webgl` is true, the root Canvas is mounted and WebGLTunnel content
+ * is rendered. Non-WebGL pages don't trigger any WebGL code.
  *
  * @param props - Component props
  * @param props.theme - Color theme to apply to the page
@@ -71,7 +63,7 @@ interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
  *
  * @example
  * ```tsx
- * // With WebGL content (requires GlobalCanvas in root layout)
+ * // With WebGL content
  * export default function WebGLPage() {
  *   return (
  *     <Wrapper theme="light" webgl>

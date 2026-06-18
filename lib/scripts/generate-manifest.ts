@@ -17,8 +17,9 @@ const IS_CHECK = process.argv.includes('--check')
 
 function glob(pattern: string): string[] {
   const g = new Bun.Glob(pattern)
-  // Normalize separators: scanSync yields backslashes on Windows, but every
-  // path regex below matches forward slashes. Keeps output identical to CI.
+  // Normalize separators to `/` so the forward-slash regexes below match on
+  // Windows, where Bun.Glob emits backslash paths. Without this the manifest
+  // is generated with empty component names locally but correct ones on CI.
   return [...g.scanSync({ cwd: ROOT, absolute: true })].map((p) =>
     p.replaceAll('\\', '/')
   )

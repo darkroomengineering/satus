@@ -262,11 +262,13 @@ The Shopify, HubSpot, and Mailchimp clients all do this.
 
 ### 6. WebGL Element Lifecycle
 
-DOM-synced WebGL via tunnel system. `GlobalCanvas` persists across routes.
+DOM-synced WebGL via tunnel system. A single root canvas (`<Canvas root>`)
+hosts the scene — mounted either in the shared layout (`lib/features`, persists
+across routes) or per page via `<Wrapper webgl>`. Pick one strategy.
 
 ```
-Root Layout -> GlobalCanvas (WebGLTunnel.Out, DOMTunnel.Out)
-Page -> Canvas (activates global canvas) -> WebGLTunnel.In (portals 3D content up)
+<Canvas root> (layout OR <Wrapper webgl>) -> WebGLTunnel.Out, DOMTunnel.Out
+Page -> WebGLTunnel.In (portals 3D content up into the root canvas)
 ```
 
 ```tsx

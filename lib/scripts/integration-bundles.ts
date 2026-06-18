@@ -34,7 +34,7 @@ export interface RemoveImportOp {
 /** Remove a `const NAME = …` variable statement by name (any scope depth). */
 export interface RemoveVariableStatementOp {
   kind: 'removeVariableStatement'
-  /** The variable name to remove, e.g. 'LazyGlobalCanvas' */
+  /** The variable name to remove, e.g. 'LazyWebGLCanvas' */
   name: string
 }
 
@@ -59,7 +59,7 @@ export interface RemoveCallStatementOp {
  */
 export interface RemoveJsxElementOp {
   kind: 'removeJsxElement'
-  /** JSX tag name, e.g. 'LazyGlobalCanvas', 'Canvas', 'OrchestraToggle' */
+  /** JSX tag name, e.g. 'LazyWebGLCanvas', 'Canvas', 'OrchestraToggle' */
   tagName: string
   /** Optional attribute to match for disambiguation */
   attribute?: { name: string; value: string }
@@ -238,16 +238,16 @@ export interface AddArrayObjectElementOp {
 
 /**
  * Insert a full variable statement, e.g. re-adding
- * `const LazyGlobalCanvas = dynamic(…)` to lib/features/index.tsx.
+ * `const LazyWebGLCanvas = dynamic(…)` to lib/features/index.tsx.
  *
  * No-op when a variable named `name` already exists anywhere in the file
  * (any scope depth, mirroring `removeVariableStatement`).
  */
 export interface AddVariableStatementOp {
   kind: 'addVariableStatement'
-  /** The declared variable name used for the idempotency check, e.g. 'LazyGlobalCanvas' */
+  /** The declared variable name used for the idempotency check, e.g. 'LazyWebGLCanvas' */
   name: string
-  /** Full statement text to insert, e.g. `const LazyGlobalCanvas = dynamic(() => …)` */
+  /** Full statement text to insert, e.g. `const LazyWebGLCanvas = dynamic(() => …)` */
   text: string
   /**
    * When true or omitted, insert after the last import declaration.

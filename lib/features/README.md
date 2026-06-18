@@ -11,7 +11,7 @@ Conditionally loaded features for the root layout.
 | Feature | Trigger | Description |
 |---------|---------|-------------|
 | GSAP Runtime | Always loaded | Syncs GSAP with Tempus RAF |
-| WebGL/WebGPU Canvas | Always mounted (shared strategy) | Persistent Three.js canvas with WebGPU support |
+| WebGL Canvas | Always mounted (shared strategy) | Persistent Three.js canvas (no-op on non-WebGL devices) |
 | Dev Tools | Development mode | Orchestra debug panel |
 
 ## WebGL/WebGPU

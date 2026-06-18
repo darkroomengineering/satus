@@ -56,15 +56,20 @@ Server Components use advanced caching. Key rules:
 
 ## WebGL Architecture
 
-Uses lazy GlobalCanvas with visibility-based pausing:
+A single root canvas (`<Canvas root>`) hosts the scene; content is portalled in
+with `<WebGLTunnel>`. Two mutually-exclusive strategies — pick one:
 
 ```
-Root Layout → GlobalCanvas (lazy-loaded via lib/features, mounts on first WebGL page)
+Shared (default):  Root Layout → <Canvas root> (lazy via lib/features)
+Per page:          <Wrapper webgl> → <Canvas root>
+
     └─ WebGLTunnel (portals 3D content)
         └─ Your 3D scene
 ```
 
-Context survives navigation. See [lib/webgl/README.md](lib/webgl/README.md).
+The shared strategy keeps the context alive across navigation; the per-page
+strategy remounts it per route. Rendered only on WebGL-capable devices. See
+[lib/webgl/README.md](lib/webgl/README.md).
 
 ## Animation
 

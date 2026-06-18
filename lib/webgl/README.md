@@ -35,20 +35,17 @@ The canvas is mounted with `<Canvas root>`. Choose **one** place to do it:
 
 Enabling both mounts two canvases — keep one strategy.
 
-## Renderer Selection
+## Device gating
 
-Automatic fallback chain:
-1. **WebGPU** - Modern API with best performance (Chrome 113+, Edge 113+)
-2. **WebGL 2** - Wide browser support
-3. **WebGL 1** - Legacy fallback
-4. **Disabled** - Graceful degradation if no GPU
-
-In development, a badge shows the active renderer: `🚀 WebGPU` or `🎮 WebGL`
+The canvas is rendered only when `useDeviceDetection().isWebGL` is true (a
+working WebGL2 context on a desktop viewport). On mobile or unsupported
+devices it's a no-op — nothing mounts. Rendering is driven manually by the
+`RAF` component (`frameloop="never"`), not the default r3f render loop.
 
 ## Architecture
 
 ```
-<Canvas root> (layout OR per-page Wrapper) → rendered only on WebGL devices
+<Canvas root> (layout OR per-page Wrapper) → rendered only when isWebGL
     └─ WebGLTunnel.Out (portals 3D content from any page)
 ```
 
@@ -57,7 +54,6 @@ In development, a badge shows the active renderer: `🚀 WebGPU` or `🎮 WebGL`
 - Seamless route transitions
 - Shared assets stay loaded
 - No-op on non-WebGL devices
-- WebGPU when available, WebGL fallback
 
 ## Components
 
@@ -70,51 +66,34 @@ In development, a badge shows the active renderer: `🚀 WebGPU` or `🎮 WebGL`
 ## Hooks
 
 ```tsx
-import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
-import { useWebGLStore } from '@/webgl/store'
+import { useDeviceDetection } from '@/hooks/use-device-detection'
+import { useWebGLElement } from '@/webgl/hooks/use-webgl-element'
 
-// Track DOM element for WebGL sync
-const [setRef, rect] = useWebGLRect()
+// Sync a DOM element's rect into the scene (+ on-screen visibility)
+const { setRef, rect, isVisible } = useWebGLElement()
 
-// Access global state
-const { isActivated, isActive } = useWebGLStore()
+// Gate rendering on capability
+const { isWebGL } = useDeviceDetection()
 ```
+
+`useWebGLRect` is the lower-level primitive (`useWebGLElement` is built on it):
+it returns a stable getter for an element's current transform, for reading
+inside a `useFrame` loop.
 
 ## DOM-Synced Component
 
 ```tsx
-import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
+import { useWebGLElement } from '@/webgl/hooks/use-webgl-element'
 import { WebGLTunnel } from '@/webgl/components/tunnel'
 
 function WebGLBox({ className }) {
-  const [setRef, rect] = useWebGLRect()
+  const { setRef, rect, isVisible } = useWebGLElement()
   return (
     <div ref={setRef} className={className}>
       <WebGLTunnel>
-        <mesh position={[rect.x, rect.y, 0]} />
+        <MyMesh rect={rect} visible={isVisible} />
       </WebGLTunnel>
     </div>
   )
 }
 ```
-
-## GPU Detection
-
-```tsx
-import { useDeviceDetection } from '@/hooks/use-device-detection'
-
-function MyComponent() {
-  const { hasGPU, hasWebGPU, hasWebGL, gpuCapability } = useDeviceDetection()
-
-  if (!hasGPU) {
-    return <FallbackUI />
-  }
-
-  // gpuCapability.preferredRenderer: 'webgpu' | 'webgl2' | 'webgl1' | 'none'
-}
-```
-
-## Visibility Optimization
-
-- **Active**: Canvas visible, RAF renders
-- **Inactive**: CSS `visibility: hidden`, RAF paused, GPU context preserved

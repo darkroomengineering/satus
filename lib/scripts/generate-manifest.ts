@@ -17,7 +17,11 @@ const IS_CHECK = process.argv.includes('--check')
 
 function glob(pattern: string): string[] {
   const g = new Bun.Glob(pattern)
-  return [...g.scanSync({ cwd: ROOT, absolute: true })]
+  // Normalize separators: scanSync yields backslashes on Windows, but every
+  // path regex below matches forward slashes. Keeps output identical to CI.
+  return [...g.scanSync({ cwd: ROOT, absolute: true })].map((p) =>
+    p.replaceAll('\\', '/')
+  )
 }
 
 function isClientFile(filePath: string): boolean {

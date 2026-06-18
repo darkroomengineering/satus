@@ -1,34 +1,42 @@
 'use client'
 
-import { type PropsWithChildren, use, useLayoutEffect } from 'react'
-import { useShallow } from 'zustand/react/shallow'
+import dynamic from 'next/dynamic'
+import { createContext, type PropsWithChildren, use } from 'react'
+import tunnel from 'tunnel-rat'
 import { useDeviceDetection } from '@/lib/hooks/use-device-detection'
 import { useWebGLStore } from '@/lib/webgl/store'
-import { CanvasContext, type CanvasContextValue } from './canvas-context'
 
-// Re-export CanvasContext so existing import paths keep working
-export { CanvasContext } from './canvas-context'
+const WebGLCanvas = dynamic(
+  () => import('./webgl').then(({ WebGLCanvas }) => WebGLCanvas),
+  {
+    ssr: false,
+  }
+)
+
+type CanvasContextValue = {
+  WebGLTunnel?: ReturnType<typeof tunnel>
+  DOMTunnel?: ReturnType<typeof tunnel>
+}
 
 type CanvasProps = PropsWithChildren<{
   /**
-   * Whether to render the WebGL canvas.
-   * Activates the global canvas when set to true.
+   * Whether to render the WebGL canvas. Activates the global canvas.
    */
   root?: boolean
   /** Force WebGL even on mobile/non-WebGL devices */
   force?: boolean
 }>
 
+export const CanvasContext = createContext<CanvasContextValue>({})
+
 /**
  * Canvas component that provides WebGL context and tunnel system.
  *
- * Uses the GlobalCanvas for persistent context across routes.
- * The GlobalCanvas must be mounted in your root layout.
+ * Uses the GlobalCanvas for persistent context across routes (must be mounted
+ * in your root layout).
  *
  * @example
  * ```tsx
- * // Using GlobalCanvas (recommended)
- * // The GlobalCanvas must be mounted in your root layout
  * <Canvas root>
  *   <WebGLTunnel>
  *     <My3DScene />
@@ -37,52 +45,49 @@ type CanvasProps = PropsWithChildren<{
  * </Canvas>
  * ```
  */
-export function Canvas({ children, root = false, force = false }: CanvasProps) {
-  const { hasGPU } = useDeviceDetection()
-  const shouldRender = root && (hasGPU || force)
+export function Canvas({
+  children,
+  root = false,
+  force = false,
+  ...props
+}: CanvasProps) {
+  const { isWebGL } = useDeviceDetection()
+  const shouldRender = isWebGL || force
 
   // Global store for GlobalCanvas mode
-  const { activate, setActive, getWebGLTunnel, getDOMTunnel } = useWebGLStore(
-    useShallow((s) => ({
-      activate: s.activate,
-      setActive: s.setActive,
-      getWebGLTunnel: s.getWebGLTunnel,
-      getDOMTunnel: s.getDOMTunnel,
-    }))
-  )
+  const { getWebGLTunnel, getDOMTunnel } = useWebGLStore()
 
-  // Get global tunnels (lazy singletons - safe to call during render)
-  // These are module-level singletons, not React state, so no re-render loop
-  const globalWebGLTunnel = shouldRender ? getWebGLTunnel() : null
-  const globalDOMTunnel = shouldRender ? getDOMTunnel() : null
-
-  // Handle activation and isActive state changes in effect
-  useLayoutEffect(() => {
-    if (shouldRender) {
-      activate()
-      setActive(true)
-      return () => setActive(false)
-    }
-    return undefined
-  }, [shouldRender, activate, setActive])
+  const WebGLTunnel = root ? getWebGLTunnel() : tunnel()
+  const DOMTunnel = root ? getDOMTunnel() : tunnel()
 
   // Build context value - provide tunnels when ready and should render
   const contextValue: CanvasContextValue =
-    shouldRender && globalWebGLTunnel && globalDOMTunnel
-      ? { WebGLTunnel: globalWebGLTunnel, DOMTunnel: globalDOMTunnel }
-      : {}
+    WebGLTunnel && DOMTunnel ? { WebGLTunnel, DOMTunnel } : {}
 
   return (
     <CanvasContext.Provider value={contextValue}>
+      {WebGLTunnel && DOMTunnel && shouldRender && <WebGLCanvas {...props} />}
       {children}
     </CanvasContext.Provider>
   )
 }
 
+function useCanvasRoot() {
+  const { getWebGLTunnel, getDOMTunnel } = useWebGLStore()
+  return {
+    WebGLTunnel: getWebGLTunnel(),
+    DOMTunnel: getDOMTunnel(),
+  }
+}
+
 /**
  * Hook to access the Canvas context (tunnels for WebGL and DOM content).
- * Tunnels may be undefined when the Canvas is not yet activated.
  */
 export function useCanvas() {
-  return use(CanvasContext)
+  const localContext = use(CanvasContext)
+  const rootContext = useCanvasRoot()
+
+  return localContext?.WebGLTunnel && localContext?.DOMTunnel
+    ? localContext
+    : rootContext
 }

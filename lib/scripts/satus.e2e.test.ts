@@ -413,6 +413,15 @@ describe('round trip: webgl without theatre', () => {
       webgl.devDependencies
     )
 
+    // webgl without theatre must compile: the canvas/tunnel Theatre wiring
+    // (SheetProvider, SheetContext) is stripped on add since theatre is absent.
+    const typecheck = await runTypecheck(project)
+    if (typecheck.exitCode !== 0) {
+      throw new Error(
+        `tsgo --noEmit failed after 'satus add webgl' without theatre (exit ${typecheck.exitCode})\n--- stdout ---\n${typecheck.stdout}\n--- stderr ---\n${typecheck.stderr}`
+      )
+    }
+
     snapshot = await snapshotFiles(project)
   })
 

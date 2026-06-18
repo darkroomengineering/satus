@@ -54,6 +54,37 @@ const compactConfigFixture = `const nextConfig = {
 `
 
 // ---------------------------------------------------------------------------
+// removeCallArgument
+// ---------------------------------------------------------------------------
+
+describe('removeCallArgument', () => {
+  const op: AstOperation = {
+    kind: 'removeCallArgument',
+    callee: 'useContextBridge',
+    argument: 'SheetContext',
+  }
+
+  it('drops the named argument and is idempotent', () => {
+    const fixture = `const Bridge = useContextBridge(TransformContext, SheetContext)\n`
+    const result = applyOpsToText(fixture, [op])
+    expect(result).toContain('useContextBridge(TransformContext)')
+    expect(result).not.toContain('SheetContext')
+    // Removing again is a no-op.
+    expect(applyOpsToText(result, [op])).toBe(result)
+  })
+
+  it('is an exact no-op when the argument is already absent', () => {
+    const fixture = `const Bridge = useContextBridge(TransformContext)\n`
+    expect(applyOpsToText(fixture, [op])).toBe(fixture)
+  })
+
+  it('leaves calls to other callees untouched', () => {
+    const fixture = `useOther(TransformContext, SheetContext)\n`
+    expect(applyOpsToText(fixture, [op])).toBe(fixture)
+  })
+})
+
+// ---------------------------------------------------------------------------
 // addImport
 // ---------------------------------------------------------------------------
 

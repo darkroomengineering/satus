@@ -50,6 +50,20 @@ export interface RemoveCallStatementOp {
 }
 
 /**
+ * Remove a single argument (by its source text) from every call to `callee`,
+ * e.g. drop `SheetContext` from `useContextBridge(TransformContext, SheetContext)`
+ * so the remaining `useContextBridge(TransformContext)` stops depending on the
+ * stripped Theatre.js module. No-op when the argument is already absent.
+ */
+export interface RemoveCallArgumentOp {
+  kind: 'removeCallArgument'
+  /** The called identifier, e.g. 'useContextBridge' */
+  callee: string
+  /** The argument's source text to remove, e.g. 'SheetContext' */
+  argument: string
+}
+
+/**
  * Remove (or unwrap) a JSX element by its tag name.
  *
  * - `attribute` — optional {name, value} pair that must match to disambiguate
@@ -293,6 +307,7 @@ export type AstOperation =
   | RemoveImportOp
   | RemoveVariableStatementOp
   | RemoveCallStatementOp
+  | RemoveCallArgumentOp
   | RemoveJsxElementOp
   | RemoveJsxAttributeOp
   | RemoveDestructuredBindingOp
@@ -838,18 +853,44 @@ export const INTEGRATION_BUNDLES: Partial<
           },
         ],
       },
+      // The canvas wraps its scene in <SheetProvider> (Theatre's sheet) and the
+      // tunnel bridges Theatre's SheetContext into r3f. Strip both so the webgl
+      // canvas mounts without theatre.
+      {
+        file: 'lib/webgl/components/canvas/webgl.tsx',
+        ops: [
+          { kind: 'removeImport', specifier: '@/lib/dev/theatre' },
+          // Unwrap <SheetProvider id="webgl">…</SheetProvider> (keep the scene)
+          { kind: 'removeJsxElement', tagName: 'SheetProvider', unwrap: true },
+        ],
+      },
+      {
+        file: 'lib/webgl/components/tunnel/index.tsx',
+        ops: [
+          { kind: 'removeImport', specifier: '@/lib/dev/theatre' },
+          // useContextBridge(TransformContext, SheetContext) → (TransformContext)
+          {
+            kind: 'removeCallArgument',
+            callee: 'useContextBridge',
+            argument: 'SheetContext',
+          },
+        ],
+      },
     ],
     // The r3f bindings and the webgl-hook wiring below depend on webgl.
     requires: ['webgl'],
-    // The fluid/flowmap Theatre wiring (sheet const + useTheatre call inside
-    // hook bodies) is not re-injectable statement-by-statement — these files
-    // are integration-owned and restored wholesale from the payload source.
+    // The webgl Theatre wiring (sheet const + useTheatre in the hooks, the
+    // <SheetProvider> in the canvas, the SheetContext bridge in the tunnel) is
+    // not re-injectable statement-by-statement, so these files are restored
+    // wholesale from the payload on `satus add theatre`.
     // lib/dev/index.tsx carries the `studio` destructured binding that the
     // removeDestructuredBinding op strips; restore it wholesale on `satus add`.
     // lib/dev/cmdo.tsx carries the studio OrchestraToggle; restore wholesale too.
     overwriteFiles: [
       'lib/webgl/utils/fluid/index.tsx',
       'lib/webgl/utils/flowmaps/index.tsx',
+      'lib/webgl/components/canvas/webgl.tsx',
+      'lib/webgl/components/tunnel/index.tsx',
       'lib/dev/index.tsx',
       'lib/dev/cmdo.tsx',
     ],

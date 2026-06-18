@@ -85,6 +85,7 @@ describe('Integration Bundle Configuration', () => {
             'removeImport',
             'removeVariableStatement',
             'removeCallStatement',
+            'removeCallArgument',
             'removeJsxElement',
             'removeInterfaceProperty',
             'removeFunctionParameter',
@@ -102,6 +103,9 @@ describe('Integration Bundle Configuration', () => {
             expect(op.name).toBeTruthy()
           } else if (op.kind === 'removeCallStatement') {
             expect(op.callee).toBeTruthy()
+          } else if (op.kind === 'removeCallArgument') {
+            expect(op.callee).toBeTruthy()
+            expect(op.argument).toBeTruthy()
           } else if (op.kind === 'removeJsxElement') {
             expect(op.tagName).toBeTruthy()
           } else if (op.kind === 'removeInterfaceProperty') {

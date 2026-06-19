@@ -110,9 +110,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 
 | Export | Signature |
 |--------|-----------|
-| measure | `(fn: () => T) => Promise<T>` |
 | mutate | `(fn: () => T) => Promise<T>` |
-| batch | `(reads: { [K in keyof T]: () => T[K] }, write: (results: T) => void) => Promise<void>` |
 
 ### Rate-limit (`@/utils/rate-limit`)
 

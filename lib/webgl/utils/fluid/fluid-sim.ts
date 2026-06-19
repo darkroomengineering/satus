@@ -10,7 +10,6 @@ import {
   Color,
   GLSL3,
   HalfFloatType,
-  type IUniform,
   Mesh,
   NearestFilter,
   NoBlending,
@@ -23,16 +22,14 @@ import {
   type WebGLRenderer,
   WebGLRenderTarget,
 } from 'three'
-import { getDoubleRenderTarget, getFullscreenTriangle } from '@/lib/webgl/utils'
-
-type DoubleRenderTarget = ReturnType<typeof getDoubleRenderTarget>
+import {
+  type DoubleRenderTarget,
+  getDoubleRenderTarget,
+  getFullscreenTriangle,
+  type ShaderMaterial,
+} from '@/lib/webgl/utils'
 
 type Splat = { x: number; y: number; dx: number; dy: number }
-
-/** A RawShaderMaterial whose uniform keys are known (so accesses aren't `| undefined`). */
-type ShaderMaterial<K extends string> = RawShaderMaterial & {
-  uniforms: Record<K, IUniform>
-}
 
 export interface FluidOptions {
   simRes?: number

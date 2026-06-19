@@ -6,6 +6,8 @@
 import {
   BufferGeometry,
   Float32BufferAttribute,
+  type IUniform,
+  type RawShaderMaterial,
   type RenderTargetOptions,
   WebGLRenderTarget,
 } from 'three'
@@ -45,4 +47,11 @@ export function getFullscreenTriangle() {
   geometry.setAttribute('uv', new Float32BufferAttribute([0, 2, 0, 0, 2, 0], 2))
 
   return geometry
+}
+
+export type DoubleRenderTarget = ReturnType<typeof getDoubleRenderTarget>
+
+/** A RawShaderMaterial whose uniform keys are known (so accesses aren't `| undefined`). */
+export type ShaderMaterial<K extends string> = RawShaderMaterial & {
+  uniforms: Record<K, IUniform>
 }

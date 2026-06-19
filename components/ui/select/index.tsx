@@ -239,21 +239,4 @@ Select.GroupLabel = GroupLabel
 Select.Separator = Separator
 Select.Arrow = Arrow
 
-// Also export compound components individually
-export {
-  Arrow as SelectArrow,
-  Group as SelectGroup,
-  GroupLabel as SelectGroupLabel,
-  Icon as SelectIcon,
-  Item as SelectItem,
-  ItemIndicator as SelectItemIndicator,
-  ItemText as SelectItemText,
-  Popup as SelectPopup,
-  Portal as SelectPortal,
-  Positioner as SelectPositioner,
-  Root as SelectRoot,
-  Select,
-  Separator as SelectSeparator,
-  Trigger as SelectTrigger,
-  Value as SelectValue,
-}
+export { Select }

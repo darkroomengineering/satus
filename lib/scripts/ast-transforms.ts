@@ -146,6 +146,29 @@ function insertIndexAfterImports(sf: SourceFile): number {
   return index
 }
 
+/**
+ * Owns the create / getFullText / removeSourceFile lifecycle for a single
+ * in-memory source file. `fn` receives the SourceFile, mutates it, and returns
+ * either `undefined` (proceed with `sf.getFullText()`) or a string (short-
+ * circuit early — returned verbatim, bypassing getFullText). The source file is
+ * always removed in `finally` regardless of how `fn` exits.
+ */
+function withSourceFile(
+  project: Project,
+  sourceText: string,
+  fn: (sf: SourceFile) => string | undefined,
+  fileName = '__tmp__.tsx'
+): string {
+  const sf = project.createSourceFile(fileName, sourceText, { overwrite: true })
+  try {
+    const earlyResult = fn(sf)
+    if (typeof earlyResult === 'string') return earlyResult
+    return sf.getFullText()
+  } finally {
+    project.removeSourceFile(sf)
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Individual operation handlers
 // Each handler receives source text, applies one op, returns new source text.
@@ -159,18 +182,14 @@ function applyRemoveImport(
   sourceText: string,
   op: RemoveImportOp
 ): string {
-  const sf = project.createSourceFile('__tmp__.tsx', sourceText)
-
-  for (const decl of sf.getImportDeclarations()) {
-    if (decl.getModuleSpecifierValue() === op.specifier) {
-      decl.remove()
-      break
+  return withSourceFile(project, sourceText, (sf) => {
+    for (const decl of sf.getImportDeclarations()) {
+      if (decl.getModuleSpecifierValue() === op.specifier) {
+        decl.remove()
+        break
+      }
     }
-  }
-
-  const result = sf.getFullText()
-  project.removeSourceFile(sf)
-  return result
+  })
 }
 
 function applyRemoveVariableStatement(
@@ -178,23 +197,18 @@ function applyRemoveVariableStatement(
   sourceText: string,
   op: RemoveVariableStatementOp
 ): string {
-  const sf = project.createSourceFile('__tmp__.tsx', sourceText)
-  let result = sourceText
-
-  // Descendant scan so function-scoped consts are found, not just top-level.
-  for (const stmt of sf.getDescendantsOfKind(SyntaxKind.VariableStatement)) {
-    for (const decl of stmt.getDeclarations()) {
-      if (decl.getName() === op.name) {
-        stmt.remove()
-        result = sf.getFullText()
-        break
+  return withSourceFile(project, sourceText, (sf) => {
+    // Descendant scan so function-scoped consts are found, not just top-level.
+    for (const stmt of sf.getDescendantsOfKind(SyntaxKind.VariableStatement)) {
+      for (const decl of stmt.getDeclarations()) {
+        if (decl.getName() === op.name) {
+          stmt.remove()
+          return undefined // proceed with sf.getFullText()
+        }
       }
     }
-    if (result !== sourceText) break
-  }
-
-  project.removeSourceFile(sf)
-  return result
+    return sourceText // no match — return original unchanged
+  })
 }
 
 /**
@@ -207,26 +221,22 @@ function applyRemoveCallStatement(
   sourceText: string,
   op: RemoveCallStatementOp
 ): string {
-  const sf = project.createSourceFile('__tmp__.tsx', sourceText)
+  return withSourceFile(project, sourceText, (sf) => {
+    // Text removal invalidates collected nodes, so re-resolve after each pass.
+    while (true) {
+      const stmt = sf
+        .getDescendantsOfKind(SyntaxKind.ExpressionStatement)
+        .find((s) => {
+          const call = s.getExpression().asKind(SyntaxKind.CallExpression)
+          return call?.getExpression().getText() === op.callee
+        })
+      if (!stmt) break
 
-  // Text removal invalidates collected nodes, so re-resolve after each pass.
-  while (true) {
-    const stmt = sf
-      .getDescendantsOfKind(SyntaxKind.ExpressionStatement)
-      .find((s) => {
-        const call = s.getExpression().asKind(SyntaxKind.CallExpression)
-        return call?.getExpression().getText() === op.callee
-      })
-    if (!stmt) break
-
-    // Full start spans the leading trivia (blank line + comments) so the
-    // statement's own comment block is removed with it.
-    sf.removeText(stmt.getFullStart(), stmt.getEnd())
-  }
-
-  const result = sf.getFullText()
-  project.removeSourceFile(sf)
-  return result
+      // Full start spans the leading trivia (blank line + comments) so the
+      // statement's own comment block is removed with it.
+      sf.removeText(stmt.getFullStart(), stmt.getEnd())
+    }
+  })
 }
 
 function applyRemoveCallArgument(
@@ -234,26 +244,22 @@ function applyRemoveCallArgument(
   sourceText: string,
   op: RemoveCallArgumentOp
 ): string {
-  const sf = project.createSourceFile('__tmp__.tsx', sourceText)
-
-  // removeArgument invalidates the node list, so re-resolve after each removal.
-  while (true) {
-    let removed = false
-    for (const call of sf.getDescendantsOfKind(SyntaxKind.CallExpression)) {
-      if (call.getExpression().getText() !== op.callee) continue
-      const arg = call.getArguments().find((a) => a.getText() === op.argument)
-      if (arg) {
-        call.removeArgument(arg)
-        removed = true
-        break
+  return withSourceFile(project, sourceText, (sf) => {
+    // removeArgument invalidates the node list, so re-resolve after each removal.
+    while (true) {
+      let removed = false
+      for (const call of sf.getDescendantsOfKind(SyntaxKind.CallExpression)) {
+        if (call.getExpression().getText() !== op.callee) continue
+        const arg = call.getArguments().find((a) => a.getText() === op.argument)
+        if (arg) {
+          call.removeArgument(arg)
+          removed = true
+          break
+        }
       }
+      if (!removed) break
     }
-    if (!removed) break
-  }
-
-  const result = sf.getFullText()
-  project.removeSourceFile(sf)
-  return result
+  })
 }
 
 /**
@@ -273,111 +279,107 @@ function applyRemoveJsxElement(
   sourceText: string,
   op: RemoveJsxElementOp
 ): string {
-  const sf = project.createSourceFile('__tmp__.tsx', sourceText)
+  return withSourceFile(project, sourceText, (sf) => {
+    const selfClosingMatches = sf
+      .getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement)
+      .filter((el) => selfClosingMatchesOp(el, op))
+      .map((n) => ({ pos: n.getPos(), kind: 'self' as const, node: n }))
 
-  const selfClosingMatches = sf
-    .getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement)
-    .filter((el) => selfClosingMatchesOp(el, op))
-    .map((n) => ({ pos: n.getPos(), kind: 'self' as const, node: n }))
+    const openElementMatches = sf
+      .getDescendantsOfKind(SyntaxKind.JsxElement)
+      .filter((el) => openElementMatchesOp(el, op))
+      .map((n) => ({ pos: n.getPos(), kind: 'open' as const, node: n }))
 
-  const openElementMatches = sf
-    .getDescendantsOfKind(SyntaxKind.JsxElement)
-    .filter((el) => openElementMatchesOp(el, op))
-    .map((n) => ({ pos: n.getPos(), kind: 'open' as const, node: n }))
+    // Process in reverse source order so removals don't shift earlier positions.
+    const allMatches = [...selfClosingMatches, ...openElementMatches].sort(
+      (a, b) => b.pos - a.pos
+    )
 
-  // Process in reverse source order so removals don't shift earlier positions.
-  const allMatches = [...selfClosingMatches, ...openElementMatches].sort(
-    (a, b) => b.pos - a.pos
-  )
+    for (const match of allMatches) {
+      if (match.kind === 'self') {
+        const node = match.node
 
-  for (const match of allMatches) {
-    if (match.kind === 'self') {
-      const node = match.node
-
-      // Walk up the full ancestor chain to find the enclosing JsxExpression.
-      // This handles `{<Foo />}` (direct), `{cond && <Foo />}` (one level of
-      // binary expression), and deeper nesting like
-      // `{a && b && (<Wrapper><Foo /></Wrapper>)}` where Foo is several
-      // levels inside a JsxElement that itself is inside the JsxExpression.
-      // We do NOT stop at JsxElement boundaries here because the element being
-      // removed may be a leaf inside a wrapper (e.g. `<Suspense><Foo/></Suspense>`)
-      // that is itself inside the target JsxExpression.
-      let enclosingJsxExpr: Node | undefined
-      let cursor: Node | undefined = node.getParent()
-      while (cursor) {
-        if (cursor.getKind() === SyntaxKind.JsxExpression) {
-          enclosingJsxExpr = cursor
-          break
+        // Walk up the full ancestor chain to find the enclosing JsxExpression.
+        // This handles `{<Foo />}` (direct), `{cond && <Foo />}` (one level of
+        // binary expression), and deeper nesting like
+        // `{a && b && (<Wrapper><Foo /></Wrapper>)}` where Foo is several
+        // levels inside a JsxElement that itself is inside the JsxExpression.
+        // We do NOT stop at JsxElement boundaries here because the element being
+        // removed may be a leaf inside a wrapper (e.g. `<Suspense><Foo/></Suspense>`)
+        // that is itself inside the target JsxExpression.
+        let enclosingJsxExpr: Node | undefined
+        let cursor: Node | undefined = node.getParent()
+        while (cursor) {
+          if (cursor.getKind() === SyntaxKind.JsxExpression) {
+            enclosingJsxExpr = cursor
+            break
+          }
+          // Stop at JSX fragments — they delimit independent rendering scopes
+          if (cursor.getKind() === SyntaxKind.JsxFragment) {
+            break
+          }
+          cursor = cursor.getParent()
         }
-        // Stop at JSX fragments — they delimit independent rendering scopes
-        if (cursor.getKind() === SyntaxKind.JsxFragment) {
-          break
-        }
-        cursor = cursor.getParent()
-      }
 
-      if (enclosingJsxExpr) {
-        // Also remove any immediately preceding JSX comment sibling.
-        const container = enclosingJsxExpr.getParent()
-        if (container) {
-          const siblings = container.getChildren()
-          const idx = siblings.indexOf(enclosingJsxExpr)
-          if (idx > 0) {
-            const prev = siblings[idx - 1]
-            if (
-              prev &&
-              prev.getKind() === SyntaxKind.JsxExpression &&
-              prev.getText().trim().startsWith('{/*')
-            ) {
-              prev.replaceWithText('')
+        if (enclosingJsxExpr) {
+          // Also remove any immediately preceding JSX comment sibling.
+          const container = enclosingJsxExpr.getParent()
+          if (container) {
+            const siblings = container.getChildren()
+            const idx = siblings.indexOf(enclosingJsxExpr)
+            if (idx > 0) {
+              const prev = siblings[idx - 1]
+              if (
+                prev &&
+                prev.getKind() === SyntaxKind.JsxExpression &&
+                prev.getText().trim().startsWith('{/*')
+              ) {
+                prev.replaceWithText('')
+              }
             }
           }
-        }
-        enclosingJsxExpr.replaceWithText('')
-      } else {
-        node.replaceWithText('')
-      }
-    } else {
-      // JsxElement (open+close pair)
-      const node = match.node
-      if (op.unwrap) {
-        // Keep children, strip opening/closing tags.
-        const childText = node
-          .getJsxChildren()
-          .map((c) => c.getText())
-          .join('')
-        node.replaceWithText(childText)
-      } else {
-        // Remove entirely — walk up to find the enclosing JsxExpression so
-        // that `{cond && <Elem>…</Elem>}` is removed whole, not just the tags.
-        let enclosingExpr: Node | undefined
-        let cur: Node | undefined = node.getParent()
-        while (cur) {
-          if (cur.getKind() === SyntaxKind.JsxExpression) {
-            enclosingExpr = cur
-            break
-          }
-          // Stop if we reach another JSX element boundary (don't escape siblings)
-          if (
-            cur.getKind() === SyntaxKind.JsxElement ||
-            cur.getKind() === SyntaxKind.JsxFragment
-          ) {
-            break
-          }
-          cur = cur.getParent()
-        }
-        if (enclosingExpr) {
-          enclosingExpr.replaceWithText('')
+          enclosingJsxExpr.replaceWithText('')
         } else {
           node.replaceWithText('')
         }
+      } else {
+        // JsxElement (open+close pair)
+        const node = match.node
+        if (op.unwrap) {
+          // Keep children, strip opening/closing tags.
+          const childText = node
+            .getJsxChildren()
+            .map((c) => c.getText())
+            .join('')
+          node.replaceWithText(childText)
+        } else {
+          // Remove entirely — walk up to find the enclosing JsxExpression so
+          // that `{cond && <Elem>…</Elem>}` is removed whole, not just the tags.
+          let enclosingExpr: Node | undefined
+          let cur: Node | undefined = node.getParent()
+          while (cur) {
+            if (cur.getKind() === SyntaxKind.JsxExpression) {
+              enclosingExpr = cur
+              break
+            }
+            // Stop if we reach another JSX element boundary (don't escape siblings)
+            if (
+              cur.getKind() === SyntaxKind.JsxElement ||
+              cur.getKind() === SyntaxKind.JsxFragment
+            ) {
+              break
+            }
+            cur = cur.getParent()
+          }
+          if (enclosingExpr) {
+            enclosingExpr.replaceWithText('')
+          } else {
+            node.replaceWithText('')
+          }
+        }
       }
     }
-  }
-
-  const result = sf.getFullText()
-  project.removeSourceFile(sf)
-  return result
+  })
 }
 
 /**
@@ -391,40 +393,36 @@ function applyRemoveJsxAttribute(
   sourceText: string,
   op: RemoveJsxAttributeOp
 ): string {
-  const sf = project.createSourceFile('__tmp__.tsx', sourceText)
+  return withSourceFile(project, sourceText, (sf) => {
+    // Collect attribute nodes from self-closing elements
+    const selfClosingAttrs = sf
+      .getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement)
+      .filter((el) => el.getTagNameNode().getText() === op.tagName)
+      .flatMap((el) => {
+        const attr = el.getAttribute(op.attributeName)
+        return attr ? [attr] : []
+      })
 
-  // Collect attribute nodes from self-closing elements
-  const selfClosingAttrs = sf
-    .getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement)
-    .filter((el) => el.getTagNameNode().getText() === op.tagName)
-    .flatMap((el) => {
-      const attr = el.getAttribute(op.attributeName)
-      return attr ? [attr] : []
-    })
+    // Collect attribute nodes from open/close elements
+    const openElementAttrs = sf
+      .getDescendantsOfKind(SyntaxKind.JsxElement)
+      .filter(
+        (el) => el.getOpeningElement().getTagNameNode().getText() === op.tagName
+      )
+      .flatMap((el) => {
+        const attr = el.getOpeningElement().getAttribute(op.attributeName)
+        return attr ? [attr] : []
+      })
 
-  // Collect attribute nodes from open/close elements
-  const openElementAttrs = sf
-    .getDescendantsOfKind(SyntaxKind.JsxElement)
-    .filter(
-      (el) => el.getOpeningElement().getTagNameNode().getText() === op.tagName
+    // Process in reverse source order to keep positions stable
+    const allAttrs = [...selfClosingAttrs, ...openElementAttrs].sort(
+      (a, b) => b.getPos() - a.getPos()
     )
-    .flatMap((el) => {
-      const attr = el.getOpeningElement().getAttribute(op.attributeName)
-      return attr ? [attr] : []
-    })
 
-  // Process in reverse source order to keep positions stable
-  const allAttrs = [...selfClosingAttrs, ...openElementAttrs].sort(
-    (a, b) => b.getPos() - a.getPos()
-  )
-
-  for (const attr of allAttrs) {
-    attr.remove()
-  }
-
-  const result = sf.getFullText()
-  project.removeSourceFile(sf)
-  return result
+    for (const attr of allAttrs) {
+      attr.remove()
+    }
+  })
 }
 
 function applyRemoveInterfaceProperty(
@@ -432,24 +430,16 @@ function applyRemoveInterfaceProperty(
   sourceText: string,
   op: RemoveInterfacePropertyOp
 ): string {
-  const sf = project.createSourceFile('__tmp__.tsx', sourceText)
+  return withSourceFile(project, sourceText, (sf) => {
+    const iface = sf.getInterface(op.interfaceName)
+    if (!iface) return sourceText
 
-  const iface = sf.getInterface(op.interfaceName)
-  if (!iface) {
-    project.removeSourceFile(sf)
-    return sourceText
-  }
+    const prop = iface.getProperty(op.propertyName)
+    if (!prop) return sourceText
 
-  const prop = iface.getProperty(op.propertyName)
-  if (!prop) {
-    project.removeSourceFile(sf)
-    return sourceText
-  }
-
-  prop.remove()
-  const result = sf.getFullText()
-  project.removeSourceFile(sf)
-  return result
+    prop.remove()
+    return undefined // proceed with sf.getFullText()
+  })
 }
 
 function applyRemoveFunctionParameter(
@@ -457,44 +447,31 @@ function applyRemoveFunctionParameter(
   sourceText: string,
   op: RemoveFunctionParameterOp
 ): string {
-  const sf = project.createSourceFile('__tmp__.tsx', sourceText)
+  return withSourceFile(project, sourceText, (sf) => {
+    const fn = sf.getFunction(op.functionName)
+    if (!fn) return sourceText
 
-  const fn = sf.getFunction(op.functionName)
-  if (!fn) {
-    project.removeSourceFile(sf)
-    return sourceText
-  }
+    // Props are destructured in the first parameter's object binding pattern.
+    const param = fn.getParameters()[0]
+    if (!param) return sourceText
 
-  // Props are destructured in the first parameter's object binding pattern.
-  const param = fn.getParameters()[0]
-  if (!param) {
-    project.removeSourceFile(sf)
-    return sourceText
-  }
+    const binding = param.getNameNode()
+    if (binding.getKind() !== SyntaxKind.ObjectBindingPattern) return sourceText
 
-  const binding = param.getNameNode()
-  if (binding.getKind() !== SyntaxKind.ObjectBindingPattern) {
-    project.removeSourceFile(sf)
-    return sourceText
-  }
+    const pattern = binding.asKindOrThrow(SyntaxKind.ObjectBindingPattern)
+    const elements = pattern.getElements()
+    const target = elements.find((el) => el.getName() === op.parameterName)
+    if (!target) return sourceText
 
-  const pattern = binding.asKindOrThrow(SyntaxKind.ObjectBindingPattern)
-  const elements = pattern.getElements()
-  const target = elements.find((el) => el.getName() === op.parameterName)
-  if (!target) {
-    project.removeSourceFile(sf)
-    return sourceText
-  }
-
-  // BindingElement has no `.remove()`; rebuild the binding pattern text from the
-  // remaining elements (each element's text preserves its default value, and a
-  // rest element like `...props` is kept verbatim).
-  const kept = elements.filter((el) => el !== target).map((el) => el.getText())
-  pattern.replaceWithText(`{ ${kept.join(', ')} }`)
-
-  const result = sf.getFullText()
-  project.removeSourceFile(sf)
-  return result
+    // BindingElement has no `.remove()`; rebuild the binding pattern text from the
+    // remaining elements (each element's text preserves its default value, and a
+    // rest element like `...props` is kept verbatim).
+    const kept = elements
+      .filter((el) => el !== target)
+      .map((el) => el.getText())
+    pattern.replaceWithText(`{ ${kept.join(', ')} }`)
+    return undefined // proceed with sf.getFullText()
+  })
 }
 
 /**
@@ -511,35 +488,32 @@ function applyRemoveDestructuredBinding(
   sourceText: string,
   op: RemoveDestructuredBindingOp
 ): string {
-  const sf = project.createSourceFile('__tmp__.tsx', sourceText)
+  return withSourceFile(project, sourceText, (sf) => {
+    for (const stmt of sf.getDescendantsOfKind(SyntaxKind.VariableStatement)) {
+      for (const decl of stmt.getDeclarations()) {
+        const nameNode = decl.getNameNode()
+        if (nameNode.getKind() !== SyntaxKind.ObjectBindingPattern) continue
 
-  for (const stmt of sf.getDescendantsOfKind(SyntaxKind.VariableStatement)) {
-    for (const decl of stmt.getDeclarations()) {
-      const nameNode = decl.getNameNode()
-      if (nameNode.getKind() !== SyntaxKind.ObjectBindingPattern) continue
+        const pattern = nameNode.asKindOrThrow(SyntaxKind.ObjectBindingPattern)
+        const elements = pattern.getElements()
+        const target = elements.find((el) => el.getName() === op.bindingName)
+        if (!target) continue
 
-      const pattern = nameNode.asKindOrThrow(SyntaxKind.ObjectBindingPattern)
-      const elements = pattern.getElements()
-      const target = elements.find((el) => el.getName() === op.bindingName)
-      if (!target) continue
+        // Narrow by initializer text to avoid modifying unrelated destructurings.
+        const initText = decl.getInitializer()?.getText() ?? ''
+        if (!initText.includes(op.initializerContains)) continue
 
-      // Narrow by initializer text to avoid modifying unrelated destructurings.
-      const initText = decl.getInitializer()?.getText() ?? ''
-      if (!initText.includes(op.initializerContains)) continue
+        const kept = elements
+          .filter((el) => el !== target)
+          .map((el) => el.getText())
+        pattern.replaceWithText(`{ ${kept.join(', ')} }`)
 
-      const kept = elements
-        .filter((el) => el !== target)
-        .map((el) => el.getText())
-      pattern.replaceWithText(`{ ${kept.join(', ')} }`)
-
-      const result = sf.getFullText()
-      project.removeSourceFile(sf)
-      return result
+        return undefined // proceed with sf.getFullText()
+      }
     }
-  }
 
-  project.removeSourceFile(sf)
-  return sourceText
+    return sourceText // no match — return original unchanged
+  })
 }
 
 function applyReplaceJsDoc(
@@ -547,33 +521,22 @@ function applyReplaceJsDoc(
   sourceText: string,
   op: ReplaceJsDocOp
 ): string {
-  const sf = project.createSourceFile('__tmp__.tsx', sourceText)
+  return withSourceFile(project, sourceText, (sf) => {
+    const fn = sf.getFunction(op.functionName)
+    if (!fn) return sourceText
 
-  const fn = sf.getFunction(op.functionName)
-  if (!fn) {
-    project.removeSourceFile(sf)
-    return sourceText
-  }
+    const docs = fn.getJsDocs()
+    if (docs.length === 0) return sourceText
 
-  const docs = fn.getJsDocs()
-  if (docs.length === 0) {
-    project.removeSourceFile(sf)
-    return sourceText
-  }
+    // Replace the first (and typically only) JSDoc block.
+    // We pass the full /** … */ text directly to replaceWithText; ts-morph
+    // treats JSDoc nodes as replaceable text ranges.
+    const firstDoc = docs[0]
+    if (!firstDoc) return sourceText
 
-  // Replace the first (and typically only) JSDoc block.
-  // We pass the full /** … */ text directly to replaceWithText; ts-morph
-  // treats JSDoc nodes as replaceable text ranges.
-  const firstDoc = docs[0]
-  if (!firstDoc) {
-    project.removeSourceFile(sf)
-    return sourceText
-  }
-
-  firstDoc.replaceWithText(op.replacement)
-  const result = sf.getFullText()
-  project.removeSourceFile(sf)
-  return result
+    firstDoc.replaceWithText(op.replacement)
+    return undefined // proceed with sf.getFullText()
+  })
 }
 
 /**
@@ -727,45 +690,43 @@ function applyAddImport(
   const defaultImport = opDecl.getDefaultImport()?.getText()
   project.removeSourceFile(opSf)
 
-  const sf = project.createSourceFile('__tmp__.tsx', sourceText)
-  const existing = sf
-    .getImportDeclarations()
-    .find((d) => d.getModuleSpecifierValue() === specifier)
+  return withSourceFile(project, sourceText, (sf) => {
+    const existing = sf
+      .getImportDeclarations()
+      .find((d) => d.getModuleSpecifierValue() === specifier)
 
-  if (existing) {
-    let changed = false
+    if (existing) {
+      let changed = false
 
-    // A namespace import (`import * as X`) cannot carry named/default
-    // bindings; the module is already imported, so treat as present.
-    if (!existing.getNamespaceImport()) {
-      if (defaultImport && !existing.getDefaultImport()) {
-        existing.setDefaultImport(defaultImport)
-        changed = true
-      }
+      // A namespace import (`import * as X`) cannot carry named/default
+      // bindings; the module is already imported, so treat as present.
+      if (!existing.getNamespaceImport()) {
+        if (defaultImport && !existing.getDefaultImport()) {
+          existing.setDefaultImport(defaultImport)
+          changed = true
+        }
 
-      // Merge missing named imports, compared by imported name so aliased
-      // re-imports of the same binding don't duplicate.
-      const existingNames = new Set(
-        existing.getNamedImports().map((n) => n.getName())
-      )
-      const missing = namedImports.filter((n) => !existingNames.has(n.name))
-      if (missing.length > 0) {
-        existing.addNamedImports(
-          missing.map((n) => (n.alias ? `${n.name} as ${n.alias}` : n.name))
+        // Merge missing named imports, compared by imported name so aliased
+        // re-imports of the same binding don't duplicate.
+        const existingNames = new Set(
+          existing.getNamedImports().map((n) => n.getName())
         )
-        changed = true
+        const missing = namedImports.filter((n) => !existingNames.has(n.name))
+        if (missing.length > 0) {
+          existing.addNamedImports(
+            missing.map((n) => (n.alias ? `${n.name} as ${n.alias}` : n.name))
+          )
+          changed = true
+        }
       }
+
+      if (!changed) return sourceText
+      return undefined // proceed with sf.getFullText()
     }
 
-    const result = changed ? sf.getFullText() : sourceText
-    project.removeSourceFile(sf)
-    return result
-  }
-
-  sf.insertStatements(insertIndexAfterImports(sf), op.text)
-  const result = sf.getFullText()
-  project.removeSourceFile(sf)
-  return result
+    sf.insertStatements(insertIndexAfterImports(sf), op.text)
+    return undefined // proceed with sf.getFullText()
+  })
 }
 
 /**
@@ -866,25 +827,19 @@ function applyAddVariableStatement(
   sourceText: string,
   op: AddVariableStatementOp
 ): string {
-  const sf = project.createSourceFile('__tmp__.tsx', sourceText)
+  return withSourceFile(project, sourceText, (sf) => {
+    const exists = sf
+      .getDescendantsOfKind(SyntaxKind.VariableDeclaration)
+      .some((d) => d.getName() === op.name)
+    if (exists) return sourceText
 
-  const exists = sf
-    .getDescendantsOfKind(SyntaxKind.VariableDeclaration)
-    .some((d) => d.getName() === op.name)
-  if (exists) {
-    project.removeSourceFile(sf)
-    return sourceText
-  }
-
-  if (op.afterImports === false) {
-    sf.addStatements(op.text)
-  } else {
-    sf.insertStatements(insertIndexAfterImports(sf), op.text)
-  }
-
-  const result = sf.getFullText()
-  project.removeSourceFile(sf)
-  return result
+    if (op.afterImports === false) {
+      sf.addStatements(op.text)
+    } else {
+      sf.insertStatements(insertIndexAfterImports(sf), op.text)
+    }
+    return undefined // proceed with sf.getFullText()
+  })
 }
 
 /** JSX child kinds considered when matching an existing child's indentation. */
@@ -937,105 +892,96 @@ function applyAddJsxChild(
   sourceText: string,
   op: AddJsxChildOp
 ): string {
-  const sf = project.createSourceFile('__tmp__.tsx', sourceText)
-
-  const childMatches = (
-    tagName: string,
-    getAttribute: (name: string) => JsxAttributeLike | undefined
-  ): boolean => {
-    if (tagName !== op.childTagName) return false
-    if (!op.childAttribute) return true
-    return (
-      jsxAttrStringValue(getAttribute(op.childAttribute.name)) ===
-      op.childAttribute.value
-    )
-  }
-
-  const childExists =
-    sf
-      .getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement)
-      .some((el) =>
-        childMatches(el.getTagNameNode().getText(), (name) =>
-          el.getAttribute(name)
-        )
-      ) ||
-    sf
-      .getDescendantsOfKind(SyntaxKind.JsxElement)
-      .some((el) =>
-        childMatches(
-          el.getOpeningElement().getTagNameNode().getText(),
-          (name) => el.getOpeningElement().getAttribute(name)
-        )
+  return withSourceFile(project, sourceText, (sf) => {
+    const childMatches = (
+      tagName: string,
+      getAttribute: (name: string) => JsxAttributeLike | undefined
+    ): boolean => {
+      if (tagName !== op.childTagName) return false
+      if (!op.childAttribute) return true
+      return (
+        jsxAttrStringValue(getAttribute(op.childAttribute.name)) ===
+        op.childAttribute.value
       )
-  if (childExists) {
-    project.removeSourceFile(sf)
-    return sourceText
-  }
+    }
 
-  // True when `el` has a direct JSX child whose tag matches the op's child.
-  const hasSameTagChild = (el: JsxElement | JsxFragment): boolean =>
-    el.getJsxChildren().some((child) => {
-      if (child.getKind() === SyntaxKind.JsxSelfClosingElement) {
-        return (
-          child
-            .asKindOrThrow(SyntaxKind.JsxSelfClosingElement)
-            .getTagNameNode()
-            .getText() === op.childTagName
+    const childExists =
+      sf
+        .getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement)
+        .some((el) =>
+          childMatches(el.getTagNameNode().getText(), (name) =>
+            el.getAttribute(name)
+          )
+        ) ||
+      sf
+        .getDescendantsOfKind(SyntaxKind.JsxElement)
+        .some((el) =>
+          childMatches(
+            el.getOpeningElement().getTagNameNode().getText(),
+            (name) => el.getOpeningElement().getAttribute(name)
+          )
         )
-      }
-      if (child.getKind() === SyntaxKind.JsxElement) {
-        return (
-          child
-            .asKindOrThrow(SyntaxKind.JsxElement)
-            .getOpeningElement()
-            .getTagNameNode()
-            .getText() === op.childTagName
-        )
-      }
-      return false
-    })
+    if (childExists) return sourceText
 
-  const candidates = sf
-    .getDescendantsOfKind(SyntaxKind.JsxElement)
-    .filter(
-      (el) =>
-        el.getOpeningElement().getTagNameNode().getText() === op.parentTagName
-    )
+    // True when `el` has a direct JSX child whose tag matches the op's child.
+    const hasSameTagChild = (el: JsxElement | JsxFragment): boolean =>
+      el.getJsxChildren().some((child) => {
+        if (child.getKind() === SyntaxKind.JsxSelfClosingElement) {
+          return (
+            child
+              .asKindOrThrow(SyntaxKind.JsxSelfClosingElement)
+              .getTagNameNode()
+              .getText() === op.childTagName
+          )
+        }
+        if (child.getKind() === SyntaxKind.JsxElement) {
+          return (
+            child
+              .asKindOrThrow(SyntaxKind.JsxElement)
+              .getOpeningElement()
+              .getTagNameNode()
+              .getText() === op.childTagName
+          )
+        }
+        return false
+      })
 
-  let parent: JsxElement | JsxFragment | undefined =
-    candidates.find(hasSameTagChild) ?? candidates[0]
+    const candidates = sf
+      .getDescendantsOfKind(SyntaxKind.JsxElement)
+      .filter(
+        (el) =>
+          el.getOpeningElement().getTagNameNode().getText() === op.parentTagName
+      )
 
-  if (!parent && op.parentTagName === 'Fragment') {
-    const fragments = sf.getDescendantsOfKind(SyntaxKind.JsxFragment)
-    parent = fragments.find(hasSameTagChild) ?? fragments[0]
-  }
+    let parent: JsxElement | JsxFragment | undefined =
+      candidates.find(hasSameTagChild) ?? candidates[0]
 
-  if (!parent) {
-    project.removeSourceFile(sf)
-    return sourceText
-  }
+    if (!parent && op.parentTagName === 'Fragment') {
+      const fragments = sf.getDescendantsOfKind(SyntaxKind.JsxFragment)
+      parent = fragments.find(hasSameTagChild) ?? fragments[0]
+    }
 
-  const closing =
-    parent.getKind() === SyntaxKind.JsxFragment
-      ? parent.asKindOrThrow(SyntaxKind.JsxFragment).getClosingFragment()
-      : parent.asKindOrThrow(SyntaxKind.JsxElement).getClosingElement()
-  const closingStart = closing.getStart()
-  const lineStart = sourceText.lastIndexOf('\n', closingStart - 1) + 1
-  const closingLinePrefix = sourceText.slice(lineStart, closingStart)
+    if (!parent) return sourceText
 
-  if (/^[ \t]*$/.test(closingLinePrefix)) {
-    // Closing tag on its own line — give the child its own indented line.
-    const childIndent =
-      lastJsxChildIndent(parent, sourceText) ?? `${closingLinePrefix}  `
-    sf.insertText(lineStart, `${childIndent}${op.childText}\n`)
-  } else {
-    // Single-line parent (e.g. `<main>{children}</main>`) — insert inline.
-    sf.insertText(closingStart, op.childText)
-  }
+    const closing =
+      parent.getKind() === SyntaxKind.JsxFragment
+        ? parent.asKindOrThrow(SyntaxKind.JsxFragment).getClosingFragment()
+        : parent.asKindOrThrow(SyntaxKind.JsxElement).getClosingElement()
+    const closingStart = closing.getStart()
+    const lineStart = sourceText.lastIndexOf('\n', closingStart - 1) + 1
+    const closingLinePrefix = sourceText.slice(lineStart, closingStart)
 
-  const result = sf.getFullText()
-  project.removeSourceFile(sf)
-  return result
+    if (/^[ \t]*$/.test(closingLinePrefix)) {
+      // Closing tag on its own line — give the child its own indented line.
+      const childIndent =
+        lastJsxChildIndent(parent, sourceText) ?? `${closingLinePrefix}  `
+      sf.insertText(lineStart, `${childIndent}${op.childText}\n`)
+    } else {
+      // Single-line parent (e.g. `<main>{children}</main>`) — insert inline.
+      sf.insertText(closingStart, op.childText)
+    }
+    return undefined // proceed with sf.getFullText()
+  })
 }
 
 // ---------------------------------------------------------------------------

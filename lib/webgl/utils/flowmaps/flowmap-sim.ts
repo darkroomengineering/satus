@@ -8,7 +8,6 @@ import {
   type BufferGeometry,
   GLSL3,
   HalfFloatType,
-  type IUniform,
   Mesh,
   NoBlending,
   OrthographicCamera,
@@ -17,14 +16,12 @@ import {
   Vector2,
   type WebGLRenderer,
 } from 'three'
-import { getDoubleRenderTarget, getFullscreenTriangle } from '@/lib/webgl/utils'
-
-type DoubleRenderTarget = ReturnType<typeof getDoubleRenderTarget>
-
-/** A RawShaderMaterial whose uniform keys are known (so accesses aren't `| undefined`). */
-type ShaderMaterial<K extends string> = RawShaderMaterial & {
-  uniforms: Record<K, IUniform>
-}
+import {
+  type DoubleRenderTarget,
+  getDoubleRenderTarget,
+  getFullscreenTriangle,
+  type ShaderMaterial,
+} from '@/lib/webgl/utils'
 
 export interface FlowmapOptions {
   size?: number

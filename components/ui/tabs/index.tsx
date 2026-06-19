@@ -89,11 +89,3 @@ export const Tabs = {
   Indicator,
   Panel,
 }
-
-export {
-  Indicator as TabsIndicator,
-  List as TabsList,
-  Panel as TabsPanel,
-  Root as TabsRoot,
-  Tab as TabsTab,
-}

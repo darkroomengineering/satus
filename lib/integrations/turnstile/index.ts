@@ -6,7 +6,13 @@
  * - Perfect for terminal aesthetics
  */
 
+import { z } from 'zod'
 import { fetchWithTimeout } from '@/utils/fetch'
+
+const siteverifySchema = z.object({
+  success: z.boolean(),
+  'error-codes': z.array(z.string()).optional(),
+})
 
 export interface TurnstileValidationResult {
   isValid: boolean
@@ -61,12 +67,15 @@ export async function validateTurnstile(
       }
     }
 
-    const data = (await response.json()) as {
-      success: boolean
-      'error-codes'?: string[]
+    const parsed = siteverifySchema.safeParse(await response.json())
+
+    // Fail closed: if the response shape is unexpected, treat as failure.
+    if (!parsed.success) {
+      console.error('Turnstile siteverify response has unexpected shape')
+      return { isValid: false, errors: ['security_verification_failed_'] }
     }
 
-    if (data.success) {
+    if (parsed.data.success) {
       return { isValid: true, errors: [] }
     }
     return {

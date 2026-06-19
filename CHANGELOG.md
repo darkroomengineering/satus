@@ -63,6 +63,12 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 - Dependabot PRs now auto-sync `bun.lock` via a `pull_request_target` workflow, so they pass the frozen-lockfile install in CI. (#190)
 - Consolidated root docs: folded `BOUNDARIES.md` into `ARCHITECTURE.md` and
   refreshed the doc maps in `README.md` and `AGENTS.md` (#177).
+- Shopify cart actions (`removeItem`/`addItem`/`updateItemQuantity`) share a
+  `runCartAction` helper for the IP + standard rate-limit prelude instead of
+  inlining it three times; behavior is unchanged.
+- `ast-transforms` op handlers route the ts-morph
+  create/getFullText/removeSourceFile lifecycle through one `withSourceFile`
+  helper with guaranteed cleanup — behavior-preserving, ~60 fewer lines.
 
 ### Removed
 
@@ -83,9 +89,17 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 - Hardened HubSpot form HTML stripping into a complete `stripHtmlTags` parser
   (a character scan, not regex), resolving the CodeQL
   `js/incomplete-multi-character-sanitization` alert (#179, #180).
+- Turnstile siteverify responses are validated with a Zod schema and fail
+  closed — an unexpected response shape now returns a failed verification
+  instead of reading an unchecked `as`-cast `success`.
 
 ### Removed
 
+- Dead and duplicate internal surface: unused `batch`/`measure` exports from
+  `lib/utils/raf.ts` (only `mutate` is consumed), the duplicated
+  `ShaderMaterial<K>`/`DoubleRenderTarget` webgl types (hoisted once into
+  `lib/webgl/utils`), and the flat `Select*`/`Menu*`/`Tabs*` part exports that
+  had zero importers (the compound `Select`/`Menu`/`Tabs` APIs are unchanged).
 - Hand-rolled `components/ui/dropdown/` — superseded by the accessible Base UI `Select`. (#202, #205)
 - `lib/utils/animation.ts` re-exports of `clamp` / `lerp` / `mapRange` / `modulo` / `truncate` — import these from `@/utils/math` instead. (#198)
 - In-repo marketing homepage — the `app/(marketing)` landing sections (hero, features, value-props, getting-started, presets) and marketing-only WebGL effects (`animated-gradient`, `liquid-drip`, `split-text`). Satus is a starter kit; its marketing lives at oss.darkroom.engineering/satus. (#188)

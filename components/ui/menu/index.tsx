@@ -136,26 +136,7 @@ const CheckboxItemIndicator = BaseMenu.CheckboxItemIndicator
 // Submenu support
 const SubmenuTrigger = BaseMenu.SubmenuTrigger
 
-export {
-  Arrow,
-  CheckboxItem,
-  CheckboxItemIndicator,
-  Group,
-  GroupLabel,
-  Item,
-  Popup,
-  Portal,
-  Positioner,
-  RadioGroup,
-  RadioItem,
-  RadioItemIndicator,
-  Root,
-  Separator,
-  SubmenuTrigger,
-  Trigger,
-}
-
-// Also export as namespace for compound component pattern
+// Export as namespace for compound component pattern
 export const Menu = {
   Root,
   Trigger,

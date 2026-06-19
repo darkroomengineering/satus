@@ -32,6 +32,32 @@ const updateQuantitySchema = z.object({
   lineId: z.string().optional(),
 })
 
+/**
+ * Shared prelude for cart server actions: extracts the client IP, applies the
+ * standard rate limiter, and delegates to the provided `run` callback.
+ *
+ * Returns the rate-limit error result directly when the limit is exceeded, so
+ * callers never need to repeat the IP + rateLimit boilerplate.
+ *
+ * @param rateLimitPrefix - Rate-limit key prefix (e.g. "cart-add"). The client IP is appended.
+ * @param run - The action body to invoke after the prelude passes.
+ */
+async function runCartAction(
+  rateLimitPrefix: string,
+  run: () => Promise<CartActionResult>
+): Promise<CartActionResult> {
+  const headersList = await headers()
+  const ip = getIPFromHeaders(headersList)
+  const rateLimitResult = rateLimit(
+    `${rateLimitPrefix}:${ip}`,
+    rateLimiters.standard
+  )
+  if (!rateLimitResult.success) {
+    return { ok: false, error: 'Too many requests. Please try again later.' }
+  }
+  return run()
+}
+
 export async function removeItem(
   _prevState: unknown,
   merchandiseId: string,
@@ -44,96 +70,89 @@ export async function removeItem(
     return { ok: false, error: 'Missing cart ID' }
   }
 
-  const headersList = await headers()
-  const ip = getIPFromHeaders(headersList)
-  const rateLimitResult = rateLimit(`cart-remove:${ip}`, rateLimiters.standard)
-  if (!rateLimitResult.success) {
-    return { ok: false, error: 'Too many requests. Please try again later.' }
-  }
-
-  if (!merchandiseId) {
-    return { ok: false, error: 'Merchandise ID is required' }
-  }
-
-  try {
-    // Fast path: caller supplies lineId directly — skip the extra getCart round-trip.
-    if (lineId) {
-      await removeFromCart(cartId, [lineId])
-      revalidateTag(TAGS.cart, {})
-      return { ok: true }
+  return runCartAction('cart-remove', async () => {
+    if (!merchandiseId) {
+      return { ok: false, error: 'Merchandise ID is required' }
     }
 
-    // Fallback: resolve lineId from a fresh cart fetch (e.g. callers without lineId).
-    const cart = await getCart(cartId)
+    try {
+      // Fast path: caller supplies lineId directly — skip the extra getCart round-trip.
+      if (lineId) {
+        await removeFromCart(cartId, [lineId])
+        revalidateTag(TAGS.cart, {})
+        return { ok: true }
+      }
 
-    if (!cart) {
-      return { ok: false, error: 'Error fetching cart' }
+      // Fallback: resolve lineId from a fresh cart fetch (e.g. callers without lineId).
+      const cart = await getCart(cartId)
+
+      if (!cart) {
+        return { ok: false, error: 'Error fetching cart' }
+      }
+
+      const lineItem = cart.lines.find(
+        (line) => line.merchandise.id === merchandiseId
+      )
+
+      if (lineItem?.id) {
+        await removeFromCart(cartId, [lineItem.id])
+        revalidateTag(TAGS.cart, {})
+        return { ok: true }
+      }
+
+      return { ok: false, error: 'Item not found in cart' }
+    } catch (_e) {
+      return { ok: false, error: 'Error removing item from cart' }
     }
-
-    const lineItem = cart.lines.find(
-      (line) => line.merchandise.id === merchandiseId
-    )
-
-    if (lineItem?.id) {
-      await removeFromCart(cartId, [lineItem.id])
-      revalidateTag(TAGS.cart, {})
-      return { ok: true }
-    }
-
-    return { ok: false, error: 'Item not found in cart' }
-  } catch (_e) {
-    return { ok: false, error: 'Error removing item from cart' }
-  }
+  })
 }
 
 export async function addItem(
   _prevState: unknown,
   { variantId, quantity = 1 }: AddItemPayload
 ): Promise<CartActionResult> {
-  const headersList = await headers()
-  const ip = getIPFromHeaders(headersList)
-  const rateLimitResult = rateLimit(`cart-add:${ip}`, rateLimiters.standard)
-  if (!rateLimitResult.success) {
-    return { ok: false, error: 'Too many requests. Please try again later.' }
-  }
-
-  // Validate input before creating a cart, so an invalid request doesn't leave
-  // an orphaned cart + cookie behind.
-  const parsed = addItemSchema.safeParse({ variantId, quantity })
-  if (!parsed.success) {
-    return {
-      ok: false,
-      error: parsed.error.issues[0]?.message ?? 'Invalid input',
+  return runCartAction('cart-add', async () => {
+    // Validate input before creating a cart, so an invalid request doesn't leave
+    // an orphaned cart + cookie behind.
+    const parsed = addItemSchema.safeParse({ variantId, quantity })
+    if (!parsed.success) {
+      return {
+        ok: false,
+        error: parsed.error.issues[0]?.message ?? 'Invalid input',
+      }
     }
-  }
 
-  const _cookies = await cookies()
-  let cartId = _cookies.get('cartId')?.value
+    const _cookies = await cookies()
+    let cartId = _cookies.get('cartId')?.value
 
-  // This is here because cookie can only be set server side
-  // and useFormState executes the addItem action in the server
-  if (!cartId) {
-    const cart = await createCart()
-    cartId = cart.id
-    _cookies.set('cartId', cartId, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
-      path: '/',
-    })
-  }
+    // This is here because cookie can only be set server side
+    // and useFormState executes the addItem action in the server
+    if (!cartId) {
+      const cart = await createCart()
+      cartId = cart.id
+      _cookies.set('cartId', cartId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+        path: '/',
+      })
+    }
 
-  try {
-    await addToCart(cartId, [
-      { merchandiseId: parsed.data.variantId, quantity: parsed.data.quantity },
-    ])
-    revalidateTag(TAGS.cart, {})
+    try {
+      await addToCart(cartId, [
+        {
+          merchandiseId: parsed.data.variantId,
+          quantity: parsed.data.quantity,
+        },
+      ])
+      revalidateTag(TAGS.cart, {})
 
-    return { ok: true }
-  } catch (_e) {
-    return { ok: false, error: 'Error adding item to cart' }
-  }
+      return { ok: true }
+    } catch (_e) {
+      return { ok: false, error: 'Error adding item to cart' }
+    }
+  })
 }
 
 export async function updateItemQuantity(
@@ -154,58 +173,53 @@ export async function updateItemQuantity(
     return { ok: false, error: 'Missing cart ID' }
   }
 
-  const headersList = await headers()
-  const ip = getIPFromHeaders(headersList)
-  const rateLimitResult = rateLimit(`cart-update:${ip}`, rateLimiters.standard)
-  if (!rateLimitResult.success) {
-    return { ok: false, error: 'Too many requests. Please try again later.' }
-  }
-
-  const parsed = updateQuantitySchema.safeParse(payload)
-  if (!parsed.success) {
-    return {
-      ok: false,
-      error: parsed.error.issues[0]?.message ?? 'Invalid input',
+  return runCartAction('cart-update', async () => {
+    const parsed = updateQuantitySchema.safeParse(payload)
+    if (!parsed.success) {
+      return {
+        ok: false,
+        error: parsed.error.issues[0]?.message ?? 'Invalid input',
+      }
     }
-  }
 
-  const { merchandiseId, quantity, lineId } = parsed.data
+    const { merchandiseId, quantity, lineId } = parsed.data
 
-  try {
-    // Fast path: caller supplies lineId directly — skip the extra getCart round-trip.
-    if (lineId) {
-      await updateCart(cartId, [{ id: lineId, merchandiseId, quantity }])
+    try {
+      // Fast path: caller supplies lineId directly — skip the extra getCart round-trip.
+      if (lineId) {
+        await updateCart(cartId, [{ id: lineId, merchandiseId, quantity }])
+        revalidateTag(TAGS.cart, {})
+        return { ok: true }
+      }
+
+      // Fallback: resolve lineId from a fresh cart fetch (e.g. callers without lineId).
+      const cart = await getCart(cartId)
+
+      if (!cart) {
+        return { ok: false, error: 'Error fetching cart' }
+      }
+
+      const lineItem = cart.lines.find(
+        (line) => line.merchandise.id === merchandiseId
+      )
+
+      if (!lineItem?.id) {
+        return { ok: false, error: 'Item not found in cart' }
+      }
+
+      await updateCart(cartId, [
+        {
+          id: lineItem.id,
+          merchandiseId,
+          quantity,
+        },
+      ])
       revalidateTag(TAGS.cart, {})
       return { ok: true }
+    } catch (_e) {
+      return { ok: false, error: 'Error updating item quantity' }
     }
-
-    // Fallback: resolve lineId from a fresh cart fetch (e.g. callers without lineId).
-    const cart = await getCart(cartId)
-
-    if (!cart) {
-      return { ok: false, error: 'Error fetching cart' }
-    }
-
-    const lineItem = cart.lines.find(
-      (line) => line.merchandise.id === merchandiseId
-    )
-
-    if (!lineItem?.id) {
-      return { ok: false, error: 'Item not found in cart' }
-    }
-
-    await updateCart(cartId, [
-      {
-        id: lineItem.id,
-        merchandiseId,
-        quantity,
-      },
-    ])
-    revalidateTag(TAGS.cart, {})
-    return { ok: true }
-  } catch (_e) {
-    return { ok: false, error: 'Error updating item quantity' }
-  }
+  })
 }
 
 export async function fetchCart(): Promise<Cart | undefined> {

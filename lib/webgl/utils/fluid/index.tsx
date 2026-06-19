@@ -1,27 +1,26 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { types } from '@theatre/core'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useCurrentSheet } from '@/dev/theatre'
 import { useTheatre } from '@/dev/theatre/hooks/use-theatre'
 import { Fluid } from '@/webgl/utils/fluid/fluid-sim'
 
-export function useFluidSim() {
+export function useFluidSim(resolution = 128) {
   const sheet = useCurrentSheet()
   const gl = useThree((state) => state.gl)
   const size = useThree((state) => state.size)
 
-  // Use ref to ensure fluid is only created once
-  const fluidRef = useRef<Fluid | null>(null)
-  if (!fluidRef.current) {
-    fluidRef.current = new Fluid(gl, { size: 128 })
-  }
-  const fluid = fluidRef.current
+  // Created/destroyed by the effect, keyed on gl + resolution.
+  const [fluid, setFluid] = useState<null | Fluid>(null)
 
   useEffect(() => {
+    const fluid = new Fluid(gl, { simRes: resolution })
+    setFluid(fluid)
     return () => {
-      fluidRef.current?.destroy()
+      fluid.destroy()
+      setFluid(null)
     }
-  }, [])
+  }, [resolution, gl])
 
   const lastMouseRef = useRef({ x: 0, y: 0, isInit: false })
 
@@ -64,7 +63,7 @@ export function useFluidSim() {
         const normalizedY = 1 - clientY / size.height
 
         // Add splat to fluid simulation
-        fluid.addSplat(normalizedX, normalizedY, deltaX * 5, deltaY * -5)
+        fluid?.addSplat(normalizedX, normalizedY, deltaX * 5, deltaY * -5)
       }
     }
 
@@ -84,6 +83,7 @@ export function useFluidSim() {
 
   // Update aspect ratio when viewport size changes
   useEffect(() => {
+    if (!fluid) return
     fluid.splatMaterial.uniforms.uAspect!.value = size.width / size.height
   }, [size, fluid])
 
@@ -112,6 +112,7 @@ export function useFluidSim() {
         curl: number
         radius: number
       }) => {
+        if (!fluid) return
         fluid.curlStrength = curl
         fluid.densityDissipation = density
         fluid.velocityDissipation = velocity
@@ -122,9 +123,11 @@ export function useFluidSim() {
     }
   )
 
-  // Update fluid simulation each frame (delta keeps the sim frame-rate independent)
-  useFrame((_state, delta) => {
-    fluid.update(delta)
+  // Update fluid simulation each frame
+  // ponytail: sim runs at a fixed internal dt (0.016), so delta isn't passed.
+  // Wire delta through Fluid.update if frame-rate independence is needed.
+  useFrame(() => {
+    fluid?.update()
   }, -10)
 
   return fluid

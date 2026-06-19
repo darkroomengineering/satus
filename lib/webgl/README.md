@@ -1,6 +1,6 @@
 # WebGL / WebGPU / React Three Fiber
 
-GPU-accelerated 3D rendering with lazy GlobalCanvas architecture.
+GPU-accelerated 3D rendering with a persistent root canvas.
 
 ## Quick Start
 
@@ -10,7 +10,7 @@ import { WebGLTunnel } from '@/webgl/components/tunnel'
 
 export default function Page() {
   return (
-    <Wrapper webgl>
+    <Wrapper>
       <WebGLTunnel>
         <My3DScene />
       </WebGLTunnel>
@@ -20,95 +20,80 @@ export default function Page() {
 }
 ```
 
-No configuration needed - just add `webgl` prop to enable 3D on any page.
+No configuration needed — the root canvas is mounted once in the shared layout
+(`lib/features`), so any page can portal 3D content into it with `<WebGLTunnel>`.
 
-## Renderer Selection
+### Two canvas strategies (pick one)
 
-Automatic fallback chain:
-1. **WebGPU** - Modern API with best performance (Chrome 113+, Edge 113+)
-2. **WebGL 2** - Wide browser support
-3. **WebGL 1** - Legacy fallback
-4. **Disabled** - Graceful degradation if no GPU
+The canvas is mounted with `<Canvas root>`. Choose **one** place to do it:
 
-In development, a badge shows the active renderer: `🚀 WebGPU` or `🎮 WebGL`
+- **Shared (default):** `<Canvas root />` lives in the layout (`lib/features`),
+  so the context persists across route navigation. Pages just use
+  `<WebGLTunnel>`.
+- **Per page:** remove the shared canvas and pass `webgl` to the Wrapper
+  (`<Wrapper webgl>`), which mounts the canvas only on that page.
+
+Enabling both mounts two canvases — keep one strategy.
+
+## Device gating
+
+The canvas is rendered only when `useDeviceDetection().isWebGL` is true (a
+working WebGL2 context on a desktop viewport). On mobile or unsupported
+devices it's a no-op — nothing mounts. Rendering is driven manually by the
+`RAF` component (`frameloop="never"`), not the default r3f render loop.
 
 ## Architecture
 
 ```
-Root Layout → GlobalCanvas (mounts on first webgl page visit)
-    └─ CSS visibility:hidden when inactive (RAF paused)
-         └─ WebGLTunnel.Out (portals 3D content)
+<Canvas root> (layout OR per-page Wrapper) → rendered only when isWebGL
+    └─ WebGLTunnel.Out (portals 3D content from any page)
 ```
 
-**Key benefits:**
-- Zero overhead until first WebGL page
+**Key benefits (shared/layout strategy):**
 - Context persists across navigation (no recreation)
 - Seamless route transitions
 - Shared assets stay loaded
-- WebGPU when available, WebGL fallback
+- No-op on non-WebGL devices
 
 ## Components
 
 | Component | Purpose |
 |-----------|---------|
-| `Canvas` | Activates GlobalCanvas for a page |
-| `WebGLTunnel` | Portal 3D content to GlobalCanvas |
+| `Canvas` | Mounts the canvas via `root` (layout or per-page Wrapper) |
+| `WebGLTunnel` | Portal 3D content into the canvas |
 | `DOMTunnel` | Portal HTML overlays |
-| `GlobalCanvas` | Persistent canvas (in layout, loaded via `OptionalFeatures`) |
-
-The flowmap and fluid simulations are **opt-in per-page hooks**: use
-`useFlowmapSim()` from `lib/webgl/utils/flowmaps` or `useFluidSim()` from
-`lib/webgl/utils/fluid` directly inside a WebGLTunnel. Pages that don't use
-them pay no cost.
 
 ## Hooks
 
 ```tsx
-import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
-import { useWebGLStore } from '@/webgl/store'
+import { useDeviceDetection } from '@/hooks/use-device-detection'
+import { useWebGLElement } from '@/webgl/hooks/use-webgl-element'
 
-// Track DOM element for WebGL sync
-const [setRef, rect] = useWebGLRect()
+// Sync a DOM element's rect into the scene (+ on-screen visibility)
+const { setRef, rect, isVisible } = useWebGLElement()
 
-// Access global state
-const { isActivated, isActive } = useWebGLStore()
+// Gate rendering on capability
+const { isWebGL } = useDeviceDetection()
 ```
+
+`useWebGLRect` is the lower-level primitive (`useWebGLElement` is built on it):
+it returns a stable getter for an element's current transform, for reading
+inside a `useFrame` loop.
 
 ## DOM-Synced Component
 
 ```tsx
-import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
+import { useWebGLElement } from '@/webgl/hooks/use-webgl-element'
 import { WebGLTunnel } from '@/webgl/components/tunnel'
 
 function WebGLBox({ className }) {
-  const [setRef, rect] = useWebGLRect()
+  const { setRef, rect, isVisible } = useWebGLElement()
   return (
     <div ref={setRef} className={className}>
       <WebGLTunnel>
-        <mesh position={[rect.x, rect.y, 0]} />
+        <MyMesh rect={rect} visible={isVisible} />
       </WebGLTunnel>
     </div>
   )
 }
 ```
-
-## GPU Detection
-
-```tsx
-import { useDeviceDetection } from '@/hooks/use-device-detection'
-
-function MyComponent() {
-  const { hasGPU, hasWebGPU, hasWebGL, gpuCapability } = useDeviceDetection()
-
-  if (!hasGPU) {
-    return <FallbackUI />
-  }
-
-  // gpuCapability.preferredRenderer: 'webgpu' | 'webgl2' | 'webgl1' | 'none'
-}
-```
-
-## Visibility Optimization
-
-- **Active**: Canvas visible, RAF renders
-- **Inactive**: CSS `visibility: hidden`, RAF paused, GPU context preserved

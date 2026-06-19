@@ -7,13 +7,14 @@ import {
   type WebGLRenderer,
 } from 'three'
 
-export default class Program {
+export default class Program extends Scene {
   material: Material
   mesh: Mesh
   scene: Scene
   private camera: OrthographicCamera
 
   constructor(material: Material) {
+    super()
     this.material = material
 
     const geometry = new PlaneGeometry(1, 1)

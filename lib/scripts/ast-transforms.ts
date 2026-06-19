@@ -29,6 +29,7 @@ import type {
   CodeTransform,
   RemoveArrayObjectElementOp,
   RemoveArrayStringElementOp,
+  RemoveCallArgumentOp,
   RemoveCallStatementOp,
   RemoveDestructuredBindingOp,
   RemoveFunctionParameterOp,
@@ -221,6 +222,33 @@ function applyRemoveCallStatement(
     // Full start spans the leading trivia (blank line + comments) so the
     // statement's own comment block is removed with it.
     sf.removeText(stmt.getFullStart(), stmt.getEnd())
+  }
+
+  const result = sf.getFullText()
+  project.removeSourceFile(sf)
+  return result
+}
+
+function applyRemoveCallArgument(
+  project: Project,
+  sourceText: string,
+  op: RemoveCallArgumentOp
+): string {
+  const sf = project.createSourceFile('__tmp__.tsx', sourceText)
+
+  // removeArgument invalidates the node list, so re-resolve after each removal.
+  while (true) {
+    let removed = false
+    for (const call of sf.getDescendantsOfKind(SyntaxKind.CallExpression)) {
+      if (call.getExpression().getText() !== op.callee) continue
+      const arg = call.getArguments().find((a) => a.getText() === op.argument)
+      if (arg) {
+        call.removeArgument(arg)
+        removed = true
+        break
+      }
+    }
+    if (!removed) break
   }
 
   const result = sf.getFullText()
@@ -1050,6 +1078,9 @@ export function applyOpsToText(
         break
       case 'removeCallStatement':
         text = applyRemoveCallStatement(project, text, op)
+        break
+      case 'removeCallArgument':
+        text = applyRemoveCallArgument(project, text, op)
         break
       case 'removeJsxElement':
         text = applyRemoveJsxElement(project, text, op)

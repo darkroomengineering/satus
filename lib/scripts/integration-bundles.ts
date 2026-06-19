@@ -34,7 +34,7 @@ export interface RemoveImportOp {
 /** Remove a `const NAME = …` variable statement by name (any scope depth). */
 export interface RemoveVariableStatementOp {
   kind: 'removeVariableStatement'
-  /** The variable name to remove, e.g. 'LazyGlobalCanvas' */
+  /** The variable name to remove, e.g. 'LazyWebGLCanvas' */
   name: string
 }
 
@@ -50,6 +50,20 @@ export interface RemoveCallStatementOp {
 }
 
 /**
+ * Remove a single argument (by its source text) from every call to `callee`,
+ * e.g. drop `SheetContext` from `useContextBridge(TransformContext, SheetContext)`
+ * so the remaining `useContextBridge(TransformContext)` stops depending on the
+ * stripped Theatre.js module. No-op when the argument is already absent.
+ */
+export interface RemoveCallArgumentOp {
+  kind: 'removeCallArgument'
+  /** The called identifier, e.g. 'useContextBridge' */
+  callee: string
+  /** The argument's source text to remove, e.g. 'SheetContext' */
+  argument: string
+}
+
+/**
  * Remove (or unwrap) a JSX element by its tag name.
  *
  * - `attribute` — optional {name, value} pair that must match to disambiguate
@@ -59,7 +73,7 @@ export interface RemoveCallStatementOp {
  */
 export interface RemoveJsxElementOp {
   kind: 'removeJsxElement'
-  /** JSX tag name, e.g. 'LazyGlobalCanvas', 'Canvas', 'OrchestraToggle' */
+  /** JSX tag name, e.g. 'LazyWebGLCanvas', 'Canvas', 'OrchestraToggle' */
   tagName: string
   /** Optional attribute to match for disambiguation */
   attribute?: { name: string; value: string }
@@ -238,16 +252,16 @@ export interface AddArrayObjectElementOp {
 
 /**
  * Insert a full variable statement, e.g. re-adding
- * `const LazyGlobalCanvas = dynamic(…)` to lib/features/index.tsx.
+ * `const LazyWebGLCanvas = dynamic(…)` to lib/features/index.tsx.
  *
  * No-op when a variable named `name` already exists anywhere in the file
  * (any scope depth, mirroring `removeVariableStatement`).
  */
 export interface AddVariableStatementOp {
   kind: 'addVariableStatement'
-  /** The declared variable name used for the idempotency check, e.g. 'LazyGlobalCanvas' */
+  /** The declared variable name used for the idempotency check, e.g. 'LazyWebGLCanvas' */
   name: string
-  /** Full statement text to insert, e.g. `const LazyGlobalCanvas = dynamic(() => …)` */
+  /** Full statement text to insert, e.g. `const LazyWebGLCanvas = dynamic(() => …)` */
   text: string
   /**
    * When true or omitted, insert after the last import declaration.
@@ -293,6 +307,7 @@ export type AstOperation =
   | RemoveImportOp
   | RemoveVariableStatementOp
   | RemoveCallStatementOp
+  | RemoveCallArgumentOp
   | RemoveJsxElementOp
   | RemoveJsxAttributeOp
   | RemoveDestructuredBindingOp
@@ -605,10 +620,10 @@ export const INTEGRATION_BUNDLES: Partial<
       {
         file: 'lib/features/index.tsx',
         ops: [
-          // Remove `const LazyGlobalCanvas = dynamic(…)`
-          { kind: 'removeVariableStatement', name: 'LazyGlobalCanvas' },
-          // Remove `<LazyGlobalCanvas />` (and its preceding JSX comment)
-          { kind: 'removeJsxElement', tagName: 'LazyGlobalCanvas' },
+          // Remove `const LazyWebGLCanvas = dynamic(…)` (the root canvas mount)
+          { kind: 'removeVariableStatement', name: 'LazyWebGLCanvas' },
+          // Remove `<LazyWebGLCanvas root />` (and its preceding JSX comment)
+          { kind: 'removeJsxElement', tagName: 'LazyWebGLCanvas' },
         ],
       },
       {
@@ -619,29 +634,6 @@ export const INTEGRATION_BUNDLES: Partial<
             kind: 'removeJsxElement',
             tagName: 'OrchestraToggle',
             attribute: { name: 'id', value: 'webgl' },
-          },
-        ],
-      },
-      {
-        file: 'app/error.tsx',
-        ops: [
-          // Remove the `webgl` prop from `<Wrapper webgl>` — WrapperProps no
-          // longer declares webgl after the webgl integration is removed.
-          {
-            kind: 'removeJsxAttribute',
-            tagName: 'Wrapper',
-            attributeName: 'webgl',
-          },
-        ],
-      },
-      {
-        file: 'app/global-error.tsx',
-        ops: [
-          // Same as error.tsx — strip the dangling `webgl` prop.
-          {
-            kind: 'removeJsxAttribute',
-            tagName: 'Wrapper',
-            attributeName: 'webgl',
           },
         ],
       },
@@ -720,17 +712,13 @@ export const INTEGRATION_BUNDLES: Partial<
       },
     ],
     // The Wrapper's Canvas wiring (import + interface property + destructured
-    // param + <Canvas> wrapping <main> + JSDoc) cannot be expressed with the
-    // additive op set — re-wrapping children and restoring interface members
-    // would need bespoke ops. The file is restored wholesale instead, guarded
-    // by the lean-state comparison documented on `overwriteFiles`.
-    // app/error.tsx and app/global-error.tsx carry a `webgl` prop on <Wrapper>
-    // that is removed by codeTransforms; restore them wholesale on `satus add`.
+    // param + <Canvas> wrapping <main> + JSDoc) cannot be expressed additively —
+    // re-wrapping children and restoring interface members would need bespoke
+    // ops — so the file is restored wholesale, guarded by the lean-state
+    // comparison documented on `overwriteFiles`.
     overwriteFiles: [
       'components/layout/wrapper/index.tsx',
       'lib/hooks/use-device-detection.ts',
-      'app/error.tsx',
-      'app/global-error.tsx',
     ],
     addTransforms: [
       {
@@ -762,24 +750,24 @@ export const INTEGRATION_BUNDLES: Partial<
         ops: [
           // Ensure the dynamic() helper import is present
           { kind: 'addImport', text: "import dynamic from 'next/dynamic'" },
-          // Re-add `const LazyGlobalCanvas = dynamic(…)`
+          // Re-add `const LazyWebGLCanvas = dynamic(…)` (the root canvas mount)
           {
             kind: 'addVariableStatement',
-            name: 'LazyGlobalCanvas',
-            text: `const LazyGlobalCanvas = dynamic(
+            name: 'LazyWebGLCanvas',
+            text: `const LazyWebGLCanvas = dynamic(
   () =>
-    import('@/webgl/components/global-canvas').then((mod) => ({
-      default: mod.GlobalCanvas,
+    import('@/webgl/components/canvas').then((mod) => ({
+      default: mod.Canvas,
     })),
   { ssr: false }
 )`,
           },
-          // Re-add `<LazyGlobalCanvas />` inside the OptionalFeatures fragment
+          // Re-add `<LazyWebGLCanvas root />` inside the OptionalFeatures fragment
           {
             kind: 'addJsxChild',
             parentTagName: 'Fragment',
-            childText: '<LazyGlobalCanvas />',
-            childTagName: 'LazyGlobalCanvas',
+            childText: '<LazyWebGLCanvas root />',
+            childTagName: 'LazyWebGLCanvas',
           },
         ],
       },
@@ -865,18 +853,44 @@ export const INTEGRATION_BUNDLES: Partial<
           },
         ],
       },
+      // The canvas wraps its scene in <SheetProvider> (Theatre's sheet) and the
+      // tunnel bridges Theatre's SheetContext into r3f. Strip both so the webgl
+      // canvas mounts without theatre.
+      {
+        file: 'lib/webgl/components/canvas/webgl.tsx',
+        ops: [
+          { kind: 'removeImport', specifier: '@/lib/dev/theatre' },
+          // Unwrap <SheetProvider id="webgl">…</SheetProvider> (keep the scene)
+          { kind: 'removeJsxElement', tagName: 'SheetProvider', unwrap: true },
+        ],
+      },
+      {
+        file: 'lib/webgl/components/tunnel/index.tsx',
+        ops: [
+          { kind: 'removeImport', specifier: '@/lib/dev/theatre' },
+          // useContextBridge(TransformContext, SheetContext) → (TransformContext)
+          {
+            kind: 'removeCallArgument',
+            callee: 'useContextBridge',
+            argument: 'SheetContext',
+          },
+        ],
+      },
     ],
     // The r3f bindings and the webgl-hook wiring below depend on webgl.
     requires: ['webgl'],
-    // The fluid/flowmap Theatre wiring (sheet const + useTheatre call inside
-    // hook bodies) is not re-injectable statement-by-statement — these files
-    // are integration-owned and restored wholesale from the payload source.
+    // The webgl Theatre wiring (sheet const + useTheatre in the hooks, the
+    // <SheetProvider> in the canvas, the SheetContext bridge in the tunnel) is
+    // not re-injectable statement-by-statement, so these files are restored
+    // wholesale from the payload on `satus add theatre`.
     // lib/dev/index.tsx carries the `studio` destructured binding that the
     // removeDestructuredBinding op strips; restore it wholesale on `satus add`.
     // lib/dev/cmdo.tsx carries the studio OrchestraToggle; restore wholesale too.
     overwriteFiles: [
       'lib/webgl/utils/fluid/index.tsx',
       'lib/webgl/utils/flowmaps/index.tsx',
+      'lib/webgl/components/canvas/webgl.tsx',
+      'lib/webgl/components/tunnel/index.tsx',
       'lib/dev/index.tsx',
       'lib/dev/cmdo.tsx',
     ],

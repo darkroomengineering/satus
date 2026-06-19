@@ -6,7 +6,7 @@
  * Provides portal components for bridging React children across renderer
  * boundaries. React Three Fiber renders into its own React reconciler,
  * which means standard React contexts from the DOM tree are not available
- * inside the R3F canvas. This module uses the local tunnel utility to teleport
+ * inside the R3F canvas. This module uses `tunnel-rat` to teleport
  * JSX from the DOM tree into the WebGL scene graph (via {@link WebGLTunnel})
  * or into an HTML overlay layer on top of the canvas (via {@link DOMTunnel}).
  */
@@ -14,7 +14,7 @@
 import { useContextBridge } from '@react-three/drei'
 import { TransformContext } from 'hamo'
 import { Fragment, type PropsWithChildren, useId } from 'react'
-import { SheetContext, SheetProvider, useSheet } from '@/lib/dev/theatre'
+import { SheetContext } from '@/lib/dev/theatre'
 import { useCanvas } from '@/webgl/components/canvas'
 
 /**
@@ -56,22 +56,13 @@ export function WebGLTunnel({ children }: PropsWithChildren) {
   const { WebGLTunnel } = useCanvas()
 
   const ContextBridge = useContextBridge(TransformContext, SheetContext)
-
-  const sheet = useSheet()
   const uuid = useId()
 
   if (!WebGLTunnel) return
 
   return (
     <WebGLTunnel.In>
-      <ContextBridge key={uuid}>
-        <SheetProvider
-          id={sheet?.address?.sheetId}
-          instance={sheet?.address?.sheetInstanceId}
-        >
-          {children}
-        </SheetProvider>
-      </ContextBridge>
+      <ContextBridge key={uuid}>{children}</ContextBridge>
     </WebGLTunnel.In>
   )
 }

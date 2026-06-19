@@ -59,10 +59,12 @@
     "lenis": "^1.3.23",
     "next": "16.2.9",
     "next-sanity": "^13.0.11",
+    "postprocessing": "^6.39.1",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "tempus": "1.0.0-dev.17",
     "three": "0.184.0",
+    "tunnel-rat": "^0.1.2",
     "zod": "^4.4.3",
     "zustand": "^5.0.14"
   },

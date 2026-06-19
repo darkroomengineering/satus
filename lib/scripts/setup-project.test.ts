@@ -85,6 +85,7 @@ describe('Integration Bundle Configuration', () => {
             'removeImport',
             'removeVariableStatement',
             'removeCallStatement',
+            'removeCallArgument',
             'removeJsxElement',
             'removeInterfaceProperty',
             'removeFunctionParameter',
@@ -102,6 +103,9 @@ describe('Integration Bundle Configuration', () => {
             expect(op.name).toBeTruthy()
           } else if (op.kind === 'removeCallStatement') {
             expect(op.callee).toBeTruthy()
+          } else if (op.kind === 'removeCallArgument') {
+            expect(op.callee).toBeTruthy()
+            expect(op.argument).toBeTruthy()
           } else if (op.kind === 'removeJsxElement') {
             expect(op.tagName).toBeTruthy()
           } else if (op.kind === 'removeInterfaceProperty') {
@@ -339,9 +343,11 @@ describe('WebGL Code Transforms', () => {
       // Essential structure must remain
       expect(result).toContain("'use client'")
       expect(result).toContain('export function OptionalFeatures')
+      expect(result).toContain('GSAPRuntime')
 
-      // WebGL code must be gone
-      expect(result).not.toContain('LazyGlobalCanvas')
+      // The root WebGL canvas must be gone
+      expect(result).not.toContain('LazyWebGLCanvas')
+      expect(result).not.toContain('@/webgl/components/canvas')
     })
   })
 
@@ -676,14 +682,14 @@ describe('Additive Transforms (remove → add round trips)', () => {
     return { lean, restored }
   }
 
-  it('webgl: lib/features/index.tsx regains the LazyGlobalCanvas wiring', () => {
+  it('webgl: lib/features/index.tsx regains the root canvas wiring', () => {
     const result = roundTrip('webgl', 'lib/features/index.tsx')
     if (!result) return
 
-    expect(result.lean).not.toContain('LazyGlobalCanvas')
-    expect(result.restored).toContain('const LazyGlobalCanvas')
-    expect(result.restored).toContain('<LazyGlobalCanvas />')
-    expect(result.restored).toContain("import dynamic from 'next/dynamic'")
+    expect(result.lean).not.toContain('LazyWebGLCanvas')
+    expect(result.restored).toContain('const LazyWebGLCanvas = dynamic(')
+    expect(result.restored).toContain('@/webgl/components/canvas')
+    expect(result.restored).toContain('<LazyWebGLCanvas root />')
     // Untouched features survive
     expect(result.restored).toContain('GSAPRuntime')
     expect(result.restored).toContain('OrchestraTools')

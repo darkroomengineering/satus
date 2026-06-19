@@ -354,22 +354,29 @@ describe('round trip: webgl without theatre', () => {
 
     expect(await pathExists(join(project, 'lib/webgl'))).toBe(false)
     expect(await pathExists(join(project, 'lib/dev/theatre'))).toBe(false)
+    // The lean layout has its root-canvas wiring stripped
     expect(
       await readProjectFile(project, 'lib/features/index.tsx')
-    ).not.toContain('LazyGlobalCanvas')
+    ).not.toContain('LazyWebGLCanvas')
+    // The lean Wrapper has its page-canvas wiring stripped
+    expect(
+      await readProjectFile(project, 'components/layout/wrapper/index.tsx')
+    ).not.toContain('@/webgl/components/canvas')
 
     expectClean(await runAdd(project, 'webgl'), 'satus add webgl')
 
     // Theatre was not requested and must stay absent
     expect(await pathExists(join(project, 'lib/dev/theatre'))).toBe(false)
 
-    // The payload ships the fluid/flowmap hooks WITH Theatre wiring; with
-    // theatre absent, the add must strip it again — the expected text is the
-    // payload content with theatre's removal ops applied.
+    // The payload ships the fluid/flowmap hooks, the canvas, and the tunnel
+    // WITH Theatre wiring; with theatre absent, the add must strip it again —
+    // the expected text is the payload content with theatre's removal ops applied.
     const expectedOverrides: Record<string, string> = {}
     for (const rel of [
       'lib/webgl/utils/fluid/index.tsx',
       'lib/webgl/utils/flowmaps/index.tsx',
+      'lib/webgl/components/canvas/webgl.tsx',
+      'lib/webgl/components/tunnel/index.tsx',
     ]) {
       const ops = theatre.codeTransforms.find((t) => t.file === rel)?.ops ?? []
       expectedOverrides[rel] = applyOpsToText(await readRepoFile(rel), ops)
@@ -383,15 +390,10 @@ describe('round trip: webgl without theatre', () => {
     expect(fluid).not.toContain('@theatre/core')
     expect(fluid).not.toContain('useTheatre')
 
-    // Integration-owned Wrapper is restored wholesale from the payload
-    expect(
-      await readProjectFile(project, 'components/layout/wrapper/index.tsx')
-    ).toBe(await readRepoFile('components/layout/wrapper/index.tsx'))
-
-    // lib/features/index.tsx regains the LazyGlobalCanvas const + JSX
+    // lib/features regains the persistent root canvas wiring
     const features = await readProjectFile(project, 'lib/features/index.tsx')
-    expect(features).toContain('const LazyGlobalCanvas = dynamic(')
-    expect(features).toContain('<LazyGlobalCanvas />')
+    expect(features).toContain('const LazyWebGLCanvas = dynamic(')
+    expect(features).toContain('<LazyWebGLCanvas root />')
 
     // next.config.ts regains the optimizePackageImports entries
     const nextConfig = await readProjectFile(project, 'next.config.ts')
@@ -412,6 +414,15 @@ describe('round trip: webgl without theatre', () => {
       repoPkg.devDependencies,
       webgl.devDependencies
     )
+
+    // webgl without theatre must compile: the canvas/tunnel Theatre wiring
+    // (SheetProvider, SheetContext) is stripped on add since theatre is absent.
+    const typecheck = await runTypecheck(project)
+    if (typecheck.exitCode !== 0) {
+      throw new Error(
+        `tsgo --noEmit failed after 'satus add webgl' without theatre (exit ${typecheck.exitCode})\n--- stdout ---\n${typecheck.stdout}\n--- stderr ---\n${typecheck.stderr}`
+      )
+    }
 
     snapshot = await snapshotFiles(project)
   })

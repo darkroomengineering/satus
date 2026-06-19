@@ -159,7 +159,9 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | Component | Import | Type |
 |-----------|--------|------|
 | Canvas | `@/webgl/components/canvas` | Client |
-| GlobalCanvas | `@/webgl/components/global-canvas` | Client |
+| FlowmapProvider | `@/webgl/components/flowmap-provider` | Server |
+| Image | `@/webgl/components/image` | Client |
+| Postprocessing | `@/webgl/components/postprocessing` | Server |
 | Raf | `@/webgl/components/raf` | Server |
 | Tunnel | `@/webgl/components/tunnel` | Client |
 

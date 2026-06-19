@@ -54,6 +54,37 @@ const compactConfigFixture = `const nextConfig = {
 `
 
 // ---------------------------------------------------------------------------
+// removeCallArgument
+// ---------------------------------------------------------------------------
+
+describe('removeCallArgument', () => {
+  const op: AstOperation = {
+    kind: 'removeCallArgument',
+    callee: 'useContextBridge',
+    argument: 'SheetContext',
+  }
+
+  it('drops the named argument and is idempotent', () => {
+    const fixture = `const Bridge = useContextBridge(TransformContext, SheetContext)\n`
+    const result = applyOpsToText(fixture, [op])
+    expect(result).toContain('useContextBridge(TransformContext)')
+    expect(result).not.toContain('SheetContext')
+    // Removing again is a no-op.
+    expect(applyOpsToText(result, [op])).toBe(result)
+  })
+
+  it('is an exact no-op when the argument is already absent', () => {
+    const fixture = `const Bridge = useContextBridge(TransformContext)\n`
+    expect(applyOpsToText(fixture, [op])).toBe(fixture)
+  })
+
+  it('leaves calls to other callees untouched', () => {
+    const fixture = `useOther(TransformContext, SheetContext)\n`
+    expect(applyOpsToText(fixture, [op])).toBe(fixture)
+  })
+})
+
+// ---------------------------------------------------------------------------
 // addImport
 // ---------------------------------------------------------------------------
 
@@ -287,11 +318,11 @@ describe('addArrayObjectElement', () => {
 
 describe('addVariableStatement', () => {
   const lazyCanvasStatement =
-    "const LazyGlobalCanvas = dynamic(() => import('@/webgl/components/canvas').then((m) => m.GlobalCanvas))"
+    "const LazyWebGLCanvas = dynamic(() => import('@/webgl/components/canvas').then((m) => m.Canvas))"
 
   const addLazyCanvas: AstOperation = {
     kind: 'addVariableStatement',
-    name: 'LazyGlobalCanvas',
+    name: 'LazyWebGLCanvas',
     text: lazyCanvasStatement,
   }
 
@@ -307,12 +338,12 @@ export function OptionalFeatures() {
   it('should insert after the last import when absent', () => {
     const result = applyOpsToText(featuresFixture, [addLazyCanvas])
 
-    expect(result).toContain('const LazyGlobalCanvas')
+    expect(result).toContain('const LazyWebGLCanvas')
     // Placement: after the import, before the function.
     expect(result.indexOf("'next/dynamic'")).toBeLessThan(
-      result.indexOf('const LazyGlobalCanvas')
+      result.indexOf('const LazyWebGLCanvas')
     )
-    expect(result.indexOf('const LazyGlobalCanvas')).toBeLessThan(
+    expect(result.indexOf('const LazyWebGLCanvas')).toBeLessThan(
       result.indexOf('export function OptionalFeatures')
     )
     // Adding twice is a no-op.
@@ -322,7 +353,7 @@ export function OptionalFeatures() {
   it('should be an exact no-op when the variable exists at top level', () => {
     const fixture = `import dynamic from 'next/dynamic'
 
-const LazyGlobalCanvas = dynamic(() => import('@/webgl/components/canvas'))
+const LazyWebGLCanvas = dynamic(() => import('@/webgl/components/canvas'))
 
 export function OptionalFeatures() {
   return null
@@ -333,8 +364,8 @@ export function OptionalFeatures() {
 
   it('should be an exact no-op when the variable exists in function scope (descendant scan)', () => {
     const fixture = `export function OptionalFeatures() {
-  const LazyGlobalCanvas = null
-  return LazyGlobalCanvas
+  const LazyWebGLCanvas = null
+  return LazyWebGLCanvas
 }
 `
     expect(applyOpsToText(fixture, [addLazyCanvas])).toBe(fixture)
@@ -345,9 +376,9 @@ export function OptionalFeatures() {
       { ...addLazyCanvas, afterImports: false },
     ])
 
-    expect(result).toContain('const LazyGlobalCanvas')
+    expect(result).toContain('const LazyWebGLCanvas')
     expect(result.indexOf('export function OptionalFeatures')).toBeLessThan(
-      result.indexOf('const LazyGlobalCanvas')
+      result.indexOf('const LazyWebGLCanvas')
     )
   })
 })
@@ -446,19 +477,19 @@ describe('addJsxChild (fragment parent)', () => {
   const addLazyCanvas: AstOperation = {
     kind: 'addJsxChild',
     parentTagName: 'Fragment',
-    childText: '<LazyGlobalCanvas />',
-    childTagName: 'LazyGlobalCanvas',
+    childText: '<LazyWebGLCanvas />',
+    childTagName: 'LazyWebGLCanvas',
   }
 
   it("targets the first JSX fragment when parentTagName is 'Fragment'", () => {
     const result = applyOpsToText(fragmentFixture, [addLazyCanvas])
 
-    expect(result).toContain('<LazyGlobalCanvas />')
+    expect(result).toContain('<LazyWebGLCanvas />')
     // Appended as the last fragment child, before the closing `</>`.
     expect(result.indexOf('<OrchestraTools />')).toBeLessThan(
-      result.indexOf('<LazyGlobalCanvas />')
+      result.indexOf('<LazyWebGLCanvas />')
     )
-    expect(result.indexOf('<LazyGlobalCanvas />')).toBeLessThan(
+    expect(result.indexOf('<LazyWebGLCanvas />')).toBeLessThan(
       result.indexOf('</>')
     )
     // Adding twice is a no-op.

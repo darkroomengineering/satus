@@ -521,6 +521,7 @@ export type AllArticlesQueryResult = Array<{
 
 // Query TypeMap
 import '@sanity/client'
+
 declare module '@sanity/client' {
   interface SanityQueries {
     '\n  *[_type == "page" && slug.current == $slug][0] {\n    _id,\n    title,\n    slug,\n    \n  content[]{\n    ...,\n    markDefs[]{\n      ...,\n      _type == "link" => {\n        ...,\n        internalLink->{_type, slug, title}\n      }\n    }\n  }\n,\n    \n  link {\n    ...,\n    internalLink->{_type, slug, title}\n  }\n,\n    metadata,\n    publishedAt,\n    _updatedAt\n  }\n': PageQueryResult

@@ -61,7 +61,8 @@ const AccordionsGroupContext = createContext<{
   inGroup: boolean
 }>({
   currentId: undefined,
-  setCurrentId: () => {},
+  // no-op outside a Group; real setter is provided by Group below
+  setCurrentId: () => undefined,
   inGroup: false,
 })
 const AccordionContext = createContext({} as { isOpen: boolean; id: string })

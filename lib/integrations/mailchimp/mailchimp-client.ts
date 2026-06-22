@@ -12,8 +12,7 @@ export interface MailchimpConfig {
 export interface ContactData {
   name: string
   email: string
-  subject: string
-  message: string
+  note?: string
 }
 
 export interface SubscriptionData {
@@ -205,18 +204,18 @@ export async function addContactToMailchimp(
       console.error('Mailchimp contact tag error (non-fatal):', err)
     }
 
-    try {
-      await makeMailchimpRequest(
-        `/lists/${audienceId}/members/${upsert.memberId}/notes`,
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            note: `Contact form submission - Subject: ${contactData.subject}\n\nMessage: ${contactData.message}`,
-          }),
-        }
-      )
-    } catch (err) {
-      console.error('Mailchimp contact note error (non-fatal):', err)
+    if (contactData.note) {
+      try {
+        await makeMailchimpRequest(
+          `/lists/${audienceId}/members/${upsert.memberId}/notes`,
+          {
+            method: 'POST',
+            body: JSON.stringify({ note: contactData.note }),
+          }
+        )
+      } catch (err) {
+        console.error('Mailchimp contact note error (non-fatal):', err)
+      }
     }
 
     return { success: true }

@@ -1,9 +1,9 @@
 'use server'
 
 import { z } from 'zod'
-import type { FormState } from '@/components/ui/form/types'
 import type { TurnstileValidationResult } from '@/lib/integrations/turnstile'
 import { validateFormWithTurnstile } from '@/lib/integrations/turnstile'
+import type { FormState } from '@/lib/types/form'
 import { runFormAction } from '@/lib/utils/form-action'
 import { emailSchema } from '@/utils/validation'
 import {
@@ -49,7 +49,11 @@ export async function mailchimpContactAction(
     schema: contactSchema,
     formData,
     run: async (input) => {
-      const result = await addContactToMailchimp(input)
+      const result = await addContactToMailchimp({
+        name: input.name,
+        email: input.email,
+        note: `Contact form submission - Subject: ${input.subject}\n\nMessage: ${input.message}`,
+      })
       if (!result.success) {
         return {
           status: 500,

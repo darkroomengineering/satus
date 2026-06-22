@@ -2,7 +2,7 @@
 
 import { cookies } from 'next/headers'
 import { z } from 'zod'
-import type { FormState } from '@/components/ui/form/types'
+import type { FormState } from '@/lib/types/form'
 import { runFormAction } from '@/lib/utils/form-action'
 import { rateLimiters } from '@/lib/utils/rate-limit'
 import { emailSchema } from '@/utils/validation'

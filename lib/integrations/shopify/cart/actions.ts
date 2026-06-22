@@ -58,6 +58,33 @@ async function runCartAction(
   return run()
 }
 
+/**
+ * Resolve the Shopify cart line ID for a given merchandise item.
+ *
+ * Fast path: returns `{ lineId }` directly when the caller already has it,
+ * skipping the extra `getCart` round-trip.
+ * Fallback: fetches the cart and finds the line by `merchandiseId`.
+ *
+ * Returns `{ error }` when the cart cannot be fetched or the item is not found.
+ */
+async function resolveLineId(
+  cartId: string,
+  lineId: string | undefined,
+  merchandiseId: string
+): Promise<{ lineId: string } | { error: string }> {
+  if (lineId) return { lineId }
+
+  const cart = await getCart(cartId)
+  if (!cart) return { error: 'Error fetching cart' }
+
+  const lineItem = cart.lines.find(
+    (line) => line.merchandise.id === merchandiseId
+  )
+  return lineItem?.id
+    ? { lineId: lineItem.id }
+    : { error: 'Item not found in cart' }
+}
+
 export async function removeItem(
   _prevState: unknown,
   merchandiseId: string,
@@ -76,31 +103,15 @@ export async function removeItem(
     }
 
     try {
-      // Fast path: caller supplies lineId directly — skip the extra getCart round-trip.
-      if (lineId) {
-        await removeFromCart(cartId, [lineId])
-        revalidateTag(TAGS.cart, {})
-        return { ok: true }
+      const resolved = await resolveLineId(cartId, lineId, merchandiseId)
+
+      if ('error' in resolved) {
+        return { ok: false, error: resolved.error }
       }
 
-      // Fallback: resolve lineId from a fresh cart fetch (e.g. callers without lineId).
-      const cart = await getCart(cartId)
-
-      if (!cart) {
-        return { ok: false, error: 'Error fetching cart' }
-      }
-
-      const lineItem = cart.lines.find(
-        (line) => line.merchandise.id === merchandiseId
-      )
-
-      if (lineItem?.id) {
-        await removeFromCart(cartId, [lineItem.id])
-        revalidateTag(TAGS.cart, {})
-        return { ok: true }
-      }
-
-      return { ok: false, error: 'Item not found in cart' }
+      await removeFromCart(cartId, [resolved.lineId])
+      revalidateTag(TAGS.cart, {})
+      return { ok: true }
     } catch (_e) {
       return { ok: false, error: 'Error removing item from cart' }
     }
@@ -185,34 +196,14 @@ export async function updateItemQuantity(
     const { merchandiseId, quantity, lineId } = parsed.data
 
     try {
-      // Fast path: caller supplies lineId directly — skip the extra getCart round-trip.
-      if (lineId) {
-        await updateCart(cartId, [{ id: lineId, merchandiseId, quantity }])
-        revalidateTag(TAGS.cart, {})
-        return { ok: true }
-      }
+      const resolved = await resolveLineId(cartId, lineId, merchandiseId)
 
-      // Fallback: resolve lineId from a fresh cart fetch (e.g. callers without lineId).
-      const cart = await getCart(cartId)
-
-      if (!cart) {
-        return { ok: false, error: 'Error fetching cart' }
-      }
-
-      const lineItem = cart.lines.find(
-        (line) => line.merchandise.id === merchandiseId
-      )
-
-      if (!lineItem?.id) {
-        return { ok: false, error: 'Item not found in cart' }
+      if ('error' in resolved) {
+        return { ok: false, error: resolved.error }
       }
 
       await updateCart(cartId, [
-        {
-          id: lineItem.id,
-          merchandiseId,
-          quantity,
-        },
+        { id: resolved.lineId, merchandiseId, quantity },
       ])
       revalidateTag(TAGS.cart, {})
       return { ok: true }

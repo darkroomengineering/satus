@@ -39,7 +39,7 @@ import type {
   RemoveJsxElementOp,
   RemoveVariableStatementOp,
   ReplaceJsDocOp,
-} from './integration-bundles'
+} from './ast-operation-types'
 import { resolvePath } from './utils'
 
 // ---------------------------------------------------------------------------

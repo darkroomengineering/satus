@@ -31,22 +31,21 @@ import { join } from 'node:path'
 import * as p from '@clack/prompts'
 import type { RemovableId } from '@/integrations/registry'
 import { applyCodeTransforms } from './ast-transforms'
-import { cancelGuard } from './generate-shared'
-import {
-  type CodeTransform,
-  getIntegrationEntries,
-  getIntegrationNames,
-  INTEGRATION_BUNDLES,
-} from './integration-bundles'
-import type { PayloadPackageJson, PayloadSource } from './payload-source'
 import {
   addDependencies,
   appendEnvStubs,
   applyOverwriteFiles,
   copyBundleFiles,
-  isInstalled,
   restoreBarrelExports,
-} from './satus'
+  stripAbsentIntegrationWiring,
+} from './bundle-installer'
+import { cancelGuard } from './generate-shared'
+import {
+  type CodeTransform,
+  getIntegrationNames,
+  INTEGRATION_BUNDLES,
+} from './integration-bundles'
+import type { PayloadPackageJson, PayloadSource } from './payload-source'
 import {
   getFlagValue,
   parseCliFlags,
@@ -595,20 +594,14 @@ const setupAddIntegrations = async (
   // Strip absent-integration wiring from freshly copied files.
   // e.g. keeping webgl without theatre must remove theatre wiring from the
   // copied fluid/flowmap hooks.  These ops are no-ops on already-lean files.
-  const stripTransforms: CodeTransform[] = []
-  for (const [id, bundle] of getIntegrationEntries()) {
-    if (addedIntegrationIds.has(id)) continue
-    if (await isInstalled(bundle)) continue
-    stripTransforms.push(...bundle.codeTransforms)
-  }
-
-  if (stripTransforms.length > 0) {
-    const stripped = await applyCodeTransforms(stripTransforms, dryRun)
-    if (stripped > 0) {
-      p.log.step(
-        `Stripped absent-integration wiring from ${stripped} copied files`
-      )
-    }
+  const stripped = await stripAbsentIntegrationWiring(
+    addedIntegrationIds,
+    dryRun
+  )
+  if (stripped > 0) {
+    p.log.step(
+      `Stripped absent-integration wiring from ${stripped} copied files`
+    )
   }
 }
 

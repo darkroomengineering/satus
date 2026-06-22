@@ -14,8 +14,8 @@
  */
 
 import { describe, expect, it } from 'bun:test'
+import type { AstOperation } from './ast-operation-types'
 import { applyOpsToText } from './ast-transforms'
-import type { AstOperation } from './integration-bundles'
 
 /** Number of times `needle` occurs in `haystack`. */
 function count(haystack: string, needle: string): number {

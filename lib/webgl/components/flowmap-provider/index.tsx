@@ -30,9 +30,10 @@ type FlowmapContextType = {
   flowmap: Flowmap | null
 }
 
-export const FlowmapContext = createContext<FlowmapContextType>(
-  {} as FlowmapContextType
-)
+export const FlowmapContext = createContext<FlowmapContextType>({
+  fluid: null,
+  flowmap: null,
+})
 
 /**
  * Retrieves the active GPU simulation instance from context.
@@ -66,33 +67,75 @@ export function useFlowmap(type: 'fluid' | 'flowmap' = 'flowmap') {
   return flowmap
 }
 
+function FluidSimInner({ children }: { children: React.ReactNode }) {
+  const fluid = useFluidSim()
+  const parent = use(FlowmapContext)
+  return (
+    <FlowmapContext.Provider value={{ ...parent, fluid }}>
+      {children}
+    </FlowmapContext.Provider>
+  )
+}
+
+function FlowmapSimInner({ children }: { children: React.ReactNode }) {
+  const flowmap = useFlowmapSim()
+  const parent = use(FlowmapContext)
+  return (
+    <FlowmapContext.Provider value={{ ...parent, flowmap }}>
+      {children}
+    </FlowmapContext.Provider>
+  )
+}
+
 /**
- * Initializes and provides both the fluid and flowmap GPU simulations
- * via React context.
+ * Initializes and provides GPU simulations via React context.
  *
  * **Must be placed inside the R3F `<Canvas>` tree** because the underlying
  * hooks (`useFluidSim`, `useFlowmapSim`) depend on the Three.js WebGL
  * renderer and the R3F frame loop.
  *
  * @param props.children - R3F elements that need access to the simulations.
+ * @param props.simTypes - Which simulations to mount. Defaults to both
+ *   `['fluid', 'flowmap']` for back-compat. Pass a subset to skip the
+ *   other sim's GPU pass and window listeners entirely — e.g.
+ *   `simTypes={['flowmap']}` never runs `useFluidSim`.
  * @returns A context provider wrapping the children.
  *
  * @example
  * ```tsx
+ * // Both sims (default — back-compat)
  * <Canvas>
  *   <FlowmapProvider>
  *     <DistortedPlane />
  *   </FlowmapProvider>
  * </Canvas>
+ *
+ * // Flowmap only — skips the fluid GPU pass
+ * <Canvas>
+ *   <FlowmapProvider simTypes={['flowmap']}>
+ *     <DistortedPlane />
+ *   </FlowmapProvider>
+ * </Canvas>
  * ```
  */
-export function FlowmapProvider({ children }: { children: React.ReactNode }) {
-  const fluid = useFluidSim()
-  const flowmap = useFlowmapSim()
-
+export function FlowmapProvider({
+  children,
+  simTypes = ['fluid', 'flowmap'],
+}: {
+  children: React.ReactNode
+  /** Which simulations to mount. Default: both, for back-compat. */
+  simTypes?: ('fluid' | 'flowmap')[]
+}) {
+  let tree = children
+  if (simTypes.includes('flowmap')) {
+    tree = <FlowmapSimInner>{tree}</FlowmapSimInner>
+  }
+  if (simTypes.includes('fluid')) {
+    tree = <FluidSimInner>{tree}</FluidSimInner>
+  }
   return (
-    <FlowmapContext.Provider value={{ fluid, flowmap }}>
-      {children}
+    <FlowmapContext.Provider value={{ fluid: null, flowmap: null }}>
+      {tree}
     </FlowmapContext.Provider>
   )
 }

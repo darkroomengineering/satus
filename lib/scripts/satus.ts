@@ -16,28 +16,23 @@
  * non-interactively outside a TTY), so the CLI is drivable in CI.
  */
 
-import { mkdir } from 'node:fs/promises'
-import { dirname, join } from 'node:path'
 import * as p from '@clack/prompts'
 import type { RemovableId } from '@/integrations/registry'
-import { applyCodeTransforms, applyOpsToText } from './ast-transforms'
 import {
-  type CodeTransform,
+  installBundle,
+  isInstalled,
+  stripAbsentIntegrationWiring,
+} from './bundle-installer'
+import {
   getIntegrationEntries,
   INTEGRATION_BUNDLES,
   type IntegrationBundle,
 } from './integration-bundles'
 import {
-  listPayloadFiles,
-  type PayloadPackageJson,
-  type PayloadSource,
-  payloadPathExists,
-  readPayloadFile,
   readPayloadPackageJson,
   readPinnedRef,
   resolvePayloadSource,
 } from './payload-source'
-import { pathExists, resolvePath } from './utils'
 
 // ---------------------------------------------------------------------------
 // CLI argument parsing (exported for unit tests)
@@ -161,298 +156,6 @@ export function resolveAddSet(requested: string[]): {
   return { order, implied }
 }
 
-/** A bundle counts as installed when its first folder (or file) exists. */
-export function bundleProbePath(bundle: IntegrationBundle): string | undefined {
-  return bundle.folders[0] ?? bundle.files[0]
-}
-
-// ---------------------------------------------------------------------------
-// Barrel export restoration (exported for unit tests)
-// ---------------------------------------------------------------------------
-
-/**
- * Find the export line in a source barrel matching the removal `pattern`,
- * using the same matching as setup-project's removal (quoted pattern or
- * quoted './pattern' specifier).
- */
-export function findBarrelLine(
-  sourceText: string,
-  pattern: string
-): string | undefined {
-  return sourceText
-    .split('\n')
-    .find(
-      (line) => line.includes(`'${pattern}'`) || line.includes(`'./${pattern}'`)
-    )
-}
-
-/**
- * Insert a barrel export line when absent (sorted position among existing
- * `export` lines, best-effort). Returns the text unchanged when an identical
- * line already exists — idempotent.
- */
-export function insertBarrelLine(localText: string, line: string): string {
-  const newLine = line.trim()
-  if (newLine.length === 0) return localText
-
-  const lines = localText.split('\n')
-  if (lines.some((existing) => existing.trim() === newLine)) return localText
-
-  const exportIndexes: number[] = []
-  for (let i = 0; i < lines.length; i++) {
-    if (lines[i]?.startsWith('export ')) exportIndexes.push(i)
-  }
-
-  if (exportIndexes.length === 0) {
-    const base =
-      localText.length === 0 || localText.endsWith('\n')
-        ? localText
-        : `${localText}\n`
-    return `${base}${newLine}\n`
-  }
-
-  const sortedAfter = exportIndexes.find(
-    (i) => (lines[i] ?? '').localeCompare(newLine) > 0
-  )
-  const lastExport = exportIndexes[exportIndexes.length - 1] ?? 0
-  const insertAt = sortedAfter ?? lastExport + 1
-  lines.splice(insertAt, 0, newLine)
-  return lines.join('\n')
-}
-
-// ---------------------------------------------------------------------------
-// Install steps
-// ---------------------------------------------------------------------------
-
-export const isInstalled = async (
-  bundle: IntegrationBundle
-): Promise<boolean> => {
-  const probe = bundleProbePath(bundle)
-  if (!probe) return false
-  return pathExists(resolvePath(probe))
-}
-
-/**
- * Copy the bundle's `folders` and `files` from the payload source into the
- * project. Existing files are kept (unless --force); missing ones are always
- * copied. Fails loudly when the payload lacks a declared folder or file.
- */
-export const copyBundleFiles = async (
-  source: PayloadSource,
-  bundle: IntegrationBundle,
-  options: { dryRun: boolean; force: boolean }
-): Promise<{ copied: number; skipped: number }> => {
-  const relFiles: string[] = []
-
-  for (const folder of bundle.folders) {
-    relFiles.push(...(await listPayloadFiles(source, folder)))
-  }
-  for (const file of bundle.files) {
-    if (!(await payloadPathExists(source, file))) {
-      throw new Error(`Payload source (${source.label}) is missing ${file}`)
-    }
-    relFiles.push(file)
-  }
-
-  let copied = 0
-  let skipped = 0
-
-  for (const rel of relFiles) {
-    const dest = resolvePath(rel)
-    if ((await pathExists(dest)) && !options.force) {
-      skipped++
-      continue
-    }
-    if (!options.dryRun) {
-      await mkdir(dirname(dest), { recursive: true })
-      await Bun.write(dest, Bun.file(join(source.root, rel)))
-    }
-    copied++
-  }
-
-  return { copied, skipped }
-}
-
-/**
- * Copy the bundle's integration-owned `overwriteFiles` wholesale from the
- * payload source. A local file is only overwritten when it matches either
- * the payload version (already wired — no-op) or the expected lean state
- * (the payload version with this bundle's removal codeTransforms applied).
- * Anything else means local modifications — skip with a warning unless
- * --force.
- */
-export const applyOverwriteFiles = async (
-  source: PayloadSource,
-  bundle: IntegrationBundle,
-  options: { dryRun: boolean; force: boolean }
-): Promise<{ written: string[]; skipped: string[] }> => {
-  const written: string[] = []
-  const skipped: string[] = []
-
-  for (const rel of bundle.overwriteFiles ?? []) {
-    const payloadText = await readPayloadFile(source, rel)
-    const dest = resolvePath(rel)
-
-    if (!(await pathExists(dest))) {
-      if (!options.dryRun) {
-        await mkdir(dirname(dest), { recursive: true })
-        await Bun.write(dest, payloadText)
-      }
-      written.push(rel)
-      continue
-    }
-
-    const localText = await Bun.file(dest).text()
-    if (localText === payloadText) continue // already wired
-
-    const removalOps =
-      bundle.codeTransforms.find((t) => t.file === rel)?.ops ?? []
-    const expectedLean = applyOpsToText(payloadText, removalOps)
-
-    if (localText === expectedLean || options.force) {
-      if (!options.dryRun) {
-        await Bun.write(dest, payloadText)
-      }
-      written.push(rel)
-    } else {
-      skipped.push(rel)
-    }
-  }
-
-  return { written, skipped }
-}
-
-const sortRecord = (record: Record<string, string>): Record<string, string> =>
-  Object.fromEntries(
-    Object.entries(record).sort(([a], [b]) => a.localeCompare(b))
-  )
-
-/**
- * Add the bundle's dependencies to the local package.json, pinning each to
- * the version declared by the payload source's package.json. Dependencies
- * already present locally keep their existing pin.
- */
-export const addDependencies = async (
-  bundle: IntegrationBundle,
-  payloadPkg: PayloadPackageJson,
-  options: { dryRun: boolean }
-): Promise<{ added: string[]; missing: string[] }> => {
-  const pkgPath = resolvePath('package.json')
-  const pkg = (await Bun.file(pkgPath).json()) as {
-    dependencies?: Record<string, string>
-    devDependencies?: Record<string, string>
-    [key: string]: unknown
-  }
-
-  const added: string[] = []
-  const missing: string[] = []
-
-  const addFrom = (
-    names: string[],
-    target: 'dependencies' | 'devDependencies'
-  ): void => {
-    for (const name of names) {
-      const version =
-        payloadPkg.dependencies?.[name] ?? payloadPkg.devDependencies?.[name]
-      if (!version) {
-        missing.push(name)
-        continue
-      }
-      const record = pkg[target] ?? {}
-      pkg[target] = record
-      if (record[name]) continue // already present — keep the local pin
-      record[name] = version
-      added.push(`${name}@${version}`)
-    }
-  }
-
-  addFrom(bundle.dependencies, 'dependencies')
-  addFrom(bundle.devDependencies, 'devDependencies')
-
-  if (added.length > 0 && !options.dryRun) {
-    if (pkg.dependencies) pkg.dependencies = sortRecord(pkg.dependencies)
-    if (pkg.devDependencies) {
-      pkg.devDependencies = sortRecord(pkg.devDependencies)
-    }
-    await Bun.write(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
-  }
-
-  return { added, missing }
-}
-
-/**
- * Restore the bundle's barrel export lines: read each pattern's line from the
- * SOURCE repo's barrel file and insert it into the local barrel when absent
- * (created when missing). Warns when the payload has no matching barrel/line.
- */
-export const restoreBarrelExports = async (
-  source: PayloadSource,
-  bundle: IntegrationBundle,
-  options: { dryRun: boolean }
-): Promise<number> => {
-  let changes = 0
-
-  for (const { file, pattern } of bundle.barrelExports) {
-    if (!(await payloadPathExists(source, file))) {
-      p.log.warn(
-        `Payload source has no barrel file ${file} — skipping export restore for "${pattern}"`
-      )
-      continue
-    }
-
-    const sourceText = await readPayloadFile(source, file)
-    const line = findBarrelLine(sourceText, pattern)
-    if (!line) {
-      p.log.warn(
-        `No export line matching "${pattern}" in payload ${file} — skipping`
-      )
-      continue
-    }
-
-    const localPath = resolvePath(file)
-    const localText = (await pathExists(localPath))
-      ? await Bun.file(localPath).text()
-      : ''
-    const updated = insertBarrelLine(localText, line)
-
-    if (updated !== localText) {
-      if (!options.dryRun) {
-        await mkdir(dirname(localPath), { recursive: true })
-        await Bun.write(localPath, updated)
-      }
-      changes++
-    }
-  }
-
-  return changes
-}
-
-/** Append missing env vars as commented stubs to .env.example (created when absent). */
-export const appendEnvStubs = async (
-  envVars: string[],
-  dryRun: boolean
-): Promise<number> => {
-  if (envVars.length === 0) return 0
-
-  const envPath = resolvePath('.env.example')
-  const exists = await pathExists(envPath)
-  const content = exists ? await Bun.file(envPath).text() : ''
-
-  const missing = envVars.filter(
-    (envVar) => !new RegExp(`^#?\\s*${envVar}=`, 'm').test(content)
-  )
-  if (missing.length === 0) return 0
-
-  if (!dryRun) {
-    const base =
-      content.length === 0 || content.endsWith('\n') ? content : `${content}\n`
-    const stubs = missing.map((envVar) => `# ${envVar}=`).join('\n')
-    await Bun.write(envPath, `${base}${stubs}\n`)
-  }
-
-  return missing.length
-}
-
 // ---------------------------------------------------------------------------
 // Commands
 // ---------------------------------------------------------------------------
@@ -539,7 +242,7 @@ const runAdd = async (plugins: string[], flags: AddFlags): Promise<void> => {
   })
   p.log.step(`Payload source: ${source.label}`)
 
-  let depsAdded = 0
+  let totalDepsAdded = 0
 
   try {
     const payloadPkg = await readPayloadPackageJson(source)
@@ -547,58 +250,28 @@ const runAdd = async (plugins: string[], flags: AddFlags): Promise<void> => {
 
     for (const { bundle } of toInstall) {
       s.start(`Adding ${bundle.name}...`)
-      const details: string[] = []
 
-      const { copied, skipped } = await copyBundleFiles(source, bundle, flags)
-      if (copied > 0) details.push(`${copied} files copied`)
-      if (skipped > 0) details.push(`${skipped} existing files kept`)
-
-      const overwrite = await applyOverwriteFiles(source, bundle, flags)
-      if (overwrite.written.length > 0) {
-        details.push(
-          `${overwrite.written.length} integration-owned files restored`
-        )
-      }
-
-      const deps = await addDependencies(bundle, payloadPkg, flags)
-      depsAdded += deps.added.length
-      if (deps.added.length > 0) {
-        details.push(`${deps.added.length} dependencies pinned`)
-      }
-
-      const barrelChanges = await restoreBarrelExports(source, bundle, flags)
-      if (barrelChanges > 0) {
-        details.push(`${barrelChanges} barrel exports restored`)
-      }
-
-      const envChanges = await appendEnvStubs(bundle.envVars, flags.dryRun)
-      if (envChanges > 0) details.push(`${envChanges} env stubs appended`)
-
-      const transformChanges = await applyCodeTransforms(
-        bundle.addTransforms ?? [],
-        flags.dryRun
-      )
-      if (transformChanges > 0) {
-        details.push(`${transformChanges} files re-wired`)
-      }
+      const { details, depsAdded, overwriteSkipped, depsMissing } =
+        await installBundle(source, bundle, payloadPkg, flags)
+      totalDepsAdded += depsAdded.length
 
       const verb = flags.dryRun ? 'Would add' : 'Added'
       const detail = details.length > 0 ? ` (${details.join(', ')})` : ''
       s.stop(`${verb} ${bundle.name}${detail}`)
 
-      for (const rel of overwrite.skipped) {
+      for (const rel of overwriteSkipped) {
         p.log.warn(
           `${rel} is locally modified — skipped. Re-run with --force to overwrite.`
         )
       }
-      for (const dep of deps.missing) {
+      for (const dep of depsMissing) {
         p.log.warn(
           `"${dep}" is not in the payload package.json — install it manually.`
         )
       }
 
-      if (deps.added.length > 0) {
-        p.log.message(`  Pinned: ${deps.added.join(', ')}`)
+      if (depsAdded.length > 0) {
+        p.log.message(`  Pinned: ${depsAdded.join(', ')}`)
       }
     }
 
@@ -607,22 +280,14 @@ const runAdd = async (plugins: string[], flags: AddFlags): Promise<void> => {
     // hooks. Reuse the subtractive codeTransforms of each bundle that is
     // neither installed nor part of this add, so absent integrations stay
     // absent. These ops are no-ops on files already in the lean state.
-    const stripTransforms: CodeTransform[] = []
-    for (const [id, bundle] of getIntegrationEntries()) {
-      if (order.includes(id)) continue
-      if (await isInstalled(bundle)) continue
-      stripTransforms.push(...bundle.codeTransforms)
-    }
-    if (stripTransforms.length > 0) {
-      const stripped = await applyCodeTransforms(stripTransforms, flags.dryRun)
-      if (stripped > 0) {
-        p.log.step(
-          `Stripped absent-integration wiring from ${stripped} copied files`
-        )
-      }
+    const stripped = await stripAbsentIntegrationWiring(order, flags.dryRun)
+    if (stripped > 0) {
+      p.log.step(
+        `Stripped absent-integration wiring from ${stripped} copied files`
+      )
     }
 
-    if (depsAdded > 0 && !flags.dryRun) {
+    if (totalDepsAdded > 0 && !flags.dryRun) {
       if (flags.skipInstall) {
         p.log.step('Skipped bun install (--skip-install) — run it manually')
       } else {

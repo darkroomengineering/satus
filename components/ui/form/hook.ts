@@ -185,5 +185,5 @@ export function resolveValidator(
 ): ((value: string) => boolean) | undefined {
   const byName = element.name ? validatorMap[element.name] : undefined
   const byId = element.id ? validatorMap[element.id] : undefined
-  return byName || byId || validatorMap[element.type]
+  return byName ?? byId ?? validatorMap[element.type]
 }

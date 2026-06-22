@@ -183,9 +183,7 @@ export function resolveValidator(
   validatorMap: Record<string, (value: string) => boolean>,
   element: { name: string; id: string; type: string }
 ): ((value: string) => boolean) | undefined {
-  return (
-    validatorMap[element.name] ||
-    validatorMap[element.id] ||
-    validatorMap[element.type]
-  )
+  const byName = element.name ? validatorMap[element.name] : undefined
+  const byId = element.id ? validatorMap[element.id] : undefined
+  return byName || byId || validatorMap[element.type]
 }

@@ -87,14 +87,17 @@ describe('resolveValidator — name takes priority over id and type', () => {
     expect(resolved?.('anything')).toBe(true)
   })
 
-  test('empty name string does not accidentally match empty-string key', () => {
-    // element.name is '' for unnamed elements — should not match a real key
-    const validatorMap = { email: noop }
+  test('empty name string does not accidentally match an empty-string key', () => {
+    // element.name is '' for unnamed elements. Even if the map happens to hold
+    // an '' key, an unnamed element must skip the name lookup entirely.
+    const emptyKeyValidator = () => true
+    const validatorMap = { '': emptyKeyValidator, text: noop }
     const resolved = resolveValidator(validatorMap, {
       name: '',
       id: '',
       type: 'text',
     })
-    expect(resolved).toBeUndefined()
+    // must fall through to the type validator, not match the '' key
+    expect(resolved).toBe(noop)
   })
 })

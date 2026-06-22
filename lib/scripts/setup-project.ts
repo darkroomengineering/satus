@@ -149,17 +149,26 @@ const replaceManualLandingPage = async (dryRun: boolean): Promise<void> => {
   }
 }
 
+// Parsed package.json shape used by the in-memory mutation helpers below.
+type PackageJson = {
+  dependencies?: Record<string, string>
+  devDependencies?: Record<string, string>
+  scripts?: Record<string, string>
+  satus?: Record<string, unknown>
+  [key: string]: unknown
+}
+
 /**
- * Remove dependency entries from package.json
+ * Remove dependency entries from the in-memory package.json object.
+ * Returns the lists of removed dep/devDep names (for logging).
+ * Does NOT read or write the file — caller owns I/O.
  */
-const removeDepsFromPackageJson = async (
+const removeDepsFromPackageJson = (
+  pkg: PackageJson,
   depsToRemove: string[],
   devDepsToRemove: string[],
   dryRun: boolean
-): Promise<{ deps: string[]; devDeps: string[] }> => {
-  const pkgPath = resolvePath('package.json')
-  const pkg = await Bun.file(pkgPath).json()
-
+): { deps: string[]; devDeps: string[] } => {
   const removedDeps: string[] = []
   const removedDevDeps: string[] = []
 
@@ -179,10 +188,6 @@ const removeDepsFromPackageJson = async (
       }
       removedDevDeps.push(dep)
     }
-  }
-
-  if ((removedDeps.length > 0 || removedDevDeps.length > 0) && !dryRun) {
-    await Bun.write(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
   }
 
   return { deps: removedDeps, devDeps: removedDevDeps }
@@ -369,8 +374,15 @@ const setupSnapshot = async (
  * Apply the UNION of ALL bundles' removals unconditionally — stripping every
  * integration to leave a lean core.  This is a re-scoping of the prior
  * "remove unkept" logic to "remove all".
+ *
+ * Accepts a pre-parsed in-memory `pkg` object and calls `removeDepsFromPackageJson`
+ * to mutate it directly — no file I/O for the package.json dep removal step.
+ * Returns removal counts for logging.
  */
-const setupLean = async (dryRun: boolean): Promise<void> => {
+const setupLean = async (
+  pkg: PackageJson,
+  dryRun: boolean
+): Promise<{ deps: number; devDeps: number }> => {
   const integrationNames = getIntegrationNames()
   const s = p.spinner()
 
@@ -440,15 +452,20 @@ const setupLean = async (dryRun: boolean): Promise<void> => {
     allBarrelExports.push(...bundle.barrelExports)
   }
 
-  // Update package.json
+  // Mutate the in-memory package.json object (no file write here)
+  let totalDeps = 0
+  let totalDevDeps = 0
   if (allDeps.length > 0 || allDevDeps.length > 0) {
     s.start('Updating package.json (removing deps)...')
-    const { deps, devDeps } = await removeDepsFromPackageJson(
+    const { deps, devDeps } = removeDepsFromPackageJson(
+      pkg,
       allDeps,
       allDevDeps,
       dryRun
     )
-    const total = deps.length + devDeps.length
+    totalDeps = deps.length
+    totalDevDeps = devDeps.length
+    const total = totalDeps + totalDevDeps
     s.stop(
       total > 0
         ? `Removed ${total} dependencies from package.json`
@@ -477,6 +494,8 @@ const setupLean = async (dryRun: boolean): Promise<void> => {
         : 'No export updates needed'
     )
   }
+
+  return { deps: totalDeps, devDeps: totalDevDeps }
 }
 
 /**
@@ -594,16 +613,10 @@ const setupAddIntegrations = async (
 }
 
 /**
- * Self-prune: delete this script's own setup machinery from the scaffolded
- * project as its last act.  Deletes:
- *   - lib/scripts/setup-project.ts (this file, last, wrapped in try/catch)
- *   - lib/scripts/setup-project.test.ts
- *   - lib/scripts/satus.test.ts
- *   - lib/scripts/satus.e2e.test.ts
- *   - lib/scripts/ast-transforms.test.ts
- *   - lib/scripts/payload-source.test.ts
- *
- * Also removes `setup:project` and `test:setup` from package.json scripts.
+ * Mutate the in-memory package.json object to remove the `setup:project` and
+ * `test:setup` script entries, and delete the setup script files from disk.
+ * Returns the list of deleted files and removed script keys (for logging).
+ * Does NOT write package.json — caller owns the single write.
  *
  * KEPT (used by tests that ship with every project):
  *   - lib/scripts/test-setup.ts (bunfig.toml preloads it for ALL bun tests)
@@ -612,7 +625,10 @@ const setupAddIntegrations = async (
  *   - lib/scripts/satus.ts and all its deps
  *   - lib/scripts/ast-transforms.ts, integration-bundles.ts, etc.
  */
-const selfPrune = async (dryRun: boolean): Promise<void> => {
+const selfPrune = async (
+  pkg: PackageJson,
+  dryRun: boolean
+): Promise<{ deleted: string[]; scriptsRemoved: string[] }> => {
   const s = p.spinner()
   s.start('Self-pruning setup machinery...')
 
@@ -635,12 +651,7 @@ const selfPrune = async (dryRun: boolean): Promise<void> => {
     }
   }
 
-  // Remove setup:project and test:setup from package.json scripts
-  const pkgPath = resolvePath('package.json')
-  const pkg = (await Bun.file(pkgPath).json()) as {
-    scripts?: Record<string, string>
-    [key: string]: unknown
-  }
+  // Mutate the in-memory package.json scripts (no file write here)
   const scriptsRemoved: string[] = []
   const scripts = pkg.scripts
   if (scripts) {
@@ -652,9 +663,6 @@ const selfPrune = async (dryRun: boolean): Promise<void> => {
           delete scripts[key]
         }
       }
-    }
-    if (scriptsRemoved.length > 0 && !dryRun) {
-      await Bun.write(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
     }
   }
 
@@ -682,34 +690,29 @@ const selfPrune = async (dryRun: boolean): Promise<void> => {
   } else {
     p.log.message('  Would delete lib/scripts/setup-project.ts')
   }
+
+  return { deleted, scriptsRemoved }
 }
 
 /**
- * Record the current git HEAD sha into package.json as the pinned satus ref
- * (`"satus": { "ref": … }`), used by `satus add` to fetch matching payloads.
- * Skips silently when git is unavailable — the ref is optional metadata.
+ * Read the current git HEAD sha. Returns the sha string, or undefined when
+ * git is unavailable or not a repo. The sha is later written into package.json
+ * as `"satus": { "ref": … }` by the consolidated package.json write in setup().
  */
-const recordPinnedRef = async (): Promise<void> => {
+const readGitHead = async (): Promise<string | undefined> => {
   try {
     const proc = Bun.spawn(['git', 'rev-parse', 'HEAD'], {
       stdout: 'pipe',
       stderr: 'ignore',
     })
     const exitCode = await proc.exited
-    if (exitCode !== 0) return
+    if (exitCode !== 0) return undefined
 
     const sha = (await new Response(proc.stdout).text()).trim()
-    if (!sha) return
-
-    const pkgPath = resolvePath('package.json')
-    const pkg = (await Bun.file(pkgPath).json()) as {
-      satus?: Record<string, unknown>
-      [key: string]: unknown
-    }
-    pkg.satus = { ...(pkg.satus ?? {}), ref: sha }
-    await Bun.write(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
+    return sha || undefined
   } catch {
     // git not installed / not a repo — the pinned ref is optional metadata
+    return undefined
   }
 }
 
@@ -717,14 +720,19 @@ const recordPinnedRef = async (): Promise<void> => {
  * Main setup orchestration (additive model):
  *
  *   1. ensureNextTypeStub
- *   2. recordPinnedRef (read git HEAD before any writes)
+ *   2. Read git HEAD sha (before any writes — metadata only)
  *   3. cleanMarketing (if flagged)
  *   4. snapshot(kept) — capture kept integration files before stripping
- *   5. setupLean — strip ALL integrations unconditionally
- *   6. setupAddIntegrations — re-add the kept set from the snapshot
- *   7. snapshot.cleanup()
- *   8. selfPrune — delete setup machinery
- *   9. bun install (unless --skip-install)
+ *   5. Read package.json ONCE into memory
+ *   6. setupLean — strip ALL integrations (mutates in-memory pkg)
+ *   7. selfPrune — delete setup files; mutate pkg scripts in-memory
+ *   8. Apply pinned git ref to in-memory pkg
+ *   9. Write package.json ONCE (atomic for steps 6–8; before bun install
+ *      so the installer sees the final dep list and lockfile stays consistent)
+ *  10. setupAddIntegrations — re-add the kept set from the snapshot
+ *  11. snapshot.cleanup()
+ *  12. bun install (unless --skip-install); runs after the write so it reads
+ *      the already-finalized package.json and only updates the lockfile
  */
 const setup = async (options: SetupOptions): Promise<void> => {
   const { dryRun, keepIntegrations, cleanMarketing, skipInstall } = options
@@ -733,10 +741,8 @@ const setup = async (options: SetupOptions): Promise<void> => {
   //    immediately after setup without needing to run `bun dev` first.
   await ensureNextTypeStub(dryRun)
 
-  // 2. Record the pinned ref BEFORE any writes (reads git HEAD; metadata only).
-  if (!dryRun) {
-    await recordPinnedRef()
-  }
+  // 2. Read git HEAD before any writes (pure read, no side-effects).
+  const gitSha = dryRun ? undefined : await readGitHead()
 
   // 3. Replace the manual landing page (independent of integration removal).
   if (cleanMarketing) {
@@ -755,23 +761,44 @@ const setup = async (options: SetupOptions): Promise<void> => {
     ss.stop(`Snapshot ready (${snapshot.label})`)
   }
 
-  // 5. Strip ALL integrations unconditionally to lean core.
-  await setupLean(dryRun)
+  // 5. Read package.json ONCE into memory. All three mutators (removeDeps,
+  //    selfPrune, recordPinnedRef) operate on this object; a single write
+  //    follows at step 9. This avoids partial-mutation on mid-sequence failure
+  //    and eliminates 3+ separate read-parse-write round-trips.
+  const pkgPath = resolvePath('package.json')
+  const pkg = (await Bun.file(pkgPath).json()) as PackageJson
 
-  // 6. Re-add the kept integrations from the snapshot.
+  // 6. Strip ALL integrations unconditionally to lean core.
+  //    Mutates `pkg` for dep removal; other file changes (folders, env) happen here.
+  await setupLean(pkg, dryRun)
+
+  // 7. Self-prune: delete setup files, mutate pkg.scripts in-memory.
+  await selfPrune(pkg, dryRun)
+
+  // 8. Record the pinned satus ref in-memory (git sha read at step 2).
+  if (gitSha) {
+    pkg.satus = { ...(pkg.satus ?? {}), ref: gitSha }
+  }
+
+  // 9. Write package.json ONCE with all three mutations applied.
+  //    Must happen BEFORE bun install so the installer sees the final dep list
+  //    and updates the lockfile accordingly. bun install does not rewrite
+  //    package.json itself, so this write is not clobbered by the install step.
+  if (!dryRun) {
+    await Bun.write(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
+  }
+
+  // 10. Re-add the kept integrations from the snapshot.
   if (snapshot) {
     await setupAddIntegrations(keepIntegrations, snapshot, dryRun)
   }
 
-  // 7. Cleanup snapshot temp directory.
+  // 11. Cleanup snapshot temp directory.
   if (snapshot) {
     await snapshot.cleanup()
   }
 
-  // 8. Self-prune: delete setup machinery from the scaffolded project.
-  await selfPrune(dryRun)
-
-  // 9. Run bun install to update lockfile.
+  // 12. Run bun install to update lockfile.
   if (!(dryRun || skipInstall)) {
     const s = p.spinner()
     s.start('Updating lockfile...')

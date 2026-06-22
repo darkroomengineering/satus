@@ -1,14 +1,10 @@
 'use server'
 
-import { cookies, headers } from 'next/headers'
+import { cookies } from 'next/headers'
 import { z } from 'zod'
 import type { FormState } from '@/components/ui/form/types'
 import { runFormAction } from '@/lib/utils/form-action'
-import {
-  getIPFromHeaders,
-  rateLimit,
-  rateLimiters,
-} from '@/lib/utils/rate-limit'
+import { rateLimiters } from '@/lib/utils/rate-limit'
 import { emailSchema } from '@/utils/validation'
 import { shopifyFetch } from '../index'
 import {
@@ -37,23 +33,12 @@ export async function LoginCustomerAction(
   _prevState: FormState | null,
   formData: FormData
 ): Promise<FormState> {
-  // Login uses strict rate limiting (5 req/min) to prevent brute-force attacks.
-  // runFormAction applies standard limiting, so we pre-check strict here.
-  const headersList = await headers()
-  const ip = getIPFromHeaders(headersList)
-  const rateLimitResult = rateLimit(`login:${ip}`, rateLimiters.strict)
-
-  if (!rateLimitResult.success) {
-    return {
-      status: 429,
-      message: `Too many login attempts. Please try again in ${rateLimitResult.resetIn} seconds.`,
-    }
-  }
-
   return runFormAction({
     rateLimitPrefix: 'login-form',
     schema: loginSchema,
     formData,
+    rateLimiter: rateLimiters.strict,
+    rateLimitMessage: 'Too many login attempts. Please try again later.',
     run: async ({ email, password }) => {
       try {
         const res = await shopifyFetch<{

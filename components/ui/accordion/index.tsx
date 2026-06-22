@@ -55,12 +55,15 @@ import s from './accordion.module.css'
  * ```
  */
 
-const AccordionsGroupContext = createContext(
-  {} as {
-    currentId: string | undefined
-    setCurrentId: Dispatch<SetStateAction<string | undefined>>
-  }
-)
+const AccordionsGroupContext = createContext<{
+  currentId: string | undefined
+  setCurrentId: Dispatch<SetStateAction<string | undefined>>
+  inGroup: boolean
+}>({
+  currentId: undefined,
+  setCurrentId: () => {},
+  inGroup: false,
+})
 const AccordionContext = createContext({} as { isOpen: boolean; id: string })
 
 function useAccordionsGroupContext() {
@@ -79,7 +82,9 @@ function Group({ children }: PropsWithChildren) {
   const [currentId, setCurrentId] = useState<string | undefined>()
 
   return (
-    <AccordionsGroupContext.Provider value={{ currentId, setCurrentId }}>
+    <AccordionsGroupContext.Provider
+      value={{ currentId, setCurrentId, inGroup: true }}
+    >
       {children}
     </AccordionsGroupContext.Provider>
   )
@@ -113,10 +118,10 @@ type RootProps = {
  */
 function Root({ children, className, ref, defaultOpen = false }: RootProps) {
   const id = useId()
-  const { currentId, setCurrentId } = useAccordionsGroupContext()
+  const { currentId, setCurrentId, inGroup } = useAccordionsGroupContext()
 
   // If in a group, use group state; otherwise use local state
-  const hasGroup = setCurrentId !== undefined
+  const hasGroup = inGroup
   const [localOpen, setLocalOpen] = useState(defaultOpen)
 
   const isOpen = hasGroup ? currentId === id : localOpen

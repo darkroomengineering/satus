@@ -3,6 +3,7 @@ import type { z } from 'zod'
 import type { FormState } from '@/components/ui/form/types'
 import {
   getIPFromHeaders,
+  type RateLimitConfig,
   rateLimit,
   rateLimiters,
 } from '@/lib/utils/rate-limit'
@@ -20,6 +21,11 @@ interface RunFormActionOptions<T> {
    * Defaults to `'rate_limit_exceeded_'`.
    */
   rateLimitMessage?: string
+  /**
+   * Rate limiter config. Defaults to the standard limiter (20 req/min).
+   * Pass `rateLimiters.strict` for sensitive endpoints like login.
+   */
+  rateLimiter?: RateLimitConfig
   /** Business logic to run after validation succeeds. */
   run: (input: T) => Promise<FormState>
 }
@@ -27,7 +33,7 @@ interface RunFormActionOptions<T> {
 /**
  * Shared server-action helper that handles:
  * 1. IP extraction from `x-forwarded-for`
- * 2. Rate limiting (standard limiter, 20 req/min)
+ * 2. Rate limiting (configurable; defaults to standard limiter, 20 req/min)
  * 3. Zod schema validation via `parseFormData`
  * 4. Delegation to the provided `run` callback
  *
@@ -40,15 +46,13 @@ export async function runFormAction<T>({
   schema,
   formData,
   rateLimitMessage = 'rate_limit_exceeded_',
+  rateLimiter = rateLimiters.standard,
   run,
 }: RunFormActionOptions<T>): Promise<FormState> {
   const headersList = await headers()
   const ip = getIPFromHeaders(headersList)
 
-  const rateLimitResult = rateLimit(
-    `${rateLimitPrefix}:${ip}`,
-    rateLimiters.standard
-  )
+  const rateLimitResult = rateLimit(`${rateLimitPrefix}:${ip}`, rateLimiter)
 
   if (!rateLimitResult.success) {
     return {

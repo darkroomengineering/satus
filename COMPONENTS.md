@@ -83,7 +83,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 
 | Export | Signature |
 |--------|-----------|
-| runFormAction | `({ rateLimitPrefix, schema, formData, rateLimitMessage = 'rate_limit_exceeded_', run, }: RunFormActionOptions<T>) => Promise<FormState>` |
+| runFormAction | `({ rateLimitPrefix, schema, formData, rateLimitMessage = 'rate_limit_exceeded_', rateLimiter = rateLimiters.standard, run, }: RunFormActionOptions<T>) => Promise<FormState>` |
 
 ### Math (`@/utils/math`)
 

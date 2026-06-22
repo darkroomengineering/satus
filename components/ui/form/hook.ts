@@ -90,7 +90,11 @@ export function useForm<T = unknown>({
 
     const elementType =
       element instanceof HTMLInputElement ? element.type : 'textarea'
-    const validator = validators[element.id] || validators[elementType]
+    const validator = resolveValidator(validators, {
+      name: element.name,
+      id: element.id,
+      type: elementType,
+    })
 
     const isRequired = element.required
     let isValidValue: boolean
@@ -167,4 +171,21 @@ const validators: Record<string, (value: string) => boolean> = {
 // Allow extending validators
 export function addValidator(id: string, fn: (value: string) => boolean) {
   validators[id] = fn
+}
+
+/**
+ * Pure helper: resolves the best matching validator for a given element.
+ * Exported for testing and custom form integrations.
+ *
+ * Priority: name → id → elementType
+ */
+export function resolveValidator(
+  validatorMap: Record<string, (value: string) => boolean>,
+  element: { name: string; id: string; type: string }
+): ((value: string) => boolean) | undefined {
+  return (
+    validatorMap[element.name] ||
+    validatorMap[element.id] ||
+    validatorMap[element.type]
+  )
 }

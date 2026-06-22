@@ -105,26 +105,6 @@ export const createDir = async (path: string): Promise<void> => {
  */
 export const bunExecutable = process.execPath
 
-/**
- * Current platform
- */
-export const platform = process.platform
-
-/**
- * Check if running on Windows
- */
-export const isWindows = platform === 'win32'
-
-/**
- * Check if running on macOS
- */
-export const isMacOS = platform === 'darwin'
-
-/**
- * Check if running on Linux
- */
-export const isLinux = platform === 'linux'
-
 // ============================================================================
 // CLI Argument Utilities
 // ============================================================================
@@ -186,7 +166,7 @@ export const getFlagValue = (
  */
 export const copyToClipboard = async (text: string): Promise<boolean> => {
   try {
-    if (isMacOS) {
+    if (process.platform === 'darwin') {
       const proc = Bun.spawn(['pbcopy'], { stdin: 'pipe' })
       proc.stdin.write(text)
       proc.stdin.end()
@@ -194,7 +174,7 @@ export const copyToClipboard = async (text: string): Promise<boolean> => {
       return proc.exitCode === 0
     }
 
-    if (isLinux) {
+    if (process.platform === 'linux') {
       // Try xclip first, then xsel
       for (const cmd of [
         ['xclip', '-selection', 'clipboard'],
@@ -213,7 +193,7 @@ export const copyToClipboard = async (text: string): Promise<boolean> => {
       return false
     }
 
-    if (isWindows) {
+    if (process.platform === 'win32') {
       const proc = Bun.spawn(['clip'], { stdin: 'pipe' })
       proc.stdin.write(text)
       proc.stdin.end()

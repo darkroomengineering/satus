@@ -26,7 +26,7 @@
 'use server'
 
 import { z } from 'zod'
-import type { FormState } from '@/components/ui/form/types'
+import type { FormState } from '@/lib/types/form'
 import { runFormAction } from '@/lib/utils/form-action'
 import { fetchWithTimeout } from '@/utils/fetch'
 import { emailSchema } from '@/utils/validation'

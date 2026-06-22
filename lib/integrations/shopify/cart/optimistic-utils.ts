@@ -3,7 +3,6 @@ import type {
   Product,
   ProductVariant,
 } from '@/integrations/shopify/types'
-import { isEmptyArray } from '@/utils/strings'
 
 type CartLine = Pick<
   Cart['lines'][number],
@@ -67,7 +66,7 @@ function updateItem(state: Cart, action: UpdateItemAction): Cart {
     return updated ? [updated] : []
   })
 
-  if (isEmptyArray(updatedLines)) {
+  if (updatedLines.length === 0) {
     return {
       ...state,
       lines: [],

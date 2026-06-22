@@ -543,31 +543,31 @@ function applyReplaceJsDoc(
  * Resolve a dot-separated property path from an object-expression node,
  * returning the deepest PropertyAccessExpression value node or undefined.
  *
- * e.g. `resolvePropertyPath(objExpr, 'images.remotePatterns')` returns the
- * node for the `remotePatterns` array initialiser.
+ * Operates on a caller-owned SourceFile — the caller is responsible for the
+ * file's lifetime (open before, remove in `finally` via `withSourceFile`).
+ *
+ * e.g. `resolvePropertyPath(sf, 'nextConfig', 'images.remotePatterns')` returns
+ * the node for the `remotePatterns` array initialiser.
  */
 function resolvePropertyPath(
-  project: Project,
-  sourceText: string,
+  sf: SourceFile,
   variableName: string,
   propertyPath: string
-): { sf: SourceFile; node: Node | undefined } {
-  const sf = project.createSourceFile('__tmp__.ts', sourceText)
-
+): Node | undefined {
   const varDecl = sf
     .getVariableDeclarations()
     .find((v) => v.getName() === variableName)
-  if (!varDecl) return { sf, node: undefined }
+  if (!varDecl) return undefined
 
   const init = varDecl.getInitializer()
   if (!init || init.getKind() !== SyntaxKind.ObjectLiteralExpression)
-    return { sf, node: undefined }
+    return undefined
 
   const parts = propertyPath.split('.')
   let current: Node = init
   for (const part of parts) {
     if (current.getKind() !== SyntaxKind.ObjectLiteralExpression) {
-      return { sf, node: undefined }
+      return undefined
     }
     const obj = current.asKindOrThrow(SyntaxKind.ObjectLiteralExpression)
     const prop = obj
@@ -577,12 +577,12 @@ function resolvePropertyPath(
           p.getKind() === SyntaxKind.PropertyAssignment &&
           p.asKindOrThrow(SyntaxKind.PropertyAssignment).getName() === part
       )
-    if (!prop) return { sf, node: undefined }
+    if (!prop) return undefined
     const pa = prop.asKindOrThrow(SyntaxKind.PropertyAssignment)
     current = pa.getInitializer() ?? pa
   }
 
-  return { sf, node: current }
+  return current
 }
 
 function applyRemoveArrayObjectElement(
@@ -590,32 +590,25 @@ function applyRemoveArrayObjectElement(
   sourceText: string,
   op: RemoveArrayObjectElementOp
 ): string {
-  const { sf, node } = resolvePropertyPath(
-    project,
-    sourceText,
-    op.variableName,
-    op.propertyPath
-  )
+  return withSourceFile(project, sourceText, (sf) => {
+    const node = resolvePropertyPath(sf, op.variableName, op.propertyPath)
 
-  if (!node || node.getKind() !== SyntaxKind.ArrayLiteralExpression) {
-    project.removeSourceFile(sf)
-    return sourceText
-  }
+    if (!node || node.getKind() !== SyntaxKind.ArrayLiteralExpression) {
+      return sourceText
+    }
 
-  const arr = node.asKindOrThrow(SyntaxKind.ArrayLiteralExpression)
-  const elements = arr.getElements()
+    const arr = node.asKindOrThrow(SyntaxKind.ArrayLiteralExpression)
+    const elements = arr.getElements()
 
-  for (const el of elements) {
-    if (!objectElementMatches(el, op.matchProperty)) continue
+    for (const el of elements) {
+      if (!objectElementMatches(el, op.matchProperty)) continue
 
-    // Found the matching element — remove it from the array
-    arr.removeElement(el)
-    break
-  }
-
-  const result = sf.getFullText()
-  project.removeSourceFile(sf)
-  return result
+      // Found the matching element — remove it from the array
+      arr.removeElement(el)
+      break
+    }
+    return undefined // proceed with sf.getFullText()
+  })
 }
 
 function applyRemoveArrayStringElement(
@@ -623,34 +616,28 @@ function applyRemoveArrayStringElement(
   sourceText: string,
   op: RemoveArrayStringElementOp
 ): string {
-  const { sf, node } = resolvePropertyPath(
-    project,
-    sourceText,
-    op.variableName,
-    op.propertyPath
-  )
+  return withSourceFile(project, sourceText, (sf) => {
+    const node = resolvePropertyPath(sf, op.variableName, op.propertyPath)
 
-  if (!node || node.getKind() !== SyntaxKind.ArrayLiteralExpression) {
-    project.removeSourceFile(sf)
-    return sourceText
-  }
-
-  const arr = node.asKindOrThrow(SyntaxKind.ArrayLiteralExpression)
-  const elements = arr.getElements()
-
-  for (const el of elements) {
-    if (el.getKind() !== SyntaxKind.StringLiteral) continue
-    if (
-      el.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue() === op.value
-    ) {
-      arr.removeElement(el)
-      break
+    if (!node || node.getKind() !== SyntaxKind.ArrayLiteralExpression) {
+      return sourceText
     }
-  }
 
-  const result = sf.getFullText()
-  project.removeSourceFile(sf)
-  return result
+    const arr = node.asKindOrThrow(SyntaxKind.ArrayLiteralExpression)
+    const elements = arr.getElements()
+
+    for (const el of elements) {
+      if (el.getKind() !== SyntaxKind.StringLiteral) continue
+      if (
+        el.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue() ===
+        op.value
+      ) {
+        arr.removeElement(el)
+        break
+      }
+    }
+    return undefined // proceed with sf.getFullText()
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -739,41 +726,33 @@ function applyAddArrayStringElement(
   sourceText: string,
   op: AddArrayStringElementOp
 ): string {
-  const { sf, node } = resolvePropertyPath(
-    project,
-    sourceText,
-    op.variableName,
-    op.propertyPath
-  )
+  return withSourceFile(project, sourceText, (sf) => {
+    const node = resolvePropertyPath(sf, op.variableName, op.propertyPath)
 
-  if (!node || node.getKind() !== SyntaxKind.ArrayLiteralExpression) {
-    project.removeSourceFile(sf)
-    return sourceText
-  }
+    if (!node || node.getKind() !== SyntaxKind.ArrayLiteralExpression) {
+      return sourceText
+    }
 
-  const arr = node.asKindOrThrow(SyntaxKind.ArrayLiteralExpression)
-  const alreadyPresent = arr
-    .getElements()
-    .some(
-      (el) =>
-        el.getKind() === SyntaxKind.StringLiteral &&
-        el.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue() ===
-          op.value
-    )
-  if (alreadyPresent) {
-    project.removeSourceFile(sf)
-    return sourceText
-  }
+    const arr = node.asKindOrThrow(SyntaxKind.ArrayLiteralExpression)
+    const alreadyPresent = arr
+      .getElements()
+      .some(
+        (el) =>
+          el.getKind() === SyntaxKind.StringLiteral &&
+          el.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue() ===
+            op.value
+      )
+    if (alreadyPresent) {
+      return sourceText
+    }
 
-  // Escape backslashes before quotes so the emitted literal round-trips.
-  const escaped = op.value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")
-  arr.addElement(`'${escaped}'`, {
-    useNewLines: arr.getText().includes('\n'),
+    // Escape backslashes before quotes so the emitted literal round-trips.
+    const escaped = op.value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")
+    arr.addElement(`'${escaped}'`, {
+      useNewLines: arr.getText().includes('\n'),
+    })
+    return undefined // proceed with sf.getFullText()
   })
-
-  const result = sf.getFullText()
-  project.removeSourceFile(sf)
-  return result
 }
 
 /**
@@ -787,34 +766,26 @@ function applyAddArrayObjectElement(
   sourceText: string,
   op: AddArrayObjectElementOp
 ): string {
-  const { sf, node } = resolvePropertyPath(
-    project,
-    sourceText,
-    op.variableName,
-    op.propertyPath
-  )
+  return withSourceFile(project, sourceText, (sf) => {
+    const node = resolvePropertyPath(sf, op.variableName, op.propertyPath)
 
-  if (!node || node.getKind() !== SyntaxKind.ArrayLiteralExpression) {
-    project.removeSourceFile(sf)
-    return sourceText
-  }
+    if (!node || node.getKind() !== SyntaxKind.ArrayLiteralExpression) {
+      return sourceText
+    }
 
-  const arr = node.asKindOrThrow(SyntaxKind.ArrayLiteralExpression)
-  const alreadyPresent = arr
-    .getElements()
-    .some((el) => objectElementMatches(el, op.matchProperty))
-  if (alreadyPresent) {
-    project.removeSourceFile(sf)
-    return sourceText
-  }
+    const arr = node.asKindOrThrow(SyntaxKind.ArrayLiteralExpression)
+    const alreadyPresent = arr
+      .getElements()
+      .some((el) => objectElementMatches(el, op.matchProperty))
+    if (alreadyPresent) {
+      return sourceText
+    }
 
-  arr.addElement(op.objectText, {
-    useNewLines: arr.getText().includes('\n'),
+    arr.addElement(op.objectText, {
+      useNewLines: arr.getText().includes('\n'),
+    })
+    return undefined // proceed with sf.getFullText()
   })
-
-  const result = sf.getFullText()
-  project.removeSourceFile(sf)
-  return result
 }
 
 /**

@@ -69,10 +69,22 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 - `ast-transforms` op handlers route the ts-morph
   create/getFullText/removeSourceFile lifecycle through one `withSourceFile`
   helper with guaranteed cleanup — behavior-preserving, ~60 fewer lines.
+- Barrel-file (`index.ts` re-export) manipulation is unified into one
+  `lib/scripts/barrel-file.ts` (`findBarrelLine` / `removeBarrelLines` /
+  `insertBarrelLine`); `setup-project`, `bundle-installer`, and
+  `generate-component` share it instead of three divergent implementations.
+- components/ui: `Form`/`FormProvider` collapsed into a single `Form`;
+  `Checkbox` and `Switch` share an extracted control subtree across their
+  label / no-label branches; dead `foldRef` dropped from `Fold`.
+- WebGL `Program` drops vestigial `Scene` inheritance (reintroduced by the
+  #227 forward-port) for the composition shape #199 had already established.
 
 ### Removed
 
 - The in-app `/components` showcase, the `app/(examples)/` example routes (R3F, Sanity, Shopify, HubSpot), and the `app/studio/` route — component demos moved to Storybook and integration usage distilled into `// USAGE` comments in `lib/integrations/*`. Only the demo surface is gone; the reusable integration code stays. (#210)
+- Unused `groq` dependency — `next-sanity`'s `defineQuery` covers GROQ and
+  nothing imported the standalone package (it remains available transitively).
+- Unused `components/ui/scroll-restoration` component (zero consumers).
 
 ### Fixed
 
@@ -83,6 +95,10 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 - Turnstile dev-mode bypass collapsed to a single path. (#205)
 - Shopify cart `addItem` now validates input before creating a cart, so invalid
   requests no longer leave an orphaned cart and cookie behind (#173).
+- `TextareaField` renders through `Field.Control`, restoring the
+  `aria-invalid` / `aria-describedby` / error-id wiring `InputField` already had.
+- Shopify `removeItem` validates `merchandiseId` before the rate-limit prelude,
+  so empty ids no longer consume a rate-limit slot.
 
 ### Security
 

@@ -31,6 +31,7 @@ import { join } from 'node:path'
 import * as p from '@clack/prompts'
 import type { RemovableId } from '@/integrations/registry'
 import { applyCodeTransforms } from './ast-transforms'
+import { removeBarrelLines } from './barrel-file'
 import {
   addDependencies,
   appendEnvStubs,
@@ -241,19 +242,10 @@ const updateBarrelExports = async (
 
       if (!(await pathExists(fullPath))) continue
 
-      const barrelFile = Bun.file(fullPath)
-
-      const content = await barrelFile.text()
-      const lines = content.split('\n')
-      const filteredLines = lines.filter(
-        (line) =>
-          !(line.includes(`'${pattern}'`) || line.includes(`'./${pattern}'`))
-      )
-
-      if (filteredLines.length !== lines.length) {
-        if (!dryRun) {
-          await Bun.write(fullPath, filteredLines.join('\n'))
-        }
+      const content = await Bun.file(fullPath).text()
+      const { text, changed } = removeBarrelLines(content, pattern)
+      if (changed) {
+        if (!dryRun) await Bun.write(fullPath, text)
         totalChanges++
       }
     } catch (err) {

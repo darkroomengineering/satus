@@ -10,6 +10,7 @@ import { mkdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import * as p from '@clack/prompts'
 import { applyCodeTransforms, applyOpsToText } from './ast-transforms'
+import { findBarrelLine, insertBarrelLine } from './barrel-file'
 import {
   type CodeTransform,
   getIntegrationEntries,
@@ -260,60 +261,6 @@ export const appendEnvStubs = async (
   }
 
   return missing.length
-}
-
-// ---------------------------------------------------------------------------
-// Barrel export helpers (moved from satus.ts)
-// ---------------------------------------------------------------------------
-
-/**
- * Find the export line in a source barrel matching the removal `pattern`,
- * using the same matching as setup-project's removal (quoted pattern or
- * quoted './pattern' specifier).
- */
-export function findBarrelLine(
-  sourceText: string,
-  pattern: string
-): string | undefined {
-  return sourceText
-    .split('\n')
-    .find(
-      (line) => line.includes(`'${pattern}'`) || line.includes(`'./${pattern}'`)
-    )
-}
-
-/**
- * Insert a barrel export line when absent (sorted position among existing
- * `export` lines, best-effort). Returns the text unchanged when an identical
- * line already exists — idempotent.
- */
-export function insertBarrelLine(localText: string, line: string): string {
-  const newLine = line.trim()
-  if (newLine.length === 0) return localText
-
-  const lines = localText.split('\n')
-  if (lines.some((existing) => existing.trim() === newLine)) return localText
-
-  const exportIndexes: number[] = []
-  for (let i = 0; i < lines.length; i++) {
-    if (lines[i]?.startsWith('export ')) exportIndexes.push(i)
-  }
-
-  if (exportIndexes.length === 0) {
-    const base =
-      localText.length === 0 || localText.endsWith('\n')
-        ? localText
-        : `${localText}\n`
-    return `${base}${newLine}\n`
-  }
-
-  const sortedAfter = exportIndexes.find(
-    (i) => (lines[i] ?? '').localeCompare(newLine) > 0
-  )
-  const lastExport = exportIndexes[exportIndexes.length - 1] ?? 0
-  const insertAt = sortedAfter ?? lastExport + 1
-  lines.splice(insertAt, 0, newLine)
-  return lines.join('\n')
 }
 
 // ---------------------------------------------------------------------------

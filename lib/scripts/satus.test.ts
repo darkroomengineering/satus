@@ -9,11 +9,8 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import {
-  bundleProbePath,
-  findBarrelLine,
-  insertBarrelLine,
-} from './bundle-installer'
+import { findBarrelLine, insertBarrelLine } from './barrel-file'
+import { bundleProbePath } from './bundle-installer'
 import { INTEGRATION_BUNDLES } from './integration-bundles'
 import { parseAddArgs, resolveAddSet } from './satus'
 

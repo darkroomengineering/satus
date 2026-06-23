@@ -136,14 +136,14 @@ export function TextareaField({
           {required && <span aria-hidden="true"> *</span>}
         </Field.Label>
       )}
-      <textarea
+      <Field.Control
         id={id}
         name={fieldName}
         required={required}
         placeholder={placeholder}
-        rows={rows}
         className={s.textarea}
         {...reg}
+        render={<textarea rows={rows} />}
       />
       {error?.state && error.message && (
         <Field.Error className={cn(s.errorMessage)}>

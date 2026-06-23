@@ -24,7 +24,6 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | NotConfigured | `@/components/ui/not-configured` | Server |
 | RealViewport | `@/components/ui/real-viewport` | Client |
 | SanityImage | `@/components/ui/sanity-image` | Server |
-| ScrollRestoration | `@/components/ui/scroll-restoration` | Client |
 | Scrollbar | `@/components/ui/scrollbar` | Client |
 | Select | `@/components/ui/select` | Client |
 | Switch | `@/components/ui/switch` | Client |

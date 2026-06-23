@@ -97,11 +97,11 @@ export async function removeItem(
     return { ok: false, error: 'Missing cart ID' }
   }
 
-  return runCartAction('cart-remove', async () => {
-    if (!merchandiseId) {
-      return { ok: false, error: 'Merchandise ID is required' }
-    }
+  if (!merchandiseId) {
+    return { ok: false, error: 'Merchandise ID is required' }
+  }
 
+  return runCartAction('cart-remove', async () => {
     try {
       const resolved = await resolveLineId(cartId, lineId, merchandiseId)
 

@@ -35,7 +35,6 @@ export function Fold({
   parallax = true,
   ...props
 }: FoldProps) {
-  const foldRef = useRef<HTMLDivElement | null>(null)
   const { height: windowHeight = 0 } = useWindowSize()
   const [setRectRef, rect] = useRect()
 
@@ -75,10 +74,7 @@ export function Fold({
   return (
     <FoldContext.Provider value={true}>
       <div
-        ref={(node) => {
-          foldRef.current = node
-          setRectRef(node)
-        }}
+        ref={setRectRef}
         className={cn(
           s.fold,
           disabled && s.isDisabled,

@@ -9,6 +9,7 @@
  */
 
 import * as p from '@clack/prompts'
+import { findBarrelLine, insertBarrelLine } from './barrel-file'
 import {
   cancelGuard,
   toCamelCase,
@@ -195,33 +196,13 @@ export { ${pascalName} } from './${componentName}'
 
     // Update existing barrel file
     const content = await file.text()
-
-    // Check if already exported
-    if (content.includes(`from './${componentName}'`)) {
+    const exportLine = `export { ${pascalName} } from './${componentName}'`
+    if (findBarrelLine(content, componentName)) {
       p.log.warn(`Component already exported in ${barrelPath}`)
       return
     }
-
-    // Add export at the end, maintaining the file's style
-    const lines = content.split('\n')
-
-    // Find the last non-empty line to append after
-    let insertIndex = lines.length
-    for (let i = lines.length - 1; i >= 0; i--) {
-      if (lines[i]?.trim()) {
-        insertIndex = i + 1
-        break
-      }
-    }
-
-    // Insert the new export
-    lines.splice(
-      insertIndex,
-      0,
-      `export { ${pascalName} } from './${componentName}'`
-    )
-
-    await Bun.write(barrelPath, lines.join('\n'))
+    const updated = insertBarrelLine(content, exportLine)
+    await Bun.write(barrelPath, updated)
     p.log.success(`Updated barrel export: ${barrelPath}`)
   } catch (error) {
     p.log.warn(

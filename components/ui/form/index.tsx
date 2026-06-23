@@ -81,37 +81,6 @@ export function Form<T = unknown>({
 }: FormProps<T>) {
   const [key, setKey] = useState<string | null>(null)
 
-  return (
-    <FormProvider
-      key={key}
-      setKey={setKey}
-      action={action}
-      formId={formId ?? ''}
-      {...(onSuccess && { onSuccess })}
-      {...(onError && { onError })}
-      className={className ?? ''}
-      {...props}
-    >
-      {children}
-    </FormProvider>
-  )
-}
-
-// Provider
-type FormProviderProps<T> = FormProps<T> & {
-  setKey: (key: string | null) => void
-}
-
-function FormProvider<T = unknown>({
-  children,
-  setKey,
-  formId,
-  action,
-  onSuccess,
-  onError,
-  className,
-  ...props
-}: FormProviderProps<T>) {
   const {
     formAction,
     onSubmit,
@@ -148,7 +117,7 @@ function FormProvider<T = unknown>({
     return () => {
       if (resetTimer) clearTimeout(resetTimer)
     }
-  }, [formState, onSuccess, onError, setKey])
+  }, [formState, onSuccess, onError])
 
   // Reset form function for actions
   const resetForm = () => {
@@ -176,6 +145,7 @@ function FormProvider<T = unknown>({
   return (
     <FormContext.Provider value={contextValue}>
       <form
+        key={key}
         className={cn(s.form, className)}
         action={formAction}
         onSubmit={onSubmit}

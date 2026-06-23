@@ -47,30 +47,28 @@ type CheckboxProps = Omit<
   labelClassName?: string
 }
 
-function Checkbox({
-  label,
+function CheckboxControl({
   className,
-  labelClassName,
   ...props
-}: CheckboxProps) {
+}: Omit<CheckboxProps, 'label' | 'labelClassName'>) {
+  return (
+    <BaseCheckbox.Root className={cn(s.root, className)} {...props}>
+      <BaseCheckbox.Indicator className={cn(s.indicator)}>
+        <CheckIcon />
+      </BaseCheckbox.Indicator>
+    </BaseCheckbox.Root>
+  )
+}
+
+function Checkbox({ label, labelClassName, ...props }: CheckboxProps) {
   if (!label) {
-    return (
-      <BaseCheckbox.Root className={cn(s.root, className)} {...props}>
-        <BaseCheckbox.Indicator className={cn(s.indicator)}>
-          <CheckIcon />
-        </BaseCheckbox.Indicator>
-      </BaseCheckbox.Root>
-    )
+    return <CheckboxControl {...props} />
   }
 
   return (
     // biome-ignore lint/a11y/noLabelWithoutControl: Base UI checkbox is wrapped in label for accessibility
     <label className={cn(s.container, labelClassName)}>
-      <BaseCheckbox.Root className={cn(s.root, className)} {...props}>
-        <BaseCheckbox.Indicator className={cn(s.indicator)}>
-          <CheckIcon />
-        </BaseCheckbox.Indicator>
-      </BaseCheckbox.Root>
+      <CheckboxControl {...props} />
       <span className={s.label}>{label}</span>
     </label>
   )

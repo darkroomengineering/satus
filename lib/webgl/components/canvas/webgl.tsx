@@ -55,7 +55,10 @@ export function WebGLCanvas({
         eventSource={document.documentElement}
         eventPrefix="client"
         resize={{ scroll: false, debounce: 500 }}
-        style={{ pointerEvents: 'all' }}
+        // Keep the fixed, full-screen canvas from swallowing DOM clicks. r3f
+        // still gets pointer events via `eventSource={document.documentElement}`,
+        // so 3D raycasting works while the DOM underneath stays interactive.
+        style={{ pointerEvents: 'none' }}
       >
         <SheetProvider id="webgl">
           <OrthographicCamera

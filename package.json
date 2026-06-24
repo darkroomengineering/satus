@@ -88,7 +88,7 @@
     "@types/react": "19.2.17",
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.184.0",
-    "@typescript/native-preview": "7.0.0-dev.20260616.1",
+    "@typescript/native-preview": "7.0.0-dev.20260623.1",
     "babel-plugin-react-compiler": "^1.0.0",
     "deslop-cli": "0.0.25",
     "happy-dom": "^20.10.2",

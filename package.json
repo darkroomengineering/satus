@@ -90,7 +90,7 @@
     "@types/three": "^0.184.0",
     "@typescript/native-preview": "7.0.0-dev.20260616.1",
     "babel-plugin-react-compiler": "^1.0.0",
-    "deslop-cli": "0.0.25",
+    "deslop-cli": "0.5.8",
     "happy-dom": "^20.10.2",
     "lefthook": "^2.1.9",
     "postcss-functions": "^4.0.2",

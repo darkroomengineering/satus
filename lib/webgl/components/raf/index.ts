@@ -13,13 +13,13 @@ export function RAF({ render = true }) {
   const advance = useThree((state) => state.advance)
 
   useTempus(
-    (time: number) => {
+    ({ time }) => {
       if (render) {
         advance(time / 1000)
       }
     },
     {
-      priority: 1,
+      order: 1,
     }
   )
 

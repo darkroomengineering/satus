@@ -28,7 +28,7 @@ export function Stats() {
       stats.begin()
     },
     {
-      priority: Number.NEGATIVE_INFINITY,
+      order: Number.NEGATIVE_INFINITY,
     }
   )
 
@@ -38,7 +38,7 @@ export function Stats() {
       stats.update()
     },
     {
-      priority: Number.POSITIVE_INFINITY,
+      order: Number.POSITIVE_INFINITY,
     }
   )
 

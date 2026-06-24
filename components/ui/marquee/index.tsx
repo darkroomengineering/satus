@@ -52,7 +52,7 @@ export function Marquee({
 
   const lenis = useLenis()
 
-  useTempus((_, deltaTime) => {
+  useTempus(({ deltaTime }) => {
     const entry = getEntry()
 
     if (!intersection?.isIntersecting) return

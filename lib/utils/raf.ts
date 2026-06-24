@@ -25,7 +25,7 @@ Tempus.add(
     for (const fn of writeQueue) fn()
     writeQueue.length = 0
   },
-  { priority: 1000 }
+  { order: 1000 }
 )
 
 /**

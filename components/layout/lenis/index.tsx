@@ -28,7 +28,7 @@ export function Lenis({
 }: LenisProps) {
   const lenisRef = useRef<LenisRef>(null)
 
-  useTempus((time: number) => {
+  useTempus(({ time }) => {
     if (lenisRef.current?.lenis) {
       lenisRef.current.lenis.raf(time)
     }

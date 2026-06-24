@@ -47,7 +47,7 @@ jobs:
             echo "has_pat=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: steps.check.outputs.has_pat == 'true'
         with:
           ref: ${{ github.head_ref }}

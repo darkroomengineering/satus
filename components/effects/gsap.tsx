@@ -32,7 +32,7 @@ if (typeof window !== 'undefined') {
  * Add to your root layout to enable GSAP animations.
  */
 export function GSAPRuntime() {
-  useTempus((time) => {
+  useTempus(({ time }) => {
     gsap.updateRoot(time / 1000)
   })
 

@@ -14,7 +14,7 @@
   font-size: calc(11 / 375 * 100vw);
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: var(--color-contrast);
+  color: var(--color-secondary);
   margin-bottom: calc(16 / 375 * 100vw);
 
   @media (--desktop) {
@@ -92,7 +92,7 @@
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.05em;
   line-height: 1.1;
-  color: var(--color-contrast);
+  color: var(--color-secondary);
   opacity: 0.5;
 
   @media (--desktop) {
@@ -186,7 +186,7 @@
   line-height: 1.6;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--color-contrast);
+  color: var(--color-secondary);
   opacity: 0.6;
   margin-top: calc(32 / 375 * 100vw);
   text-align: center;

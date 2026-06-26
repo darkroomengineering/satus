@@ -85,6 +85,9 @@ const nextConfig: NextConfig = {
         : false,
   },
   cacheComponents: true,
+  // 16.3: shell-based prefetching — the top-level successor to the
+  // experimental.prefetchInlining stepping stone; requires cacheComponents: true.
+  partialPrefetching: true,
   compress: true,
   logging: {
     fetches: {
@@ -95,7 +98,6 @@ const nextConfig: NextConfig = {
   experimental: {
     taint: true,
     cachedNavigations: true,
-    prefetchInlining: true,
     sri: { algorithm: 'sha384' },
     optimizePackageImports: [
       '@react-three/drei',

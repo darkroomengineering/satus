@@ -25,16 +25,11 @@
 
 'use server'
 
-import { z } from 'zod'
+import { env } from '@/lib/env'
 import type { FormState } from '@/lib/types/form'
 import { runFormAction } from '@/lib/utils/form-action'
 import { fetchWithTimeout } from '@/utils/fetch'
-import { emailSchema } from '@/utils/validation'
-
-const hubspotNewsletterSchema = z.object({
-  email: emailSchema,
-  formId: z.string().min(1, { error: 'Form ID is required' }),
-})
+import { hubspotNewsletterSchema } from './schema'
 
 export async function HubspotNewsletterAction(
   _: unknown,
@@ -46,7 +41,7 @@ export async function HubspotNewsletterAction(
     formData,
     rateLimitMessage: 'Too many requests. Please try again later.',
     run: async ({ email, formId }) => {
-      const portalId = process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID
+      const portalId = env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID
       if (!portalId) {
         return {
           status: 500,

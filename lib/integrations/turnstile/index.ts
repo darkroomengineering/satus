@@ -7,6 +7,7 @@
  */
 
 import { z } from 'zod'
+import { env } from '@/lib/env'
 import { fetchWithTimeout } from '@/utils/fetch'
 
 const siteverifySchema = z.object({
@@ -30,7 +31,7 @@ export async function validateTurnstile(
   }
 
   try {
-    const secret = process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY
+    const secret = env.CLOUDFLARE_TURNSTILE_SECRET_KEY
     if (!secret) {
       // Fail closed in production, fail open in development
       if (process.env.NODE_ENV === 'production') {

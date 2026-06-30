@@ -29,14 +29,14 @@ export function EmbedHubspotForm({
   function createForm() {
     if (formCreatedRef.current) return
 
-    if (
-      window.hbspt &&
-      isScriptLoaded &&
-      process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID
-    ) {
+    // Client component: read NEXT_PUBLIC_* directly so Next inlines it into the
+    // browser bundle. The `env` object's parse(process.env) access is not
+    // reliably inlined client-side and can be undefined at runtime.
+    const portalId = process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID
+    if (window.hbspt && isScriptLoaded && portalId) {
       formCreatedRef.current = true
       window.hbspt.forms.create({
-        portalId: process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID,
+        portalId,
         formId,
         target: `#${target}`,
         ...(s.submit && { submitButtonClass: s.submit }),

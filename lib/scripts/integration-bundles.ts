@@ -83,9 +83,15 @@ export interface IntegrationBundle {
   overwriteFiles?: string[]
 }
 
-export const INTEGRATION_BUNDLES: Partial<
-  Record<RemovableId, IntegrationBundle>
-> = {
+// Keep bundle keys literal (so `BundleId` stays exact) while typing every value
+// as the full `IntegrationBundle`. A bare `satisfies` narrows each value to its
+// own literal and drops optional fields such as `requires`, breaking
+// `INTEGRATION_BUNDLES[id].requires` access.
+const defineBundles = <K extends string>(
+  bundles: Record<K, IntegrationBundle>
+): Record<K, IntegrationBundle> => bundles
+
+export const INTEGRATION_BUNDLES = defineBundles({
   sanity: {
     name: 'Sanity CMS',
     description: 'Headless CMS with visual editing and real-time collaboration',
@@ -649,15 +655,42 @@ export const INTEGRATION_BUNDLES: Partial<
       },
     ],
   },
+})
+
+/**
+ * The union of keys that have an actual bundle definition. A strict subset of
+ * RemovableId (which also includes 'turnstile' and 'analytics' from the
+ * runtime registry that have no removable bundle).
+ */
+export type BundleId = keyof typeof INTEGRATION_BUNDLES
+
+/**
+ * Compile-time guard: BundleId must remain a subset of RemovableId. When a
+ * key is added to INTEGRATION_BUNDLES that isn't in RemovableId, this type
+ * becomes `never`, surfacing a TS error immediately.
+ * Exported so noUnusedLocals does not flag it.
+ */
+export type _BundleIdIsRemovable = BundleId extends RemovableId ? true : never
+
+/**
+ * Look up a bundle by RemovableId. Returns undefined when the id is broader
+ * than BundleId (e.g. 'turnstile' or 'analytics' from the runtime registry,
+ * which have no removable bundle). Use this at call sites where the id type is
+ * RemovableId; index INTEGRATION_BUNDLES directly only where the id is BundleId.
+ */
+export function getBundle(id: RemovableId): IntegrationBundle | undefined {
+  return (
+    INTEGRATION_BUNDLES as Partial<Record<RemovableId, IntegrationBundle>>
+  )[id]
 }
 
 /**
  * Get all removable integration ids (keys of INTEGRATION_BUNDLES, including
  * dev-only removables like webgl and theatre).
  */
-export const getIntegrationNames = (): RemovableId[] =>
-  Object.keys(INTEGRATION_BUNDLES) as RemovableId[]
+export const getIntegrationNames = (): BundleId[] =>
+  Object.keys(INTEGRATION_BUNDLES) as BundleId[]
 
 /** Typed entries of INTEGRATION_BUNDLES (defined keys only). */
-export const getIntegrationEntries = (): [RemovableId, IntegrationBundle][] =>
-  Object.entries(INTEGRATION_BUNDLES) as [RemovableId, IntegrationBundle][]
+export const getIntegrationEntries = (): [BundleId, IntegrationBundle][] =>
+  Object.entries(INTEGRATION_BUNDLES) as [BundleId, IntegrationBundle][]

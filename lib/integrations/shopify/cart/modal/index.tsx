@@ -134,7 +134,7 @@ function InnerCart() {
             </div>
 
             <RemoveButton
-              merchandiseId={merchandise?.id ?? ''}
+              merchandiseId={merchandise.id}
               lineId={id}
               className={s.remove ?? ''}
             />
@@ -142,7 +142,7 @@ function InnerCart() {
             <Quantity
               className={s.quantity ?? ''}
               payload={{
-                merchandiseId: merchandise?.id ?? '',
+                merchandiseId: merchandise.id,
                 quantity,
                 lineId: id,
               }}

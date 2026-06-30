@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 import { createContext, type PropsWithChildren, use } from 'react'
 import type tunnel from 'tunnel-rat'
 import { useDeviceDetection } from '@/lib/hooks/use-device-detection'
-import { useWebGLStore } from '@/lib/webgl/store'
+import { getDOMTunnel, getWebGLTunnel } from '@/lib/webgl/store'
 
 const WebGLCanvas = dynamic(
   () => import('./webgl').then(({ WebGLCanvas }) => WebGLCanvas),
@@ -13,10 +13,11 @@ const WebGLCanvas = dynamic(
   }
 )
 
-type CanvasContextValue = {
-  WebGLTunnel?: ReturnType<typeof tunnel>
-  DOMTunnel?: ReturnType<typeof tunnel>
-}
+type TunnelInstance = ReturnType<typeof tunnel>
+
+type CanvasContextValue =
+  | { active: false }
+  | { active: true; WebGLTunnel: TunnelInstance; DOMTunnel: TunnelInstance }
 
 type CanvasProps = PropsWithChildren<{
   /**
@@ -30,7 +31,9 @@ type CanvasProps = PropsWithChildren<{
   force?: boolean
 }>
 
-export const CanvasContext = createContext<CanvasContextValue>({})
+export const CanvasContext = createContext<CanvasContextValue>({
+  active: false,
+})
 
 /**
  * Canvas component that provides WebGL context and the tunnel system.
@@ -58,7 +61,6 @@ export function Canvas({
   ...props
 }: CanvasProps) {
   const { isWebGL } = useDeviceDetection()
-  const { getWebGLTunnel, getDOMTunnel } = useWebGLStore()
 
   // Only a root canvas mounts the WebGL surface; it uses the shared store
   // tunnels so content portals into it from anywhere. A non-root <Canvas> is a
@@ -68,22 +70,16 @@ export function Canvas({
 
   const shouldRender = root && (isWebGL || force)
   const contextValue: CanvasContextValue =
-    WebGLTunnel && DOMTunnel ? { WebGLTunnel, DOMTunnel } : {}
+    WebGLTunnel && DOMTunnel
+      ? { active: true, WebGLTunnel, DOMTunnel }
+      : { active: false }
 
   return (
     <CanvasContext.Provider value={contextValue}>
-      {WebGLTunnel && DOMTunnel && shouldRender && <WebGLCanvas {...props} />}
+      {contextValue.active && shouldRender && <WebGLCanvas {...props} />}
       {children}
     </CanvasContext.Provider>
   )
-}
-
-function useCanvasRoot() {
-  const { getWebGLTunnel, getDOMTunnel } = useWebGLStore()
-  return {
-    WebGLTunnel: getWebGLTunnel(),
-    DOMTunnel: getDOMTunnel(),
-  }
 }
 
 /**
@@ -91,9 +87,11 @@ function useCanvasRoot() {
  */
 export function useCanvas() {
   const localContext = use(CanvasContext)
-  const rootContext = useCanvasRoot()
-
-  return localContext?.WebGLTunnel && localContext?.DOMTunnel
-    ? localContext
-    : rootContext
+  if (localContext.active) return localContext
+  // Fall back to the root singletons — always present once the store is loaded.
+  return {
+    active: true as const,
+    WebGLTunnel: getWebGLTunnel(),
+    DOMTunnel: getDOMTunnel(),
+  }
 }

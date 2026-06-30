@@ -1,10 +1,19 @@
+import type { ZodType } from 'zod'
+
 /* Fetch types  */
-export interface ShopifyFetchOptions {
+export interface ShopifyFetchOptions<T = unknown> {
   cache?: RequestCache
   headers?: HeadersInit
   query: string
   tags?: string[]
   variables?: Record<string, unknown>
+  /**
+   * Optional Zod schema for the GraphQL response payload (`data` field).
+   * When provided, the payload is validated at the Shopify boundary before
+   * being returned to callers. When omitted, the caller accepts the raw cast
+   * (opt-in trust — useful for callers that have their own downstream checks).
+   */
+  dataSchema?: ZodType<T>
 }
 
 export interface ShopifyResponse<T = Record<string, unknown>> {
@@ -58,7 +67,7 @@ export interface ShopifyCartLineItem {
 
 // After reshaping data — the full post-reshape line-item shape
 export interface CartLineItem {
-  id?: string
+  id: string
   quantity: number
   cost: {
     totalAmount: Money
@@ -88,7 +97,7 @@ export interface Cart extends DefaultCart {
 }
 
 // Minimal shape used for cart-mutation payloads (derived from CartLineItem)
-export type CartLine = Pick<CartLineItem, 'id' | 'merchandise'>
+export type CartLineMutation = Pick<CartLineItem, 'id' | 'merchandise'>
 
 export interface CartLineInput {
   merchandiseId: string

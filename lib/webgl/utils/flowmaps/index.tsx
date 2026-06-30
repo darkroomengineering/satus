@@ -3,6 +3,7 @@ import { types } from '@theatre/core'
 import { useEffect, useRef, useState } from 'react'
 import { useCurrentSheet } from '@/dev/theatre'
 import { useTheatre } from '@/dev/theatre/hooks/use-theatre'
+import { usePointerInput } from '@/webgl/hooks/use-pointer-input'
 import { Flowmap } from '@/webgl/utils/flowmaps/flowmap-sim'
 
 export function useFlowmapSim(resolution = 128) {
@@ -22,72 +23,32 @@ export function useFlowmapSim(resolution = 128) {
     }
   }, [gl, resolution])
 
-  const mouseRef = useRef({
-    x: 0,
-    y: 0,
-    lastTime: 0,
-    isInit: false,
-    moved: false,
-  })
+  // Track whether the pointer moved this frame (for idle detection in useFrame)
+  // and the timestamp of the last event (for velocity calculation).
+  const movedRef = useRef(false)
+  const lastTimeRef = useRef<number | null>(null)
 
-  // Mouse/touch input — drives the flowmap stamp position and velocity
-  useEffect(() => {
+  // Mouse/touch input — drives the flowmap stamp position and velocity.
+  // The callback always reads the latest `size` and `flowmap` via the ref
+  // pattern inside usePointerInput.
+  usePointerInput((clientX, clientY, dx, dy) => {
     if (!flowmap) return
 
-    const updateMouse = (event: MouseEvent | TouchEvent) => {
-      let clientX: number
-      let clientY: number
+    const now = performance.now()
+    // Use a safe default on the very first call; clamp to avoid velocity spikes
+    // after an idle period or tab switch.
+    const dt =
+      lastTimeRef.current !== null
+        ? Math.max(14, now - lastTimeRef.current)
+        : 16
+    lastTimeRef.current = now
+    movedRef.current = true
 
-      // Handle both mouse and touch events
-      if ('changedTouches' in event && event.changedTouches?.length) {
-        clientX = event.changedTouches[0]?.clientX ?? 0
-        clientY = event.changedTouches[0]?.clientY ?? 0
-      } else if ('clientX' in event) {
-        clientX = event.clientX
-        clientY = event.clientY
-      } else {
-        return
-      }
-
-      const last = mouseRef.current
-      const now = performance.now()
-
-      // First input: seed position only, no velocity
-      if (!last.isInit) {
-        last.isInit = true
-        last.x = clientX
-        last.y = clientY
-        last.lastTime = now
-        return
-      }
-
-      const deltaX = clientX - last.x
-      const deltaY = clientY - last.y
-      // Clamp dt to avoid velocity spikes after an idle period / tab switch
-      const dt = Math.max(14, now - last.lastTime)
-
-      last.x = clientX
-      last.y = clientY
-      last.lastTime = now
-      last.moved = true
-
-      // Normalized cursor (y flipped into UV space)
-      flowmap.mouse.set(clientX / size.width, 1 - clientY / size.height)
-      // Pixels per millisecond; the shader flips Y via vec2(1, -1)
-      flowmap.velocity.set(deltaX / dt, deltaY / dt)
-    }
-
-    const handleMouseMove = (event: MouseEvent) => updateMouse(event)
-    const handleTouchMove = (event: TouchEvent) => updateMouse(event)
-
-    window.addEventListener('mousemove', handleMouseMove, false)
-    window.addEventListener('touchmove', handleTouchMove, false)
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove, false)
-      window.removeEventListener('touchmove', handleTouchMove, false)
-    }
-  }, [flowmap, size.width, size.height])
+    // Normalized cursor (y flipped into UV space)
+    flowmap.mouse.set(clientX / size.width, 1 - clientY / size.height)
+    // Pixels per millisecond; the shader flips Y via vec2(1, -1)
+    flowmap.velocity.set(dx / dt, dy / dt)
+  })
 
   // Aspect ratio so the cursor falloff stays round
   useEffect(() => {
@@ -119,13 +80,13 @@ export function useFlowmapSim(resolution = 128) {
   )
 
   useFrame(() => {
-    if (flowmap && !mouseRef.current.moved) {
+    if (flowmap && !movedRef.current) {
       // Pointer idle this frame: park off-screen + zero velocity so the
       // existing trail dissipates instead of stamping a fixed smear.
       flowmap.mouse.set(-1, -1)
       flowmap.velocity.set(0, 0)
     }
-    mouseRef.current.moved = false
+    movedRef.current = false
     flowmap?.update()
   }, -10)
 

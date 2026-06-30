@@ -55,6 +55,7 @@ export function AddToCart({
       <button
         type="submit"
         className={cn(s.cta, !variant && s.disable)}
+        disabled={!variant}
         aria-label="Add to cart"
       >
         {buttonState}

@@ -1,12 +1,13 @@
 import { cacheSignal } from 'react'
 import { z } from 'zod'
+import { env } from '@/lib/env'
 import { fetchWithTimeout } from '@/utils/fetch'
 import { parseApiResponse } from '@/utils/validation'
 import { SHOPIFY_GRAPHQL_API_ENDPOINT } from './constants'
 import type { ShopifyFetchOptions, ShopifyResponse } from './types'
 
-const endpoint = `${process.env.SHOPIFY_STORE_DOMAIN ?? ''}${SHOPIFY_GRAPHQL_API_ENDPOINT}`
-const key = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN ?? ''
+const endpoint = `${env.SHOPIFY_STORE_DOMAIN ?? ''}${SHOPIFY_GRAPHQL_API_ENDPOINT}`
+const key = env.SHOPIFY_STOREFRONT_ACCESS_TOKEN ?? ''
 
 const shopifyEnvelopeSchema = z.object({
   data: z.unknown(),
@@ -19,7 +20,8 @@ export async function shopifyFetch<T = Record<string, unknown>>({
   query,
   tags,
   variables,
-}: ShopifyFetchOptions): Promise<ShopifyResponse<T>> {
+  dataSchema,
+}: ShopifyFetchOptions<T>): Promise<ShopifyResponse<T>> {
   try {
     // Use cacheSignal for automatic request cleanup on cache expiry
     const signal = cacheSignal()
@@ -56,13 +58,16 @@ export async function shopifyFetch<T = Record<string, unknown>>({
       )
     }
 
-    // `errors` is always absent past the throw above; omit it so the optional
-    // property stays optional under exactOptionalPropertyTypes.
-    const body = { data: envelope.data as T }
+    // If a schema was provided, validate the payload at the boundary.
+    // Otherwise, trust the cast (opt-in — callers without a schema are responsible
+    // for ensuring T matches the actual response shape).
+    const data = dataSchema
+      ? parseApiResponse(dataSchema, envelope.data, 'Shopify Storefront data')
+      : (envelope.data as T)
 
     return {
       status: result.status,
-      body,
+      body: { data },
     }
   } catch (e) {
     // Handle both cache expiry aborts and timeouts

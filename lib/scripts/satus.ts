@@ -17,13 +17,14 @@
  */
 
 import * as p from '@clack/prompts'
-import type { RemovableId } from '@/integrations/registry'
+
 import {
   installBundle,
   isInstalled,
   stripAbsentIntegrationWiring,
 } from './bundle-installer'
 import {
+  type BundleId,
   getIntegrationEntries,
   INTEGRATION_BUNDLES,
   type IntegrationBundle,
@@ -118,31 +119,31 @@ export function parseAddArgs(argv: string[]): {
  * `requires` chains. `implied` lists ids pulled in beyond the request.
  */
 export function resolveAddSet(requested: string[]): {
-  order: RemovableId[]
-  implied: RemovableId[]
+  order: BundleId[]
+  implied: BundleId[]
 } {
-  const knownIds = Object.keys(INTEGRATION_BUNDLES) as RemovableId[]
+  const knownIds = Object.keys(INTEGRATION_BUNDLES) as BundleId[]
 
-  const requestedIds: RemovableId[] = requested.map((id) => {
+  const requestedIds: BundleId[] = requested.map((id) => {
     if (!(knownIds as string[]).includes(id)) {
       throw new Error(
         `Unknown plugin "${id}". Available: ${knownIds.join(', ')}`
       )
     }
-    return id as RemovableId
+    return id as BundleId
   })
 
-  const order: RemovableId[] = []
-  const visiting = new Set<RemovableId>()
+  const order: BundleId[] = []
+  const visiting = new Set<BundleId>()
 
-  const visit = (id: RemovableId): void => {
+  const visit = (id: BundleId): void => {
     if (order.includes(id)) return
     if (visiting.has(id)) {
       throw new Error(`Circular "requires" chain detected at "${id}"`)
     }
     visiting.add(id)
-    for (const dep of INTEGRATION_BUNDLES[id]?.requires ?? []) {
-      visit(dep)
+    for (const dep of INTEGRATION_BUNDLES[id].requires ?? []) {
+      visit(dep as BundleId)
     }
     visiting.delete(id)
     order.push(id)
@@ -190,13 +191,12 @@ const runAdd = async (plugins: string[], flags: AddFlags): Promise<void> => {
   const { order, implied } = resolveAddSet(plugins)
 
   const statuses: {
-    id: RemovableId
+    id: BundleId
     bundle: IntegrationBundle
     installed: boolean
   }[] = []
   for (const id of order) {
-    const bundle = INTEGRATION_BUNDLES[id]
-    if (!bundle) continue // unreachable — resolveAddSet validates ids
+    const bundle = INTEGRATION_BUNDLES[id] // total: resolveAddSet validates ids
     statuses.push({ id, bundle, installed: await isInstalled(bundle) })
   }
 

@@ -38,7 +38,7 @@ import { useCartContext } from '@/integrations/shopify/cart/cart-context'
 const { state, actions, meta } = useCartContext()
 const { cart } = state
 const { addCartItem, updateCartItem } = actions
-const quantity = meta?.totalQuantity()
+const quantity = meta.totalQuantity()
 ```
 
 ### Products
@@ -58,7 +58,7 @@ All Shopify server actions validate input with Zod schemas:
 - **Error handling**: Cart actions use `CartActionResult`; customer actions return `FormState` objects; there is no `Error` instance wrapping
 
 Env vars are validated via `shopifyEnvSchema` in the integration registry.
-Storefront GraphQL responses are validated at the boundary with `parseApiResponse` (`@/utils/validation`) — a malformed envelope throws with context instead of leaking `undefined` downstream.
+The GraphQL *envelope* (`data` / `errors` fields) is always validated at the boundary with `parseApiResponse` (`@/utils/validation`). *Payload* validation (the `data` field contents) is opt-in: pass a `dataSchema` to `shopifyFetch` to validate the inner payload against a Zod schema. Without a schema, the payload is cast to the caller-supplied type — the caller is responsible for ensuring the shape matches.
 
 ## Features
 

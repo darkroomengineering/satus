@@ -194,11 +194,5 @@ export class Flowmap {
     this.mask.dispose()
     this.material.dispose()
     this.screenTriangle.dispose()
-
-    // Null every field for GC; types don't allow null, so go through a loose view.
-    const self = this as Record<string, unknown>
-    for (const prop in self) {
-      self[prop] = null
-    }
   }
 }

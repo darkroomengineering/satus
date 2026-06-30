@@ -185,7 +185,7 @@ describe('Integration Bundle Configuration', () => {
     const known = getIntegrationNames()
     for (const [name, bundle] of getIntegrationEntries()) {
       for (const required of bundle.requires ?? []) {
-        expect(known).toContain(required)
+        expect(known as string[]).toContain(required)
         expect(required).not.toBe(name)
       }
     }

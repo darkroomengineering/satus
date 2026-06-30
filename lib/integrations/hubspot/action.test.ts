@@ -8,14 +8,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { z } from 'zod'
-import { emailSchema } from '@/utils/validation'
-
-// Replicate the schema from action.ts to test validation in isolation
-const hubspotNewsletterSchema = z.object({
-  email: emailSchema,
-  formId: z.string().min(1, { error: 'Form ID is required' }),
-})
+import { hubspotNewsletterSchema } from './schema'
 
 describe('HubSpot newsletter schema', () => {
   test('valid input passes', () => {

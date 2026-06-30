@@ -32,17 +32,11 @@ import * as p from '@clack/prompts'
 import type { RemovableId } from '@/integrations/registry'
 import { applyCodeTransforms } from './ast-transforms'
 import { removeBarrelLines } from './barrel-file'
-import {
-  addDependencies,
-  appendEnvStubs,
-  applyOverwriteFiles,
-  copyBundleFiles,
-  restoreBarrelExports,
-  stripAbsentIntegrationWiring,
-} from './bundle-installer'
+import { installBundle, stripAbsentIntegrationWiring } from './bundle-installer'
 import { cancelGuard } from './generate-shared'
 import {
   type CodeTransform,
+  getBundle,
   getIntegrationNames,
   INTEGRATION_BUNDLES,
 } from './integration-bundles'
@@ -298,8 +292,8 @@ const setupSnapshot = async (
   const root = await mkdtemp(join(tmpdir(), 'satus-snapshot-'))
 
   for (const id of keepIntegrations) {
-    const bundle = INTEGRATION_BUNDLES[id]
-    if (!bundle) continue
+    const bundle = getBundle(id)
+    if (!bundle) continue // id: RemovableId — guard is honest
 
     // Copy integration folders
     for (const folder of bundle.folders) {
@@ -328,8 +322,8 @@ const setupSnapshot = async (
 
   // Capture barrel export files referenced by the kept bundles
   for (const id of keepIntegrations) {
-    const bundle = INTEGRATION_BUNDLES[id]
-    if (!bundle) continue
+    const bundle = getBundle(id)
+    if (!bundle) continue // id: RemovableId — guard is honest
     for (const { file } of bundle.barrelExports) {
       const src = resolvePath(file)
       if (await pathExists(src)) {
@@ -380,10 +374,8 @@ const setupLean = async (
   // Collect ALL code transforms (all bundles, not just the "unkept" ones)
   const allCodeTransforms: CodeTransform[] = []
   for (const name of integrationNames) {
-    const bundle = INTEGRATION_BUNDLES[name]
-    if (bundle?.codeTransforms) {
-      allCodeTransforms.push(...bundle.codeTransforms)
-    }
+    // name: BundleId → INTEGRATION_BUNDLES[name] is always IntegrationBundle
+    allCodeTransforms.push(...INTEGRATION_BUNDLES[name].codeTransforms)
   }
 
   // Apply code transformations BEFORE removing folders
@@ -402,8 +394,8 @@ const setupLean = async (
 
   // Remove all integration folders and files
   for (const name of integrationNames) {
+    // name: BundleId → access is always total
     const bundle = INTEGRATION_BUNDLES[name]
-    if (!bundle) continue
 
     s.start(`Removing ${bundle.name}...`)
 
@@ -435,8 +427,8 @@ const setupLean = async (
   const allBarrelExports: Array<{ file: string; pattern: string }> = []
 
   for (const name of integrationNames) {
+    // name: BundleId → access is always total
     const bundle = INTEGRATION_BUNDLES[name]
-    if (!bundle) continue
     allDeps.push(...bundle.dependencies)
     allDevDeps.push(...bundle.devDependencies)
     allEnvVars.push(...bundle.envVars)
@@ -491,9 +483,9 @@ const setupLean = async (
 
 /**
  * For each kept integration, run the same add steps as `satus add` uses —
- * copyBundleFiles, applyOverwriteFiles, addDependencies (from snapshot
- * package.json), restoreBarrelExports, appendEnvStubs, addTransforms —
- * using the snapshot as the payload source.
+ * via `installBundle`, which centralizes: copyBundleFiles, applyOverwriteFiles,
+ * addDependencies (from snapshot package.json), restoreBarrelExports,
+ * appendEnvStubs, addTransforms.
  *
  * Also strips absent-integration wiring from freshly copied files (e.g.
  * keeping webgl without theatre must remove theatre hooks from the copied
@@ -519,62 +511,15 @@ const setupAddIntegrations = async (
   const addedIntegrationIds = new Set<RemovableId>()
 
   for (const id of keepIntegrations) {
-    const bundle = INTEGRATION_BUNDLES[id]
-    if (!bundle) continue
+    const bundle = getBundle(id)
+    if (!bundle) continue // id: RemovableId — guard is honest
 
     s.start(`Re-adding ${bundle.name}...`)
-    const details: string[] = []
 
-    // Copy bundle folders/files from the snapshot
-    try {
-      const { copied, skipped } = await copyBundleFiles(source, bundle, {
-        dryRun,
-        force: true, // we just stripped everything — always overwrite
-      })
-      if (copied > 0) details.push(`${copied} files copied`)
-      if (skipped > 0) details.push(`${skipped} files kept`)
-    } catch (err) {
-      // Some bundles may have no folders/files (hubspot, mailchimp) — that's fine
-      p.log.warn(
-        `copyBundleFiles for ${bundle.name}: ${err instanceof Error ? err.message : String(err)}`
-      )
-    }
-
-    // Restore overwriteFiles wholesale
-    const overwrite = await applyOverwriteFiles(source, bundle, {
+    const { details } = await installBundle(source, bundle, payloadPkg, {
       dryRun,
-      force: true,
+      force: true, // we just stripped everything — always overwrite
     })
-    if (overwrite.written.length > 0) {
-      details.push(
-        `${overwrite.written.length} integration-owned files restored`
-      )
-    }
-
-    // Re-add dependencies from the snapshot package.json
-    const deps = await addDependencies(bundle, payloadPkg, { dryRun })
-    if (deps.added.length > 0) {
-      details.push(`${deps.added.length} dependencies re-added`)
-    }
-
-    // Restore barrel exports from the snapshot
-    const barrelChanges = await restoreBarrelExports(source, bundle, { dryRun })
-    if (barrelChanges > 0) {
-      details.push(`${barrelChanges} barrel exports restored`)
-    }
-
-    // Append env stubs
-    const envChanges = await appendEnvStubs(bundle.envVars, dryRun)
-    if (envChanges > 0) details.push(`${envChanges} env stubs appended`)
-
-    // Apply additive code transforms
-    const transformChanges = await applyCodeTransforms(
-      bundle.addTransforms ?? [],
-      dryRun
-    )
-    if (transformChanges > 0) {
-      details.push(`${transformChanges} files re-wired`)
-    }
 
     addedIntegrationIds.add(id)
 
@@ -774,13 +719,15 @@ const setup = async (options: SetupOptions): Promise<void> => {
   }
 
   // 10. Re-add the kept integrations from the snapshot.
+  //     The snapshot cleanup is in `finally` so the temp dir is always removed,
+  //     even when setupAddIntegrations throws.
   if (snapshot) {
-    await setupAddIntegrations(keepIntegrations, snapshot, dryRun)
-  }
-
-  // 11. Cleanup snapshot temp directory.
-  if (snapshot) {
-    await snapshot.cleanup()
+    try {
+      await setupAddIntegrations(keepIntegrations, snapshot, dryRun)
+    } finally {
+      // 11. Cleanup snapshot temp directory (always runs — even on failure).
+      await snapshot.cleanup()
+    }
   }
 
   // 12. Run bun install to update lockfile.
@@ -863,10 +810,11 @@ const promptForIntegrations = async (): Promise<RemovableId[]> => {
 
   if (selectedPreset === 'custom') {
     // Build options for multiselect
+    // key: BundleId → INTEGRATION_BUNDLES[key] is always IntegrationBundle
     const integrationOptions = getIntegrationNames().map((key) => ({
       value: key,
-      label: INTEGRATION_BUNDLES[key]?.name ?? key,
-      hint: INTEGRATION_BUNDLES[key]?.description ?? '',
+      label: INTEGRATION_BUNDLES[key].name,
+      hint: INTEGRATION_BUNDLES[key].description,
     }))
 
     // Ask which integrations to keep
@@ -886,7 +834,8 @@ const promptForIntegrations = async (): Promise<RemovableId[]> => {
 
   p.log.step(`Selected preset: ${preset.name}`)
   p.log.message(
-    `  Includes: ${keepIntegrations.length > 0 ? keepIntegrations.map((k) => INTEGRATION_BUNDLES[k]?.name).join(', ') : 'None'}`
+    // keepIntegrations: RemovableId[] from preset — use getBundle for safe access
+    `  Includes: ${keepIntegrations.length > 0 ? keepIntegrations.map((k) => getBundle(k)?.name).join(', ') : 'None'}`
   )
 
   return keepIntegrations
@@ -958,7 +907,8 @@ const main = async (): Promise<void> => {
 
   if (keepIntegrations.length > 0) {
     p.log.message(
-      `  Keep: ${keepIntegrations.map((k) => INTEGRATION_BUNDLES[k]?.name).join(', ')}`
+      // keepIntegrations: RemovableId[] — use getBundle for safe access
+      `  Keep: ${keepIntegrations.map((k) => getBundle(k)?.name).join(', ')}`
     )
   } else {
     p.log.message('  Keep: none (lean core only)')
@@ -966,7 +916,8 @@ const main = async (): Promise<void> => {
 
   if (toRemove.length > 0) {
     p.log.message(
-      `  Remove: ${toRemove.map((k) => INTEGRATION_BUNDLES[k]?.name).join(', ')}`
+      // toRemove: BundleId[] (filtered from getIntegrationNames()) — access is total
+      `  Remove: ${toRemove.map((k) => INTEGRATION_BUNDLES[k].name).join(', ')}`
     )
   }
 

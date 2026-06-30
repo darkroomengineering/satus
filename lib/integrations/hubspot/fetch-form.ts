@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { env } from '@/lib/env'
 import { fetchWithTimeout } from '@/utils/fetch'
 import { stripHtmlTags } from '@/utils/strings'
 import { parseApiResponse } from '@/utils/validation'
@@ -86,7 +87,7 @@ export interface HubSpotParsedForm {
 // operations grow (e.g., creating forms, managing contacts), consider
 // switching to the SDK which is already installed as a devDependency.
 async function hubspotFormApi(id: string) {
-  const accessToken = process.env.HUBSPOT_ACCESS_TOKEN
+  const accessToken = env.HUBSPOT_ACCESS_TOKEN
   if (!accessToken) {
     throw new Error(
       'HUBSPOT_ACCESS_TOKEN is not configured. Set it in your environment variables.'
@@ -123,10 +124,10 @@ function apiParser(id: string, data: HubspotFormResponse) {
   const firstCheckbox = communicationsCheckboxes?.[0] ?? null
 
   return {
-    portalId: process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID,
+    portalId: env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID,
     id: id,
     inputs: data.fieldGroups
-      .flatMap((item) => (item.fields[0] != null ? [item.fields[0]] : []))
+      .flatMap((item) => item.fields ?? [])
       .map((flatData) => {
         return {
           name: flatData.name || '',

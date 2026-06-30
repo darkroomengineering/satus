@@ -2,6 +2,7 @@ import { revalidateTag } from 'next/cache'
 import { headers } from 'next/headers'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
+import { env } from '@/lib/env'
 import { TAGS } from './constants'
 
 const collectionWebhooks = [
@@ -25,7 +26,7 @@ export async function revalidate(req: NextRequest): Promise<NextResponse> {
   const isCollectionUpdate = collectionWebhooks.includes(topic)
   const isProductUpdate = productWebhooks.includes(topic)
 
-  if (!secret || secret !== process.env.SHOPIFY_REVALIDATION_SECRET) {
+  if (!secret || secret !== env.SHOPIFY_REVALIDATION_SECRET) {
     console.error('Invalid revalidation secret.')
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

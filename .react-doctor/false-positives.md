@@ -22,3 +22,17 @@ stub is the exact anti-pattern the rule's own docs warn against.
 > If authenticated account pages are ever added as server actions ("view my
 > orders", "update my address"), those **must** gate on the signed-in user —
 > remove the relevant entry above and add the check. None exist today.
+
+## `react-hooks-js/immutability` (×1) — false positive
+
+The rule forbids mutating a value returned from `useState`. In
+`lib/webgl/utils/fluid/index.tsx` the `Fluid` simulation instance is held in
+state (it is returned from `useFluidSim` and drives effect dependencies, so it
+can't be a ref), and the flagged line writes a Three.js shader **uniform** on
+that instance (`fluid.splatMaterial.uniforms.uAspect.value = …`) on viewport
+resize. Mutating a Three.js material's internals is the intended imperative
+WebGL pattern; the `fluid` reference never changes, so React Compiler
+memoization is unaffected. Suppressed inline with `react-doctor-disable-next-line`
+at the call site.
+
+- `react-hooks-js/immutability` — `lib/webgl/utils/fluid/index.tsx` `uAspect` uniform write — Three.js uniform mutation on a state-held sim instance, not a React state mutation

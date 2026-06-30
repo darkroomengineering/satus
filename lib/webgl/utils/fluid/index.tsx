@@ -35,6 +35,10 @@ export function useFluidSim(resolution = 128) {
   // Update aspect ratio when viewport size changes
   useEffect(() => {
     if (!fluid) return
+    // Writing a Three.js shader uniform on the state-held Fluid instance. The
+    // `fluid` reference itself never changes, so this imperative WebGL update is
+    // invisible to React — react-hooks-js/immutability is a false positive here.
+    // react-doctor-disable-next-line react-hooks-js/immutability
     fluid.splatMaterial.uniforms.uAspect.value = size.width / size.height
   }, [size, fluid])
 

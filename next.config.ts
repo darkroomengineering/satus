@@ -98,6 +98,11 @@ const nextConfig: NextConfig = {
   experimental: {
     taint: true,
     cachedNavigations: true,
+    // 16.3 preview: persistent Turbopack FS cache for `next build` (faster
+    // cached CI/Vercel builds) + the native Rust port of the React Compiler
+    // (pairs with the top-level `reactCompiler: true`). Both experimental.
+    turbopackFileSystemCacheForBuild: true,
+    turbopackRustReactCompiler: true,
     sri: { algorithm: 'sha384' },
     optimizePackageImports: [
       '@react-three/drei',

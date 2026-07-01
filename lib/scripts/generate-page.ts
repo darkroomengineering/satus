@@ -144,9 +144,10 @@ function generatePageContent(pageName: string, options: PageOptions): string {
   }
 
   // Section indent shifts when wrapped in <Cart>
-  const sectionIndent = shopify ? '        ' : '      '
-  const contentIndent = shopify ? '          ' : '        '
-  const itemIndent = shopify ? '            ' : '          '
+  const indent = (depth: number) => '  '.repeat(depth)
+  const sectionIndent = shopify ? indent(4) : indent(3)
+  const contentIndent = shopify ? indent(5) : indent(4)
+  const itemIndent = shopify ? indent(6) : indent(5)
   const sanityHint = sanity
     ? `\n${itemIndent}{/* Use data from Sanity: {data?.title} */}`
     : ''

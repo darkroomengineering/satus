@@ -1,7 +1,7 @@
 'use client'
 
 import { type Rect, useRect } from 'hamo'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 type UseWebGLElementOptions = {
   /** Margin around the viewport to trigger visibility earlier (default: '200px') */
@@ -59,59 +59,33 @@ export function useWebGLElement<T extends HTMLElement = HTMLElement>({
 }: UseWebGLElementOptions = {}): UseWebGLElementReturn<T> {
   const [isVisible, setIsVisible] = useState(initialVisible)
   const [setRectRef, rect] = useRect()
-  const elementRef = useRef<T | null>(null)
-  const observerRef = useRef<IntersectionObserver | null>(null)
+  const [element, setElement] = useState<T | null>(null)
 
-  // Combined ref callback that handles both rect tracking and visibility observation
-  const setRef = (element: T | null) => {
-    // Update rect ref
-    setRectRef(element)
-
-    // Handle observer cleanup and setup
-    if (observerRef.current) {
-      observerRef.current.disconnect()
-      observerRef.current = null
-    }
-
-    elementRef.current = element
-
-    if (element) {
-      observerRef.current = new IntersectionObserver(
-        ([entry]) => {
-          if (entry) setIsVisible(entry.isIntersecting)
-        },
-        { rootMargin, threshold: threshold ?? 0 }
-      )
-      observerRef.current.observe(element)
-    }
+  // Combined ref callback: passes the element to rect tracking and stores it
+  // in state so the observer effect below re-runs whenever the target changes.
+  const setRef = (el: T | null) => {
+    setRectRef(el)
+    setElement(el)
   }
 
-  // Cleanup on unmount
+  // Single effect owns the full observer lifecycle. Cleanup always runs before
+  // the next invocation (React guarantee), so there is no window with two live
+  // observers.
   useEffect(() => {
-    return () => {
-      observerRef.current?.disconnect()
-    }
-  }, [])
-
-  // Handle option changes by re-creating observer
-  useEffect(() => {
-    const element = elementRef.current
     if (!element) return
 
-    // Recreate observer with new options
-    observerRef.current?.disconnect()
-    observerRef.current = new IntersectionObserver(
+    const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry) setIsVisible(entry.isIntersecting)
       },
       { rootMargin, threshold: threshold ?? 0 }
     )
-    observerRef.current.observe(element)
+    observer.observe(element)
 
     return () => {
-      observerRef.current?.disconnect()
+      observer.disconnect()
     }
-  }, [rootMargin, threshold])
+  }, [element, rootMargin, threshold])
 
   return {
     setRef,

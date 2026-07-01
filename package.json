@@ -29,6 +29,7 @@
     "setup:project": "bun ./lib/scripts/setup-project.ts",
     "satus": "bun ./lib/scripts/satus.ts",
     "test": "bun test",
+    "test:e2e": "playwright test",
     "test:setup": "bun test lib/scripts/setup-project.test.ts",
     "doctor": "bun ./lib/scripts/doctor.ts",
     "setup:styles": "bun ./lib/styles/scripts/setup-styles.ts",
@@ -68,11 +69,13 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.12.1",
     "@biomejs/biome": "2.5.1",
     "@clack/prompts": "^1.6.0",
     "@csstools/postcss-global-data": "^4.0.0",
     "@happy-dom/global-registrator": "^20.10.6",
     "@next/bundle-analyzer": "16.3.0-preview.5",
+    "@playwright/test": "1.61.1",
     "@sanity/vision": "^6.1.0",
     "@storybook/addon-mcp": "^0.6.0",
     "@storybook/nextjs-vite": "^10.4.6",

@@ -18,7 +18,7 @@
 import * as p from '@clack/prompts'
 import { getConfigured, getConfiguredIds } from '@/integrations/registry'
 import { cancelGuard } from './generate-shared'
-import { INTEGRATION_BUNDLES } from './integration-bundles'
+import { getBundle } from './integration-bundles'
 import { renderDeploymentChecklist } from './templates/deployment-checklist'
 import { renderInventory } from './templates/inventory'
 import { parseCliFlags, pathExists, removeFile, resolvePath } from './utils'
@@ -155,7 +155,7 @@ const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
     // directly against the bundle record — no fragile lowercase bridge needed.
     const keepVars = new Set<string>()
     for (const id of getConfiguredIds()) {
-      const bundle = INTEGRATION_BUNDLES[id]
+      const bundle = getBundle(id)
       if (bundle) {
         for (const envVar of bundle.envVars) keepVars.add(envVar)
       }

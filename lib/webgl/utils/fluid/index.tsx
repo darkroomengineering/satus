@@ -1,8 +1,9 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { types } from '@theatre/core'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useCurrentSheet } from '@/dev/theatre'
 import { useTheatre } from '@/dev/theatre/hooks/use-theatre'
+import { usePointerInput } from '@/webgl/hooks/use-pointer-input'
 import { Fluid } from '@/webgl/utils/fluid/fluid-sim'
 
 export function useFluidSim(resolution = 128) {
@@ -22,69 +23,23 @@ export function useFluidSim(resolution = 128) {
     }
   }, [resolution, gl])
 
-  const lastMouseRef = useRef({ x: 0, y: 0, isInit: false })
-
-  // Setup mouse event listeners
-  useEffect(() => {
-    const updateMouse = (event: MouseEvent | TouchEvent) => {
-      let clientX: number
-      let clientY: number
-
-      // Handle both mouse and touch events
-      if ('changedTouches' in event && event.changedTouches?.length) {
-        clientX = event.changedTouches[0]?.clientX ?? 0
-        clientY = event.changedTouches[0]?.clientY ?? 0
-      } else if ('clientX' in event) {
-        clientX = event.clientX
-        clientY = event.clientY
-      } else {
-        return
-      }
-
-      const lastMouse = lastMouseRef.current
-
-      // First input
-      if (!lastMouse.isInit) {
-        lastMouse.isInit = true
-        lastMouse.x = clientX
-        lastMouse.y = clientY
-        return
-      }
-
-      const deltaX = clientX - lastMouse.x
-      const deltaY = clientY - lastMouse.y
-
-      lastMouse.x = clientX
-      lastMouse.y = clientY
-
-      // Add if the mouse is moving
-      if (Math.abs(deltaX) || Math.abs(deltaY)) {
-        const normalizedX = clientX / size.width
-        const normalizedY = 1 - clientY / size.height
-
-        // Add splat to fluid simulation
-        fluid?.addSplat(normalizedX, normalizedY, deltaX * 5, deltaY * -5)
-      }
-    }
-
-    const handleMouseMove = (event: MouseEvent) => updateMouse(event)
-    const handleTouchMove = (event: TouchEvent) => updateMouse(event)
-
-    // Add event listeners
-    window.addEventListener('mousemove', handleMouseMove, false)
-    window.addEventListener('touchmove', handleTouchMove, false)
-
-    // Cleanup function
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove, false)
-      window.removeEventListener('touchmove', handleTouchMove, false)
-    }
-  }, [fluid, size.width, size.height])
+  // Normalize pointer input and queue splats. The callback always reads the
+  // latest `size` and `fluid` via the ref pattern inside usePointerInput.
+  usePointerInput((clientX, clientY, dx, dy) => {
+    if (!(Math.abs(dx) || Math.abs(dy))) return
+    const normalizedX = clientX / size.width
+    const normalizedY = 1 - clientY / size.height
+    fluid?.addSplat(normalizedX, normalizedY, dx * 5, dy * -5)
+  })
 
   // Update aspect ratio when viewport size changes
   useEffect(() => {
     if (!fluid) return
-    fluid.splatMaterial.uniforms.uAspect!.value = size.width / size.height
+    // Writing a Three.js shader uniform on the state-held Fluid instance. The
+    // `fluid` reference itself never changes, so this imperative WebGL update is
+    // invisible to React — react-hooks-js/immutability is a false positive here.
+    // react-doctor-disable-next-line react-hooks-js/immutability
+    fluid.splatMaterial.uniforms.uAspect.value = size.width / size.height
   }, [size, fluid])
 
   // Theatre.js controls for fluid parameters
@@ -123,11 +78,10 @@ export function useFluidSim(resolution = 128) {
     }
   )
 
-  // Update fluid simulation each frame
-  // ponytail: sim runs at a fixed internal dt (0.016), so delta isn't passed.
-  // Wire delta through Fluid.update if frame-rate independence is needed.
-  useFrame(() => {
-    fluid?.update()
+  // Drive the simulation with the real frame delta so it runs at the same
+  // apparent speed regardless of display refresh rate.
+  useFrame((_, delta) => {
+    fluid?.update(delta)
   }, -10)
 
   return fluid

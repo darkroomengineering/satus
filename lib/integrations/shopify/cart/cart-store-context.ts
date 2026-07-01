@@ -30,7 +30,7 @@ export interface CartMeta {
 export type CartContextStandard = {
   state: CartState
   actions: CartActions
-  meta?: CartMeta
+  meta: CartMeta
 }
 
 export const CartContext = createContext<CartContextStandard | null>(null)
@@ -44,7 +44,7 @@ export const CartContext = createContext<CartContextStandard | null>(null)
  * const { state, actions, meta } = useCartContext()
  * const { cart } = state
  * const { addCartItem, updateCartItem } = actions
- * const quantity = meta?.totalQuantity()
+ * const quantity = meta.totalQuantity()
  * ```
  */
 export function useCartContext(): CartContextStandard {

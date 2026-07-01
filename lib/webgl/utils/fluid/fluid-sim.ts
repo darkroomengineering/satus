@@ -301,7 +301,7 @@ export class Fluid {
   >
   divergenceMaterial: ShaderMaterial<'uVelocity'>
   curlMaterial: ShaderMaterial<'uVelocity'>
-  vorticityMaterial: ShaderMaterial<'uVelocity' | 'uCurl' | 'curl'>
+  vorticityMaterial: ShaderMaterial<'uVelocity' | 'uCurl' | 'curl' | 'dt'>
   pressureMaterial: ShaderMaterial<'uPressure' | 'uDivergence'>
   gradientSubtractMaterial: ShaderMaterial<'uPressure' | 'uVelocity'>
   screenCamera: OrthographicCamera
@@ -466,7 +466,7 @@ export class Fluid {
       blending: NoBlending,
       depthTest: false,
       depthWrite: false,
-    }) as ShaderMaterial<'uVelocity' | 'uCurl' | 'curl'>
+    }) as ShaderMaterial<'uVelocity' | 'uCurl' | 'curl' | 'dt'>
 
     this.pressureMaterial = new RawShaderMaterial({
       glslVersion: GLSL3,
@@ -508,7 +508,7 @@ export class Fluid {
     this.splats.push({ x, y, dx, dy })
   }
 
-  update() {
+  update(dt = 0.016) {
     const renderer = this.renderer
     const simRes = this.simRes
     const dyeRes = this.dyeRes
@@ -523,6 +523,10 @@ export class Fluid {
     const currentRenderTarget = renderer.getRenderTarget()
     const currentAutoClear = renderer.autoClear
     renderer.autoClear = false
+
+    // Propagate frame delta to time-dependent materials
+    this.advectionMaterial.uniforms.dt.value = dt
+    this.vorticityMaterial.uniforms.dt.value = dt
 
     // Render all of the inputs since the last frame
     for (let i = this.splats.length - 1; i >= 0; i--) {
@@ -641,11 +645,5 @@ export class Fluid {
     this.gradientSubtractMaterial.dispose()
 
     this.screenTriangle.dispose()
-
-    // Null every field for GC; types don't allow null, so go through a loose view.
-    const self = this as Record<string, unknown>
-    for (const prop in self) {
-      self[prop] = null
-    }
   }
 }

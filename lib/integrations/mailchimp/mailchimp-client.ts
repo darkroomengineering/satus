@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto'
 import { z } from 'zod'
+import { env } from '@/lib/env'
 import { fetchWithTimeout } from '@/utils/fetch'
 import { parseApiResponse } from '@/utils/validation'
 
@@ -46,9 +47,9 @@ const mailchimpErrorResponseSchema = z.object({
 
 // Get Mailchimp configuration from environment variables
 function getMailchimpConfig(): MailchimpConfig {
-  const apiKey = process.env.MAILCHIMP_API_KEY
-  const serverPrefix = process.env.MAILCHIMP_SERVER_PREFIX
-  const audienceId = process.env.MAILCHIMP_AUDIENCE_ID
+  const apiKey = env.MAILCHIMP_API_KEY
+  const serverPrefix = env.MAILCHIMP_SERVER_PREFIX
+  const audienceId = env.MAILCHIMP_AUDIENCE_ID
 
   if (!(apiKey && serverPrefix && audienceId)) {
     throw new Error(
@@ -64,12 +65,13 @@ function subscriberHash(email: string): string {
   return createHash('md5').update(email.trim().toLowerCase()).digest('hex')
 }
 
-// Base Mailchimp API client
+// Base Mailchimp API client — config is threaded in to avoid repeated reads
 async function makeMailchimpRequest(
   endpoint: string,
-  options: RequestInit
+  options: RequestInit,
+  config: MailchimpConfig
 ): Promise<Response> {
-  const { apiKey, serverPrefix } = getMailchimpConfig()
+  const { apiKey, serverPrefix } = config
 
   const url = `https://${serverPrefix}.api.mailchimp.com/3.0${endpoint}`
   const auth = Buffer.from(`anystring:${apiKey}`, 'utf8').toString('base64')
@@ -89,16 +91,21 @@ async function makeMailchimpRequest(
 async function applyMemberTags(
   audienceId: string,
   email: string,
-  tags: string[]
+  tags: string[],
+  config: MailchimpConfig
 ): Promise<void> {
   const hash = subscriberHash(email)
   const body = {
     tags: tags.map((name) => ({ name, status: 'active' })),
   }
-  await makeMailchimpRequest(`/lists/${audienceId}/members/${hash}/tags`, {
-    method: 'POST',
-    body: JSON.stringify(body),
-  })
+  await makeMailchimpRequest(
+    `/lists/${audienceId}/members/${hash}/tags`,
+    {
+      method: 'POST',
+      body: JSON.stringify(body),
+    },
+    config
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -110,6 +117,7 @@ interface UpsertMemberOptions {
   email: string
   firstName: string
   lastName: string
+  config: MailchimpConfig
 }
 
 /**
@@ -121,7 +129,7 @@ async function upsertMember(
 ): Promise<
   { ok: true; memberId: string } | { ok: false; result: MailchimpResult }
 > {
-  const { audienceId, email, firstName, lastName } = opts
+  const { audienceId, email, firstName, lastName, config } = opts
   const hash = subscriberHash(email)
 
   const subscriberData = {
@@ -139,7 +147,8 @@ async function upsertMember(
     {
       method: 'PUT',
       body: JSON.stringify(subscriberData),
-    }
+    },
+    config
   )
 
   if (response.ok) {
@@ -178,7 +187,8 @@ export async function addContactToMailchimp(
   contactData: ContactData
 ): Promise<MailchimpResult> {
   try {
-    const { audienceId } = getMailchimpConfig()
+    const config = getMailchimpConfig()
+    const { audienceId } = config
 
     // Split name into first and last name
     const nameParts = contactData.name.trim().split(' ')
@@ -190,6 +200,7 @@ export async function addContactToMailchimp(
       email: contactData.email,
       firstName,
       lastName,
+      config,
     })
 
     if (!upsert.ok) {
@@ -199,7 +210,12 @@ export async function addContactToMailchimp(
     // --- best-effort: tag and note failures do NOT fail the overall op ---
 
     try {
-      await applyMemberTags(audienceId, contactData.email, ['contact-form'])
+      await applyMemberTags(
+        audienceId,
+        contactData.email,
+        ['contact-form'],
+        config
+      )
     } catch (err) {
       console.error('Mailchimp contact tag error (non-fatal):', err)
     }
@@ -211,7 +227,8 @@ export async function addContactToMailchimp(
           {
             method: 'POST',
             body: JSON.stringify({ note: contactData.note }),
-          }
+          },
+          config
         )
       } catch (err) {
         console.error('Mailchimp contact note error (non-fatal):', err)
@@ -234,13 +251,15 @@ export async function addSubscriberToMailchimp(
   subscriptionData: SubscriptionData
 ): Promise<MailchimpResult> {
   try {
-    const { audienceId } = getMailchimpConfig()
+    const config = getMailchimpConfig()
+    const { audienceId } = config
 
     const upsert = await upsertMember({
       audienceId,
       email: subscriptionData.email,
       firstName: subscriptionData.firstName ?? '',
       lastName: subscriptionData.lastName ?? '',
+      config,
     })
 
     if (!upsert.ok) {
@@ -253,7 +272,12 @@ export async function addSubscriberToMailchimp(
 
     // best-effort tag application
     try {
-      await applyMemberTags(audienceId, subscriptionData.email, ['newsletter'])
+      await applyMemberTags(
+        audienceId,
+        subscriptionData.email,
+        ['newsletter'],
+        config
+      )
     } catch (err) {
       console.error('Mailchimp newsletter tag error (non-fatal):', err)
     }

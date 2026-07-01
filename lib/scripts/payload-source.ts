@@ -88,7 +88,9 @@ export const resolvePayloadSource = async (
     return {
       root,
       label: `local checkout ${root}`,
-      cleanup: async () => {},
+      cleanup: async () => {
+        // Local checkout is caller-owned; nothing to remove on cleanup.
+      },
     }
   }
 

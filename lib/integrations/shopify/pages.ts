@@ -1,3 +1,4 @@
+import { env } from '@/lib/env'
 import { shopifyFetch } from './client'
 import { TAGS } from './constants'
 import { getMenuQuery } from './queries/menu'
@@ -5,7 +6,7 @@ import { getPageQuery, getPagesQuery } from './queries/page'
 import { removeEdgesAndNodes } from './reshape'
 import type { EdgeNode, Page } from './types'
 
-const domain = process.env.SHOPIFY_STORE_DOMAIN ?? ''
+const domain = env.SHOPIFY_STORE_DOMAIN ?? ''
 
 interface MenuItem {
   title: string

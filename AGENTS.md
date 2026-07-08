@@ -435,11 +435,12 @@ All integrations are optional and self-contained in `lib/integrations/{name}/`. 
 ```bash
 bun dev              # Dev server (Turbopack)
 bun run build        # Production build (runs setup:styles first)
-bun run check        # Biome + tsgo --noEmit + bun test (must pass before commit)
+bun run check        # Biome + tsc --noEmit + bun test (must pass before commit)
 bun lint             # Biome lint
 bun lint:fix         # Biome lint with auto-fix
 bun run format       # Biome format
-bun run typecheck    # tsgo --noEmit
+bun run typecheck    # tsc --noEmit (TypeScript 7 native)
+bun run typecheck:watch  # tsc --noEmit --watch (native fast watcher; live feedback)
 bun test             # Unit tests (bun's built-in runner; ignores *.e2e.ts)
 bun run test:e2e     # Playwright E2E smoke test (boots dev server automatically)
 bun run setup:project  # Strip unused integrations (non-interactive: --preset/--keep, --yes, --clean-homepage, --skip-install)
@@ -447,7 +448,7 @@ bun run satus        # Plugin CLI: `list`, `add <plugin>` (restore an integratio
 bun run doctor       # Diagnose setup issues
 ```
 
-Pre-commit hook (lefthook) runs in parallel on staged files: Biome check + tsgo typecheck.
+Pre-commit hook (lefthook) runs in parallel on staged files: Biome check + tsc typecheck.
 
 ---
 

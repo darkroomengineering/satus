@@ -23,7 +23,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       # Build first: generates next-env.d.ts + .next/types (gitignored) that
-      # tsgo needs, and catches RSC/prerender regressions before deploy.
+      # tsc needs, and catches RSC/prerender regressions before deploy.
       - name: Build
         run: bun run build
 

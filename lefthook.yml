@@ -11,7 +11,9 @@ pre-commit:
       stage_fixed: true
     typecheck:
       glob: '*.{ts,tsx}'
-      run: bunx tsgo --noEmit --incremental false
+      # Incremental is on: with a single (TS7 native) compiler there is no
+      # cross-compiler .tsbuildinfo conflict, and the warm cache is ~4x faster.
+      run: bunx tsc --noEmit
       stage_fixed: false
 
 # NOTE: Build checks happen in CI, not pre-push (too slow for dev workflow)

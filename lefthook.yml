@@ -27,6 +27,18 @@ pre-commit:
 #         - merge
 #         - rebase
 
+# Branch switches leave the previous branch's generated route types in
+# .next/types (tsconfig includes them), producing ghost tsc errors about
+# routes that don't exist on the new branch. Clear them on real branch
+# checkouts only — {3} is git's flag: 1 = branch switch, 0 = file checkout.
+# They regenerate on the next `bun dev` / `bun run build`.
+post-checkout:
+  commands:
+    clear-generated-types:
+      skip:
+        - rebase
+      run: '[ "{3}" != "1" ] || rm -rf .next/types .next/dev/types'
+
 post-merge:
   commands:
     install-deps:

@@ -4,7 +4,15 @@ import { TAGS } from './constants'
 import { getMenuQuery } from './queries/menu'
 import { getPageQuery, getPagesQuery } from './queries/page'
 import { removeEdgesAndNodes } from './reshape'
-import type { EdgeNode, Page } from './types'
+import {
+  type GetMenuResponseData,
+  type GetPageResponseData,
+  type GetPagesResponseData,
+  getMenuResponseSchema,
+  getPageResponseSchema,
+  getPagesResponseSchema,
+} from './schemas'
+import type { Page } from './types'
 
 const domain = env.SHOPIFY_STORE_DOMAIN ?? ''
 
@@ -14,14 +22,13 @@ interface MenuItem {
 }
 
 export async function getMenu(handle: string): Promise<MenuItem[]> {
-  const res = await shopifyFetch<{
-    menu: { items: Array<{ title: string; url: string }> } | null
-  }>({
+  const res = await shopifyFetch<GetMenuResponseData>({
     query: getMenuQuery,
     tags: [TAGS.collections],
     variables: {
       handle,
     },
+    dataSchema: getMenuResponseSchema,
   })
 
   return (
@@ -36,17 +43,19 @@ export async function getMenu(handle: string): Promise<MenuItem[]> {
 }
 
 export async function getPage(handle: string): Promise<Page | null> {
-  const res = await shopifyFetch<{ pageByHandle: Page | null }>({
+  const res = await shopifyFetch<GetPageResponseData>({
     query: getPageQuery,
     variables: { handle },
+    dataSchema: getPageResponseSchema,
   })
 
   return res.body.data.pageByHandle
 }
 
 export async function getPages(): Promise<Page[]> {
-  const res = await shopifyFetch<{ pages: EdgeNode<Page> }>({
+  const res = await shopifyFetch<GetPagesResponseData>({
     query: getPagesQuery,
+    dataSchema: getPagesResponseSchema,
   })
 
   return removeEdgesAndNodes(res.body.data.pages)

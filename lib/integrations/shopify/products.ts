@@ -6,7 +6,15 @@ import {
   getProductsQuery,
 } from './queries/product'
 import { removeEdgesAndNodes, reshapeProduct, reshapeProducts } from './reshape'
-import type { EdgeNode, Product, ShopifyProduct } from './types'
+import {
+  type GetProductRecommendationsResponseData,
+  type GetProductResponseData,
+  type GetProductsResponseData,
+  getProductRecommendationsResponseSchema,
+  getProductResponseSchema,
+  getProductsResponseSchema,
+} from './schemas'
+import type { Product } from './types'
 
 export async function getProduct({
   handle,
@@ -14,13 +22,14 @@ export async function getProduct({
 }: { handle: string; id?: string } | { id: string; handle?: string }): Promise<
   Product | undefined
 > {
-  const res = await shopifyFetch<{ product: ShopifyProduct | null }>({
+  const res = await shopifyFetch<GetProductResponseData>({
     query: getProductQuery,
     tags: [TAGS.products],
     variables: {
       handle,
       id,
     },
+    dataSchema: getProductResponseSchema,
   })
 
   return reshapeProduct(res.body.data.product, false)
@@ -29,12 +38,13 @@ export async function getProduct({
 export async function getProductRecommendations(
   productId: string
 ): Promise<Product[]> {
-  const res = await shopifyFetch<{ productRecommendations: ShopifyProduct[] }>({
+  const res = await shopifyFetch<GetProductRecommendationsResponseData>({
     query: getProductRecommendationsQuery,
     tags: [TAGS.products],
     variables: {
       productId,
     },
+    dataSchema: getProductRecommendationsResponseSchema,
   })
 
   return reshapeProducts(res.body.data.productRecommendations)
@@ -51,7 +61,7 @@ export async function getProducts({
   reverse,
   sortKey,
 }: GetProductsOptions): Promise<Product[]> {
-  const res = await shopifyFetch<{ products: EdgeNode<ShopifyProduct> }>({
+  const res = await shopifyFetch<GetProductsResponseData>({
     query: getProductsQuery,
     tags: [TAGS.products],
     variables: {
@@ -59,6 +69,7 @@ export async function getProducts({
       reverse,
       sortKey,
     },
+    dataSchema: getProductsResponseSchema,
   })
 
   return reshapeProducts(removeEdgesAndNodes(res.body.data.products))

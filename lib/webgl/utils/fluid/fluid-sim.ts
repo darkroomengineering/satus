@@ -31,6 +31,11 @@ import {
 
 type Splat = { x: number; y: number; dx: number; dy: number }
 
+// Caps the pending-splat queue. Pointer-move events can outpace a paused or
+// throttled frame loop (update() is the only drain point), so without a
+// cap a stalled frame loop lets the queue grow unbounded.
+const MAX_SPLATS = 64
+
 export interface FluidOptions {
   simRes?: number
   dyeRes?: number
@@ -505,6 +510,9 @@ export class Fluid {
 
   /** Queue a splat at normalized position (x, y) with velocity (dx, dy). */
   addSplat(x: number, y: number, dx: number, dy: number) {
+    if (this.splats.length >= MAX_SPLATS) {
+      this.splats.shift()
+    }
     this.splats.push({ x, y, dx, dy })
   }
 

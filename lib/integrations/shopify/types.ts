@@ -34,7 +34,10 @@ export interface DefaultCart {
   checkoutUrl: string
   totalQuantity: number
   cost: {
-    totalTaxAmount: Money
+    // `CartCost.totalTaxAmount` is a deprecated, nullable field on the
+    // Storefront API — Shopify can return `null`. `reshapeCart` already
+    // falls back to a zero amount when it's absent.
+    totalTaxAmount: Money | null
     subtotalAmount: Money
     totalAmount: Money
   }
@@ -121,9 +124,12 @@ export interface Collection {
   handle: string
   title: string
   description?: string
+  // Storefront API `SEO.title` / `SEO.description` are nullable and are
+  // `null` until a merchant explicitly sets meta title/description in the
+  // admin — every consumer already falls back with `??`.
   seo?: {
-    title: string
-    description: string
+    title: string | null
+    description: string | null
   }
   path?: string
   updatedAt?: string
@@ -131,9 +137,14 @@ export interface Collection {
 
 export interface ShopifyImage {
   url: string
-  altText?: string
-  width?: number
-  height?: number
+  // Shopify returns `null` (not just an absent field) when an image has no
+  // alt text — every consumer already falls back with `??`, so the type
+  // reflects that.
+  altText?: string | null
+  // Storefront API `Image.width` / `Image.height` are nullable — they
+  // return `null` when the image isn't hosted by Shopify.
+  width?: number | null
+  height?: number | null
 }
 
 export interface Image extends ShopifyImage {
@@ -159,9 +170,10 @@ export interface ShopifyProduct {
     minVariantPrice: Money
     maxVariantPrice: Money
   }
+  // See the `Collection.seo` comment — SEO title/description are nullable.
   seo?: {
-    title: string
-    description: string
+    title: string | null
+    description: string | null
   }
 }
 
@@ -194,9 +206,10 @@ export interface Product {
     minVariantPrice: Money
     maxVariantPrice: Money
   }
+  // See the `Collection.seo` comment — SEO title/description are nullable.
   seo?: {
-    title: string
-    description: string
+    title: string | null
+    description: string | null
   }
 }
 
@@ -217,10 +230,13 @@ export interface Page {
   handle: string
   body: string
   bodySummary: string
+  // Unlike Product/Collection, Storefront API `Page.seo` itself is nullable
+  // (not just its title/description) — it's `null` until a merchant sets
+  // page-level SEO metadata in the admin.
   seo?: {
-    title: string
-    description: string
-  }
+    title: string | null
+    description: string | null
+  } | null
   createdAt: string
   updatedAt: string
 }

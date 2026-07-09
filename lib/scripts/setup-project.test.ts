@@ -17,7 +17,13 @@ import {
   getIntegrationNames,
   INTEGRATION_BUNDLES,
 } from './integration-bundles'
-import { PROJECT_PRESETS } from './setup-project'
+import { planInstallSet } from './satus'
+import {
+  declaredBundlePaths,
+  findMissingPaths,
+  PROJECT_PRESETS,
+} from './setup-project'
+import { getFlagValue } from './utils'
 
 // ---------------------------------------------------------------------------
 // Source file fixtures — loaded once, never written to disk
@@ -90,6 +96,7 @@ describe('Integration Bundle Configuration', () => {
             'removeInterfaceProperty',
             'removeFunctionParameter',
             'replaceJsDoc',
+            'removeIfStatement',
             'removeArrayObjectElement',
             'removeArrayStringElement',
             'removeJsxAttribute',
@@ -117,6 +124,8 @@ describe('Integration Bundle Configuration', () => {
           } else if (op.kind === 'replaceJsDoc') {
             expect(op.functionName).toBeTruthy()
             expect(op.replacement).toBeTruthy()
+          } else if (op.kind === 'removeIfStatement') {
+            expect(op.conditionContains).toBeTruthy()
           } else if (op.kind === 'removeArrayObjectElement') {
             expect(op.variableName).toBeTruthy()
             expect(op.propertyPath).toBeTruthy()
@@ -780,5 +789,157 @@ describe('Additive Transforms (remove → add round trips)', () => {
 
     const lean = applyOpsToText(content, removal.ops)
     expect(applyOpsToText(lean, removal.ops)).toBe(lean)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// H6 — `satus add --force` reinstall path
+// ---------------------------------------------------------------------------
+
+describe('planInstallSet (H6 — --force reinstall regression)', () => {
+  const statuses = [
+    { id: 'sanity', installed: true },
+    { id: 'webgl', installed: false },
+    { id: 'theatre', installed: true },
+  ]
+
+  it('without --force, skips already-installed bundles entirely', () => {
+    const { toInstall, alreadyInstalled } = planInstallSet(statuses, false)
+
+    expect(toInstall.map((s) => s.id)).toEqual(['webgl'])
+    expect(alreadyInstalled.map((s) => s.id)).toEqual(['sanity', 'theatre'])
+  })
+
+  it('with --force, queues already-installed bundles for reinstall too', () => {
+    const { toInstall, alreadyInstalled } = planInstallSet(statuses, true)
+
+    // Every requested bundle is queued — --force is no longer a no-op.
+    expect(toInstall.map((s) => s.id)).toEqual(['sanity', 'webgl', 'theatre'])
+    // Still reported as "already installed" for the reinstall-vs-fresh message.
+    expect(alreadyInstalled.map((s) => s.id)).toEqual(['sanity', 'theatre'])
+  })
+
+  it('--force on an all-installed set is never empty (was the H6 no-op bug)', () => {
+    const allInstalled = [
+      { id: 'sanity', installed: true },
+      { id: 'webgl', installed: true },
+    ]
+
+    expect(planInstallSet(allInstalled, false).toInstall).toHaveLength(0)
+    expect(planInstallSet(allInstalled, true).toInstall).toHaveLength(2)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// H8 — preflight validation before any mutation
+// ---------------------------------------------------------------------------
+
+describe('declaredBundlePaths / findMissingPaths (H8 preflight)', () => {
+  it('declaredBundlePaths collects folders, files, and overwriteFiles for kept bundles', () => {
+    const paths = declaredBundlePaths(['sanity'])
+
+    expect(paths).toContain('lib/integrations/sanity')
+    expect(paths).toContain('app/api/draft-mode/enable/route.ts')
+    // overwriteFiles
+    expect(paths).toContain('app/layout.tsx')
+  })
+
+  it('declaredBundlePaths is empty for an empty keep set', () => {
+    expect(declaredBundlePaths([])).toEqual([])
+  })
+
+  it('findMissingPaths reports nothing missing when every real bundle path exists on disk', async () => {
+    // Runs against the actual repo tree (this IS the satus repo), so every
+    // declared path for every real bundle must be present.
+    for (const id of getIntegrationNames()) {
+      const missing = await findMissingPaths(declaredBundlePaths([id]))
+      expect(missing).toEqual([])
+    }
+  })
+
+  it('findMissingPaths reports paths an injected exists-check says are absent', async () => {
+    const missing = await findMissingPaths(
+      ['fake/path/a', 'fake/path/b', 'fake/path/c'],
+      async (rel) => rel !== 'fake/path/b' // only "b" is reported missing
+    )
+
+    expect(missing).toEqual(['fake/path/b'])
+  })
+
+  it('findMissingPaths returns [] when the injected exists-check always resolves', async () => {
+    const missing = await findMissingPaths(['a', 'b'], async () => true)
+    expect(missing).toEqual([])
+  })
+})
+
+// ---------------------------------------------------------------------------
+// L4 — duplicate CLI flags: first wins, but now with a warning
+// ---------------------------------------------------------------------------
+
+describe('getFlagValue (L4 — duplicate flag warning)', () => {
+  it('returns the single value when the flag is passed once', () => {
+    expect(getFlagValue(['--keep', 'sanity'], '--keep')).toBe('sanity')
+  })
+
+  it('keeps first-wins semantics when the flag is passed twice', () => {
+    const result = getFlagValue(
+      ['--keep', 'sanity', '--keep', 'webgl'],
+      '--keep'
+    )
+    expect(result).toBe('sanity')
+  })
+
+  it('warns naming the flag and the winning value on duplicates', () => {
+    const warnCalls: unknown[][] = []
+    const originalWarn = console.warn
+    console.warn = (...args: unknown[]) => {
+      warnCalls.push(args)
+    }
+
+    try {
+      getFlagValue(['--preset', 'studio', '--preset', 'blank'], '--preset')
+    } finally {
+      console.warn = originalWarn
+    }
+
+    expect(warnCalls).toHaveLength(1)
+    const [message] = warnCalls[0] as [string]
+    expect(message).toContain('--preset')
+    expect(message).toContain('studio')
+    expect(message).toContain('blank')
+  })
+
+  it('does not warn when the flag appears once or not at all', () => {
+    const warnCalls: unknown[][] = []
+    const originalWarn = console.warn
+    console.warn = (...args: unknown[]) => {
+      warnCalls.push(args)
+    }
+
+    try {
+      getFlagValue(['--keep', 'sanity'], '--keep')
+      getFlagValue(['--other', 'x'], '--keep')
+    } finally {
+      console.warn = originalWarn
+    }
+
+    expect(warnCalls).toHaveLength(0)
+  })
+
+  it('supports the --flag=value duplicate form too', () => {
+    const warnCalls: unknown[][] = []
+    const originalWarn = console.warn
+    console.warn = (...args: unknown[]) => {
+      warnCalls.push(args)
+    }
+
+    try {
+      const result = getFlagValue(['--ref=main', '--ref=v2'], '--ref')
+      expect(result).toBe('main')
+    } finally {
+      console.warn = originalWarn
+    }
+
+    expect(warnCalls).toHaveLength(1)
   })
 })

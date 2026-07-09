@@ -3,10 +3,14 @@
 import cn from 'clsx'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { Link } from '@/components/ui/link'
+import { isExternalHref, Link } from '@/components/ui/link'
 import s from './header.module.css'
 
-type NavLink = { href: string; label: string; external?: boolean }
+// `newTab` is only needed when a link should open in a new tab despite not
+// being externally-derivable from its href (e.g. the proxied, relative
+// Storybook route in production). Absolute http(s) hrefs — like the GitHub
+// link — get new-tab + the arrow indicator automatically via isExternalHref.
+type NavLink = { href: string; label: string; newTab?: boolean }
 
 // In local dev, link straight to the Storybook dev server. In deployed builds,
 // link to the /storybook proxy (see next.config.ts), shown only when
@@ -23,13 +27,14 @@ const STORYBOOK_ENABLED =
 // Navigation links - customize for your project
 const LINKS: NavLink[] = [
   { href: '/', label: 'home' },
+  // Prod Storybook route is relative (/storybook/, proxied) so it isn't
+  // externally-derivable from the href alone — needs the explicit intent.
   ...(STORYBOOK_ENABLED
-    ? [{ href: STORYBOOK_HREF, label: 'storybook', external: true }]
+    ? [{ href: STORYBOOK_HREF, label: 'storybook', newTab: true }]
     : []),
   {
     href: 'https://github.com/darkroomengineering/satus',
     label: 'github',
-    external: true,
   },
 ]
 
@@ -60,7 +65,7 @@ export function Header() {
       {/* Level 1: Main navigation */}
       <ul className={cn(s.navList, menuOpen && s.navListOpen)} id="header-nav">
         {LINKS.map((link) => {
-          const isExternal = 'external' in link && link.external
+          const opensNewTab = isExternalHref(link.href) || Boolean(link.newTab)
           const isActive = pathname === link.href
 
           return (
@@ -74,13 +79,10 @@ export function Header() {
                   isActive ? s.navLinkActive : s.navLinkDim
                 )}
                 href={link.href}
-                {...(isExternal && {
-                  target: '_blank',
-                  rel: 'noopener noreferrer',
-                })}
+                newTab={link.newTab}
               >
                 {link.label}
-                {isExternal && '↗'}
+                {opensNewTab && '↗'}
               </Link>
             </li>
           )

@@ -17,9 +17,24 @@ type CustomLinkProps = Omit<
     href?: string
     onClick?: (e: MouseEvent<HTMLElement>) => void
     scroll?: boolean
+    /**
+     * Force new-tab behavior (target="_blank" + rel="noopener noreferrer")
+     * even for a relative/internal href. `isExternalHref` already covers
+     * absolute http(s) URLs automatically — this is only for the rare case
+     * of an internal route that should still open in a new tab (e.g. a
+     * proxied Storybook route).
+     */
+    newTab?: boolean | undefined
   }
 
-function isExternalHref(href: string) {
+/**
+ * Single source of truth for "is this href external". Absolute http(s) URLs
+ * are external; everything else (relative paths, hashes, mailto:, etc.) is
+ * treated as internal. Exported so callers that build their own nav data
+ * (e.g. Header) can derive the same external-arrow/new-tab intent instead of
+ * hand-authoring a parallel `external` flag that can drift from this logic.
+ */
+export function isExternalHref(href: string) {
   return href.startsWith('http://') || href.startsWith('https://')
 }
 
@@ -56,6 +71,7 @@ export function Link({
   children,
   onClick,
   scroll = false, // Default to false to prevent scroll restoration warnings with fixed/sticky elements
+  newTab = false,
   ...props
 }: CustomLinkProps) {
   const pathname = usePathname()
@@ -64,7 +80,7 @@ export function Link({
   // Derived during render straight from `href`. The string check is
   // deterministic on both server and client, so the SSR markup and the first
   // client render always agree — no mirror state + effect needed.
-  const isExternal = href ? isExternalHref(href) : false
+  const opensNewTab = Boolean(href && isExternalHref(href)) || newTab
 
   // Prefetch hint from the browser Network Information API. Read via
   // useSyncExternalStore so it's SSR-safe (server snapshot = false) with no
@@ -80,7 +96,6 @@ export function Link({
     const {
       target: _t,
       rel: _r,
-      'data-external': _de,
       ...buttonProps
     } = props as Record<string, unknown>
     return (
@@ -99,33 +114,21 @@ export function Link({
     const {
       target: _t,
       rel: _r,
-      'data-external': _de,
       ...divProps
     } = props as Record<string, unknown>
     return <div {...divProps}>{children}</div>
   }
 
-  if (isExternal) {
-    return (
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        data-external
-        onClick={onClick}
-        {...props}
-      >
-        {children}
-      </a>
-    )
-  }
-
+  // New-tab links (external or explicit `newTab`) ride the same NextLink —
+  // it passes `target`/`rel` through to the anchor, skips client routing for
+  // absolute URLs on its own, and prefetching a new-tab destination is waste.
   return (
     <NextLink
       href={href as ComponentProps<typeof NextLink>['href']}
-      prefetch={shouldPrefetch}
+      prefetch={opensNewTab ? false : shouldPrefetch}
       scroll={scroll}
       data-active={isActive || undefined}
+      {...(opensNewTab && { target: '_blank', rel: 'noopener noreferrer' })}
       {...(onClick && { onClick })}
       {...props}
     >

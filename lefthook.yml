@@ -11,7 +11,10 @@ pre-commit:
       stage_fixed: true
     typecheck:
       glob: '*.{ts,tsx}'
-      run: bunx tsgo --noEmit --incremental false
+      # TS7 native (aliased as typescript7; the classic `typescript` package
+      # serves Next's build-time API). Incremental is on: this alias is the
+      # only writer of tsconfig.tsbuildinfo, and the warm cache is ~4x faster.
+      run: bun node_modules/typescript7/bin/tsc --noEmit
       stage_fixed: false
 
 # NOTE: Build checks happen in CI, not pre-push (too slow for dev workflow)

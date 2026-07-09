@@ -1,10 +1,14 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { createContext, type PropsWithChildren, use } from 'react'
+import { createContext, type PropsWithChildren, use, useEffect } from 'react'
 import type tunnel from 'tunnel-rat'
 import { useDeviceDetection } from '@/lib/hooks/use-device-detection'
-import { getDOMTunnel, getWebGLTunnel } from '@/lib/webgl/store'
+import {
+  getDOMTunnel,
+  getWebGLTunnel,
+  registerRootCanvasMount,
+} from '@/lib/webgl/store'
 
 const WebGLCanvas = dynamic(
   () => import('./webgl').then(({ WebGLCanvas }) => WebGLCanvas),
@@ -29,6 +33,12 @@ type CanvasProps = PropsWithChildren<{
   root?: boolean
   /** Force WebGL even on mobile/non-WebGL devices */
   force?: boolean
+  /**
+   * Which GPU simulations `FlowmapProvider` mounts (root canvas only).
+   * Defaults to both (back-compat). Pass a subset — e.g. `['flowmap']` — to
+   * skip the other sim's GPU pass and window listeners entirely.
+   */
+  simTypes?: ('fluid' | 'flowmap')[]
 }>
 
 export const CanvasContext = createContext<CanvasContextValue>({
@@ -58,6 +68,7 @@ export function Canvas({
   children,
   root = false,
   force = false,
+  simTypes,
   ...props
 }: CanvasProps) {
   const { isWebGL } = useDeviceDetection()
@@ -74,9 +85,18 @@ export function Canvas({
       ? { active: true, WebGLTunnel, DOMTunnel }
       : { active: false }
 
+  const isMounting = contextValue.active && shouldRender
+
+  // Guard against two <Canvas root> instances both mounting the WebGL
+  // surface at once (e.g. layout canvas + <Wrapper webgl> on the same page).
+  useEffect(() => {
+    if (!isMounting) return
+    return registerRootCanvasMount()
+  }, [isMounting])
+
   return (
     <CanvasContext.Provider value={contextValue}>
-      {contextValue.active && shouldRender && <WebGLCanvas {...props} />}
+      {isMounting && <WebGLCanvas {...props} {...(simTypes && { simTypes })} />}
       {children}
     </CanvasContext.Provider>
   )

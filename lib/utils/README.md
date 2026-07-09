@@ -16,7 +16,7 @@ import { generateSanityMetadata } from '@/utils/metadata'
 | Module | Functions |
 |--------|-----------|
 | `math` | `clamp`, `lerp`, `mapRange`, `truncate`, `modulo`, `roundTo`, `degToRad`, `radToDeg`, `distance` |
-| `raf` | `measure`, `mutate`, `batch` (DOM batching) |
+| `raf` | `mutate` (DOM write batching) |
 | `fetch` | `fetchWithTimeout`, `fetchJSON` |
 | `strings` | `slugify`, `lowerFirstChar`, `capitalizeFirstLetter`, `isEmptyArray`, `stripHtmlTags` |
 | `metadata` | `generatePageMetadata`, `generateSanityMetadata` |
@@ -31,8 +31,7 @@ clamp(0, value, 100)
 lerp(0, 100, 0.5) // → 50
 mapRange(0, 1000, scrollY, 0, 1)
 
-// DOM batching (prevents layout thrashing)
-await measure(() => element.getBoundingClientRect())
+// DOM write batching (prevents layout thrashing)
 await mutate(() => element.style.transform = 'translateX(10px)')
 
 // Fetch with timeout

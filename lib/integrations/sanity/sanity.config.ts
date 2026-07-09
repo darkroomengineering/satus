@@ -1,5 +1,7 @@
 /**
- * This configuration is used to for the Sanity Studio that's mounted on the `/app/studio/[[...tool]]/page.tsx` route
+ * Configuration for the standalone Sanity Studio — run it with
+ * `bunx sanity dev` from this directory, or `bunx sanity deploy`
+ * to host it at https://<project>.sanity.studio.
  */
 
 import { visionTool } from '@sanity/vision'

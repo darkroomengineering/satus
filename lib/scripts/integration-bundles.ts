@@ -28,6 +28,7 @@ export type {
   RemoveCallStatementOp,
   RemoveDestructuredBindingOp,
   RemoveFunctionParameterOp,
+  RemoveIfStatementOp,
   RemoveImportOp,
   RemoveInterfacePropertyOp,
   RemoveJsxAttributeOp,
@@ -254,7 +255,41 @@ export const INTEGRATION_BUNDLES = defineBundles({
           },
         ],
       },
+      // app/api/revalidate/route.ts is a SHARED core route (not deleted by any
+      // bundle's `folders`/`files` — Sanity's revalidation logic in the same
+      // file has no bundle ownership either). Only Shopify currently wires
+      // anything into it, so stripping Shopify must remove exactly its own
+      // import + guard dispatch and nothing else.
+      {
+        file: 'app/api/revalidate/route.ts',
+        ops: [
+          // Remove `import { revalidate as shopifyRevalidate } from '@/integrations/shopify/revalidate'`
+          {
+            kind: 'removeImport',
+            specifier: '@/integrations/shopify/revalidate',
+          },
+          // Remove `const isShopifyWebhook = request.headers.has(…) || …`
+          {
+            kind: 'removeVariableStatement',
+            name: 'isShopifyWebhook',
+          },
+          // Remove `if (isShopifyWebhook) { return shopifyRevalidate(request) }`
+          {
+            kind: 'removeIfStatement',
+            conditionContains: 'isShopifyWebhook',
+          },
+        ],
+      },
     ],
+    // The Shopify webhook dispatch (import + guard variable + if-statement)
+    // lives inside the exported `POST` function body, not at the top level —
+    // none of the existing additive ops can re-insert a statement mid-function,
+    // so the file is restored wholesale on `satus add shopify`, guarded by the
+    // lean-state comparison documented on `overwriteFiles`. Safe because no
+    // other bundle currently owns any part of this file (see codeTransforms
+    // comment above) — the "expected lean" check only ever compares against
+    // Shopify's own removal ops.
+    overwriteFiles: ['app/api/revalidate/route.ts'],
     addTransforms: [
       {
         file: 'next.config.ts',

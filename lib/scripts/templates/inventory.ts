@@ -6,11 +6,13 @@
  * the corresponding scan failed and the section renders a fallback line.
  */
 
+import type { IntegrationStatus } from './deployment-checklist'
+
 export interface InventoryData {
   /** ISO date (YYYY-MM-DD) shown in the "Generated:" line. */
   date: string
-  /** Configured integration display names. */
-  integrations: string[]
+  /** Integrations that ship on disk, each with its env-configured status. */
+  integrations: IntegrationStatus[]
   /** Sorted `components/ui` names, or `null` if the scan failed. */
   uiComponents: string[] | null
   /** Sorted `components/layout` names, or `null` if the scan failed. */
@@ -56,14 +58,16 @@ export function renderInventory({
   lines.push(`Generated: ${date}`)
   lines.push('')
 
-  lines.push('## Active Integrations')
+  lines.push('## Installed Integrations')
   lines.push('')
   if (integrations.length > 0) {
-    for (const integration of integrations) {
-      lines.push(`- ${integration}`)
+    for (const { name, configured } of integrations) {
+      lines.push(
+        configured ? `- ${name}` : `- ${name} — installed, needs configuration`
+      )
     }
   } else {
-    lines.push('- None configured')
+    lines.push('- None installed')
   }
   lines.push('')
 

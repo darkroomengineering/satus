@@ -2,22 +2,41 @@
  * Deployment checklist template for the client handoff script.
  *
  * Pure render function -- no I/O. `prepare-handoff.ts` gathers the data
- * (project name, configured integrations, date) and writes the result, so the
+ * (project name, shipped integrations, date) and writes the result, so the
  * checklist content can be edited here without touching script logic.
  */
+
+/**
+ * An integration that ships on disk (audit H7 — presence = disk, not
+ * presence = configured env). `configured` reports whether the integration's
+ * env schema currently validates in this shell — a reported axis, not a
+ * filter: unconfigured integrations still appear, with `configured: false`.
+ */
+export interface IntegrationStatus {
+  /** Display name, e.g. 'Sanity', 'Shopify'. */
+  name: string
+  /** Whether the integration's env vars currently validate in this shell. */
+  configured: boolean
+}
 
 export interface DeploymentChecklistData {
   /** Human-readable project name used in the title. */
   projectName: string
-  /** Configured integration display names, e.g. `['Sanity', 'Shopify']`. */
-  integrations: string[]
+  /** Integrations that ship on disk, each with its env-configured status. */
+  integrations: IntegrationStatus[]
   /** ISO date (YYYY-MM-DD) shown in the "Generated:" line. */
   date: string
 }
 
+const NEEDS_CONFIG_LINE =
+  '- [ ] ⚠️ Not yet configured in this environment — see .env.example'
+
 /**
  * Render the deployment checklist markdown. Integration-specific sections are
- * included only when that integration is configured.
+ * included whenever that integration ships on disk — regardless of whether
+ * its env vars are configured in the current shell, since a section that's
+ * silently dropped is a missed setup step for code that's actually shipping.
+ * An unconfigured integration's section gets an extra warning line up front.
  */
 export function renderDeploymentChecklist({
   projectName,
@@ -25,6 +44,8 @@ export function renderDeploymentChecklist({
   date,
 }: DeploymentChecklistData): string {
   const lines: string[] = []
+  const find = (name: string): IntegrationStatus | undefined =>
+    integrations.find((integration) => integration.name === name)
 
   lines.push(`# ${projectName} - Deployment Checklist`)
   lines.push('')
@@ -40,9 +61,11 @@ export function renderDeploymentChecklist({
   lines.push('- [ ] TypeScript passes without errors (`bun typecheck`)')
   lines.push('')
 
-  if (integrations.includes('Sanity')) {
+  const sanity = find('Sanity')
+  if (sanity) {
     lines.push('## Sanity CMS')
     lines.push('')
+    if (!sanity.configured) lines.push(NEEDS_CONFIG_LINE)
     lines.push('- [ ] Production dataset selected')
     lines.push('- [ ] CORS origins configured for production domain')
     lines.push('- [ ] Webhook configured for revalidation')
@@ -51,18 +74,22 @@ export function renderDeploymentChecklist({
     lines.push('')
   }
 
-  if (integrations.includes('Shopify')) {
+  const shopify = find('Shopify')
+  if (shopify) {
     lines.push('## Shopify')
     lines.push('')
+    if (!shopify.configured) lines.push(NEEDS_CONFIG_LINE)
     lines.push('- [ ] Storefront API access token configured')
     lines.push('- [ ] Webhooks configured for product/collection updates')
     lines.push('- [ ] Test checkout flow in production')
     lines.push('')
   }
 
-  if (integrations.includes('HubSpot')) {
+  const hubspot = find('HubSpot')
+  if (hubspot) {
     lines.push('## HubSpot')
     lines.push('')
+    if (!hubspot.configured) lines.push(NEEDS_CONFIG_LINE)
     lines.push('- [ ] API access token configured')
     lines.push('- [ ] Form IDs updated for production forms')
     lines.push('- [ ] Test form submissions')

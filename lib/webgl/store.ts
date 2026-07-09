@@ -18,3 +18,36 @@ export function getDOMTunnel(): WebGLTunnelInstance {
   }
   return domTunnelSingleton
 }
+
+// Tracks how many `<Canvas root>` instances are actually mounting the WebGL
+// surface (layout canvas + a per-page `<Wrapper webgl>` both grab the same
+// singleton tunnels above, silently doubling GPU cost). Sequential
+// mount→cleanup→mount from React Strict Mode double-invoking a single
+// instance's effect never pushes the count past 1, so it can't cause a
+// false-positive warning — only two instances mounted at once do.
+let rootMountCount = 0
+let hasWarnedMultipleRootMounts = false
+
+/**
+ * Register a `<Canvas root>` mount. Call from the mounting effect; call the
+ * returned function from its cleanup. In development, warns once if more
+ * than one root canvas is mounted at the same time.
+ */
+export function registerRootCanvasMount(): () => void {
+  rootMountCount++
+
+  if (
+    process.env.NODE_ENV === 'development' &&
+    rootMountCount > 1 &&
+    !hasWarnedMultipleRootMounts
+  ) {
+    hasWarnedMultipleRootMounts = true
+    console.warn(
+      'Two <Canvas root> mounted — use either the shared layout canvas OR <Wrapper webgl>, not both.'
+    )
+  }
+
+  return () => {
+    rootMountCount--
+  }
+}

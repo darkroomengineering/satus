@@ -1,16 +1,15 @@
 name: Auto-merge Dependabot
 
-# Auto-merge Dependabot PRs once the Test workflow passes.
+# Auto-merge Dependabot PRs once the CI workflow passes.
 # Patch/minor bumps only — major bumps require human review.
 #
-# Triggers on workflow_run (after Test completes) instead of pull_request,
-# so we can read Test's conclusion before merging. Previously this used
-# `gh pr merge --admin`, which bypassed status checks entirely and could
-# merge bumps even when tests failed.
+# Triggers on workflow_run (after CI completes) instead of pull_request,
+# so we can read CI's conclusion before merging and squash-merge through
+# `gh pr merge` — status checks stay enforced.
 
 on:
   workflow_run:
-    workflows: ["Test"]
+    workflows: ["CI"]
     types: [completed]
 
 permissions:
@@ -20,7 +19,7 @@ permissions:
 jobs:
   auto-merge:
     runs-on: ubuntu-latest
-    # Only act when the triggering Test run succeeded AND it was for a
+    # Only act when the triggering CI run succeeded AND it was for a
     # Dependabot pull_request. workflow_run.actor.login is the actor who
     # caused the underlying event — for Dependabot PRs that's `dependabot[bot]`.
     if: >

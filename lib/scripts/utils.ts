@@ -137,23 +137,46 @@ export const parseCliFlags = (
  * Returns `undefined` when the flag is absent, and the empty string when the
  * flag is present without a value (`--keep=` / trailing `--keep`), so callers
  * can distinguish "not passed" from "passed empty".
+ *
+ * First-wins semantics are preserved when a flag is passed more than once
+ * (kept deliberately — see `--force`/`--yes` style flags used by
+ * `create-darkroom`'s cross-repo scaffolding contract), but a duplicate now
+ * prints a warning naming the flag and the value that won, instead of
+ * silently discarding the later value (L4).
  */
 export const getFlagValue = (
   argv: string[],
   flag: string
 ): string | undefined => {
+  let result: string | undefined
+  let seen = false
+
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]
     if (arg === undefined) continue
+
+    let value: string | undefined
     if (arg === flag) {
       const next = argv[i + 1]
       // A following flag (or nothing) means this one carries no value.
-      if (next === undefined || next.startsWith('--')) return ''
-      return next
+      value = next === undefined || next.startsWith('--') ? '' : next
+    } else if (arg.startsWith(`${flag}=`)) {
+      value = arg.slice(flag.length + 1)
+    } else {
+      continue
     }
-    if (arg.startsWith(`${flag}=`)) return arg.slice(flag.length + 1)
+
+    if (seen) {
+      console.warn(
+        `Warning: "${flag}" was passed more than once — using "${result}", ignoring "${value}"`
+      )
+    } else {
+      result = value
+      seen = true
+    }
   }
-  return undefined
+
+  return result
 }
 
 // ============================================================================

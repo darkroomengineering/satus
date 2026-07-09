@@ -1,6 +1,6 @@
 # HubSpot Integration
 
-Form handling and marketing automation.
+Form handling and marketing automation, with Cloudflare Turnstile spam protection.
 
 ## Environment Variables
 
@@ -37,11 +37,12 @@ import { HubspotNewsletterAction } from '@/lib/integrations/hubspot/action'
 ### Validation
 
 The newsletter action validates input with Zod:
+- Turnstile token validated first (via `lib/integrations/turnstile`) — the action rejects submissions without a valid `cf-turnstile-response` form field; render Cloudflare's Turnstile widget inside the form (see `lib/integrations/turnstile/README.md`)
 - Email validated with `z.email()` (Zod 4 top-level validator)
 - Form ID validated as non-empty string
 - Returns `{ status: 400, fieldErrors }` on validation failure
 
-Env vars are validated via `hubspotEnvSchema` in the integration registry.
+Env vars are validated via `hubspotEnvSchema` in the integration registry. Turnstile env vars are configured separately and auto-skip in development when the secret key is absent.
 
 ## Getting Credentials
 

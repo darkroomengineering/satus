@@ -16,7 +16,7 @@ const productWebhooks = [
   'products/update',
 ]
 
-// This is called from `app/api/revalidate.ts` so providers can control revalidation logic.
+// This is called from `app/api/revalidate/route.ts` so providers can control revalidation logic.
 export async function revalidate(req: NextRequest): Promise<NextResponse> {
   // We always need to respond with a 200 status code to Shopify,
   // otherwise it will continue to retry the request.

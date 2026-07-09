@@ -30,7 +30,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import * as p from '@clack/prompts'
 import type { RemovableId } from '@/integrations/registry'
-import { applyCodeTransforms } from './ast-transforms'
+import {
+  applyCodeTransforms,
+  type TransformFailure,
+} from './ast-transforms/index'
 import { removeBarrelLines } from './barrel-file'
 import { installBundle, stripAbsentIntegrationWiring } from './bundle-installer'
 import { cancelGuard } from './generate-shared'
@@ -45,6 +48,7 @@ import {
   getFlagValue,
   parseCliFlags,
   pathExists,
+  projectRoot,
   removeDir,
   removeFile,
   resolvePath,
@@ -271,6 +275,59 @@ const ensureNextTypeStub = async (dryRun: boolean): Promise<void> => {
 }
 
 // ---------------------------------------------------------------------------
+// Preflight (H8): validate before any mutation begins
+// ---------------------------------------------------------------------------
+
+/**
+ * Collect the relative paths (folders / files / overwriteFiles) declared by
+ * the kept bundles' manifests — the exact set `setupSnapshot` needs present
+ * on disk to build a working payload. Exported for unit testing.
+ */
+export const declaredBundlePaths = (
+  keepIntegrations: RemovableId[]
+): string[] => {
+  const paths: string[] = []
+
+  for (const id of keepIntegrations) {
+    const bundle = getBundle(id)
+    if (!bundle) continue // id: RemovableId — guard is honest
+
+    paths.push(
+      ...bundle.folders,
+      ...bundle.files,
+      ...(bundle.overwriteFiles ?? [])
+    )
+  }
+
+  return paths
+}
+
+/**
+ * Check which of `paths` are absent on disk. `exists` is injectable so tests
+ * can simulate a missing path without touching the filesystem; it defaults
+ * to a real `pathExists(resolvePath(...))` check.
+ *
+ * This is the preflight for H8: `setupSnapshot` silently skips any bundle
+ * path that doesn't exist (`if (await pathExists(src))`), while the later
+ * `installBundle` call throws hard on the resulting incomplete snapshot —
+ * by which point folder removal, self-prune, and the package.json write may
+ * already have run. Calling this BEFORE any of those steps means a missing
+ * path is reported with zero mutations performed, instead of leaving the
+ * project half-migrated.
+ */
+export const findMissingPaths = async (
+  paths: string[],
+  exists: (rel: string) => Promise<boolean> = (rel) =>
+    pathExists(resolvePath(rel))
+): Promise<string[]> => {
+  const missing: string[] = []
+  for (const rel of paths) {
+    if (!(await exists(rel))) missing.push(rel)
+  }
+  return missing
+}
+
+// ---------------------------------------------------------------------------
 // Phase orchestration helpers (additive model)
 // ---------------------------------------------------------------------------
 
@@ -362,12 +419,12 @@ const setupSnapshot = async (
  *
  * Accepts a pre-parsed in-memory `pkg` object and calls `removeDepsFromPackageJson`
  * to mutate it directly — no file I/O for the package.json dep removal step.
- * Returns removal counts for logging.
+ * Returns removal counts and any code-transform failures for logging.
  */
 const setupLean = async (
   pkg: PackageJson,
   dryRun: boolean
-): Promise<{ deps: number; devDeps: number }> => {
+): Promise<{ deps: number; devDeps: number; failures: TransformFailure[] }> => {
   const integrationNames = getIntegrationNames()
   const s = p.spinner()
 
@@ -379,15 +436,14 @@ const setupLean = async (
   }
 
   // Apply code transformations BEFORE removing folders
+  let failures: TransformFailure[] = []
   if (allCodeTransforms.length > 0) {
     s.start('Stripping integrations (code transforms)...')
-    const transformChanges = await applyCodeTransforms(
-      allCodeTransforms,
-      dryRun
-    )
+    const transformResult = await applyCodeTransforms(allCodeTransforms, dryRun)
+    failures = transformResult.failures
     s.stop(
-      transformChanges > 0
-        ? `Applied ${transformChanges} code transformations`
+      transformResult.changes > 0
+        ? `Applied ${transformResult.changes} code transformations`
         : 'No code transformations needed'
     )
   }
@@ -478,7 +534,7 @@ const setupLean = async (
     )
   }
 
-  return { deps: totalDeps, devDeps: totalDevDeps }
+  return { deps: totalDeps, devDeps: totalDevDeps, failures }
 }
 
 /**
@@ -490,13 +546,17 @@ const setupLean = async (
  * Also strips absent-integration wiring from freshly copied files (e.g.
  * keeping webgl without theatre must remove theatre hooks from the copied
  * fluid/flowmaps — this is the exact same logic `satus add` uses).
+ *
+ * Returns any code-transform failures collected along the way instead of
+ * swallowing them — callers report and fail loudly once the whole batch is
+ * done (M6).
  */
 const setupAddIntegrations = async (
   keepIntegrations: RemovableId[],
   source: PayloadSource,
   dryRun: boolean
-): Promise<void> => {
-  if (keepIntegrations.length === 0) return
+): Promise<{ failures: TransformFailure[] }> => {
+  if (keepIntegrations.length === 0) return { failures: [] }
 
   const s = p.spinner()
 
@@ -509,6 +569,7 @@ const setupAddIntegrations = async (
   // Re-add each kept integration in order (respecting requires transitivity
   // is not needed here — the snapshot already has all files).
   const addedIntegrationIds = new Set<RemovableId>()
+  const failures: TransformFailure[] = []
 
   for (const id of keepIntegrations) {
     const bundle = getBundle(id)
@@ -516,10 +577,16 @@ const setupAddIntegrations = async (
 
     s.start(`Re-adding ${bundle.name}...`)
 
-    const { details } = await installBundle(source, bundle, payloadPkg, {
-      dryRun,
-      force: true, // we just stripped everything — always overwrite
-    })
+    const { details, failures: bundleFailures } = await installBundle(
+      source,
+      bundle,
+      payloadPkg,
+      {
+        dryRun,
+        force: true, // we just stripped everything — always overwrite
+      }
+    )
+    failures.push(...bundleFailures)
 
     addedIntegrationIds.add(id)
 
@@ -531,15 +598,18 @@ const setupAddIntegrations = async (
   // Strip absent-integration wiring from freshly copied files.
   // e.g. keeping webgl without theatre must remove theatre wiring from the
   // copied fluid/flowmap hooks.  These ops are no-ops on already-lean files.
-  const stripped = await stripAbsentIntegrationWiring(
+  const stripResult = await stripAbsentIntegrationWiring(
     addedIntegrationIds,
     dryRun
   )
-  if (stripped > 0) {
+  failures.push(...stripResult.failures)
+  if (stripResult.changes > 0) {
     p.log.step(
-      `Stripped absent-integration wiring from ${stripped} copied files`
+      `Stripped absent-integration wiring from ${stripResult.changes} copied files`
     )
   }
+
+  return { failures }
 }
 
 /**
@@ -649,32 +719,70 @@ const readGitHead = async (): Promise<string | undefined> => {
 /**
  * Main setup orchestration (additive model):
  *
- *   1. ensureNextTypeStub
- *   2. Read git HEAD sha (before any writes — metadata only)
- *   3. cleanMarketing (if flagged)
- *   4. snapshot(kept) — capture kept integration files before stripping
- *   5. Read package.json ONCE into memory
- *   6. setupLean — strip ALL integrations (mutates in-memory pkg)
- *   7. selfPrune — delete setup files; mutate pkg scripts in-memory
+ *   1. PREFLIGHT — validate every file/folder the kept bundles declare
+ *      exists on disk. Exits loudly with zero mutations performed when
+ *      anything is missing (H8) — must run before ANY of the mutating
+ *      steps below.
+ *   2. ensureNextTypeStub
+ *   3. Read git HEAD sha (before any writes — metadata only)
+ *   4. cleanMarketing (if flagged)
+ *   5. snapshot(kept) — capture kept integration files before stripping
+ *   6. Read package.json ONCE into memory
+ *   7. setupLean — strip ALL integrations (mutates in-memory pkg)
  *   8. Apply pinned git ref to in-memory pkg
- *   9. Write package.json ONCE (atomic for steps 6–8; before bun install
- *      so the installer sees the final dep list and lockfile stays consistent)
+ *   9. Write package.json (dep removal + pinned ref). Must happen BEFORE
+ *      setupAddIntegrations so the snapshot re-add sees a consistent lockfile
+ *      target; this is NOT the final write — see step 12.
  *  10. setupAddIntegrations — re-add the kept set from the snapshot
  *  11. snapshot.cleanup()
- *  12. bun install (unless --skip-install); runs after the write so it reads
- *      the already-finalized package.json and only updates the lockfile
+ *  12. selfPrune — delete setup files (including this script) and mutate
+ *      pkg.scripts in-memory, THEN a second package.json write to persist
+ *      the scripts removal. This is deliberately the LAST mutating step:
+ *      running it only after setupAddIntegrations has completed
+ *      successfully means any failure in steps 4–10 leaves
+ *      lib/scripts/setup-project.ts (and its package.json script entry)
+ *      intact, so the run can simply be repeated (H8).
+ *  13. bun install (unless --skip-install). Non-fatal on failure (M5): a
+ *      registry/offline error is reported and surfaced to the caller via
+ *      the returned `installFailed` flag, but does not undo or block the
+ *      steps above — the setup itself already succeeded by this point.
+ *
+ * Returns `installFailed` (bun install failed but setup files are all
+ * written) and `transformFailures` (any AST code-transform that failed —
+ * collected rather than swallowed, per M6) so the caller can report and
+ * exit non-zero without the run appearing to have silently succeeded.
  */
-const setup = async (options: SetupOptions): Promise<void> => {
+const setup = async (
+  options: SetupOptions
+): Promise<{
+  installFailed: boolean
+  transformFailures: TransformFailure[]
+}> => {
   const { dryRun, keepIntegrations, cleanMarketing, skipInstall } = options
 
-  // 1. Ensure the Next.js type stub is present so `bun run typecheck` works
+  // 1. PREFLIGHT: every kept bundle's declared folders/files/overwriteFiles
+  //    must exist before any mutation begins. Zero mutations performed here.
+  const missingPaths = await findMissingPaths(
+    declaredBundlePaths(keepIntegrations)
+  )
+  if (missingPaths.length > 0) {
+    throw new Error(
+      `Cannot set up — kept integration(s) reference missing files/folders:\n${missingPaths
+        .map((rel) => `  - ${rel}`)
+        .join(
+          '\n'
+        )}\n\nRestore the missing path(s), or edit the bundle manifest in lib/scripts/integration-bundles.ts, then re-run. No files were changed.`
+    )
+  }
+
+  // 2. Ensure the Next.js type stub is present so `bun run typecheck` works
   //    immediately after setup without needing to run `bun dev` first.
   await ensureNextTypeStub(dryRun)
 
-  // 2. Read git HEAD before any writes (pure read, no side-effects).
+  // 3. Read git HEAD before any writes (pure read, no side-effects).
   const gitSha = dryRun ? undefined : await readGitHead()
 
-  // 3. Replace the manual landing page (independent of integration removal).
+  // 4. Replace the manual landing page (independent of integration removal).
   if (cleanMarketing) {
     const ms = p.spinner()
     ms.start('Replacing manual landing page...')
@@ -682,7 +790,7 @@ const setup = async (options: SetupOptions): Promise<void> => {
     ms.stop('Replaced manual landing page with a blank starter homepage')
   }
 
-  // 4. Snapshot the kept integration files before stripping.
+  // 5. Snapshot the kept integration files before stripping.
   let snapshot: PayloadSource | null = null
   if (keepIntegrations.length > 0) {
     const ss = p.spinner()
@@ -691,29 +799,26 @@ const setup = async (options: SetupOptions): Promise<void> => {
     ss.stop(`Snapshot ready (${snapshot.label})`)
   }
 
-  // 5. Read package.json ONCE into memory. All three mutators (removeDeps,
-  //    selfPrune, recordPinnedRef) operate on this object; a single write
-  //    follows at step 9. This avoids partial-mutation on mid-sequence failure
-  //    and eliminates 3+ separate read-parse-write round-trips.
+  // 6. Read package.json ONCE into memory. The dep-removal and pinned-ref
+  //    mutators operate on this object; selfPrune's script removal is
+  //    applied to the same object later (step 12) and persisted with its
+  //    own write, so this object stays the single source of truth throughout.
   const pkgPath = resolvePath('package.json')
   const pkg = (await Bun.file(pkgPath).json()) as PackageJson
 
-  // 6. Strip ALL integrations unconditionally to lean core.
+  // 7. Strip ALL integrations unconditionally to lean core.
   //    Mutates `pkg` for dep removal; other file changes (folders, env) happen here.
-  await setupLean(pkg, dryRun)
+  const leanResult = await setupLean(pkg, dryRun)
 
-  // 7. Self-prune: delete setup files, mutate pkg.scripts in-memory.
-  await selfPrune(pkg, dryRun)
-
-  // 8. Record the pinned satus ref in-memory (git sha read at step 2).
+  // 8. Record the pinned satus ref in-memory (git sha read at step 3).
   if (gitSha) {
     pkg.satus = { ...(pkg.satus ?? {}), ref: gitSha }
   }
 
-  // 9. Write package.json ONCE with all three mutations applied.
-  //    Must happen BEFORE bun install so the installer sees the final dep list
-  //    and updates the lockfile accordingly. bun install does not rewrite
-  //    package.json itself, so this write is not clobbered by the install step.
+  // 9. Write package.json (dep removal + pinned ref applied). Runs before
+  //    setupAddIntegrations so the re-add's dependency pins land on a
+  //    consistent base; the scripts removal from selfPrune is persisted by
+  //    a second write at step 12, after setupAddIntegrations succeeds.
   if (!dryRun) {
     await Bun.write(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
   }
@@ -721,21 +826,51 @@ const setup = async (options: SetupOptions): Promise<void> => {
   // 10. Re-add the kept integrations from the snapshot.
   //     The snapshot cleanup is in `finally` so the temp dir is always removed,
   //     even when setupAddIntegrations throws.
+  let addFailures: TransformFailure[] = []
   if (snapshot) {
     try {
-      await setupAddIntegrations(keepIntegrations, snapshot, dryRun)
+      const addResult = await setupAddIntegrations(
+        keepIntegrations,
+        snapshot,
+        dryRun
+      )
+      addFailures = addResult.failures
     } finally {
       // 11. Cleanup snapshot temp directory (always runs — even on failure).
       await snapshot.cleanup()
     }
   }
 
-  // 12. Run bun install to update lockfile.
+  // 12. Self-prune: delete setup files (including this script), mutate
+  //     pkg.scripts in-memory, and persist that with a second package.json
+  //     write. Deliberately last — see the docstring above.
+  await selfPrune(pkg, dryRun)
+  if (!dryRun) {
+    await Bun.write(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
+  }
+
+  // 13. Run bun install to update the lockfile. Non-fatal: an offline /
+  //     registry failure is reported but does not mask the setup steps
+  //     above having already succeeded.
+  let installFailed = false
   if (!(dryRun || skipInstall)) {
     const s = p.spinner()
     s.start('Updating lockfile...')
-    await Bun.$`bun install`.quiet()
-    s.stop('Dependencies updated')
+    try {
+      await Bun.$`bun install`.quiet()
+      s.stop('Dependencies updated')
+    } catch (error) {
+      s.stop('Dependency install failed')
+      installFailed = true
+      p.log.warn(
+        `Dependency install failed (offline?). Your files are ready — run \`bun install\` manually.\n${error instanceof Error ? error.message : String(error)}`
+      )
+    }
+  }
+
+  return {
+    installFailed,
+    transformFailures: [...leanResult.failures, ...addFailures],
   }
 }
 
@@ -842,9 +977,34 @@ const promptForIntegrations = async (): Promise<RemovableId[]> => {
 }
 
 /**
+ * Guard against running against the wrong directory (L3): require a
+ * package.json in cwd that declares the `setup:project` script this file is
+ * invoked through, so a stray `bun run setup:project` outside a fresh satus
+ * clone fails loudly before any prompt or mutation.
+ */
+const guardProjectRoot = async (): Promise<void> => {
+  const pkgPath = resolvePath('package.json')
+  if (!(await pathExists(pkgPath))) {
+    throw new Error(
+      `Run this from your project root (package.json not found at ${projectRoot})`
+    )
+  }
+  const pkg = (await Bun.file(pkgPath).json()) as {
+    scripts?: Record<string, string>
+  }
+  if (!pkg.scripts?.['setup:project']) {
+    throw new Error(
+      `Run this from your project root (package.json at ${projectRoot} does not look like a satus project — missing the "setup:project" script)`
+    )
+  }
+}
+
+/**
  * CLI entry point
  */
 const main = async (): Promise<void> => {
+  await guardProjectRoot()
+
   const argv = process.argv.slice(2)
   const { dryRun } = parseCliFlags(argv)
   const presetFlag = getFlagValue(argv, '--preset')
@@ -942,27 +1102,51 @@ const main = async (): Promise<void> => {
   }
 
   // Run setup
-  await setup({
+  const { installFailed, transformFailures } = await setup({
     dryRun,
     keepIntegrations,
     cleanMarketing,
     skipInstall,
   })
 
+  if (transformFailures.length > 0) {
+    p.log.error(`${transformFailures.length} code transform(s) failed:`)
+    for (const failure of transformFailures) {
+      p.log.error(`  ${failure.file}: ${failure.error}`)
+    }
+  }
+
   // Done
   if (dryRun) {
     p.outro('Dry run complete. Run without --dry-run to apply changes.')
-  } else {
-    p.note(
-      'Next steps:\n' +
-        '  1. Review the changes\n' +
-        '  2. Update README.md with your project info\n' +
-        '  3. Copy .env.example to .env.local\n' +
-        '  4. Run: bun dev',
-      'Setup complete!'
-    )
-    p.outro('Happy coding!')
+    return
   }
+
+  p.note(
+    'Next steps:\n' +
+      '  1. Review the changes\n' +
+      '  2. Update README.md with your project info\n' +
+      '  3. Copy .env.example to .env.local\n' +
+      '  4. Run: bun dev',
+    'Setup complete!'
+  )
+
+  if (transformFailures.length > 0) {
+    p.outro('Setup finished with code-transform errors — review above.')
+    // Distinct non-zero codes: 3 = code transforms failed (severe, loud),
+    // 2 = only bun install failed (files are otherwise ready), 1 = a hard
+    // argument/setup error via the top-level catch below.
+    process.exit(3)
+  }
+
+  if (installFailed) {
+    p.outro(
+      'Setup complete, but dependency install failed — see warning above.'
+    )
+    process.exit(2)
+  }
+
+  p.outro('Happy coding!')
 }
 
 // Run only when executed directly (not when imported by tests or other modules)

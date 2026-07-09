@@ -14,7 +14,6 @@ NEXT_PUBLIC_SANITY_API_READ_TOKEN="your-viewer-token"
 SANITY_PRIVATE_TOKEN="your-editor-token"
 
 # Optional
-NEXT_PUBLIC_SANITY_STUDIO_URL="http://localhost:3000/studio"
 NEXT_PUBLIC_SANITY_API_VERSION="2024-03-15"
 ```
 
@@ -39,9 +38,12 @@ No configuration changes needed — just install from the Marketplace and deploy
 
 ## Quick Start
 
-1. Access Studio at `/studio`
+1. Run Studio locally: `cd lib/integrations/sanity && bunx sanity dev`
 2. Create content (Pages, Articles)
 3. Click "Present" for visual editing
+
+Deploy the Studio to Sanity's hosted domain (`https://<project>.sanity.studio`)
+with `cd lib/integrations/sanity && bunx sanity deploy`.
 
 ## Usage
 

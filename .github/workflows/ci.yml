@@ -17,13 +17,13 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version-file: package.json
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
       # Build first: generates next-env.d.ts + .next/types (gitignored) that
-      # tsgo needs, and catches RSC/prerender regressions before deploy.
+      # tsc needs, and catches RSC/prerender regressions before deploy.
       - name: Build
         run: bun run build
 
@@ -33,3 +33,24 @@ jobs:
       # COMPONENTS.md is generated from code; fail if it has drifted.
       - name: Check generated manifest
         run: bun run manifest:check
+
+  e2e:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps chromium
+
+      # playwright.config.ts boots the dev server itself (webServer), so no
+      # separate server step is needed here.
+      - name: Run e2e tests
+        run: bun run test:e2e

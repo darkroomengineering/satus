@@ -14,7 +14,7 @@ Conditionally loaded features for the root layout.
 | WebGL Canvas | Always mounted (shared strategy) | Persistent Three.js canvas (no-op on non-WebGL devices) |
 | Dev Tools | Development mode | Orchestra debug panel |
 
-## WebGL/WebGPU
+## WebGL
 
 `OptionalFeatures` mounts the shared root canvas (`<Canvas root />`) so the
 WebGL context persists across navigation. Pages portal 3D content into it with
@@ -36,7 +36,8 @@ This is the shared strategy. The per-page alternative is `<Wrapper webgl>`,
 which mounts the canvas on that page instead — pick one (see
 `lib/webgl/README.md`). Either way:
 1. The canvas mounts only on WebGL-capable devices (zero overhead otherwise)
-2. GPU capability is auto-detected (WebGPU → WebGL 2 → WebGL 1)
+2. GPU capability is detected via a WebGL 2 context probe on a desktop
+   viewport (`useDeviceDetection().isWebGL`)
 3. With the shared strategy, the context persists across navigation
 
 ### Dev Tools

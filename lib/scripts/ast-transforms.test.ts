@@ -85,6 +85,154 @@ describe('removeCallArgument', () => {
 })
 
 // ---------------------------------------------------------------------------
+// removeIfStatement
+// ---------------------------------------------------------------------------
+
+describe('removeIfStatement', () => {
+  const op: AstOperation = {
+    kind: 'removeIfStatement',
+    conditionContains: 'isShopifyWebhook',
+  }
+
+  it('removes the matching if statement and is idempotent', () => {
+    const fixture = `function handler() {
+  const isShopifyWebhook = true
+
+  if (isShopifyWebhook) {
+    return shopifyRevalidate()
+  }
+
+  return null
+}
+`
+    const result = applyOpsToText(fixture, [op])
+    expect(result).not.toContain('if (isShopifyWebhook)')
+    expect(result).not.toContain('shopifyRevalidate()')
+    expect(result).toContain('return null')
+    // Removing again is a no-op.
+    expect(applyOpsToText(result, [op])).toBe(result)
+  })
+
+  it('is an exact no-op when no if-statement matches the condition', () => {
+    const fixture = `function handler() {
+  if (otherCondition) {
+    return null
+  }
+  return true
+}
+`
+    expect(applyOpsToText(fixture, [op])).toBe(fixture)
+  })
+
+  it('leaves if-statements with a different condition untouched', () => {
+    const fixture = `function handler() {
+  if (isSanityWebhook) {
+    return sanityRevalidate()
+  }
+  if (isShopifyWebhook) {
+    return shopifyRevalidate()
+  }
+  return null
+}
+`
+    const result = applyOpsToText(fixture, [op])
+    expect(result).toContain('if (isSanityWebhook)')
+    expect(result).toContain('sanityRevalidate()')
+    expect(result).not.toContain('isShopifyWebhook')
+    expect(result).not.toContain('shopifyRevalidate')
+  })
+
+  it('matches a compound condition via substring (either signal routes to the guard)', () => {
+    const fixture = `function handler() {
+  const isShopifyWebhook = a || b
+  if (isShopifyWebhook) {
+    return shopifyRevalidate()
+  }
+  return null
+}
+`
+    const result = applyOpsToText(fixture, [op])
+    expect(result).not.toContain('if (isShopifyWebhook)')
+  })
+
+  it('removes every matching if-statement in the file', () => {
+    const fixture = `function a() {
+  if (isShopifyWebhook) return 1
+}
+function b() {
+  if (isShopifyWebhook) return 2
+}
+`
+    const result = applyOpsToText(fixture, [op])
+    expect(result).not.toContain('isShopifyWebhook')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Shopify webhook dispatch strip — composed ops against a route.ts-shaped
+// fixture (removeImport + removeVariableStatement + removeIfStatement)
+// ---------------------------------------------------------------------------
+
+describe('Shopify webhook dispatch strip (composed ops)', () => {
+  const routeFixture = `import { revalidateTag } from 'next/cache'
+import { type NextRequest, NextResponse } from 'next/server'
+import { parseBody } from 'next-sanity/webhook'
+import { revalidate as shopifyRevalidate } from '@/integrations/shopify/revalidate'
+import { getClientIP, rateLimit, rateLimiters } from '@/lib/utils/rate-limit'
+
+export async function POST(request: NextRequest) {
+  const ip = getClientIP(request)
+  const rateLimitResult = rateLimit(\`revalidate:\${ip}\`, rateLimiters.standard)
+
+  if (!rateLimitResult.success) {
+    return new Response('Too many requests', { status: 429 })
+  }
+
+  const isShopifyWebhook =
+    request.headers.has('x-shopify-topic') ||
+    request.nextUrl.searchParams.has('secret')
+
+  if (isShopifyWebhook) {
+    return shopifyRevalidate(request)
+  }
+
+  try {
+    const secret = process.env.SANITY_REVALIDATE_SECRET
+    if (!secret) {
+      return new Response('Webhook secret not configured', { status: 503 })
+    }
+    return NextResponse.json({ status: 200 })
+  } catch (error) {
+    return new Response('Internal Server Error', { status: 500 })
+  }
+}
+`
+
+  const shopifyOps: AstOperation[] = [
+    { kind: 'removeImport', specifier: '@/integrations/shopify/revalidate' },
+    { kind: 'removeVariableStatement', name: 'isShopifyWebhook' },
+    { kind: 'removeIfStatement', conditionContains: 'isShopifyWebhook' },
+  ]
+
+  it('removes the import, guard variable, and dispatch, keeping the rest of the route intact', () => {
+    const result = applyOpsToText(routeFixture, shopifyOps)
+
+    // Dangling import gone.
+    expect(result).not.toContain('@/integrations/shopify/revalidate')
+    expect(result).not.toContain('shopifyRevalidate')
+    expect(result).not.toContain('isShopifyWebhook')
+
+    // Untouched: rate limiting and the Sanity revalidation path.
+    expect(result).toContain('rateLimit(')
+    expect(result).toContain('SANITY_REVALIDATE_SECRET')
+    expect(result).toContain('export async function POST')
+
+    // Idempotent — re-applying to the already-stripped result changes nothing.
+    expect(applyOpsToText(result, shopifyOps)).toBe(result)
+  })
+})
+
+// ---------------------------------------------------------------------------
 // addImport
 // ---------------------------------------------------------------------------
 

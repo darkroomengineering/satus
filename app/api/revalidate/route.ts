@@ -1,6 +1,7 @@
 import { revalidateTag } from 'next/cache'
 import { type NextRequest, NextResponse } from 'next/server'
 import { parseBody } from 'next-sanity/webhook'
+import { revalidate as shopifyRevalidate } from '@/integrations/shopify/revalidate'
 import { getClientIP, rateLimit, rateLimiters } from '@/lib/utils/rate-limit'
 
 export async function POST(request: NextRequest) {
@@ -15,6 +16,18 @@ export async function POST(request: NextRequest) {
         'Retry-After': String(rateLimitResult.resetIn),
       },
     })
+  }
+
+  // Shopify webhooks identify themselves with an `x-shopify-topic` header and
+  // always carry a `secret` query param; Sanity webhooks authenticate via a
+  // signed request body instead. Either signal routes to the Shopify handler
+  // so this stays the single documented webhook endpoint for both integrations.
+  const isShopifyWebhook =
+    request.headers.has('x-shopify-topic') ||
+    request.nextUrl.searchParams.has('secret')
+
+  if (isShopifyWebhook) {
+    return shopifyRevalidate(request)
   }
 
   try {

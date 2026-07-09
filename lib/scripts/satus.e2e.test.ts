@@ -104,8 +104,8 @@ const runScript = async (
 }
 
 /**
- * Run `bun run typecheck` (tsgo --noEmit) in the temp project directory.
- * The temp project has node_modules symlinked from the repo, so tsgo is
+ * Run `bun run typecheck` (tsc --noEmit) in the temp project directory.
+ * The temp project has node_modules symlinked from the repo, so tsc is
  * available without a separate install.
  */
 const runTypecheck = async (cwd: string): Promise<RunResult> => {
@@ -420,7 +420,7 @@ describe('round trip: webgl without theatre', () => {
     const typecheck = await runTypecheck(project)
     if (typecheck.exitCode !== 0) {
       throw new Error(
-        `tsgo --noEmit failed after 'satus add webgl' without theatre (exit ${typecheck.exitCode})\n--- stdout ---\n${typecheck.stdout}\n--- stderr ---\n${typecheck.stderr}`
+        `tsc --noEmit failed after 'satus add webgl' without theatre (exit ${typecheck.exitCode})\n--- stdout ---\n${typecheck.stdout}\n--- stderr ---\n${typecheck.stderr}`
       )
     }
 
@@ -436,7 +436,7 @@ describe('round trip: webgl without theatre', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Typecheck gate: lean output must pass `tsgo --noEmit`
+// Typecheck gate: lean output must pass `tsc --noEmit`
 //
 // Two lean variants are tested:
 //   1. --keep ''                         (all integrations removed)
@@ -444,7 +444,7 @@ describe('round trip: webgl without theatre', () => {
 //
 // These tests run setup:project with --skip-install (node_modules symlinked),
 // then run `bun run typecheck` in the resulting project.  The default timeout
-// (120 s) is sufficient — tsgo is fast even on cold starts.
+// (120 s) is sufficient — tsc is fast even on cold starts.
 // ---------------------------------------------------------------------------
 
 describe('lean typecheck: --keep ""', () => {
@@ -454,7 +454,7 @@ describe('lean typecheck: --keep ""', () => {
     if (project) await rm(project, { recursive: true, force: true })
   })
 
-  it('lean output passes tsgo --noEmit and self-prune ran', async () => {
+  it('lean output passes tsc --noEmit and self-prune ran', async () => {
     project = await createTempProject()
 
     expectClean(await runSetup(project, ''), 'setup:project --keep "" (lean)')
@@ -494,7 +494,7 @@ describe('lean typecheck: --keep ""', () => {
     const result = await runTypecheck(project)
     if (result.exitCode !== 0) {
       throw new Error(
-        `tsgo --noEmit failed on lean output (exit ${result.exitCode})\n--- stdout ---\n${result.stdout}\n--- stderr ---\n${result.stderr}`
+        `tsc --noEmit failed on lean output (exit ${result.exitCode})\n--- stdout ---\n${result.stdout}\n--- stderr ---\n${result.stderr}`
       )
     }
   })
@@ -507,7 +507,7 @@ describe('lean typecheck: --keep "" --clean-homepage', () => {
     if (project) await rm(project, { recursive: true, force: true })
   })
 
-  it('lean output with clean homepage passes tsgo --noEmit and self-prune ran', async () => {
+  it('lean output with clean homepage passes tsc --noEmit and self-prune ran', async () => {
     project = await createTempProject()
 
     expectClean(
@@ -528,7 +528,7 @@ describe('lean typecheck: --keep "" --clean-homepage', () => {
     const result = await runTypecheck(project)
     if (result.exitCode !== 0) {
       throw new Error(
-        `tsgo --noEmit failed on lean+clean-homepage output (exit ${result.exitCode})\n--- stdout ---\n${result.stdout}\n--- stderr ---\n${result.stderr}`
+        `tsc --noEmit failed on lean+clean-homepage output (exit ${result.exitCode})\n--- stdout ---\n${result.stdout}\n--- stderr ---\n${result.stderr}`
       )
     }
   })
@@ -574,7 +574,7 @@ describe('additive setup: --keep sanity', () => {
     const result = await runTypecheck(project)
     if (result.exitCode !== 0) {
       throw new Error(
-        `tsgo --noEmit failed on --keep sanity output (exit ${result.exitCode})\n--- stdout ---\n${result.stdout}\n--- stderr ---\n${result.stderr}`
+        `tsc --noEmit failed on --keep sanity output (exit ${result.exitCode})\n--- stdout ---\n${result.stdout}\n--- stderr ---\n${result.stderr}`
       )
     }
   })
@@ -630,7 +630,7 @@ describe('additive setup: --preset editorial', () => {
     const result = await runTypecheck(project)
     if (result.exitCode !== 0) {
       throw new Error(
-        `tsgo --noEmit failed on editorial preset (exit ${result.exitCode})\n--- stdout ---\n${result.stdout}\n--- stderr ---\n${result.stderr}`
+        `tsc --noEmit failed on editorial preset (exit ${result.exitCode})\n--- stdout ---\n${result.stdout}\n--- stderr ---\n${result.stderr}`
       )
     }
   })
@@ -690,7 +690,7 @@ describe('additive setup: --preset studio', () => {
     const result = await runTypecheck(project)
     if (result.exitCode !== 0) {
       throw new Error(
-        `tsgo --noEmit failed on studio preset (exit ${result.exitCode})\n--- stdout ---\n${result.stdout}\n--- stderr ---\n${result.stderr}`
+        `tsc --noEmit failed on studio preset (exit ${result.exitCode})\n--- stdout ---\n${result.stdout}\n--- stderr ---\n${result.stderr}`
       )
     }
   })

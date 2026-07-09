@@ -8,6 +8,18 @@ import {
 } from './mutations/cart'
 import { getCartQuery } from './queries/cart'
 import { removeEdgesAndNodes } from './reshape'
+import {
+  type CartCreateResponseData,
+  type CartLinesAddResponseData,
+  type CartLinesRemoveResponseData,
+  type CartLinesUpdateResponseData,
+  cartCreateResponseSchema,
+  cartLinesAddResponseSchema,
+  cartLinesRemoveResponseSchema,
+  cartLinesUpdateResponseSchema,
+  type GetCartResponseData,
+  getCartResponseSchema,
+} from './schemas'
 import type {
   Cart,
   CartLineInput,
@@ -55,9 +67,10 @@ const reshapeCart = (cart: ShopifyCart): Cart => {
 }
 
 export async function createCart(): Promise<Cart> {
-  const res = await shopifyFetch<{ cartCreate: { cart: ShopifyCart } }>({
+  const res = await shopifyFetch<CartCreateResponseData>({
     query: createCartMutation,
     cache: 'no-store',
+    dataSchema: cartCreateResponseSchema,
   })
 
   return reshapeCart(res.body.data.cartCreate.cart)
@@ -67,13 +80,14 @@ export async function addToCart(
   cartId: string,
   lines: CartLineInput[] = []
 ): Promise<Cart> {
-  const res = await shopifyFetch<{ cartLinesAdd: { cart: ShopifyCart } }>({
+  const res = await shopifyFetch<CartLinesAddResponseData>({
     query: addToCartMutation,
     variables: {
       cartId,
       lines,
     },
     cache: 'no-store',
+    dataSchema: cartLinesAddResponseSchema,
   })
 
   return reshapeCart(res.body.data.cartLinesAdd.cart)
@@ -83,13 +97,14 @@ export async function removeFromCart(
   cartId: string,
   lineIds: string[] = []
 ): Promise<Cart> {
-  const res = await shopifyFetch<{ cartLinesRemove: { cart: ShopifyCart } }>({
+  const res = await shopifyFetch<CartLinesRemoveResponseData>({
     query: removeFromCartMutation,
     variables: {
       cartId,
       lineIds,
     },
     cache: 'no-store',
+    dataSchema: cartLinesRemoveResponseSchema,
   })
 
   return reshapeCart(res.body.data.cartLinesRemove.cart)
@@ -105,24 +120,26 @@ export async function updateCart(
   cartId: string,
   lines: CartLineUpdateInput[] = []
 ): Promise<Cart> {
-  const res = await shopifyFetch<{ cartLinesUpdate: { cart: ShopifyCart } }>({
+  const res = await shopifyFetch<CartLinesUpdateResponseData>({
     query: editCartItemsMutation,
     variables: {
       cartId,
       lines,
     },
     cache: 'no-store',
+    dataSchema: cartLinesUpdateResponseSchema,
   })
 
   return reshapeCart(res.body.data.cartLinesUpdate.cart)
 }
 
 export async function getCart(cartId: string): Promise<Cart | undefined> {
-  const res = await shopifyFetch<{ cart: ShopifyCart | null }>({
+  const res = await shopifyFetch<GetCartResponseData>({
     query: getCartQuery,
     variables: { cartId },
     tags: [TAGS.cart],
     cache: 'no-store',
+    dataSchema: getCartResponseSchema,
   })
 
   // Old carts becomes `null` when you checkout.

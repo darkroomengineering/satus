@@ -23,7 +23,17 @@ const WebGLImage = dynamic(
  * Uses useWebGLElement for unified rect + visibility tracking.
  * Falls back to standard image on non-WebGL devices.
  */
-export function Image({ className, ...props }: DRImageProps) {
+export function Image({
+  className,
+  // The wrapper always renders the underlying image in `fill` mode — the
+  // sizing container is this component's own positioned <div>. Strip the
+  // sizing union members so the spread satisfies the `fill` branch.
+  fill: _fill,
+  width: _width,
+  height: _height,
+  aspectRatio: _aspectRatio,
+  ...props
+}: DRImageProps) {
   const [src, setSrc] = useState<string>()
   const { setRef, rect, isVisible } = useWebGLElement<HTMLDivElement>()
   const { isWebGL } = useDeviceDetection()

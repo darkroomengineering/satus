@@ -16,6 +16,12 @@ type WebGLCanvasProps = React.HTMLAttributes<HTMLDivElement> & {
   postprocessing?: boolean
   alpha?: boolean
   className?: string
+  /**
+   * Which GPU simulations `FlowmapProvider` mounts. Defaults to both
+   * (back-compat). Pass a subset — e.g. `['flowmap']` — to skip the other
+   * sim's GPU pass and window listeners entirely.
+   */
+  simTypes?: ('fluid' | 'flowmap')[]
 }
 
 /**
@@ -27,6 +33,7 @@ export function WebGLCanvas({
   postprocessing = false,
   alpha = true,
   className,
+  simTypes,
   ...props
 }: WebGLCanvasProps) {
   // Use context directly for local tunnels
@@ -69,7 +76,7 @@ export function WebGLCanvas({
             zoom={1}
           />
           <RAF render={render} />
-          <FlowmapProvider>
+          <FlowmapProvider {...(simTypes && { simTypes })}>
             {postprocessing && <PostProcessing />}
             <Suspense>
               <WebGLTunnel.Out />

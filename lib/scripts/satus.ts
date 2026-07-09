@@ -34,6 +34,7 @@ import {
   readPinnedRef,
   resolvePayloadSource,
 } from './payload-source'
+import { pathExists, projectRoot, resolvePath } from './utils'
 
 // ---------------------------------------------------------------------------
 // CLI argument parsing (exported for unit tests)
@@ -157,6 +158,50 @@ export function resolveAddSet(requested: string[]): {
   return { order, implied }
 }
 
+/**
+ * Decide which resolved bundles actually need `installBundle` to run.
+ *
+ * Without `--force`, already-installed bundles are skipped entirely
+ * ("nothing to do") — this is the historical behavior. With `--force`,
+ * installed bundles are queued for reinstall too, so `--force` has an
+ * observable effect instead of being a silent no-op (H6): the install
+ * sequence (copyBundleFiles / applyOverwriteFiles) already reads `force`
+ * to decide whether to overwrite existing files, so routing installed
+ * bundles back through it is sufficient — no downstream change needed.
+ */
+export function planInstallSet<T extends { installed: boolean }>(
+  statuses: T[],
+  force: boolean
+): { toInstall: T[]; alreadyInstalled: T[] } {
+  return {
+    toInstall: force ? statuses : statuses.filter((s) => !s.installed),
+    alreadyInstalled: statuses.filter((s) => s.installed),
+  }
+}
+
+/**
+ * Guard against running against the wrong directory (L3): require a
+ * package.json in cwd that declares the `satus` script this CLI is invoked
+ * through, so a stray `bun run satus add …` outside a satus project fails
+ * loudly instead of mutating an unrelated directory.
+ */
+const guardProjectRoot = async (): Promise<void> => {
+  const pkgPath = resolvePath('package.json')
+  if (!(await pathExists(pkgPath))) {
+    throw new Error(
+      `Run this from your project root (package.json not found at ${projectRoot})`
+    )
+  }
+  const pkg = (await Bun.file(pkgPath).json()) as {
+    scripts?: Record<string, string>
+  }
+  if (!pkg.scripts?.satus) {
+    throw new Error(
+      `Run this from your project root (package.json at ${projectRoot} does not look like a satus project — missing the "satus" script)`
+    )
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Commands
 // ---------------------------------------------------------------------------
@@ -181,7 +226,10 @@ const runList = async (): Promise<void> => {
   p.outro('Add one with: bun run satus add <plugin>')
 }
 
-const runAdd = async (plugins: string[], flags: AddFlags): Promise<void> => {
+const runAdd = async (
+  plugins: string[],
+  flags: AddFlags
+): Promise<{ installFailed: boolean; transformFailed: boolean }> => {
   p.intro('Satūs Plugin Add')
 
   if (flags.dryRun) {
@@ -200,14 +248,19 @@ const runAdd = async (plugins: string[], flags: AddFlags): Promise<void> => {
     statuses.push({ id, bundle, installed: await isInstalled(bundle) })
   }
 
-  for (const { bundle } of statuses.filter((s) => s.installed)) {
-    p.log.info(`${bundle.name} is already installed — nothing to do`)
+  const { toInstall, alreadyInstalled } = planInstallSet(statuses, flags.force)
+
+  for (const { bundle } of alreadyInstalled) {
+    p.log.info(
+      flags.force
+        ? `${bundle.name} is already installed — reinstalling (--force)`
+        : `${bundle.name} is already installed — nothing to do`
+    )
   }
 
-  const toInstall = statuses.filter((s) => !s.installed)
   if (toInstall.length === 0) {
     p.outro('Everything requested is already installed.')
-    return
+    return { installFailed: false, transformFailed: false }
   }
 
   if (implied.length > 0) {
@@ -243,6 +296,8 @@ const runAdd = async (plugins: string[], flags: AddFlags): Promise<void> => {
   p.log.step(`Payload source: ${source.label}`)
 
   let totalDepsAdded = 0
+  let installFailed = false
+  const transformFailures: { file: string; error: string }[] = []
 
   try {
     const payloadPkg = await readPayloadPackageJson(source)
@@ -251,9 +306,10 @@ const runAdd = async (plugins: string[], flags: AddFlags): Promise<void> => {
     for (const { bundle } of toInstall) {
       s.start(`Adding ${bundle.name}...`)
 
-      const { details, depsAdded, overwriteSkipped, depsMissing } =
+      const { details, depsAdded, overwriteSkipped, depsMissing, failures } =
         await installBundle(source, bundle, payloadPkg, flags)
       totalDepsAdded += depsAdded.length
+      transformFailures.push(...failures)
 
       const verb = flags.dryRun ? 'Would add' : 'Added'
       const detail = details.length > 0 ? ` (${details.join(', ')})` : ''
@@ -280,10 +336,11 @@ const runAdd = async (plugins: string[], flags: AddFlags): Promise<void> => {
     // hooks. Reuse the subtractive codeTransforms of each bundle that is
     // neither installed nor part of this add, so absent integrations stay
     // absent. These ops are no-ops on files already in the lean state.
-    const stripped = await stripAbsentIntegrationWiring(order, flags.dryRun)
-    if (stripped > 0) {
+    const stripResult = await stripAbsentIntegrationWiring(order, flags.dryRun)
+    transformFailures.push(...stripResult.failures)
+    if (stripResult.changes > 0) {
       p.log.step(
-        `Stripped absent-integration wiring from ${stripped} copied files`
+        `Stripped absent-integration wiring from ${stripResult.changes} copied files`
       )
     }
 
@@ -292,19 +349,40 @@ const runAdd = async (plugins: string[], flags: AddFlags): Promise<void> => {
         p.log.step('Skipped bun install (--skip-install) — run it manually')
       } else {
         s.start('Installing dependencies...')
-        await Bun.$`bun install`.quiet()
-        s.stop('Dependencies installed')
+        try {
+          await Bun.$`bun install`.quiet()
+          s.stop('Dependencies installed')
+        } catch (error) {
+          s.stop('Dependency install failed')
+          installFailed = true
+          p.log.warn(
+            `Dependency install failed (offline?). Your files are ready — run \`bun install\` manually.\n${error instanceof Error ? error.message : String(error)}`
+          )
+        }
       }
     }
   } finally {
     await source.cleanup()
   }
 
+  if (transformFailures.length > 0) {
+    p.log.error(`${transformFailures.length} code transform(s) failed:`)
+    for (const failure of transformFailures) {
+      p.log.error(`  ${failure.file}: ${failure.error}`)
+    }
+  }
+
   if (flags.dryRun) {
     p.outro('Dry run complete. Run without --dry-run to apply changes.')
+  } else if (transformFailures.length > 0) {
+    p.outro('Completed with errors — review the transform failures above.')
+  } else if (installFailed) {
+    p.outro('Plugins added, but dependency install failed — see warning above.')
   } else {
     p.outro('Done. Review the changes, then run: bun dev')
   }
+
+  return { installFailed, transformFailed: transformFailures.length > 0 }
 }
 
 // ---------------------------------------------------------------------------
@@ -343,6 +421,10 @@ const main = async (): Promise<void> => {
     return
   }
 
+  // Every other command reads/writes the current project — fail loudly
+  // before touching anything if cwd isn't a satus project (L3).
+  await guardProjectRoot()
+
   if (command === 'list') {
     await runList()
     return
@@ -353,7 +435,12 @@ const main = async (): Promise<void> => {
     if (plugins.length === 0) {
       throw new Error('No plugins given. Usage: bun run satus add <plugin...>')
     }
-    await runAdd(plugins, flags)
+    const { installFailed, transformFailed } = await runAdd(plugins, flags)
+    // Distinct non-zero codes so a caller (or CI) can tell "code transforms
+    // failed" (3, the loud/severe case) apart from "just bun install failed,
+    // files are otherwise ready" (2) from a hard argument/setup error (1).
+    if (transformFailed) process.exit(3)
+    if (installFailed) process.exit(2)
     return
   }
 

@@ -9,7 +9,11 @@
 import { mkdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import * as p from '@clack/prompts'
-import { applyCodeTransforms, applyOpsToText } from './ast-transforms'
+import {
+  applyCodeTransforms,
+  applyOpsToText,
+  type TransformFailure,
+} from './ast-transforms/index'
 import { findBarrelLine, insertBarrelLine } from './barrel-file'
 import {
   type CodeTransform,
@@ -273,7 +277,10 @@ export const appendEnvStubs = async (
  * additive code transforms.
  *
  * Returns a `details` string array (one entry per action taken) that callers
- * can use for logging. Does not manage spinners or log directly.
+ * can use for logging, plus any `failures` from the additive code transforms
+ * (never thrown — collected so callers can report and fail loudly once the
+ * whole batch is done instead of aborting mid-run). Does not manage spinners
+ * or log directly.
  */
 export const installBundle = async (
   source: PayloadSource,
@@ -285,6 +292,7 @@ export const installBundle = async (
   depsAdded: string[]
   overwriteSkipped: string[]
   depsMissing: string[]
+  failures: TransformFailure[]
 }> => {
   const details: string[] = []
 
@@ -310,12 +318,12 @@ export const installBundle = async (
   const envChanges = await appendEnvStubs(bundle.envVars, options.dryRun)
   if (envChanges > 0) details.push(`${envChanges} env stubs appended`)
 
-  const transformChanges = await applyCodeTransforms(
+  const transformResult = await applyCodeTransforms(
     bundle.addTransforms ?? [],
     options.dryRun
   )
-  if (transformChanges > 0) {
-    details.push(`${transformChanges} files re-wired`)
+  if (transformResult.changes > 0) {
+    details.push(`${transformResult.changes} files re-wired`)
   }
 
   return {
@@ -323,6 +331,7 @@ export const installBundle = async (
     depsAdded: deps.added,
     overwriteSkipped: overwrite.skipped,
     depsMissing: deps.missing,
+    failures: transformResult.failures,
   }
 }
 
@@ -340,12 +349,13 @@ export const installBundle = async (
  * @param installedOrAdded - Set (or array) of integration ids that are being
  *   added / were already added in this run and should NOT be stripped.
  * @param dryRun - When true, count changes but do not write files.
- * @returns The number of files that were actually changed.
+ * @returns The number of files changed and any transform failures collected
+ *   (never thrown — callers report and fail loudly once the batch is done).
  */
 export const stripAbsentIntegrationWiring = async (
   installedOrAdded: Set<string> | string[],
   dryRun: boolean
-): Promise<number> => {
+): Promise<{ changes: number; failures: TransformFailure[] }> => {
   const skipSet =
     installedOrAdded instanceof Set
       ? installedOrAdded
@@ -358,6 +368,6 @@ export const stripAbsentIntegrationWiring = async (
     stripTransforms.push(...bundle.codeTransforms)
   }
 
-  if (stripTransforms.length === 0) return 0
+  if (stripTransforms.length === 0) return { changes: 0, failures: [] }
   return applyCodeTransforms(stripTransforms, dryRun)
 }

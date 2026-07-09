@@ -36,7 +36,6 @@ const domain = env.SHOPIFY_STORE_DOMAIN // string | undefined with IntelliSense
 # Sanity CMS
 NEXT_PUBLIC_SANITY_PROJECT_ID="your-project-id"
 NEXT_PUBLIC_SANITY_DATASET="production"
-NEXT_PUBLIC_SANITY_STUDIO_URL="http://localhost:3000/studio"
 SANITY_API_WRITE_TOKEN="your-write-token"
 
 # Shopify

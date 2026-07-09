@@ -28,7 +28,7 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version-file: package.json
 
       # React Doctor's React Compiler rules (react-hooks-js/*) only activate when
       # eslint-plugin-react-hooks + the compiler are resolvable, so deps must be installed.

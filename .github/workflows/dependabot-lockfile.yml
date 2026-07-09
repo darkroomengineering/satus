@@ -1,18 +1,18 @@
 name: Dependabot lockfile
 
-# Dependabot bumps package.json but not bun.lock, so Test's
+# Dependabot bumps package.json but not bun.lock, so CI's
 # `bun install --frozen-lockfile` fails on every Dependabot PR
 # ("lockfile had changes, but lockfile is frozen"). This regenerates bun.lock
-# and commits it back to the PR branch so Test passes and the bumped lockfile
+# and commits it back to the PR branch so CI passes and the bumped lockfile
 # lands on main when the PR squash-merges.
 #
 # Uses a PAT (not GITHUB_TOKEN) for the push, on a normal `pull_request`
 # trigger:
-#   - A GITHUB_TOKEN push would NOT retrigger Test (loop protection), so
-#     automerge — which gates on Test success — would never fire.
+#   - A GITHUB_TOKEN push would NOT retrigger CI (loop protection), so
+#     automerge — which gates on CI success — would never fire.
 #   - Dependabot-triggered `pull_request` runs also get a read-only
 #     GITHUB_TOKEN, so it cannot push at all.
-# A PAT push both has write access and retriggers Test, giving fully hands-off
+# A PAT push both has write access and retriggers CI, giving fully hands-off
 # automerge. Staying on `pull_request` (not pull_request_target) keeps this off
 # CodeQL's privileged-checkout radar.
 #
@@ -56,7 +56,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         if: steps.check.outputs.has_pat == 'true'
         with:
-          bun-version: latest
+          bun-version-file: package.json
 
       - name: Regenerate bun.lock (no lifecycle scripts)
         if: steps.check.outputs.has_pat == 'true'

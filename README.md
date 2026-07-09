@@ -130,7 +130,7 @@ lib/                    # Everything non-UI
 
 ```bash
 bun dev              # Development server
-bun build            # Production build
+bun run build        # Production build
 bun storybook        # Component catalogue
 bun lint             # Biome linter
 bun run generate     # Generate pages/components

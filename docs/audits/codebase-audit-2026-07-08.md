@@ -13,7 +13,7 @@ Whole-repo honesty audit of satus (`main`, post-TS7 migration): does the system 
 | H1 | high | shopify | Storefront endpoint built without `https://` scheme — every call fails when docs are followed | `lib/integrations/shopify/client.ts:9` | CONFIRMED |
 | H2 | high | shopify | Webhook revalidation fully implemented but wired to no route; READMEs claim it works — products never refresh | `lib/integrations/shopify/revalidate.ts` | CONFIRMED |
 | H3 | high | ci | Dependabot auto-merge gates on workflow named "Test"; only "CI" exists — automation silently never fires | `.github/workflows/automerge-dependabot.yml:13` | CONFIRMED |
-| H4 | high | docs | SECURITY.md claims CodeQL runs on every change; no CodeQL workflow exists | `SECURITY.md:54` | CONFIRMED |
+| H4 | high | docs | ~~SECURITY.md claims CodeQL runs; no workflow exists~~ **DISPROVED during remediation (2026-07-09):** CodeQL default setup has been enabled at the repo-settings level since 2026-05-22 (verified via `gh api /code-scanning/default-setup`) — scanning ran all along, invisible to workflow-file inspection. SECURITY.md was truthful; the audit's disproof method was too narrow. The workflow added in remediation conflicted with default setup and was removed | `SECURITY.md:54` | DISPROVED |
 | H5 | high | docs | Sanity README documents `/studio` route + `NEXT_PUBLIC_SANITY_STUDIO_URL`; route removed, var read nowhere | `lib/integrations/sanity/README.md:17,42` | CONFIRMED |
 | H6 | high | scripts | `satus add --force` is a total no-op: installed bundles are filtered out before the force path runs | `lib/scripts/satus.ts:203-211` | CONFIRMED |
 | H7 | high | scripts | Handoff derives integration presence from env validity (`getConfigured`), not disk (`isInstalled`) — missing local secrets strip a shipped integration from all handoff artifacts | `lib/scripts/prepare-handoff.ts:19,157,246,272` | CONFIRMED |
@@ -171,6 +171,7 @@ Investigated and disproved — recorded so the next audit doesn't re-litigate:
 - **Fork stripping theatre breaks webgl** — hooks degrade to `undefined` sheet / no-op (which is also the shipped state, per H11).
 - **RAF component double-subscribing on HMR** — uses `useTempus` (effect-scoped, cleanup-correct), unlike the module-scope cases M18/L12.
 - **`data-external` unused attribute as its own finding** — inert; folded into L6.
+- **H4 (SECURITY.md CodeQL claim)** — disproved post-hoc: GitHub's *default setup* CodeQL (repo settings, enabled 2026-05-22) is invisible to `.github/workflows/` inspection but real. Method lesson for future audits: settings-level automation (default CodeQL, branch protection, Dependabot security updates) must be checked via the API, not the repo tree.
 
 ## 7. Cross-model pass (Codex)
 

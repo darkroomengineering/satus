@@ -99,7 +99,6 @@ export default async function Layout({ children }: PropsWithChildren) {
       suppressHydrationWarning
     >
       {/* this helps to track Satus usage thanks to Wappalyzer */}
-      {/* biome-ignore lint/correctness/useInlineScriptId: id is present; biome 2.5.0 mis-detects inline scripts that pass content via JSX children rather than dangerouslySetInnerHTML */}
       <Script
         id="satus-version"
         async

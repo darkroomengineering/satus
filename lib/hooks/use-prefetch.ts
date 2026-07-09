@@ -16,6 +16,17 @@ export function usePrefetch<T extends HTMLElement = HTMLElement>(
   const router = useRouter()
   const prefetchedRef = useRef(false)
 
+  // Depend on the primitive fields actually used (not the `options` object
+  // identity) — an inline `{ rootMargin: '100px' }` literal at the call site
+  // would otherwise recreate the IntersectionObserver every render. Arrays
+  // are serialized to a stable string key and parsed back inside the effect.
+  const rootMargin = options?.rootMargin
+  const optionThreshold = options?.threshold
+  const thresholdKey = Array.isArray(optionThreshold)
+    ? optionThreshold.join(',')
+    : optionThreshold
+  const root = options?.root
+
   useEffect(() => {
     // Early return if no href or already prefetched
     if (!href || prefetchedRef.current) return
@@ -46,9 +57,15 @@ export function usePrefetch<T extends HTMLElement = HTMLElement>(
       }
     }
 
+    const threshold =
+      typeof thresholdKey === 'string'
+        ? thresholdKey.split(',').map(Number)
+        : thresholdKey
+
     const observer = new IntersectionObserver(handleIntersection, {
-      rootMargin: '50px',
-      ...options,
+      rootMargin: rootMargin ?? '50px',
+      ...(threshold !== undefined && { threshold }),
+      ...(root !== undefined && { root }),
     })
 
     observer.observe(element)
@@ -56,7 +73,7 @@ export function usePrefetch<T extends HTMLElement = HTMLElement>(
     return () => {
       observer.disconnect()
     }
-  }, [href, options, router])
+  }, [href, rootMargin, thresholdKey, root, router])
 
   // Return null ref if href is not provided
   return href ? ref : { current: null }

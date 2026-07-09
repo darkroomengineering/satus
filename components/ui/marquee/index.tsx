@@ -44,7 +44,7 @@ export function Marquee({
 
   const id = useId()
 
-  const elementsRef = useRef<HTMLDivElement[]>([])
+  const elementsRef = useRef<(HTMLDivElement | undefined)[]>([])
   const transformRef = useRef(getHash(id) % 10000)
   const isHovered = useRef(false)
 
@@ -77,7 +77,10 @@ export function Marquee({
     const width = entry.borderBoxSize[0].inlineSize
     transformRef.current = modulo(transformRef.current, width)
 
+    // Sparse array: shrinking `repeat` removes entries (ref callback fires
+    // with null on detach), so iterate defined slots only — no stale nodes.
     for (const node of elementsRef.current) {
+      if (!node) continue
       node.style.transform = `translate3d(${-transformRef.current}px,0,0)`
     }
   })
@@ -108,7 +111,13 @@ export function Marquee({
           aria-hidden={i !== 0}
           data-nosnippet={i !== 0 ? '' : undefined}
           ref={(node) => {
-            if (!node) return
+            if (!node) {
+              // React calls the ref callback with null on detach — clear the
+              // slot so the RAF loop above stops animating this stale node
+              // (matters when a shrinking `repeat` removes trailing items).
+              elementsRef.current[i] = undefined
+              return
+            }
             elementsRef.current[i] = node
 
             if (i === 0) setRectRef(node)

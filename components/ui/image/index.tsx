@@ -17,12 +17,52 @@ import { breakpoints } from '@/styles/config'
 import s from './image.module.css'
 
 /**
+ * Sizing variants. Every render must supply enough information to reserve
+ * the correct layout box up front — there is no implicit fallback. Pick one:
+ * - `fill`: fills the nearest positioned ancestor (that ancestor owns sizing)
+ * - explicit `width` + `height`: intrinsic pixel dimensions
+ * - `aspectRatio` alone: placeholder dimensions are derived from it
+ */
+type ImageSizingProps =
+  | {
+      /** Fill the nearest positioned ancestor. The ancestor is responsible for sizing/aspect ratio. */
+      fill: true
+      width?: never
+      height?: never
+      /** Optional aspect ratio, still useful for blur placeholder generation. */
+      aspectRatio?: number
+    }
+  | {
+      fill?: false
+      /** Intrinsic width in pixels. Required alongside `height` when `aspectRatio` isn't provided. */
+      width: number
+      /** Intrinsic height in pixels. Required alongside `width` when `aspectRatio` isn't provided. */
+      height: number
+      aspectRatio?: number
+    }
+  | {
+      fill?: false
+      width?: never
+      height?: never
+      /** Aspect ratio (width / height) — layout dimensions are derived from it. */
+      aspectRatio: number
+    }
+
+/**
  * Enhanced Image component props extending Next.js Image.
  *
  * Adds responsive sizing, aspect ratio support, and automatic blur placeholders.
  * Always use this component instead of next/image directly.
+ *
+ * Sizing is required: pass `fill`, explicit `width`+`height`, or `aspectRatio`.
+ * There is no dimension-less fallback — an image with no reserved box causes
+ * layout shift when it loads, so the type system enforces one of these paths
+ * instead of silently faking dimensions.
  */
-export type ImageProps = Omit<NextImageProps, 'objectFit' | 'alt'> & {
+export type ImageProps = Omit<
+  NextImageProps,
+  'objectFit' | 'alt' | 'width' | 'height' | 'fill'
+> & {
   /** CSS object-fit property for image positioning */
   objectFit?: CSSProperties['objectFit']
   /** Display as block element (adds display: block) */
@@ -35,9 +75,7 @@ export type ImageProps = Omit<NextImageProps, 'objectFit' | 'alt'> & {
   ref?: Ref<HTMLImageElement>
   /** Alt text for accessibility (required for meaningful images) */
   alt?: string
-  /** Aspect ratio for automatic placeholder and layout stability */
-  aspectRatio?: number
-}
+} & ImageSizingProps
 
 // Base64 encoding for blur placeholders (works in browser and Node.js)
 function toBase64(str: string): string {
@@ -61,6 +99,23 @@ function generateShimmer(w: number, h: number): string {
     <rect id="r" width="${w}" height="${h}" fill="url(#g)" />
     <animate xlink:href="#r" attributeName="x" from="-${w}" to="${w}" dur="1s" repeatCount="indefinite"  />
   </svg>`
+}
+
+// Base dimension used to derive honest placeholder width/height from an
+// aspectRatio-only render (no explicit width/height supplied). Keeps the
+// reserved box's proportions correct instead of faking a square (1x1).
+const BASE_PLACEHOLDER_DIMENSION = 1000
+
+function derivePlaceholderDimensions(aspectRatio: number) {
+  return aspectRatio >= 1
+    ? {
+        width: BASE_PLACEHOLDER_DIMENSION,
+        height: Math.round(BASE_PLACEHOLDER_DIMENSION / aspectRatio),
+      }
+    : {
+        width: Math.round(BASE_PLACEHOLDER_DIMENSION * aspectRatio),
+        height: BASE_PLACEHOLDER_DIMENSION,
+      }
 }
 
 // Helper to determine if blur placeholder should be used
@@ -116,7 +171,9 @@ function getFinalPlaceholder(
  * @param props.mobileSize - Size on mobile (e.g., "100vw")
  * @param props.desktopSize - Size on desktop (e.g., "50vw")
  * @param props.block - Display as block element
- * @param props.preload - Enable preloading for LCP images
+ * @param props.preload - Ergonomic alias for next/image's native `preload` prop
+ *   (the modern replacement for the deprecated `priority` prop). Also sets
+ *   `loading="eager"` unless `loading` is explicitly provided.
  *
  * @example
  * ```tsx
@@ -160,8 +217,8 @@ export function Image({
   alt = '',
   fill,
   block = !fill,
-  width = block ? 1 : undefined,
-  height = block ? 1 : undefined,
+  width,
+  height,
   mobileSize = '100vw',
   desktopSize = '100vw',
   sizes,
@@ -202,12 +259,23 @@ export function Image({
     placeholder
   )
 
+  // Derive placeholder dimensions from aspectRatio when no explicit
+  // width/height were supplied (the aspectRatio-only sizing variant).
+  // Honest proportional dims instead of a fake 1x1 box.
+  const derivedDimensions =
+    !fill && width === undefined && height === undefined && aspectRatio
+      ? derivePlaceholderDimensions(aspectRatio)
+      : undefined
+
+  const finalWidth = width ?? derivedDimensions?.width
+  const finalHeight = height ?? derivedDimensions?.height
+
   return (
     <NextImage
       ref={ref}
       fill={!block}
-      {...(width !== undefined && { width })}
-      {...(height !== undefined && { height })}
+      {...(finalWidth !== undefined && { width: finalWidth })}
+      {...(finalHeight !== undefined && { height: finalHeight })}
       loading={finalLoading}
       quality={quality}
       alt={alt}

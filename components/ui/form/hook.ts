@@ -51,7 +51,10 @@ export function useForm<T = unknown>({
     Record<string, HTMLInputElement | HTMLTextAreaElement | null>
   >({})
 
-  // Initialize state for a field when it first registers
+  // Initialize state for a field when it first registers.
+  // Hidden fields are always auto-valid. Otherwise, seed by requiredness:
+  // required fields start invalid (must be filled to become valid), optional
+  // fields start valid (an untouched optional field must not block isReady).
   function initializeInput(
     name: string,
     input: HTMLInputElement | HTMLTextAreaElement | null
@@ -60,7 +63,8 @@ export function useForm<T = unknown>({
     setIsValid((prev) => {
       const isHidden =
         input instanceof HTMLInputElement && input.type === 'hidden'
-      return { ...prev, [name]: isHidden }
+      const isRequired = input?.required ?? false
+      return { ...prev, [name]: isHidden || !isRequired }
     })
     setErrors((prev) => ({
       ...prev,
@@ -68,8 +72,37 @@ export function useForm<T = unknown>({
     }))
   }
 
+  // Reveal errors on every currently-invalid field so a blocked submit
+  // (Enter key, or a click that slips through) explains itself instead of
+  // silently doing nothing.
+  function revealErrorsForInvalidFields() {
+    setErrors((prev) => {
+      const next = { ...prev }
+      for (const [name, valid] of Object.entries(isValid)) {
+        if (valid) continue
+        const element = inputsRefs.current[name]
+        const label = element?.id || element?.name || name
+        next[name] = { state: true, message: `Invalid ${label}` }
+      }
+      return next
+    })
+  }
+
+  const isReady =
+    Object.values(isValid).length > 0 &&
+    Object.values(isValid).every(Boolean) &&
+    Object.values(errors).every(({ state }) => !state)
+
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+
+    // Enter-to-submit must respect the same gate as the SubmitButton.
+    // Server-side Zod validation remains the authoritative gate either way.
+    if (!isReady) {
+      revealErrorsForInvalidFields()
+      return
+    }
+
     const formData = new FormData(event.currentTarget)
     if (formId) {
       formData.append('formId', formId)
@@ -154,10 +187,7 @@ export function useForm<T = unknown>({
     isActive,
     isValid,
     isPending,
-    isReady:
-      Object.values(isValid).length > 0 &&
-      Object.values(isValid).every(Boolean) &&
-      Object.values(errors).every(({ state }) => !state),
+    isReady,
     errors,
   }
 }

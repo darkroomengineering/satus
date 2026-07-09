@@ -25,6 +25,7 @@ import {
   applyRemoveCallStatement,
   applyRemoveDestructuredBinding,
   applyRemoveFunctionParameter,
+  applyRemoveIfStatement,
   applyRemoveImport,
   applyRemoveInterfaceProperty,
   applyRemoveJsxAttribute,
@@ -95,6 +96,9 @@ export function applyOpsToText(
       case 'replaceJsDoc':
         text = applyReplaceJsDoc(project, text, op)
         break
+      case 'removeIfStatement':
+        text = applyRemoveIfStatement(project, text, op)
+        break
       case 'removeArrayObjectElement':
         text = applyRemoveArrayObjectElement(project, text, op)
         break
@@ -127,16 +131,29 @@ export function applyOpsToText(
 // Public disk-writing API used by setup-project.ts
 // ---------------------------------------------------------------------------
 
+/** A single file's transform failure, surfaced to callers instead of swallowed. */
+export interface TransformFailure {
+  file: string
+  error: string
+}
+
 /**
  * Apply code transformations to on-disk project source files.
  * Honors `dryRun` (no writes when true).
- * Returns the count of files that were actually changed.
+ *
+ * Never throws on a single file's failure — the transform continues across
+ * the remaining files (a batch mid-run abort would leave some files
+ * transformed and others not, which is worse than finishing the batch and
+ * reporting every failure at once). Failures are collected and returned
+ * instead of only logged, so callers can fail loudly — and non-zero — once
+ * the batch is done, rather than exiting 0 on a silently-incomplete run.
  */
 export async function applyCodeTransforms(
   transforms: CodeTransform[],
   dryRun: boolean
-): Promise<number> {
+): Promise<{ changes: number; failures: TransformFailure[] }> {
   let totalChanges = 0
+  const failures: TransformFailure[] = []
 
   for (const transform of transforms) {
     try {
@@ -155,10 +172,12 @@ export async function applyCodeTransforms(
         totalChanges++
       }
     } catch (error) {
-      // Log but continue — mirrors the previous regex-based behaviour.
-      console.error(`Failed to transform ${transform.file}:`, error)
+      failures.push({
+        file: transform.file,
+        error: error instanceof Error ? error.message : String(error),
+      })
     }
   }
 
-  return totalChanges
+  return { changes: totalChanges, failures }
 }

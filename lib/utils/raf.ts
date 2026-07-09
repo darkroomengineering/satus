@@ -19,14 +19,22 @@ import Tempus from 'tempus'
 // Internal write queue
 const writeQueue: Array<() => unknown> = []
 
-// Process queue each frame via Tempus
-Tempus.add(
-  () => {
-    for (const fn of writeQueue) fn()
-    writeQueue.length = 0
-  },
-  { order: 1000 }
-)
+// Guard against double-registration on module re-evaluation (HMR, duplicate
+// chunks) — Tempus.add's unsubscribe isn't retained, so without this a
+// re-eval would stack a second flush callback running every frame.
+const REGISTERED_KEY = Symbol.for('satus.raf.flush')
+const registry = globalThis as unknown as Record<symbol, unknown>
+if (!registry[REGISTERED_KEY]) {
+  // Process queue each frame via Tempus
+  Tempus.add(
+    () => {
+      for (const fn of writeQueue) fn()
+      writeQueue.length = 0
+    },
+    { order: 1000 }
+  )
+  registry[REGISTERED_KEY] = true
+}
 
 /**
  * Queue a DOM mutation (write operation).

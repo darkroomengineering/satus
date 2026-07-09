@@ -6,7 +6,15 @@ import {
   getCollectionsQuery,
 } from './queries/collection'
 import { removeEdgesAndNodes, reshapeProducts } from './reshape'
-import type { Collection, EdgeNode, Product, ShopifyProduct } from './types'
+import {
+  type GetCollectionProductsResponseData,
+  type GetCollectionResponseData,
+  type GetCollectionsResponseData,
+  getCollectionProductsResponseSchema,
+  getCollectionResponseSchema,
+  getCollectionsResponseSchema,
+} from './schemas'
+import type { Collection, Product } from './types'
 
 const reshapeCollection = (
   collection: Collection | null
@@ -34,12 +42,13 @@ const reshapeCollections = (
 export async function getCollection(
   handle: string
 ): Promise<Collection | undefined> {
-  const res = await shopifyFetch<{ collection: Collection | null }>({
+  const res = await shopifyFetch<GetCollectionResponseData>({
     query: getCollectionQuery,
     tags: [TAGS.collections],
     variables: {
       handle,
     },
+    dataSchema: getCollectionResponseSchema,
   })
 
   return reshapeCollection(res.body.data.collection)
@@ -56,9 +65,7 @@ export async function getCollectionProducts({
   reverse,
   sortKey,
 }: GetCollectionProductsOptions): Promise<Product[]> {
-  const res = await shopifyFetch<{
-    collection: { products: EdgeNode<ShopifyProduct> } | null
-  }>({
+  const res = await shopifyFetch<GetCollectionProductsResponseData>({
     query: getCollectionProductsQuery,
     tags: [TAGS.collections, TAGS.products],
     variables: {
@@ -66,6 +73,7 @@ export async function getCollectionProducts({
       reverse,
       sortKey: sortKey === 'CREATED_AT' ? 'CREATED' : sortKey,
     },
+    dataSchema: getCollectionProductsResponseSchema,
   })
 
   if (!res.body.data.collection) {
@@ -77,9 +85,10 @@ export async function getCollectionProducts({
 }
 
 export async function getCollections(): Promise<Collection[]> {
-  const res = await shopifyFetch<{ collections: EdgeNode<Collection> }>({
+  const res = await shopifyFetch<GetCollectionsResponseData>({
     query: getCollectionsQuery,
     tags: [TAGS.collections],
+    dataSchema: getCollectionsResponseSchema,
   })
   const shopifyCollections = removeEdgesAndNodes(res.body.data.collections)
   const collections: Collection[] = [

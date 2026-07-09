@@ -12,7 +12,7 @@ import { useMediaQuery } from 'hamo'
 | Hook | Purpose |
 |------|---------|
 | `useReveal` | Reveal-on-scroll via IntersectionObserver — CSS-driven, compositor-thread; reduced-motion + no-JS safe |
-| `useDeviceDetection` | Detect mobile/desktop/tablet |
+| `useDeviceDetection` | Detect screen size, input, motion preference, WebGL support |
 | `usePrefetch` | Prefetch routes on visibility |
 | `useOnlineStatus` | Network online/offline status |
 | `usePreferredColorScheme` | System theme preference |
@@ -140,13 +140,15 @@ import { useScrollTrigger, useTransform, TransformProvider } from 'hamo'
 
 ## useDeviceDetection
 
-Detect device type (SSR-safe):
+Detect device capabilities (SSR-safe): screen size, input method, motion
+preference, WebGL support, Safari, and inline-video autoplay support.
 
 ```tsx
 import { useDeviceDetection } from '@/hooks'
 
 function Component() {
-  const { isMobile, isTablet, isDesktop, isTouch } = useDeviceDetection()
+  const { isMobile, isDesktop, isReducedMotion, isTouchOnly, dpr, isWebGL, isSafari, isAutoplaySupported } =
+    useDeviceDetection()
 
   return isMobile ? <MobileNav /> : <DesktopNav />
 }

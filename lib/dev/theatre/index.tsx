@@ -106,13 +106,23 @@ export function useSheetDuration(sheet: ISheet) {
   return duration
 }
 
+// Default project + checked-in state, used when `SheetProvider` finds no
+// ancestor `<TheatreProjectProvider>` already in context. Both canvas mount
+// strategies (shared layout canvas, per-page `<Wrapper webgl>`) render
+// `<SheetProvider>` at the exact same choke point inside the r3f canvas
+// component, so self-bootstrapping the project here — rather than requiring
+// each canvas call site to remember to wrap one — is what actually makes
+// `useSheet`/`useTheatre` resolve to a live project in both strategies.
+const DEFAULT_PROJECT_ID = 'Satus-R3f'
+const DEFAULT_PROJECT_CONFIG = '/config/Satus-R3f.json'
+
 type SheetProviderProps = {
   id: ISheet['address']['sheetId'] | string | undefined
   instance?: ISheet['address']['sheetInstanceId'] | undefined
   ref?: Ref<ISheet | undefined>
 }
 
-export function SheetProvider({
+function SheetProviderInner({
   children,
   id,
   instance,
@@ -123,6 +133,40 @@ export function SheetProvider({
   useImperativeHandle(ref, () => sheet, [sheet])
 
   return <SheetContext.Provider value={sheet}>{children}</SheetContext.Provider>
+}
+
+export function SheetProvider({
+  children,
+  id,
+  instance,
+  ref,
+}: PropsWithChildren<SheetProviderProps>) {
+  const existingProject = useCurrentProject()
+
+  // Conditional spreads: exactOptionalPropertyTypes forbids forwarding an
+  // explicit `undefined` into SheetProviderInner's optional props.
+  const inner = (
+    <SheetProviderInner
+      id={id}
+      {...(instance !== undefined && { instance })}
+      {...(ref !== undefined && { ref })}
+    >
+      {children}
+    </SheetProviderInner>
+  )
+
+  // Already inside a `<TheatreProjectProvider>` (a consumer wrapped one
+  // explicitly, e.g. for a non-default project) — resolve against it as-is.
+  if (existingProject) return inner
+
+  return (
+    <TheatreProjectProvider
+      id={DEFAULT_PROJECT_ID}
+      config={DEFAULT_PROJECT_CONFIG}
+    >
+      {inner}
+    </TheatreProjectProvider>
+  )
 }
 
 export function useCurrentSheet() {

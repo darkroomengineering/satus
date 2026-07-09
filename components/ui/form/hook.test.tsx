@@ -80,6 +80,33 @@ function Harness({
   )
 }
 
+// Same as Harness, but wires `form.onSubmit` onto the <form> so submit-gate
+// behavior (Enter key, click) can be exercised end to end.
+function SubmitHarness({
+  fields,
+  onSnapshot,
+  formAction,
+}: {
+  fields: FieldConfig[]
+  onSnapshot: (form: UseFormReturn) => void
+  formAction: () => Promise<FormState>
+}) {
+  const form = useForm({ action: formAction })
+
+  useEffect(() => {
+    onSnapshot(form)
+  }, [form, onSnapshot])
+
+  return (
+    <form onSubmit={form.onSubmit}>
+      {fields.map((field) => (
+        <FieldRow key={field.name} form={form} field={field} />
+      ))}
+      <button type="submit">Submit</button>
+    </form>
+  )
+}
+
 function getInput(container: HTMLElement, name: string): HTMLInputElement {
   const input = container.querySelector(`input[name="${name}"]`)
   if (!(input instanceof HTMLInputElement)) {
@@ -148,7 +175,7 @@ describe('useForm registration is keyed by field name', () => {
     const snapshot: Snapshot = { current: null }
     const emailField: FieldConfig = { name: 'email', type: 'email' }
     const nameField: FieldConfig = { name: 'name' }
-    const companyField: FieldConfig = { name: 'company' }
+    const companyField: FieldConfig = { name: 'company', required: false }
 
     const { container, rerender } = render(
       <Harness
@@ -179,7 +206,8 @@ describe('useForm registration is keyed by field name', () => {
       />
     )
 
-    expect(snapshot.current?.isValid.company).toBe(false)
+    // company is optional (required: false) — untouched must not read invalid
+    expect(snapshot.current?.isValid.company).toBe(true)
     expect(snapshot.current?.errors.company?.state).toBe(false)
     // Siblings keep their state
     expect(snapshot.current?.errors.email?.state).toBe(true)
@@ -233,5 +261,68 @@ describe('useForm registration is keyed by field name', () => {
     // id="hidden" alone must not be (regression for the removed magic string)
     expect(snapshot.current?.isValid.trap).toBe(false)
     expect(snapshot.current?.errors.trap?.state).toBe(false)
+  })
+})
+
+describe('useForm submit gate', () => {
+  test('optional-untouched form is submittable', () => {
+    const snapshot: Snapshot = { current: null }
+    const nameField: FieldConfig = { name: 'name' }
+    const companyField: FieldConfig = { name: 'company', required: false }
+
+    const { container } = render(
+      <SubmitHarness
+        fields={[nameField, companyField]}
+        formAction={action}
+        onSnapshot={(f) => {
+          snapshot.current = f
+        }}
+      />
+    )
+
+    // Required field untouched — not ready yet.
+    expect(snapshot.current?.isReady).toBe(false)
+
+    fireEvent.change(getInput(container, 'name'), {
+      target: { value: 'Ada' },
+    })
+
+    // company was never touched but is optional — must not block isReady.
+    expect(snapshot.current?.isValid.company).toBe(true)
+    expect(snapshot.current?.isValid.name).toBe(true)
+    expect(snapshot.current?.isReady).toBe(true)
+  })
+
+  test('Enter on invalid form does not call the action', () => {
+    const snapshot: Snapshot = { current: null }
+    let callCount = 0
+    const trackedAction = async (): Promise<FormState> => {
+      callCount++
+      return { status: 200, message: 'ok' }
+    }
+    const nameField: FieldConfig = { name: 'name' }
+
+    const { container } = render(
+      <SubmitHarness
+        fields={[nameField]}
+        formAction={trackedAction}
+        onSnapshot={(f) => {
+          snapshot.current = f
+        }}
+      />
+    )
+
+    const formElement = container.querySelector('form')
+    if (!formElement) throw new Error('form not found')
+
+    // Required field untouched — form is not ready.
+    expect(snapshot.current?.isReady).toBe(false)
+
+    // Enter key submits the form natively — simulate via the submit event.
+    fireEvent.submit(formElement)
+
+    expect(callCount).toBe(0)
+    expect(snapshot.current?.errors.name?.state).toBe(true)
+    expect(snapshot.current?.errors.name?.message).toContain('Invalid')
   })
 })

@@ -129,6 +129,27 @@ export interface ReplaceJsDocOp {
 }
 
 /**
+ * Remove a bare `if (condition) { … }` statement (including any attached
+ * `else` chain) whose condition source text contains `conditionContains`.
+ * Matches at any scope depth; removes every occurrence in the file, including
+ * each matched statement's own leading comments.
+ *
+ * Designed for guard-dispatch patterns like a webhook router delegating to an
+ * integration handler:
+ * `if (isShopifyWebhook) { return shopifyRevalidate(request) }` — pair with
+ * `removeImport` (for the handler import) and `removeVariableStatement` (for
+ * the guard variable) to remove the whole dispatch.
+ *
+ * @example Remove the Shopify webhook dispatch:
+ * `{ kind: 'removeIfStatement', conditionContains: 'isShopifyWebhook' }`
+ */
+export interface RemoveIfStatementOp {
+  kind: 'removeIfStatement'
+  /** Substring to match against the `if` statement's condition source text. */
+  conditionContains: string
+}
+
+/**
  * Remove an object element from an array property nested inside a named
  * variable declaration.  Designed for `images.remotePatterns` in next.config.ts.
  *
@@ -294,6 +315,7 @@ export type AstOperation =
   | RemoveInterfacePropertyOp
   | RemoveFunctionParameterOp
   | ReplaceJsDocOp
+  | RemoveIfStatementOp
   | RemoveArrayObjectElementOp
   | RemoveArrayStringElementOp
   | AddImportOp

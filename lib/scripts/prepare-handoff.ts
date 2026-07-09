@@ -16,15 +16,73 @@
  */
 
 import * as p from '@clack/prompts'
-import { getConfigured, getConfiguredIds } from '@/integrations/registry'
+import {
+  type IntegrationId,
+  isConfigured,
+  integrations as registryIntegrations,
+} from '@/integrations/registry'
+import { isInstalled } from './bundle-installer'
 import { cancelGuard } from './generate-shared'
-import { getBundle } from './integration-bundles'
-import { renderDeploymentChecklist } from './templates/deployment-checklist'
+import { getIntegrationEntries } from './integration-bundles'
+import {
+  type IntegrationStatus,
+  renderDeploymentChecklist,
+} from './templates/deployment-checklist'
 import { renderInventory } from './templates/inventory'
 import { parseCliFlags, pathExists, removeFile, resolvePath } from './utils'
 
 /** Current date as an ISO `YYYY-MM-DD` string for generated-document headers. */
 const today = (): string => new Date().toISOString().split('T')[0] ?? ''
+
+/** True when `id` is a runtime-registry integration id (has an env schema). */
+// Widened to ReadonlySet<string> so the guard can probe with any string —
+// the whole point of a type-guard is accepting the unnarrowed input.
+const REGISTRY_IDS: ReadonlySet<string> = new Set(
+  Object.keys(registryIntegrations)
+)
+const isRegistryId = (id: string): id is IntegrationId => REGISTRY_IDS.has(id)
+
+/**
+ * Determine which integrations actually ship on disk (audit H7 — "presence
+ * = disk", not "presence = configured env").
+ *
+ * Bundle-backed integrations (sanity, shopify, hubspot, mailchimp, webgl,
+ * theatre) are reported only when `isInstalled` finds their code on disk —
+ * an integration stripped by `setup:project` must not appear here, even if
+ * its env vars happen to still be set in the current shell.
+ *
+ * Registry-only integrations with no removable bundle (turnstile, analytics)
+ * have no strippable on/off disk state — their code always ships — so they
+ * are always reported.
+ *
+ * Env validity becomes a reported *axis*, not a filter: an installed-but-
+ * unconfigured integration is still included (`configured: false`) so
+ * INVENTORY.md, DEPLOYMENT-CHECKLIST.md, and the `.env.example` cleanup below
+ * don't silently omit setup steps for code that actually ships.
+ */
+const getShippedIntegrations = async (): Promise<IntegrationStatus[]> => {
+  const results: IntegrationStatus[] = []
+  const bundleIds = new Set<string>()
+
+  for (const [id, bundle] of getIntegrationEntries()) {
+    bundleIds.add(id)
+    if (!(await isInstalled(bundle))) continue
+    results.push({
+      name: bundle.name,
+      configured: isRegistryId(id) ? isConfigured(id) : true,
+    })
+  }
+
+  for (const id of Object.keys(registryIntegrations) as IntegrationId[]) {
+    if (bundleIds.has(id)) continue // already reported above via its bundle
+    results.push({
+      name: registryIntegrations[id].name,
+      configured: isConfigured(id),
+    })
+  }
+
+  return results
+}
 
 /**
  * Scan a components directory for `*\/index.tsx` entries and return the sorted
@@ -151,14 +209,14 @@ const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
 
     const content = await Bun.file(envExamplePath).text()
 
-    // Keep env vars that belong to a configured integration, matched by id
-    // directly against the bundle record — no fragile lowercase bridge needed.
+    // Keep env vars that belong to an INSTALLED integration (H7 — presence =
+    // disk). Stripping env vars for code that still ships would delete the
+    // stub the client needs to fill in — env validity in the current shell is
+    // not a valid signal for "should this var's stub survive cleanup".
     const keepVars = new Set<string>()
-    for (const id of getConfiguredIds()) {
-      const bundle = getBundle(id)
-      if (bundle) {
-        for (const envVar of bundle.envVars) keepVars.add(envVar)
-      }
+    for (const [, bundle] of getIntegrationEntries()) {
+      if (!(await isInstalled(bundle))) continue
+      for (const envVar of bundle.envVars) keepVars.add(envVar)
     }
 
     // Core variables unrelated to any single integration are always kept.
@@ -243,7 +301,7 @@ const swapReadme = async (
 const generateInventory = async (dryRun: boolean): Promise<string> => {
   const content = renderInventory({
     date: today(),
-    integrations: getConfigured(),
+    integrations: await getShippedIntegrations(),
     uiComponents: await scanComponentDir('components/ui'),
     layoutComponents: await scanComponentDir('components/layout'),
     effectComponents: await scanComponentDir('components/effects'),
@@ -269,7 +327,7 @@ const generateChecklist = async (
 ): Promise<string> => {
   const content = renderDeploymentChecklist({
     projectName,
-    integrations: getConfigured(),
+    integrations: await getShippedIntegrations(),
     date: today(),
   })
 

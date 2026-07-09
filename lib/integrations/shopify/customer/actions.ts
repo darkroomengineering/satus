@@ -13,6 +13,16 @@ import {
   customerCreateMutation,
 } from '../mutations/customer'
 import { getCustomerQuery } from '../queries/customer'
+import {
+  type CustomerAccessTokenCreateResponseData,
+  type CustomerAccessTokenDeleteResponseData,
+  type CustomerCreateResponseData,
+  customerAccessTokenCreateResponseSchema,
+  customerAccessTokenDeleteResponseSchema,
+  customerCreateResponseSchema,
+  type GetCustomerResponseData,
+  getCustomerResponseSchema,
+} from '../schemas'
 import type { Customer } from '../types'
 
 const loginSchema = z.object({
@@ -41,18 +51,11 @@ export async function LoginCustomerAction(
     rateLimitMessage: 'Too many login attempts. Please try again later.',
     run: async ({ email, password }) => {
       try {
-        const res = await shopifyFetch<{
-          customerAccessTokenCreate: {
-            customerAccessToken: {
-              accessToken: string
-              expiresAt: string
-            } | null
-            customerUserErrors: Array<{ message: string }>
-          }
-        }>({
+        const res = await shopifyFetch<CustomerAccessTokenCreateResponseData>({
           query: customerAccessTokenCreateMutation,
           variables: { input: { email, password } },
           cache: 'no-store',
+          dataSchema: customerAccessTokenCreateResponseSchema,
         })
 
         const { customerAccessToken, customerUserErrors } =
@@ -95,12 +98,13 @@ export async function LogoutCustomerAction(
 
   if (customerAccessToken) {
     try {
-      await shopifyFetch({
+      await shopifyFetch<CustomerAccessTokenDeleteResponseData>({
         query: customerAccessTokenDeleteMutation,
         variables: {
           customerAccessToken,
         },
         cache: 'no-store',
+        dataSchema: customerAccessTokenDeleteResponseSchema,
       })
     } catch (error) {
       console.error('Error during logout:', error)
@@ -121,15 +125,11 @@ export async function CreateCustomerAction(
     formData,
     run: async ({ firstName, lastName, email, password }) => {
       try {
-        const res = await shopifyFetch<{
-          customerCreate: {
-            customer: Customer | null
-            customerUserErrors: Array<{ message: string }>
-          }
-        }>({
+        const res = await shopifyFetch<CustomerCreateResponseData>({
           query: customerCreateMutation,
           variables: { input: { firstName, lastName, email, password } },
           cache: 'no-store',
+          dataSchema: customerCreateResponseSchema,
         })
 
         const { customer, customerUserErrors } = res.body.data.customerCreate
@@ -165,12 +165,13 @@ export async function getCustomer(): Promise<Customer | null> {
   }
 
   try {
-    const res = await shopifyFetch<{ customer: Customer | null }>({
+    const res = await shopifyFetch<GetCustomerResponseData>({
       query: getCustomerQuery,
       variables: {
         customerAccessToken,
       },
       cache: 'no-store',
+      dataSchema: getCustomerResponseSchema,
     })
 
     return res.body.data.customer

@@ -65,10 +65,13 @@ Generated: 2026-01-01
     expect(output).toBe(expected)
   })
 
-  it('includes only the configured integration sections, in order', () => {
+  it('includes only the shipped integration sections, in order', () => {
     const output = renderDeploymentChecklist({
       projectName: 'Acme',
-      integrations: ['Sanity', 'HubSpot'],
+      integrations: [
+        { name: 'Sanity', configured: true },
+        { name: 'HubSpot', configured: true },
+      ],
       date: '2026-01-01',
     })
 
@@ -85,13 +88,40 @@ Generated: 2026-01-01
       output.indexOf('## Performance')
     )
   })
+
+  it('keeps the section for an installed-but-unconfigured integration and flags it (H7)', () => {
+    const output = renderDeploymentChecklist({
+      projectName: 'Acme',
+      integrations: [{ name: 'Shopify', configured: false }],
+      date: '2026-01-01',
+    })
+
+    // Section survives even though env isn't configured — a handoff that
+    // omits setup steps for shipping code is the bug this guards against.
+    expect(output).toContain('## Shopify')
+    expect(output).toContain(
+      '- [ ] ⚠️ Not yet configured in this environment — see .env.example'
+    )
+    expect(output).toContain('- [ ] Storefront API access token configured')
+  })
+
+  it('omits the warning line for a configured integration', () => {
+    const output = renderDeploymentChecklist({
+      projectName: 'Acme',
+      integrations: [{ name: 'Sanity', configured: true }],
+      date: '2026-01-01',
+    })
+
+    expect(output).toContain('## Sanity CMS')
+    expect(output).not.toContain('Not yet configured')
+  })
 })
 
 describe('renderInventory', () => {
   it('renders integrations, components, and pages', () => {
     const output = renderInventory({
       date: '2026-01-01',
-      integrations: ['Sanity'],
+      integrations: [{ name: 'Sanity', configured: true }],
       uiComponents: ['button', 'select'],
       layoutComponents: ['wrapper'],
       effectComponents: ['parallax'],
@@ -100,8 +130,9 @@ describe('renderInventory', () => {
 
     expect(output).toContain('# Component Inventory')
     expect(output).toContain('Generated: 2026-01-01')
-    expect(output).toContain('## Active Integrations')
+    expect(output).toContain('## Installed Integrations')
     expect(output).toContain('- Sanity')
+    expect(output).not.toContain('needs configuration')
     expect(output).toContain('## UI Components')
     expect(output).toContain('- `button`')
     expect(output).toContain('- `select`')
@@ -113,7 +144,20 @@ describe('renderInventory', () => {
     expect(output).toContain('- `/about`')
   })
 
-  it('renders the "none configured" fallback when no integrations', () => {
+  it('flags an installed-but-unconfigured integration (H7 — env is a reported axis, not a filter)', () => {
+    const output = renderInventory({
+      date: '2026-01-01',
+      integrations: [{ name: 'Shopify', configured: false }],
+      uiComponents: [],
+      layoutComponents: [],
+      effectComponents: [],
+      pages: [],
+    })
+
+    expect(output).toContain('- Shopify — installed, needs configuration')
+  })
+
+  it('renders the "none installed" fallback when nothing is installed', () => {
     const output = renderInventory({
       date: '2026-01-01',
       integrations: [],
@@ -123,13 +167,13 @@ describe('renderInventory', () => {
       pages: [],
     })
 
-    expect(output).toContain('- None configured')
+    expect(output).toContain('- None installed')
   })
 
   it('renders scan-error fallbacks when a scan returns null', () => {
     const output = renderInventory({
       date: '2026-01-01',
-      integrations: ['Sanity'],
+      integrations: [{ name: 'Sanity', configured: true }],
       uiComponents: null,
       layoutComponents: null,
       effectComponents: null,

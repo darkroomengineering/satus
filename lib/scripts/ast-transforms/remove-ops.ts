@@ -15,6 +15,7 @@ import type {
   RemoveCallStatementOp,
   RemoveDestructuredBindingOp,
   RemoveFunctionParameterOp,
+  RemoveIfStatementOp,
   RemoveImportOp,
   RemoveInterfacePropertyOp,
   RemoveJsxAttributeOp,
@@ -87,6 +88,31 @@ export function applyRemoveCallStatement(
 
       // Full start spans the leading trivia (blank line + comments) so the
       // statement's own comment block is removed with it.
+      sf.removeText(stmt.getFullStart(), stmt.getEnd())
+    }
+  })
+}
+
+/**
+ * Remove every `if (condition) { … }` statement (including an attached
+ * `else` chain) whose condition text contains `op.conditionContains`. Mirrors
+ * `applyRemoveCallStatement`'s full-file, remove-all-matches loop, and
+ * removes each match's `getFullStart()..getEnd()` span so a directly
+ * attached leading comment is removed with it.
+ */
+export function applyRemoveIfStatement(
+  project: Project,
+  sourceText: string,
+  op: RemoveIfStatementOp
+): string {
+  return withSourceFile(project, sourceText, (sf) => {
+    // Text removal invalidates collected nodes, so re-resolve after each pass.
+    while (true) {
+      const stmt = sf
+        .getDescendantsOfKind(SyntaxKind.IfStatement)
+        .find((s) => s.getExpression().getText().includes(op.conditionContains))
+      if (!stmt) break
+
       sf.removeText(stmt.getFullStart(), stmt.getEnd())
     }
   })

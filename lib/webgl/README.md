@@ -1,6 +1,8 @@
-# WebGL / WebGPU / React Three Fiber
+# WebGL / React Three Fiber
 
-GPU-accelerated 3D rendering with a persistent root canvas.
+WebGL 2-accelerated 3D rendering with a persistent root canvas, built on
+`@react-three/fiber`'s `WebGLRenderer`. GPU simulations (fluid, flowmap) run
+as GLSL3 `RawShaderMaterial` passes.
 
 ## Quick Start
 
@@ -34,6 +36,17 @@ The canvas is mounted with `<Canvas root>`. Choose **one** place to do it:
   (`<Wrapper webgl>`), which mounts the canvas only on that page.
 
 Enabling both mounts two canvases — keep one strategy.
+
+### Perf: limiting GPU simulations
+
+`<Canvas root>` mounts `FlowmapProvider` with both GPU simulations (fluid +
+flowmap) by default. If a page only needs pointer-driven displacement, pass
+`simTypes` to skip the other simulation's GPU pass and window listeners
+entirely:
+
+```tsx
+<Canvas root simTypes={['flowmap']} />
+```
 
 ## Device gating
 

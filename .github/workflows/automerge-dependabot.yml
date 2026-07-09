@@ -19,29 +19,36 @@ permissions:
 jobs:
   auto-merge:
     runs-on: ubuntu-latest
-    # Only act when the triggering CI run succeeded AND it was for a
-    # Dependabot pull_request. workflow_run.actor.login is the actor who
-    # caused the underlying event — for Dependabot PRs that's `dependabot[bot]`.
+    # Only act when the triggering CI run succeeded for a pull_request.
+    # The Dependabot check happens on the PR *author* below, NOT on
+    # workflow_run.actor: once the lockfile-sync workflow pushes a bun.lock
+    # commit to a Dependabot branch, the subsequent CI run's actor is the
+    # PAT identity — gating on actor would permanently skip exactly the
+    # PRs this automation exists for.
     if: >
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.actor.login == 'dependabot[bot]'
+      github.event.workflow_run.event == 'pull_request'
     steps:
-      - name: Resolve PR number from head SHA
+      - name: Resolve Dependabot PR from head SHA
         id: pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           REPO: ${{ github.repository }}
         run: |
-          number=$(gh pr list --repo "$REPO" --state open \
+          pr_json=$(gh pr list --repo "$REPO" --state open \
             --search "sha:$HEAD_SHA" \
-            --json number --jq '.[0].number // empty')
-          if [ -z "$number" ]; then
+            --json number,author --jq '.[0] // empty')
+          if [ -z "$pr_json" ]; then
             echo "No open PR for sha $HEAD_SHA — nothing to do."
             exit 0
           fi
-          echo "number=$number" >> "$GITHUB_OUTPUT"
+          author=$(echo "$pr_json" | jq -r '.author.login')
+          if [ "$author" != "app/dependabot" ] && [ "$author" != "dependabot" ]; then
+            echo "PR author is $author, not Dependabot — nothing to do."
+            exit 0
+          fi
+          echo "number=$(echo "$pr_json" | jq -r '.number')" >> "$GITHUB_OUTPUT"
 
       - name: Detect major bump from PR title
         id: update_type

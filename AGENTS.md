@@ -435,7 +435,7 @@ All integrations are optional and self-contained in `lib/integrations/{name}/`. 
 ```bash
 bun dev              # Dev server (Turbopack)
 bun run build        # Production build (runs setup:styles first)
-bun run check        # Biome + tsc --noEmit + bun test (must pass before commit)
+bun run check        # Biome + tsc --noEmit + bun test + manifest:check (must pass before commit)
 bun lint             # Biome lint
 bun lint:fix         # Biome lint with auto-fix
 bun run format       # Biome format

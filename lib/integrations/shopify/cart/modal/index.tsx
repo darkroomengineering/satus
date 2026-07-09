@@ -115,12 +115,15 @@ function InnerCart() {
               <Image
                 src={merchandise.product.featuredImage?.url ?? ''}
                 alt={merchandise.product.featuredImage?.altText ?? ''}
-                {...(merchandise.product.featuredImage?.width && {
-                  width: merchandise.product.featuredImage.width,
-                })}
-                {...(merchandise.product.featuredImage?.height && {
-                  height: merchandise.product.featuredImage.height,
-                })}
+                {...(merchandise.product.featuredImage?.width &&
+                merchandise.product.featuredImage?.height
+                  ? {
+                      width: merchandise.product.featuredImage.width,
+                      height: merchandise.product.featuredImage.height,
+                    }
+                  : // Shopify doesn't guarantee image dimensions — fall back
+                    // to a square box so the cart line keeps a stable layout.
+                    { aspectRatio: 1 })}
               />
             </div>
 

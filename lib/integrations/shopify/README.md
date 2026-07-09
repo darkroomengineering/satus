@@ -58,7 +58,7 @@ All Shopify server actions validate input with Zod schemas:
 - **Error handling**: Cart actions use `CartActionResult`; customer actions return `FormState` objects; there is no `Error` instance wrapping
 
 Env vars are validated via `shopifyEnvSchema` in the integration registry.
-The GraphQL *envelope* (`data` / `errors` fields) is always validated at the boundary with `parseApiResponse` (`@/utils/validation`). *Payload* validation (the `data` field contents) is opt-in: pass a `dataSchema` to `shopifyFetch` to validate the inner payload against a Zod schema. Without a schema, the payload is cast to the caller-supplied type — the caller is responsible for ensuring the shape matches.
+The GraphQL *envelope* (`data` / `errors` fields) is always validated at the boundary with `parseApiResponse` (`@/utils/validation`). *Payload* validation (the `data` field contents) is opt-in via `shopifyFetch`'s `dataSchema` parameter — every built-in call site (`products.ts`, `collections.ts`, `pages.ts`, `cart-operations.ts`, `customer/actions.ts`) passes one, validating against the loose Zod schemas in `schemas.ts`. When omitted, the payload is cast to the caller-supplied type — the caller is responsible for ensuring the shape matches.
 
 ## Features
 
@@ -73,10 +73,18 @@ The GraphQL *envelope* (`data` / `errors` fields) is always validated at the bou
 
 ## Webhooks
 
-Configure in Shopify Admin for cache invalidation:
+Configure in Shopify Admin (Settings → Notifications → Webhooks) for cache invalidation:
 
 ```
-https://your-domain.com/api/revalidate?secret=YOUR_SECRET
+URL: https://your-domain.com/api/revalidate?secret=YOUR_SHOPIFY_REVALIDATION_SECRET
 ```
 
-Events: `products/create`, `products/update`, `products/delete`
+Shopify sends the webhook topic in the `x-shopify-topic` header and the secret as the `secret`
+query param — `app/api/revalidate/route.ts` detects either signal and dispatches to
+`revalidate()` in `lib/integrations/shopify/revalidate.ts`, which checks the secret against
+`SHOPIFY_REVALIDATION_SECRET` and calls `revalidateTag`. The same route also serves Sanity's
+webhook (see `app/api/README.md`); Shopify and Sanity requests are distinguished automatically,
+so no separate endpoint is needed.
+
+Events: `products/create`, `products/update`, `products/delete`, `collections/create`,
+`collections/update`, `collections/delete`

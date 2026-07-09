@@ -6,7 +6,25 @@ import { parseApiResponse } from '@/utils/validation'
 import { SHOPIFY_GRAPHQL_API_ENDPOINT } from './constants'
 import type { ShopifyFetchOptions, ShopifyResponse } from './types'
 
-const endpoint = `${env.SHOPIFY_STORE_DOMAIN ?? ''}${SHOPIFY_GRAPHQL_API_ENDPOINT}`
+/**
+ * Normalize a Shopify store domain into a `https://` origin.
+ *
+ * The documented env value is scheme-less (`your-store.myshopify.com`), but
+ * some setups store it with an existing `https://`/`http://` prefix and/or a
+ * trailing slash. Native `fetch` throws "Failed to parse URL" on a scheme-less
+ * host, so this always normalizes to a single `https://` prefix.
+ *
+ * Returns an empty string when `domain` is missing — the caller is
+ * responsible for gating usage (e.g. via `isConfigured('shopify')`); this
+ * helper must never throw at module scope.
+ */
+export function normalizeStoreDomain(domain: string | undefined): string {
+  if (!domain) return ''
+  const stripped = domain.replace(/^https?:\/\//, '').replace(/\/+$/, '')
+  return stripped ? `https://${stripped}` : ''
+}
+
+const endpoint = `${normalizeStoreDomain(env.SHOPIFY_STORE_DOMAIN)}${SHOPIFY_GRAPHQL_API_ENDPOINT}`
 const key = env.SHOPIFY_STOREFRONT_ACCESS_TOKEN ?? ''
 
 const shopifyEnvelopeSchema = z.object({

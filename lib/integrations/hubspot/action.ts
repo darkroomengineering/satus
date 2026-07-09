@@ -26,15 +26,32 @@
 'use server'
 
 import { env } from '@/lib/env'
+import type { TurnstileValidationResult } from '@/lib/integrations/turnstile'
+import { validateFormWithTurnstile } from '@/lib/integrations/turnstile'
 import type { FormState } from '@/lib/types/form'
 import { runFormAction } from '@/lib/utils/form-action'
 import { fetchWithTimeout } from '@/utils/fetch'
 import { hubspotNewsletterSchema } from './schema'
 
+function turnstileError(validation: TurnstileValidationResult): FormState {
+  return {
+    status: 400,
+    message: 'invalid_input_',
+    fieldErrors: {
+      turnstile: validation.errors[0] ?? 'security_verification_required_',
+    },
+  }
+}
+
 export async function HubspotNewsletterAction(
   _: unknown,
   formData: FormData
 ): Promise<FormState> {
+  const turnstileValidation = await validateFormWithTurnstile(formData)
+  if (!turnstileValidation.isValid) {
+    return turnstileError(turnstileValidation)
+  }
+
   return runFormAction({
     rateLimitPrefix: 'hubspot',
     schema: hubspotNewsletterSchema,

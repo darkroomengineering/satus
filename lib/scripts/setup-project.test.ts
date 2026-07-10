@@ -17,11 +17,11 @@ import {
   getIntegrationNames,
   INTEGRATION_BUNDLES,
 } from './integration-bundles'
-import { planInstallSet } from './satus'
 import {
   declaredBundlePaths,
   findMissingPaths,
   PROJECT_PRESETS,
+  resolveTransitiveKeepSet,
 } from './setup-project'
 import { getFlagValue } from './utils'
 
@@ -146,8 +146,8 @@ describe('Integration Bundle Configuration', () => {
   })
 
   it('should have valid additive transform configurations (addTransforms shape)', () => {
-    // `satus add` may only use the idempotent ADDITIVE op kinds — a removal
-    // op in addTransforms would silently undo an install.
+    // The re-add step may only use the idempotent ADDITIVE op kinds — a
+    // removal op in addTransforms would silently undo an install.
     const additiveKinds = [
       'addImport',
       'addArrayStringElement',
@@ -658,7 +658,7 @@ describe('Combined Transforms (Multiple Integrations Removed)', () => {
 
 // ---------------------------------------------------------------------------
 // Additive transforms — remove → add round trips on the real sources
-// (`satus add` applied to the lean state produced by `setup:project`)
+// (the re-add step applied to the lean state produced by `setup:project`)
 // ---------------------------------------------------------------------------
 
 describe('Additive Transforms (remove → add round trips)', () => {
@@ -774,7 +774,7 @@ describe('Additive Transforms (remove → add round trips)', () => {
   })
 
   it('webgl overwrite: the lean wrapper matches the expected lean state', () => {
-    // `satus add webgl` restores the Wrapper wholesale; its safety check
+    // Re-adding webgl restores the Wrapper wholesale; its safety check
     // compares the local file against the payload-with-removal-ops state.
     // Verify the equation holds on the real source: applying the removal ops
     // twice equals applying them once (so a lean wrapper is recognized).
@@ -793,40 +793,46 @@ describe('Additive Transforms (remove → add round trips)', () => {
 })
 
 // ---------------------------------------------------------------------------
-// H6 — `satus add --force` reinstall path
+// resolveTransitiveKeepSet — transitive `requires` resolution (ported from
+// the deleted `satus add` CLI's `resolveAddSet`; regression coverage for the
+// bug where `--keep theatre` stripped webgl out from under it)
 // ---------------------------------------------------------------------------
 
-describe('planInstallSet (H6 — --force reinstall regression)', () => {
-  const statuses = [
-    { id: 'sanity', installed: true },
-    { id: 'webgl', installed: false },
-    { id: 'theatre', installed: true },
-  ]
-
-  it('without --force, skips already-installed bundles entirely', () => {
-    const { toInstall, alreadyInstalled } = planInstallSet(statuses, false)
-
-    expect(toInstall.map((s) => s.id)).toEqual(['webgl'])
-    expect(alreadyInstalled.map((s) => s.id)).toEqual(['sanity', 'theatre'])
+describe('resolveTransitiveKeepSet', () => {
+  it('resolves a standalone integration to itself', () => {
+    expect(resolveTransitiveKeepSet(['sanity'])).toEqual({
+      order: ['sanity'],
+      implied: [],
+    })
   })
 
-  it('with --force, queues already-installed bundles for reinstall too', () => {
-    const { toInstall, alreadyInstalled } = planInstallSet(statuses, true)
+  it('pulls in required integrations before the requester (theatre → webgl)', () => {
+    const { order, implied } = resolveTransitiveKeepSet(['theatre'])
 
-    // Every requested bundle is queued — --force is no longer a no-op.
-    expect(toInstall.map((s) => s.id)).toEqual(['sanity', 'webgl', 'theatre'])
-    // Still reported as "already installed" for the reinstall-vs-fresh message.
-    expect(alreadyInstalled.map((s) => s.id)).toEqual(['sanity', 'theatre'])
+    expect(order).toEqual(['webgl', 'theatre'])
+    expect(implied).toEqual(['webgl'])
   })
 
-  it('--force on an all-installed set is never empty (was the H6 no-op bug)', () => {
-    const allInstalled = [
-      { id: 'sanity', installed: true },
-      { id: 'webgl', installed: true },
-    ]
+  it('does not mark explicitly requested dependencies as implied', () => {
+    const { order, implied } = resolveTransitiveKeepSet(['theatre', 'webgl'])
 
-    expect(planInstallSet(allInstalled, false).toInstall).toHaveLength(0)
-    expect(planInstallSet(allInstalled, true).toInstall).toHaveLength(2)
+    expect(order).toEqual(['webgl', 'theatre'])
+    expect(implied).toEqual([])
+  })
+
+  it('deduplicates repeated requests', () => {
+    const { order } = resolveTransitiveKeepSet(['webgl', 'webgl', 'theatre'])
+    expect(order).toEqual(['webgl', 'theatre'])
+  })
+
+  it('fails loudly on unknown integration ids', () => {
+    expect(() => resolveTransitiveKeepSet(['sanityy'])).toThrow(
+      'Unknown integration "sanityy"'
+    )
+  })
+
+  it('leaves an empty (lean) keep set untouched', () => {
+    expect(resolveTransitiveKeepSet([])).toEqual({ order: [], implied: [] })
   })
 })
 

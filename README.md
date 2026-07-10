@@ -56,34 +56,13 @@ bun storybook
 Satūs keeps integrations — Sanity, Shopify, HubSpot, WebGL — isolated under `lib/integrations` (and `lib/webgl`). They only activate once you set their env vars, and each folder carries a `// USAGE` note showing how to wire it in. None is surfaced in the default app.
 
 - **Use one** — set its env vars (see `lib/env.ts`) and follow the `// USAGE` reference in its folder.
-- **Drop the ones you don't need** — `bun run setup:project`.
-- **Add one back later** — `bun run satus add <plugin>` restores it into a living project.
+- **Choose what to keep** — `bun run setup:project` strips everything else. Keeping an integration also keeps whatever it requires (e.g. keeping `theatre` keeps `webgl`, since theatre's r3f bindings depend on it).
 
-### Plugins
+### Setup
 
-The public satus repo is the registry: `satus add` pulls an integration's source payload from it and re-wires shared files (`next.config.ts`, barrels, env stubs) through idempotent AST operations — adding twice is a no-op.
+`setup:project` is interactive by default, or drivable non-interactively (CI): `--preset <key>` or `--keep <id,id,...>` selects the integration set, `--yes` confirms it, `--clean-homepage` swaps in a blank starter homepage, and `--skip-install` skips the lockfile update.
 
-```bash
-bun run satus list           # All plugins and their installed status
-bun run satus add <plugin>   # Restore one (resolves `requires` transitively)
-```
-
-`satus add` flags:
-
-| Flag | Effect |
-|------|--------|
-| `--from <path>` | Use a local satus checkout as the payload source |
-| `--ref <gitRef>` | Fetch the GitHub tarball at this ref |
-| `--dry-run` | Print what would happen without writing anything |
-| `--force` | Overwrite existing / locally modified files |
-| `--yes` | Skip confirmation prompts (CI) |
-| `--skip-install` | Write package.json but do not run `bun install` |
-
-Payloads are version-matched: a successful `setup:project` run records the git HEAD sha into package.json as `"satus": { "ref": … }`, and `satus add` fetches that pinned ref by default (`--ref` overrides it; without either it falls back to `main`).
-
-`setup:project` is also drivable non-interactively (CI): `--preset <key>` or `--keep <id,id,...>` selects the integration set, `--yes` confirms it, `--clean-homepage` swaps in a blank starter homepage, and `--skip-install` skips the lockfile update.
-
-When setup completes it removes its own machinery from the project (the setup script and the CLI's test suites) — `satus add`, `generate`, `doctor`, and `dev` stay.
+When setup completes it removes its own machinery from the project (the setup script and its test suite) — `generate`, `doctor`, and `dev` stay.
 
 ## Tech Stack
 
@@ -135,8 +114,6 @@ bun storybook        # Component catalogue
 bun lint             # Biome linter
 bun run generate     # Generate pages/components
 bun run setup:project  # Strip integrations you don't need
-bun run satus list   # Plugins and their installed status
-bun run satus add <plugin>  # Restore an integration from the satus repo
 bun run handoff      # Prepare for client delivery
 ```
 

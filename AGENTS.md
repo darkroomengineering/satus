@@ -444,7 +444,6 @@ bun run typecheck:watch  # tsc --noEmit --watch (native fast watcher; live feedb
 bun test             # Unit tests (bun's built-in runner; ignores *.e2e.ts)
 bun run test:e2e     # Playwright E2E smoke test (boots dev server automatically)
 bun run setup:project  # Strip unused integrations (non-interactive: --preset/--keep, --yes, --clean-homepage, --skip-install)
-bun run satus        # Plugin CLI: `list`, `add <plugin>` (restore an integration from the satus repo)
 bun run doctor       # Diagnose setup issues
 ```
 

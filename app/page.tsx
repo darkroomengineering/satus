@@ -109,13 +109,10 @@ const STEPS: Step[] = [
         </p>
         <p className={s.text}>
           To turn one on, set its env vars and follow the in-folder notes marked{' '}
-          <code className={s.inline}>{'// USAGE'}</code>. Strip the ones you
-          don&apos;t need with{' '}
-          <code className={s.inline}>bun run setup:project</code>, and bring one
-          back any time with{' '}
-          <code className={s.inline}>bun run satus add &lt;plugin&gt;</code> —
-          it pulls the integration&apos;s source from the satus repo as owned
-          code, wires it up, and is safe to run twice.
+          <code className={s.inline}>{'// USAGE'}</code>. Choose what to keep
+          with <code className={s.inline}>bun run setup:project</code> — keeping
+          one also keeps whatever it requires (e.g. keeping theatre keeps
+          webgl).
         </p>
       </>
     ),

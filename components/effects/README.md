@@ -9,7 +9,7 @@ This directory is for GSAP-based effects: the runtime ticker bridge and orchestr
 | Component | Purpose |
 |-----------|---------|
 | `gsap.tsx` | `GSAPRuntime` — syncs GSAP's ticker to Tempus (single RAF loop) |
-| `progress-text/` | Scroll-driven progress text effect (GSAP-based) |
+| `progress-text/` | Scroll-driven progress text effect (hamo scroll-trigger) |
 
 ## GSAPRuntime
 

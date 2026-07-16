@@ -1,4 +1,3 @@
-import { env } from '@/lib/env'
 import { shopifyFetch } from './client'
 import { TAGS } from './constants'
 import { getMenuQuery } from './queries/menu'
@@ -14,11 +13,28 @@ import {
 } from './schemas'
 import type { Page } from './types'
 
-const domain = env.SHOPIFY_STORE_DOMAIN ?? ''
-
 interface MenuItem {
   title: string
   path: string
+}
+
+/**
+ * Extract the path portion of a Shopify menu item URL.
+ *
+ * Menu item URLs may be absolute (on the store's `.myshopify.com` domain, a
+ * connected custom domain, or otherwise) or already-relative paths. Parsing
+ * as a URL and taking `pathname + search` handles all absolute cases
+ * regardless of host; invalid/relative URLs pass through unchanged.
+ */
+function menuItemPath(url: string): string {
+  let path: string
+  try {
+    const parsed = new URL(url)
+    path = parsed.pathname + parsed.search
+  } catch {
+    path = url
+  }
+  return path.replace('/collections', '/search').replace('/pages', '')
 }
 
 export async function getMenu(handle: string): Promise<MenuItem[]> {
@@ -34,10 +50,7 @@ export async function getMenu(handle: string): Promise<MenuItem[]> {
   return (
     res.body.data.menu?.items.map((item) => ({
       title: item.title,
-      path: item.url
-        .replace(domain, '')
-        .replace('/collections', '/search')
-        .replace('/pages', ''),
+      path: menuItemPath(item.url),
     })) ?? []
   )
 }

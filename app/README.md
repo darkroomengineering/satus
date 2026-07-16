@@ -31,7 +31,7 @@ Then:
 ## Page Pattern
 
 ```tsx
-import { Wrapper } from '@/components/layout'
+import { Wrapper } from '@/components/layout/wrapper'
 
 export default function Page() {
   return (

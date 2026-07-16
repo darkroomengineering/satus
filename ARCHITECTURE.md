@@ -109,7 +109,7 @@ All schemas live in `lib/utils/validation.ts`. The typed env singleton (`lib/env
 ## Deployment Checklist
 
 - [ ] Environment variables configured
-- [ ] Build passes (`bun build`)
+- [ ] Build passes (`bun run build`)
 - [ ] Webhooks configured (Sanity, Shopify)
 - [ ] Cache invalidation tested
 - [ ] Performance score > 90

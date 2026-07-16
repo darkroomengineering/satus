@@ -4,6 +4,7 @@ import cn from 'clsx'
 import { useRouter } from 'next/navigation'
 import type { KeyboardEvent, ReactNode } from 'react'
 import { createContext, use, useState } from 'react'
+import { useFormStatus } from 'react-dom'
 import { Image } from '@/components/ui/image'
 import { Link } from '@/components/ui/link'
 import { removeItem, updateItemQuantity } from '../actions'
@@ -209,6 +210,26 @@ function Quantity({ className, payload }: QuantityProps) {
   )
 }
 
+function QuantitySubmitButton({
+  children,
+  'aria-label': ariaLabel,
+}: {
+  children: ReactNode
+  'aria-label': string
+}) {
+  const { pending } = useFormStatus()
+  return (
+    <button
+      type="submit"
+      className="p1"
+      aria-label={ariaLabel}
+      disabled={pending}
+    >
+      {children}
+    </button>
+  )
+}
+
 function QuantityButton({
   formAction,
   className,
@@ -217,10 +238,24 @@ function QuantityButton({
 }: QuantityButtonProps) {
   return (
     <form action={formAction} className={className}>
-      <button type="submit" className="p1" aria-label={ariaLabel}>
+      <QuantitySubmitButton aria-label={ariaLabel}>
         {children}
-      </button>
+      </QuantitySubmitButton>
     </form>
+  )
+}
+
+function RemoveSubmitButton() {
+  const { pending } = useFormStatus()
+  return (
+    <button
+      type="submit"
+      className="p1"
+      aria-label="Remove cart item"
+      disabled={pending}
+    >
+      remove
+    </button>
   )
 }
 
@@ -239,9 +274,7 @@ function RemoveButton({ merchandiseId, lineId, className }: RemoveButtonProps) {
 
   return (
     <form action={formAction} className={className}>
-      <button type="submit" className="p1" aria-label="Remove cart item">
-        remove
-      </button>
+      <RemoveSubmitButton />
     </form>
   )
 }

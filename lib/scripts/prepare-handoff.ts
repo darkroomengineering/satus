@@ -11,6 +11,7 @@
  * Usage:
  *   bun run handoff
  *   bun run handoff --dry-run
+ *   bun run handoff --force        Overwrite an existing README.original.md backup
  *
  * Cross-platform compatible (Windows, macOS, Linux)
  */
@@ -126,6 +127,8 @@ interface HandoffOptions {
   cleanupEnvVars: boolean
   generateInventory: boolean
   generateChecklist: boolean
+  /** Overwrite an existing README.original.md backup instead of keeping it. */
+  force: boolean
 }
 
 /**
@@ -255,7 +258,8 @@ const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
  */
 const swapReadme = async (
   projectName: string,
-  dryRun: boolean
+  dryRun: boolean,
+  force: boolean
 ): Promise<boolean> => {
   try {
     const prodReadmePath = resolvePath('PROD-README.md')
@@ -273,9 +277,18 @@ const swapReadme = async (
     content = content.replace(/\[your-domain\.com\]/g, 'your-domain.com')
 
     if (!dryRun) {
-      // Backup original README
-      const originalReadme = await Bun.file(readmePath).text()
-      await Bun.write(resolvePath('README.original.md'), originalReadme)
+      // Backup original README — never clobber a pre-existing backup unless
+      // --force is passed (H5): a second handoff run would otherwise silently
+      // overwrite the one copy of the pre-swap README.
+      const backupPath = resolvePath('README.original.md')
+      if (!force && (await pathExists(backupPath))) {
+        p.log.warn(
+          'README.original.md already exists — keeping the existing backup (pass --force to overwrite)'
+        )
+      } else {
+        const originalReadme = await Bun.file(readmePath).text()
+        await Bun.write(backupPath, originalReadme)
+      }
 
       // Write new README
       await Bun.write(readmePath, content)
@@ -351,6 +364,7 @@ const runHandoff = async (options: HandoffOptions): Promise<void> => {
     cleanupEnvVars: doCleanupEnvVars,
     generateInventory: doGenerateInventory,
     generateChecklist: doGenerateChecklist,
+    force,
   } = options
 
   const s = p.spinner()
@@ -381,7 +395,7 @@ const runHandoff = async (options: HandoffOptions): Promise<void> => {
   // Swap README
   if (doSwapReadme) {
     s.start('Swapping README...')
-    const swapped = await swapReadme(projectName, dryRun)
+    const swapped = await swapReadme(projectName, dryRun, force)
     s.stop(
       swapped ? 'README swapped with production version' : 'README swap skipped'
     )
@@ -407,6 +421,7 @@ const runHandoff = async (options: HandoffOptions): Promise<void> => {
  */
 const main = async (): Promise<void> => {
   const { dryRun } = parseCliFlags()
+  const force = process.argv.slice(2).includes('--force')
 
   console.clear()
 
@@ -500,6 +515,7 @@ const main = async (): Promise<void> => {
     cleanupEnvVars: actionsValue.includes('cleanupEnvVars'),
     generateInventory: actionsValue.includes('generateInventory'),
     generateChecklist: actionsValue.includes('generateChecklist'),
+    force,
   })
 
   // Done

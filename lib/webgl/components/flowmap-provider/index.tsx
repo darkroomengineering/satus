@@ -95,35 +95,38 @@ function FlowmapSimInner({ children }: { children: React.ReactNode }) {
  * renderer and the R3F frame loop.
  *
  * @param props.children - R3F elements that need access to the simulations.
- * @param props.simTypes - Which simulations to mount. Defaults to both
- *   `['fluid', 'flowmap']` for back-compat. Pass a subset to skip the
- *   other sim's GPU pass and window listeners entirely — e.g.
- *   `simTypes={['flowmap']}` never runs `useFluidSim`.
+ * @param props.simTypes - Which simulations to mount. Defaults to none
+ *   (opt-in) — mounting a GPU sim without a consumer wastes a render pass
+ *   and window listeners. Pass the sims you actually use — e.g.
+ *   `simTypes={['fluid']}`.
  * @returns A context provider wrapping the children.
  *
  * @example
  * ```tsx
- * // Both sims (default — back-compat)
+ * // Opt into the fluid sim
  * <Canvas>
- *   <FlowmapProvider>
- *     <DistortedPlane />
+ *   <FlowmapProvider simTypes={['fluid']}>
+ *     <FluidBackground />
  *   </FlowmapProvider>
  * </Canvas>
  *
- * // Flowmap only — skips the fluid GPU pass
+ * // Opt into both
  * <Canvas>
- *   <FlowmapProvider simTypes={['flowmap']}>
+ *   <FlowmapProvider simTypes={['fluid', 'flowmap']}>
  *     <DistortedPlane />
  *   </FlowmapProvider>
  * </Canvas>
  * ```
  */
+// Hoisted so the default is referentially stable across renders.
+const NO_SIM_TYPES: ('fluid' | 'flowmap')[] = []
+
 export function FlowmapProvider({
   children,
-  simTypes = ['fluid', 'flowmap'],
+  simTypes = NO_SIM_TYPES,
 }: {
   children: React.ReactNode
-  /** Which simulations to mount. Default: both, for back-compat. */
+  /** Which simulations to mount. Default: none (opt-in). */
   simTypes?: ('fluid' | 'flowmap')[]
 }) {
   let tree = children

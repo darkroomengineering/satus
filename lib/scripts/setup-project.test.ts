@@ -18,10 +18,13 @@ import {
   INTEGRATION_BUNDLES,
 } from './integration-bundles'
 import {
+  collectSelfPruneTestFiles,
   declaredBundlePaths,
   findMissingPaths,
   PROJECT_PRESETS,
   resolveTransitiveKeepSet,
+  SELF_PRUNE_KEEP_TEST_FILES,
+  shouldSkipConfirm,
 } from './setup-project'
 import { getFlagValue } from './utils'
 
@@ -947,5 +950,70 @@ describe('getFlagValue (L4 — duplicate flag warning)', () => {
     }
 
     expect(warnCalls).toHaveLength(1)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// L10 — selfPrune's test-file list is glob-derived, not hardcoded
+// ---------------------------------------------------------------------------
+
+describe('collectSelfPruneTestFiles (L10 — glob-derived, not hardcoded)', () => {
+  it('discovers the real setup-machinery test files on disk', async () => {
+    const files = await collectSelfPruneTestFiles()
+
+    expect(files).toContain('lib/scripts/setup-project.test.ts')
+    expect(files).toContain('lib/scripts/ast-transforms.test.ts')
+    expect(files).toContain('lib/scripts/payload-source.test.ts')
+  })
+
+  it('excludes every entry in the KEEP allowlist', async () => {
+    const files = await collectSelfPruneTestFiles()
+
+    for (const kept of SELF_PRUNE_KEEP_TEST_FILES) {
+      expect(files).not.toContain(kept)
+    }
+    // Concrete regression check: templates.test.ts ships with every
+    // scaffolded project (it tests prepare-handoff's templates) and must
+    // survive self-prune.
+    expect(files).not.toContain('lib/scripts/templates/templates.test.ts')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// H6 — `--yes` confirm-prompt gating
+// ---------------------------------------------------------------------------
+
+describe('shouldSkipConfirm (H6 — --yes gating)', () => {
+  it('always skips when --yes is passed', () => {
+    expect(shouldSkipConfirm({ yes: true, hasFlags: false, isTTY: true })).toBe(
+      true
+    )
+    expect(shouldSkipConfirm({ yes: true, hasFlags: true, isTTY: true })).toBe(
+      true
+    )
+    expect(shouldSkipConfirm({ yes: true, hasFlags: true, isTTY: false })).toBe(
+      true
+    )
+  })
+
+  it('never skips for a fully interactive run (no --preset/--keep)', () => {
+    expect(
+      shouldSkipConfirm({ yes: false, hasFlags: false, isTTY: true })
+    ).toBe(false)
+    expect(
+      shouldSkipConfirm({ yes: false, hasFlags: false, isTTY: false })
+    ).toBe(false)
+  })
+
+  it('shows the prompt for --preset/--keep at an interactive terminal without --yes', () => {
+    expect(shouldSkipConfirm({ yes: false, hasFlags: true, isTTY: true })).toBe(
+      false
+    )
+  })
+
+  it('skips for --preset/--keep off a TTY without --yes (create-darkroom contract)', () => {
+    expect(
+      shouldSkipConfirm({ yes: false, hasFlags: true, isTTY: false })
+    ).toBe(true)
   })
 })

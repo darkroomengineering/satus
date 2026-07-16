@@ -70,7 +70,16 @@ type Env = z.infer<typeof envSchema>
  * via the registry's `isConfigured()`. This object provides type-safe access
  * without runtime validation overhead (parsing happens once at import).
  */
-export const env: Env = envSchema.parse(process.env)
+const parsedEnv = envSchema.safeParse(process.env)
+
+if (!parsedEnv.success) {
+  const issues = parsedEnv.error.issues
+    .map((issue) => `  ${issue.path.join('.') || '(root)'}: ${issue.message}`)
+    .join('\n')
+  throw new Error(`Invalid environment configuration:\n${issues}`)
+}
+
+export const env: Env = parsedEnv.data
 
 /**
  * Canonical base URL for the application.

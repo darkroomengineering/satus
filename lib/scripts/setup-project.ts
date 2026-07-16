@@ -12,14 +12,19 @@
  *    dependencies, barrel exports, env stubs, and code transforms)
  * 4. Self-prune its own setup machinery from the scaffolded project
  *
- * Non-interactive (CI) usage — skips every prompt:
+ * Non-interactive (CI) usage — skips the integration-selection prompt:
  *   bun run setup:project --preset <key>           Use a preset's integrations
  *   bun run setup:project --keep <id,id,...>       Keep an explicit set ('' = lean)
  *   bun run setup:project --keep '' --clean-homepage --yes
  *
  * `--clean-homepage` replaces the manual landing page (default: keep it);
- * `--yes` is accepted alongside either selection flag; `--skip-install`
- * writes package.json without running `bun install` (offline / tests).
+ * `--skip-install` writes package.json without running `bun install`
+ * (offline / tests).
+ *
+ * `--yes` skips the final proceed/confirm prompt. Without it, `--preset`/
+ * `--keep` still skip the confirm prompt when stdio isn't a TTY (so scripted
+ * / CI invocations — including create-darkroom's — never hang), but show it
+ * when run at an interactive terminal, giving a human a chance to abort.
  *
  * Cross-platform compatible (Windows, macOS, Linux)
  */
@@ -617,13 +622,45 @@ const setupAddIntegrations = async (
  * Does NOT write package.json — caller owns the single write.
  *
  * KEPT (used by tests that ship with every project):
- *   - lib/scripts/test-setup.ts (bunfig.toml preloads it for ALL bun tests)
+ *   - lib/scripts/test-setup.ts (bunfig.toml preloads it for ALL bun tests;
+ *     not matched by the `*.test.ts` glob below, so it's inherently safe)
  *
  * KEPT (shared production machinery — used by `generate`, `doctor`, and
  * `prepare-handoff`, which all ship with every project, not just by setup):
  *   - lib/scripts/integration-bundles.ts, bundle-installer.ts,
  *     ast-transforms/, barrel-file.ts, payload-source.ts, generate-shared.ts
+ *
+ * The setup-machinery test files to delete are discovered via a glob over
+ * `lib/scripts/**\/*.test.ts` (L10 — not a hardcoded list, which drifted out
+ * of sync whenever a new setup test file was added) minus an explicit KEEP
+ * allowlist — see `SELF_PRUNE_KEEP_TEST_FILES` and `collectSelfPruneTestFiles`.
  */
+
+/**
+ * Test files the glob-derived self-prune list must NOT delete, because they
+ * ship with every scaffolded project rather than being setup-only machinery.
+ */
+export const SELF_PRUNE_KEEP_TEST_FILES: ReadonlySet<string> = new Set([
+  // Tests prepare-handoff's document templates, which ship with every
+  // scaffolded project (see the KEPT production-machinery note above) — it
+  // must survive self-prune.
+  'lib/scripts/templates/templates.test.ts',
+])
+
+/**
+ * Discover the setup-machinery test files to delete during self-prune: every
+ * `lib/scripts/**\/*.test.ts` file on disk, minus `SELF_PRUNE_KEEP_TEST_FILES`.
+ * Exported for unit testing.
+ */
+export const collectSelfPruneTestFiles = async (): Promise<string[]> => {
+  const testFiles = await Array.fromAsync(
+    new Bun.Glob('lib/scripts/**/*.test.ts').scan({ cwd: projectRoot })
+  )
+  return testFiles
+    .filter((file) => !SELF_PRUNE_KEEP_TEST_FILES.has(file))
+    .sort()
+}
+
 const selfPrune = async (
   pkg: PackageJson,
   dryRun: boolean
@@ -631,11 +668,7 @@ const selfPrune = async (
   const s = p.spinner()
   s.start('Self-pruning setup machinery...')
 
-  const filesToDelete = [
-    'lib/scripts/setup-project.test.ts',
-    'lib/scripts/ast-transforms.test.ts',
-    'lib/scripts/payload-source.test.ts',
-  ]
+  const filesToDelete = await collectSelfPruneTestFiles()
 
   const deleted: string[] = []
 
@@ -837,6 +870,36 @@ const setup = async (
     installFailed,
     transformFailures: [...leanResult.failures, ...addFailures],
   }
+}
+
+/**
+ * Confirm-prompt gating contract (H6 — `--yes` was previously a no-op: the
+ * proceed confirm was skipped whenever `--preset`/`--keep` was passed, whether
+ * or not `--yes` was present).
+ *
+ *   - `yes` → always skip (the flag becomes meaningful).
+ *   - no `hasFlags` (fully interactive, no `--preset`/`--keep`) → never skip
+ *     — confirm as today.
+ *   - `hasFlags`, no `yes` → skip only when NOT a TTY. This keeps
+ *     create-darkroom's cross-repo scaffolding contract working (it invokes
+ *     `setup:project --preset <key>` / `--keep <ids>` without `--yes`, with
+ *     stdio inherited but often non-TTY) while still giving a human at an
+ *     interactive terminal a chance to abort.
+ *
+ * Pure and exported for unit testing.
+ */
+export const shouldSkipConfirm = ({
+  yes,
+  hasFlags,
+  isTTY,
+}: {
+  yes: boolean
+  hasFlags: boolean
+  isTTY: boolean
+}): boolean => {
+  if (yes) return true
+  if (!hasFlags) return false
+  return !isTTY
 }
 
 /**
@@ -1117,8 +1180,17 @@ const main = async (): Promise<void> => {
 
   p.log.message('  Setup machinery: self-pruned after setup')
 
-  // Confirm — skipped in non-interactive mode (--preset / --keep imply --yes)
-  if (!nonInteractive) {
+  // Confirm gating (H6) — see `shouldSkipConfirm`'s docstring for the full
+  // contract: `--yes` always skips; `--preset`/`--keep` without `--yes` skip
+  // only off a TTY (create-darkroom's scripted, non-TTY invocations never
+  // hang on a prompt); fully interactive runs (no flags) always confirm.
+  const skipConfirm = shouldSkipConfirm({
+    yes,
+    hasFlags: nonInteractive,
+    isTTY: Boolean(process.stdout.isTTY) && Boolean(process.stdin.isTTY),
+  })
+
+  if (!skipConfirm) {
     const proceed = await p.confirm({
       message: dryRun ? 'Preview changes?' : 'Proceed with setup?',
     })

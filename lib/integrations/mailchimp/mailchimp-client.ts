@@ -23,7 +23,11 @@ export interface SubscriptionData {
 }
 
 // Typed error codes surfaced to callers
-export type MailchimpErrorCode = 'invalid_email' | 'network_error' | 'api_error'
+export type MailchimpErrorCode =
+  | 'invalid_email'
+  | 'network_error'
+  | 'api_error'
+  | 'config_error'
 
 export interface MailchimpResult {
   success: boolean
@@ -186,8 +190,22 @@ async function upsertMember(
 export async function addContactToMailchimp(
   contactData: ContactData
 ): Promise<MailchimpResult> {
+  let config: MailchimpConfig
   try {
-    const config = getMailchimpConfig()
+    config = getMailchimpConfig()
+  } catch (error) {
+    console.error('Mailchimp config error:', error)
+    return {
+      success: false,
+      errorCode: 'config_error',
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Missing Mailchimp configuration',
+    }
+  }
+
+  try {
     const { audienceId } = config
 
     // Split name into first and last name
@@ -250,8 +268,22 @@ export async function addContactToMailchimp(
 export async function addSubscriberToMailchimp(
   subscriptionData: SubscriptionData
 ): Promise<MailchimpResult> {
+  let config: MailchimpConfig
   try {
-    const config = getMailchimpConfig()
+    config = getMailchimpConfig()
+  } catch (error) {
+    console.error('Mailchimp config error:', error)
+    return {
+      success: false,
+      errorCode: 'config_error',
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Missing Mailchimp configuration',
+    }
+  }
+
+  try {
     const { audienceId } = config
 
     const upsert = await upsertMember({

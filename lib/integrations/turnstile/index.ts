@@ -6,8 +6,10 @@
  * - Perfect for terminal aesthetics
  */
 
+import { headers } from 'next/headers'
 import { z } from 'zod'
 import { env } from '@/lib/env'
+import { getIPFromHeaders } from '@/lib/utils/rate-limit'
 import { fetchWithTimeout } from '@/utils/fetch'
 
 const siteverifySchema = z.object({
@@ -46,6 +48,9 @@ export async function validateTurnstile(
       return { isValid: true, errors: [] }
     }
 
+    const requestHeaders = await headers()
+    const ip = getIPFromHeaders(requestHeaders)
+
     const response = await fetchWithTimeout(
       'https://challenges.cloudflare.com/turnstile/v0/siteverify',
       {
@@ -56,6 +61,7 @@ export async function validateTurnstile(
         body: new URLSearchParams({
           secret,
           response: token,
+          ...(ip && ip !== 'unknown' && { remoteip: ip }),
         }),
         timeout: 5000, // 5 second timeout for Turnstile verification
       }

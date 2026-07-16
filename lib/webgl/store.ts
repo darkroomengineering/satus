@@ -30,11 +30,18 @@ let hasWarnedMultipleRootMounts = false
 
 /**
  * Register a `<Canvas root>` mount. Call from the mounting effect; call the
- * returned function from its cleanup. In development, warns once if more
- * than one root canvas is mounted at the same time.
+ * returned `unregister` from its cleanup. `isPrimary` is `true` only for the
+ * first root canvas registered at a time — callers must skip rendering the
+ * WebGL surface when it's `false`, so a second root mount is a no-op (not
+ * just a dev warning) in every environment. In development, also warns once
+ * if more than one root canvas is mounted at the same time.
  */
-export function registerRootCanvasMount(): () => void {
+export function registerRootCanvasMount(): {
+  isPrimary: boolean
+  unregister: () => void
+} {
   rootMountCount++
+  const isPrimary = rootMountCount === 1
 
   if (
     process.env.NODE_ENV === 'development' &&
@@ -47,7 +54,10 @@ export function registerRootCanvasMount(): () => void {
     )
   }
 
-  return () => {
-    rootMountCount--
+  return {
+    isPrimary,
+    unregister: () => {
+      rootMountCount--
+    },
   }
 }

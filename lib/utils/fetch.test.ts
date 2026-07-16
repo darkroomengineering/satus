@@ -132,6 +132,18 @@ describe('fetchWithTimeout', () => {
     await expect(promise).rejects.toThrow()
   })
 
+  it('should abort immediately when passed an already-aborted signal', async () => {
+    const controller = new AbortController()
+    controller.abort()
+
+    await expect(
+      fetchWithTimeout(`${baseURL}/slow`, {
+        signal: controller.signal,
+        timeout: 30000,
+      })
+    ).rejects.toThrow()
+  })
+
   it('should return non-ok responses without throwing', async () => {
     const response = await fetchWithTimeout(`${baseURL}/error-500`)
     expect(response.ok).toBe(false)

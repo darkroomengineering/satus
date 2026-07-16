@@ -516,7 +516,9 @@ export class Fluid {
     this.splats.push({ x, y, dx, dy })
   }
 
-  update(dt = 0.016) {
+  update(rawDt = 0.016) {
+    // Long frame gaps — tab switches — must not feed the advection/vorticity math.
+    const dt = Math.min(rawDt, 1 / 30)
     const renderer = this.renderer
     const simRes = this.simRes
     const dyeRes = this.dyeRes

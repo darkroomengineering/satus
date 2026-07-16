@@ -37,12 +37,11 @@ The canvas is mounted with `<Canvas root>`. Choose **one** place to do it:
 
 Enabling both mounts two canvases — keep one strategy.
 
-### Perf: limiting GPU simulations
+### Perf: opting into GPU simulations
 
-`<Canvas root>` mounts `FlowmapProvider` with both GPU simulations (fluid +
-flowmap) by default. If a page only needs pointer-driven displacement, pass
-`simTypes` to skip the other simulation's GPU pass and window listeners
-entirely:
+`<Canvas root>` mounts `FlowmapProvider` with no GPU simulations by default —
+mounting a sim without a consumer wastes a render pass and window listeners.
+Pass `simTypes` with the sims you actually use:
 
 ```tsx
 <Canvas root simTypes={['flowmap']} />

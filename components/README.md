@@ -56,7 +56,6 @@ Built on [Base UI](https://base-ui.com/) for accessibility.
 | `real-viewport/` | Sets the `--scrollbar-width` CSS property |
 | `marquee/` | Infinite scrolling text |
 | `sanity-image/` | Sanity-optimized image component |
-| `scroll-restoration/` | Scroll position restoration |
 | `not-configured/` | Placeholder for unconfigured integrations |
 
 ## Layout Components

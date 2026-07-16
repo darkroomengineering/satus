@@ -1,7 +1,13 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { createContext, type PropsWithChildren, use, useEffect } from 'react'
+import {
+  createContext,
+  type PropsWithChildren,
+  use,
+  useEffect,
+  useState,
+} from 'react'
 import type tunnel from 'tunnel-rat'
 import { useDeviceDetection } from '@/lib/hooks/use-device-detection'
 import {
@@ -35,8 +41,9 @@ type CanvasProps = PropsWithChildren<{
   force?: boolean
   /**
    * Which GPU simulations `FlowmapProvider` mounts (root canvas only).
-   * Defaults to both (back-compat). Pass a subset — e.g. `['flowmap']` — to
-   * skip the other sim's GPU pass and window listeners entirely.
+   * Defaults to none (opt-in) — pass the sims you actually use, e.g.
+   * `['flowmap']`, to avoid paying for a GPU pass and window listeners with
+   * no consumer.
    */
   simTypes?: ('fluid' | 'flowmap')[]
 }>
@@ -71,7 +78,7 @@ export function Canvas({
   simTypes,
   ...props
 }: CanvasProps) {
-  const { isWebGL } = useDeviceDetection()
+  const { isWebGL, isReducedMotion } = useDeviceDetection()
 
   // Only a root canvas mounts the WebGL surface; it uses the shared store
   // tunnels so content portals into it from anywhere. A non-root <Canvas> is a
@@ -79,20 +86,33 @@ export function Canvas({
   const WebGLTunnel = root ? getWebGLTunnel() : undefined
   const DOMTunnel = root ? getDOMTunnel() : undefined
 
-  const shouldRender = root && (isWebGL || force)
+  // `force` is an explicit escape hatch — it bypasses both the WebGL
+  // capability check and the reduced-motion preference.
+  const shouldRender = root && ((isWebGL && !isReducedMotion) || force)
   const contextValue: CanvasContextValue =
     WebGLTunnel && DOMTunnel
       ? { active: true, WebGLTunnel, DOMTunnel }
       : { active: false }
 
-  const isMounting = contextValue.active && shouldRender
+  // Assume primary optimistically so the single-instance (common) case never
+  // flickers; corrected to `false` by the effect below when a second root
+  // canvas is already registered. Registration only happens in an effect
+  // (not during render) so React 19 StrictMode's double-invoke of
+  // mount→cleanup→mount stays symmetric and never miscounts a single
+  // instance as a duplicate.
+  const [isPrimary, setIsPrimary] = useState(true)
+  const isMounting = contextValue.active && shouldRender && isPrimary
 
   // Guard against two <Canvas root> instances both mounting the WebGL
   // surface at once (e.g. layout canvas + <Wrapper webgl> on the same page).
+  // The second registrant gets `isPrimary: false` and renders nothing — this
+  // is a real no-op in every environment, not just a dev-mode warning.
   useEffect(() => {
-    if (!isMounting) return
-    return registerRootCanvasMount()
-  }, [isMounting])
+    if (!(contextValue.active && shouldRender)) return
+    const registration = registerRootCanvasMount()
+    setIsPrimary(registration.isPrimary)
+    return registration.unregister
+  }, [contextValue.active, shouldRender])
 
   return (
     <CanvasContext.Provider value={contextValue}>

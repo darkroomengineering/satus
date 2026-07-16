@@ -140,13 +140,19 @@ const nextConfig: NextConfig = {
           key: 'Content-Security-Policy',
           value: "frame-ancestors 'self' https://*.sanity.studio;",
         },
+        // Report-only CSP baseline. Deliberately integration-agnostic (broad
+        // https:/wss: sources) so it stays valid whichever integrations
+        // `setup:project` strips. In your fork: replace the wildcards with the
+        // third-party origins you actually load, watch for violation reports,
+        // then promote it to an enforced Content-Security-Policy header above.
+        {
+          key: 'Content-Security-Policy-Report-Only',
+          value:
+            "default-src 'self'; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https: wss:; object-src 'none'; base-uri 'self';",
+        },
         {
           key: 'X-Frame-Options',
           value: 'SAMEORIGIN',
-        },
-        {
-          key: 'X-XSS-Protection',
-          value: '1; mode=block',
         },
         {
           key: 'X-DNS-Prefetch-Control',

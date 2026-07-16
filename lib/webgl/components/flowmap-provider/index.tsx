@@ -118,9 +118,12 @@ function FlowmapSimInner({ children }: { children: React.ReactNode }) {
  * </Canvas>
  * ```
  */
+// Hoisted so the default is referentially stable across renders.
+const NO_SIM_TYPES: ('fluid' | 'flowmap')[] = []
+
 export function FlowmapProvider({
   children,
-  simTypes = [],
+  simTypes = NO_SIM_TYPES,
 }: {
   children: React.ReactNode
   /** Which simulations to mount. Default: none (opt-in). */

@@ -6,14 +6,18 @@ import {
   type PropsWithChildren,
   use,
   useEffect,
-  useState,
+  useId,
+  useSyncExternalStore,
 } from 'react'
 import type tunnel from 'tunnel-rat'
 import { useDeviceDetection } from '@/lib/hooks/use-device-detection'
 import {
   getDOMTunnel,
+  getPrimaryRootCanvasId,
+  getServerPrimaryRootCanvasId,
   getWebGLTunnel,
   registerRootCanvasMount,
+  subscribeRootCanvas,
 } from '@/lib/webgl/store'
 
 const WebGLCanvas = dynamic(
@@ -94,25 +98,31 @@ export function Canvas({
       ? { active: true, WebGLTunnel, DOMTunnel }
       : { active: false }
 
-  // Assume primary optimistically so the single-instance (common) case never
-  // flickers; corrected to `false` by the effect below when a second root
-  // canvas is already registered. Registration only happens in an effect
-  // (not during render) so React 19 StrictMode's double-invoke of
-  // mount→cleanup→mount stays symmetric and never miscounts a single
-  // instance as a duplicate.
-  const [isPrimary, setIsPrimary] = useState(true)
+  // Guard against two <Canvas root> instances both mounting the WebGL surface
+  // at once (e.g. layout canvas + <Wrapper webgl> on the same page). The
+  // mount registry is external module state, so it's read through
+  // useSyncExternalStore: only the first-registered id is primary; any other
+  // root canvas renders nothing — a real no-op in every environment, not just
+  // a dev warning. Before this instance's registration lands (primary id
+  // undefined) it optimistically counts as primary, so the common
+  // single-canvas case never flickers. Registration lives in an effect with a
+  // symmetric cleanup, so StrictMode's mount→cleanup→mount on one instance
+  // never miscounts it as a duplicate — and if the primary unmounts, the
+  // survivor is promoted automatically.
+  const id = useId()
+  const primaryRootCanvasId = useSyncExternalStore(
+    subscribeRootCanvas,
+    getPrimaryRootCanvasId,
+    getServerPrimaryRootCanvasId
+  )
+  const isPrimary =
+    primaryRootCanvasId === undefined || primaryRootCanvasId === id
   const isMounting = contextValue.active && shouldRender && isPrimary
 
-  // Guard against two <Canvas root> instances both mounting the WebGL
-  // surface at once (e.g. layout canvas + <Wrapper webgl> on the same page).
-  // The second registrant gets `isPrimary: false` and renders nothing — this
-  // is a real no-op in every environment, not just a dev-mode warning.
   useEffect(() => {
     if (!(contextValue.active && shouldRender)) return
-    const registration = registerRootCanvasMount()
-    setIsPrimary(registration.isPrimary)
-    return registration.unregister
-  }, [contextValue.active, shouldRender])
+    return registerRootCanvasMount(id)
+  }, [contextValue.active, shouldRender, id])
 
   return (
     <CanvasContext.Provider value={contextValue}>

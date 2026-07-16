@@ -1,4 +1,9 @@
-import { defineLive } from 'next-sanity/live'
+import {
+  type DefinedFetchType,
+  type DefinedLiveProps,
+  defineLive,
+} from 'next-sanity/live'
+import type { ComponentType } from 'react'
 import { isConfigured } from '@/integrations/registry'
 import { client } from '../client'
 import { privateToken, publicToken } from '../env'
@@ -21,13 +26,21 @@ const liveExports = sanityReady
 
 /**
  * Standard sanityFetch function from next-sanity/live.
- * When Sanity is not configured, returns null data.
+ * When Sanity is not configured, returns null data — which every
+ * typegen query result already models. The stub is cast to
+ * `DefinedFetchType` so query-result inference survives the union.
  */
-export const sanityFetch =
-  liveExports?.sanityFetch ?? (async () => ({ data: null }))
+export const sanityFetch: DefinedFetchType =
+  liveExports?.sanityFetch ??
+  ((async () => ({
+    data: null,
+    sourceMap: null,
+    tags: [],
+  })) as unknown as DefinedFetchType)
 
 /**
  * Sanity Live component for real-time updates.
  * Returns null when Sanity is not configured.
  */
-export const SanityLive = liveExports?.SanityLive ?? (() => null)
+export const SanityLive: ComponentType<DefinedLiveProps> =
+  liveExports?.SanityLive ?? (() => null)

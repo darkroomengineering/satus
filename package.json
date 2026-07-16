@@ -48,7 +48,6 @@
     "@react-three/fiber": "^9.6.1",
     "@sanity/asset-utils": "^2.3.0",
     "@sanity/image-url": "^2.1.1",
-    "@sanity/visual-editing": "^5.5.0",
     "@theatre/core": "^0.7.2",
     "@vercel/analytics": "^2.0.1",
     "clsx": "^2.1.1",
@@ -100,7 +99,7 @@
     "storybook": "^10.5.0",
     "tailwindcss": "^4.3.2",
     "ts-morph": "^28.0.0",
-    "typescript": "^7.0.2",
+    "typescript": "^6.0.3",
     "typescript7": "npm:typescript@^7.0.2"
   },
   "trustedDependencies": [

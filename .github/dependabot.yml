@@ -34,3 +34,9 @@ updates:
     ignore:
       - dependency-name: "hamo"
       - dependency-name: "tempus"
+      # Next 16.2 requires the classic TypeScript JS API (lib/typescript.js),
+      # which the TS7 native package does not ship. TS7 runs via the
+      # `typescript7` alias for typecheck; the `typescript` package name must
+      # stay on 6.x until Next supports TS7 natively.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]

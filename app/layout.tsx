@@ -127,8 +127,10 @@ export default async function Layout({ children }: PropsWithChildren) {
         {/* Optional features - conditionally loaded based on configuration */}
         <OptionalFeatures />
 
-        {/* Sanity Live - renders unconditionally when Sanity is configured for real-time updates */}
-        {sanityConfigured && <SanityLive />}
+        {/* Sanity Live - renders unconditionally when Sanity is configured for real-time updates.
+            includeDrafts subscribes the event stream to draft mutations so
+            Presentation-tool edits push to the preview without a manual refresh. */}
+        {sanityConfigured && <SanityLive includeDrafts={isDraftMode} />}
 
         {/* Sanity Visual Editing - only when draft mode is enabled */}
         {sanityConfigured && isDraftMode && (

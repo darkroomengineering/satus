@@ -25,7 +25,7 @@ They are automatically rendered when you use `<Wrapper>`.
 
 | Component | Purpose |
 |-----------|---------|
-| `wrapper/` | Page container with theme, Lenis, WebGL tunnel target. **Includes Header + Footer** |
+| `wrapper/` | Page container with theme, Lenis, WebGL support. **Includes Header + Footer** |
 | `header/` | Site navigation |
 | `footer/` | Site footer |
 | `lenis/` | Smooth scroll provider |
@@ -59,5 +59,5 @@ Edit these files directly:
 |------|------|---------|-------------|
 | `theme` | `'dark' \| 'light' \| 'red'` | `'dark'` | Color theme |
 | `lenis` | `boolean \| LenisOptions` | `true` | Smooth scrolling |
-| `webgl` | `boolean` | `false` | **Deprecated, no-op.** The layout owns the single root WebGL canvas; use `<WebGLTunnel>` to reach it from any page |
+| `webgl` | `boolean` | `false` | Enable WebGL canvas |
 | `className` | `string` | - | Additional classes for main |

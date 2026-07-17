@@ -52,9 +52,17 @@ Pass `simTypes` with the sims you actually use:
 ## Device gating
 
 The canvas is rendered only when `useDeviceDetection().isWebGL` is true (a
-working WebGL2 context on a desktop viewport). On mobile or unsupported
-devices it's a no-op — nothing mounts. Rendering is driven manually by the
-`RAF` component (`frameloop="never"`), not the default r3f render loop.
+working WebGL2 context on a desktop viewport) AND the user does not prefer
+reduced motion. On mobile, unsupported devices, or under
+`prefers-reduced-motion` it's a no-op — nothing mounts. Rendering is driven
+manually by the `RAF` component (`frameloop="never"`), not the default r3f
+render loop.
+
+> **Always ship a fallback.** Because reduced-motion (and non-WebGL devices)
+> means the canvas may never mount, any page that puts *content* in WebGL —
+> not just decoration — must render a non-WebGL fallback (static image, DOM
+> equivalent) for that state. If the WebGL content is essential and motionless,
+> mount with `force` and damp motion inside the scene instead.
 
 ## Architecture
 

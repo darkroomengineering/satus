@@ -92,6 +92,12 @@ export function Canvas({
 
   // `force` is an explicit escape hatch — it bypasses both the WebGL
   // capability check and the reduced-motion preference.
+  //
+  // ⚠ Because reduced-motion (and non-WebGL devices) means the canvas may
+  // never mount, anything that puts CONTENT in WebGL — not just decoration —
+  // must account for a fallback for this state: render a static image / DOM
+  // equivalent when the canvas is absent, or mount with `force` and damp
+  // motion inside the scene.
   const shouldRender = root && ((isWebGL && !isReducedMotion) || force)
   const contextValue: CanvasContextValue =
     WebGLTunnel && DOMTunnel

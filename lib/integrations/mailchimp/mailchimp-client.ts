@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 import { z } from 'zod'
 import { env } from '@/lib/env'
+import { isConfigured } from '@/lib/integrations/registry'
 import { fetchWithTimeout } from '@/utils/fetch'
 import { parseApiResponse } from '@/utils/validation'
 
@@ -55,7 +56,7 @@ function getMailchimpConfig(): MailchimpConfig {
   const serverPrefix = env.MAILCHIMP_SERVER_PREFIX
   const audienceId = env.MAILCHIMP_AUDIENCE_ID
 
-  if (!(apiKey && serverPrefix && audienceId)) {
+  if (!(isConfigured('mailchimp') && apiKey && serverPrefix && audienceId)) {
     throw new Error(
       'Missing Mailchimp configuration. Please check your environment variables.'
     )

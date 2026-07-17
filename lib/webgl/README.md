@@ -35,7 +35,9 @@ The canvas is mounted with `<Canvas root>`. Choose **one** place to do it:
 - **Per page:** remove the shared canvas and pass `webgl` to the Wrapper
   (`<Wrapper webgl>`), which mounts the canvas only on that page.
 
-Enabling both mounts two canvases — keep one strategy.
+There is exactly one root canvas at a time — the store enforces this at
+runtime, so if both are mounted the first one wins and the second is a no-op
+(with a dev warning), not a second canvas eating GPU.
 
 ### Perf: opting into GPU simulations
 

@@ -65,6 +65,27 @@ export const hubspotEnvSchema = z
     }
   )
 
+/**
+ * Capability schema for the HubSpot Forms v3 API (`getForm`, server-side
+ * form fetch/submit). Requires `HUBSPOT_ACCESS_TOKEN` specifically — the
+ * portal ID alone is not sufficient to call this API.
+ */
+export const hubspotFormsApiEnvSchema = z.object({
+  HUBSPOT_ACCESS_TOKEN: z
+    .string()
+    .min(1, { error: 'HUBSPOT_ACCESS_TOKEN is required' }),
+})
+
+/**
+ * Capability schema for the HubSpot embedded form widget, which only needs
+ * the public portal ID (loaded client-side via HubSpot's embed script).
+ */
+export const hubspotEmbedEnvSchema = z.object({
+  NEXT_PUBLIC_HUBSPOT_PORTAL_ID: z
+    .string()
+    .min(1, { error: 'NEXT_PUBLIC_HUBSPOT_PORTAL_ID is required' }),
+})
+
 /** Environment variables required by the Mailchimp integration. */
 export const mailchimpEnvSchema = z.object({
   MAILCHIMP_API_KEY: z

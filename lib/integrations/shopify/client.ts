@@ -1,6 +1,7 @@
 import { cacheSignal } from 'react'
 import { z } from 'zod'
 import { env } from '@/lib/env'
+import { isConfigured } from '@/lib/integrations/registry'
 import { fetchWithTimeout } from '@/utils/fetch'
 import { parseApiResponse } from '@/utils/validation'
 import { SHOPIFY_GRAPHQL_API_ENDPOINT } from './constants'
@@ -40,6 +41,14 @@ export async function shopifyFetch<T = Record<string, unknown>>({
   variables,
   dataSchema,
 }: ShopifyFetchOptions<T>): Promise<ShopifyResponse<T>> {
+  if (!isConfigured('shopify')) {
+    const error = new Error(
+      'Shopify fetch failed: Shopify is not configured (missing SHOPIFY_STORE_DOMAIN or SHOPIFY_STOREFRONT_ACCESS_TOKEN)'
+    )
+    error.cause = { query }
+    throw error
+  }
+
   try {
     // Use cacheSignal for automatic request cleanup on cache expiry
     const signal = cacheSignal()

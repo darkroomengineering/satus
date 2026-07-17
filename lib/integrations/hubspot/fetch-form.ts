@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { env } from '@/lib/env'
+import { hasCapability } from '@/lib/integrations/registry'
 import { fetchWithTimeout } from '@/utils/fetch'
 import { stripHtmlTags } from '@/utils/strings'
 import { parseApiResponse } from '@/utils/validation'
@@ -88,7 +89,7 @@ export interface HubSpotParsedForm {
 // switching to the SDK which is already installed as a devDependency.
 async function hubspotFormApi(id: string) {
   const accessToken = env.HUBSPOT_ACCESS_TOKEN
-  if (!accessToken) {
+  if (!(hasCapability('hubspot', 'formsApi') && accessToken)) {
     throw new Error(
       'HUBSPOT_ACCESS_TOKEN is not configured. Set it in your environment variables.'
     )

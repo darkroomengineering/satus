@@ -15,6 +15,14 @@
  *
  * Works well as-is for: local development, single-server deployments, and
  * coarse per-isolate abuse-dampening at the edge.
+ *
+ * Recorded decision: satus targets Vercel-first, where the platform
+ * overwrites `x-forwarded-for` at the edge — client spoofing of that header
+ * is not applicable there — so the in-memory store is accepted as
+ * best-effort, per-instance throttling. Self-hosters behind their own proxy
+ * must guarantee a trusted XFF chain themselves, and should swap the `store`
+ * for a durable backend (e.g. Upstash Redis) for anything security-critical.
+ * The store is the single seam to swap; nothing else here needs to change.
  */
 
 interface RateLimitEntry {

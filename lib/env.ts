@@ -45,6 +45,9 @@ const envSchema = z.object({
   // HubSpot
   HUBSPOT_ACCESS_TOKEN: z.string().optional(),
   NEXT_PUBLIC_HUBSPOT_PORTAL_ID: z.string().optional(),
+  // Opt-in allowlist of form IDs the newsletter action may submit to
+  // (comma-separated). Server-only — unset means no restriction.
+  HUBSPOT_ALLOWED_FORM_IDS: z.string().optional(),
 
   // Mailchimp
   MAILCHIMP_API_KEY: z.string().optional(),

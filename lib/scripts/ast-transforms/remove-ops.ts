@@ -339,7 +339,14 @@ export function applyRemoveFunctionParameter(
 
     const pattern = binding.asKindOrThrow(SyntaxKind.ObjectBindingPattern)
     const elements = pattern.getElements()
-    const target = elements.find((el) => el.getName() === op.parameterName)
+    // Match on the destructured property name, falling back to the binding
+    // name — `webgl: _webgl = false` renames the binding but the prop being
+    // removed is still `webgl`.
+    const target = elements.find(
+      (el) =>
+        (el.getPropertyNameNode()?.getText() ?? el.getName()) ===
+        op.parameterName
+    )
     if (!target) return sourceText
 
     // BindingElement has no `.remove()`; rebuild the binding pattern text from the

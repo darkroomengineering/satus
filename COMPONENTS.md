@@ -144,6 +144,8 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | sanityEnvSchema | `ZodObject<{ NEXT_PUBLIC_SANITY_PROJECT_ID: ZodString; NEXT_PUBLIC_SANITY_DATA...` |
 | shopifyEnvSchema | `ZodObject<{ SHOPIFY_STORE_DOMAIN: ZodString; SHOPIFY_STOREFRONT_ACCESS_TOKEN:...` |
 | hubspotEnvSchema | `ZodObject<{ HUBSPOT_ACCESS_TOKEN: ZodOptional<ZodString>; NEXT_PUBLIC_HUBSPOT...` |
+| hubspotFormsApiEnvSchema | `ZodObject<{ HUBSPOT_ACCESS_TOKEN: ZodString; }, $strip>` |
+| hubspotEmbedEnvSchema | `ZodObject<{ NEXT_PUBLIC_HUBSPOT_PORTAL_ID: ZodString; }, $strip>` |
 | mailchimpEnvSchema | `ZodObject<{ MAILCHIMP_API_KEY: ZodString; MAILCHIMP_SERVER_PREFIX: ZodString;...` |
 | turnstileEnvSchema | `ZodObject<{ NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY: ZodString; CLOUDFLARE_...` |
 | analyticsEnvSchema | `ZodObject<{ NEXT_PUBLIC_GOOGLE_ANALYTICS: ZodOptional<ZodString>; NEXT_PUBLIC...` |
@@ -169,6 +171,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | Export | Signature |
 |--------|-----------|
 | isConfigured | `(id: IntegrationId) => boolean` |
+| hasCapability | `(id: Id, capability: CapabilityOf<Id> extends never ? string : CapabilityOf<Id>) => boolean` |
 | getConfiguredIds | `() => IntegrationId[]` |
 | getConfigured | `() => string[]` |
 | getUnconfigured | `() => string[]` |
@@ -177,6 +180,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | IntegrationId | `keyof typeof integrations` |
 | devOnlyRemovables | `readonly ["webgl", "theatre"]` |
 | RemovableId | `IntegrationId | (typeof devOnlyRemovables)[number]` |
+| CapabilityOf | `(typeof integrations)[Id] extends { capabilities: Record<infer K, z.ZodType> ...` |
 
 ---
 

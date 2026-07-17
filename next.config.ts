@@ -4,12 +4,18 @@ import type { NextConfig } from 'next'
 // --- Storybook proxy ---------------------------------------------------------
 // Serves the standalone Storybook deployment at /storybook on this domain.
 // Active ONLY when NEXT_PUBLIC_STORYBOOK_URL is set (e.g. on Preview) AND the
-// deployment is not Production — so production never exposes a /storybook route.
+// environment is explicitly non-production (Vercel preview, `vercel dev`, or
+// local dev) — it fails CLOSED everywhere else, including self-hosted
+// production where VERCEL_ENV is undefined, so a fork never exposes a
+// /storybook route by accident.
 // To drop it entirely: unset the env var, or delete this block + the
 // redirects/rewrites entries below.
 const STORYBOOK_URL = process.env.NEXT_PUBLIC_STORYBOOK_URL?.replace(/\/+$/, '')
 const STORYBOOK_PROXY_ENABLED =
-  Boolean(STORYBOOK_URL) && process.env.VERCEL_ENV !== 'production'
+  Boolean(STORYBOOK_URL) &&
+  (process.env.VERCEL_ENV === 'preview' ||
+    process.env.VERCEL_ENV === 'development' ||
+    process.env.NODE_ENV === 'development')
 // -----------------------------------------------------------------------------
 
 const nextConfig: NextConfig = {

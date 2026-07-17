@@ -427,6 +427,7 @@ All integrations are optional and self-contained in `lib/integrations/{name}/`. 
 - Never commit secrets; document required vars in `.env.example`
 - Server actions return `{ status: number, message: string, fieldErrors?: Record<string, string> }`
 - Client form validation reuses the same Zod schemas via `zodToValidator()` bridge
+- This is a deliberate split, not drift: API route handlers return `{ data, error }` (the darkroom team convention for API responses), while server-action FORM results use the `{ status, message, fieldErrors }` shape above because they are UI state consumed by form hooks, not API responses. Don't unify the two shapes.
 
 ---
 

@@ -52,4 +52,7 @@ clients (Sanity, Shopify, HubSpot, Mailchimp), and the CI/build configuration.
 ## Safeguards in this repo
 
 CodeQL scanning and Dependabot run on every change, sensitive routes are
-rate-limited, and external input is validated with Zod schemas.
+rate-limited, and external input is validated with Zod schemas. The CSP set in
+`next.config.ts` ships report-only as a starter baseline; forks should tighten
+its origins to their own domains and promote it to enforced before relying on
+it in production.

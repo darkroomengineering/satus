@@ -7,6 +7,12 @@ Form handling and marketing automation, with Cloudflare Turnstile spam protectio
 ```env
 HUBSPOT_ACCESS_TOKEN=your-token
 NEXT_PUBLIC_HUBSPOT_PORTAL_ID=your-portal-id
+
+# Optional — comma-separated allowlist of form IDs the newsletter server
+# action may submit to. Pins which HubSpot forms this app can post to,
+# instead of trusting whatever formId a client sends. Unset means no
+# restriction (any formId passing schema validation is accepted).
+HUBSPOT_ALLOWED_FORM_IDS=form-id-one,form-id-two
 ```
 
 ## Usage
@@ -40,6 +46,7 @@ The newsletter action validates input with Zod:
 - Turnstile token validated first (via `lib/integrations/turnstile`) — the action rejects submissions without a valid `cf-turnstile-response` form field; render Cloudflare's Turnstile widget inside the form (see `lib/integrations/turnstile/README.md`)
 - Email validated with `z.email()` (Zod 4 top-level validator)
 - Form ID validated as non-empty string
+- If `HUBSPOT_ALLOWED_FORM_IDS` is set, `formId` must be in the list or the action rejects with `{ status: 400, fieldErrors: { formId: 'Form is not allowed' } }`
 - Returns `{ status: 400, fieldErrors }` on validation failure
 
 Env vars are validated via `hubspotEnvSchema` in the integration registry. Turnstile env vars are configured separately and auto-skip in development when the secret key is absent.

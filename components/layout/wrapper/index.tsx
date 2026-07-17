@@ -26,12 +26,12 @@ interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Enable smooth scrolling. Can be boolean or Lenis configuration object. Defaults to true. */
   lenis?: boolean | LenisOptions
   /**
-   * Mount the WebGL canvas for this page.
-   *
-   * This is the per-page alternative to the shared root canvas mounted in the
-   * layout (see `lib/features`). Pick ONE strategy: either keep the shared
-   * canvas in the layout, or remove it and opt pages in with `webgl`. Enabling
-   * both mounts two canvases.
+   * @deprecated No-op. The layout (`lib/features`) owns the single root WebGL
+   * canvas; the store enforces one root at runtime, so this prop can no
+   * longer mount a second one. Content reaches the shared canvas from any
+   * page via `<WebGLTunnel>` — no per-page opt-in needed. If a fork genuinely
+   * wants a page-scoped canvas instead of the shared one, remove the layout
+   * canvas (`lib/features`) and mount `<Canvas root>` directly in that page.
    */
   webgl?: boolean
 }
@@ -43,14 +43,13 @@ interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
  * theme application, smooth scrolling, and layout structure.
  * It includes navigation and footer.
  *
- * 3D content is portalled in with `<WebGLTunnel>`. Pass `webgl` to host the
- * canvas here per page instead of using the shared canvas in the layout — pick
- * one of the two strategies, not both.
+ * 3D content is portalled in with `<WebGLTunnel>` from any page — the shared
+ * canvas mounted in the layout (`lib/features`) is the single WebGL root.
  *
  * @param props - Component props
  * @param props.theme - Color theme to apply to the page
  * @param props.lenis - Whether to enable smooth scrolling with Lenis
- * @param props.webgl - Whether to mount the WebGL canvas for this page
+ * @param props.webgl - Deprecated, no-op. See the `webgl` prop's JSDoc.
  * @param props.children - Page content
  * @param props.className - Additional CSS classes
  *
@@ -68,10 +67,10 @@ interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
  *
  * @example
  * ```tsx
- * // Page-scoped WebGL canvas
+ * // 3D content, tunneled into the shared layout canvas
  * export default function WebGLPage() {
  *   return (
- *     <Wrapper theme="light" webgl>
+ *     <Wrapper theme="light">
  *       <WebGLTunnel>
  *         <My3DScene />
  *       </WebGLTunnel>
@@ -98,14 +97,14 @@ export function Wrapper({
   theme = 'dark',
   className,
   lenis = true,
-  webgl = false,
+  webgl: _webgl = false,
   ...props
 }: WrapperProps) {
   return (
     <Theme theme={theme} global>
       {/* Header is rendered here - do NOT add another in layout.tsx */}
       <Header />
-      <Canvas root={webgl}>
+      <Canvas>
         <main
           id="main-content"
           className={cn('relative flex grow flex-col', className)}

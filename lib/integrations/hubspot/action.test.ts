@@ -10,6 +10,27 @@
 import { describe, expect, test } from 'bun:test'
 import { hubspotNewsletterSchema } from './schema'
 
+/**
+ * Replicates the `HUBSPOT_ALLOWED_FORM_IDS` allowlist check from
+ * `HubspotNewsletterAction` in `action.ts` — that module carries the
+ * `'use server'` directive so it may only export async functions (same
+ * constraint documented in `schema.ts`), so the predicate is copied here to
+ * test it in isolation, without requiring Next.js server-side mocks
+ * (headers, cookies, etc.), matching this repo's other server-action tests
+ * (see `shopify/customer/actions.test.ts`).
+ */
+function isFormIdAllowed(
+  formId: string,
+  allowedFormIds: string | undefined
+): boolean {
+  if (!allowedFormIds) return true
+  const allowList = allowedFormIds
+    .split(',')
+    .map((id) => id.trim())
+    .filter(Boolean)
+  return allowList.includes(formId)
+}
+
 describe('HubSpot newsletter schema', () => {
   test('valid input passes', () => {
     const result = hubspotNewsletterSchema.safeParse({
@@ -92,5 +113,31 @@ describe('HubSpot newsletter schema', () => {
       const paths = result.error.issues.map((i) => i.path.join('.'))
       expect(paths).toContain('formId')
     }
+  })
+})
+
+describe('HubSpot form ID allowlist (HUBSPOT_ALLOWED_FORM_IDS)', () => {
+  test('unset allowlist passes any formId', () => {
+    expect(isFormIdAllowed('any-form-id', undefined)).toBe(true)
+  })
+
+  test('empty-string allowlist passes any formId', () => {
+    expect(isFormIdAllowed('any-form-id', '')).toBe(true)
+  })
+
+  test('formId present in the allowlist passes', () => {
+    expect(isFormIdAllowed('form-a', 'form-a,form-b')).toBe(true)
+  })
+
+  test('formId not in the allowlist is rejected', () => {
+    expect(isFormIdAllowed('form-z', 'form-a,form-b')).toBe(false)
+  })
+
+  test('allowlist entries are trimmed before matching', () => {
+    expect(isFormIdAllowed('form-a', ' form-a , form-b ')).toBe(true)
+  })
+
+  test('single-entry allowlist rejects any other formId', () => {
+    expect(isFormIdAllowed('form-b', 'form-a')).toBe(false)
   })
 })

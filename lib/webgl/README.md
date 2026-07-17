@@ -25,17 +25,23 @@ export default function Page() {
 No configuration needed — the root canvas is mounted once in the shared layout
 (`lib/features`), so any page can portal 3D content into it with `<WebGLTunnel>`.
 
-### Two canvas strategies (pick one)
+### Canvas strategy: one root, owned by the layout
 
-The canvas is mounted with `<Canvas root>`. Choose **one** place to do it:
+The canvas is mounted with `<Canvas root>`. There is exactly **one** root
+canvas at a time — the store enforces this at runtime, so a second `<Canvas
+root>` mount is a no-op, not a second canvas.
 
 - **Shared (default):** `<Canvas root />` lives in the layout (`lib/features`),
   so the context persists across route navigation. Pages just use
-  `<WebGLTunnel>`.
-- **Per page:** remove the shared canvas and pass `webgl` to the Wrapper
-  (`<Wrapper webgl>`), which mounts the canvas only on that page.
-
-Enabling both mounts two canvases — keep one strategy.
+  `<WebGLTunnel>` to portal 3D content into it — no per-page opt-in needed.
+  `<Wrapper webgl>` is deprecated and does nothing; `Wrapper` always renders a
+  plain passthrough `<Canvas>` that forwards tunneled content to the shared
+  root.
+- **Per page (opt-out of the shared canvas):** if a fork genuinely wants a
+  page-scoped canvas instead of the shared one, remove `<Canvas root>` from
+  the layout (`lib/features`) **and** mount `<Canvas root>` directly in that
+  page. Do both — removing only one half either leaves no root canvas or
+  leaves the shared one still owning the surface.
 
 ### Perf: opting into GPU simulations
 
@@ -57,7 +63,8 @@ devices it's a no-op — nothing mounts. Rendering is driven manually by the
 ## Architecture
 
 ```
-<Canvas root> (layout OR per-page Wrapper) → rendered only when isWebGL
+<Canvas root> (layout by default, or a page if the layout canvas was removed)
+    → rendered only when isWebGL
     └─ WebGLTunnel.Out (portals 3D content from any page)
 ```
 
@@ -71,7 +78,7 @@ devices it's a no-op — nothing mounts. Rendering is driven manually by the
 
 | Component | Purpose |
 |-----------|---------|
-| `Canvas` | Mounts the canvas via `root` (layout or per-page Wrapper) |
+| `Canvas` | Mounts the root canvas via `root` (layout by default) |
 | `WebGLTunnel` | Portal 3D content into the canvas |
 | `DOMTunnel` | Portal HTML overlays |
 

@@ -35,10 +35,11 @@ type CanvasContextValue =
 
 type CanvasProps = PropsWithChildren<{
   /**
-   * Mount the WebGL canvas, backed by the shared store tunnels. Mount it once
-   * — either in the shared layout (persists across routes) or per page via
-   * `<Wrapper webgl>`. Without it, children fall back to whichever root canvas
-   * is mounted, via {@link useCanvas}.
+   * Mount the WebGL canvas, backed by the shared store tunnels. Mount exactly
+   * one — the shared layout canvas (`lib/features`) by default; a fork wanting
+   * a page-scoped canvas removes that and mounts `<Canvas root>` in the page.
+   * Without it, children fall back to whichever root canvas is mounted, via
+   * {@link useCanvas}.
    */
   root?: boolean
   /** Force WebGL even on mobile/non-WebGL devices */
@@ -60,7 +61,8 @@ export const CanvasContext = createContext<CanvasContextValue>({
  * Canvas component that provides WebGL context and the tunnel system.
  *
  * `root` mounts the actual canvas; mount exactly one across the app (in the
- * layout for a persistent canvas, or per page via `<Wrapper webgl>`). A
+ * layout for the default persistent canvas, or directly in a page after
+ * removing the layout one). A
  * non-root `<Canvas>` mounts nothing and just lets children reach the root
  * canvas through {@link useCanvas}.
  *

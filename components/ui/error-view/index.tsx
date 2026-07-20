@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { useEffect } from 'react'
 
 interface ErrorViewProps {
@@ -7,7 +8,24 @@ interface ErrorViewProps {
   reset: () => void
   title?: string
   description?: string
+  /**
+   * Element rendered in place of the default "Go Home" anchor. Pass the
+   * project's `Link` (from '@/components/ui/link') when rendering inside the
+   * router (e.g. app/error.tsx). Defaults to a raw `<a>`, which is required
+   * in app/global-error.tsx since it renders outside the router.
+   */
+  homeLink?: ReactNode
 }
+
+const DEFAULT_HOME_LINK = (
+  // biome-ignore lint: global-error renders outside the router, so the Link component cannot be used here
+  <a
+    href="/"
+    className="rounded border border-gray-300 px-6 py-3 transition-colors hover:bg-gray-50"
+  >
+    Go Home
+  </a>
+)
 
 /**
  * Shared error boundary view used by both app/error.tsx and app/global-error.tsx.
@@ -21,6 +39,7 @@ export function ErrorView({
   reset,
   title = 'Something went wrong',
   description = "We're sorry, but something unexpected happened. Please try again.",
+  homeLink = DEFAULT_HOME_LINK,
 }: ErrorViewProps) {
   useEffect(() => {
     console.error('Error boundary caught:', error)
@@ -52,13 +71,7 @@ export function ErrorView({
         >
           Try Again
         </button>
-        {/* biome-ignore lint: global-error renders outside the router, so the Link component cannot be used here */}
-        <a
-          href="/"
-          className="rounded border border-gray-300 px-6 py-3 transition-colors hover:bg-gray-50"
-        >
-          Go Home
-        </a>
+        {homeLink}
       </div>
     </div>
   )

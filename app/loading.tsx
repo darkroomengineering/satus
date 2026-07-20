@@ -1,7 +1,11 @@
+import { Wrapper } from '@/components/layout/wrapper'
+
 export default function Loading() {
   return (
-    <div className="flex min-h-screen items-center justify-center font-mono uppercase">
-      <p>Cooking...</p>
-    </div>
+    <Wrapper className="font-mono">
+      <div className="my-auto flex flex-col items-center justify-center uppercase">
+        <p>Cooking...</p>
+      </div>
+    </Wrapper>
   )
 }

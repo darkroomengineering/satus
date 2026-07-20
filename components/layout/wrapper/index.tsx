@@ -21,7 +21,7 @@ import { Canvas } from '@/webgl/components/canvas'
  * Props for the Wrapper component.
  */
 interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** Theme to apply ('dark' | 'light' | 'red'). Defaults to 'dark'. */
+  /** Theme to apply ('dark' | 'light' | 'red' | 'evil'). Defaults to 'dark'. */
   theme?: ThemeName
   /** Enable smooth scrolling. Can be boolean or Lenis configuration object. Defaults to true. */
   lenis?: boolean | LenisOptions

@@ -57,7 +57,7 @@ import { useDeviceDetection } from '@/hooks/use-device-detection'
 import { clamp } from '@/utils/math'
 ```
 
-Available aliases: `@/*`, `@/components/*`, `@/lib/*`, `@/hooks/*`, `@/styles/*`, `@/integrations/*`, `@/webgl/*`, `@/utils/*`, `@/config`, `@/dev/*`.
+Named shortcut aliases: `@/hooks/*`, `@/styles/*`, `@/integrations/*`, `@/webgl/*`, `@/utils/*`, `@/config`, `@/dev`, `@/dev/*`. Everything else — including `@/components/*` and `@/lib/*` — resolves through the `@/*` root catch-all (`@/*` maps to the repo root in `tsconfig.json`, so e.g. `@/components/ui/link` resolves to `components/ui/link`).
 
 ---
 
@@ -268,28 +268,31 @@ across routes) or per page via `<Wrapper webgl>`. Pick one strategy.
 
 ```
 <Canvas root> (layout OR <Wrapper webgl>) -> WebGLTunnel.Out, DOMTunnel.Out
-Page -> WebGLTunnel.In (portals 3D content up into the root canvas)
+Page -> <WebGLTunnel> (portals 3D content up into the root canvas)
 ```
 
 ```tsx
 // DOM side
 'use client'
 import { useWebGLElement } from '@/webgl/hooks/use-webgl-element'
-import { useCanvas } from '@/webgl/components/canvas'
+import { WebGLTunnel } from '@/webgl/components/tunnel'
 
 function MyWebGLComponent({ className }: { className?: string }) {
   const { setRef, rect, isVisible } = useWebGLElement()
-  const { WebGLTunnel } = useCanvas()
   return (
-    <>
-      <div ref={setRef} className={className} />
-      <WebGLTunnel.In>
+    <div ref={setRef} className={className}>
+      <WebGLTunnel>
         <MyMesh rect={rect} visible={isVisible} />
-      </WebGLTunnel.In>
-    </>
+      </WebGLTunnel>
+    </div>
   )
 }
 ```
+
+`WebGLTunnel` (and `DOMTunnel`, for HTML overlays) already wrap `useCanvas()`
+internally — this is the intended public API. Reach for `useCanvas()` directly
+only as a low-level escape hatch, e.g. building a new portal primitive. See
+`lib/webgl/README.md`.
 
 Always dispose GPU resources (materials, textures, geometries, render targets) on unmount.
 
@@ -460,11 +463,17 @@ Pre-commit hook (lefthook) runs in parallel on staged files: Biome check + tsc t
 | `COMPONENTS.md` | Auto-generated component / hook / utility inventory |
 | `CHANGELOG.md` | Release history and versioning policy |
 | `SECURITY.md` | Security policy and vulnerability reporting |
+| `app/README.md` | App Router structure, page patterns, Wrapper props |
 | `components/README.md` | Component inventory and conventions |
+| `components/layout/README.md` | Header, footer, and page wrapper architecture |
+| `components/effects/README.md` | Animation component docs |
 | `lib/README.md` | Library structure overview |
 | `lib/integrations/README.md` | Per-integration docs (Sanity, Shopify, HubSpot) |
 | `lib/styles/README.md` | Design system and style generation |
-| `components/effects/README.md` | Animation component docs |
+| `lib/webgl/README.md` | WebGL/R3F architecture, tunnel system, device gating |
+| `lib/hooks/README.md` | Custom hook inventory |
+| `lib/dev/README.md` | Debug tools suite (Orchestra) |
+| `lib/features/README.md` | Optional feature loading for the root layout |
 
 ---
 

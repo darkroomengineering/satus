@@ -73,8 +73,8 @@ export type ImageProps = Omit<
   desktopSize?: `${number}vw`
   /** Ref for accessing the underlying img element */
   ref?: Ref<HTMLImageElement>
-  /** Alt text for accessibility (required for meaningful images) */
-  alt?: string
+  /** Alt text for accessibility. Required — pass `alt=""` explicitly for decorative images. */
+  alt: string
 } & ImageSizingProps
 
 // Base64 encoding for blur placeholders (works in browser and Node.js)
@@ -214,7 +214,7 @@ export function Image({
   loading,
   objectFit = 'cover',
   quality = 90,
-  alt = '',
+  alt,
   fill,
   block = !fill,
   width,

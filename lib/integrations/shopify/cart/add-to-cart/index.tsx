@@ -2,7 +2,8 @@
 
 import cn from 'clsx'
 import { useRouter } from 'next/navigation'
-import { startTransition } from 'react'
+import { startTransition, useState } from 'react'
+import { formatMoney } from '@/integrations/shopify/money'
 import type { Product, ProductVariant } from '@/integrations/shopify/types'
 import { addItem } from '../actions'
 import { useCartContext } from '../cart-context'
@@ -26,11 +27,14 @@ export function AddToCart({
   const { addCartItem } = actions
   const { openCart } = useCartModal()
   const router = useRouter()
+  const [error, setError] = useState<string | null>(null)
 
   let buttonState = 'Coming Soon'
 
   if (variant) {
-    buttonState = `ADD TO CART — $${Number(variant?.price?.amount).toFixed(2)}`
+    buttonState = variant.price
+      ? `ADD TO CART — ${formatMoney(variant.price)}`
+      : 'ADD TO CART'
   } else if (product?.availableForSale) {
     buttonState = 'Select a size'
   }
@@ -41,10 +45,12 @@ export function AddToCart({
       openCart()
     })
 
-    await addItem(null, {
+    const result = await addItem(null, {
       variantId: variant?.id || '',
       quantity,
     })
+
+    setError(result.ok ? null : result.error)
 
     // Refresh the router to sync server state with optimistic state
     router.refresh()
@@ -60,6 +66,11 @@ export function AddToCart({
       >
         {buttonState}
       </button>
+      {error && (
+        <p role="status" aria-live="polite" className={cn('p1', s.actionError)}>
+          {error}
+        </p>
+      )}
     </form>
   )
 }

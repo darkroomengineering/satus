@@ -7,7 +7,7 @@ as GLSL3 `RawShaderMaterial` passes.
 ## Quick Start
 
 ```tsx
-import { Wrapper } from '@/components/layout'
+import { Wrapper } from '@/components/layout/wrapper'
 import { WebGLTunnel } from '@/webgl/components/tunnel'
 
 export default function Page() {

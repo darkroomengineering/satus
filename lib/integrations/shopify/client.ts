@@ -72,6 +72,23 @@ export async function shopifyFetch<T = Record<string, unknown>>({
       ...(tags && { next: { tags } }),
     })
 
+    if (!result.ok) {
+      if (result.status === 401 || result.status === 403) {
+        throw new Error(
+          `Shopify Storefront API auth failed (${result.status}) — check SHOPIFY_STOREFRONT_ACCESS_TOKEN`
+        )
+      }
+      if (result.status === 429) {
+        const retryAfter = result.headers.get('Retry-After')
+        throw new Error(
+          `Shopify Storefront API rate limited (429)${retryAfter ? ` — retry after ${retryAfter}s` : ''}`
+        )
+      }
+      throw new Error(
+        `Shopify Storefront API request failed (${result.status} ${result.statusText})`
+      )
+    }
+
     const raw = await result.json()
     const envelope = parseApiResponse(
       shopifyEnvelopeSchema,

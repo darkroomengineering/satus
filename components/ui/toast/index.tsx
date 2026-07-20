@@ -8,14 +8,18 @@ import s from './toast.module.css'
 /**
  * Toast component built on Base UI for accessible notifications.
  *
- * @example
- * ```tsx
- * // Wrap your app with ToastProvider
- * <Toast.Provider>
- *   <App />
- *   <Toast.Viewport />
- * </Toast.Provider>
- * ```
+ * `ToastProvider` and `ToastViewport` are mounted app-wide in
+ * `app/layout.tsx` — call `useToast()` from any client component.
+ *
+ * `app/layout.tsx` is a Server Component, so it must import `ToastProvider`
+ * / `ToastViewport` as direct named exports rather than through the `Toast`
+ * compound object below — property access on a plain object exported from a
+ * `'use client'` module (`Toast.Provider`) isn't given a client reference by
+ * Next's RSC/Turbopack transform (only top-level export bindings are), so it
+ * resolves to `undefined` across the server → client boundary. The `Toast.*`
+ * compound object remains safe to use for `Toast.Root` / `Toast.Title` /
+ * etc., since those are only ever consumed from within other client
+ * components (e.g. inside `Viewport` here), never from a Server Component.
  *
  * @example
  * ```tsx
@@ -98,10 +102,23 @@ type ViewportProps = ComponentProps<typeof BaseToast.Viewport> & {
   className?: string
 }
 
-function Viewport({ className, ...props }: ViewportProps) {
+// Renders the toast list itself when given no children — Base UI's Viewport
+// displays nothing without a toasts.map(<Toast.Root>) child.
+function Viewport({ className, children, ...props }: ViewportProps) {
+  const { toasts } = BaseToast.useToastManager()
+
   return (
     <BaseToast.Portal>
-      <BaseToast.Viewport className={cn(s.viewport, className)} {...props} />
+      <BaseToast.Viewport className={cn(s.viewport, className)} {...props}>
+        {children ??
+          toasts.map((toastObject) => (
+            <Root key={toastObject.id} toast={toastObject}>
+              <Title />
+              <Description />
+              <Close aria-label="Dismiss notification">&times;</Close>
+            </Root>
+          ))}
+      </BaseToast.Viewport>
     </BaseToast.Portal>
   )
 }
@@ -145,3 +162,6 @@ export const Toast = {
   Description,
   Close,
 }
+
+// Direct named exports for consumption from Server Components (see note above).
+export { Provider as ToastProvider, Viewport as ToastViewport }

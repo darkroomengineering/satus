@@ -8,6 +8,7 @@ import { type PropsWithChildren, Suspense } from 'react'
 import { ReactTempus } from 'tempus/react'
 import { Link } from '@/components/ui/link'
 import { RealViewport } from '@/components/ui/real-viewport'
+import { ToastProvider, ToastViewport } from '@/components/ui/toast'
 import { APP_BASE_URL, env } from '@/lib/env'
 import { OptionalFeatures } from '@/lib/features'
 import { isConfigured } from '@/lib/integrations/registry'
@@ -115,14 +116,17 @@ export default async function Layout({ children }: PropsWithChildren) {
         </Suspense>
         {/* Critical: CSS custom properties needed for layout */}
         <RealViewport>
-          <TransformProvider>
-            {/*
-              DO NOT add Header or Footer here.
-              They are included in the <Wrapper> component used by each page.
-              See: components/layout/wrapper/index.tsx
-            */}
-            {children}
-          </TransformProvider>
+          <ToastProvider>
+            <TransformProvider>
+              {/*
+                DO NOT add Header or Footer here.
+                They are included in the <Wrapper> component used by each page.
+                See: components/layout/wrapper/index.tsx
+              */}
+              {children}
+            </TransformProvider>
+            <ToastViewport />
+          </ToastProvider>
         </RealViewport>
         {/* Optional features - conditionally loaded based on configuration */}
         <OptionalFeatures />

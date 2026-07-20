@@ -25,6 +25,13 @@ interface MenuItem {
  * connected custom domain, or otherwise) or already-relative paths. Parsing
  * as a URL and taking `pathname + search` handles all absolute cases
  * regardless of host; invalid/relative URLs pass through unchanged.
+ *
+ * The extracted path is then remapped onto this starter's route naming:
+ * `/collections` -> `/search` (this app's collection/product browse route
+ * is `/search`, not `/collections`), and the `/pages` prefix is stripped
+ * (Shopify's static "pages" content is served at the site root here, e.g.
+ * `/pages/about` -> `/about`). These remaps are Shopify-menu-specific and
+ * only apply to `path`, not the original `url`.
  */
 function menuItemPath(url: string): string {
   let path: string

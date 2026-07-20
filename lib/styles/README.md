@@ -102,8 +102,8 @@ in the hand-authored `css/easings.css`. Key families:
   semantic tokens — never hard-code a hex in a component.
 - **Easing** — `--ease-out-expo`, `--ease-in-out-cubic`, `--ease-gleasing`, … are
   defined in `css/easings.css` as a hand-authored `@theme` block (static
-  cubic-bezier strings, no generation needed). This eliminates the duplicate
-  declarations that previously appeared in both `root.css` and `tailwind.css`.
+  cubic-bezier strings, no generation needed). Easing tokens live only in
+  `css/easings.css` — no `@theme` duplication in `css/tailwind.css`.
 - **Layout** — `--gap`, `--device-width`, and the column grid that powers
   `columns()` and `dr-*-col-*`.
 

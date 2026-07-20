@@ -145,7 +145,9 @@ export default async function Layout({ children }: PropsWithChildren) {
 
         {/* RAF management - lightweight, but don't patch in draft mode to avoid conflicts */}
         <ReactTempus patch={!isDraftMode} />
-        <Analytics />
+        {/* Vercel-hosted deployments only — the injected /_vercel/insights
+            script 404s on self-hosted or CI `next start`. */}
+        {process.env.VERCEL_ENV && <Analytics />}
       </body>
     </html>
   )

@@ -1,11 +1,10 @@
-import { Wrapper } from '@/components/layout/wrapper'
-
+// No <Wrapper> here: with cacheComponents, the root loading fallback must be
+// statically renderable — Wrapper mounts <Theme>, which reads uncached data
+// and fails prerendering (e.g. /studio). Keep this fallback dependency-free.
 export default function Loading() {
   return (
-    <Wrapper className="font-mono">
-      <div className="my-auto flex flex-col items-center justify-center uppercase">
-        <p>Cooking...</p>
-      </div>
-    </Wrapper>
+    <div className="flex min-h-dvh flex-col items-center justify-center font-mono uppercase">
+      <p>Cooking...</p>
+    </div>
   )
 }

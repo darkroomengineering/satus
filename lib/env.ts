@@ -24,6 +24,18 @@ const envSchema = z.object({
   // Sanity (supports both Satus and Vercel Marketplace conventions)
   NEXT_PUBLIC_SANITY_PROJECT_ID: z.string().optional(),
   NEXT_PUBLIC_SANITY_DATASET: z.string().optional(),
+  // Sanity API version (YYYY-MM-DD) — validated here so a malformed value
+  // fails loudly at startup instead of silently falling back to the
+  // hardcoded default in lib/integrations/sanity/env.ts. NOTE: this schema
+  // key is not currently consumed by sanity/env.ts, which reads
+  // process.env.NEXT_PUBLIC_SANITY_API_VERSION directly to stay client-bundle-safe
+  // for the Sanity Studio route (see sanity/env.ts for the caveat).
+  NEXT_PUBLIC_SANITY_API_VERSION: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, {
+      error: 'NEXT_PUBLIC_SANITY_API_VERSION must be in YYYY-MM-DD format',
+    })
+    .optional(),
   // Public read token; NEXT_PUBLIC_ variant supports Vercel Marketplace installs
   NEXT_PUBLIC_SANITY_API_READ_TOKEN: z.string().optional(),
   // Server-side fallback read token (non-NEXT_PUBLIC_ variant for Vercel Marketplace)
@@ -45,6 +57,9 @@ const envSchema = z.object({
   // HubSpot
   HUBSPOT_ACCESS_TOKEN: z.string().optional(),
   NEXT_PUBLIC_HUBSPOT_PORTAL_ID: z.string().optional(),
+  // Opt-in allowlist of form IDs the newsletter action may submit to
+  // (comma-separated). Server-only — unset means no restriction.
+  HUBSPOT_ALLOWED_FORM_IDS: z.string().optional(),
 
   // Mailchimp
   MAILCHIMP_API_KEY: z.string().optional(),
@@ -70,7 +85,16 @@ type Env = z.infer<typeof envSchema>
  * via the registry's `isConfigured()`. This object provides type-safe access
  * without runtime validation overhead (parsing happens once at import).
  */
-export const env: Env = envSchema.parse(process.env)
+const parsedEnv = envSchema.safeParse(process.env)
+
+if (!parsedEnv.success) {
+  const issues = parsedEnv.error.issues
+    .map((issue) => `  ${issue.path.join('.') || '(root)'}: ${issue.message}`)
+    .join('\n')
+  throw new Error(`Invalid environment configuration:\n${issues}`)
+}
+
+export const env: Env = parsedEnv.data
 
 /**
  * Canonical base URL for the application.

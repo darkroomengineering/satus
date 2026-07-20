@@ -4,8 +4,10 @@ import cn from 'clsx'
 import { useRouter } from 'next/navigation'
 import type { KeyboardEvent, ReactNode } from 'react'
 import { createContext, use, useState } from 'react'
+import { useFormStatus } from 'react-dom'
 import { Image } from '@/components/ui/image'
 import { Link } from '@/components/ui/link'
+import { formatMoney } from '@/integrations/shopify/money'
 import { removeItem, updateItemQuantity } from '../actions'
 import { useCartContext } from '../cart-store-context'
 import { quantityAction } from '../optimistic-utils'
@@ -152,7 +154,7 @@ function InnerCart() {
             />
 
             <p className={s.price}>
-              $ {Number(cost?.totalAmount?.amount).toFixed(2)}
+              {cost?.totalAmount ? formatMoney(cost.totalAmount) : ''}
             </p>
           </div>
         ))}
@@ -160,7 +162,11 @@ function InnerCart() {
       <div className={s.checkout}>
         <div className={s.top}>
           <p>sub total</p>
-          <p>$ {Number(cart?.cost?.subtotalAmount?.amount).toFixed(2)}</p>
+          <p>
+            {cart?.cost?.subtotalAmount
+              ? formatMoney(cart.cost.subtotalAmount)
+              : ''}
+          </p>
         </div>
         {cart?.checkoutUrl && (
           <Link className={s.action} href={cart.checkoutUrl}>
@@ -176,6 +182,7 @@ function Quantity({ className, payload }: QuantityProps) {
   const { actions } = useCartContext()
   const { updateCartItem } = actions
   const router = useRouter()
+  const [error, setError] = useState<string | null>(null)
 
   async function formAction(type: 'minus' | 'plus') {
     const updatePayload = {
@@ -184,7 +191,9 @@ function Quantity({ className, payload }: QuantityProps) {
     }
 
     updateCartItem(payload.merchandiseId, type)
-    await updateItemQuantity(null, updatePayload)
+    const result = await updateItemQuantity(null, updatePayload)
+
+    setError(result.ok ? null : result.error)
 
     // Refresh the router to sync server state with optimistic state
     router.refresh()
@@ -205,7 +214,32 @@ function Quantity({ className, payload }: QuantityProps) {
       >
         +
       </QuantityButton>
+      {error && (
+        <p role="status" aria-live="polite" className={cn('p1', s.actionError)}>
+          {error}
+        </p>
+      )}
     </div>
+  )
+}
+
+function QuantitySubmitButton({
+  children,
+  'aria-label': ariaLabel,
+}: {
+  children: ReactNode
+  'aria-label': string
+}) {
+  const { pending } = useFormStatus()
+  return (
+    <button
+      type="submit"
+      className="p1"
+      aria-label={ariaLabel}
+      disabled={pending}
+    >
+      {children}
+    </button>
   )
 }
 
@@ -217,10 +251,24 @@ function QuantityButton({
 }: QuantityButtonProps) {
   return (
     <form action={formAction} className={className}>
-      <button type="submit" className="p1" aria-label={ariaLabel}>
+      <QuantitySubmitButton aria-label={ariaLabel}>
         {children}
-      </button>
+      </QuantitySubmitButton>
     </form>
+  )
+}
+
+function RemoveSubmitButton() {
+  const { pending } = useFormStatus()
+  return (
+    <button
+      type="submit"
+      className="p1"
+      aria-label="Remove cart item"
+      disabled={pending}
+    >
+      remove
+    </button>
   )
 }
 
@@ -228,20 +276,28 @@ function RemoveButton({ merchandiseId, lineId, className }: RemoveButtonProps) {
   const { actions } = useCartContext()
   const { updateCartItem } = actions
   const router = useRouter()
+  const [error, setError] = useState<string | null>(null)
 
   async function formAction() {
     updateCartItem(merchandiseId, 'delete')
-    await removeItem(null, merchandiseId, lineId)
+    const result = await removeItem(null, merchandiseId, lineId)
+
+    setError(result.ok ? null : result.error)
 
     // Refresh the router to sync server state with optimistic state
     router.refresh()
   }
 
   return (
-    <form action={formAction} className={className}>
-      <button type="submit" className="p1" aria-label="Remove cart item">
-        remove
-      </button>
-    </form>
+    <div className={className}>
+      <form action={formAction}>
+        <RemoveSubmitButton />
+      </form>
+      {error && (
+        <p role="status" aria-live="polite" className={cn('p1', s.actionError)}>
+          {error}
+        </p>
+      )}
+    </div>
   )
 }

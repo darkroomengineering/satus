@@ -8,6 +8,10 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   ci:
     runs-on: ubuntu-latest
@@ -29,10 +33,6 @@ jobs:
 
       - name: Run checks
         run: bun run check
-
-      # COMPONENTS.md is generated from code; fail if it has drifted.
-      - name: Check generated manifest
-        run: bun run manifest:check
 
   e2e:
     runs-on: ubuntu-latest

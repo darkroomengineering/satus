@@ -1,9 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import type { FormState } from '@/lib/types/form'
 
-// Re-export so existing component-layer imports keep working
-export type { FormState }
-
 // Server action type
 export type FormAction<T = unknown> = (
   prevState: FormState<T> | null,

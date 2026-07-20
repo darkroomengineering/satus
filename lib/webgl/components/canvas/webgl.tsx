@@ -17,9 +17,9 @@ type WebGLCanvasProps = React.HTMLAttributes<HTMLDivElement> & {
   alpha?: boolean
   className?: string
   /**
-   * Which GPU simulations `FlowmapProvider` mounts. Defaults to both
-   * (back-compat). Pass a subset — e.g. `['flowmap']` — to skip the other
-   * sim's GPU pass and window listeners entirely.
+   * Which GPU simulations `FlowmapProvider` mounts. Defaults to none
+   * (opt-in) — pass the sims you actually use, e.g. `['flowmap']`, to avoid
+   * paying for a GPU pass and window listeners with no consumer.
    */
   simTypes?: ('fluid' | 'flowmap')[]
 }

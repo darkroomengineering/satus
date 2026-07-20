@@ -9,3 +9,7 @@
   cursor: not-allowed;
   transition: 300ms opacity var(--ease-gleasing);
 }
+
+.actionError {
+  color: #dc2626;
+}

@@ -5,22 +5,26 @@
  * Run after cloning the template: `bun run setup:project`
  *
  * This script helps you:
- * 1. Choose which integrations to keep
+ * 1. Choose which integrations to keep — the set is expanded to include every
+ *    transitive `requires` dependency (e.g. keeping theatre also keeps webgl)
  * 2. Strip to lean core (removes ALL integrations unconditionally)
- * 3. Re-add the kept integrations additively (same machinery as `satus add`)
+ * 3. Re-add the kept integrations additively (copy files, restore
+ *    dependencies, barrel exports, env stubs, and code transforms)
  * 4. Self-prune its own setup machinery from the scaffolded project
  *
- * Non-interactive (CI) usage — skips every prompt:
+ * Non-interactive (CI) usage — skips the integration-selection prompt:
  *   bun run setup:project --preset <key>           Use a preset's integrations
  *   bun run setup:project --keep <id,id,...>       Keep an explicit set ('' = lean)
  *   bun run setup:project --keep '' --clean-homepage --yes
  *
  * `--clean-homepage` replaces the manual landing page (default: keep it);
- * `--yes` is accepted alongside either selection flag; `--skip-install`
- * writes package.json without running `bun install` (offline / tests).
- * A successful run records the current git HEAD sha into package.json as
- * `"satus": { "ref" }`, which `bun run satus add` uses to fetch matching
- * integration payloads.
+ * `--skip-install` writes package.json without running `bun install`
+ * (offline / tests).
+ *
+ * `--yes` skips the final proceed/confirm prompt. Without it, `--preset`/
+ * `--keep` still skip the confirm prompt when stdio isn't a TTY (so scripted
+ * / CI invocations — including create-darkroom's — never hang), but show it
+ * when run at an interactive terminal, giving a human a chance to abort.
  *
  * Cross-platform compatible (Windows, macOS, Linux)
  */
@@ -152,7 +156,6 @@ type PackageJson = {
   dependencies?: Record<string, string>
   devDependencies?: Record<string, string>
   scripts?: Record<string, string>
-  satus?: Record<string, unknown>
   [key: string]: unknown
 }
 
@@ -538,14 +541,14 @@ const setupLean = async (
 }
 
 /**
- * For each kept integration, run the same add steps as `satus add` uses —
- * via `installBundle`, which centralizes: copyBundleFiles, applyOverwriteFiles,
- * addDependencies (from snapshot package.json), restoreBarrelExports,
- * appendEnvStubs, addTransforms.
+ * For each kept integration, run the shared re-add steps via `installBundle`,
+ * which centralizes: copyBundleFiles, applyOverwriteFiles, addDependencies
+ * (from snapshot package.json), restoreBarrelExports, appendEnvStubs,
+ * addTransforms.
  *
  * Also strips absent-integration wiring from freshly copied files (e.g.
  * keeping webgl without theatre must remove theatre hooks from the copied
- * fluid/flowmaps — this is the exact same logic `satus add` uses).
+ * fluid/flowmaps).
  *
  * Returns any code-transform failures collected along the way instead of
  * swallowing them — callers report and fail loudly once the whole batch is
@@ -619,12 +622,45 @@ const setupAddIntegrations = async (
  * Does NOT write package.json — caller owns the single write.
  *
  * KEPT (used by tests that ship with every project):
- *   - lib/scripts/test-setup.ts (bunfig.toml preloads it for ALL bun tests)
+ *   - lib/scripts/test-setup.ts (bunfig.toml preloads it for ALL bun tests;
+ *     not matched by the `*.test.ts` glob below, so it's inherently safe)
  *
- * KEPT (additive machinery, needed by `satus add` in the scaffolded project):
- *   - lib/scripts/satus.ts and all its deps
- *   - lib/scripts/ast-transforms.ts, integration-bundles.ts, etc.
+ * KEPT (shared production machinery — used by `generate`, `doctor`, and
+ * `prepare-handoff`, which all ship with every project, not just by setup):
+ *   - lib/scripts/integration-bundles.ts, bundle-installer.ts,
+ *     ast-transforms/, barrel-file.ts, payload-source.ts, generate-shared.ts
+ *
+ * The setup-machinery test files to delete are discovered via a glob over
+ * `lib/scripts/**\/*.test.ts` (L10 — not a hardcoded list, which drifted out
+ * of sync whenever a new setup test file was added) minus an explicit KEEP
+ * allowlist — see `SELF_PRUNE_KEEP_TEST_FILES` and `collectSelfPruneTestFiles`.
  */
+
+/**
+ * Test files the glob-derived self-prune list must NOT delete, because they
+ * ship with every scaffolded project rather than being setup-only machinery.
+ */
+export const SELF_PRUNE_KEEP_TEST_FILES: ReadonlySet<string> = new Set([
+  // Tests prepare-handoff's document templates, which ship with every
+  // scaffolded project (see the KEPT production-machinery note above) — it
+  // must survive self-prune.
+  'lib/scripts/templates/templates.test.ts',
+])
+
+/**
+ * Discover the setup-machinery test files to delete during self-prune: every
+ * `lib/scripts/**\/*.test.ts` file on disk, minus `SELF_PRUNE_KEEP_TEST_FILES`.
+ * Exported for unit testing.
+ */
+export const collectSelfPruneTestFiles = async (): Promise<string[]> => {
+  const testFiles = await Array.fromAsync(
+    new Bun.Glob('lib/scripts/**/*.test.ts').scan({ cwd: projectRoot })
+  )
+  return testFiles
+    .filter((file) => !SELF_PRUNE_KEEP_TEST_FILES.has(file))
+    .sort()
+}
+
 const selfPrune = async (
   pkg: PackageJson,
   dryRun: boolean
@@ -632,13 +668,7 @@ const selfPrune = async (
   const s = p.spinner()
   s.start('Self-pruning setup machinery...')
 
-  const filesToDelete = [
-    'lib/scripts/setup-project.test.ts',
-    'lib/scripts/satus.test.ts',
-    'lib/scripts/satus.e2e.test.ts',
-    'lib/scripts/ast-transforms.test.ts',
-    'lib/scripts/payload-source.test.ts',
-  ]
+  const filesToDelete = await collectSelfPruneTestFiles()
 
   const deleted: string[] = []
 
@@ -695,28 +725,6 @@ const selfPrune = async (
 }
 
 /**
- * Read the current git HEAD sha. Returns the sha string, or undefined when
- * git is unavailable or not a repo. The sha is later written into package.json
- * as `"satus": { "ref": … }` by the consolidated package.json write in setup().
- */
-const readGitHead = async (): Promise<string | undefined> => {
-  try {
-    const proc = Bun.spawn(['git', 'rev-parse', 'HEAD'], {
-      stdout: 'pipe',
-      stderr: 'ignore',
-    })
-    const exitCode = await proc.exited
-    if (exitCode !== 0) return undefined
-
-    const sha = (await new Response(proc.stdout).text()).trim()
-    return sha || undefined
-  } catch {
-    // git not installed / not a repo — the pinned ref is optional metadata
-    return undefined
-  }
-}
-
-/**
  * Main setup orchestration (additive model):
  *
  *   1. PREFLIGHT — validate every file/folder the kept bundles declare
@@ -724,25 +732,23 @@ const readGitHead = async (): Promise<string | undefined> => {
  *      anything is missing (H8) — must run before ANY of the mutating
  *      steps below.
  *   2. ensureNextTypeStub
- *   3. Read git HEAD sha (before any writes — metadata only)
- *   4. cleanMarketing (if flagged)
- *   5. snapshot(kept) — capture kept integration files before stripping
- *   6. Read package.json ONCE into memory
- *   7. setupLean — strip ALL integrations (mutates in-memory pkg)
- *   8. Apply pinned git ref to in-memory pkg
- *   9. Write package.json (dep removal + pinned ref). Must happen BEFORE
+ *   3. cleanMarketing (if flagged)
+ *   4. snapshot(kept) — capture kept integration files before stripping
+ *   5. Read package.json ONCE into memory
+ *   6. setupLean — strip ALL integrations (mutates in-memory pkg)
+ *   7. Write package.json (dep removal applied). Must happen BEFORE
  *      setupAddIntegrations so the snapshot re-add sees a consistent lockfile
- *      target; this is NOT the final write — see step 12.
- *  10. setupAddIntegrations — re-add the kept set from the snapshot
- *  11. snapshot.cleanup()
- *  12. selfPrune — delete setup files (including this script) and mutate
+ *      target; this is NOT the final write — see step 10.
+ *   8. setupAddIntegrations — re-add the kept set from the snapshot
+ *   9. snapshot.cleanup()
+ *  10. selfPrune — delete setup files (including this script) and mutate
  *      pkg.scripts in-memory, THEN a second package.json write to persist
  *      the scripts removal. This is deliberately the LAST mutating step:
  *      running it only after setupAddIntegrations has completed
- *      successfully means any failure in steps 4–10 leaves
+ *      successfully means any failure in steps 3–8 leaves
  *      lib/scripts/setup-project.ts (and its package.json script entry)
  *      intact, so the run can simply be repeated (H8).
- *  13. bun install (unless --skip-install). Non-fatal on failure (M5): a
+ *  11. bun install (unless --skip-install). Non-fatal on failure (M5): a
  *      registry/offline error is reported and surfaced to the caller via
  *      the returned `installFailed` flag, but does not undo or block the
  *      steps above — the setup itself already succeeded by this point.
@@ -779,10 +785,7 @@ const setup = async (
   //    immediately after setup without needing to run `bun dev` first.
   await ensureNextTypeStub(dryRun)
 
-  // 3. Read git HEAD before any writes (pure read, no side-effects).
-  const gitSha = dryRun ? undefined : await readGitHead()
-
-  // 4. Replace the manual landing page (independent of integration removal).
+  // 3. Replace the manual landing page (independent of integration removal).
   if (cleanMarketing) {
     const ms = p.spinner()
     ms.start('Replacing manual landing page...')
@@ -790,7 +793,7 @@ const setup = async (
     ms.stop('Replaced manual landing page with a blank starter homepage')
   }
 
-  // 5. Snapshot the kept integration files before stripping.
+  // 4. Snapshot the kept integration files before stripping.
   let snapshot: PayloadSource | null = null
   if (keepIntegrations.length > 0) {
     const ss = p.spinner()
@@ -799,33 +802,28 @@ const setup = async (
     ss.stop(`Snapshot ready (${snapshot.label})`)
   }
 
-  // 6. Read package.json ONCE into memory. The dep-removal and pinned-ref
-  //    mutators operate on this object; selfPrune's script removal is
-  //    applied to the same object later (step 12) and persisted with its
-  //    own write, so this object stays the single source of truth throughout.
+  // 5. Read package.json ONCE into memory. The dep-removal mutator operates
+  //    on this object; selfPrune's script removal is applied to the same
+  //    object later (step 10) and persisted with its own write, so this
+  //    object stays the single source of truth throughout.
   const pkgPath = resolvePath('package.json')
   const pkg = (await Bun.file(pkgPath).json()) as PackageJson
 
-  // 7. Strip ALL integrations unconditionally to lean core.
+  // 6. Strip ALL integrations unconditionally to lean core.
   //    Mutates `pkg` for dep removal; other file changes (folders, env) happen here.
   const leanResult = await setupLean(pkg, dryRun)
 
-  // 8. Record the pinned satus ref in-memory (git sha read at step 3).
-  if (gitSha) {
-    pkg.satus = { ...(pkg.satus ?? {}), ref: gitSha }
-  }
-
-  // 9. Write package.json (dep removal + pinned ref applied). Runs before
+  // 7. Write package.json (dep removal applied). Runs before
   //    setupAddIntegrations so the re-add's dependency pins land on a
   //    consistent base; the scripts removal from selfPrune is persisted by
-  //    a second write at step 12, after setupAddIntegrations succeeds.
+  //    a second write at step 10, after setupAddIntegrations succeeds.
   if (!dryRun) {
     await Bun.write(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
   }
 
-  // 10. Re-add the kept integrations from the snapshot.
-  //     The snapshot cleanup is in `finally` so the temp dir is always removed,
-  //     even when setupAddIntegrations throws.
+  // 8. Re-add the kept integrations from the snapshot.
+  //    The snapshot cleanup is in `finally` so the temp dir is always removed,
+  //    even when setupAddIntegrations throws.
   let addFailures: TransformFailure[] = []
   if (snapshot) {
     try {
@@ -836,12 +834,12 @@ const setup = async (
       )
       addFailures = addResult.failures
     } finally {
-      // 11. Cleanup snapshot temp directory (always runs — even on failure).
+      // 9. Cleanup snapshot temp directory (always runs — even on failure).
       await snapshot.cleanup()
     }
   }
 
-  // 12. Self-prune: delete setup files (including this script), mutate
+  // 10. Self-prune: delete setup files (including this script), mutate
   //     pkg.scripts in-memory, and persist that with a second package.json
   //     write. Deliberately last — see the docstring above.
   await selfPrune(pkg, dryRun)
@@ -849,7 +847,7 @@ const setup = async (
     await Bun.write(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
   }
 
-  // 13. Run bun install to update the lockfile. Non-fatal: an offline /
+  // 11. Run bun install to update the lockfile. Non-fatal: an offline /
   //     registry failure is reported but does not mask the setup steps
   //     above having already succeeded.
   let installFailed = false
@@ -872,6 +870,36 @@ const setup = async (
     installFailed,
     transformFailures: [...leanResult.failures, ...addFailures],
   }
+}
+
+/**
+ * Confirm-prompt gating contract (H6 — `--yes` was previously a no-op: the
+ * proceed confirm was skipped whenever `--preset`/`--keep` was passed, whether
+ * or not `--yes` was present).
+ *
+ *   - `yes` → always skip (the flag becomes meaningful).
+ *   - no `hasFlags` (fully interactive, no `--preset`/`--keep`) → never skip
+ *     — confirm as today.
+ *   - `hasFlags`, no `yes` → skip only when NOT a TTY. This keeps
+ *     create-darkroom's cross-repo scaffolding contract working (it invokes
+ *     `setup:project --preset <key>` / `--keep <ids>` without `--yes`, with
+ *     stdio inherited but often non-TTY) while still giving a human at an
+ *     interactive terminal a chance to abort.
+ *
+ * Pure and exported for unit testing.
+ */
+export const shouldSkipConfirm = ({
+  yes,
+  hasFlags,
+  isTTY,
+}: {
+  yes: boolean
+  hasFlags: boolean
+  isTTY: boolean
+}): boolean => {
+  if (yes) return true
+  if (!hasFlags) return false
+  return !isTTY
 }
 
 /**
@@ -913,6 +941,57 @@ export const resolveKeepFromFlags = (
   }
 
   return undefined
+}
+
+/**
+ * Expand a kept-integration set to include every transitive `requires`
+ * dependency (e.g. keeping `theatre` — which requires `webgl` — also keeps
+ * `webgl`) — the same closure algorithm the deleted `satus add` CLI used
+ * (`resolveAddSet`), ported here because `setup:project` needs the same
+ * invariant: for every kept id, everything in `INTEGRATION_BUNDLES[id].requires`
+ * is kept too, or the re-add step leaves orphaned files (a kept integration
+ * whose required dependency was stripped).
+ *
+ * Fails loudly on unknown ids and circular `requires` chains. `implied` lists
+ * ids pulled in beyond the request, for logging. Exported for unit testing.
+ */
+export function resolveTransitiveKeepSet(requested: string[]): {
+  order: RemovableId[]
+  implied: RemovableId[]
+} {
+  const knownIds = getIntegrationNames()
+
+  const requestedIds: RemovableId[] = requested.map((id) => {
+    if (!(knownIds as string[]).includes(id)) {
+      throw new Error(
+        `Unknown integration "${id}". Available: ${knownIds.join(', ')}`
+      )
+    }
+    return id as RemovableId
+  })
+
+  const order: RemovableId[] = []
+  const visiting = new Set<RemovableId>()
+
+  const visit = (id: RemovableId): void => {
+    if (order.includes(id)) return
+    if (visiting.has(id)) {
+      throw new Error(`Circular "requires" chain detected at "${id}"`)
+    }
+    visiting.add(id)
+    for (const dep of getBundle(id)?.requires ?? []) {
+      visit(dep)
+    }
+    visiting.delete(id)
+    order.push(id)
+  }
+
+  for (const id of requestedIds) {
+    visit(id)
+  }
+
+  const implied = order.filter((id) => !requestedIds.includes(id))
+  return { order, implied }
 }
 
 /** Interactive integration selection (preset select or custom multiselect). */
@@ -1058,6 +1137,18 @@ const main = async (): Promise<void> => {
     cleanMarketing = cleanMarketingAnswer
   }
 
+  // Expand the kept set to include every transitive `requires` dependency
+  // (e.g. keeping theatre also keeps webgl) BEFORE strip/re-add runs, so a
+  // required dependency is never stripped out from under a kept integration.
+  const { order: resolvedKeepIntegrations, implied } =
+    resolveTransitiveKeepSet(keepIntegrations)
+  if (implied.length > 0) {
+    p.log.step(
+      `Also keeping required integration${implied.length > 1 ? 's' : ''}: ${implied.join(', ')}`
+    )
+  }
+  keepIntegrations = resolvedKeepIntegrations
+
   // Show summary
   p.log.step('Summary:')
 
@@ -1089,8 +1180,17 @@ const main = async (): Promise<void> => {
 
   p.log.message('  Setup machinery: self-pruned after setup')
 
-  // Confirm — skipped in non-interactive mode (--preset / --keep imply --yes)
-  if (!nonInteractive) {
+  // Confirm gating (H6) — see `shouldSkipConfirm`'s docstring for the full
+  // contract: `--yes` always skips; `--preset`/`--keep` without `--yes` skip
+  // only off a TTY (create-darkroom's scripted, non-TTY invocations never
+  // hang on a prompt); fully interactive runs (no flags) always confirm.
+  const skipConfirm = shouldSkipConfirm({
+    yes,
+    hasFlags: nonInteractive,
+    isTTY: Boolean(process.stdout.isTTY) && Boolean(process.stdin.isTTY),
+  })
+
+  if (!skipConfirm) {
     const proceed = await p.confirm({
       message: dryRun ? 'Preview changes?' : 'Proceed with setup?',
     })

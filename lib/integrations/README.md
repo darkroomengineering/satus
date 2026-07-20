@@ -29,6 +29,7 @@ const domain = env.SHOPIFY_STORE_DOMAIN // string | undefined with IntelliSense
 | [Shopify](shopify/README.md) | E-commerce | Cart, products, checkout |
 | [HubSpot](hubspot/README.md) | Forms | Marketing forms, CRM |
 | [Mailchimp](mailchimp/README.md) | Newsletter | Email subscriptions |
+| [Turnstile](turnstile/README.md) | Spam protection | Cloudflare Turnstile CAPTCHA for form actions |
 
 ## Environment Variables
 
@@ -102,7 +103,7 @@ bun remove @hubspot/api-client
 rm -rf lib/integrations/mailchimp
 ```
 
-After removal: `bun lint:fix && bun build`
+After removal: `bun run lint:fix && bun run build`
 
 ## Adding a New Integration
 

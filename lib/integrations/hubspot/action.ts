@@ -58,6 +58,21 @@ export async function HubspotNewsletterAction(
     formData,
     rateLimitMessage: 'Too many requests. Please try again later.',
     run: async ({ email, formId }) => {
+      const allowedFormIds = env.HUBSPOT_ALLOWED_FORM_IDS
+      if (allowedFormIds) {
+        const allowList = allowedFormIds
+          .split(',')
+          .map((id) => id.trim())
+          .filter(Boolean)
+        if (!allowList.includes(formId)) {
+          return {
+            status: 400,
+            message: 'invalid_input_',
+            fieldErrors: { formId: 'Form is not allowed' },
+          }
+        }
+      }
+
       const portalId = env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID
       if (!portalId) {
         return {

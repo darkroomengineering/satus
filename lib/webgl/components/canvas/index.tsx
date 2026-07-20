@@ -1,13 +1,23 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { createContext, type PropsWithChildren, use, useEffect } from 'react'
+import {
+  createContext,
+  type PropsWithChildren,
+  use,
+  useEffect,
+  useId,
+  useSyncExternalStore,
+} from 'react'
 import type tunnel from 'tunnel-rat'
 import { useDeviceDetection } from '@/lib/hooks/use-device-detection'
 import {
   getDOMTunnel,
+  getPrimaryRootCanvasId,
+  getServerPrimaryRootCanvasId,
   getWebGLTunnel,
   registerRootCanvasMount,
+  subscribeRootCanvas,
 } from '@/lib/webgl/store'
 
 const WebGLCanvas = dynamic(
@@ -35,8 +45,9 @@ type CanvasProps = PropsWithChildren<{
   force?: boolean
   /**
    * Which GPU simulations `FlowmapProvider` mounts (root canvas only).
-   * Defaults to both (back-compat). Pass a subset — e.g. `['flowmap']` — to
-   * skip the other sim's GPU pass and window listeners entirely.
+   * Defaults to none (opt-in) — pass the sims you actually use, e.g.
+   * `['flowmap']`, to avoid paying for a GPU pass and window listeners with
+   * no consumer.
    */
   simTypes?: ('fluid' | 'flowmap')[]
 }>
@@ -71,7 +82,7 @@ export function Canvas({
   simTypes,
   ...props
 }: CanvasProps) {
-  const { isWebGL } = useDeviceDetection()
+  const { isWebGL, isReducedMotion } = useDeviceDetection()
 
   // Only a root canvas mounts the WebGL surface; it uses the shared store
   // tunnels so content portals into it from anywhere. A non-root <Canvas> is a
@@ -79,20 +90,45 @@ export function Canvas({
   const WebGLTunnel = root ? getWebGLTunnel() : undefined
   const DOMTunnel = root ? getDOMTunnel() : undefined
 
-  const shouldRender = root && (isWebGL || force)
+  // `force` is an explicit escape hatch — it bypasses both the WebGL
+  // capability check and the reduced-motion preference.
+  //
+  // ⚠ Because reduced-motion (and non-WebGL devices) means the canvas may
+  // never mount, anything that puts CONTENT in WebGL — not just decoration —
+  // must account for a fallback for this state: render a static image / DOM
+  // equivalent when the canvas is absent, or mount with `force` and damp
+  // motion inside the scene.
+  const shouldRender = root && ((isWebGL && !isReducedMotion) || force)
   const contextValue: CanvasContextValue =
     WebGLTunnel && DOMTunnel
       ? { active: true, WebGLTunnel, DOMTunnel }
       : { active: false }
 
-  const isMounting = contextValue.active && shouldRender
+  // Guard against two <Canvas root> instances both mounting the WebGL surface
+  // at once (e.g. layout canvas + <Wrapper webgl> on the same page). The
+  // mount registry is external module state, so it's read through
+  // useSyncExternalStore: only the first-registered id is primary; any other
+  // root canvas renders nothing — a real no-op in every environment, not just
+  // a dev warning. Before this instance's registration lands (primary id
+  // undefined) it optimistically counts as primary, so the common
+  // single-canvas case never flickers. Registration lives in an effect with a
+  // symmetric cleanup, so StrictMode's mount→cleanup→mount on one instance
+  // never miscounts it as a duplicate — and if the primary unmounts, the
+  // survivor is promoted automatically.
+  const id = useId()
+  const primaryRootCanvasId = useSyncExternalStore(
+    subscribeRootCanvas,
+    getPrimaryRootCanvasId,
+    getServerPrimaryRootCanvasId
+  )
+  const isPrimary =
+    primaryRootCanvasId === undefined || primaryRootCanvasId === id
+  const isMounting = contextValue.active && shouldRender && isPrimary
 
-  // Guard against two <Canvas root> instances both mounting the WebGL
-  // surface at once (e.g. layout canvas + <Wrapper webgl> on the same page).
   useEffect(() => {
-    if (!isMounting) return
-    return registerRootCanvasMount()
-  }, [isMounting])
+    if (!(contextValue.active && shouldRender)) return
+    return registerRootCanvasMount(id)
+  }, [contextValue.active, shouldRender, id])
 
   return (
     <CanvasContext.Provider value={contextValue}>

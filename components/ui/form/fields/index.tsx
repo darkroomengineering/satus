@@ -2,7 +2,8 @@
 
 import { Field } from '@base-ui/react/field'
 import cn from 'clsx'
-import { useState } from 'react'
+import { useId, useState } from 'react'
+import { Checkbox } from '@/components/ui/checkbox'
 import { useFormContext } from '..'
 import s from './fields.module.css'
 
@@ -170,6 +171,7 @@ export function CheckboxesField({
   const { actions } = useFormContext()
   const { register } = actions
   const [selected, setSelected] = useState<string[]>(['all'])
+  const hiddenInputId = useId()
 
   const handleToggle = (value: string) => {
     setSelected((prev) =>
@@ -185,20 +187,25 @@ export function CheckboxesField({
       <input
         type="hidden"
         name={name}
-        id="hidden"
+        id={hiddenInputId}
         value={JSON.stringify(selected)}
         {...reg}
       />
       <div className={s.options}>
-        {options.map(({ label, value }) => (
-          <button
+        {options.map(({ label: optionLabel, value }) => (
+          // biome-ignore lint/a11y/noLabelWithoutControl: Base UI checkbox is wrapped in label for accessibility
+          <label
             key={value}
             className={cn(s.option, selected.includes(value) && s.selected)}
-            type="button"
-            onClick={() => handleToggle(value)}
           >
-            <span>{label}</span>
-          </button>
+            <Checkbox.Root
+              checked={selected.includes(value)}
+              onCheckedChange={() => handleToggle(value)}
+            >
+              <Checkbox.Indicator />
+            </Checkbox.Root>
+            <span>{optionLabel}</span>
+          </label>
         ))}
       </div>
     </Field.Root>

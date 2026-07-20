@@ -10,7 +10,7 @@ This is the **single source of truth** for engineering standards in this repo. C
 |-------|-----------|
 | Framework | Next.js 16 (App Router, Cache Components, `proxy.ts`) |
 | UI | React 19.2 (React Compiler ON, no manual memoization) |
-| Language | TypeScript 5, `strict: true` |
+| Language | TypeScript 6, `strict: true` |
 | Styling | Tailwind v4 (CSS-first) + CSS Modules |
 | Runtime | Bun |
 | Linter / Formatter | Biome |
@@ -53,7 +53,7 @@ These are non-negotiable. Each is enforced by Biome or TypeScript; the build or 
 ```tsx
 import { Image } from '@/components/ui/image'   // NOT next/image
 import { Link } from '@/components/ui/link'     // NOT next/link
-import { useRect } from '@/hooks/use-rect'
+import { useDeviceDetection } from '@/hooks/use-device-detection'
 import { clamp } from '@/utils/math'
 ```
 
@@ -425,8 +425,9 @@ All integrations are optional and self-contained in `lib/integrations/{name}/`. 
 - Always use `fetchWithTimeout` for external API calls (default 10s)
 - Never use `process.env` directly - use `import { env } from '@/lib/env'` for typed, validated access
 - Never commit secrets; document required vars in `.env.example`
-- Server actions return `{ status: number, message: string, fieldErrors?: Record<string, string[]> }`
+- Server actions return `{ status: number, message: string, fieldErrors?: Record<string, string> }`
 - Client form validation reuses the same Zod schemas via `zodToValidator()` bridge
+- This is a deliberate split, not drift: API route handlers return `{ data, error }` (the darkroom team convention for API responses), while server-action FORM results use the `{ status, message, fieldErrors }` shape above because they are UI state consumed by form hooks, not API responses. Don't unify the two shapes.
 
 ---
 
@@ -443,8 +444,7 @@ bun run typecheck    # tsc --noEmit (TypeScript 7 native)
 bun run typecheck:watch  # tsc --noEmit --watch (native fast watcher; live feedback)
 bun test             # Unit tests (bun's built-in runner; ignores *.e2e.ts)
 bun run test:e2e     # Playwright E2E smoke test (boots dev server automatically)
-bun run setup:project  # Strip unused integrations (non-interactive: --preset/--keep, --yes, --clean-homepage, --skip-install)
-bun run satus        # Plugin CLI: `list`, `add <plugin>` (restore an integration from the satus repo)
+bun run setup:project  # Strip unused integrations (non-interactive: --preset/--keep, --yes, --clean-homepage, --skip-install, --dry-run)
 bun run doctor       # Diagnose setup issues
 ```
 

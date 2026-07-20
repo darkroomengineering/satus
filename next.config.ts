@@ -4,12 +4,18 @@ import type { NextConfig } from 'next'
 // --- Storybook proxy ---------------------------------------------------------
 // Serves the standalone Storybook deployment at /storybook on this domain.
 // Active ONLY when NEXT_PUBLIC_STORYBOOK_URL is set (e.g. on Preview) AND the
-// deployment is not Production — so production never exposes a /storybook route.
+// environment is explicitly non-production (Vercel preview, `vercel dev`, or
+// local dev) — it fails CLOSED everywhere else, including self-hosted
+// production where VERCEL_ENV is undefined, so a fork never exposes a
+// /storybook route by accident.
 // To drop it entirely: unset the env var, or delete this block + the
 // redirects/rewrites entries below.
 const STORYBOOK_URL = process.env.NEXT_PUBLIC_STORYBOOK_URL?.replace(/\/+$/, '')
 const STORYBOOK_PROXY_ENABLED =
-  Boolean(STORYBOOK_URL) && process.env.VERCEL_ENV !== 'production'
+  Boolean(STORYBOOK_URL) &&
+  (process.env.VERCEL_ENV === 'preview' ||
+    process.env.VERCEL_ENV === 'development' ||
+    process.env.NODE_ENV === 'development')
 // -----------------------------------------------------------------------------
 
 const nextConfig: NextConfig = {
@@ -17,6 +23,10 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   poweredByHeader: false,
   typedRoutes: true,
+  typescript: {
+    // Type checking is owned by `bun run check` (typescript7).
+    ignoreBuildErrors: true,
+  },
   turbopack: {
     rules: {
       '*.svg': {
@@ -147,13 +157,19 @@ const nextConfig: NextConfig = {
           key: 'Content-Security-Policy',
           value: "frame-ancestors 'self' https://*.sanity.studio;",
         },
+        // Report-only CSP baseline. Deliberately integration-agnostic (broad
+        // https:/wss: sources) so it stays valid whichever integrations
+        // `setup:project` strips. In your fork: replace the wildcards with the
+        // third-party origins you actually load, watch for violation reports,
+        // then promote it to an enforced Content-Security-Policy header above.
+        {
+          key: 'Content-Security-Policy-Report-Only',
+          value:
+            "default-src 'self'; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https: wss:; object-src 'none'; base-uri 'self';",
+        },
         {
           key: 'X-Frame-Options',
           value: 'SAMEORIGIN',
-        },
-        {
-          key: 'X-XSS-Protection',
-          value: '1; mode=block',
         },
         {
           key: 'X-DNS-Prefetch-Control',

@@ -9,7 +9,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { normalizeStoreDomain } from './client'
+import { normalizeStoreDomain, shopifyFetch } from './client'
 import { SHOPIFY_GRAPHQL_API_ENDPOINT } from './constants'
 
 describe('normalizeStoreDomain', () => {
@@ -73,5 +73,34 @@ describe('normalizeStoreDomain', () => {
       'https://your-store.myshopify.com/api/2026-04/graphql.json'
     )
     expect(() => new URL(endpoint)).not.toThrow()
+  })
+})
+
+describe('shopifyFetch', () => {
+  test('throws a descriptive error instead of hitting the network when Shopify is not configured', async () => {
+    const originalDomain = process.env.SHOPIFY_STORE_DOMAIN
+    const originalToken = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN
+
+    // Force an invalid (empty) config regardless of the local/CI env, so
+    // isConfigured('shopify') is deterministically false for this test.
+    process.env.SHOPIFY_STORE_DOMAIN = ''
+    process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN = ''
+
+    try {
+      await expect(
+        shopifyFetch({ query: '{ shop { name } }' })
+      ).rejects.toThrow(/Shopify is not configured/)
+    } finally {
+      if (originalDomain === undefined) {
+        delete process.env.SHOPIFY_STORE_DOMAIN
+      } else {
+        process.env.SHOPIFY_STORE_DOMAIN = originalDomain
+      }
+      if (originalToken === undefined) {
+        delete process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN
+      } else {
+        process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN = originalToken
+      }
+    }
   })
 })

@@ -7,7 +7,7 @@ as GLSL3 `RawShaderMaterial` passes.
 ## Quick Start
 
 ```tsx
-import { Wrapper } from '@/components/layout'
+import { Wrapper } from '@/components/layout/wrapper'
 import { WebGLTunnel } from '@/webgl/components/tunnel'
 
 export default function Page() {
@@ -35,14 +35,15 @@ The canvas is mounted with `<Canvas root>`. Choose **one** place to do it:
 - **Per page:** remove the shared canvas and pass `webgl` to the Wrapper
   (`<Wrapper webgl>`), which mounts the canvas only on that page.
 
-Enabling both mounts two canvases — keep one strategy.
+There is exactly one root canvas at a time — the store enforces this at
+runtime, so if both are mounted the first one wins and the second is a no-op
+(with a dev warning), not a second canvas eating GPU.
 
-### Perf: limiting GPU simulations
+### Perf: opting into GPU simulations
 
-`<Canvas root>` mounts `FlowmapProvider` with both GPU simulations (fluid +
-flowmap) by default. If a page only needs pointer-driven displacement, pass
-`simTypes` to skip the other simulation's GPU pass and window listeners
-entirely:
+`<Canvas root>` mounts `FlowmapProvider` with no GPU simulations by default —
+mounting a sim without a consumer wastes a render pass and window listeners.
+Pass `simTypes` with the sims you actually use:
 
 ```tsx
 <Canvas root simTypes={['flowmap']} />
@@ -51,9 +52,17 @@ entirely:
 ## Device gating
 
 The canvas is rendered only when `useDeviceDetection().isWebGL` is true (a
-working WebGL2 context on a desktop viewport). On mobile or unsupported
-devices it's a no-op — nothing mounts. Rendering is driven manually by the
-`RAF` component (`frameloop="never"`), not the default r3f render loop.
+working WebGL2 context on a desktop viewport) AND the user does not prefer
+reduced motion. On mobile, unsupported devices, or under
+`prefers-reduced-motion` it's a no-op — nothing mounts. Rendering is driven
+manually by the `RAF` component (`frameloop="never"`), not the default r3f
+render loop.
+
+> **Always ship a fallback.** Because reduced-motion (and non-WebGL devices)
+> means the canvas may never mount, any page that puts *content* in WebGL —
+> not just decoration — must render a non-WebGL fallback (static image, DOM
+> equivalent) for that state. If the WebGL content is essential and motionless,
+> mount with `force` and damp motion inside the scene instead.
 
 ## Architecture
 

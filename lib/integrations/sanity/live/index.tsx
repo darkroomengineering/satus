@@ -1,7 +1,7 @@
 import {
-  type DefinedFetchType,
-  type DefinedLiveProps,
   defineLive,
+  type StrictDefinedFetchType,
+  type StrictDefinedLiveProps,
 } from 'next-sanity/live'
 import type { ComponentType } from 'react'
 import { isConfigured } from '@/integrations/registry'
@@ -28,6 +28,10 @@ const liveExports = sanityLiveReady
       client: client!,
       browserToken: publicToken,
       serverToken: privateToken,
+      // Strict mode: `perspective`/`stega` required per fetch, `includeDrafts`
+      // required on <SanityLive> — the calling convention this repo already
+      // uses everywhere (see app/(examples)/sanity/page.tsx).
+      strict: true,
     })
   : null
 
@@ -37,17 +41,17 @@ const liveExports = sanityLiveReady
  * typegen query result already models. The stub is cast to
  * `DefinedFetchType` so query-result inference survives the union.
  */
-export const sanityFetch: DefinedFetchType =
+export const sanityFetch: StrictDefinedFetchType =
   liveExports?.sanityFetch ??
   ((async () => ({
     data: null,
     sourceMap: null,
     tags: [],
-  })) as unknown as DefinedFetchType)
+  })) as unknown as StrictDefinedFetchType)
 
 /**
  * Sanity Live component for real-time updates.
  * Returns null when Sanity is not configured.
  */
-export const SanityLive: ComponentType<DefinedLiveProps> =
+export const SanityLive: ComponentType<StrictDefinedLiveProps> =
   liveExports?.SanityLive ?? (() => null)

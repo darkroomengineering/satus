@@ -6,7 +6,19 @@
  * if Sanity is properly set up before making API calls.
  */
 
-/** Sanity API version - pinned for stability, update periodically */
+/**
+ * Sanity API version - pinned for stability, update periodically.
+ *
+ * Deliberately reads `process.env.NEXT_PUBLIC_SANITY_API_VERSION` directly
+ * (not via `env` from `@/lib/env`) — this module is bundled client-side
+ * through `sanity.config.ts` -> `app/studio/[[...tool]]/page.tsx` (a
+ * `'use client'` file with no client-boundary component in between), and
+ * `lib/env.ts` parses the whole `process.env` object rather than individual
+ * literal `process.env.NEXT_PUBLIC_X` expressions, so it isn't safe to
+ * import into code that reaches the client bundle. The value IS still
+ * validated (format: YYYY-MM-DD) via the schema in `lib/env.ts` wherever
+ * `env` is imported server-side, so a malformed value fails loudly there.
+ */
 export const apiVersion =
   process.env.NEXT_PUBLIC_SANITY_API_VERSION ?? '2025-03-01'
 

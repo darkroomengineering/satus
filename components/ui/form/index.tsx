@@ -2,6 +2,7 @@
 
 import cn from 'clsx'
 import { createContext, use, useEffect, useState } from 'react'
+import type { FormState } from '@/lib/types/form'
 import { mutate } from '@/utils/raf'
 import s from './form.module.css'
 import { useForm } from './hook'
@@ -9,7 +10,6 @@ import type {
   FormAction,
   FormContextStandard,
   FormProps,
-  FormState,
   MessagesProps,
   SubmitButtonProps,
 } from './types'
@@ -230,13 +230,13 @@ export function Messages({ className, ...props }: MessagesProps) {
   )
 }
 
-export { useForm } from './hook'
 // Re-export types
+export type { FormState } from '@/lib/types/form'
+export { useForm } from './hook'
 export type {
   FormAction,
   FormContextActions,
   FormContextMeta,
   FormContextStandard,
   FormContextState,
-  FormState,
 } from './types'

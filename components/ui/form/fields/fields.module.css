@@ -102,6 +102,9 @@
 }
 
 .option {
+  display: flex;
+  align-items: center;
+  gap: mobile-vw(8px);
   padding: mobile-vw(6px) mobile-vw(12px);
   border: 1px solid var(--color-secondary);
   border-radius: mobile-vw(4px);
@@ -115,6 +118,7 @@
     border-color 150ms ease;
 
   @media (--desktop) {
+    gap: desktop-vw(8px);
     padding: desktop-vw(6px) desktop-vw(12px);
     border-radius: desktop-vw(4px);
   }

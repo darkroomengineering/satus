@@ -3,7 +3,7 @@
 Custom React hooks for common patterns.
 
 ```tsx
-import { useDeviceDetection } from '@/hooks'
+import { useDeviceDetection } from '@/hooks/use-device-detection'
 import { useMediaQuery } from 'hamo'
 ```
 
@@ -24,7 +24,7 @@ import { useMediaQuery } from 'hamo'
 Reveal children on scroll using IntersectionObserver. Toggles `data-reveal` on the container; children marked `data-reveal-item` animate `transform`/`opacity` on the compositor thread. The CSS contract lives in `lib/styles/css/global.css`. Per-container knobs: `--reveal-transform`, `--reveal-stagger`, `--reveal-duration`. Degrades to visible without JS; short-circuits under `prefers-reduced-motion`.
 
 ```tsx
-import { useReveal } from '@/hooks'
+import { useReveal } from '@/hooks/use-reveal'
 
 function Cards({ items }) {
   const ref = useReveal<HTMLDivElement>()
@@ -45,7 +45,7 @@ These hooks use `useSyncExternalStore` for concurrent-rendering safety and optim
 Subscribe to CSS media queries with automatic updates:
 
 ```tsx
-import { useMediaQuery } from '@/hooks'
+import { useMediaQuery } from 'hamo'
 
 function ResponsiveComponent() {
   const isDesktop = useMediaQuery('(min-width: 800px)')
@@ -60,7 +60,7 @@ function ResponsiveComponent() {
 Detect network connectivity:
 
 ```tsx
-import { useOnlineStatus } from '@/hooks'
+import { useOnlineStatus } from '@/hooks/use-sync-external'
 
 function NetworkAwareComponent() {
   const isOnline = useOnlineStatus()
@@ -78,7 +78,7 @@ function NetworkAwareComponent() {
 Get system color scheme preference:
 
 ```tsx
-import { usePreferredColorScheme } from '@/hooks'
+import { usePreferredColorScheme } from '@/hooks/use-sync-external'
 
 function ThemeProvider({ children }) {
   const colorScheme = usePreferredColorScheme() // 'light' | 'dark'
@@ -92,7 +92,7 @@ function ThemeProvider({ children }) {
 Respect user's motion preferences for accessibility:
 
 ```tsx
-import { usePreferredReducedMotion } from '@/hooks'
+import { usePreferredReducedMotion } from '@/hooks/use-sync-external'
 
 function AnimatedComponent() {
   const prefersReducedMotion = usePreferredReducedMotion()
@@ -114,7 +114,7 @@ function AnimatedComponent() {
 React to tab visibility changes:
 
 ```tsx
-import { useDocumentVisibility } from '@/hooks'
+import { useDocumentVisibility } from '@/hooks/use-sync-external'
 
 function VideoPlayer() {
   const visibility = useDocumentVisibility() // 'visible' | 'hidden'
@@ -144,7 +144,7 @@ Detect device capabilities (SSR-safe): screen size, input method, motion
 preference, WebGL support, Safari, and inline-video autoplay support.
 
 ```tsx
-import { useDeviceDetection } from '@/hooks'
+import { useDeviceDetection } from '@/hooks/use-device-detection'
 
 function Component() {
   const { isMobile, isDesktop, isReducedMotion, isTouchOnly, dpr, isWebGL, isSafari, isAutoplaySupported } =

@@ -23,6 +23,10 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   poweredByHeader: false,
   typedRoutes: true,
+  typescript: {
+    // Type checking is owned by `bun run check` (typescript7).
+    ignoreBuildErrors: true,
+  },
   turbopack: {
     rules: {
       '*.svg': {

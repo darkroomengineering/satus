@@ -15,7 +15,7 @@ import { urlForImage } from '@/integrations/sanity/utils/image'
 interface SanityImageProps
   extends Omit<
     ImageProps,
-    'src' | 'aspectRatio' | 'fill' | 'width' | 'height'
+    'src' | 'aspectRatio' | 'fill' | 'width' | 'height' | 'alt'
   > {
   image: {
     asset?: {
@@ -27,6 +27,8 @@ interface SanityImageProps
     crop?: SanityImageCrop
   }
   maxWidth?: number
+  /** Alt text override. Falls back to the CMS-provided `image.alt`, then `''`. */
+  alt?: string
 }
 
 export function SanityImage({

@@ -122,10 +122,10 @@ function Select<T extends string = string>({
       {...(required !== undefined && { required })}
     >
       {label && (
-        <span className={s.label}>
+        <BaseSelect.Label className={s.label}>
           {label}
           {required && <span aria-hidden="true"> *</span>}
-        </span>
+        </BaseSelect.Label>
       )}
       <BaseSelect.Trigger
         className={cn(

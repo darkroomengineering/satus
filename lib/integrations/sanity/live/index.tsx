@@ -13,10 +13,17 @@ import { privateToken, publicToken } from '../env'
  *
  * When Sanity is not configured, provides stub implementation
  * that returns null instead of throwing errors.
+ *
+ * Live/draft mode additionally requires a non-empty private token —
+ * without it, `defineLive` would silently no-op or error deep inside
+ * next-sanity rather than failing clearly. This gate only affects the
+ * live/draft capability; published-content fetching via `client` does
+ * not depend on `privateToken` and is unaffected.
  */
 const sanityReady = isConfigured('sanity') && client
+const sanityLiveReady = sanityReady && privateToken !== ''
 
-const liveExports = sanityReady
+const liveExports = sanityLiveReady
   ? defineLive({
       client: client!,
       browserToken: publicToken,

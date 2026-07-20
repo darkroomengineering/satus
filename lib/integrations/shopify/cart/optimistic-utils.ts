@@ -174,6 +174,8 @@ function createOrUpdateCartItem(
   }
 }
 
+// Cosmetic only — drives the optimistic UI flash; Shopify's server response
+// is authoritative. Never use these totals for checkout math.
 function calculateItemCost(quantity: number, price: string): string {
   return (Number(price) * quantity).toString()
 }

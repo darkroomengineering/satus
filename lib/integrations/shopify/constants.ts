@@ -47,4 +47,8 @@ export const TAGS = {
 } as const
 
 export const HIDDEN_PRODUCT_TAG = 'nextjs-frontend-hidden'
+/**
+ * Storefront API version — quarterly releases, ~12-month support window.
+ * Check https://shopify.dev/docs/api/usage/versioning before bumping.
+ */
 export const SHOPIFY_GRAPHQL_API_ENDPOINT = '/api/2026-04/graphql.json'

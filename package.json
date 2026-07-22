@@ -72,7 +72,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "4.12.1",
-    "@biomejs/biome": "2.5.4",
+    "@biomejs/biome": "2.5.5",
     "@clack/prompts": "^1.7.0",
     "@csstools/postcss-global-data": "^4.0.0",
     "@happy-dom/global-registrator": "^20.11.0",

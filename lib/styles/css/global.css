@@ -21,17 +21,17 @@ html {
  */
 :root {
   --surface: color-mix(
-    in srgb,
+    in oklab,
     var(--color-secondary) 4%,
     var(--color-primary)
   );
   --surface-2: color-mix(
-    in srgb,
+    in oklab,
     var(--color-secondary) 8%,
     var(--color-primary)
   );
-  --line: color-mix(in srgb, var(--color-secondary) 14%, transparent);
-  --line-strong: color-mix(in srgb, var(--color-secondary) 28%, transparent);
+  --line: color-mix(in oklab, var(--color-secondary) 14%, transparent);
+  --line-strong: color-mix(in oklab, var(--color-secondary) 28%, transparent);
 
   --duration-fast: 200ms;
   --duration: 400ms;

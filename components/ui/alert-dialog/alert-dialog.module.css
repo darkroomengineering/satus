@@ -1,7 +1,7 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(0 0 0 / 0.5);
+  background-color: oklch(0 0 0 / 0.5);
   z-index: 100;
   backdrop-filter: blur(2px);
 
@@ -27,7 +27,7 @@
   padding: mobile-vw(24px);
   max-width: min(400px, 90vw);
   width: 100%;
-  box-shadow: 0 8px 32px rgba(0 0 0 / 0.2);
+  box-shadow: 0 8px 32px oklch(0 0 0 / 0.2);
 
   /* Base UI animation states */
   transition:
@@ -126,6 +126,6 @@
   }
 
   &.destructive {
-    background-color: #dc2626;
+    background-color: oklch(0.577 0.2152 27.33);
   }
 }

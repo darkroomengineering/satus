@@ -11,5 +11,5 @@
 }
 
 .actionError {
-  color: #dc2626;
+  color: oklch(0.577 0.2152 27.33);
 }

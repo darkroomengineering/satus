@@ -76,7 +76,7 @@
     "@clack/prompts": "^1.7.0",
     "@csstools/postcss-global-data": "^4.0.0",
     "@happy-dom/global-registrator": "^20.11.0",
-    "@next/bundle-analyzer": "16.2.10",
+    "@next/bundle-analyzer": "16.2.11",
     "@playwright/test": "1.61.1",
     "@sanity/vision": "^6.5.0",
     "@storybook/addon-mcp": "^0.7.0",

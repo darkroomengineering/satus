@@ -23,7 +23,7 @@
   background-color: var(--color-primary);
   border: 1px solid var(--color-secondary);
   border-radius: mobile-vw(8px);
-  box-shadow: 0 4px 12px rgba(0 0 0 / 0.15);
+  box-shadow: 0 4px 12px oklch(0 0 0 / 0.15);
   position: relative;
 
   /* Base UI animation states */
@@ -51,15 +51,15 @@
 
   /* Toast types */
   &.success {
-    border-left: 4px solid #22c55e;
+    border-left: 4px solid oklch(0.7227 0.192 149.58);
   }
 
   &.error {
-    border-left: 4px solid #dc2626;
+    border-left: 4px solid oklch(0.577 0.2152 27.33);
   }
 
   &.info {
-    border-left: 4px solid #3b82f6;
+    border-left: 4px solid oklch(0.6231 0.188 259.81);
   }
 
   &.default {

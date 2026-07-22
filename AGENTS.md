@@ -419,6 +419,15 @@ Tailwind v4 conventions:
 - Container queries are built-in (no plugin)
 - Opacity via slash syntax: `bg-black/50`
 
+### Colors: always oklch (oklab for interpolation)
+
+ALL color values are authored in `oklch()` — palette entries in `lib/styles/colors.ts`, CSS module values, inline style strings, SVG fills. No hex, `rgb()`, or `hsl()` literals. Alpha uses slash syntax: `oklch(0 0 0 / 0.5)`, never `rgba()`.
+
+- Palette source of truth is `lib/styles/colors.ts`; the theme CSS is generated from it by `bun run setup:styles`. Never hand-edit `lib/styles/css/tailwind.css` / `root.css`.
+- All color mixing happens in `oklab`: `color-mix(in oklab, ...)` always (never `in srgb`), and gradients that blend across hues take an interpolation hint (`linear-gradient(to top in oklab, ...)`). Hard-stop gradients (adjacent stops at the same position) don't need one. Any future JS color-mixing utility must mix in OKLab/OKLCH and return oklch strings.
+- CSS keywords (`transparent`, `currentColor`, system colors) remain fine.
+- Sanctioned exceptions, each for a non-CSS parser or spec that cannot use oklch: `.storybook/manager.ts` (storybook/theming → polished), GLSL in `lib/webgl/` (shader math is linear RGB, not CSS — and the blend modes in `lib/webgl/utils/blend.ts` are ports of the compositing spec's sRGB/HSL definitions, so rewriting them in OKLab would change standard blend-mode output). Anything new that must stay non-oklch needs a comment stating which parser or spec forces it.
+
 ---
 
 ## Integrations

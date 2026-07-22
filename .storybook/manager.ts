@@ -2,16 +2,18 @@ import { addons } from 'storybook/manager-api'
 import { create } from 'storybook/theming'
 
 // Brand the Storybook UI to match Satūs. Values mirror the brand palette in
-// lib/styles/colors.ts (red #e30613, dark = black/white) and --line from
+// lib/styles/colors.ts (red #e9161a, dark = black/white) and --line from
 // global.css. The story canvas tracks the site's CSS tokens live; this manager
 // chrome is build-time JS, so update it here if the brand palette changes.
+// These values intentionally stay hex/rgba: storybook/theming's `create()` runs
+// them through polished, which cannot parse oklch and would crash the manager UI.
 const satus = create({
   base: 'dark',
   brandTitle: 'Satūs',
   brandUrl: 'https://github.com/darkroomengineering/satus',
 
-  colorPrimary: '#e30613',
-  colorSecondary: '#e30613',
+  colorPrimary: '#e9161a',
+  colorSecondary: '#e9161a',
 
   appBg: '#000000',
   appContentBg: '#000000',
@@ -25,7 +27,7 @@ const satus = create({
   barBg: '#000000',
   barTextColor: 'rgba(255, 255, 255, 0.55)',
   barSelectedColor: '#ffffff',
-  barHoverColor: '#e30613',
+  barHoverColor: '#e9161a',
 
   inputBg: '#000000',
   inputBorder: 'rgba(255, 255, 255, 0.14)',

@@ -94,6 +94,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.185.1",
     "babel-plugin-react-compiler": "^1.0.0",
+    "colorjs.io": "^0.7.0",
     "deslop-cli": "^0.8.1",
     "happy-dom": "^20.11.0",
     "lefthook": "^2.1.10",

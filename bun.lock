@@ -53,6 +53,7 @@
         "@types/react-dom": "^19.2.3",
         "@types/three": "^0.185.1",
         "babel-plugin-react-compiler": "^1.0.0",
+        "colorjs.io": "^0.7.0",
         "deslop-cli": "^0.8.1",
         "happy-dom": "^20.11.0",
         "lefthook": "^2.1.10",
@@ -1623,6 +1624,8 @@
     "color-name": ["color-name@1.1.4", "", {}, "sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA=="],
 
     "color2k": ["color2k@2.0.4", "", {}, "sha512-OXAPGFRNeLFnUfqDtloYdxkwsJoIdXe28+bjbpJiPqyei2HPa3VHmMCWa0Qe62+U4Ftf9Hj7hRssOkxz7WiWbg=="],
+
+    "colorjs.io": ["colorjs.io@0.7.0", "", {}, "sha512-JfLy3aZW1Xp2iwSFzGlLn0XSMnIdItH3BmzsXtwHVFEWwVUJIwKBWNzjQq2Tgf3998OY7qW2R6klrlYo8vmEGg=="],
 
     "combined-stream": ["combined-stream@1.0.8", "", { "dependencies": { "delayed-stream": "~1.0.0" } }, "sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg=="],
 

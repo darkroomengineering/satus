@@ -34,6 +34,7 @@
     "test:e2e": "playwright test",
     "test:setup": "bun test lib/scripts/setup-project.test.ts",
     "doctor": "bun ./lib/scripts/doctor.ts",
+    "contrast:accept": "bun ./lib/styles/scripts/contrast-accept.ts",
     "setup:styles": "bun ./lib/styles/scripts/setup-styles.ts",
     "generate": "bun ./lib/scripts/generate.ts",
     "generate:manifest": "bun ./lib/scripts/generate-manifest.ts",

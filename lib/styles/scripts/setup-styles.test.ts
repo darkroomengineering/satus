@@ -15,8 +15,18 @@
 
 import { describe, expect, it } from 'bun:test'
 import { join } from 'node:path'
+import { Glob } from 'bun'
 import { colors, themes } from '../config'
 import { buildStyleSheets, OUTPUTS } from './setup-styles'
+
+const DECLARATION = /^\s*(?<property>[a-z-]+)\s*:\s*(?<value>[^;]+);/gim
+
+const COLOR_PROPERTY =
+  /^(color|background|background-color|border|border-[a-z]+|border-[a-z]+-color|outline|outline-color|fill|stroke|box-shadow|text-shadow|text-decoration-color|caret-color|accent-color|column-rule-color)$/
+
+/** CSS named colours. `transparent` and `currentColor` are deliberately absent. */
+const NAMED_COLOR =
+  /\b(aliceblue|antiquewhite|aqua|aquamarine|azure|beige|bisque|black|blanchedalmond|blue|blueviolet|brown|burlywood|cadetblue|chartreuse|chocolate|coral|cornflowerblue|cornsilk|crimson|cyan|darkblue|darkcyan|darkgoldenrod|darkgray|darkgreen|darkgrey|darkkhaki|darkmagenta|darkolivegreen|darkorange|darkorchid|darkred|darksalmon|darkseagreen|darkslateblue|darkslategray|darkslategrey|darkturquoise|darkviolet|deeppink|deepskyblue|dimgray|dimgrey|dodgerblue|firebrick|floralwhite|forestgreen|fuchsia|gainsboro|ghostwhite|gold|goldenrod|gray|green|greenyellow|grey|honeydew|hotpink|indianred|indigo|ivory|khaki|lavender|lavenderblush|lawngreen|lemonchiffon|lightblue|lightcoral|lightcyan|lightgoldenrodyellow|lightgray|lightgreen|lightgrey|lightpink|lightsalmon|lightseagreen|lightskyblue|lightslategray|lightslategrey|lightsteelblue|lightyellow|lime|limegreen|linen|magenta|maroon|mediumaquamarine|mediumblue|mediumorchid|mediumpurple|mediumseagreen|mediumslateblue|mediumspringgreen|mediumturquoise|mediumvioletred|midnightblue|mintcream|mistyrose|moccasin|navajowhite|navy|oldlace|olive|olivedrab|orange|orangered|orchid|palegoldenrod|palegreen|paleturquoise|palevioletred|papayawhip|peachpuff|peru|pink|plum|powderblue|purple|rebeccapurple|rosybrown|royalblue|saddlebrown|salmon|sandybrown|seagreen|seashell|sienna|silver|skyblue|slateblue|slategray|slategrey|snow|springgreen|steelblue|tan|teal|thistle|tomato|turquoise|violet|wheat|white|whitesmoke|yellow|yellowgreen)\b/i
 
 const repoRoot = join(import.meta.dir, '..', '..', '..')
 const built = buildStyleSheets()
@@ -62,5 +72,39 @@ describe('color authoring rules', () => {
       expect(css).not.toMatch(/#[0-9a-f]{3,8}\b/i)
       expect(css).not.toMatch(/\b(rgba?|hsla?)\(/i)
     }
+  })
+
+  // The checks above only see generated output. Hand-written modules are where
+  // a stray `background: pink` actually lands, so scan those too — including
+  // CSS named colours, which read as intentional and survive a hex/rgb grep.
+  it('authors every colour in hand-written CSS as oklch', async () => {
+    const offenders: string[] = []
+
+    for await (const path of new Glob('{app,components,lib}/**/*.css').scan(
+      repoRoot
+    )) {
+      const css = await Bun.file(join(repoRoot, path)).text()
+
+      for (const { groups } of css.matchAll(DECLARATION)) {
+        const property = groups?.property
+        const rawValue = groups?.value
+        if (!(property && rawValue && COLOR_PROPERTY.test(property))) continue
+
+        // `var()` and `url()` payloads are references, not authored colours.
+        const value = rawValue
+          .replace(/var\([^)]*\)/g, '')
+          .replace(/url\([^)]*\)/g, '')
+
+        if (
+          NAMED_COLOR.test(value) ||
+          /#[0-9a-f]{3,8}\b/i.test(value) ||
+          /\b(rgba?|hsla?)\(/i.test(value)
+        ) {
+          offenders.push(`${path}: ${property}: ${rawValue.trim()}`)
+        }
+      }
+    }
+
+    expect(offenders).toEqual([])
   })
 })

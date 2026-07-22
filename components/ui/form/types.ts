@@ -25,7 +25,7 @@ export interface UseFormOptions<T = unknown> {
 export interface UseFormReturn<T = unknown> {
   formState: FormState<T> | null
   formAction: (formData: FormData) => void
-  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void
+  onSubmit: (event: React.SubmitEvent<HTMLFormElement>) => void
   register: (name: string) => {
     ref: (node: HTMLInputElement | HTMLTextAreaElement | null) => void
     onChange: (

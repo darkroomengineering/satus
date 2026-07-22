@@ -22,8 +22,8 @@ export default async function ItemPage({
           <h1 className="text-2xl uppercase">Dynamic route: {item}</h1>
           <p className="max-w-prose opacity-70">
             One reusable shell is prefetched for this route and shown on the way
-            in (see the skeleton). It is identical for every param value —
-            <code> alpha</code>, <code>bravo</code>, and <code>charlie</code>.
+            in (see the skeleton). It is identical for every param value —{' '}
+            <code>alpha</code>, <code>bravo</code>, and <code>charlie</code>.
           </p>
           <Link
             className="underline underline-offset-4"

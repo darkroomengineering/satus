@@ -24,10 +24,13 @@ async function StreamedPanel() {
 
 function PanelSkeleton() {
   return (
-    <div aria-hidden className="w-40 animate-pulse space-y-2">
-      <div className="h-2 rounded bg-current opacity-20" />
-      <div className="h-2 w-3/4 rounded bg-current opacity-20" />
-      <div className="h-2 w-1/2 rounded bg-current opacity-10" />
+    <div role="status" aria-busy="true" className="w-40">
+      <span className="sr-only">Loading panel</span>
+      <div aria-hidden className="animate-pulse space-y-2">
+        <div className="h-2 rounded bg-current opacity-20" />
+        <div className="h-2 w-3/4 rounded bg-current opacity-20" />
+        <div className="h-2 w-1/2 rounded bg-current opacity-10" />
+      </div>
     </div>
   )
 }

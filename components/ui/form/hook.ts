@@ -7,8 +7,8 @@ import {
   useState,
   useTransition,
 } from 'react'
-import { emailSchema, phoneSchema, zodToValidator } from '@/utils/validation'
 import type { FormState } from '@/lib/types/form'
+import { emailSchema, phoneSchema, zodToValidator } from '@/utils/validation'
 import type {
   FieldError,
   FormAction,

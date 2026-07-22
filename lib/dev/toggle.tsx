@@ -46,7 +46,7 @@ export function OrchestraToggle({
         Orchestra.setState((state) => ({ [id]: !state[id] }))
       }}
       style={{
-        backgroundColor: active ? 'rgba(0, 255, 0, 0.5)' : '',
+        backgroundColor: active ? 'oklch(0.8664 0.2948 142.5 / 0.5)' : '',
       }}
       className="grid size-20 place-items-center rounded-[8px] text-[64px]"
       title={id}

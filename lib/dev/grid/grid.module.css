@@ -1,13 +1,13 @@
 .debugger {
   background-image: linear-gradient(
     0deg,
-    rgba(0, 0, 0, 0.1) 50%,
-    rgba(247, 181, 68, 0.1) 50%
+    oklch(0 0 0 / 0.1) 50%,
+    oklch(0.8156 0.146 77.1 / 0.1) 50%
   );
   background-size: var(--gap) var(--gap);
 
   span {
-    background: pink;
+    background: oklch(0.8677 0.0735 7.09);
     opacity: 0.33;
   }
 }

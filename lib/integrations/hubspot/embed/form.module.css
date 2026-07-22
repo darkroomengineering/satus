@@ -1,5 +1,5 @@
 .hubspot-form {
-  --gray: rgba(0, 0, 0, 0.25);
+  --gray: oklch(0 0 0 / 0.25);
   padding: 0 mobile-vw(24px);
 
   @media (--desktop) {

@@ -1,11 +1,13 @@
 const colors = {
-  black: '#000000',
-  white: '#ffffff',
-  red: '#e30613',
-  blue: '#0070f3',
-  green: '#00ff88',
-  purple: '#7928ca',
-  pink: '#ff0080',
+  black: 'oklch(0 0 0)',
+  white: 'oklch(1 0 0)',
+  // Lightness is tuned to 0.592 so the red clears WCAG AA (4.5:1) as text on
+  // both black and white. A single colour can only do that inside a narrow band
+  // peaking at 4.583:1, so this value has almost no slack — check
+  // `lib/styles/scripts/contrast.test.ts` before changing it.
+  red: 'oklch(0.592 0.2339 27.95)',
+  blue: 'oklch(0.5731 0.2145 258.25)',
+  green: 'oklch(0.8763 0.2278 152.55)',
 } as const
 
 const themeNames = ['light', 'dark', 'red', 'evil'] as const

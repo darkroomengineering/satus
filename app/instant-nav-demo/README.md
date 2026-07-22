@@ -10,7 +10,8 @@ starter content and must never merge to `main`.
   after a delay (`connection()` + artificial wait) — partial prerendering
 - `[item]/` — dynamic route that suspends at the top level, so its `loading.tsx`
   shell is shown on the way in and reused identically for every param value
-  (`/instant-nav-demo/alpha`, `/bravo`, `/charlie`)
+  (`/instant-nav-demo/alpha`, `/instant-nav-demo/bravo`,
+  `/instant-nav-demo/charlie`)
 
 Reach it on the preview at `/instant-nav-demo`. Delete this whole folder before
 adopting anything from this branch.

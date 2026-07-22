@@ -4,7 +4,7 @@ const colors = {
   // Lightness is tuned to 0.592 so the red clears WCAG AA (4.5:1) as text on
   // both black and white. A single colour can only do that inside a narrow band
   // peaking at 4.583:1, so this value has almost no slack — check
-  // `contrast.test.ts` before changing it.
+  // `lib/styles/scripts/contrast.test.ts` before changing it.
   red: 'oklch(0.592 0.2339 27.95)',
   blue: 'oklch(0.5731 0.2145 258.25)',
   green: 'oklch(0.8763 0.2278 152.55)',

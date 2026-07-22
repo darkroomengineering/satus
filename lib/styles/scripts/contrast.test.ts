@@ -26,25 +26,16 @@ const AA_NON_TEXT = 3
 /**
  * Pairs that fail today, each `theme/pair` keyed to its measured ratio.
  *
- * Every entry traces to one cause: the brand red resolves to a relative
- * luminance of 0.165, which is 4.30:1 against both black and white — just under
- * AA. A single colour can only clear 4.5:1 in both directions inside a very
- * narrow band peaking at 4.583:1, so this is a palette decision, not a bug to
- * patch token by token. Tracked rather than silenced.
+ * All three are red against a tinted surface. The red clears AA against pure
+ * black and pure white with only ~0.08 to spare, and `--surface` / `--surface-2`
+ * shift the background 4–8% toward the opposite end, which is enough to spend
+ * that margin. Fixing them needs a surface-specific accent rather than another
+ * lightness tweak, so they are tracked rather than silenced.
  */
 const KNOWN_DEBT: Record<string, number> = {
-  'light/contrast on surface-2': 3.85,
-  'dark/contrast on primary': 4.3,
-  'dark/primary on contrast': 4.3,
-  'dark/contrast on surface-2': 4.26,
-  'evil/secondary on primary': 4.3,
-  'evil/primary on secondary': 4.3,
-  'evil/secondary on surface': 4.3,
-  'evil/secondary on surface-2': 4.3,
-  'red/secondary on primary': 4.3,
-  'red/primary on secondary': 4.3,
-  'red/secondary on surface': 3.92,
-  'red/secondary on surface-2': 3.57,
+  'light/contrast on surface-2': 3.62,
+  'red/secondary on surface': 4.17,
+  'red/secondary on surface-2': 3.79,
 }
 
 type Role = 'primary' | 'secondary' | 'contrast'

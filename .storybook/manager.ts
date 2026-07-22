@@ -5,6 +5,8 @@ import { create } from 'storybook/theming'
 // lib/styles/colors.ts (red #e30613, dark = black/white) and --line from
 // global.css. The story canvas tracks the site's CSS tokens live; this manager
 // chrome is build-time JS, so update it here if the brand palette changes.
+// These values intentionally stay hex/rgba: storybook/theming's `create()` runs
+// them through polished, which cannot parse oklch and would crash the manager UI.
 const satus = create({
   base: 'dark',
   brandTitle: 'Satūs',

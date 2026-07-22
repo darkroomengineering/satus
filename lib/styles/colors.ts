@@ -1,11 +1,11 @@
 const colors = {
-  black: '#000000',
-  white: '#ffffff',
-  red: '#e30613',
-  blue: '#0070f3',
-  green: '#00ff88',
-  purple: '#7928ca',
-  pink: '#ff0080',
+  black: 'oklch(0 0 0)',
+  white: 'oklch(1 0 0)',
+  red: 'oklch(0.577 0.2339 27.95)',
+  blue: 'oklch(0.5731 0.2145 258.25)',
+  green: 'oklch(0.8763 0.2278 152.55)',
+  purple: 'oklch(0.4907 0.2275 300.45)',
+  pink: 'oklch(0.6453 0.2603 2.47)',
 } as const
 
 const themeNames = ['light', 'dark', 'red', 'evil'] as const

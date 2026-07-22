@@ -10,7 +10,7 @@
   &.error {
     .input,
     .textarea {
-      border-color: #dc2626;
+      border-color: oklch(0.577 0.2152 27.33);
     }
   }
 
@@ -68,7 +68,7 @@
 
 .errorMessage {
   font-size: 0.75rem;
-  color: #dc2626;
+  color: oklch(0.577 0.2152 27.33);
   margin-top: mobile-vw(2px);
 
   @media (--desktop) {

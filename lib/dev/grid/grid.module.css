@@ -7,7 +7,7 @@
   background-size: var(--gap) var(--gap);
 
   span {
-    background: pink;
+    background: oklch(0.8677 0.0735 7.09);
     opacity: 0.33;
   }
 }

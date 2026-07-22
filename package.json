@@ -16,7 +16,7 @@
     "build": "bun run setup:styles && next build",
     "start": "next start",
     "preview": "bun run build && next start",
-    "prepare": "lefthook install",
+    "prepare": "bun ./lib/scripts/prepare.ts",
     "check": "biome check && bun node_modules/typescript7/bin/tsc --noEmit && bun test && bun run manifest:check",
     "clean": "rm -rf .next node_modules/.cache",
     "lint": "biome lint --max-diagnostics=200",

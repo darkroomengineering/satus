@@ -1,7 +1,7 @@
 import {
   type ChangeEventHandler,
   type FocusEventHandler,
-  type FormEvent,
+  type SubmitEvent,
   useActionState,
   useRef,
   useState,
@@ -93,7 +93,7 @@ export function useForm<T = unknown>({
     Object.values(isValid).every(Boolean) &&
     Object.values(errors).every(({ state }) => !state)
 
-  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const onSubmit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     // Enter-to-submit must respect the same gate as the SubmitButton.

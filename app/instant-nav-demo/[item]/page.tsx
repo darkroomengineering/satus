@@ -17,7 +17,7 @@ export default async function ItemPage({
 
   return (
     <Wrapper theme="dark">
-      <section className="dr-layout-grid min-h-screen content-center py-24 font-mono">
+      <section className="dr-layout-grid min-h-dvh content-center py-24 font-mono">
         <div className="col-span-full dt:col-start-2 dt:col-end-11 flex flex-col gap-6">
           <h1 className="text-2xl uppercase">Dynamic route: {item}</h1>
           <p className="max-w-prose opacity-70">

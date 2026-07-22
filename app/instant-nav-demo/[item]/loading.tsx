@@ -3,7 +3,7 @@ export default function Loading() {
     <div
       role="status"
       aria-busy="true"
-      className="flex min-h-screen flex-col items-center justify-center gap-3 font-mono"
+      className="flex min-h-dvh flex-col items-center justify-center gap-3 font-mono"
     >
       <span className="sr-only">Loading item</span>
       <div className="w-40 animate-pulse space-y-2">

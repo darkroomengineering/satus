@@ -103,7 +103,15 @@ export const INTEGRATION_BUNDLES = defineBundles({
       'next-sanity',
     ],
     devDependencies: ['@sanity/vision', 'sanity'],
-    folders: ['lib/integrations/sanity', 'components/ui/sanity-image'],
+    // The two app/ route folders import from lib/integrations/sanity — they
+    // must live and die with the bundle, or a fork that drops Sanity keeps
+    // routes whose imports no longer exist and fails to build.
+    folders: [
+      'lib/integrations/sanity',
+      'components/ui/sanity-image',
+      'app/(examples)/sanity',
+      'app/studio',
+    ],
     files: ['app/api/draft-mode/enable/route.ts'],
     envVars: [
       'NEXT_PUBLIC_SANITY_PROJECT_ID',

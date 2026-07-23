@@ -5,6 +5,7 @@
  *   ast-transforms/helpers.ts     — shared helpers
  *   ast-transforms/remove-ops.ts  — subtractive operation handlers
  *   ast-transforms/add-ops.ts     — additive operation handlers
+ *   ast-transforms/set-ops.ts     — mutating (overwrite-in-place) operation handlers
  *   ast-transforms/index.ts       — dispatch + disk API
  */
 

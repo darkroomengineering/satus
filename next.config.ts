@@ -93,6 +93,9 @@ const nextConfig: NextConfig = {
         : false,
   },
   cacheComponents: true,
+  // 16.3: shell-based prefetching — the top-level successor to the
+  // experimental.prefetchInlining stepping stone; requires cacheComponents: true.
+  partialPrefetching: true,
   compress: true,
   logging: {
     fetches: {
@@ -103,7 +106,11 @@ const nextConfig: NextConfig = {
   experimental: {
     taint: true,
     cachedNavigations: true,
-    prefetchInlining: true,
+    // 16.3 preview: persistent Turbopack FS cache for `next build` (faster
+    // cached CI/Vercel builds) + the native Rust port of the React Compiler
+    // (pairs with the top-level `reactCompiler: true`). Both experimental.
+    turbopackFileSystemCacheForBuild: true,
+    turbopackRustReactCompiler: true,
     sri: { algorithm: 'sha384' },
     optimizePackageImports: [
       '@react-three/drei',

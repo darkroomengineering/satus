@@ -14,10 +14,11 @@ html {
 }
 
 /*
- * Derived semantic tokens — depth, hairlines, motion.
+ * Derived semantic tokens — depth, hairlines.
  * Surfaces and lines are derived from the active theme's colors via color-mix,
  * so they adapt automatically across every [data-theme] without new palette
  * entries. The red `--color-contrast` doubles as the accent.
+ * Motion durations (`--duration-*`) are Figma-sourced and live in root.css.
  */
 :root {
   --surface: color-mix(
@@ -32,10 +33,6 @@ html {
   );
   --line: color-mix(in oklab, var(--color-secondary) 14%, transparent);
   --line-strong: color-mix(in oklab, var(--color-secondary) 28%, transparent);
-
-  --duration-fast: 200ms;
-  --duration: 400ms;
-  --duration-slow: 800ms;
 }
 
 html.overflow-hidden {

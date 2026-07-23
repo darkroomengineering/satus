@@ -40,14 +40,14 @@
 	--color-secondary: oklch(1 0 0);
 	--color-contrast: oklch(0.592 0.2339 27.95);
 }
-[data-theme=evil] {
-  --color-primary: oklch(0 0 0);
-	--color-secondary: oklch(0.592 0.2339 27.95);
-	--color-contrast: oklch(1 0 0);
-}
 [data-theme=red] {
   --color-primary: oklch(0.592 0.2339 27.95);
 	--color-secondary: oklch(0 0 0);
+	--color-contrast: oklch(1 0 0);
+}
+[data-theme=evil] {
+  --color-primary: oklch(0 0 0);
+	--color-secondary: oklch(0.592 0.2339 27.95);
 	--color-contrast: oklch(1 0 0);
 }
   
@@ -159,8 +159,8 @@
 /** Custom variants **/
 @custom-variant light (&:where([data-theme=light], [data-theme=light] *));
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
-@custom-variant evil (&:where([data-theme=evil], [data-theme=evil] *));
 @custom-variant red (&:where([data-theme=red], [data-theme=red] *));
+@custom-variant evil (&:where([data-theme=evil], [data-theme=evil] *));
 
 /** Custom function utilities **/
 @utility dr-text-* {

@@ -1,0 +1,147 @@
+{
+  "$generatedFrom": "figma",
+  "fileKey": "DqTvmFVFWGEqpuaxrcnWvZ",
+  "primitives": {
+    "black": { "r": 0, "g": 0, "b": 0 },
+    "white": { "r": 1, "g": 1, "b": 1 },
+    "red": {
+      "r": 0.9120299816131592,
+      "g": 0.08732099831104279,
+      "b": 0.10317300260066986,
+      "description": "L tuned to 0.592 so red clears WCAG AA (4.5:1) as text on BOTH black and white — a single hue can only do that in a narrow band peaking at 4.583:1, so almost no slack. Check lib/styles/scripts/contrast.test.ts before changing."
+    },
+    "blue": {
+      "r": 0.00023700000019744039,
+      "g": 0.4392069876194,
+      "b": 0.9529520273208618
+    },
+    "green": { "r": 0, "g": 1, "b": 0.5333470106124878 }
+  },
+  "themes": {
+    "light": {
+      "primary": { "ref": "white" },
+      "secondary": { "ref": "black" },
+      "contrast": { "ref": "red" }
+    },
+    "dark": {
+      "primary": { "ref": "black" },
+      "secondary": { "ref": "white" },
+      "contrast": { "ref": "red" }
+    },
+    "red": {
+      "primary": { "ref": "red" },
+      "secondary": { "ref": "black" },
+      "contrast": { "ref": "white" }
+    },
+    "evil": {
+      "primary": { "ref": "black" },
+      "secondary": { "ref": "red" },
+      "contrast": { "ref": "white" }
+    }
+  },
+  "layout": {
+    "columns": {
+      "mobile": 4,
+      "desktop": 12,
+      "description": "Grid column count. Drives repeat(var(--columns),1fr) and column-based sizing."
+    },
+    "gap": {
+      "mobile": 16,
+      "desktop": 16,
+      "description": "Grid gutter, in design px at the reference device width. Repo emits it as fluid vw."
+    },
+    "safe": {
+      "mobile": 16,
+      "desktop": 16,
+      "description": "Outer safe margin (inline), design px. Repo emits it as fluid vw."
+    }
+  },
+  "screens": {
+    "mobile": { "width": 375, "height": 650 },
+    "desktop": { "width": 1440, "height": 816 }
+  },
+  "customSizes": {
+    "header-height": {
+      "mobile": 58,
+      "desktop": 98,
+      "description": "Header height, design px. Repo emits it as fluid vw (--header-height)."
+    }
+  },
+  "typography": {
+    "h1": {
+      "family": "display",
+      "weight": 700,
+      "fontStyle": "normal",
+      "letterSpacing": "-0.05em",
+      "leadingTrim": "NONE",
+      "fontFeatureSettings": null,
+      "fontSize": { "mobile": 72, "desktop": 120 },
+      "lineHeight": { "mobile": "80%", "desktop": "80%" }
+    },
+    "h2": {
+      "family": "display",
+      "weight": 700,
+      "fontStyle": "normal",
+      "letterSpacing": "-0.03em",
+      "leadingTrim": "NONE",
+      "fontFeatureSettings": null,
+      "fontSize": { "mobile": 32, "desktop": 48 },
+      "lineHeight": { "mobile": "80%", "desktop": "80%" }
+    },
+    "p-big": {
+      "family": "mono",
+      "weight": 400,
+      "fontStyle": "normal",
+      "letterSpacing": "-0.02em",
+      "leadingTrim": "NONE",
+      "fontFeatureSettings": null,
+      "fontSize": { "mobile": 16, "desktop": 20 },
+      "lineHeight": { "mobile": "125%", "desktop": "125%" }
+    },
+    "p": {
+      "family": "mono",
+      "weight": 400,
+      "fontStyle": "normal",
+      "letterSpacing": "-0.01em",
+      "leadingTrim": "NONE",
+      "fontFeatureSettings": null,
+      "fontSize": { "mobile": 12, "desktop": 14 },
+      "lineHeight": { "mobile": "125%", "desktop": "120%" }
+    },
+    "caption": {
+      "family": "mono",
+      "weight": 400,
+      "fontStyle": "normal",
+      "letterSpacing": "-0.01em",
+      "leadingTrim": "NONE",
+      "fontFeatureSettings": null,
+      "fontSize": { "mobile": 8, "desktop": 10 },
+      "lineHeight": { "mobile": "125%", "desktop": "120%" }
+    },
+    "cta": {
+      "family": "mono",
+      "weight": 400,
+      "fontStyle": "normal",
+      "letterSpacing": "-0.01em",
+      "leadingTrim": "NONE",
+      "fontFeatureSettings": null,
+      "fontSize": { "mobile": 12, "desktop": 14 },
+      "lineHeight": { "mobile": "100%", "desktop": "100%" }
+    },
+    "link": {
+      "family": "mono",
+      "weight": 400,
+      "fontStyle": "normal",
+      "letterSpacing": "-0.01em",
+      "leadingTrim": "NONE",
+      "fontFeatureSettings": null,
+      "fontSize": { "mobile": 12, "desktop": 14 },
+      "lineHeight": { "mobile": "125%", "desktop": "120%" }
+    }
+  },
+  "motion": {
+    "duration-fast": 200,
+    "duration": 400,
+    "duration-slow": 800
+  }
+}

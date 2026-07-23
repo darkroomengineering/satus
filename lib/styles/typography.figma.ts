@@ -1,0 +1,77 @@
+/*
+ * GENERATED FROM FIGMA VARIABLES — DO NOT EDIT DIRECTLY.
+ * Source of truth: Figma variables → figma-tokens.json → bun run figma:import. Overrides live in typography.ts.
+ */
+
+export const figmaTypography = {
+  h1: {
+    family: 'display',
+    weight: 700,
+    fontStyle: 'normal',
+    letterSpacing: '-0.05em',
+    leadingTrim: 'NONE',
+    fontFeatureSettings: null,
+    fontSize: { mobile: 72, desktop: 120 },
+    lineHeight: { mobile: '80%', desktop: '80%' },
+  },
+  h2: {
+    family: 'display',
+    weight: 700,
+    fontStyle: 'normal',
+    letterSpacing: '-0.03em',
+    leadingTrim: 'NONE',
+    fontFeatureSettings: null,
+    fontSize: { mobile: 32, desktop: 48 },
+    lineHeight: { mobile: '80%', desktop: '80%' },
+  },
+  'p-big': {
+    family: 'mono',
+    weight: 400,
+    fontStyle: 'normal',
+    letterSpacing: '-0.02em',
+    leadingTrim: 'NONE',
+    fontFeatureSettings: null,
+    fontSize: { mobile: 16, desktop: 20 },
+    lineHeight: { mobile: '125%', desktop: '125%' },
+  },
+  p: {
+    family: 'mono',
+    weight: 400,
+    fontStyle: 'normal',
+    letterSpacing: '-0.01em',
+    leadingTrim: 'NONE',
+    fontFeatureSettings: null,
+    fontSize: { mobile: 12, desktop: 14 },
+    lineHeight: { mobile: '125%', desktop: '120%' },
+  },
+  caption: {
+    family: 'mono',
+    weight: 400,
+    fontStyle: 'normal',
+    letterSpacing: '-0.01em',
+    leadingTrim: 'NONE',
+    fontFeatureSettings: null,
+    fontSize: { mobile: 8, desktop: 10 },
+    lineHeight: { mobile: '125%', desktop: '120%' },
+  },
+  cta: {
+    family: 'mono',
+    weight: 400,
+    fontStyle: 'normal',
+    letterSpacing: '-0.01em',
+    leadingTrim: 'NONE',
+    fontFeatureSettings: null,
+    fontSize: { mobile: 12, desktop: 14 },
+    lineHeight: { mobile: '100%', desktop: '100%' },
+  },
+  link: {
+    family: 'mono',
+    weight: 400,
+    fontStyle: 'normal',
+    letterSpacing: '-0.01em',
+    leadingTrim: 'NONE',
+    fontFeatureSettings: null,
+    fontSize: { mobile: 12, desktop: 14 },
+    lineHeight: { mobile: '125%', desktop: '120%' },
+  },
+} as const

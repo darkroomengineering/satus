@@ -29,7 +29,8 @@
       "!**/*.mdx",
       "!**/tailwind.css",
       "!**/root.css",
-      "!**/*.grit"
+      "!**/*.grit",
+      "!**/*.figma.js"
     ]
   },
 

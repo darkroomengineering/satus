@@ -36,6 +36,7 @@
     "doctor": "bun ./lib/scripts/doctor.ts",
     "contrast:accept": "bun ./lib/styles/scripts/contrast-accept.ts",
     "setup:styles": "bun ./lib/styles/scripts/setup-styles.ts",
+    "figma:import": "bun ./lib/styles/scripts/figma/import.ts",
     "generate": "bun ./lib/scripts/generate.ts",
     "generate:manifest": "bun ./lib/scripts/generate-manifest.ts",
     "manifest:check": "bun ./lib/scripts/generate-manifest.ts --check",

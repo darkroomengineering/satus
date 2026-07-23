@@ -4,9 +4,13 @@ import { formatObject, scalingCalc } from './utils'
 export function generateRoot({
   breakpoints,
   customSizes,
+  durations,
   layout,
   screens,
-}: Pick<Config, 'breakpoints' | 'customSizes' | 'layout' | 'screens'>) {
+}: Pick<
+  Config,
+  'breakpoints' | 'customSizes' | 'durations' | 'layout' | 'screens'
+>) {
   return `@custom-media --hover (hover: hover);
 @custom-media --mobile (width <= ${breakpoints.dt - 0.02}px);
 @custom-media --desktop (width >= ${breakpoints.dt}px);
@@ -23,6 +27,8 @@ export function generateRoot({
   })}
 
 	${formatObject(customSizes, ([name, { mobile }]) => `--${name}: ${scalingCalc(mobile)};`)}
+
+	${formatObject(durations, ([name, ms]) => `--${name}: ${ms}ms;`)}
 
 	--layout-width: calc(100vw - (2 * var(--safe)));
 	--column-width: calc((var(--layout-width) - (var(--columns) - 1) * var(--gap)) / var(--columns));

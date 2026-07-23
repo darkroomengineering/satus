@@ -1,5 +1,6 @@
 import { colors, themeNames, themes } from './colors'
 import { breakpoints, customSizes, layout, screens } from './layout.mjs'
+import { durations } from './motion'
 import { fonts, typography } from './typography'
 
 const config = {
@@ -12,12 +13,14 @@ const config = {
   layout,
   screens,
   typography,
+  durations,
 } as const
 
 export {
   breakpoints,
   colors,
   customSizes,
+  durations,
   fonts,
   layout,
   screens,

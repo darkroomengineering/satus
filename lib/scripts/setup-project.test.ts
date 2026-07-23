@@ -857,6 +857,15 @@ describe('declaredBundlePaths / findMissingPaths (H8 preflight)', () => {
     expect(paths).toContain('app/layout.tsx')
   })
 
+  it('sanity bundle owns every route folder that imports from it', () => {
+    // These routes import from lib/integrations/sanity. If they fall out of
+    // the bundle's folders, a fork that drops Sanity keeps them and fails to
+    // build on module-not-found (the lean-fork build break).
+    const paths = declaredBundlePaths(['sanity'])
+    expect(paths).toContain('app/(examples)/sanity')
+    expect(paths).toContain('app/studio')
+  })
+
   it('declaredBundlePaths is empty for an empty keep set', () => {
     expect(declaredBundlePaths([])).toEqual([])
   })

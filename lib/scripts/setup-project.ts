@@ -615,6 +615,206 @@ const setupAddIntegrations = async (
   return { failures }
 }
 
+// ---------------------------------------------------------------------------
+// Cache Components opt-out (no CMS/storefront kept)
+// ---------------------------------------------------------------------------
+
+/**
+ * Integration ids whose kept presence justifies keeping Cache Components on
+ * — a CMS (sanity) or storefront (shopify) is the kind of project that
+ * benefits from `'use cache'` route caching. When the FINAL kept set
+ * (after `resolveTransitiveKeepSet` expansion) contains neither, the project
+ * is a simple site: Cache Components costs ~30ms/dev request and buys
+ * nothing, and `cacheComponents: true` hard-breaks AWS/SST deploys.
+ *
+ * Do not widen this list without re-verifying the empirical probe this relies
+ * on: disabling `cacheComponents` is only safe because pruning sanity ALSO
+ * removes the `/sanity` route's `'use cache'` directive — that directive is a
+ * hard compile error once `cacheComponents` is off. A kept CMS/storefront
+ * integration could reintroduce a `'use cache'` route, so this condition must
+ * stay exactly "neither sanity nor shopify kept", never loosened.
+ */
+const CACHE_COMPONENTS_WORTH_KEEPING: readonly RemovableId[] = [
+  'sanity',
+  'shopify',
+]
+
+/**
+ * True when the kept integration set has no CMS/storefront — the condition
+ * under which Cache Components should be disabled. Pure and exported for
+ * unit testing (mirrors `shouldSkipConfirm`'s pattern).
+ */
+export const shouldDisableCacheComponents = (
+  keepIntegrations: RemovableId[]
+): boolean =>
+  !keepIntegrations.some((id) => CACHE_COMPONENTS_WORTH_KEEPING.includes(id))
+
+/**
+ * next.config.ts transform that flips Cache Components off.
+ *
+ * Both ops are required together: an empirical `bun run build` probe showed
+ * `experimental.cachedNavigations: true` hard-errors Next's config
+ * validation when `cacheComponents` is false ("`experimental.cachedNavigations`
+ * requires `cacheComponents` to be enabled."). `experimental.prefetchInlining`
+ * was probed too and needs no change — Next's config validation accepts it
+ * fine with `cacheComponents` off.
+ */
+export const CACHE_COMPONENTS_DISABLE_TRANSFORM: CodeTransform = {
+  file: 'next.config.ts',
+  ops: [
+    {
+      kind: 'setObjectProperty',
+      variableName: 'nextConfig',
+      propertyPath: 'cacheComponents',
+      valueText: 'false',
+    },
+    {
+      kind: 'setObjectProperty',
+      variableName: 'nextConfig',
+      propertyPath: 'experimental.cachedNavigations',
+      valueText: 'false',
+    },
+  ],
+}
+
+/**
+ * Anchored doc-sentence replacements so a fork's docs don't claim Cache
+ * Components is enabled after setup just disabled it. Each `anchor` is
+ * matched as an exact substring; when absent (doc since reworded), the file
+ * is skipped with a warning instead of failing the whole setup run over a
+ * doc sentence — see `setupCacheComponentsOptOut`.
+ */
+const CACHE_COMPONENTS_DOC_PATCHES: ReadonlyArray<{
+  file: string
+  anchor: string
+  replacement: string
+}> = [
+  {
+    file: 'AGENTS.md',
+    anchor:
+      'Cache Components are enabled globally (`cacheComponents: true` in `next.config.ts`).',
+    replacement:
+      'Cache Components is disabled in this project (no CMS/storefront integration kept at setup). Re-enable `cacheComponents` in next.config.ts when adding one.',
+  },
+  {
+    file: 'ARCHITECTURE.md',
+    anchor: 'Server Components use advanced caching. Key rules:',
+    replacement:
+      'Cache Components is disabled in this project (no CMS/storefront integration kept at setup). Re-enable `cacheComponents` in next.config.ts when adding one.',
+  },
+]
+
+/**
+ * Replace the first exact occurrence of `anchor` in `content` with
+ * `replacement`. Returns `changed: false` (content returned byte-for-byte
+ * unchanged) when the anchor isn't found. Pure — no I/O — exported for unit
+ * testing.
+ */
+export const replaceAnchoredText = (
+  content: string,
+  anchor: string,
+  replacement: string
+): { text: string; changed: boolean } => {
+  if (!content.includes(anchor)) return { text: content, changed: false }
+  return { text: content.replace(anchor, replacement), changed: true }
+}
+
+/**
+ * True when `configText` has Cache Components off. Pure — exported for unit
+ * testing. Matches any spacing so a hand-edited `cacheComponents:false`
+ * counts, keeping re-runs of setup on an already-disabled fork quiet.
+ */
+export const isCacheComponentsDisabled = (configText: string): boolean =>
+  /cacheComponents\s*:\s*false/.test(configText)
+
+/**
+ * When the final kept set has no CMS/storefront (`shouldDisableCacheComponents`),
+ * flip Cache Components off in next.config.ts and patch the two doc sections
+ * that otherwise claim it's enabled (AGENTS.md, ARCHITECTURE.md). No-op
+ * (nothing printed, nothing written) when a CMS or storefront is kept.
+ *
+ * The docs are only rewritten once the flip is verified on disk — a
+ * next.config.ts the ops don't recognize (renamed `nextConfig`, restructured
+ * config) must not produce docs claiming Cache Components is off while the
+ * config still says otherwise. Dry runs skip that verification (nothing was
+ * written) and report intent only.
+ *
+ * A missing doc anchor only warns — it never fails the setup run.
+ */
+const setupCacheComponentsOptOut = async (
+  keepIntegrations: RemovableId[],
+  dryRun: boolean
+): Promise<{ failures: TransformFailure[] }> => {
+  if (!shouldDisableCacheComponents(keepIntegrations)) {
+    return { failures: [] }
+  }
+
+  const s = p.spinner()
+  s.start('Disabling Cache Components (no CMS/storefront kept)...')
+
+  const { failures } = await applyCodeTransforms(
+    [CACHE_COMPONENTS_DISABLE_TRANSFORM],
+    dryRun
+  )
+
+  // Verify the flip landed before rewriting docs to claim it did. A zero
+  // change count alone is ambiguous — it also occurs on the (fine) re-run
+  // where a previous setup already disabled it — so read the file instead.
+  if (!dryRun) {
+    const configPath = resolvePath('next.config.ts')
+    const configText = (await pathExists(configPath))
+      ? await Bun.file(configPath).text()
+      : ''
+    if (!isCacheComponentsDisabled(configText)) {
+      s.stop(
+        'Could not disable Cache Components — next.config.ts shape not recognized; docs left as-is'
+      )
+      failures.push({
+        file: 'next.config.ts',
+        error:
+          'setObjectProperty found no `cacheComponents` property on `nextConfig` to flip — disable it manually (and `experimental.cachedNavigations` with it)',
+      })
+      return { failures }
+    }
+  }
+
+  for (const { file, anchor, replacement } of CACHE_COMPONENTS_DOC_PATCHES) {
+    try {
+      const fullPath = resolvePath(file)
+      if (!(await pathExists(fullPath))) continue
+
+      const original = await Bun.file(fullPath).text()
+      const { text, changed } = replaceAnchoredText(
+        original,
+        anchor,
+        replacement
+      )
+
+      if (!changed) {
+        p.log.warn(
+          `Could not find the Cache Components sentence to update in ${file} — leaving it as-is.`
+        )
+        continue
+      }
+
+      if (!dryRun) {
+        await Bun.write(fullPath, text)
+      }
+    } catch (error) {
+      failures.push({
+        file,
+        error: error instanceof Error ? error.message : String(error),
+      })
+    }
+  }
+
+  s.stop(
+    'Cache Components disabled (no CMS/storefront kept) — re-enable in next.config.ts if this project adds one'
+  )
+
+  return { failures }
+}
+
 /**
  * Mutate the in-memory package.json object to remove the `setup:project` and
  * `test:setup` script entries, and delete the setup script files from disk.
@@ -738,17 +938,20 @@ const selfPrune = async (
  *   6. setupLean — strip ALL integrations (mutates in-memory pkg)
  *   7. Write package.json (dep removal applied). Must happen BEFORE
  *      setupAddIntegrations so the snapshot re-add sees a consistent lockfile
- *      target; this is NOT the final write — see step 10.
+ *      target; this is NOT the final write — see step 11.
  *   8. setupAddIntegrations — re-add the kept set from the snapshot
  *   9. snapshot.cleanup()
- *  10. selfPrune — delete setup files (including this script) and mutate
+ *  10. setupCacheComponentsOptOut — when the final kept set has neither
+ *      sanity nor shopify, flip `cacheComponents` off in next.config.ts and
+ *      patch the docs that claim it's enabled. No-op otherwise.
+ *  11. selfPrune — delete setup files (including this script) and mutate
  *      pkg.scripts in-memory, THEN a second package.json write to persist
  *      the scripts removal. This is deliberately the LAST mutating step:
  *      running it only after setupAddIntegrations has completed
  *      successfully means any failure in steps 3–8 leaves
  *      lib/scripts/setup-project.ts (and its package.json script entry)
  *      intact, so the run can simply be repeated (H8).
- *  11. bun install (unless --skip-install). Non-fatal on failure (M5): a
+ *  12. bun install (unless --skip-install). Non-fatal on failure (M5): a
  *      registry/offline error is reported and surfaced to the caller via
  *      the returned `installFailed` flag, but does not undo or block the
  *      steps above — the setup itself already succeeded by this point.
@@ -804,7 +1007,7 @@ const setup = async (
 
   // 5. Read package.json ONCE into memory. The dep-removal mutator operates
   //    on this object; selfPrune's script removal is applied to the same
-  //    object later (step 10) and persisted with its own write, so this
+  //    object later (step 11) and persisted with its own write, so this
   //    object stays the single source of truth throughout.
   const pkgPath = resolvePath('package.json')
   const pkg = (await Bun.file(pkgPath).json()) as PackageJson
@@ -816,7 +1019,7 @@ const setup = async (
   // 7. Write package.json (dep removal applied). Runs before
   //    setupAddIntegrations so the re-add's dependency pins land on a
   //    consistent base; the scripts removal from selfPrune is persisted by
-  //    a second write at step 10, after setupAddIntegrations succeeds.
+  //    a second write at step 11, after setupAddIntegrations succeeds.
   if (!dryRun) {
     await Bun.write(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
   }
@@ -839,7 +1042,15 @@ const setup = async (
     }
   }
 
-  // 10. Self-prune: delete setup files (including this script), mutate
+  // 10. When the final kept set has no CMS/storefront, disable Cache
+  //     Components in next.config.ts and patch the docs claiming it's
+  //     enabled. No-op otherwise. Runs after the kept set is fully re-added
+  //     (so a re-added integration's own transforms aren't clobbered) and
+  //     before selfPrune (so a failure here still leaves the setup script
+  //     repeatable, per H8).
+  const cacheResult = await setupCacheComponentsOptOut(keepIntegrations, dryRun)
+
+  // 11. Self-prune: delete setup files (including this script), mutate
   //     pkg.scripts in-memory, and persist that with a second package.json
   //     write. Deliberately last — see the docstring above.
   await selfPrune(pkg, dryRun)
@@ -847,7 +1058,7 @@ const setup = async (
     await Bun.write(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
   }
 
-  // 11. Run bun install to update the lockfile. Non-fatal: an offline /
+  // 12. Run bun install to update the lockfile. Non-fatal: an offline /
   //     registry failure is reported but does not mask the setup steps
   //     above having already succeeded.
   let installFailed = false
@@ -868,7 +1079,11 @@ const setup = async (
 
   return {
     installFailed,
-    transformFailures: [...leanResult.failures, ...addFailures],
+    transformFailures: [
+      ...leanResult.failures,
+      ...addFailures,
+      ...cacheResult.failures,
+    ],
   }
 }
 

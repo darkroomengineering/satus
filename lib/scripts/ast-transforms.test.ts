@@ -233,6 +233,123 @@ export async function POST(request: NextRequest) {
 })
 
 // ---------------------------------------------------------------------------
+// setObjectProperty
+// ---------------------------------------------------------------------------
+
+describe('setObjectProperty', () => {
+  const cacheConfigFixture = `const nextConfig: NextConfig = {
+  cacheComponents: true,
+  experimental: {
+    cachedNavigations: true,
+    prefetchInlining: true,
+  },
+}
+
+export default nextConfig
+`
+
+  it('overwrites a top-level property value and is idempotent', () => {
+    const op: AstOperation = {
+      kind: 'setObjectProperty',
+      variableName: 'nextConfig',
+      propertyPath: 'cacheComponents',
+      valueText: 'false',
+    }
+    const result = applyOpsToText(cacheConfigFixture, [op])
+
+    expect(result).toContain('cacheComponents: false')
+    expect(result).not.toContain('cacheComponents: true')
+    // Setting the same value twice is a byte-for-byte no-op.
+    expect(applyOpsToText(result, [op])).toBe(result)
+  })
+
+  it('overwrites a nested property value via a dotted path, leaving siblings intact', () => {
+    const result = applyOpsToText(cacheConfigFixture, [
+      {
+        kind: 'setObjectProperty',
+        variableName: 'nextConfig',
+        propertyPath: 'experimental.cachedNavigations',
+        valueText: 'false',
+      },
+    ])
+
+    expect(result).toContain('cachedNavigations: false')
+    expect(result).toContain('prefetchInlining: true')
+    expect(result).toContain('cacheComponents: true')
+  })
+
+  it('is an exact no-op when the final path segment names a missing property', () => {
+    const result = applyOpsToText(cacheConfigFixture, [
+      {
+        kind: 'setObjectProperty',
+        variableName: 'nextConfig',
+        propertyPath: 'experimental.doesNotExist',
+        valueText: 'false',
+      },
+    ])
+    expect(result).toBe(cacheConfigFixture)
+  })
+
+  it('is an exact no-op when a parent path segment does not resolve', () => {
+    const result = applyOpsToText(cacheConfigFixture, [
+      {
+        kind: 'setObjectProperty',
+        variableName: 'nextConfig',
+        propertyPath: 'doesNotExist.cachedNavigations',
+        valueText: 'false',
+      },
+    ])
+    expect(result).toBe(cacheConfigFixture)
+  })
+
+  it('is an exact no-op when the variable is missing', () => {
+    const result = applyOpsToText(cacheConfigFixture, [
+      {
+        kind: 'setObjectProperty',
+        variableName: 'otherConfig',
+        propertyPath: 'cacheComponents',
+        valueText: 'false',
+      },
+    ])
+    expect(result).toBe(cacheConfigFixture)
+  })
+
+  it('is an exact no-op when the value already equals the target', () => {
+    const result = applyOpsToText(cacheConfigFixture, [
+      {
+        kind: 'setObjectProperty',
+        variableName: 'nextConfig',
+        propertyPath: 'cacheComponents',
+        valueText: 'true',
+      },
+    ])
+    expect(result).toBe(cacheConfigFixture)
+  })
+
+  it('applies two ops in sequence — the cacheComponents opt-out pairing', () => {
+    const result = applyOpsToText(cacheConfigFixture, [
+      {
+        kind: 'setObjectProperty',
+        variableName: 'nextConfig',
+        propertyPath: 'cacheComponents',
+        valueText: 'false',
+      },
+      {
+        kind: 'setObjectProperty',
+        variableName: 'nextConfig',
+        propertyPath: 'experimental.cachedNavigations',
+        valueText: 'false',
+      },
+    ])
+
+    expect(result).toContain('cacheComponents: false')
+    expect(result).toContain('cachedNavigations: false')
+    // prefetchInlining is deliberately left untouched (probed separately).
+    expect(result).toContain('prefetchInlining: true')
+  })
+})
+
+// ---------------------------------------------------------------------------
 // addImport
 // ---------------------------------------------------------------------------
 

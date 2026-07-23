@@ -33,6 +33,7 @@ import {
   applyRemoveVariableStatement,
   applyReplaceJsDoc,
 } from './remove-ops'
+import { applySetObjectProperty } from './set-ops'
 
 // ---------------------------------------------------------------------------
 // Per-file transform runner
@@ -104,6 +105,9 @@ export function applyOpsToText(
         break
       case 'removeArrayStringElement':
         text = applyRemoveArrayStringElement(project, text, op)
+        break
+      case 'setObjectProperty':
+        text = applySetObjectProperty(project, text, op)
         break
       case 'addImport':
         text = applyAddImport(project, text, op)

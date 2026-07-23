@@ -18,12 +18,16 @@ import {
   INTEGRATION_BUNDLES,
 } from './integration-bundles'
 import {
+  CACHE_COMPONENTS_DISABLE_TRANSFORM,
   collectSelfPruneTestFiles,
   declaredBundlePaths,
   findMissingPaths,
+  isCacheComponentsDisabled,
   PROJECT_PRESETS,
+  replaceAnchoredText,
   resolveTransitiveKeepSet,
   SELF_PRUNE_KEEP_TEST_FILES,
+  shouldDisableCacheComponents,
   shouldSkipConfirm,
 } from './setup-project'
 import { getFlagValue } from './utils'
@@ -1015,5 +1019,179 @@ describe('shouldSkipConfirm (H6 — --yes gating)', () => {
     expect(
       shouldSkipConfirm({ yes: false, hasFlags: true, isTTY: false })
     ).toBe(true)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Cache Components opt-out (no CMS/storefront kept)
+//
+// `setupCacheComponentsOptOut` itself does real disk I/O keyed off
+// `process.cwd()` (via `resolvePath`), and this repo's test harness has no
+// fixture-project-tree mechanism to redirect that safely — every other test
+// in this file exercises pure/exported helpers rather than spinning up a
+// fake project directory. These tests cover the same four keep-set cases
+// (a–d from the plan) at the level this harness actually supports: the pure
+// decision function, the exact production config transform (applied
+// in-memory via `applyOpsToText`, exactly as `applyCodeTransforms` would),
+// and the pure doc-anchor replacement against the REAL current doc sentences
+// (a regression check that the anchors haven't silently gone stale).
+// ---------------------------------------------------------------------------
+
+describe('shouldDisableCacheComponents', () => {
+  it('(a) is true for a lean keep set (no integrations)', () => {
+    expect(shouldDisableCacheComponents([])).toBe(true)
+  })
+
+  it('(b) is false when shopify is kept', () => {
+    expect(shouldDisableCacheComponents(['shopify'])).toBe(false)
+  })
+
+  it('(c) is false when sanity is kept', () => {
+    expect(shouldDisableCacheComponents(['sanity'])).toBe(false)
+  })
+
+  it('(d) is true when only hubspot (no CMS/storefront) is kept', () => {
+    expect(shouldDisableCacheComponents(['hubspot'])).toBe(true)
+  })
+
+  it('is false when sanity is kept alongside other non-CMS integrations', () => {
+    expect(
+      shouldDisableCacheComponents(['sanity', 'hubspot', 'mailchimp'])
+    ).toBe(false)
+  })
+
+  it('is true when every kept integration is neither sanity nor shopify', () => {
+    expect(
+      shouldDisableCacheComponents(['hubspot', 'mailchimp', 'turnstile'])
+    ).toBe(true)
+  })
+})
+
+describe('CACHE_COMPONENTS_DISABLE_TRANSFORM (production ops applied to a next.config-shaped fixture)', () => {
+  const nextConfigFixture = `const nextConfig: NextConfig = {
+  cacheComponents: true,
+  experimental: {
+    taint: true,
+    cachedNavigations: true,
+    prefetchInlining: true,
+  },
+}
+
+export default nextConfig
+`
+
+  it('flips cacheComponents and experimental.cachedNavigations to false, leaving other flags untouched', () => {
+    const result = applyOpsToText(
+      nextConfigFixture,
+      CACHE_COMPONENTS_DISABLE_TRANSFORM.ops
+    )
+
+    expect(result).toContain('cacheComponents: false')
+    expect(result).not.toContain('cacheComponents: true')
+    expect(result).toContain('cachedNavigations: false')
+    // Probed separately as not requiring cacheComponents — left untouched.
+    expect(result).toContain('prefetchInlining: true')
+    expect(result).toContain('taint: true')
+  })
+
+  it('is idempotent — applying twice yields the same result', () => {
+    const once = applyOpsToText(
+      nextConfigFixture,
+      CACHE_COMPONENTS_DISABLE_TRANSFORM.ops
+    )
+    const twice = applyOpsToText(once, CACHE_COMPONENTS_DISABLE_TRANSFORM.ops)
+    expect(twice).toBe(once)
+  })
+
+  it('targets next.config.ts', () => {
+    expect(CACHE_COMPONENTS_DISABLE_TRANSFORM.file).toBe('next.config.ts')
+  })
+})
+
+describe('isCacheComponentsDisabled (docs-vs-config consistency guard)', () => {
+  it('is true after the production transform runs', () => {
+    const nextConfigFixture = `const nextConfig: NextConfig = {
+  cacheComponents: true,
+  experimental: { cachedNavigations: true },
+}
+`
+    const flipped = applyOpsToText(
+      nextConfigFixture,
+      CACHE_COMPONENTS_DISABLE_TRANSFORM.ops
+    )
+    expect(isCacheComponentsDisabled(flipped)).toBe(true)
+  })
+
+  it('is true for hand-edited spacing variants', () => {
+    expect(isCacheComponentsDisabled('cacheComponents:false,')).toBe(true)
+    expect(isCacheComponentsDisabled('cacheComponents : false,')).toBe(true)
+  })
+
+  it('is false when the flip silently no-opped (unrecognized config shape)', () => {
+    // A fork that renamed `nextConfig` — the op finds no variable and
+    // returns the text unchanged; docs must then NOT claim it is disabled.
+    const renamed = `const config: NextConfig = {
+  cacheComponents: true,
+}
+`
+    const result = applyOpsToText(
+      renamed,
+      CACHE_COMPONENTS_DISABLE_TRANSFORM.ops
+    )
+    expect(result).toBe(renamed)
+    expect(isCacheComponentsDisabled(result)).toBe(false)
+  })
+
+  it('is false for an empty/missing config', () => {
+    expect(isCacheComponentsDisabled('')).toBe(false)
+  })
+})
+
+describe('replaceAnchoredText (doc patching)', () => {
+  it('replaces the exact anchor substring and reports changed:true', () => {
+    const content = 'before\nCache Components are enabled globally.\nafter\n'
+    const { text, changed } = replaceAnchoredText(
+      content,
+      'Cache Components are enabled globally.',
+      'Cache Components is disabled in this project.'
+    )
+    expect(changed).toBe(true)
+    expect(text).toBe(
+      'before\nCache Components is disabled in this project.\nafter\n'
+    )
+  })
+
+  it('is an exact no-op (changed:false) when the anchor is absent', () => {
+    const content = 'no matching sentence here\n'
+    const result = replaceAnchoredText(content, 'not present', 'replacement')
+    expect(result.changed).toBe(false)
+    expect(result.text).toBe(content)
+  })
+
+  it("finds the current AGENTS.md sentence claiming Cache Components is enabled (anchor hasn't gone stale)", async () => {
+    const agentsMd = await Bun.file('AGENTS.md').text()
+    const anchor =
+      'Cache Components are enabled globally (`cacheComponents: true` in `next.config.ts`).'
+    const { text, changed } = replaceAnchoredText(
+      agentsMd,
+      anchor,
+      'Cache Components is disabled in this project (no CMS/storefront integration kept at setup). Re-enable `cacheComponents` in next.config.ts when adding one.'
+    )
+    expect(changed).toBe(true)
+    expect(text).not.toContain(anchor)
+    expect(text).toContain('Cache Components is disabled in this project')
+  })
+
+  it("finds the current ARCHITECTURE.md sentence claiming Cache Components is enabled (anchor hasn't gone stale)", async () => {
+    const architectureMd = await Bun.file('ARCHITECTURE.md').text()
+    const anchor = 'Server Components use advanced caching. Key rules:'
+    const { text, changed } = replaceAnchoredText(
+      architectureMd,
+      anchor,
+      'Cache Components is disabled in this project (no CMS/storefront integration kept at setup). Re-enable `cacheComponents` in next.config.ts when adding one.'
+    )
+    expect(changed).toBe(true)
+    expect(text).not.toContain(anchor)
+    expect(text).toContain('Cache Components is disabled in this project')
   })
 })

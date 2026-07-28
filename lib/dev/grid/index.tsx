@@ -21,10 +21,8 @@ export function GridDebugger({
       <div className={cn(gridClassName, 'absolute inset-0', s.debugger)}>
         {Array.from({ length: columns }).map((_, index) => (
           <span
-            key={`column-${
-              // biome-ignore lint/suspicious/noArrayIndexKey: grid columns are static
-              index
-            }`}
+            // oxlint-disable-next-line react/no-array-index-key -- grid columns are static
+            key={`column-${index}`}
           />
         ))}
       </div>

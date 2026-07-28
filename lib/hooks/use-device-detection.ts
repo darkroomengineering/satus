@@ -81,7 +81,7 @@ export function useDeviceDetection() {
   useEffect(() => {
     setIsSafari(detectIsSafari())
     setSupportsWebGL(detectSupportsWebGL())
-    detectIsAutoplaySupported().then(setIsAutoplaySupported)
+    void detectIsAutoplaySupported().then(setIsAutoplaySupported)
   }, [])
 
   const isWebGL = supportsWebGL && isDesktop

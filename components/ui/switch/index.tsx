@@ -60,7 +60,7 @@ function Switch({ label, labelClassName, ...props }: SwitchProps) {
   }
 
   return (
-    // biome-ignore lint/a11y/noLabelWithoutControl: Base UI switch is wrapped in label for accessibility
+    // oxlint-disable-next-line jsx-a11y/label-has-associated-control -- Base UI switch is wrapped in label for accessibility
     <label className={cn(s.container, labelClassName)}>
       <SwitchControl {...props} />
       <span className={s.label}>{label}</span>

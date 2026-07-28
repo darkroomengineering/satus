@@ -105,7 +105,7 @@ export function Form<T = unknown>({
     if (formState.status === 200) {
       onSuccess?.(formState as FormState<T>)
       // Reset form after success
-      mutate(() => {
+      void mutate(() => {
         resetTimer = setTimeout(() => {
           setKey(crypto.randomUUID())
         }, 2000)

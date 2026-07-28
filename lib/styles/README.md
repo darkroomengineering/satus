@@ -17,8 +17,9 @@ Reach for the lightest tool that does the job. In rough order of preference:
 | **Inline `style`** | **Only** dynamic runtime values (a computed `--progress`) | `style={{ '--p': pct } as CSSProperties}` |
 
 Rules of thumb: never hand-write spacing/colors Tailwind already gives you;
-animate only `transform`/`opacity`; compose classes with `cn()` (from `clsx`),
-and keep classes **sorted** (Biome enforces `useSortedClasses`).
+animate only `transform`/`opacity`; compose classes with `cn()` (from `clsx`).
+Class order isn't something you manage — `oxfmt` sorts classes automatically
+when you format (or save), so it's no longer a lint rule.
 
 ## A component using all three
 
@@ -148,4 +149,4 @@ are **generated** by `bun setup:styles`. Hand-edits are overwritten on the next 
 
 - **Tokens missing / `var(--color-*)` resolves to nothing, `dr-*` classes do nothing, or `mobile-vw()` is left unparsed** — the generated CSS is stale. `bun dev` runs the generator in **watch mode** and `bun run build` runs it first, so this normally self-heals; if the watcher isn't running (CI, a one-off script, or it didn't pick up a change), regenerate manually with `bun setup:styles`.
 - **A token edit "didn't apply"** — confirm you changed the source in `lib/styles/*`, not the generated `css/*`, then re-run `bun setup:styles`.
-- **Unsorted-class lint error** — let Biome fix it: `bun lint:fix`.
+- **Classes look unsorted** — not a lint error anymore. Run `bun run format` (or save with the oxc extension) to sort them.

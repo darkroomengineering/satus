@@ -22,15 +22,17 @@ export function useTheatreObject(
   // without reading/writing refs during render (which the compiler can't track).
   const configKey = JSON.stringify(config)
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: deps spread is intentional
+  // oxlint-disable-next-line react/exhaustive-deps -- deps spread is intentional
   useEffect(() => {
     if (!sheet) return
 
+    // oxlint-disable-next-line react/exhaustive-deps -- config is intentionally read once on mount
     setObject(sheet?.object(theatreKey, config, { reconfigure: true }))
 
     return () => {
       sheet.detachObject(theatreKey)
     }
+    // oxlint-disable-next-line react/exhaustive-deps -- complex dependency expression is intentional
   }, [configKey, sheet, theatreKey, ...deps])
 
   return object
@@ -74,6 +76,7 @@ export function useTheatre<Config extends UnknownShorthandCompoundProps>(
     }
 
     return undefined
+    // oxlint-disable-next-line react/exhaustive-deps -- complex dependency expression is intentional
   }, [object, lazy, ...deps])
 
   const studio = useStudio()

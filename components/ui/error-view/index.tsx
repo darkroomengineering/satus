@@ -18,7 +18,7 @@ interface ErrorViewProps {
 }
 
 const DEFAULT_HOME_LINK = (
-  // biome-ignore lint: global-error renders outside the router, so the Link component cannot be used here
+  // oxlint-disable-next-line react/forbid-elements, nextjs/no-html-link-for-pages -- global-error renders outside the router, so the Link component cannot be used here
   <a
     href="/"
     className="rounded border border-gray-300 px-6 py-3 transition-colors hover:bg-gray-50"

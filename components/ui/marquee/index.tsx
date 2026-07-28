@@ -86,6 +86,7 @@ export function Marquee({
   })
 
   return (
+    // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- hover-to-pause is a progressive enhancement; marquee content stays readable without it
     <section
       ref={setIntersectionRef}
       className={cn(className, s.marquee)}
@@ -101,12 +102,10 @@ export function Marquee({
       }}
       {...props}
     >
-      {new Array(repeat).fill(children).map((_, i) => (
+      {Array.from({ length: repeat }).fill(children).map((_, i) => (
         <div
-          key={`marquee-item-${
-            // biome-ignore lint/suspicious/noArrayIndexKey: i can't come up with anything better tbh
-            i
-          }`}
+          // oxlint-disable-next-line react/no-array-index-key -- i can't come up with anything better tbh
+          key={`marquee-item-${i}`}
           className={s.inner}
           aria-hidden={i !== 0}
           data-nosnippet={i !== 0 ? '' : undefined}

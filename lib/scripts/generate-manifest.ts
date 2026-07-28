@@ -120,7 +120,7 @@ function getExportedSignatures(
 // Read tsconfig paths
 // ---------------------------------------------------------------------------
 
-function readTsconfigPaths(): Array<{ alias: string; mapsTo: string }> {
+function readTsconfigPaths(): { alias: string; mapsTo: string }[] {
   // ts-morph reads tsconfig with the TypeScript compiler's JSONC parser, so
   // comments and trailing commas are handled correctly.
   const project = new Project({

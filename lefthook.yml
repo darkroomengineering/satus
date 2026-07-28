@@ -5,9 +5,15 @@
 pre-commit:
   parallel: true
   commands:
-    biome:
-      glob: '*.{js,mjs,ts,jsx,tsx,css,scss}'
-      run: bun biome check --max-diagnostics=200 --write --unsafe {staged_files}
+    # Format then lint, sequentially inside ONE command, so the two binaries
+    # never write the same file concurrently. --no-error-on-unmatched-pattern
+    # is required: oxlint exits 1 on a docs- or CSS-only commit, where none of
+    # the staged files are JS/TS for it to lint.
+    # --type-aware is deliberately absent; it runs in `bun run check` and CI so
+    # that commits stay fast.
+    oxc:
+      glob: '*.{js,mjs,cjs,ts,tsx,jsx,css,json,jsonc,md,yml,yaml,toml}'
+      run: bun oxfmt --no-error-on-unmatched-pattern {staged_files} && bun oxlint --fix --max-warnings=0 --no-error-on-unmatched-pattern {staged_files}
       stage_fixed: true
     typecheck:
       glob: '*.{ts,tsx}'

@@ -533,14 +533,14 @@ const main = async (): Promise<void> => {
       generated.push('  - README.original.md (backup, gitignored)')
     }
     p.note(
-      (generated.length
+      `${generated.length
         ? `Generated files:\n${generated.join('\n')}\n\n`
-        : '') +
-        'Next steps:\n' +
-        '  1. Review generated files\n' +
-        '  2. Update README with project-specific info\n' +
-        '  3. Complete the deployment checklist\n' +
-        '  4. Push to client repository',
+        : '' 
+        }Next steps:\n` +
+        `  1. Review generated files\n` +
+        `  2. Update README with project-specific info\n` +
+        `  3. Complete the deployment checklist\n` +
+        `  4. Push to client repository`,
       'Handoff complete!'
     )
     p.outro('Ready for client delivery!')

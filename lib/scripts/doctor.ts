@@ -17,6 +17,53 @@ interface Check {
   fix?: string
 }
 
+/**
+ * JSON.parse, tolerant of `//` and `/* *\/` comments. oxlint explicitly allows
+ * comments in .oxlintrc.json, and this repo uses them to record why individual
+ * rules are disabled, so a plain JSON.parse would report a false failure.
+ */
+function parseJsonc(source: string): unknown {
+  let out = ''
+  let inString = false
+  let escaped = false
+
+  for (let i = 0; i < source.length; i++) {
+    const char = source[i]
+
+    if (inString) {
+      out += char
+      if (escaped) escaped = false
+      else if (char === '\\') escaped = true
+      else if (char === '"') inString = false
+      continue
+    }
+
+    if (char === '"') {
+      inString = true
+      out += char
+      continue
+    }
+
+    if (char === '/' && source[i + 1] === '/') {
+      while (i < source.length && source[i] !== '\n') i++
+      out += '\n'
+      continue
+    }
+
+    if (char === '/' && source[i + 1] === '*') {
+      i += 2
+      while (i < source.length && !(source[i] === '*' && source[i + 1] === '/'))
+        i++
+      i++
+      continue
+    }
+
+    out += char
+  }
+
+  return JSON.parse(out)
+}
+
 const colors = {
   green: (s: string) => `\x1b[32m${s}\x1b[0m`,
   red: (s: string) => `\x1b[31m${s}\x1b[0m`,
@@ -38,8 +85,7 @@ const checks: Check[] = [
     name: 'Bun installed',
     check: () => {
       try {
-        Bun.version
-        return true
+        return typeof Bun.version === 'string'
       } catch {
         return false
       }
@@ -84,17 +130,17 @@ const checks: Check[] = [
     fix: 'Ensure next.config.ts exists',
   },
   {
-    name: 'Biome config valid',
+    name: 'Oxc config valid',
     check: () => {
       try {
-        const biome = readFileSync(join(ROOT, 'biome.json'), 'utf-8')
-        JSON.parse(biome)
+        parseJsonc(readFileSync(join(ROOT, '.oxlintrc.json'), 'utf-8'))
+        parseJsonc(readFileSync(join(ROOT, '.oxfmtrc.json'), 'utf-8'))
         return true
       } catch {
         return false
       }
     },
-    fix: 'Check biome.json for syntax errors',
+    fix: 'Check .oxlintrc.json and .oxfmtrc.json for syntax errors, or regenerate with: bunx oxlint --init',
   },
   {
     name: 'Generated styles exist',
@@ -174,4 +220,4 @@ async function runDoctor() {
   process.exit(failed > 0 ? 1 : 0)
 }
 
-runDoctor()
+void runDoctor()

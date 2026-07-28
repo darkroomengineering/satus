@@ -193,7 +193,7 @@ export function CheckboxesField({
       />
       <div className={s.options}>
         {options.map(({ label: optionLabel, value }) => (
-          // biome-ignore lint/a11y/noLabelWithoutControl: Base UI checkbox is wrapped in label for accessibility
+          // oxlint-disable-next-line jsx-a11y/label-has-associated-control -- Base UI checkbox is wrapped in label for accessibility
           <label
             key={value}
             className={cn(s.option, selected.includes(value) && s.selected)}

@@ -115,10 +115,12 @@ export async function shopifyFetch<T = Record<string, unknown>>({
     }
   } catch (e) {
     // Handle both cache expiry aborts and timeouts
-    if (e instanceof Error && e.name === 'AbortError') {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Shopify request aborted (cache expired or timeout)')
-      }
+    if (
+      e instanceof Error &&
+      e.name === 'AbortError' &&
+      process.env.NODE_ENV === 'development'
+    ) {
+      console.log('Shopify request aborted (cache expired or timeout)')
     }
 
     const message = e instanceof Error ? e.message : 'Unknown error'

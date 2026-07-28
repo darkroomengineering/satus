@@ -56,7 +56,7 @@ export function applyOpsToText(
   const project = new Project({
     useInMemoryFileSystem: true,
     compilerOptions: { jsx: ts.JsxEmit.ReactJSX },
-    // Match house style (Biome: 2-space indent, single quotes) so additive
+    // Match house style (oxfmt: 2-space indent, single quotes) so additive
     // ops insert text that needs no reformatting.
     manipulationSettings: {
       indentationText: IndentationText.TwoSpaces,

@@ -15,7 +15,7 @@ bun dev
 | `bun dev` | Development server |
 | `bun run build` | Production build |
 | `bun lint` | Run linter |
-| `bun run check` | Run biome + typecheck + tests |
+| `bun run check` | Run oxlint + oxfmt --check + type-aware lint + typecheck + tests + manifest check |
 | `bun setup:styles` | Regenerate CSS |
 
 ## Tech Stack

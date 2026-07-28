@@ -67,7 +67,7 @@ export function Theme({
     setCurrentTheme(theme)
   }
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: we need to trigger on path change
+  // oxlint-disable-next-line react/exhaustive-deps -- we need to trigger on path change
   useEffect(() => {
     if (global) {
       document.documentElement.setAttribute('data-theme', currentTheme)

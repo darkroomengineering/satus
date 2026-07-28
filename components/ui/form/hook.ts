@@ -123,6 +123,7 @@ export function useForm<T = unknown>({
 
     const elementType =
       element instanceof HTMLInputElement ? element.type : 'textarea'
+    // oxlint-disable-next-line eslint/no-use-before-define -- validators is a module-scope const; validate() only runs after module init
     const validator = resolveValidator(validators, {
       name: element.name,
       id: element.id,

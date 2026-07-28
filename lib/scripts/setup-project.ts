@@ -232,7 +232,7 @@ const updateEnvExample = async (
  * Update barrel exports to remove references to deleted components
  */
 const updateBarrelExports = async (
-  barrelExports: Array<{ file: string; pattern: string }>,
+  barrelExports: { file: string; pattern: string }[],
   dryRun: boolean
 ): Promise<number> => {
   let totalChanges = 0
@@ -483,7 +483,7 @@ const setupLean = async (
   const allDeps: string[] = []
   const allDevDeps: string[] = []
   const allEnvVars: string[] = []
-  const allBarrelExports: Array<{ file: string; pattern: string }> = []
+  const allBarrelExports: { file: string; pattern: string }[] = []
 
   for (const name of integrationNames) {
     // name: BundleId → access is always total
@@ -684,11 +684,11 @@ export const CACHE_COMPONENTS_DISABLE_TRANSFORM: CodeTransform = {
  * is skipped with a warning instead of failing the whole setup run over a
  * doc sentence — see `setupCacheComponentsOptOut`.
  */
-const CACHE_COMPONENTS_DOC_PATCHES: ReadonlyArray<{
+const CACHE_COMPONENTS_DOC_PATCHES: readonly {
   file: string
   anchor: string
   replacement: string
-}> = [
+}[] = [
   {
     file: 'AGENTS.md',
     anchor:
@@ -896,10 +896,8 @@ const selfPrune = async (
     }
   }
 
-  if (dryRun) {
-    if (scriptsRemoved.length > 0) {
-      p.log.message(`  Would remove scripts: ${scriptsRemoved.join(', ')}`)
-    }
+  if (dryRun && scriptsRemoved.length > 0) {
+    p.log.message(`  Would remove scripts: ${scriptsRemoved.join(', ')}`)
   }
 
   s.stop(

@@ -63,7 +63,7 @@ function WebGLImageMesh({ src, rect, visible = true }: WebGLImageMeshProps) {
   // src it has ever been asked to load; this effect only clears the
   // material's reference to it, on src change and on unmount, so the
   // material never points at a stale/replaced texture.
-  // biome-ignore lint/correctness/useExhaustiveDependencies(src): `src` is deliberately a dependency — the cleanup must re-run on src change so the material never keeps a stale texture reference.
+  // oxlint-disable-next-line react/exhaustive-deps -- `src` is deliberately a dependency — the cleanup must re-run on src change so the material never keeps a stale texture reference.
   useEffect(() => {
     return () => {
       material.map = null

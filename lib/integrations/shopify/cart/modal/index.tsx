@@ -202,14 +202,18 @@ function Quantity({ className, payload }: QuantityProps) {
   return (
     <div className={className}>
       <QuantityButton
-        formAction={() => formAction('minus')}
+        formAction={() => {
+          void formAction('minus')
+        }}
         aria-label="Decrease quantity"
       >
         -
       </QuantityButton>
       <span>{payload.quantity}</span>
       <QuantityButton
-        formAction={() => formAction('plus')}
+        formAction={() => {
+          void formAction('plus')
+        }}
         aria-label="Increase quantity"
       >
         +

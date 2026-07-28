@@ -13,7 +13,7 @@ This is the **single source of truth** for engineering standards in this repo. C
 | Language | TypeScript 6, `strict: true` |
 | Styling | Tailwind v4 (CSS-first) + CSS Modules |
 | Runtime | Bun |
-| Linter / Formatter | Biome |
+| Linter / Formatter | oxlint + oxfmt |
 | Validation | Zod |
 | Animation | Lenis, GSAP, Tempus |
 | 3D (optional) | React Three Fiber, `@react-three/drei` |
@@ -22,27 +22,29 @@ This is the **single source of truth** for engineering standards in this repo. C
 
 ## Enforced Rules (CI fails without these)
 
-These are non-negotiable. Each is enforced by Biome or TypeScript; the build or pre-commit hook will fail on violation.
+These are non-negotiable. Each is enforced by oxlint or TypeScript; the build or pre-commit hook will fail on violation.
 
-### Biome lint rules
+### oxlint rules
 
 | Rule | What it catches | Enforcer |
 |------|----------------|---------|
-| `noExplicitAny` | `any` types | Biome `suspicious` |
-| `useImportType` | Missing `import type` for type-only imports | Biome `style` (`.ts`/`.tsx`) |
-| `useExportType` | Missing `export type` for type-only re-exports | Biome `style` (`.ts`/`.tsx`) |
-| `useSortedClasses` | Unsorted Tailwind classes in `className`, `class`, `cn()`, `clsx()` | Biome `nursery` |
-| `noImgElement` | Raw `<img>` tags (use `@/components/ui/image`) | Biome `performance` |
-| `no-anchor-element` | Raw `<a>` tags (use `@/components/ui/link`) | Biome plugin |
-| `no-relative-parent-imports` | `../` parent imports (use `@/` aliases) | Biome plugin |
-| `no-unnecessary-forwardref` | `forwardRef` wrappers (React 19 ref-as-prop) | Biome plugin |
-| `noUnusedImports` | Unused imports | Biome `correctness` |
-| `noUnusedVariables` | Unused variables | Biome `correctness` |
-| `useJsxKeyInIterable` | Missing `key` in list renders | Biome `correctness` (`.tsx`/`.jsx`) |
-| `useAltText` | Missing `alt` on images | Biome `a11y` |
-| `useButtonType` | `<button>` missing `type` attribute | Biome `a11y` |
-| `noDangerouslySetInnerHtmlWithChildren` | XSS risk | Biome `security` |
-| `useImportsFirst` | Imports not at top of file | Biome `nursery` |
+| `typescript/no-explicit-any` | `any` types | oxlint `typescript` |
+| `typescript/consistent-type-imports` | Missing `import type` for type-only imports | oxlint `typescript` (`.ts`/`.tsx`) |
+| `typescript/consistent-type-exports` | Missing `export type` for type-only re-exports | oxlint `typescript`, type-aware |
+| `nextjs/no-img-element` | Raw `<img>` tags (use `@/components/ui/image`) | oxlint `nextjs` |
+| `react/forbid-elements` | Raw `<a>` tags (use `@/components/ui/link`) | oxlint `react` |
+| `eslint/no-restricted-imports` | `../../` deep relative imports (use `@/` aliases) and `forwardRef` imports (React 19 ref-as-prop) | oxlint `eslint` |
+| `eslint/no-unused-vars` | Unused imports, variables and parameters | oxlint `eslint` |
+| `react/jsx-key` | Missing `key` in list renders | oxlint `react` (`.tsx`/`.jsx`) |
+| `jsx-a11y/alt-text` | Missing `alt` on images (incl. next/image) | oxlint `jsx-a11y` |
+| `react/button-has-type` | `<button>` missing `type` attribute | oxlint `react` |
+| `react/no-danger-with-children` | XSS risk | oxlint `react` |
+| `import/first` | Imports not at top of file | oxlint `import` |
+| `react/rules-of-hooks` | Hooks called conditionally / outside components | oxlint `react` |
+| `typescript/no-floating-promises` | Un-awaited promises | oxlint `typescript`, type-aware |
+| `typescript/no-misused-promises` | Async function passed where void expected | oxlint `typescript`, type-aware |
+
+Tailwind class sorting and import ordering used to be lint rules under Biome; they're now handled by `oxfmt` at format time, so `bun run format` (or format-on-save) fixes them and they no longer fail `bun lint`. The two type-aware rules above only run under `bun run lint:types` (and `bun run check`) — they're not in the pre-commit hook.
 
 ### TypeScript strict flags (all active in `tsconfig.json`)
 
@@ -448,10 +450,11 @@ All integrations are optional and self-contained in `lib/integrations/{name}/`. 
 ```bash
 bun dev              # Dev server (Turbopack)
 bun run build        # Production build (runs setup:styles first)
-bun run check        # Biome + tsc --noEmit + bun test + manifest:check (must pass before commit)
-bun lint             # Biome lint
-bun lint:fix         # Biome lint with auto-fix
-bun run format       # Biome format
+bun run check        # oxlint + oxfmt --check + lint:types + tsc --noEmit + bun test + manifest:check (must pass before commit)
+bun lint             # oxlint
+bun lint:fix         # oxlint with auto-fix
+bun run lint:types   # oxlint type-aware rules (no-floating-promises, no-misused-promises)
+bun run format       # oxfmt (writes in place; sorts imports + Tailwind classes)
 bun run typecheck    # tsc --noEmit (TypeScript 7 native)
 bun run typecheck:watch  # tsc --noEmit --watch (native fast watcher; live feedback)
 bun test             # Unit tests (bun's built-in runner; ignores *.e2e.ts)
@@ -460,7 +463,7 @@ bun run setup:project  # Strip unused integrations (non-interactive: --preset/--
 bun run doctor       # Diagnose setup issues
 ```
 
-Pre-commit hook (lefthook) runs in parallel on staged files: Biome check + tsc typecheck.
+Pre-commit hook (lefthook) runs on staged files: oxfmt + oxlint --fix (sequential, one command), in parallel with tsc typecheck. Type-aware linting is excluded from the hook to keep commits fast.
 
 ---
 

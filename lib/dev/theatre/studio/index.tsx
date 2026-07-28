@@ -11,7 +11,7 @@ export function Studio() {
   useEffect(() => {
     let cancelled = false
 
-    import('@theatre/studio').then((mod) => {
+    void import('@theatre/studio').then((mod) => {
       if (cancelled) return
       const studio = mod.default as IStudio
       studioRef.current = studio

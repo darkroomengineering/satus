@@ -79,7 +79,7 @@ beforeAll(() => {
 })
 
 afterAll(() => {
-  server.stop()
+  void server.stop()
 })
 
 describe('fetchWithTimeout', () => {

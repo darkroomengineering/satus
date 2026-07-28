@@ -117,9 +117,11 @@ export function useWebGLRect(
   })
 
   // Subscribe to transform changes - handleUpdate is stable from useEffectEvent
+  // oxlint-disable-next-line react/rules-of-hooks -- handleUpdate is stable from useEffectEvent; see follow-up note in the migration PR
   useTransform(handleUpdate, [])
 
   // Subscribe to lenis scroll - handleUpdate is stable from useEffectEvent
+  // oxlint-disable-next-line react/rules-of-hooks -- handleUpdate is stable from useEffectEvent; see follow-up note in the migration PR
   useLenis(handleUpdate, [])
 
   // Fallback for non-lenis scroll

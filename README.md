@@ -22,7 +22,7 @@ Run `bun dev` and open [localhost:3000](http://localhost:3000) — the landing p
 - **Opt-in integrations** — Sanity, Shopify, HubSpot, and WebGL stay isolated under `lib/integrations` until you configure them
 - **Interactive setup** — strip the integrations you don't need from a fresh clone
 - **One-command handoff** — strips branding, swaps in the prod README, and generates a component inventory
-- **Modern tooling** — Bun, Biome, and Turbopack
+- **Modern tooling** — Bun, oxlint + oxfmt, and Turbopack
 
 ## Requirements
 
@@ -72,7 +72,7 @@ When setup completes it removes its own machinery from the project (the setup sc
 | Styling | Tailwind CSS v4, CSS Modules |
 | Catalogue | Storybook |
 | Optional | React Three Fiber, GSAP, Sanity, Shopify, HubSpot |
-| Tooling | Bun, Biome, Turbopack |
+| Tooling | Bun, oxlint + oxfmt, Turbopack |
 
 > **Note**: `hamo` and `tempus` are Darkroom-owned packages published on a `dev` pre-release dist-tag. They do not follow semver guarantees — pin exact versions and review changes when bumping.
 
@@ -111,7 +111,7 @@ lib/                    # Everything non-UI
 bun dev              # Development server
 bun run build        # Production build
 bun storybook        # Component catalogue
-bun lint             # Biome linter
+bun lint             # oxlint
 bun run generate     # Generate pages/components
 bun run setup:project  # Strip integrations you don't need
 bun run handoff      # Prepare for client delivery

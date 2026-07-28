@@ -11,7 +11,7 @@ export function useStudio() {
 
   useEffect(() => {
     if (hasStudio && !studioPackage) {
-      import('@theatre/studio').then((pkg) => {
+      void import('@theatre/studio').then((pkg) => {
         studioPackage = pkg.default
         setStudio(pkg.default)
       })

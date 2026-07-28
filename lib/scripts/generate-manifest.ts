@@ -8,7 +8,9 @@
 
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+
 import { Project, SyntaxKind } from 'ts-morph'
+
 import { toPascalCase } from './generate-shared'
 
 const ROOT = join(import.meta.dir, '..', '..')

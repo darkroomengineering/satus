@@ -77,7 +77,7 @@
     border-radius: desktop-vw(2px);
   }
 
-  &[data-side="none"] {
+  &[data-side='none'] {
     min-width: calc(var(--anchor-width) + 1rem);
     padding-right: 1rem;
   }

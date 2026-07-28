@@ -10,7 +10,9 @@ import {
   type ReactNode,
   useRef,
 } from 'react'
+
 import { slugify } from '@/utils/strings'
+
 import s from './progress-text.module.css'
 
 interface WordSegment {

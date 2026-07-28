@@ -9,6 +9,7 @@
  */
 
 import * as p from '@clack/prompts'
+
 import { findBarrelLine, insertBarrelLine } from './barrel-file'
 import {
   cancelGuard,

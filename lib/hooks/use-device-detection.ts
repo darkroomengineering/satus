@@ -1,6 +1,8 @@
 import { useMediaQuery, useWindowSize } from 'hamo'
 import { useEffect, useState } from 'react'
+
 import { breakpoints } from '@/styles/config'
+
 import { usePreferredReducedMotion } from './use-sync-external'
 
 function checkIsAutoplaySupported() {

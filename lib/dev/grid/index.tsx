@@ -1,5 +1,6 @@
 import cn from 'clsx'
 import { useWindowSize } from 'hamo'
+
 import s from './grid.module.css'
 
 type GridDebuggerProps = {

@@ -43,7 +43,7 @@
       position: relative;
 
       &::after {
-        content: "";
+        content: '';
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
@@ -151,7 +151,7 @@
             }
 
             &::after {
-              content: "✓";
+              content: '✓';
               position: absolute;
               top: -5%;
               left: 12%;
@@ -237,7 +237,7 @@
             }
 
             &::after {
-              content: "";
+              content: '';
               position: absolute;
               top: 0;
               left: 0;
@@ -314,7 +314,7 @@
             }
 
             &::after {
-              content: "";
+              content: '';
               position: absolute;
               top: 50%;
               transform: translate(15%, -50%);
@@ -385,7 +385,7 @@
       display: none !important;
     }
 
-    &:has([role="alert"]) {
+    &:has([role='alert']) {
       input {
         border: 2px solid red;
       }

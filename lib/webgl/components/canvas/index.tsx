@@ -10,6 +10,7 @@ import {
   useSyncExternalStore,
 } from 'react'
 import type tunnel from 'tunnel-rat'
+
 import { useDeviceDetection } from '@/lib/hooks/use-device-detection'
 import {
   getDOMTunnel,

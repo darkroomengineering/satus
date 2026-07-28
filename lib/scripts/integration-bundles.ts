@@ -10,6 +10,7 @@
  */
 
 import type { RemovableId } from '@/integrations/registry'
+
 import type { CodeTransform } from './ast-operation-types'
 
 // Re-export the AST-operation type system so existing importers that pull

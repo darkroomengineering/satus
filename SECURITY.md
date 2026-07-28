@@ -45,7 +45,7 @@ clients (Sanity, Shopify, HubSpot, Mailchimp), and the CI/build configuration.
 
 - Vulnerabilities in third-party dependencies. Report those upstream; we track
   them via Dependabot and patch when releases land.
-- Issues that exist only in *your* deployment: leaked secrets, misconfigured
+- Issues that exist only in _your_ deployment: leaked secrets, misconfigured
   environment variables, exposed `NEXT_PUBLIC_*` values, or infrastructure you
   control.
 

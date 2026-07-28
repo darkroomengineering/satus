@@ -1,7 +1,8 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
 import { useVisualEditingEnvironment } from 'next-sanity/hooks'
+import { usePathname } from 'next/navigation'
+
 import { Link } from '@/components/ui/link'
 
 export function DisableDraftMode() {
@@ -24,7 +25,7 @@ export function DisableDraftMode() {
     <Link
       href="/api/draft-mode/disable"
       scroll={false}
-      className="dr-p-4 fixed top-safe right-safe z-50 bg-red font-mono text-primary text-sm uppercase"
+      className="text-sm fixed top-safe right-safe z-50 bg-red dr-p-4 font-mono text-primary uppercase"
     >
       Disable Draft Mode
     </Link>

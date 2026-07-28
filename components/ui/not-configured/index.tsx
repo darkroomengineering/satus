@@ -1,5 +1,7 @@
 import cn from 'clsx'
+
 import { Link } from '@/components/ui/link'
+
 import s from './not-configured.module.css'
 
 interface NotConfiguredProps {

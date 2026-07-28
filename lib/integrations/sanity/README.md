@@ -18,6 +18,7 @@ NEXT_PUBLIC_SANITY_API_VERSION="2024-03-15"
 ```
 
 > **Note**: Create tokens in [Sanity Dashboard](https://sanity.io/manage) → Your Project → API → Tokens.
+>
 > - **Viewer** token → `NEXT_PUBLIC_SANITY_API_READ_TOKEN`
 > - **Editor** token → `SANITY_PRIVATE_TOKEN`
 
@@ -27,12 +28,12 @@ Env vars are validated with Zod schemas. Use `isConfigured('sanity')` from the i
 
 Satus supports the [Vercel Marketplace Sanity integration](https://vercel.com/marketplace) out of the box. The Marketplace auto-provisions env vars that Satus recognizes:
 
-| Marketplace Var | Satus Var | Status |
-|---|---|---|
-| `NEXT_PUBLIC_SANITY_PROJECT_ID` | Same | Exact match |
-| `NEXT_PUBLIC_SANITY_DATASET` | Same | Exact match |
-| `SANITY_API_READ_TOKEN` | `NEXT_PUBLIC_SANITY_API_READ_TOKEN` | Both supported (fallback) |
-| `SANITY_API_WRITE_TOKEN` | `SANITY_PRIVATE_TOKEN` | Both supported (fallback) |
+| Marketplace Var                 | Satus Var                           | Status                    |
+| ------------------------------- | ----------------------------------- | ------------------------- |
+| `NEXT_PUBLIC_SANITY_PROJECT_ID` | Same                                | Exact match               |
+| `NEXT_PUBLIC_SANITY_DATASET`    | Same                                | Exact match               |
+| `SANITY_API_READ_TOKEN`         | `NEXT_PUBLIC_SANITY_API_READ_TOKEN` | Both supported (fallback) |
+| `SANITY_API_WRITE_TOKEN`        | `SANITY_PRIVATE_TOKEN`              | Both supported (fallback) |
 
 No configuration changes needed — just install from the Marketplace and deploy.
 
@@ -166,10 +167,12 @@ See [ARCHITECTURE.md](../../../ARCHITECTURE.md) for cache gotchas.
 ## Troubleshooting
 
 **Visual editor not loading:**
+
 - Check env vars are set correctly
 - Verify draft mode routes exist (`/api/draft-mode/enable`)
 
 **Content not updating:**
+
 - Hard refresh browser
 - Check revalidation webhook is configured
 

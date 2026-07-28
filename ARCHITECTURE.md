@@ -22,6 +22,7 @@ import { Link } from '@/components/ui/link'
 ```
 
 **Why?**
+
 - Image: Optimization, aspect ratios, WebGL integration
 - Link: External detection, prefetching, consistent behavior
 
@@ -35,20 +36,21 @@ Root layout conditionally loads features:
 
 ```tsx
 import { OptionalFeatures } from '@/lib/features'
-<OptionalFeatures /> // Only loads WebGL, dev tools when needed
+;<OptionalFeatures /> // Only loads WebGL, dev tools when needed
 ```
 
 ## Cache Components (Next.js 16)
 
 Server Components use advanced caching. Key rules:
 
-| Data Type | Cache Strategy |
-|-----------|----------------|
+| Data Type      | Cache Strategy        |
+| -------------- | --------------------- |
 | Public content | ISR with `revalidate` |
-| User-specific | `cache: 'no-store'` |
-| Real-time | `cache: 'no-store'` |
+| User-specific  | `cache: 'no-store'`   |
+| Real-time      | `cache: 'no-store'`   |
 
 **Gotchas:**
+
 - Never cache user data (carts, accounts, private content)
 - Wrap cached components in Suspense boundaries
 - Test with hard refresh AND navigation (different cache layers)
@@ -133,4 +135,4 @@ This keeps upstream updates smooth. When you create new components instead of mo
 
 ---
 
-*Built with [Satūs](https://github.com/darkroomengineering/satus) by [darkroom.engineering](https://darkroom.engineering)*
+_Built with [Satūs](https://github.com/darkroomengineering/satus) by [darkroom.engineering](https://darkroom.engineering)_

@@ -3,6 +3,7 @@
 import cn from 'clsx'
 import Script, { type ScriptProps } from 'next/script'
 import { useEffect, useRef } from 'react'
+
 import s from './form.module.css'
 
 type EmbedHubspotFormProps = {

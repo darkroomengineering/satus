@@ -6,6 +6,7 @@ import type {
   UnknownShorthandCompoundProps,
 } from '@theatre/core'
 import { useEffect, useRef, useState } from 'react'
+
 import { useStudio } from './use-studio'
 
 export function useTheatreObject(

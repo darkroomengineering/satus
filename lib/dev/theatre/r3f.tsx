@@ -1,6 +1,7 @@
 import { types } from '@theatre/core'
 import { useRef } from 'react'
 import type { Group as ThreeGroup } from 'three'
+
 import { useCurrentSheet } from '.'
 import { useTheatre } from './hooks/use-theatre'
 

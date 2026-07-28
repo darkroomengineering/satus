@@ -15,7 +15,9 @@
 
 import { describe, expect, it } from 'bun:test'
 import { join } from 'node:path'
+
 import { Glob } from 'bun'
+
 import { colors, themes } from '../config'
 import { buildStyleSheets, OUTPUTS } from './setup-styles'
 

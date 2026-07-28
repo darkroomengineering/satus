@@ -2,19 +2,20 @@
 
 Hybrid styling for Satūs: **Tailwind CSS v4** (CSS-based config via `@theme`),
 **CSS Modules** for complex/animated components, and custom **PostCSS functions**
-+ **`dr-*` utilities** for viewport-relative responsive sizing.
+
+- **`dr-*` utilities** for viewport-relative responsive sizing.
 
 ## Which tool for which job?
 
 Reach for the lightest tool that does the job. In rough order of preference:
 
-| Use… | When | Example |
-|------|------|---------|
-| **Tailwind utilities** | Layout, spacing, fl/grid, color, simple states. The default. | `className="flex items-center gap-4 p-6"` |
-| **`dr-*` utilities** | Sizing that must **scale with the viewport** (px-perfect to a design) | `className="dr-w-150 dr-h-100"` |
-| **PostCSS fns in CSS** | Viewport/column math inside a CSS Module | `width: desktop-vw(320);` |
-| **CSS Modules** | Complex layouts, keyframes, pseudo-elements, deep specificity | `import s from './x.module.css'` |
-| **Inline `style`** | **Only** dynamic runtime values (a computed `--progress`) | `style={{ '--p': pct } as CSSProperties}` |
+| Use…                   | When                                                                  | Example                                   |
+| ---------------------- | --------------------------------------------------------------------- | ----------------------------------------- |
+| **Tailwind utilities** | Layout, spacing, fl/grid, color, simple states. The default.          | `className="flex items-center gap-4 p-6"` |
+| **`dr-*` utilities**   | Sizing that must **scale with the viewport** (px-perfect to a design) | `className="dr-w-150 dr-h-100"`           |
+| **PostCSS fns in CSS** | Viewport/column math inside a CSS Module                              | `width: desktop-vw(320);`                 |
+| **CSS Modules**        | Complex layouts, keyframes, pseudo-elements, deep specificity         | `import s from './x.module.css'`          |
+| **Inline `style`**     | **Only** dynamic runtime values (a computed `--progress`)             | `style={{ '--p': pct } as CSSProperties}` |
 
 Rules of thumb: never hand-write spacing/colors Tailwind already gives you;
 animate only `transform`/`opacity`; compose classes with `cn()` (from `clsx`).
@@ -36,7 +37,12 @@ export function Card({ featured = false, className, ...props }: CardProps) {
   return (
     <article
       // Tailwind atoms + dr-* responsive width + a CSS Module class (conditional)
-      className={cn('flex flex-col gap-4', s.root, featured && s.isFeatured, className)}
+      className={cn(
+        'flex flex-col gap-4',
+        s.root,
+        featured && s.isFeatured,
+        className
+      )}
       {...props}
     />
   )
@@ -46,7 +52,7 @@ export function Card({ featured = false, className, ...props }: CardProps) {
 ```css
 /* card.module.css — CamelCase class names, `s.root` import convention */
 .root {
-  width: desktop-vw(320);          /* PostCSS: 320px at the desktop viewport */
+  width: desktop-vw(320); /* PostCSS: 320px at the desktop viewport */
   padding: desktop-vw(24);
   background: var(--color-primary); /* design token (theme-aware) */
   border-radius: desktop-vw(8);
@@ -61,11 +67,11 @@ export function Card({ featured = false, className, ...props }: CardProps) {
 
 ```css
 .element {
-  width: mobile-vw(375);     /* 375px at the mobile viewport */
-  height: desktop-vh(100);   /* 100px at the desktop viewport */
+  width: mobile-vw(375); /* 375px at the mobile viewport */
+  height: desktop-vh(100); /* 100px at the desktop viewport */
 }
 .sidebar {
-  width: columns(3);         /* spans 3 grid columns + gaps */
+  width: columns(3); /* spans 3 grid columns + gaps */
 }
 ```
 
@@ -84,8 +90,12 @@ See the generated `css/tailwind.css` for the full generated set.
 ## Breakpoints
 
 ```css
-@media (--mobile)  { /* <= 799px */ }
-@media (--desktop) { /* >= 800px (desktop breakpoint) */ }
+@media (--mobile) {
+  /* <= 799px */
+}
+@media (--desktop) {
+  /* >= 800px (desktop breakpoint) */
+}
 ```
 
 ## Design tokens
@@ -122,14 +132,14 @@ bun setup:styles
 #    Tailwind: className="text-(--color-brand)"
 ```
 
-| File | Purpose |
-|------|---------|
-| `colors.ts` | Color palette & per-theme semantic mapping |
-| `typography.ts` | Font sizes & weights |
-| `layout.mjs` | Grid, breakpoints, spacing, device widths |
-| `easings.ts` | Easing values as a JS object (animation utilities). CSS authority is `css/easings.css`. |
-| `fonts.ts` | Font loading |
-| `config.ts` | Aggregates the above (imported as `@/config`) |
+| File            | Purpose                                                                                 |
+| --------------- | --------------------------------------------------------------------------------------- |
+| `colors.ts`     | Color palette & per-theme semantic mapping                                              |
+| `typography.ts` | Font sizes & weights                                                                    |
+| `layout.mjs`    | Grid, breakpoints, spacing, device widths                                               |
+| `easings.ts`    | Easing values as a JS object (animation utilities). CSS authority is `css/easings.css`. |
+| `fonts.ts`      | Font loading                                                                            |
+| `config.ts`     | Aggregates the above (imported as `@/config`)                                           |
 
 ## Generated files — do not edit
 

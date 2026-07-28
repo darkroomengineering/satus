@@ -4,11 +4,14 @@ import { OrthographicCamera, Preload } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import cn from 'clsx'
 import { Suspense } from 'react'
+
 import { SheetProvider } from '@/lib/dev/theatre'
 import { FlowmapProvider } from '@/webgl/components/flowmap-provider'
 import { PostProcessing } from '@/webgl/components/postprocessing'
 import { RAF } from '@/webgl/components/raf'
+
 import { useCanvas } from './'
+
 import s from './webgl.module.css'
 
 type WebGLCanvasProps = React.HTMLAttributes<HTMLDivElement> & {

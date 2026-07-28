@@ -3,7 +3,9 @@
 import cn from 'clsx'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
+
 import { isExternalHref, Link } from '@/components/ui/link'
+
 import s from './header.module.css'
 
 // `newTab` is only needed when a link should open in a new tab despite not

@@ -1,11 +1,8 @@
 {
   "name": "@darkroom.engineering/satus",
-  "description": "Next.js 16 starter by darkroom.engineering — React 19, TypeScript strict, Tailwind v4, Zod validation, and production-ready integrations",
   "version": "2.0.1",
+  "description": "Next.js 16 starter by darkroom.engineering — React 19, TypeScript strict, Tailwind v4, Zod validation, and production-ready integrations",
   "license": "MIT",
-  "engines": {
-    "node": ">=22.0.0"
-  },
   "type": "module",
   "sideEffects": [
     "*.css"
@@ -112,6 +109,14 @@
     "typescript": "^6.0.3",
     "typescript7": "npm:typescript@^7.0.2"
   },
+  "overrides": {
+    "lodash": "^4.17.21",
+    "lodash-es": "^4.17.21"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "packageManager": "bun@1.3.5",
   "trustedDependencies": [
     "oxlint",
     "oxfmt",
@@ -120,10 +125,5 @@
     "esbuild",
     "lefthook",
     "sharp"
-  ],
-  "overrides": {
-    "lodash": "^4.17.21",
-    "lodash-es": "^4.17.21"
-  },
-  "packageManager": "bun@1.3.5"
+  ]
 }

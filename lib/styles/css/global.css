@@ -133,7 +133,7 @@ html.screenshot {
   transition-delay: calc(var(--reveal-index, 0) * var(--reveal-stagger, 60ms));
 }
 
-[data-reveal="visible"] [data-reveal-item] {
+[data-reveal='visible'] [data-reveal-item] {
   opacity: 1;
   transform: none;
 }

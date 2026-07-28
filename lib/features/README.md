@@ -8,11 +8,11 @@ Conditionally loaded features for the root layout.
 
 ## Features
 
-| Feature | Trigger | Description |
-|---------|---------|-------------|
-| GSAP Runtime | Always loaded | Syncs GSAP with Tempus RAF |
+| Feature      | Trigger                          | Description                                             |
+| ------------ | -------------------------------- | ------------------------------------------------------- |
+| GSAP Runtime | Always loaded                    | Syncs GSAP with Tempus RAF                              |
 | WebGL Canvas | Always mounted (shared strategy) | Persistent Three.js canvas (no-op on non-WebGL devices) |
-| Dev Tools | Development mode | Orchestra debug panel |
+| Dev Tools    | Development mode                 | Orchestra debug panel                                   |
 
 ## WebGL
 
@@ -35,6 +35,7 @@ export default function MyPage() {
 This is the shared strategy. The per-page alternative is `<Wrapper webgl>`,
 which mounts the canvas on that page instead — pick one (see
 `lib/webgl/README.md`). Either way:
+
 1. The canvas mounts only on WebGL-capable devices (zero overhead otherwise)
 2. GPU capability is detected via a WebGL 2 context probe on a desktop
    viewport (`useDeviceDetection().isWebGL`)
@@ -52,6 +53,7 @@ Automatically enabled in development. Access with `Cmd/Ctrl + O`.
 ```
 
 The component:
+
 1. Waits for client-side hydration
 2. Dynamically imports features with code splitting
 3. Renders with `ssr: false` to avoid hydration issues
@@ -68,7 +70,9 @@ const MyFeature = dynamic(
 )
 
 // Conditionally render based on env var or other condition
-{process.env.NEXT_PUBLIC_MY_FEATURE === 'true' && <MyFeature />}
+{
+  process.env.NEXT_PUBLIC_MY_FEATURE === 'true' && <MyFeature />
+}
 ```
 
 ## Architecture Note

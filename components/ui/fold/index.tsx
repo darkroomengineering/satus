@@ -9,6 +9,7 @@ import {
   use,
   useRef,
 } from 'react'
+
 import s from './fold.module.css'
 
 const FoldContext = createContext(false)

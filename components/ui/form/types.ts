@@ -1,4 +1,5 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
+
 import type { FormState } from '@/lib/types/form'
 
 // Server action type
@@ -43,8 +44,10 @@ export interface UseFormReturn<T = unknown> {
 }
 
 // Form component props
-export interface FormProps<T = unknown>
-  extends Omit<ComponentPropsWithoutRef<'form'>, 'action' | 'onError'> {
+export interface FormProps<T = unknown> extends Omit<
+  ComponentPropsWithoutRef<'form'>,
+  'action' | 'onError'
+> {
   children: ReactNode
   className?: string
   action: FormAction<T>
@@ -82,8 +85,10 @@ export type FormContextStandard<T = unknown> = {
 }
 
 // Submit button props
-export interface SubmitButtonProps
-  extends Omit<ComponentPropsWithoutRef<'button'>, 'children'> {
+export interface SubmitButtonProps extends Omit<
+  ComponentPropsWithoutRef<'button'>,
+  'children'
+> {
   children?: ReactNode
   className?: string
   defaultText?: string
@@ -118,8 +123,10 @@ export interface TextareaProps extends BaseFieldProps {
   rows?: number
 }
 
-export interface CheckboxFieldProps
-  extends Omit<BaseFieldProps, 'placeholder'> {
+export interface CheckboxFieldProps extends Omit<
+  BaseFieldProps,
+  'placeholder'
+> {
   checked?: boolean
   onCheckedChange?: (checked: boolean) => void
 }

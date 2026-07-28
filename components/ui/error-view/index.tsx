@@ -21,7 +21,7 @@ const DEFAULT_HOME_LINK = (
   // oxlint-disable-next-line react/forbid-elements, nextjs/no-html-link-for-pages -- global-error renders outside the router, so the Link component cannot be used here
   <a
     href="/"
-    className="rounded border border-gray-300 px-6 py-3 transition-colors hover:bg-gray-50"
+    className="rounded border-gray-300 px-6 py-3 hover:bg-gray-50 border transition-colors"
   >
     Go Home
   </a>
@@ -46,16 +46,16 @@ export function ErrorView({
   }, [error])
 
   return (
-    <div className="dr-gap-y-24 my-auto flex flex-col items-center justify-center uppercase">
+    <div className="my-auto flex flex-col items-center justify-center dr-gap-y-24 uppercase">
       <h1 className="mb-4 font-bold text-4xl">{title}</h1>
       <p className="mb-6 text-gray-600 text-lg">{description}</p>
 
       {process.env.NODE_ENV === 'development' && (
         <details className="mb-6 text-left">
-          <summary className="cursor-pointer text-gray-500 text-sm hover:text-gray-700">
+          <summary className="text-gray-500 text-sm hover:text-gray-700 cursor-pointer">
             Error Details (Development Only)
           </summary>
-          <pre className="mt-2 overflow-auto rounded bg-gray-100 p-4 text-xs">
+          <pre className="mt-2 rounded bg-gray-100 p-4 text-xs overflow-auto">
             {error.message}
             {error.digest && `\nDigest: ${error.digest}`}
             {error.stack && `\n\n${error.stack}`}
@@ -63,11 +63,11 @@ export function ErrorView({
         </details>
       )}
 
-      <div className="flex justify-center gap-4">
+      <div className="gap-4 flex justify-center">
         <button
           onClick={reset}
           type="button"
-          className="rounded bg-black px-6 py-3 text-white transition-colors hover:bg-gray-800"
+          className="rounded px-6 py-3 hover:bg-gray-800 bg-black text-white transition-colors"
         >
           Try Again
         </button>

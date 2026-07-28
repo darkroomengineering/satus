@@ -18,7 +18,7 @@ Turnstile env vars are configured separately — see `lib/integrations/turnstile
 import { Form, Input, SubmitButton } from '@/components/ui/form'
 import { mailchimpSubscriptionAction } from '@/lib/integrations/mailchimp'
 
-<Form action={mailchimpSubscriptionAction}>
+;<Form action={mailchimpSubscriptionAction}>
   <Input name="email" type="email" required />
   <SubmitButton>Subscribe</SubmitButton>
 </Form>

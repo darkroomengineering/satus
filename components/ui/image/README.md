@@ -25,24 +25,24 @@ import { Image } from '@/components/ui/image'
 <Image src="/product.jpg" alt="Product" width={800} height={600} />
 
 // Responsive
-<Image 
-  src="/product.jpg" 
-  alt="Product" 
+<Image
+  src="/product.jpg"
+  alt="Product"
   aspectRatio={1}
-  mobileSize="100vw" 
-  desktopSize="33vw" 
+  mobileSize="100vw"
+  desktopSize="33vw"
 />
 ```
 
 ## Props
 
-| Prop | Description |
-|------|-------------|
-| `aspectRatio` | **Required** unless `fill` or `width`+`height` are given. Prevents layout shift, enables blur placeholder, and derives placeholder dimensions. |
-| `fill` | Fill the nearest positioned ancestor. Mutually exclusive with `width`/`height`. |
-| `width` / `height` | Explicit intrinsic pixel dimensions. Required together (unless `aspectRatio` is provided instead). |
-| `preload` | Ergonomic alias for next/image's native `preload` prop (LCP images) — also sets `loading="eager"`. Prefer this over passing next/image's deprecated `priority` directly. |
-| `mobileSize` / `desktopSize` | Responsive sizing |
+| Prop                         | Description                                                                                                                                                              |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `aspectRatio`                | **Required** unless `fill` or `width`+`height` are given. Prevents layout shift, enables blur placeholder, and derives placeholder dimensions.                           |
+| `fill`                       | Fill the nearest positioned ancestor. Mutually exclusive with `width`/`height`.                                                                                          |
+| `width` / `height`           | Explicit intrinsic pixel dimensions. Required together (unless `aspectRatio` is provided instead).                                                                       |
+| `preload`                    | Ergonomic alias for next/image's native `preload` prop (LCP images) — also sets `loading="eager"`. Prefer this over passing next/image's deprecated `priority` directly. |
+| `mobileSize` / `desktopSize` | Responsive sizing                                                                                                                                                        |
 
 ## Best Practices
 

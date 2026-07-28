@@ -3,6 +3,7 @@
 import '@theatre/core'
 import type { IStudio } from '@theatre/studio'
 import { useEffect, useRef } from 'react'
+
 import s from './studio.module.css'
 
 export function Studio() {

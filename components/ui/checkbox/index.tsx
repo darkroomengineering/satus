@@ -3,6 +3,7 @@
 import { Checkbox as BaseCheckbox } from '@base-ui/react/checkbox'
 import cn from 'clsx'
 import type { ComponentProps } from 'react'
+
 import s from './checkbox.module.css'
 
 /**

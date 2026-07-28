@@ -6,17 +6,17 @@ This is the **single source of truth** for engineering standards in this repo. C
 
 ## Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | Next.js 16 (App Router, Cache Components, `proxy.ts`) |
-| UI | React 19.2 (React Compiler ON, no manual memoization) |
-| Language | TypeScript 6, `strict: true` |
-| Styling | Tailwind v4 (CSS-first) + CSS Modules |
-| Runtime | Bun |
-| Linter / Formatter | oxlint + oxfmt |
-| Validation | Zod |
-| Animation | Lenis, GSAP, Tempus |
-| 3D (optional) | React Three Fiber, `@react-three/drei` |
+| Layer              | Technology                                            |
+| ------------------ | ----------------------------------------------------- |
+| Framework          | Next.js 16 (App Router, Cache Components, `proxy.ts`) |
+| UI                 | React 19.2 (React Compiler ON, no manual memoization) |
+| Language           | TypeScript 6, `strict: true`                          |
+| Styling            | Tailwind v4 (CSS-first) + CSS Modules                 |
+| Runtime            | Bun                                                   |
+| Linter / Formatter | oxlint + oxfmt                                        |
+| Validation         | Zod                                                   |
+| Animation          | Lenis, GSAP, Tempus                                   |
+| 3D (optional)      | React Three Fiber, `@react-three/drei`                |
 
 ---
 
@@ -26,23 +26,23 @@ These are non-negotiable. Each is enforced by oxlint or TypeScript; the build or
 
 ### oxlint rules
 
-| Rule | What it catches | Enforcer |
-|------|----------------|---------|
-| `typescript/no-explicit-any` | `any` types | oxlint `typescript` |
-| `typescript/consistent-type-imports` | Missing `import type` for type-only imports | oxlint `typescript` (`.ts`/`.tsx`) |
-| `typescript/consistent-type-exports` | Missing `export type` for type-only re-exports | oxlint `typescript`, type-aware |
-| `nextjs/no-img-element` | Raw `<img>` tags (use `@/components/ui/image`) | oxlint `nextjs` |
-| `react/forbid-elements` | Raw `<a>` tags (use `@/components/ui/link`) | oxlint `react` |
-| `eslint/no-restricted-imports` | `../../` deep relative imports (use `@/` aliases) and `forwardRef` imports (React 19 ref-as-prop) | oxlint `eslint` |
-| `eslint/no-unused-vars` | Unused imports, variables and parameters | oxlint `eslint` |
-| `react/jsx-key` | Missing `key` in list renders | oxlint `react` (`.tsx`/`.jsx`) |
-| `jsx-a11y/alt-text` | Missing `alt` on images (incl. next/image) | oxlint `jsx-a11y` |
-| `react/button-has-type` | `<button>` missing `type` attribute | oxlint `react` |
-| `react/no-danger-with-children` | XSS risk | oxlint `react` |
-| `import/first` | Imports not at top of file | oxlint `import` |
-| `react/rules-of-hooks` | Hooks called conditionally / outside components | oxlint `react` |
-| `typescript/no-floating-promises` | Un-awaited promises | oxlint `typescript`, type-aware |
-| `typescript/no-misused-promises` | Async function passed where void expected | oxlint `typescript`, type-aware |
+| Rule                                 | What it catches                                                                                   | Enforcer                           |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| `typescript/no-explicit-any`         | `any` types                                                                                       | oxlint `typescript`                |
+| `typescript/consistent-type-imports` | Missing `import type` for type-only imports                                                       | oxlint `typescript` (`.ts`/`.tsx`) |
+| `typescript/consistent-type-exports` | Missing `export type` for type-only re-exports                                                    | oxlint `typescript`, type-aware    |
+| `nextjs/no-img-element`              | Raw `<img>` tags (use `@/components/ui/image`)                                                    | oxlint `nextjs`                    |
+| `react/forbid-elements`              | Raw `<a>` tags (use `@/components/ui/link`)                                                       | oxlint `react`                     |
+| `eslint/no-restricted-imports`       | `../../` deep relative imports (use `@/` aliases) and `forwardRef` imports (React 19 ref-as-prop) | oxlint `eslint`                    |
+| `eslint/no-unused-vars`              | Unused imports, variables and parameters                                                          | oxlint `eslint`                    |
+| `react/jsx-key`                      | Missing `key` in list renders                                                                     | oxlint `react` (`.tsx`/`.jsx`)     |
+| `jsx-a11y/alt-text`                  | Missing `alt` on images (incl. next/image)                                                        | oxlint `jsx-a11y`                  |
+| `react/button-has-type`              | `<button>` missing `type` attribute                                                               | oxlint `react`                     |
+| `react/no-danger-with-children`      | XSS risk                                                                                          | oxlint `react`                     |
+| `import/first`                       | Imports not at top of file                                                                        | oxlint `import`                    |
+| `react/rules-of-hooks`               | Hooks called conditionally / outside components                                                   | oxlint `react`                     |
+| `typescript/no-floating-promises`    | Un-awaited promises                                                                               | oxlint `typescript`, type-aware    |
+| `typescript/no-misused-promises`     | Async function passed where void expected                                                         | oxlint `typescript`, type-aware    |
 
 Tailwind class sorting and import ordering used to be lint rules under Biome; they're now handled by `oxfmt` at format time, so `bun run format` (or format-on-save) fixes them and they no longer fail `bun lint`. The two type-aware rules above only run under `bun run lint:types` (and `bun run check`) — they're not in the pre-commit hook.
 
@@ -53,8 +53,8 @@ Tailwind class sorting and import ordering used to be lint rules under Biome; th
 ### Path aliases (required, enforced by `no-relative-parent-imports`)
 
 ```tsx
-import { Image } from '@/components/ui/image'   // NOT next/image
-import { Link } from '@/components/ui/link'     // NOT next/link
+import { Image } from '@/components/ui/image' // NOT next/image
+import { Link } from '@/components/ui/link' // NOT next/link
 import { useDeviceDetection } from '@/hooks/use-device-detection'
 import { clamp } from '@/utils/math'
 ```
@@ -70,7 +70,7 @@ These are the subjective choices baked into this starter. A team forking satus c
 ### Component file shape
 
 ```tsx
-import s from './my-component.module.css'    // CSS Modules imported as 's'
+import s from './my-component.module.css' // CSS Modules imported as 's'
 import cn from 'clsx'
 import type { ComponentProps } from 'react'
 
@@ -78,7 +78,11 @@ interface MyComponentProps extends ComponentProps<'div'> {
   variant?: 'primary' | 'secondary'
 }
 
-export function MyComponent({ variant = 'primary', className, ...props }: MyComponentProps) {
+export function MyComponent({
+  variant = 'primary',
+  className,
+  ...props
+}: MyComponentProps) {
   return <div className={cn(s.root, className)} {...props} />
 }
 ```
@@ -156,7 +160,11 @@ import cn from 'clsx'
 import s from './accordion.module.css'
 
 function Root({ children, className, ...props }: RootProps) {
-  return <Collapsible.Root className={cn(s.accordion, className)} {...props}>{children}</Collapsible.Root>
+  return (
+    <Collapsible.Root className={cn(s.accordion, className)} {...props}>
+      {children}
+    </Collapsible.Root>
+  )
 }
 
 export { Body, Button, Group, Root }
@@ -166,7 +174,9 @@ export const Accordion = { Group, Root, Button, Body }
 **Pattern B - Function properties** (Tooltip, Checkbox, Switch):
 
 ```tsx
-function Tooltip({ content, children, side = 'top', className }: TooltipProps) { /* simple API */ }
+function Tooltip({ content, children, side = 'top', className }: TooltipProps) {
+  /* simple API */
+}
 Tooltip.Root = BaseTooltip.Root
 Tooltip.Popup = Popup
 export { Tooltip }
@@ -193,8 +203,12 @@ outside the provider. See `components/layout/theme/index.tsx` for the
 reference implementation.
 
 ```tsx
-interface MyState { count: number }
-interface MyActions { increment: () => void }
+interface MyState {
+  count: number
+}
+interface MyActions {
+  increment: () => void
+}
 type MyContextValue = { state: MyState; actions: MyActions }
 
 const MyContext = createContext<MyContextValue | null>(null)
@@ -208,10 +222,12 @@ function useMyComponent(): MyContextValue {
 function MyProvider({ children }: PropsWithChildren) {
   const [count, setCount] = useState(0)
   return (
-    <MyContext.Provider value={{
-      state: { count },
-      actions: { increment: () => setCount((c) => c + 1) },
-    }}>
+    <MyContext.Provider
+      value={{
+        state: { count },
+        actions: { increment: () => setCount((c) => c + 1) },
+      }}
+    >
       {children}
     </MyContext.Provider>
   )
@@ -224,13 +240,17 @@ For component-scoped contexts, inline `createContext` + `useContext` is fine.
 
 ```tsx
 // product-page.tsx - Server Component (no directive)
-export default async function ProductPage({ params }: { params: { slug: string } }) {
+export default async function ProductPage({
+  params,
+}: {
+  params: { slug: string }
+}) {
   const data = await fetchProduct(params.slug)
-  return <ProductView product={data} />   // serializable props only
+  return <ProductView product={data} /> // serializable props only
 }
 
 // product-view.tsx - Client Component
-'use client'
+;('use client')
 export function ProductView({ product }: { product: Product }) {
   const [qty, setQty] = useState(1)
 }
@@ -256,7 +276,7 @@ Available checks: `isConfigured('sanity' | 'shopify' | 'hubspot' | 'mailchimp' |
 
 Adding a new integration: add its Zod schema to `@/utils/validation`, add one entry to `lib/integrations/registry.ts`. The `doctor.ts` and listing helpers derive automatically. See `lib/integrations/README.md`.
 
-Validate external API *responses* at the boundary, not just env config. Pass
+Validate external API _responses_ at the boundary, not just env config. Pass
 untrusted upstream JSON (GraphQL envelopes, REST payloads) through
 `parseApiResponse(schema, data, context)` (`@/utils/validation`) so a malformed
 response fails clearly at the edge with context instead of crashing downstream.
@@ -325,7 +345,7 @@ The compiler handles simple calculations and callbacks automatically - no manual
 ```tsx
 import { Activity } from 'react'
 
-<Activity mode={isActive ? 'visible' : 'hidden'}>
+;<Activity mode={isActive ? 'visible' : 'hidden'}>
   <ExpensiveComponent />
 </Activity>
 ```
@@ -339,7 +359,7 @@ import { useEffect, useEffectEvent } from 'react'
 
 function Component({ url, theme }) {
   const onConnected = useEffectEvent(() => {
-    showNotification('Connected!', theme)  // theme changes won't trigger reconnect
+    showNotification('Connected!', theme) // theme changes won't trigger reconnect
   })
 
   useEffect(() => {
@@ -347,7 +367,7 @@ function Component({ url, theme }) {
     connection.on('connected', onConnected)
     connection.connect()
     return () => connection.disconnect()
-  }, [url])  // Only reconnects when url changes
+  }, [url]) // Only reconnects when url changes
 }
 ```
 
@@ -368,7 +388,10 @@ All `sanityFetch` calls include `cacheSignal()` automatically.
 **React 19 ref as prop** - No `forwardRef` needed.
 
 ```tsx
-function Button({ ref, ...props }: ButtonProps & { ref?: React.Ref<HTMLButtonElement> }) {
+function Button({
+  ref,
+  ...props
+}: ButtonProps & { ref?: React.Ref<HTMLButtonElement> }) {
   return <button ref={ref} {...props} />
 }
 ```
@@ -377,13 +400,14 @@ function Button({ ref, ...props }: ButtonProps & { ref?: React.Ref<HTMLButtonEle
 
 Cache Components are enabled globally (`cacheComponents: true` in `next.config.ts`).
 
-| Data type | Cache strategy |
-|-----------|---------------|
-| Public content | ISR with `revalidate`, inside a `'use cache'` function |
-| User-specific (carts, accounts) | `cache: 'no-store'` - never cache |
-| Real-time (live feeds, prices) | `cache: 'no-store'` |
+| Data type                       | Cache strategy                                         |
+| ------------------------------- | ------------------------------------------------------ |
+| Public content                  | ISR with `revalidate`, inside a `'use cache'` function |
+| User-specific (carts, accounts) | `cache: 'no-store'` - never cache                      |
+| Real-time (live feeds, prices)  | `cache: 'no-store'`                                    |
 
 Critical rules:
+
 - Any fetch that calls `cacheTag()` (e.g. `sanityFetch`) MUST run inside a
   `'use cache'` function. Calling it in a bare Server Component throws
   `cacheTag() can only be called inside a "use cache" function`. Wrap the fetch
@@ -404,16 +428,17 @@ Critical rules:
 Configuration is CSS-first - no `tailwind.config.js`. Use `@theme` directive in CSS:
 
 ```css
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
-  --font-display: "Satoshi", "sans-serif";
+  --font-display: 'Satoshi', 'sans-serif';
   --breakpoint-3xl: 1920px;
   --color-brand: oklch(0.84 0.18 117.33);
 }
 ```
 
 Tailwind v4 conventions:
+
 - Load Tailwind with `@import "tailwindcss"`
 - CSS variables in arbitrary values: `bg-(--brand-color)`, not `bg-[--brand-color]`
 - Stacked variants apply left-to-right
@@ -469,23 +494,23 @@ Pre-commit hook (lefthook) runs on staged files: oxfmt + oxlint --fix (sequentia
 
 ## Documentation Map
 
-| Document | Purpose |
-|----------|---------|
-| `ARCHITECTURE.md` | Architectural decisions, patterns, and customization boundaries |
-| `COMPONENTS.md` | Auto-generated component / hook / utility inventory |
-| `CHANGELOG.md` | Release history and versioning policy |
-| `SECURITY.md` | Security policy and vulnerability reporting |
-| `app/README.md` | App Router structure, page patterns, Wrapper props |
-| `components/README.md` | Component inventory and conventions |
-| `components/layout/README.md` | Header, footer, and page wrapper architecture |
-| `components/effects/README.md` | Animation component docs |
-| `lib/README.md` | Library structure overview |
-| `lib/integrations/README.md` | Per-integration docs (Sanity, Shopify, HubSpot) |
-| `lib/styles/README.md` | Design system and style generation |
-| `lib/webgl/README.md` | WebGL/R3F architecture, tunnel system, device gating |
-| `lib/hooks/README.md` | Custom hook inventory |
-| `lib/dev/README.md` | Debug tools suite (Orchestra) |
-| `lib/features/README.md` | Optional feature loading for the root layout |
+| Document                       | Purpose                                                         |
+| ------------------------------ | --------------------------------------------------------------- |
+| `ARCHITECTURE.md`              | Architectural decisions, patterns, and customization boundaries |
+| `COMPONENTS.md`                | Auto-generated component / hook / utility inventory             |
+| `CHANGELOG.md`                 | Release history and versioning policy                           |
+| `SECURITY.md`                  | Security policy and vulnerability reporting                     |
+| `app/README.md`                | App Router structure, page patterns, Wrapper props              |
+| `components/README.md`         | Component inventory and conventions                             |
+| `components/layout/README.md`  | Header, footer, and page wrapper architecture                   |
+| `components/effects/README.md` | Animation component docs                                        |
+| `lib/README.md`                | Library structure overview                                      |
+| `lib/integrations/README.md`   | Per-integration docs (Sanity, Shopify, HubSpot)                 |
+| `lib/styles/README.md`         | Design system and style generation                              |
+| `lib/webgl/README.md`          | WebGL/R3F architecture, tunnel system, device gating            |
+| `lib/hooks/README.md`          | Custom hook inventory                                           |
+| `lib/dev/README.md`            | Debug tools suite (Orchestra)                                   |
+| `lib/features/README.md`       | Optional feature loading for the root layout                    |
 
 ---
 
@@ -495,4 +520,4 @@ Satus follows [Semantic Versioning](https://semver.org), read from the perspecti
 
 ---
 
-*Built with [Satūs](https://github.com/darkroomengineering/satus) by [darkroom.engineering](https://darkroom.engineering)*
+_Built with [Satūs](https://github.com/darkroomengineering/satus) by [darkroom.engineering](https://darkroom.engineering)_

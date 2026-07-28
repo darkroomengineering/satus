@@ -13,7 +13,7 @@ updates:
     schedule:
       interval: weekly
     commit-message:
-      prefix: "ci"
+      prefix: 'ci'
 
   # npm / bun runtime + dev deps
   # Each dependency is raised as its own PR so the auto-merge workflow
@@ -24,7 +24,7 @@ updates:
     schedule:
       interval: weekly
     commit-message:
-      prefix: "chore(deps)"
+      prefix: 'chore(deps)'
     open-pull-requests-limit: 10
     # hamo and tempus are first-party Darkroom packages with no stable v1 yet
     # (npm only carries 1.0.0-dev.* prereleases, and the `latest` dist-tag lags
@@ -32,11 +32,11 @@ updates:
     # versions and bumped manually — automating them would auto-merge
     # prereleases or chase a nonexistent stable release. See #157.
     ignore:
-      - dependency-name: "hamo"
-      - dependency-name: "tempus"
+      - dependency-name: 'hamo'
+      - dependency-name: 'tempus'
       # Next 16.2 requires the classic TypeScript JS API (lib/typescript.js),
       # which the TS7 native package does not ship. TS7 runs via the
       # `typescript7` alias for typecheck; the `typescript` package name must
       # stay on 6.x until Next supports TS7 natively.
-      - dependency-name: "typescript"
-        update-types: ["version-update:semver-major"]
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']

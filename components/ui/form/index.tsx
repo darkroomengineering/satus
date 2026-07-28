@@ -2,9 +2,10 @@
 
 import cn from 'clsx'
 import { createContext, use, useEffect, useState } from 'react'
+
 import type { FormState } from '@/lib/types/form'
 import { mutate } from '@/utils/raf'
-import s from './form.module.css'
+
 import { useForm } from './hook'
 import type {
   FormAction,
@@ -13,6 +14,8 @@ import type {
   MessagesProps,
   SubmitButtonProps,
 } from './types'
+
+import s from './form.module.css'
 
 /**
  * Form component with built-in state management and server action support.

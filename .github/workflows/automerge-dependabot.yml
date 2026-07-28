@@ -9,7 +9,7 @@ name: Auto-merge Dependabot
 
 on:
   workflow_run:
-    workflows: ["CI"]
+    workflows: ['CI']
     types: [completed]
 
 permissions:

@@ -1,6 +1,7 @@
+import { parseBody } from 'next-sanity/webhook'
 import { revalidateTag } from 'next/cache'
 import { type NextRequest, NextResponse } from 'next/server'
-import { parseBody } from 'next-sanity/webhook'
+
 import { revalidate as shopifyRevalidate } from '@/integrations/shopify/revalidate'
 import { getClientIP, rateLimit, rateLimiters } from '@/lib/utils/rate-limit'
 

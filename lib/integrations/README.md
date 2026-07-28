@@ -23,12 +23,12 @@ const domain = env.SHOPIFY_STORE_DOMAIN // string | undefined with IntelliSense
 
 ## Available Integrations
 
-| Integration | Purpose | Documentation |
-|-------------|---------|---------------|
-| [Sanity](sanity/README.md) | Headless CMS | Visual editing, content management |
-| [Shopify](shopify/README.md) | E-commerce | Cart, products, checkout |
-| [HubSpot](hubspot/README.md) | Forms | Marketing forms, CRM |
-| [Mailchimp](mailchimp/README.md) | Newsletter | Email subscriptions |
+| Integration                      | Purpose         | Documentation                                 |
+| -------------------------------- | --------------- | --------------------------------------------- |
+| [Sanity](sanity/README.md)       | Headless CMS    | Visual editing, content management            |
+| [Shopify](shopify/README.md)     | E-commerce      | Cart, products, checkout                      |
+| [HubSpot](hubspot/README.md)     | Forms           | Marketing forms, CRM                          |
+| [Mailchimp](mailchimp/README.md) | Newsletter      | Email subscriptions                           |
 | [Turnstile](turnstile/README.md) | Spam protection | Cloudflare Turnstile CAPTCHA for form actions |
 
 ## Environment Variables
@@ -72,15 +72,17 @@ const { data } = await sanityFetch({ query: pageQuery })
 
 // Shopify
 import { Cart, AddToCart } from '@/integrations/shopify/cart'
-<Cart><AddToCart product={product} /></Cart>
+;<Cart>
+  <AddToCart product={product} />
+</Cart>
 
 // HubSpot
 import { EmbedHubspotForm } from '@/integrations/hubspot/embed'
-<EmbedHubspotForm formId="your-form-id" />
+;<EmbedHubspotForm formId="your-form-id" />
 
 // Mailchimp
 import { mailchimpSubscriptionAction } from '@/integrations/mailchimp'
-<Form action={mailchimpSubscriptionAction}>...</Form>
+;<Form action={mailchimpSubscriptionAction}>...</Form>
 ```
 
 ## Removing Integrations

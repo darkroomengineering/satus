@@ -1,9 +1,11 @@
 import { cacheSignal } from 'react'
 import { z } from 'zod'
+
 import { env } from '@/lib/env'
 import { isConfigured } from '@/lib/integrations/registry'
 import { fetchWithTimeout } from '@/utils/fetch'
 import { parseApiResponse } from '@/utils/validation'
+
 import { SHOPIFY_GRAPHQL_API_ENDPOINT } from './constants'
 import type { ShopifyFetchOptions, ShopifyResponse } from './types'
 

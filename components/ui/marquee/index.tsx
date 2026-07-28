@@ -5,7 +5,9 @@ import { useIntersectionObserver, useResizeObserver } from 'hamo'
 import { useLenis } from 'lenis/react'
 import { type HTMLAttributes, useId, useRef } from 'react'
 import { useTempus } from 'tempus/react'
+
 import { modulo } from '@/utils/math'
+
 import s from './marquee.module.css'
 
 function getHash(input: string) {
@@ -102,29 +104,31 @@ export function Marquee({
       }}
       {...props}
     >
-      {Array.from({ length: repeat }).fill(children).map((_, i) => (
-        <div
-          // oxlint-disable-next-line react/no-array-index-key -- i can't come up with anything better tbh
-          key={`marquee-item-${i}`}
-          className={s.inner}
-          aria-hidden={i !== 0}
-          data-nosnippet={i !== 0 ? '' : undefined}
-          ref={(node) => {
-            if (!node) {
-              // React calls the ref callback with null on detach — clear the
-              // slot so the RAF loop above stops animating this stale node
-              // (matters when a shrinking `repeat` removes trailing items).
-              elementsRef.current[i] = undefined
-              return
-            }
-            elementsRef.current[i] = node
+      {Array.from({ length: repeat })
+        .fill(children)
+        .map((_, i) => (
+          <div
+            // oxlint-disable-next-line react/no-array-index-key -- i can't come up with anything better tbh
+            key={`marquee-item-${i}`}
+            className={s.inner}
+            aria-hidden={i !== 0}
+            data-nosnippet={i !== 0 ? '' : undefined}
+            ref={(node) => {
+              if (!node) {
+                // React calls the ref callback with null on detach — clear the
+                // slot so the RAF loop above stops animating this stale node
+                // (matters when a shrinking `repeat` removes trailing items).
+                elementsRef.current[i] = undefined
+                return
+              }
+              elementsRef.current[i] = node
 
-            if (i === 0) setRectRef(node)
-          }}
-        >
-          {children}
-        </div>
-      ))}
+              if (i === 0) setRectRef(node)
+            }}
+          >
+            {children}
+          </div>
+        ))}
     </section>
   )
 }

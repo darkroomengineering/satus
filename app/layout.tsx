@@ -1,11 +1,12 @@
 import { Analytics } from '@vercel/analytics/next'
 import { TransformProvider } from 'hamo'
 import type { Metadata, Viewport } from 'next'
+import { VisualEditing } from 'next-sanity/visual-editing'
 import { draftMode } from 'next/headers'
 import Script from 'next/script'
-import { VisualEditing } from 'next-sanity/visual-editing'
 import { type PropsWithChildren, Suspense } from 'react'
 import { ReactTempus } from 'tempus/react'
+
 import { Link } from '@/components/ui/link'
 import { RealViewport } from '@/components/ui/real-viewport'
 import { ToastProvider, ToastViewport } from '@/components/ui/toast'
@@ -16,6 +17,7 @@ import { SanityLive } from '@/lib/integrations/sanity/live'
 import { themes } from '@/lib/styles/colors'
 import { fontsVariable } from '@/lib/styles/fonts'
 import AppData from '@/package.json'
+
 import '@/lib/styles/css/index.css'
 
 const APP_NAME = AppData.name
@@ -109,7 +111,7 @@ export default async function Layout({ children }: PropsWithChildren) {
         <Suspense fallback={null}>
           <Link
             href="#main-content"
-            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-9999 focus:rounded focus:bg-black focus:px-4 focus:py-2 focus:text-white focus:outline-none focus:ring-2 focus:ring-white"
+            className="focus:top-4 focus:left-4 focus:rounded focus:px-4 focus:py-2 sr-only focus:not-sr-only focus:fixed focus:z-9999 focus:bg-black focus:text-white focus:ring-2 focus:ring-white focus:outline-none"
           >
             Skip to main content
           </Link>

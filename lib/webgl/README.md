@@ -59,7 +59,7 @@ manually by the `RAF` component (`frameloop="never"`), not the default r3f
 render loop.
 
 > **Always ship a fallback.** Because reduced-motion (and non-WebGL devices)
-> means the canvas may never mount, any page that puts *content* in WebGL —
+> means the canvas may never mount, any page that puts _content_ in WebGL —
 > not just decoration — must render a non-WebGL fallback (static image, DOM
 > equivalent) for that state. If the WebGL content is essential and motionless,
 > mount with `force` and damp motion inside the scene instead.
@@ -72,6 +72,7 @@ render loop.
 ```
 
 **Key benefits (shared/layout strategy):**
+
 - Context persists across navigation (no recreation)
 - Seamless route transitions
 - Shared assets stay loaded
@@ -79,11 +80,11 @@ render loop.
 
 ## Components
 
-| Component | Purpose |
-|-----------|---------|
-| `Canvas` | Mounts the canvas via `root` (layout or per-page Wrapper) |
-| `WebGLTunnel` | Portal 3D content into the canvas |
-| `DOMTunnel` | Portal HTML overlays |
+| Component     | Purpose                                                   |
+| ------------- | --------------------------------------------------------- |
+| `Canvas`      | Mounts the canvas via `root` (layout or per-page Wrapper) |
+| `WebGLTunnel` | Portal 3D content into the canvas                         |
+| `DOMTunnel`   | Portal HTML overlays                                      |
 
 ## Hooks
 

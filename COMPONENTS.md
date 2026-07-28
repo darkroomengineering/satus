@@ -6,65 +6,64 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 
 ---
 
-
 ## UI Components
 
-| Component | Import | Type |
-|-----------|--------|------|
-| Accordion | `@/components/ui/accordion` | Client |
-| AlertDialog | `@/components/ui/alert-dialog` | Client |
-| Checkbox | `@/components/ui/checkbox` | Client |
-| ErrorView | `@/components/ui/error-view` | Client |
-| Fold | `@/components/ui/fold` | Client |
-| Form | `@/components/ui/form` | Client |
-| Image | `@/components/ui/image` | Client |
-| Link | `@/components/ui/link` | Client |
-| Marquee | `@/components/ui/marquee` | Client |
-| Menu | `@/components/ui/menu` | Client |
+| Component     | Import                           | Type   |
+| ------------- | -------------------------------- | ------ |
+| Accordion     | `@/components/ui/accordion`      | Client |
+| AlertDialog   | `@/components/ui/alert-dialog`   | Client |
+| Checkbox      | `@/components/ui/checkbox`       | Client |
+| ErrorView     | `@/components/ui/error-view`     | Client |
+| Fold          | `@/components/ui/fold`           | Client |
+| Form          | `@/components/ui/form`           | Client |
+| Image         | `@/components/ui/image`          | Client |
+| Link          | `@/components/ui/link`           | Client |
+| Marquee       | `@/components/ui/marquee`        | Client |
+| Menu          | `@/components/ui/menu`           | Client |
 | NotConfigured | `@/components/ui/not-configured` | Server |
-| RealViewport | `@/components/ui/real-viewport` | Client |
-| SanityImage | `@/components/ui/sanity-image` | Server |
-| Scrollbar | `@/components/ui/scrollbar` | Client |
-| Select | `@/components/ui/select` | Client |
-| Switch | `@/components/ui/switch` | Client |
-| Tabs | `@/components/ui/tabs` | Client |
-| Toast | `@/components/ui/toast` | Client |
-| Tooltip | `@/components/ui/tooltip` | Client |
+| RealViewport  | `@/components/ui/real-viewport`  | Client |
+| SanityImage   | `@/components/ui/sanity-image`   | Server |
+| Scrollbar     | `@/components/ui/scrollbar`      | Client |
+| Select        | `@/components/ui/select`         | Client |
+| Switch        | `@/components/ui/switch`         | Client |
+| Tabs          | `@/components/ui/tabs`           | Client |
+| Toast         | `@/components/ui/toast`          | Client |
+| Tooltip       | `@/components/ui/tooltip`        | Client |
 
 ---
 
 ## Layout Components
 
-| Component | Import | Type |
-|-----------|--------|------|
-| Footer | `@/components/layout/footer` | Server |
-| Header | `@/components/layout/header` | Client |
-| Lenis | `@/components/layout/lenis` | Client |
-| Theme | `@/components/layout/theme` | Client |
-| Wrapper | `@/components/layout/wrapper` | Client |
+| Component | Import                        | Type   |
+| --------- | ----------------------------- | ------ |
+| Footer    | `@/components/layout/footer`  | Server |
+| Header    | `@/components/layout/header`  | Client |
+| Lenis     | `@/components/layout/lenis`   | Client |
+| Theme     | `@/components/layout/theme`   | Client |
+| Wrapper   | `@/components/layout/wrapper` | Client |
 
 ---
 
 ## Effect Components
 
-| Component | Import | Type |
-|-----------|--------|------|
-| Gsap | `@/components/effects/gsap` | Client |
+| Component    | Import                               | Type   |
+| ------------ | ------------------------------------ | ------ |
+| Gsap         | `@/components/effects/gsap`          | Client |
 | ProgressText | `@/components/effects/progress-text` | Client |
 
 ---
 
 ## Hooks
 
-| Hook | Import | Signature |
-|------|--------|-----------|
-| useDeviceDetection | `@/hooks/use-device-detection` | `()` |
-| usePrefetch | `@/hooks/use-prefetch` | `(href: Route | null | undefined, options?: IntersectionObserverInit)` |
-| useReveal | `@/hooks/use-reveal` | `({ threshold = 0, rootMargin = '0px 0px -25% 0px', once = true, }: UseRevealOptions = {})` |
-| useOnlineStatus | `@/hooks/use-sync-external` | `() => boolean` |
-| usePreferredColorScheme | `@/hooks/use-sync-external` | `() => 'light' | 'dark'` |
-| usePreferredReducedMotion | `@/hooks/use-sync-external` | `() => boolean` |
-| useDocumentVisibility | `@/hooks/use-sync-external` | `() => DocumentVisibilityState` |
+| Hook                      | Import                         | Signature                                                                                   |
+| ------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------- |
+| useDeviceDetection        | `@/hooks/use-device-detection` | `()`                                                                                        |
+| usePrefetch               | `@/hooks/use-prefetch`         | `(href: Route                                                                               | null    | undefined, options?: IntersectionObserverInit)` |
+| useReveal                 | `@/hooks/use-reveal`           | `({ threshold = 0, rootMargin = '0px 0px -25% 0px', once = true, }: UseRevealOptions = {})` |
+| useOnlineStatus           | `@/hooks/use-sync-external`    | `() => boolean`                                                                             |
+| usePreferredColorScheme   | `@/hooks/use-sync-external`    | `() => 'light'                                                                              | 'dark'` |
+| usePreferredReducedMotion | `@/hooks/use-sync-external`    | `() => boolean`                                                                             |
+| useDocumentVisibility     | `@/hooks/use-sync-external`    | `() => DocumentVisibilityState`                                                             |
 
 ---
 
@@ -72,128 +71,128 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 
 ### Fetch (`@/utils/fetch`)
 
-| Export | Signature |
-|--------|-----------|
-| fetchWithTimeout | `(url: string, options: FetchWithTimeoutOptions = {}) => Promise<Response>` |
-| fetchJSON | `(url: string, options?: FetchWithTimeoutOptions) => Promise<unknown>` |
-| FetchWithTimeoutOptions |  |
+| Export                  | Signature                                                                   |
+| ----------------------- | --------------------------------------------------------------------------- |
+| fetchWithTimeout        | `(url: string, options: FetchWithTimeoutOptions = {}) => Promise<Response>` |
+| fetchJSON               | `(url: string, options?: FetchWithTimeoutOptions) => Promise<unknown>`      |
+| FetchWithTimeoutOptions |                                                                             |
 
 ### Form-action (`@/utils/form-action`)
 
-| Export | Signature |
-|--------|-----------|
+| Export        | Signature                                                                                                                                                                      |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | runFormAction | `({ rateLimitPrefix, schema, formData, rateLimitMessage = 'rate_limit_exceeded_', rateLimiter = rateLimiters.standard, run, }: RunFormActionOptions<T>) => Promise<FormState>` |
 
 ### Math (`@/utils/math`)
 
-| Export | Signature |
-|--------|-----------|
-| clamp | `(min: number, input: number, max: number) => number` |
-| lerp | `(start: number, end: number, amount: number) => number` |
+| Export   | Signature                                                                                                      |
+| -------- | -------------------------------------------------------------------------------------------------------------- |
+| clamp    | `(min: number, input: number, max: number) => number`                                                          |
+| lerp     | `(start: number, end: number, amount: number) => number`                                                       |
 | mapRange | `(inMin: number, inMax: number, input: number, outMin: number, outMax: number, shouldClamp = false) => number` |
-| truncate | `(value: number, decimals: number) => number` |
-| modulo | `(n: number, d: number) => number` |
-| roundTo | `(value: number, multiple: number) => number` |
-| degToRad | `(degrees: number) => number` |
-| radToDeg | `(radians: number) => number` |
-| distance | `(x1: number, y1: number, x2: number, y2: number) => number` |
+| truncate | `(value: number, decimals: number) => number`                                                                  |
+| modulo   | `(n: number, d: number) => number`                                                                             |
+| roundTo  | `(value: number, multiple: number) => number`                                                                  |
+| degToRad | `(degrees: number) => number`                                                                                  |
+| radToDeg | `(radians: number) => number`                                                                                  |
+| distance | `(x1: number, y1: number, x2: number, y2: number) => number`                                                   |
 
 ### Metadata (`@/utils/metadata`)
 
-| Export | Signature |
-|--------|-----------|
-| generatePageMetadata | `(options: GenerateMetadataOptions) => Metadata` |
+| Export                 | Signature                                                                                                                    |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| generatePageMetadata   | `(options: GenerateMetadataOptions) => Metadata`                                                                             |
 | generateSanityMetadata | `(options: { // Fields are nullable to accept TypeGen query-result types directly // (projections type optional fields as `T | null`). document: { title?: string | null metadata?: { title?: string | null description?: string | null keywords?: string[] | null noIndex?: boolean | null } | null _updatedAt?: string | null publishedAt?: string | null } url?: string type?: 'website' | 'article' }) => Metadata` |
 
 ### Raf (`@/utils/raf`)
 
-| Export | Signature |
-|--------|-----------|
+| Export | Signature                     |
+| ------ | ----------------------------- |
 | mutate | `(fn: () => T) => Promise<T>` |
 
 ### Rate-limit (`@/utils/rate-limit`)
 
-| Export | Signature |
-|--------|-----------|
-| rateLimit | `(identifier: string, config: RateLimitConfig) => RateLimitResult` |
-| getIPFromHeaders | `(headers: Pick<Headers, 'get'>) => string` |
-| getClientIP | `(request: Request) => string` |
-| RateLimitConfig |  |
-| RateLimitResult |  |
-| rateLimiters | `{ readonly strict: { readonly limit: 5; readonly windowSeconds: 60; }; readon...` |
+| Export           | Signature                                                                          |
+| ---------------- | ---------------------------------------------------------------------------------- |
+| rateLimit        | `(identifier: string, config: RateLimitConfig) => RateLimitResult`                 |
+| getIPFromHeaders | `(headers: Pick<Headers, 'get'>) => string`                                        |
+| getClientIP      | `(request: Request) => string`                                                     |
+| RateLimitConfig  |                                                                                    |
+| RateLimitResult  |                                                                                    |
+| rateLimiters     | `{ readonly strict: { readonly limit: 5; readonly windowSeconds: 60; }; readon...` |
 
 ### Strings (`@/utils/strings`)
 
-| Export | Signature |
-|--------|-----------|
-| slugify | `(text: { toString: () => string })` |
-| lowerFirstChar | `(inputString: string)` |
-| capitalizeFirstLetter | `(inputString: string)` |
-| isEmptyArray | `(arr: string | unknown[])` |
-| stripHtmlTags | `(input: string) => string` |
+| Export                | Signature                            |
+| --------------------- | ------------------------------------ |
+| slugify               | `(text: { toString: () => string })` |
+| lowerFirstChar        | `(inputString: string)`              |
+| capitalizeFirstLetter | `(inputString: string)`              |
+| isEmptyArray          | `(arr: string                        | unknown[])` |
+| stripHtmlTags         | `(input: string) => string`          |
 
 ### Validation (`@/utils/validation`)
 
-| Export | Signature |
-|--------|-----------|
-| parseFormData | `(schema: z.ZodType<T>, formData: FormData) => FormState<T> | { success: true; data: T }` |
-| zodToValidator | `(schema: z.ZodType) => (value: string) => boolean` |
-| parseApiResponse | `(schema: z.ZodType<T>, data: unknown, context?: string) => T` |
-| emailSchema | `ZodEmail` |
-| phoneSchema | `ZodString` |
-| sanityEnvSchema | `ZodObject<{ NEXT_PUBLIC_SANITY_PROJECT_ID: ZodString; NEXT_PUBLIC_SANITY_DATA...` |
-| shopifyEnvSchema | `ZodObject<{ SHOPIFY_STORE_DOMAIN: ZodString; SHOPIFY_STOREFRONT_ACCESS_TOKEN:...` |
-| hubspotEnvSchema | `ZodObject<{ HUBSPOT_ACCESS_TOKEN: ZodOptional<ZodString>; NEXT_PUBLIC_HUBSPOT...` |
-| hubspotFormsApiEnvSchema | `ZodObject<{ HUBSPOT_ACCESS_TOKEN: ZodString; }, $strip>` |
-| hubspotEmbedEnvSchema | `ZodObject<{ NEXT_PUBLIC_HUBSPOT_PORTAL_ID: ZodString; }, $strip>` |
-| mailchimpEnvSchema | `ZodObject<{ MAILCHIMP_API_KEY: ZodString; MAILCHIMP_SERVER_PREFIX: ZodString;...` |
-| turnstileEnvSchema | `ZodObject<{ NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY: ZodString; CLOUDFLARE_...` |
-| analyticsEnvSchema | `ZodObject<{ NEXT_PUBLIC_GOOGLE_ANALYTICS: ZodOptional<ZodString>; NEXT_PUBLIC...` |
-| coreEnvSchema | `ZodObject<{ NEXT_PUBLIC_BASE_URL: ZodOptional<ZodURL>; }, $strip>` |
+| Export                   | Signature                                                                          |
+| ------------------------ | ---------------------------------------------------------------------------------- |
+| parseFormData            | `(schema: z.ZodType<T>, formData: FormData) => FormState<T>                        | { success: true; data: T }` |
+| zodToValidator           | `(schema: z.ZodType) => (value: string) => boolean`                                |
+| parseApiResponse         | `(schema: z.ZodType<T>, data: unknown, context?: string) => T`                     |
+| emailSchema              | `ZodEmail`                                                                         |
+| phoneSchema              | `ZodString`                                                                        |
+| sanityEnvSchema          | `ZodObject<{ NEXT_PUBLIC_SANITY_PROJECT_ID: ZodString; NEXT_PUBLIC_SANITY_DATA...` |
+| shopifyEnvSchema         | `ZodObject<{ SHOPIFY_STORE_DOMAIN: ZodString; SHOPIFY_STOREFRONT_ACCESS_TOKEN:...` |
+| hubspotEnvSchema         | `ZodObject<{ HUBSPOT_ACCESS_TOKEN: ZodOptional<ZodString>; NEXT_PUBLIC_HUBSPOT...` |
+| hubspotFormsApiEnvSchema | `ZodObject<{ HUBSPOT_ACCESS_TOKEN: ZodString; }, $strip>`                          |
+| hubspotEmbedEnvSchema    | `ZodObject<{ NEXT_PUBLIC_HUBSPOT_PORTAL_ID: ZodString; }, $strip>`                 |
+| mailchimpEnvSchema       | `ZodObject<{ MAILCHIMP_API_KEY: ZodString; MAILCHIMP_SERVER_PREFIX: ZodString;...` |
+| turnstileEnvSchema       | `ZodObject<{ NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY: ZodString; CLOUDFLARE_...` |
+| analyticsEnvSchema       | `ZodObject<{ NEXT_PUBLIC_GOOGLE_ANALYTICS: ZodOptional<ZodString>; NEXT_PUBLIC...` |
+| coreEnvSchema            | `ZodObject<{ NEXT_PUBLIC_BASE_URL: ZodOptional<ZodURL>; }, $strip>`                |
 
 ---
 
 ## WebGL Components
 
-| Component | Import | Type |
-|-----------|--------|------|
-| Canvas | `@/webgl/components/canvas` | Client |
+| Component       | Import                                | Type   |
+| --------------- | ------------------------------------- | ------ |
+| Canvas          | `@/webgl/components/canvas`           | Client |
 | FlowmapProvider | `@/webgl/components/flowmap-provider` | Server |
-| Image | `@/webgl/components/image` | Client |
-| Postprocessing | `@/webgl/components/postprocessing` | Server |
-| Raf | `@/webgl/components/raf` | Server |
-| Tunnel | `@/webgl/components/tunnel` | Client |
+| Image           | `@/webgl/components/image`            | Client |
+| Postprocessing  | `@/webgl/components/postprocessing`   | Server |
+| Raf             | `@/webgl/components/raf`              | Server |
+| Tunnel          | `@/webgl/components/tunnel`           | Client |
 
 ---
 
 ## Integration Registry (`@/integrations/registry`)
 
-| Export | Signature |
-|--------|-----------|
-| isConfigured | `(id: IntegrationId) => boolean` |
-| hasCapability | `(id: Id, capability: CapabilityOf<Id> extends never ? string : CapabilityOf<Id>) => boolean` |
-| getConfiguredIds | `() => IntegrationId[]` |
-| getConfigured | `() => string[]` |
-| getUnconfigured | `() => string[]` |
-| IntegrationEntry |  |
-| integrations | `{ readonly sanity: { readonly name: "Sanity"; readonly envSchema: ZodObject<{...` |
-| IntegrationId | `keyof typeof integrations` |
-| devOnlyRemovables | `readonly ["webgl", "theatre"]` |
-| RemovableId | `IntegrationId | (typeof devOnlyRemovables)[number]` |
-| CapabilityOf | `(typeof integrations)[Id] extends { capabilities: Record<infer K, z.ZodType> ...` |
+| Export            | Signature                                                                                     |
+| ----------------- | --------------------------------------------------------------------------------------------- |
+| isConfigured      | `(id: IntegrationId) => boolean`                                                              |
+| hasCapability     | `(id: Id, capability: CapabilityOf<Id> extends never ? string : CapabilityOf<Id>) => boolean` |
+| getConfiguredIds  | `() => IntegrationId[]`                                                                       |
+| getConfigured     | `() => string[]`                                                                              |
+| getUnconfigured   | `() => string[]`                                                                              |
+| IntegrationEntry  |                                                                                               |
+| integrations      | `{ readonly sanity: { readonly name: "Sanity"; readonly envSchema: ZodObject<{...`            |
+| IntegrationId     | `keyof typeof integrations`                                                                   |
+| devOnlyRemovables | `readonly ["webgl", "theatre"]`                                                               |
+| RemovableId       | `IntegrationId                                                                                | (typeof devOnlyRemovables)[number]` |
+| CapabilityOf      | `(typeof integrations)[Id] extends { capabilities: Record<infer K, z.ZodType> ...`            |
 
 ---
 
 ## Import Path Aliases
 
-| Alias | Maps To |
-|-------|---------|
-| `@/*` | `./*` |
-| `@/hooks/*` | `./lib/hooks/*` |
-| `@/styles/*` | `./lib/styles/*` |
-| `@/integrations/*` | `./lib/integrations/*` |
-| `@/webgl/*` | `./lib/webgl/*` |
-| `@/utils/*` | `./lib/utils/*` |
-| `@/config` | `./lib/styles/config.ts` |
-| `@/dev` | `./lib/dev` |
-| `@/dev/*` | `./lib/dev/*` |
+| Alias              | Maps To                  |
+| ------------------ | ------------------------ |
+| `@/*`              | `./*`                    |
+| `@/hooks/*`        | `./lib/hooks/*`          |
+| `@/styles/*`       | `./lib/styles/*`         |
+| `@/integrations/*` | `./lib/integrations/*`   |
+| `@/webgl/*`        | `./lib/webgl/*`          |
+| `@/utils/*`        | `./lib/utils/*`          |
+| `@/config`         | `./lib/styles/config.ts` |
+| `@/dev`            | `./lib/dev`              |
+| `@/dev/*`          | `./lib/dev/*`            |

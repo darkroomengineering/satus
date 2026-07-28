@@ -9,15 +9,15 @@ import { useMediaQuery } from 'hamo'
 
 ## Available Hooks
 
-| Hook | Purpose |
-|------|---------|
-| `useReveal` | Reveal-on-scroll via IntersectionObserver — CSS-driven, compositor-thread; reduced-motion + no-JS safe |
-| `useDeviceDetection` | Detect screen size, input, motion preference, WebGL support |
-| `usePrefetch` | Prefetch routes on visibility |
-| `useOnlineStatus` | Network online/offline status |
-| `usePreferredColorScheme` | System theme preference |
-| `usePreferredReducedMotion` | Reduced motion preference |
-| `useDocumentVisibility` | Tab visibility state |
+| Hook                        | Purpose                                                                                                |
+| --------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `useReveal`                 | Reveal-on-scroll via IntersectionObserver — CSS-driven, compositor-thread; reduced-motion + no-JS safe |
+| `useDeviceDetection`        | Detect screen size, input, motion preference, WebGL support                                            |
+| `usePrefetch`               | Prefetch routes on visibility                                                                          |
+| `useOnlineStatus`           | Network online/offline status                                                                          |
+| `usePreferredColorScheme`   | System theme preference                                                                                |
+| `usePreferredReducedMotion` | Reduced motion preference                                                                              |
+| `useDocumentVisibility`     | Tab visibility state                                                                                   |
 
 ## useReveal
 
@@ -30,7 +30,11 @@ function Cards({ items }) {
   const ref = useReveal<HTMLDivElement>()
   return (
     <div ref={ref}>
-      {items.map((i) => <div key={i.id} data-reveal-item>{i.name}</div>)}
+      {items.map((i) => (
+        <div key={i.id} data-reveal-item>
+          {i.name}
+        </div>
+      ))}
     </div>
   )
 }
@@ -147,8 +151,16 @@ preference, WebGL support, Safari, and inline-video autoplay support.
 import { useDeviceDetection } from '@/hooks/use-device-detection'
 
 function Component() {
-  const { isMobile, isDesktop, isReducedMotion, isTouchOnly, dpr, isWebGL, isSafari, isAutoplaySupported } =
-    useDeviceDetection()
+  const {
+    isMobile,
+    isDesktop,
+    isReducedMotion,
+    isTouchOnly,
+    dpr,
+    isWebGL,
+    isSafari,
+    isAutoplaySupported,
+  } = useDeviceDetection()
 
   return isMobile ? <MobileNav /> : <DesktopNav />
 }
@@ -158,10 +170,10 @@ function Component() {
 
 See [webgl/hooks/](../webgl/hooks/):
 
-| Hook | Purpose |
-|------|---------|
+| Hook              | Purpose                    |
+| ----------------- | -------------------------- |
 | `useWebGLElement` | Rect + visibility tracking |
-| `useWebGLRect` | DOM-to-WebGL position sync |
+| `useWebGLRect`    | DOM-to-WebGL position sync |
 
 ## Viewport
 

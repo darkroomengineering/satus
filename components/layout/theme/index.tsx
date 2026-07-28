@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import { createContext, use, useEffect, useState } from 'react'
+
 import type { Themes } from '@/styles/colors'
 import { type ThemeName, themes } from '@/styles/config'
 

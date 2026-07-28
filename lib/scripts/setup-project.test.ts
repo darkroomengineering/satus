@@ -11,6 +11,7 @@
  */
 
 import { beforeAll, describe, expect, it } from 'bun:test'
+
 import { applyOpsToText } from './ast-transforms'
 import {
   getIntegrationEntries,

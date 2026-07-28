@@ -6,6 +6,7 @@
  */
 
 import { type Project, SyntaxKind } from 'ts-morph'
+
 import type { SetObjectPropertyOp } from '../ast-operation-types'
 import { resolvePropertyPath, withSourceFile } from './helpers'
 

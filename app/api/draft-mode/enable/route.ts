@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server'
 import { defineEnableDraftMode } from 'next-sanity/draft-mode'
+import { NextResponse } from 'next/server'
+
 import { isConfigured } from '@/integrations/registry'
 import { client } from '@/integrations/sanity/client'
 import { privateToken } from '@/integrations/sanity/env'

@@ -4,7 +4,9 @@ import {
   type StrictDefinedLiveProps,
 } from 'next-sanity/live'
 import type { ComponentType } from 'react'
+
 import { isConfigured } from '@/integrations/registry'
+
 import { client } from '../client'
 import { privateToken, publicToken } from '../env'
 

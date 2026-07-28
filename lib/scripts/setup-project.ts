@@ -32,8 +32,11 @@
 import { cp, mkdir, mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+
 import * as p from '@clack/prompts'
+
 import type { RemovableId } from '@/integrations/registry'
+
 import {
   applyCodeTransforms,
   type TransformFailure,

@@ -5,12 +5,15 @@ import { useRouter } from 'next/navigation'
 import type { KeyboardEvent, ReactNode } from 'react'
 import { createContext, use, useState } from 'react'
 import { useFormStatus } from 'react-dom'
+
 import { Image } from '@/components/ui/image'
 import { Link } from '@/components/ui/link'
 import { formatMoney } from '@/integrations/shopify/money'
+
 import { removeItem, updateItemQuantity } from '../actions'
 import { useCartContext } from '../cart-store-context'
 import { quantityAction } from '../optimistic-utils'
+
 import s from './modal.module.css'
 
 interface ModalContextType {

@@ -19,13 +19,36 @@
     "node": true,
     "es2024": true
   },
+  // How the custom components are taught to the linter. `settings` is root-only;
+  // it cannot be scoped in an overrides block.
   "settings": {
     "react": {
+      // Makes react/jsx-no-target-blank check <Link target="_blank"> for a
+      // missing rel. Belt-and-braces: components/ui/link strips any caller
+      // target/rel and forces rel="noopener noreferrer" itself.
       "linkComponents": [{ "name": "Link", "linkAttribute": "href" }]
     },
     "jsx-a11y": {
       "components": {
+        // Makes jsx-a11y/alt-text check our <Image> (and next/image) for a
+        // missing alt. Verified: it fires on <Image src width height> with no
+        // alt, and does NOT make nextjs/no-img-element flag <Image>.
         "Image": "img"
+
+        // Deliberately NOT mapped:
+        //
+        // "Link": "a" would give us jsx-a11y/anchor-is-valid on <Link>, but
+        // react/forbid-elements reads this same map, so every one of the 13
+        // <Link> usages in the repo gets reported as a forbidden raw anchor.
+        // Silencing those would gut the rule that replaced the old
+        // no-anchor-element GritQL plugin. The only thing the mapping actually
+        // catches here is <Link href="#">; the real risk (target/rel) is
+        // covered above. Revisit if oxlint stops sharing the map across
+        // plugins.
+        //
+        // "SanityImage": "img" reports a false positive: the component
+        // resolves alt={alt ?? image.alt ?? ''} from CMS data, so call sites
+        // legitimately omit it.
       }
     }
   },

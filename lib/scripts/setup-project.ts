@@ -637,10 +637,10 @@ const setupAddIntegrations = async (
  * integration could reintroduce a `'use cache'` route, so this condition must
  * stay exactly "neither sanity nor shopify kept", never loosened.
  */
-const CACHE_COMPONENTS_WORTH_KEEPING: readonly RemovableId[] = [
+const CACHE_COMPONENTS_WORTH_KEEPING: ReadonlySet<RemovableId> = new Set([
   'sanity',
   'shopify',
-]
+])
 
 /**
  * True when the kept integration set has no CMS/storefront — the condition
@@ -650,7 +650,7 @@ const CACHE_COMPONENTS_WORTH_KEEPING: readonly RemovableId[] = [
 export const shouldDisableCacheComponents = (
   keepIntegrations: RemovableId[]
 ): boolean =>
-  !keepIntegrations.some((id) => CACHE_COMPONENTS_WORTH_KEEPING.includes(id))
+  !keepIntegrations.some((id) => CACHE_COMPONENTS_WORTH_KEEPING.has(id))
 
 /**
  * next.config.ts transform that flips Cache Components off.

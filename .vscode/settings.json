@@ -7,6 +7,10 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.oxc": "always"
   },
+  // Surfaces no-floating-promises / no-misused-promises as you type. These are
+  // kept out of the pre-commit hook for speed, so the editor is where you want
+  // them. Requires oxlint-tsgolint, which is already a devDependency.
+  "oxc.typeAware": true,
 
   // TypeScript
   "typescript.suggest.autoImports": true,

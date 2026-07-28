@@ -122,7 +122,6 @@
     "jsx-a11y/prefer-tag-over-role": "off",
     "nextjs/no-img-element": "error",
     "import/first": "error",
-    "eslint/prefer-named-capture-group": "warn",
     "react/rules-of-hooks": "error",
     "react/forbid-elements": [
       "error",
@@ -158,9 +157,19 @@
     "react/no-array-index-key": "warn",
     "react/jsx-no-target-blank": "error",
     "react/no-unstable-nested-components": "error",
-    "react/jsx-no-constructed-context-values": "warn",
     "oxc/no-accumulating-spread": "warn",
     "promise/no-return-in-finally": "error",
+
+    // --- perf category, hand-picked ------------------------------------------
+    // Biome had no equivalent for any of these. The category as a whole is not
+    // enabled: its `no-await-in-loop` fires 49 times on scripts that are
+    // sequential on purpose. These three are the ones that pay for themselves;
+    // oxc/no-map-spread is deliberately not among them, since it wants
+    // Object.assign in place of a plain per-item spread, which reads worse for
+    // no measurable gain here.
+    "unicorn/prefer-set-has": "error",
+    "unicorn/prefer-array-find": "error",
+    "react/no-object-type-as-default-prop": "error",
 
     // --- Consciously disabled during the Biome -> Oxc migration ---------------
     // Under Biome these were nursery/warn, which never failed a build. `lint`
@@ -168,9 +177,10 @@
     // findings into hard failures. Off preserves today's effective behaviour.
     // 11 pre-existing sites (regex literals in scripts + tests).
     "eslint/prefer-named-capture-group": "off",
-    // Real signal Biome never had, but clearing it means wrapping 11 context
-    // providers in useMemo -- application refactoring, out of scope here.
-    // Tracked as a follow-up; re-enable once those providers are memoised.
+    // Off on purpose, and it should stay off: the fix this rule asks for is
+    // useMemo around context values, which this repo forbids because the React
+    // Compiler already memoises them (see AGENTS.md). Enabling it would mean
+    // hand-writing memoisation the compiler undoes.
     "react/jsx-no-constructed-context-values": "off",
 
     // --- Type-aware rules (only active under `bun run lint:types`) -----------

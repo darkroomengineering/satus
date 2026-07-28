@@ -7,16 +7,16 @@ import { env } from '@/lib/env'
 
 import { TAGS } from './constants'
 
-const collectionWebhooks = [
+const collectionWebhooks = new Set([
   'collections/create',
   'collections/delete',
   'collections/update',
-]
-const productWebhooks = [
+])
+const productWebhooks = new Set([
   'products/create',
   'products/delete',
   'products/update',
-]
+])
 
 // This is called from `app/api/revalidate/route.ts` so providers can control revalidation logic.
 export async function revalidate(req: NextRequest): Promise<NextResponse> {
@@ -25,8 +25,8 @@ export async function revalidate(req: NextRequest): Promise<NextResponse> {
   const headersList = await headers()
   const topic = headersList.get('x-shopify-topic') ?? 'unknown'
   const secret = req.nextUrl.searchParams.get('secret')
-  const isCollectionUpdate = collectionWebhooks.includes(topic)
-  const isProductUpdate = productWebhooks.includes(topic)
+  const isCollectionUpdate = collectionWebhooks.has(topic)
+  const isProductUpdate = productWebhooks.has(topic)
 
   if (!secret || secret !== env.SHOPIFY_REVALIDATION_SECRET) {
     console.error('Invalid revalidation secret.')

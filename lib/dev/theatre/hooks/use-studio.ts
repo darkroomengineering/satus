@@ -32,9 +32,9 @@ export function useStudioCurrentObject() {
   useEffect(() => {
     if (studio) {
       const unsubscribe = studio.onSelectionChange((v) => {
-        const object = v.filter(
+        const object = v.find(
           ({ type }) => type === 'Theatre_SheetObject_PublicAPI'
-        )[0]
+        )
 
         setCurrentObjectAddress(object?.address ?? null)
       })

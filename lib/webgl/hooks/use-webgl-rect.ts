@@ -116,12 +116,20 @@ export function useWebGLRect(
     onUpdate?.(transformRef.current)
   })
 
-  // Subscribe to transform changes - handleUpdate is stable from useEffectEvent
-  // oxlint-disable-next-line react/rules-of-hooks -- handleUpdate is stable from useEffectEvent; see follow-up note in the migration PR
+  // NOTE: these two suppressions are not about hook ordering. Both calls are
+  // unconditional and at the top level of this hook. What the rule objects to
+  // is passing `handleUpdate` (a useEffectEvent function) into another hook at
+  // all, which React forbids because the identity is only valid inside the
+  // effect that owns it. It works here because useTransform/useLenis invoke it
+  // from within their own effects, but the proper fix is to drop useEffectEvent
+  // for a ref-held callback. Tracked as a follow-up, not silenced and forgotten.
+
+  // Subscribe to transform changes
+  // oxlint-disable-next-line react/rules-of-hooks -- see NOTE above
   useTransform(handleUpdate, [])
 
-  // Subscribe to lenis scroll - handleUpdate is stable from useEffectEvent
-  // oxlint-disable-next-line react/rules-of-hooks -- handleUpdate is stable from useEffectEvent; see follow-up note in the migration PR
+  // Subscribe to lenis scroll
+  // oxlint-disable-next-line react/rules-of-hooks -- see NOTE above
   useLenis(handleUpdate, [])
 
   // Fallback for non-lenis scroll

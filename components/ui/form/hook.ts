@@ -18,6 +18,19 @@ import type {
   UseFormReturn,
 } from './types'
 
+// Built-in validators (uses same Zod schemas as server-side validation).
+// Declared above useForm so validate() can reference it without a
+// use-before-define suppression.
+const validators: Record<string, (value: string) => boolean> = {
+  email: zodToValidator(emailSchema),
+  phone: zodToValidator(phoneSchema),
+}
+
+// Allow extending validators
+export function addValidator(id: string, fn: (value: string) => boolean) {
+  validators[id] = fn
+}
+
 /**
  * Form hook that integrates with React 19's useActionState for server actions.
  *
@@ -125,7 +138,6 @@ export function useForm<T = unknown>({
 
     const elementType =
       element instanceof HTMLInputElement ? element.type : 'textarea'
-    // oxlint-disable-next-line eslint/no-use-before-define -- validators is a module-scope const; validate() only runs after module init
     const validator = resolveValidator(validators, {
       name: element.name,
       id: element.id,
@@ -193,17 +205,6 @@ export function useForm<T = unknown>({
     isReady,
     errors,
   }
-}
-
-// Built-in validators (uses same Zod schemas as server-side validation)
-const validators: Record<string, (value: string) => boolean> = {
-  email: zodToValidator(emailSchema),
-  phone: zodToValidator(phoneSchema),
-}
-
-// Allow extending validators
-export function addValidator(id: string, fn: (value: string) => boolean) {
-  validators[id] = fn
 }
 
 /**

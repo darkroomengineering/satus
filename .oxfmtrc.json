@@ -39,6 +39,7 @@
     "lib/styles/css/tailwind.css",
     "lib/styles/css/root.css",
     "lib/integrations/sanity/sanity.types.ts",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "COMPONENTS.md"
   ]
 }

@@ -61,15 +61,15 @@ bun run check        # oxlint + oxfmt --check + lint:types + tsc + tests + manif
 
 Biome is the obvious alternative and covers most of the same ground. What differs:
 
-|                               | Biome                                    | oxc                                                                                                   |
-| ----------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Import + Tailwind class order | Lint errors you fix, or an assist action | Sorted by the formatter on save                                                                       |
-| Type-aware rules              | None                                     | `no-floating-promises`, `no-misused-promises` (found 18 real floating promises here on the first run) |
-| Markdown / YAML / TOML        | Not formatted                            | Formatted                                                                                             |
-| CSS                           | Linted **and** formatted                 | Formatted only, no linter                                                                             |
-| Custom rules                  | GritQL plugin files                      | Built-in rules, no plugin files needed                                                                |
+|                               | Biome                                                                              | oxc                                                                                                                    |
+| ----------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Import + Tailwind class order | Lint errors you fix, or an assist action                                           | Sorted by the formatter on save                                                                                        |
+| Type-aware rules              | `noFloatingPromises` / `noMisusedPromises`, behind the experimental `types` domain | `no-floating-promises` / `no-misused-promises` via `bun lint:types` (found 18 real floating promises on the first run) |
+| Markdown / YAML / TOML        | Not formatted                                                                      | Formatted                                                                                                              |
+| CSS                           | Linted **and** formatted                                                           | Formatted only, no linter                                                                                              |
+| Custom rules                  | GritQL plugin files                                                                | Built-in rules, no plugin files needed                                                                                 |
 
-The first three are why this repo uses oxc. The CSS row is the cost, and it is real: rules like `noUnknownProperty` and `noDescendingSpecificity` have no oxlint counterpart. If a project leans hard on CSS linting, add Stylelint or stay on Biome.
+The sorting and formatting-coverage rows are the real wins. The type-aware row is narrower than it looks: Biome can do this too, so the difference is that oxc's version is stable and wired into `bun run check` rather than opt-in and experimental. The CSS row is the cost, and it is real: rules like `noUnknownProperty` and `noDescendingSpecificity` have no oxlint counterpart. If a project leans hard on CSS linting, add Stylelint or stay on Biome.
 
 **Trade-off:** oxlint has no CSS parser, so there is no CSS _linting_. `oxfmt` still formats stylesheets, CSS Modules and Tailwind v4 at-rules included, except the generated `lib/styles/css/tailwind.css` and `root.css`, which are deliberately left to their generator.
 
@@ -151,7 +151,6 @@ All schemas live in `lib/utils/validation.ts`. The typed env singleton (`lib/env
 - [ ] Webhooks configured (Sanity, Shopify)
 - [ ] Cache invalidation tested
 - [ ] Performance score > 90
-- [ ] **Not deploying to Vercel?** If you keep Sanity and prune dev dependencies on the server, `/studio` will fail at request time. See [lib/integrations/sanity/README.md](lib/integrations/sanity/README.md) § Deploying outside Vercel.
 
 ## Customization Boundaries
 

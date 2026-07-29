@@ -33,6 +33,66 @@ export default {
    */
   deadCode: false,
 
+  /**
+   * Per-path suppressions. Scoped by rule rather than by whole directory on
+   * purpose: a genuine bug of some *other* kind in these files still gets
+   * reported. Nothing here is a blanket "skip this folder".
+   */
+  ignore: {
+    overrides: [
+      {
+        /**
+         * Theatre.js is an external, imperative animation editor. React does
+         * not own this data flow: values change because someone dragged a
+         * keyframe in the studio UI, and the hooks exist to subscribe to that
+         * and mirror it back. Every rule below presupposes React owning the
+         * flow, so each one asks for a rewrite that cannot exist here —
+         * `no-event-handler` in particular says "run the side effect in the
+         * event handler that triggers it", and there is no React event
+         * handler, only Theatre's own change notifications.
+         *
+         * Scope note: this is dev-only tooling. It is lazily imported, gated
+         * behind a dev toggle, and `setup:project` deletes it outright for
+         * projects that do not keep Theatre — so none of it ships to users.
+         */
+        files: ['lib/dev/theatre/**'],
+        rules: [
+          'react-doctor/no-event-handler',
+          'react-doctor/no-effect-event-handler',
+          'react-doctor/no-chain-state-updates',
+          'react-doctor/no-derived-state',
+          'react-doctor/no-pass-data-to-parent',
+          'react-doctor/no-fetch-in-effect',
+          'react-doctor/rendering-hydration-mismatch-time',
+          'react-doctor/exhaustive-deps',
+        ],
+      },
+      {
+        /**
+         * `components/layout/theme` already implements React's documented
+         * pattern for adjusting state when a prop changes — the render-phase
+         * re-sync with a `prevTheme` sentinel, with the docs link in the file.
+         * The three rules below each ask for something that cannot work here:
+         *
+         * - `no-derived-useState` wants the value computed inline, but
+         *   `currentTheme` is overridable at runtime through `setTheme`, so it
+         *   is seeded from the prop rather than derived from it.
+         * - `rerender-state-only-in-handlers` wants a ref, but the value is
+         *   rendered — it goes out through context to every consumer.
+         * - `no-event-handler` flags the `data-theme` write on <html>, which
+         *   is synchronising an external system with React state, the case
+         *   effects are actually for.
+         */
+        files: ['components/layout/theme/**'],
+        rules: [
+          'react-doctor/no-derived-useState',
+          'react-doctor/rerender-state-only-in-handlers',
+          'react-doctor/no-event-handler',
+        ],
+      },
+    ],
+  },
+
   rules: {
     /**
      * Fires on any file named `page.*`, including files that are not Next

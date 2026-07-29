@@ -18,6 +18,7 @@ NEXT_PUBLIC_SANITY_API_VERSION="2024-03-15"
 ```
 
 > **Note**: Create tokens in [Sanity Dashboard](https://sanity.io/manage) → Your Project → API → Tokens.
+>
 > - **Viewer** token → `NEXT_PUBLIC_SANITY_API_READ_TOKEN`
 > - **Editor** token → `SANITY_PRIVATE_TOKEN`
 
@@ -27,12 +28,12 @@ Env vars are validated with Zod schemas. Use `isConfigured('sanity')` from the i
 
 Satus supports the [Vercel Marketplace Sanity integration](https://vercel.com/marketplace) out of the box. The Marketplace auto-provisions env vars that Satus recognizes:
 
-| Marketplace Var | Satus Var | Status |
-|---|---|---|
-| `NEXT_PUBLIC_SANITY_PROJECT_ID` | Same | Exact match |
-| `NEXT_PUBLIC_SANITY_DATASET` | Same | Exact match |
-| `SANITY_API_READ_TOKEN` | `NEXT_PUBLIC_SANITY_API_READ_TOKEN` | Both supported (fallback) |
-| `SANITY_API_WRITE_TOKEN` | `SANITY_PRIVATE_TOKEN` | Both supported (fallback) |
+| Marketplace Var                 | Satus Var                           | Status                    |
+| ------------------------------- | ----------------------------------- | ------------------------- |
+| `NEXT_PUBLIC_SANITY_PROJECT_ID` | Same                                | Exact match               |
+| `NEXT_PUBLIC_SANITY_DATASET`    | Same                                | Exact match               |
+| `SANITY_API_READ_TOKEN`         | `NEXT_PUBLIC_SANITY_API_READ_TOKEN` | Both supported (fallback) |
+| `SANITY_API_WRITE_TOKEN`        | `SANITY_PRIVATE_TOKEN`              | Both supported (fallback) |
 
 No configuration changes needed — just install from the Marketplace and deploy.
 
@@ -163,13 +164,21 @@ export const landing = defineType({
 
 See [ARCHITECTURE.md](../../../ARCHITECTURE.md) for cache gotchas.
 
+## Deploying the Studio
+
+`sanity` and `@sanity/vision` sit in `devDependencies` even though `/studio` is part of the shipped app. That works on any host: Next compiles the Studio into the server chunk during `next build`, so nothing resolves `sanity` from `node_modules` at request time. Pruning dev dependencies on the server after a successful build is safe, and no `serverExternalPackages` entry is needed.
+
+The one thing that matters is that both packages are installed when `next build` runs. A pipeline that installs production-only dependencies _before_ building will fail the build, the same way it would for Tailwind or TypeScript.
+
 ## Troubleshooting
 
 **Visual editor not loading:**
+
 - Check env vars are set correctly
 - Verify draft mode routes exist (`/api/draft-mode/enable`)
 
 **Content not updating:**
+
 - Hard refresh browser
 - Check revalidation webhook is configured
 

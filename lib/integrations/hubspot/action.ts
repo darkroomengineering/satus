@@ -31,6 +31,7 @@ import { validateFormWithTurnstile } from '@/lib/integrations/turnstile'
 import type { FormState } from '@/lib/types/form'
 import { runFormAction } from '@/lib/utils/form-action'
 import { fetchWithTimeout } from '@/utils/fetch'
+
 import { hubspotNewsletterSchema } from './schema'
 
 function turnstileError(validation: TurnstileValidationResult): FormState {

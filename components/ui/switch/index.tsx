@@ -3,6 +3,7 @@
 import { Switch as BaseSwitch } from '@base-ui/react/switch'
 import cn from 'clsx'
 import type { ComponentProps } from 'react'
+
 import s from './switch.module.css'
 
 /**
@@ -60,7 +61,6 @@ function Switch({ label, labelClassName, ...props }: SwitchProps) {
   }
 
   return (
-    // biome-ignore lint/a11y/noLabelWithoutControl: Base UI switch is wrapped in label for accessibility
     <label className={cn(s.container, labelClassName)}>
       <SwitchControl {...props} />
       <span className={s.label}>{label}</span>

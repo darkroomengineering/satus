@@ -1,5 +1,6 @@
 import type { Decorator, Preview } from '@storybook/react'
 import { useEffect } from 'storybook/preview-api'
+
 import '../lib/styles/css/index.css'
 
 // The site applies a palette by setting `data-theme` on <html>; global.css then

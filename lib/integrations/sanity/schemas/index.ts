@@ -5,6 +5,7 @@
  */
 
 import type { SchemaTypeDefinition } from 'sanity'
+
 import { article } from './article'
 import { example } from './example'
 // Import all schema definitions

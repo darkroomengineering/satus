@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+
 import { APP_BASE_URL, env } from '@/lib/env'
 
 /**

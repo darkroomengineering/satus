@@ -9,6 +9,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+
 import { normalizeStoreDomain, shopifyFetch } from './client'
 import { SHOPIFY_GRAPHQL_API_ENDPOINT } from './constants'
 

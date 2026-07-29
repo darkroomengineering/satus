@@ -10,6 +10,7 @@
 
 import cn from 'clsx'
 import type { LenisOptions } from 'lenis'
+
 import { Footer } from '@/components/layout/footer'
 import { Header } from '@/components/layout/header'
 import { Lenis } from '@/components/layout/lenis'

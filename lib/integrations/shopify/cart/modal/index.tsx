@@ -5,12 +5,15 @@ import { useRouter } from 'next/navigation'
 import type { KeyboardEvent, ReactNode } from 'react'
 import { createContext, use, useState } from 'react'
 import { useFormStatus } from 'react-dom'
+
 import { Image } from '@/components/ui/image'
 import { Link } from '@/components/ui/link'
 import { formatMoney } from '@/integrations/shopify/money'
+
 import { removeItem, updateItemQuantity } from '../actions'
 import { useCartContext } from '../cart-store-context'
 import { quantityAction } from '../optimistic-utils'
+
 import s from './modal.module.css'
 
 interface ModalContextType {
@@ -31,7 +34,12 @@ interface QuantityProps {
 }
 
 interface QuantityButtonProps {
-  formAction: () => void
+  // Matches React's form action signature. It has to allow a promise: React
+  // keeps useFormStatus().pending true until the returned promise settles, and
+  // QuantitySubmitButton disables itself on that. Typing this `() => void`
+  // forces call sites to swallow the promise and the button stops staying
+  // disabled during the update.
+  formAction: () => void | Promise<void>
   className?: string
   children: ReactNode
   'aria-label': string

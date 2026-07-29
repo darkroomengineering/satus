@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
+
 import { Cmdo } from './cmdo'
 import Orchestra from './orchestra'
 
@@ -20,8 +21,14 @@ const GridDebugger = dynamic(
   { ssr: false }
 )
 
+// hamo 1.0.1 dropped the `./scroll-trigger/debugger` subpath from its exports
+// map. The file still ships, and `./dist/*` is still exported, so this is the
+// only reachable path until hamo restores the clean subpath.
 const ScrollTriggerDebugger = dynamic(
-  () => import('hamo/scroll-trigger/debugger').then(({ Debugger }) => Debugger),
+  () =>
+    import('hamo/dist/scroll-trigger/debugger').then(
+      ({ Debugger }) => Debugger
+    ),
   { ssr: false }
 )
 

@@ -3,11 +3,14 @@
 import cn from 'clsx'
 import { useRouter } from 'next/navigation'
 import { startTransition, useState } from 'react'
+
 import { formatMoney } from '@/integrations/shopify/money'
 import type { Product, ProductVariant } from '@/integrations/shopify/types'
+
 import { addItem } from '../actions'
 import { useCartContext } from '../cart-context'
 import { useCartModal } from '../modal'
+
 import s from './add-to-cart.module.css'
 
 interface AddToCartProps {

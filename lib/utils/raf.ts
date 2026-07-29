@@ -17,7 +17,7 @@
 import Tempus from 'tempus'
 
 // Internal write queue
-const writeQueue: Array<() => unknown> = []
+const writeQueue: (() => unknown)[] = []
 
 // Guard against double-registration on module re-evaluation (HMR, duplicate
 // chunks) — Tempus.add's unsubscribe isn't retained, so without this a

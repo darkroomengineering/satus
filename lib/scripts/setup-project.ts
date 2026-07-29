@@ -32,8 +32,11 @@
 import { cp, mkdir, mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+
 import * as p from '@clack/prompts'
+
 import type { RemovableId } from '@/integrations/registry'
+
 import {
   applyCodeTransforms,
   type TransformFailure,
@@ -232,7 +235,7 @@ const updateEnvExample = async (
  * Update barrel exports to remove references to deleted components
  */
 const updateBarrelExports = async (
-  barrelExports: Array<{ file: string; pattern: string }>,
+  barrelExports: { file: string; pattern: string }[],
   dryRun: boolean
 ): Promise<number> => {
   let totalChanges = 0
@@ -483,7 +486,7 @@ const setupLean = async (
   const allDeps: string[] = []
   const allDevDeps: string[] = []
   const allEnvVars: string[] = []
-  const allBarrelExports: Array<{ file: string; pattern: string }> = []
+  const allBarrelExports: { file: string; pattern: string }[] = []
 
   for (const name of integrationNames) {
     // name: BundleId → access is always total
@@ -634,10 +637,10 @@ const setupAddIntegrations = async (
  * integration could reintroduce a `'use cache'` route, so this condition must
  * stay exactly "neither sanity nor shopify kept", never loosened.
  */
-const CACHE_COMPONENTS_WORTH_KEEPING: readonly RemovableId[] = [
+const CACHE_COMPONENTS_WORTH_KEEPING: ReadonlySet<RemovableId> = new Set([
   'sanity',
   'shopify',
-]
+])
 
 /**
  * True when the kept integration set has no CMS/storefront — the condition
@@ -647,7 +650,7 @@ const CACHE_COMPONENTS_WORTH_KEEPING: readonly RemovableId[] = [
 export const shouldDisableCacheComponents = (
   keepIntegrations: RemovableId[]
 ): boolean =>
-  !keepIntegrations.some((id) => CACHE_COMPONENTS_WORTH_KEEPING.includes(id))
+  !keepIntegrations.some((id) => CACHE_COMPONENTS_WORTH_KEEPING.has(id))
 
 /**
  * next.config.ts transform that flips Cache Components off.
@@ -684,11 +687,11 @@ export const CACHE_COMPONENTS_DISABLE_TRANSFORM: CodeTransform = {
  * is skipped with a warning instead of failing the whole setup run over a
  * doc sentence — see `setupCacheComponentsOptOut`.
  */
-const CACHE_COMPONENTS_DOC_PATCHES: ReadonlyArray<{
+const CACHE_COMPONENTS_DOC_PATCHES: readonly {
   file: string
   anchor: string
   replacement: string
-}> = [
+}[] = [
   {
     file: 'AGENTS.md',
     anchor:
@@ -896,10 +899,8 @@ const selfPrune = async (
     }
   }
 
-  if (dryRun) {
-    if (scriptsRemoved.length > 0) {
-      p.log.message(`  Would remove scripts: ${scriptsRemoved.join(', ')}`)
-    }
+  if (dryRun && scriptsRemoved.length > 0) {
+    p.log.message(`  Would remove scripts: ${scriptsRemoved.join(', ')}`)
   }
 
   s.stop(

@@ -3,6 +3,7 @@
  */
 
 import type { z } from 'zod'
+
 import { parseApiResponse } from './validation'
 
 export interface FetchWithTimeoutOptions extends RequestInit {

@@ -1,4 +1,5 @@
 import { type HTMLAttributes, type RefObject, useEffect, useState } from 'react'
+
 import Orchestra from './orchestra'
 
 type OrchestraToggleProps = Omit<
@@ -48,7 +49,7 @@ export function OrchestraToggle({
       style={{
         backgroundColor: active ? 'oklch(0.8664 0.2948 142.5 / 0.5)' : '',
       }}
-      className="grid size-20 place-items-center rounded-[8px] text-[64px]"
+      className="size-20 grid place-items-center rounded-[8px] text-[64px]"
       title={id}
     >
       {children}

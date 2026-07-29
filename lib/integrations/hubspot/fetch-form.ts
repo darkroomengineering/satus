@@ -1,4 +1,5 @@
 import { z } from 'zod'
+
 import { env } from '@/lib/env'
 import { hasCapability } from '@/lib/integrations/registry'
 import { fetchWithTimeout } from '@/utils/fetch'
@@ -58,7 +59,7 @@ type HubspotFormResponse = z.infer<typeof hubspotFormResponseSchema>
 export interface HubSpotParsedForm {
   portalId: string | undefined
   id: string
-  inputs: Array<{
+  inputs: {
     name: string
     label: string
     placeholder: string
@@ -67,7 +68,7 @@ export interface HubSpotParsedForm {
     hidden: boolean | undefined
     helpText: string
     options: string[]
-  }>
+  }[]
   submitButton: {
     text: string
   }

@@ -3,6 +3,7 @@
 import cn from 'clsx'
 import Script, { type ScriptProps } from 'next/script'
 import { useEffect, useRef } from 'react'
+
 import s from './form.module.css'
 
 type EmbedHubspotFormProps = {
@@ -52,16 +53,18 @@ export function EmbedHubspotForm({
     }
   }
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: React Compiler handles dependency tracking
   useEffect(() => {
     createForm()
     // Clean up on unmount
     return () => {
       formCreatedRef.current = false
+      // oxlint-disable-next-line react/exhaustive-deps -- ref is read in cleanup deliberately; the node is torn down with the effect
       if (targetRef.current) {
+        // oxlint-disable-next-line react/exhaustive-deps -- ref is read in cleanup deliberately; the node is torn down with the effect
         targetRef.current.innerHTML = ''
       }
     }
+    // oxlint-disable-next-line react/exhaustive-deps -- createForm is stable for the lifetime of the embed; React Compiler handles dependency tracking
   }, [formId, target, onSubmit])
 
   return (

@@ -3,8 +3,11 @@
 import { Field } from '@base-ui/react/field'
 import cn from 'clsx'
 import { useId, useState } from 'react'
+
 import { Checkbox } from '@/components/ui/checkbox'
+
 import { useFormContext } from '..'
+
 import s from './fields.module.css'
 
 /**
@@ -193,7 +196,6 @@ export function CheckboxesField({
       />
       <div className={s.options}>
         {options.map(({ label: optionLabel, value }) => (
-          // biome-ignore lint/a11y/noLabelWithoutControl: Base UI checkbox is wrapped in label for accessibility
           <label
             key={value}
             className={cn(s.option, selected.includes(value) && s.selected)}

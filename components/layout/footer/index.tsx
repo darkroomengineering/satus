@@ -1,5 +1,6 @@
 import Logo from '@/components/ui/darkroom.svg'
 import { Link } from '@/components/ui/link'
+
 import s from './footer.module.css'
 
 export function Footer() {

@@ -8,8 +8,8 @@ export const metadata = {
 export default function FastPage() {
   return (
     <Wrapper theme="dark">
-      <section className="dr-layout-grid min-h-dvh content-center py-24 font-mono">
-        <div className="col-span-full dt:col-start-2 dt:col-end-11 flex flex-col gap-6">
+      <section className="py-24 dr-layout-grid min-h-dvh content-center font-mono">
+        <div className="gap-6 col-span-full flex flex-col dt:col-start-2 dt:col-end-11">
           <h1 className="text-2xl uppercase">Fast route</h1>
           <p className="max-w-prose opacity-70">
             Fully static — no async data. The prefetched shell IS the page, so

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react'
+
 import { AlertDialog } from './index'
 
 const meta = {

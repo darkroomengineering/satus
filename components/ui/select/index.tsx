@@ -3,6 +3,7 @@
 import { Select as BaseSelect } from '@base-ui/react/select'
 import cn from 'clsx'
 import type { ComponentProps } from 'react'
+
 import s from './select.module.css'
 
 /**
@@ -129,7 +130,7 @@ function Select<T extends string = string>({
       )}
       <BaseSelect.Trigger
         className={cn(
-          'flex h-10 min-w-36 select-none items-center justify-between gap-3 rounded-md border pr-3 pl-3.5',
+          'h-10 min-w-36 gap-3 rounded-md pr-3 pl-3.5 flex items-center justify-between border select-none',
           s.trigger,
           className
         )}
@@ -147,7 +148,7 @@ function Select<T extends string = string>({
             {options.map(({ value, label, disabled }) => (
               <BaseSelect.Item
                 className={cn(
-                  'grid select-none items-center gap-2 py-2 pr-4 pl-2.5 outline-none',
+                  'gap-2 py-2 pr-4 pl-2.5 grid items-center outline-none select-none',
                   s.option
                 )}
                 value={value}

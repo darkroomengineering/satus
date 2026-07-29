@@ -9,6 +9,7 @@
  */
 
 import { describe, expect, it } from 'bun:test'
+
 import { renderDeploymentChecklist } from './deployment-checklist'
 import { renderInventory } from './inventory'
 

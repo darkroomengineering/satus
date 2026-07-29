@@ -3,6 +3,7 @@
 import { Checkbox as BaseCheckbox } from '@base-ui/react/checkbox'
 import cn from 'clsx'
 import type { ComponentProps } from 'react'
+
 import s from './checkbox.module.css'
 
 /**
@@ -66,7 +67,6 @@ function Checkbox({ label, labelClassName, ...props }: CheckboxProps) {
   }
 
   return (
-    // biome-ignore lint/a11y/noLabelWithoutControl: Base UI checkbox is wrapped in label for accessibility
     <label className={cn(s.container, labelClassName)}>
       <CheckboxControl {...props} />
       <span className={s.label}>{label}</span>

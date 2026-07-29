@@ -191,8 +191,8 @@ export const copyToClipboard = async (text: string): Promise<boolean> => {
   try {
     if (process.platform === 'darwin') {
       const proc = Bun.spawn(['pbcopy'], { stdin: 'pipe' })
-      proc.stdin.write(text)
-      proc.stdin.end()
+      void proc.stdin.write(text)
+      void proc.stdin.end()
       await proc.exited
       return proc.exitCode === 0
     }
@@ -205,8 +205,8 @@ export const copyToClipboard = async (text: string): Promise<boolean> => {
       ]) {
         try {
           const proc = Bun.spawn(cmd, { stdin: 'pipe' })
-          proc.stdin.write(text)
-          proc.stdin.end()
+          void proc.stdin.write(text)
+          void proc.stdin.end()
           await proc.exited
           if (proc.exitCode === 0) return true
         } catch {
@@ -218,8 +218,8 @@ export const copyToClipboard = async (text: string): Promise<boolean> => {
 
     if (process.platform === 'win32') {
       const proc = Bun.spawn(['clip'], { stdin: 'pipe' })
-      proc.stdin.write(text)
-      proc.stdin.end()
+      void proc.stdin.write(text)
+      void proc.stdin.end()
       await proc.exited
       return proc.exitCode === 0
     }

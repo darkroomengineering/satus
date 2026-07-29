@@ -1,5 +1,6 @@
 import { connection } from 'next/server'
 import { Suspense } from 'react'
+
 import { Wrapper } from '@/components/layout/wrapper'
 import { Link } from '@/components/ui/link'
 
@@ -28,8 +29,8 @@ function PanelSkeleton() {
       <span className="sr-only">Loading panel</span>
       <div aria-hidden className="animate-pulse space-y-2">
         <div className="h-2 rounded bg-current opacity-20" />
-        <div className="h-2 w-3/4 rounded bg-current opacity-20" />
-        <div className="h-2 w-1/2 rounded bg-current opacity-10" />
+        <div className="h-2 rounded w-3/4 bg-current opacity-20" />
+        <div className="h-2 rounded w-1/2 bg-current opacity-10" />
       </div>
     </div>
   )
@@ -38,8 +39,8 @@ function PanelSkeleton() {
 export default function SlowPage() {
   return (
     <Wrapper theme="dark">
-      <section className="dr-layout-grid min-h-dvh content-center py-24 font-mono">
-        <div className="col-span-full dt:col-start-2 dt:col-end-11 flex flex-col gap-6">
+      <section className="py-24 dr-layout-grid min-h-dvh content-center font-mono">
+        <div className="gap-6 col-span-full flex flex-col dt:col-start-2 dt:col-end-11">
           <h1 className="text-2xl uppercase">Slow route</h1>
           <p className="max-w-prose opacity-70">
             The shell (this heading and the link below) paints instantly. The

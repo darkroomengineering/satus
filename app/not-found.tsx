@@ -1,5 +1,6 @@
 import { Wrapper } from '@/components/layout/wrapper'
 import { Link } from '@/components/ui/link'
+
 import s from './not-found.module.css'
 
 export default function NotFound() {

@@ -3,6 +3,7 @@
 import { Tabs as BaseTabs } from '@base-ui/react/tabs'
 import cn from 'clsx'
 import type { ComponentProps, ReactNode } from 'react'
+
 import s from './tabs.module.css'
 
 /**

@@ -3,7 +3,14 @@
 import '@theatre/core'
 import type { IStudio } from '@theatre/studio'
 import { useEffect, useRef } from 'react'
+
 import s from './studio.module.css'
+
+// Module scope on purpose. The React Compiler cannot lower an `import()`
+// expression inside a component body ("BuildHIR: Handle Import expressions")
+// and silently gives up on optimising the whole component. Behind a plain
+// function call the chunk still loads lazily and the compiler is happy.
+const loadStudio = () => import('@theatre/studio')
 
 export function Studio() {
   const studioRef = useRef<IStudio | undefined>(undefined)
@@ -11,16 +18,22 @@ export function Studio() {
   useEffect(() => {
     let cancelled = false
 
-    import('@theatre/studio').then((mod) => {
-      if (cancelled) return
-      const studio = mod.default as IStudio
-      studioRef.current = studio
-      studio.initialize()
-      studio.ui.restore()
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Theatre: Studio initialized')
-      }
-    })
+    // .catch keeps no-floating-promises happy and surfaces a failed chunk
+    // load instead of leaving an unhandled rejection.
+    loadStudio()
+      .then((mod) => {
+        if (cancelled) return
+        const studio = mod.default as IStudio
+        studioRef.current = studio
+        studio.initialize()
+        studio.ui.restore()
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Theatre: Studio initialized')
+        }
+      })
+      .catch((error: unknown) => {
+        console.error('Theatre: failed to load studio', error)
+      })
 
     return () => {
       cancelled = true

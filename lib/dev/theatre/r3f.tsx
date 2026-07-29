@@ -1,6 +1,7 @@
 import { types } from '@theatre/core'
 import { useRef } from 'react'
 import type { Group as ThreeGroup } from 'three'
+
 import { useCurrentSheet } from '.'
 import { useTheatre } from './hooks/use-theatre'
 
@@ -12,12 +13,16 @@ type GroupProps = {
   scale?: [number, number, number]
 }
 
+const DEFAULT_POSITION: [number, number, number] = [0, 0, 0]
+const DEFAULT_ROTATION: [number, number, number] = [0, 0, 0]
+const DEFAULT_SCALE: [number, number, number] = [1, 1, 1]
+
 export function Group({
   children,
   theatreKey,
-  position = [0, 0, 0],
-  rotation = [0, 0, 0],
-  scale = [1, 1, 1],
+  position = DEFAULT_POSITION,
+  rotation = DEFAULT_ROTATION,
+  scale = DEFAULT_SCALE,
 }: GroupProps) {
   const groupRef = useRef<ThreeGroup>(null!)
 

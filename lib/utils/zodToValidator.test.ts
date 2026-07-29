@@ -8,7 +8,9 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+
 import { z } from 'zod'
+
 import { emailSchema, phoneSchema, zodToValidator } from './validation'
 
 // ============================================

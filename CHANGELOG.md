@@ -22,7 +22,13 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ## [Unreleased]
 
+### Changed
+
+- Linting and formatting moved from Biome to the Oxc toolchain: `oxlint` for linting, `oxfmt` for formatting. Nothing changes about how you work — `bun run check`, `bun lint`, `bun lint:fix` and `bun run format` keep their names and meanings, there is still one pre-commit hook and one editor extension (`oxc.oxc-vscode`), and house style is untouched (80 columns, 2-space indent, single quotes, semicolons only where required). Three things do change. Unsorted Tailwind classes and unsorted imports are no longer lint errors — `oxfmt` sorts both when you format or save, so they fix themselves. Formatting now covers Markdown, YAML and TOML too, which Biome never touched. And a new `bun run lint:types` uses the TypeScript 7 install to catch un-awaited promises and async handlers passed where a void return is expected; it runs in `bun run check` and CI but stays out of the pre-commit hook so commits stay fast. It found 18 floating promises on the first run, all now marked explicitly. `biome.json` and the three GritQL plugins in `.biome/` are gone, replaced by built-in oxlint rules.
+
 ### Removed
+
+- CSS linting. oxlint has no CSS parser, so the Biome CSS rules (`noUnknownFunction`, `noUnknownProperty`, `noDescendingSpecificity`, `noDuplicateCustomProperties`, `noUnknownMediaFeatureName`) have no counterpart and the 15 CSS `biome-ignore` comments they needed are deleted. `oxfmt` still formats every stylesheet, CSS Modules and Tailwind v4 at-rules included.
 
 - The `satus add`/`satus list` CLI (`bun run satus`) and the GitHub-tarball payload fetch behind it. It let you restore a stripped integration into a live project, but almost nobody used it, it downloaded and extracted an archive from a remote ref with no path checks, and its `--force` flag silently did nothing. `setup:project` — the command every project and `create-darkroom` actually run — is unaffected and stays the one way to configure a fresh clone. The one thing worth keeping from the old CLI came with it: `setup:project` now expands a kept integration to include whatever it requires (keeping `theatre` also keeps `webgl`, since theatre's bindings depend on it), fixing a bug where `--keep theatre` used to strip webgl out from under it and leave a build that doesn't compile.
 

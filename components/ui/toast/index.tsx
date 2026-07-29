@@ -3,6 +3,7 @@
 import { Toast as BaseToast } from '@base-ui/react/toast'
 import cn from 'clsx'
 import { type ComponentProps, createContext, type ReactNode, use } from 'react'
+
 import s from './toast.module.css'
 
 /**

@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next'
+
 import AppData from '@/package.json'
 import { themes } from '@/styles/colors'
 

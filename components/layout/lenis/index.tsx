@@ -1,6 +1,7 @@
 'use client'
 
 import type { LenisOptions } from 'lenis'
+
 import 'lenis/dist/lenis.css'
 import type { LenisRef, LenisProps as ReactLenisProps } from 'lenis/react'
 import { ReactLenis } from 'lenis/react'

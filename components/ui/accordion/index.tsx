@@ -17,6 +17,7 @@ import {
   useImperativeHandle,
   useState,
 } from 'react'
+
 import s from './accordion.module.css'
 
 /**

@@ -5,8 +5,9 @@
  * Run with: bun run doctor
  */
 
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import { join } from 'node:path'
+
 import { coreEnvSchema } from '../utils/validation'
 
 const ROOT = process.cwd()
@@ -38,8 +39,7 @@ const checks: Check[] = [
     name: 'Bun installed',
     check: () => {
       try {
-        Bun.version
-        return true
+        return typeof Bun.version === 'string'
       } catch {
         return false
       }
@@ -84,17 +84,15 @@ const checks: Check[] = [
     fix: 'Ensure next.config.ts exists',
   },
   {
-    name: 'Biome config valid',
-    check: () => {
-      try {
-        const biome = readFileSync(join(ROOT, 'biome.json'), 'utf-8')
-        JSON.parse(biome)
-        return true
-      } catch {
-        return false
-      }
-    },
-    fix: 'Check biome.json for syntax errors',
+    name: 'Oxc config present',
+    // The configs are .ts, so `bun run typecheck` already validates their
+    // shape. All this needs to check is that they exist under the exact names
+    // oxlint/oxfmt auto-discover: `.oxlintrc.ts` and `.oxfmtrc.ts` are silently
+    // ignored, and the tools fall back to their defaults without complaining.
+    check: () =>
+      existsSync(join(ROOT, 'oxlint.config.ts')) &&
+      existsSync(join(ROOT, 'oxfmt.config.ts')),
+    fix: 'Expected oxlint.config.ts and oxfmt.config.ts in the project root (not .oxlintrc.ts / .oxfmtrc.ts, which are not auto-discovered)',
   },
   {
     name: 'Generated styles exist',
@@ -174,4 +172,4 @@ async function runDoctor() {
   process.exit(failed > 0 ? 1 : 0)
 }
 
-runDoctor()
+void runDoctor()

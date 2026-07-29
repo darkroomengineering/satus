@@ -22,7 +22,7 @@ HUBSPOT_ALLOWED_FORM_IDS=form-id-one,form-id-two
 ```tsx
 import { EmbedHubspotForm } from '@/lib/integrations/hubspot/embed'
 
-<EmbedHubspotForm 
+;<EmbedHubspotForm
   formId="your-form-id"
   onSubmit={() => console.log('Submitted!')}
 />
@@ -34,7 +34,7 @@ import { EmbedHubspotForm } from '@/lib/integrations/hubspot/embed'
 import { Form, Input, SubmitButton } from '@/components/ui/form'
 import { HubspotNewsletterAction } from '@/lib/integrations/hubspot/action'
 
-<Form action={HubspotNewsletterAction} formId="your-form-id">
+;<Form action={HubspotNewsletterAction} formId="your-form-id">
   <Input name="email" type="email" required />
   <SubmitButton>Subscribe</SubmitButton>
 </Form>
@@ -43,6 +43,7 @@ import { HubspotNewsletterAction } from '@/lib/integrations/hubspot/action'
 ### Validation
 
 The newsletter action validates input with Zod:
+
 - Turnstile token validated first (via `lib/integrations/turnstile`) — the action rejects submissions without a valid `cf-turnstile-response` form field; render Cloudflare's Turnstile widget inside the form (see `lib/integrations/turnstile/README.md`)
 - Email validated with `z.email()` (Zod 4 top-level validator)
 - Form ID validated as non-empty string

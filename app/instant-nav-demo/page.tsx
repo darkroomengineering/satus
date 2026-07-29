@@ -10,8 +10,8 @@ const ITEMS = ['alpha', 'bravo', 'charlie']
 export default function InstantNavDemoPage() {
   return (
     <Wrapper theme="dark">
-      <section className="dr-layout-grid min-h-dvh content-center py-24 font-mono">
-        <div className="col-span-full dt:col-start-2 dt:col-end-11 flex flex-col gap-6">
+      <section className="py-24 dr-layout-grid min-h-dvh content-center font-mono">
+        <div className="gap-6 col-span-full flex flex-col dt:col-start-2 dt:col-end-11">
           <h1 className="text-2xl uppercase">Instant Navigations demo</h1>
           <p className="max-w-prose opacity-70">
             Throwaway routes for exercising Next.js 16.3 shell-based
@@ -19,7 +19,7 @@ export default function InstantNavDemoPage() {
             the shell paint instantly while data streams in.
           </p>
 
-          <nav className="flex flex-col gap-3">
+          <nav className="gap-3 flex flex-col">
             <Link
               className="underline underline-offset-4"
               href="/instant-nav-demo/fast"

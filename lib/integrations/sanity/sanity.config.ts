@@ -12,7 +12,9 @@ import {
   presentationTool,
 } from 'sanity/presentation'
 import { structureTool } from 'sanity/structure'
+
 import { isConfigured } from '@/integrations/registry'
+
 import { apiVersion, dataset, previewURL, projectId } from './env'
 import { schema } from './schemas'
 

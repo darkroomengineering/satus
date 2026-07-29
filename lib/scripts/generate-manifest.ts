@@ -8,7 +8,9 @@
 
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+
 import { Project, SyntaxKind } from 'ts-morph'
+
 import { toPascalCase } from './generate-shared'
 
 const ROOT = join(import.meta.dir, '..', '..')
@@ -120,7 +122,7 @@ function getExportedSignatures(
 // Read tsconfig paths
 // ---------------------------------------------------------------------------
 
-function readTsconfigPaths(): Array<{ alias: string; mapsTo: string }> {
+function readTsconfigPaths(): { alias: string; mapsTo: string }[] {
   // ts-morph reads tsconfig with the TypeScript compiler's JSONC parser, so
   // comments and trailing commas are handled correctly.
   const project = new Project({

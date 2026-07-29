@@ -1,7 +1,8 @@
 'use client'
 
-import { notFound } from 'next/navigation'
 import { NextStudio } from 'next-sanity/studio'
+import { notFound } from 'next/navigation'
+
 import config from '@/integrations/sanity/sanity.config'
 
 // `config` is `null` when Sanity isn't configured (no projectId) —

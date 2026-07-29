@@ -20,11 +20,13 @@ app/
 ## Getting Started
 
 **Use the interactive setup:**
+
 ```bash
 bun run setup:project       # Choose what to keep/remove
 ```
 
 Then:
+
 1. Customize `page.tsx` for your homepage
 2. Add routes as folders with `page.tsx`
 
@@ -43,6 +45,7 @@ export default function Page() {
 ```
 
 **Wrapper Props:**
+
 - `theme` — 'dark' | 'light' | 'red' | 'evil'
 - `lenis` — Enable smooth scrolling
 - `webgl` — Enable WebGL canvas

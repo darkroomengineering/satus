@@ -1,4 +1,5 @@
 import { draftMode } from 'next/headers'
+
 import { isConfigured } from '@/integrations/registry'
 import { DisableDraftMode } from '@/integrations/sanity/components/disable-draft-mode'
 

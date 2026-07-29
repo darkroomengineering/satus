@@ -13,7 +13,9 @@
  */
 
 import { join } from 'node:path'
+
 import Color from 'colorjs.io'
+
 import { themes } from '../colors'
 
 /** WCAG 2.1 AA: 4.5:1 for normal text, 3:1 for large text and UI components. */

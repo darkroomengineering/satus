@@ -39,6 +39,11 @@ jobs:
       - name: Build
         run: bun run build
 
+      # Separate from `check` purely for the --format=github annotations, which
+      # surface findings inline on the PR diff. `check` re-runs oxlint anyway.
+      - name: Lint
+        run: bun oxlint --format=github --max-warnings=0
+
       - name: Run checks
         run: bun run check
 

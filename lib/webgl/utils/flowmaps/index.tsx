@@ -1,6 +1,7 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { types } from '@theatre/core'
 import { useEffect, useRef, useState } from 'react'
+
 import { useCurrentSheet } from '@/dev/theatre'
 import { useTheatre } from '@/dev/theatre/hooks/use-theatre'
 import { usePointerInput } from '@/webgl/hooks/use-pointer-input'
@@ -29,8 +30,8 @@ export function useFlowmapSim(resolution = 128) {
   const lastTimeRef = useRef<number | null>(null)
 
   // Mouse/touch input — drives the flowmap stamp position and velocity.
-  // The callback always reads the latest `size` and `flowmap` via the ref
-  // pattern inside usePointerInput.
+  // The callback always reads the latest `size` and `flowmap`, because
+  // usePointerInput routes it through useEffectEvent.
   usePointerInput((clientX, clientY, dx, dy) => {
     if (!flowmap) return
 

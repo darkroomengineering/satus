@@ -22,6 +22,7 @@ import { Link } from '@/components/ui/link'
 ```
 
 **Why?**
+
 - Image: Optimization, aspect ratios, WebGL integration
 - Link: External detection, prefetching, consistent behavior
 
@@ -35,20 +36,57 @@ Root layout conditionally loads features:
 
 ```tsx
 import { OptionalFeatures } from '@/lib/features'
-<OptionalFeatures /> // Only loads WebGL, dev tools when needed
+;<OptionalFeatures /> // Only loads WebGL, dev tools when needed
 ```
+
+### Linting and Formatting (oxc)
+
+`oxlint` lints, `oxfmt` formats. One toolchain, one editor extension (`oxc.oxc-vscode`), one pre-commit hook.
+
+```bash
+bun lint             # oxlint
+bun lint:fix         # oxlint, auto-fix
+bun lint:types       # type-aware rules (not in the pre-commit hook)
+bun run format       # oxfmt, writes in place
+bun run check        # oxlint + oxfmt --check + lint:types + tsc + tests + manifest
+```
+
+**Why?**
+
+- **Sorting is a formatting concern, not a lint error.** `oxfmt` sorts imports and Tailwind classes on format or save, so they fix themselves instead of failing `bun lint`.
+- **One formatter for the whole repo.** Markdown, YAML, and TOML are formatted alongside TS/TSX/CSS, so docs and workflows stop drifting from house style.
+- **Type-aware linting.** `bun lint:types` reads the TypeScript program to catch un-awaited promises and async handlers passed where a void return is expected — bugs a syntax-only linter cannot see. It runs in `bun run check` and CI but stays out of the pre-commit hook, so commits stay fast.
+
+#### Compared to Biome
+
+Biome is the obvious alternative and covers most of the same ground. What differs:
+
+|                               | Biome                                                                              | oxc                                                                                                                    |
+| ----------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Import + Tailwind class order | Lint errors you fix, or an assist action                                           | Sorted by the formatter on save                                                                                        |
+| Type-aware rules              | `noFloatingPromises` / `noMisusedPromises`, behind the experimental `types` domain | `no-floating-promises` / `no-misused-promises` via `bun lint:types` (found 18 real floating promises on the first run) |
+| Markdown / YAML / TOML        | Not formatted                                                                      | Formatted                                                                                                              |
+| CSS                           | Linted **and** formatted                                                           | Formatted only, no linter                                                                                              |
+| Custom rules                  | GritQL plugin files                                                                | Built-in rules, no plugin files needed                                                                                 |
+
+The sorting and formatting-coverage rows are the real wins. The type-aware row is narrower than it looks: Biome can do this too, so the difference is that oxc's version is stable and wired into `bun run check` rather than opt-in and experimental. The CSS row is the cost, and it is real: rules like `noUnknownProperty` and `noDescendingSpecificity` have no oxlint counterpart. If a project leans hard on CSS linting, add Stylelint or stay on Biome.
+
+**Trade-off:** oxlint has no CSS parser, so there is no CSS _linting_. `oxfmt` still formats stylesheets, CSS Modules and Tailwind v4 at-rules included, except the generated `lib/styles/css/tailwind.css` and `root.css`, which are deliberately left to their generator.
+
+Config lives in `oxlint.config.ts` and `oxfmt.config.ts` rather than JSON, so `bun run typecheck` covers it and each choice carries a comment. That catches invalid severities and duplicate rule keys, which a JSON config accepts silently; rule _names_ are still a permissive `Record`, so a typo'd rule name slips through either way. House style is pinned explicitly (80 columns, 2-space indent, single quotes, semicolons only where required) because oxfmt's own defaults differ. See AGENTS.md § Enforced Rules for the rule-by-rule list.
 
 ## Cache Components (Next.js 16)
 
 Server Components use advanced caching. Key rules:
 
-| Data Type | Cache Strategy |
-|-----------|----------------|
+| Data Type      | Cache Strategy        |
+| -------------- | --------------------- |
 | Public content | ISR with `revalidate` |
-| User-specific | `cache: 'no-store'` |
-| Real-time | `cache: 'no-store'` |
+| User-specific  | `cache: 'no-store'`   |
+| Real-time      | `cache: 'no-store'`   |
 
 **Gotchas:**
+
 - Never cache user data (carts, accounts, private content)
 - Wrap cached components in Suspense boundaries
 - Test with hard refresh AND navigation (different cache layers)
@@ -133,4 +171,4 @@ This keeps upstream updates smooth. When you create new components instead of mo
 
 ---
 
-*Built with [Satūs](https://github.com/darkroomengineering/satus) by [darkroom.engineering](https://darkroom.engineering)*
+_Built with [Satūs](https://github.com/darkroomengineering/satus) by [darkroom.engineering](https://darkroom.engineering)_

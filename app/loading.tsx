@@ -3,8 +3,10 @@
 // and fails prerendering (e.g. /studio). Keep this fallback dependency-free.
 export default function Loading() {
   return (
-    <div
-      role="status"
+    // <output> carries an implicit role="status", so the role is redundant.
+    // `flex` overrides the element's default inline display, so the layout is
+    // unchanged.
+    <output
       aria-busy="true"
       className="gap-3 flex min-h-dvh flex-col items-center justify-center font-mono"
     >
@@ -14,6 +16,6 @@ export default function Loading() {
         <div className="h-2 rounded w-3/4 bg-current opacity-20" />
         <div className="h-2 rounded w-1/2 bg-current opacity-10" />
       </div>
-    </div>
+    </output>
   )
 }

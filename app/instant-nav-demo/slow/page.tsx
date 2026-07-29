@@ -25,14 +25,17 @@ async function StreamedPanel() {
 
 function PanelSkeleton() {
   return (
-    <div role="status" aria-busy="true" className="w-40">
+    // `block` is required: <output> is inline by default, and `w-40` would do
+    // nothing on an inline element. The implicit role="status" replaces the
+    // explicit one.
+    <output aria-busy="true" className="w-40 block">
       <span className="sr-only">Loading panel</span>
       <div aria-hidden className="animate-pulse space-y-2">
         <div className="h-2 rounded bg-current opacity-20" />
         <div className="h-2 rounded w-3/4 bg-current opacity-20" />
         <div className="h-2 rounded w-1/2 bg-current opacity-10" />
       </div>
-    </div>
+    </output>
   )
 }
 

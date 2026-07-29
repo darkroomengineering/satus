@@ -31,19 +31,19 @@
 .arrow {
   fill: var(--color-secondary);
 
-  &[data-side="top"] {
+  &[data-side='top'] {
     bottom: -8px;
   }
 
-  &[data-side="bottom"] {
+  &[data-side='bottom'] {
     top: -8px;
   }
 
-  &[data-side="left"] {
+  &[data-side='left'] {
     right: -8px;
   }
 
-  &[data-side="right"] {
+  &[data-side='right'] {
     left: -8px;
   }
 }

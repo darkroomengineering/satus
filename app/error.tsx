@@ -18,7 +18,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
         homeLink={
           <Link
             href="/"
-            className="rounded border border-gray-300 px-6 py-3 transition-colors hover:bg-gray-50"
+            className="rounded border-gray-300 px-6 py-3 hover:bg-gray-50 border transition-colors"
           >
             Go Home
           </Link>

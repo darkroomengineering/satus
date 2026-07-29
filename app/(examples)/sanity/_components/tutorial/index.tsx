@@ -1,4 +1,5 @@
 import type { PortableTextBlock } from 'next-sanity'
+
 import { Link } from '@/components/ui/link'
 import { RichText } from '@/integrations/sanity/components/rich-text'
 import type { PageQueryResult } from '@/integrations/sanity/sanity.types'

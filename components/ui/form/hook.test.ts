@@ -9,6 +9,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+
 import { resolveValidator } from './hook'
 
 const noop = () => true

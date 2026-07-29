@@ -14,6 +14,7 @@
  */
 
 import * as p from '@clack/prompts'
+
 import { createComponent, promptComponentConfig } from './generate-component'
 // Import the existing generators
 import { createPage, promptPageConfig } from './generate-page'

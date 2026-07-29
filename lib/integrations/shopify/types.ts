@@ -20,7 +20,7 @@ export interface ShopifyResponse<T = Record<string, unknown>> {
   status: number
   body: {
     data: T
-    errors?: Array<{ message: string }>
+    errors?: { message: string }[]
   }
 }
 
@@ -55,7 +55,7 @@ export interface ShopifyCartLineItem {
   merchandise: {
     id: string
     title: string
-    selectedOptions: Array<{ name: string; value: string }>
+    selectedOptions: { name: string; value: string }[]
     product: {
       id: string
       handle: string
@@ -78,7 +78,7 @@ export interface CartLineItem {
   merchandise: {
     id: string
     title: string
-    selectedOptions: Array<{ name: string; value: string }>
+    selectedOptions: { name: string; value: string }[]
     product: {
       id: string
       handle: string
@@ -152,7 +152,7 @@ export interface Image extends ShopifyImage {
 }
 
 export interface EdgeNode<T> {
-  edges: Array<{ node: T }>
+  edges: { node: T }[]
 }
 
 // Before reshaping data (raw Shopify API response)
@@ -181,7 +181,7 @@ export interface ShopifyProductVariant {
   id: string
   title: string
   availableForSale: boolean
-  selectedOptions: Array<{ name: string; value: string }>
+  selectedOptions: { name: string; value: string }[]
   price: Money
 }
 
@@ -195,11 +195,11 @@ export interface Product {
   featuredImage?: Image | null
   availableForSale: boolean
   variants: ProductVariant[]
-  options?: Array<{
+  options?: {
     id: string
     name: string
     values: string[]
-  }>
+  }[]
   description?: string
   descriptionHtml?: string
   priceRange?: {
@@ -219,7 +219,7 @@ export interface ProductVariant {
     amount: string
     currencyCode: string
   }
-  selectedOptions: Array<{ name: string; value: string }>
+  selectedOptions: { name: string; value: string }[]
   title: string
 }
 
@@ -248,8 +248,8 @@ export interface Customer {
   firstName: string
   lastName: string
   orders: {
-    edges: Array<{
+    edges: {
       node: { id: string; orderNumber: number; totalPrice: Money }
-    }>
+    }[]
   }
 }

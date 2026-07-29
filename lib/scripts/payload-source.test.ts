@@ -11,6 +11,7 @@
 
 import { describe, expect, it } from 'bun:test'
 import { join } from 'node:path'
+
 import {
   listPayloadFiles,
   type PayloadSource,
@@ -23,7 +24,9 @@ import {
 const repoSource: PayloadSource = {
   root: process.cwd(),
   label: 'this repo checkout',
-  cleanup: async () => {},
+  cleanup: async () => {
+    /* empty */
+  },
 }
 
 describe('payload readers (against the repo itself)', () => {

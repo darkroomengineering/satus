@@ -9,6 +9,7 @@
  */
 
 import * as p from '@clack/prompts'
+
 import { cancelGuard, withSpinner } from './generate-shared'
 import { getIntegrationEntries } from './integration-bundles'
 import { createDir } from './utils'

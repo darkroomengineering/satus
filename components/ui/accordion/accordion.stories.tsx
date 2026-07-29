@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react'
+
 import { Accordion } from './index'
 
 const meta = {
@@ -37,10 +38,10 @@ export const Default: Story = {
     <div style={{ width: 400 }}>
       <Accordion.Group>
         {FAQ_ITEMS.map(({ question, answer }) => (
-          <Accordion.Root key={question} className="border-white/20 border-b">
+          <Accordion.Root key={question} className="border-b border-white/20">
             {({ isOpen }) => (
               <>
-                <Accordion.Button className="flex w-full justify-between py-3 text-left">
+                <Accordion.Button className="py-3 flex w-full justify-between text-left">
                   <span>{question}</span>
                   <span
                     aria-hidden="true"
@@ -72,10 +73,10 @@ export const SingleOpen: Story = {
       <div style={{ width: 400 }}>
         <Accordion.Group>
           {FAQ_ITEMS.map(({ question, answer }) => (
-            <Accordion.Root key={question} className="border-white/20 border-b">
+            <Accordion.Root key={question} className="border-b border-white/20">
               {({ isOpen }) => (
                 <>
-                  <Accordion.Button className="flex w-full justify-between py-3 text-left">
+                  <Accordion.Button className="py-3 flex w-full justify-between text-left">
                     <span>{question}</span>
                     <span aria-hidden="true">{isOpen ? '−' : '+'}</span>
                   </Accordion.Button>
@@ -95,10 +96,10 @@ export const SingleOpen: Story = {
 export const DefaultOpen: Story = {
   render: () => (
     <div style={{ width: 400 }}>
-      <Accordion.Root defaultOpen className="border-white/20 border-b">
+      <Accordion.Root defaultOpen className="border-b border-white/20">
         {({ isOpen }) => (
           <>
-            <Accordion.Button className="flex w-full justify-between py-3 text-left">
+            <Accordion.Button className="py-3 flex w-full justify-between text-left">
               <span>Starts open</span>
               <span aria-hidden="true">{isOpen ? '−' : '+'}</span>
             </Accordion.Button>

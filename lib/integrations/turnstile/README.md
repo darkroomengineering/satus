@@ -16,7 +16,11 @@ import { validateFormWithTurnstile } from '@/lib/integrations/turnstile'
 
 const validation = await validateFormWithTurnstile(formData)
 if (!validation.isValid) {
-  return { status: 400, message: 'invalid_input_', fieldErrors: { turnstile: validation.errors[0] } }
+  return {
+    status: 400,
+    message: 'invalid_input_',
+    fieldErrors: { turnstile: validation.errors[0] },
+  }
 }
 ```
 

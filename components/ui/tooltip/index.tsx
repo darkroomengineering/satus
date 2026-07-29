@@ -8,6 +8,7 @@ import {
   type ReactElement,
   type ReactNode,
 } from 'react'
+
 import s from './tooltip.module.css'
 
 /**

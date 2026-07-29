@@ -1,7 +1,4 @@
-export {
-  mailchimpContactAction,
-  mailchimpSubscriptionAction,
-} from './action'
+export { mailchimpContactAction, mailchimpSubscriptionAction } from './action'
 export type {
   ContactData,
   MailchimpConfig,

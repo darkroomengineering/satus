@@ -16,6 +16,7 @@ import {
   Vector2,
   type WebGLRenderer,
 } from 'three'
+
 import {
   type DoubleRenderTarget,
   getDoubleRenderTarget,

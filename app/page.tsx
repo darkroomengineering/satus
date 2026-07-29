@@ -10,8 +10,10 @@
  * `lib/integrations/*`.
  */
 import cn from 'clsx'
+
 import { Wrapper } from '@/components/layout/wrapper'
 import { Link } from '@/components/ui/link'
+
 import s from './page.module.css'
 
 export const metadata = {

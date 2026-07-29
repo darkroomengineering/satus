@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import { createContext, use, useEffect, useState } from 'react'
+
 import type { Themes } from '@/styles/colors'
 import { type ThemeName, themes } from '@/styles/config'
 
@@ -67,7 +68,6 @@ export function Theme({
     setCurrentTheme(theme)
   }
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: we need to trigger on path change
   useEffect(() => {
     if (global) {
       document.documentElement.setAttribute('data-theme', currentTheme)

@@ -4,11 +4,11 @@ Server-side API endpoints for integrations and webhooks.
 
 ## Endpoints
 
-| Route | Method | Purpose |
-|-------|--------|---------|
-| `/api/draft-mode/enable` | GET | Enable Sanity draft mode |
-| `/api/draft-mode/disable` | GET | Disable Sanity draft mode |
-| `/api/revalidate` | POST | Webhook for content revalidation (Sanity + Shopify) |
+| Route                     | Method | Purpose                                             |
+| ------------------------- | ------ | --------------------------------------------------- |
+| `/api/draft-mode/enable`  | GET    | Enable Sanity draft mode                            |
+| `/api/draft-mode/disable` | GET    | Disable Sanity draft mode                           |
+| `/api/revalidate`         | POST   | Webhook for content revalidation (Sanity + Shopify) |
 
 ## Draft Mode
 

@@ -26,7 +26,7 @@ const registry = globalThis as unknown as Record<symbol, unknown>
 if (typeof window !== 'undefined' && !registry[REGISTERED_KEY]) {
   window.addEventListener('storage', (event) => {
     if (event.key === storageKey) {
-      Orchestra.persist.rehydrate()
+      void Orchestra.persist.rehydrate()
     }
   })
   registry[REGISTERED_KEY] = true

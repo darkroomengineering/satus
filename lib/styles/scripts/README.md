@@ -4,12 +4,12 @@ Generate CSS from TypeScript config. Run with `bun setup:styles`.
 
 ## Scripts
 
-| Script | Output |
-|--------|--------|
-| `setup-styles.ts` | Orchestrates all generation |
-| `generate-root.ts` | → `css/root.css` |
-| `generate-tailwind.ts` | → `css/tailwind.css` |
-| `generate-scale.ts` | Scale utilities |
+| Script                  | Output                           |
+| ----------------------- | -------------------------------- |
+| `setup-styles.ts`       | Orchestrates all generation      |
+| `generate-root.ts`      | → `css/root.css`                 |
+| `generate-tailwind.ts`  | → `css/tailwind.css`             |
+| `generate-scale.ts`     | Scale utilities                  |
 | `postcss-functions.mjs` | `mobile-vw()`, `columns()`, etc. |
 
 ## Build Flow

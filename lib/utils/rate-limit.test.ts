@@ -8,6 +8,7 @@
  */
 
 import { describe, expect, it } from 'bun:test'
+
 import { getClientIP, rateLimit, rateLimiters } from './rate-limit'
 
 /**

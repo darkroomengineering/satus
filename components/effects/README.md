@@ -6,10 +6,10 @@ This directory is for GSAP-based effects: the runtime ticker bridge and orchestr
 
 ## Components
 
-| Component | Purpose |
-|-----------|---------|
-| `gsap.tsx` | `GSAPRuntime` — syncs GSAP's ticker to Tempus (single RAF loop) |
-| `progress-text/` | Scroll-driven progress text effect (hamo scroll-trigger) |
+| Component        | Purpose                                                         |
+| ---------------- | --------------------------------------------------------------- |
+| `gsap.tsx`       | `GSAPRuntime` — syncs GSAP's ticker to Tempus (single RAF loop) |
+| `progress-text/` | Scroll-driven progress text effect (hamo scroll-trigger)        |
 
 ## GSAPRuntime
 
@@ -26,7 +26,7 @@ Reveal text based on scroll progress.
 ```tsx
 import { ProgressText } from '@/components/effects/progress-text'
 
-<ProgressText>
+;<ProgressText>
   This text reveals as you scroll through the section
 </ProgressText>
 ```

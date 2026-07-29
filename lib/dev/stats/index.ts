@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import _Stats from 'stats-gl'
 import { useTempus } from 'tempus/react'
+
 import s from './stats.module.css'
 
 export function Stats() {

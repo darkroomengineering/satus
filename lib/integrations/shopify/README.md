@@ -27,7 +27,7 @@ export default function Layout({ children }) {
 ```tsx
 import { AddToCart } from '@/integrations/shopify/cart/add-to-cart'
 
-<AddToCart product={product} variant={variant} quantity={1} />
+;<AddToCart product={product} variant={variant} quantity={1} />
 ```
 
 ### Cart Context
@@ -53,12 +53,13 @@ const product = await getProduct('product-handle')
 ### Validation
 
 All Shopify server actions validate input with Zod schemas:
+
 - **Cart actions** (`addItem`, `updateItemQuantity`, `removeItem`): validate variant IDs, quantity bounds (1-99), rate limiting. `updateItemQuantity` and `removeItem` take the client-held `lineId` (the cart line's id) to patch that line directly. All three return `CartActionResult` — `{ ok: true }` on success, `{ ok: false; error: string }` on failure.
 - **Customer actions** (`LoginCustomerAction`, `CreateCustomerAction`): validate email format, password length, rate limiting via `runFormAction`. `LoginCustomerAction` passes the strict limiter (5 req/min) to `runFormAction` to throttle brute-force attempts.
 - **Error handling**: Cart actions use `CartActionResult`; customer actions return `FormState` objects; there is no `Error` instance wrapping
 
 Env vars are validated via `shopifyEnvSchema` in the integration registry.
-The GraphQL *envelope* (`data` / `errors` fields) is always validated at the boundary with `parseApiResponse` (`@/utils/validation`). *Payload* validation (the `data` field contents) is opt-in via `shopifyFetch`'s `dataSchema` parameter — every built-in call site (`products.ts`, `collections.ts`, `pages.ts`, `cart-operations.ts`, `customer/actions.ts`) passes one, validating against the loose Zod schemas in `schemas.ts`. When omitted, the payload is cast to the caller-supplied type — the caller is responsible for ensuring the shape matches.
+The GraphQL _envelope_ (`data` / `errors` fields) is always validated at the boundary with `parseApiResponse` (`@/utils/validation`). _Payload_ validation (the `data` field contents) is opt-in via `shopifyFetch`'s `dataSchema` parameter — every built-in call site (`products.ts`, `collections.ts`, `pages.ts`, `cart-operations.ts`, `customer/actions.ts`) passes one, validating against the loose Zod schemas in `schemas.ts`. When omitted, the payload is cast to the caller-supplied type — the caller is responsible for ensuring the shape matches.
 
 ## Features
 

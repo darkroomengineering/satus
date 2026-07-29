@@ -1,6 +1,8 @@
 import { PortableText, type PortableTextBlock } from '@portabletext/react'
+
 import { Link } from '@/components/ui/link'
 import { SanityImage } from '@/components/ui/sanity-image'
+
 import type { Link as SanityLink } from '../sanity.types'
 import { getLinkAttributes } from '../utils/link'
 

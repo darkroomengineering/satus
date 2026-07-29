@@ -14,6 +14,7 @@
  */
 
 import { describe, expect, it } from 'bun:test'
+
 import type { AstOperation } from './ast-operation-types'
 import { applyOpsToText } from './ast-transforms'
 

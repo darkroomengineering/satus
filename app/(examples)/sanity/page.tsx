@@ -1,11 +1,13 @@
 import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
+
 import { Wrapper } from '@/components/layout/wrapper'
 import { NotConfigured } from '@/components/ui/not-configured'
 import { isConfigured } from '@/integrations/registry'
 import { sanityFetch } from '@/integrations/sanity/live'
 import { pageQuery } from '@/integrations/sanity/queries'
 import { generateSanityMetadata } from '@/utils/metadata'
+
 import { SanityTutorial } from './_components/tutorial'
 
 const SLUG = 'sanity'
@@ -47,7 +49,7 @@ export default async function SanityPage() {
 
   return (
     <Wrapper theme="light" className="font-mono uppercase">
-      <div className="max-dt:dr-px-16 flex grow items-center justify-center">
+      <div className="flex grow items-center justify-center max-dt:dr-px-16">
         <SanityTutorial data={data} />
       </div>
     </Wrapper>

@@ -10,7 +10,9 @@ import {
   type ReactNode,
   useRef,
 } from 'react'
+
 import { slugify } from '@/utils/strings'
+
 import s from './progress-text.module.css'
 
 interface WordSegment {
@@ -107,7 +109,7 @@ export function ProgressText({
       }}
     >
       {words.map((word, index) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: word list derived from static children, order never changes
+        // oxlint-disable-next-line react/no-array-index-key -- word list derived from static children, order never changes
         <Fragment key={`${slugify(word.text)}-${index}`}>
           <span
             className={cn(s.word, word.className)}

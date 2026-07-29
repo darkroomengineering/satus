@@ -37,35 +37,35 @@ For the full, always-current component / hook / utility inventory, see [COMPONEN
 
 Built on [Base UI](https://base-ui.com/) for accessibility.
 
-| Component | Purpose |
-|-----------|---------|
-| `image/` | Optimized images (always use this, never `next/image`) |
-| `link/` | Smart navigation (auto-detects external) |
-| `form/` | Form components with validation |
-| `select/` | Custom dropdowns (accessible, Base UI) |
-| `menu/` | Dropdown menus |
-| `accordion/` | Expandable sections |
-| `tabs/` | Tab navigation |
-| `tooltip/` | Hover hints |
-| `alert-dialog/` | Confirmation dialogs |
-| `toast/` | Notifications |
-| `checkbox/` | Checkboxes |
-| `switch/` | Toggle switches |
-| `fold/` | Scroll-based folding |
-| `scrollbar/` | Custom scrollbars |
-| `real-viewport/` | Sets the `--scrollbar-width` CSS property |
-| `marquee/` | Infinite scrolling text |
-| `sanity-image/` | Sanity-optimized image component |
-| `not-configured/` | Placeholder for unconfigured integrations |
+| Component         | Purpose                                                |
+| ----------------- | ------------------------------------------------------ |
+| `image/`          | Optimized images (always use this, never `next/image`) |
+| `link/`           | Smart navigation (auto-detects external)               |
+| `form/`           | Form components with validation                        |
+| `select/`         | Custom dropdowns (accessible, Base UI)                 |
+| `menu/`           | Dropdown menus                                         |
+| `accordion/`      | Expandable sections                                    |
+| `tabs/`           | Tab navigation                                         |
+| `tooltip/`        | Hover hints                                            |
+| `alert-dialog/`   | Confirmation dialogs                                   |
+| `toast/`          | Notifications                                          |
+| `checkbox/`       | Checkboxes                                             |
+| `switch/`         | Toggle switches                                        |
+| `fold/`           | Scroll-based folding                                   |
+| `scrollbar/`      | Custom scrollbars                                      |
+| `real-viewport/`  | Sets the `--scrollbar-width` CSS property              |
+| `marquee/`        | Infinite scrolling text                                |
+| `sanity-image/`   | Sanity-optimized image component                       |
+| `not-configured/` | Placeholder for unconfigured integrations              |
 
 ## Layout Components
 
-| Component | Purpose |
-|-----------|---------|
+| Component  | Purpose                            |
+| ---------- | ---------------------------------- |
 | `wrapper/` | Page wrapper (theme, WebGL, Lenis) |
-| `header/` | Site header/navigation |
-| `footer/` | Site footer |
-| `lenis/` | Smooth scrolling |
+| `header/`  | Site header/navigation             |
+| `footer/`  | Site footer                        |
+| `lenis/`   | Smooth scrolling                   |
 
 ```tsx
 <Wrapper theme="dark" webgl lenis>
@@ -77,10 +77,10 @@ Built on [Base UI](https://base-ui.com/) for accessibility.
 
 `GSAPRuntime` is automatically loaded via `OptionalFeatures` in the root layout - do not import it manually.
 
-| Component | Purpose |
-|-----------|---------|
-| `gsap/` | GSAP + Tempus integration (auto-loaded) |
-| `progress-text/` | Scroll-based text reveal |
+| Component        | Purpose                                 |
+| ---------------- | --------------------------------------- |
+| `gsap/`          | GSAP + Tempus integration (auto-loaded) |
+| `progress-text/` | Scroll-based text reveal                |
 
 ## Best Practices
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, use } from 'react'
+
 import type { Cart, Product, ProductVariant } from '../types'
 
 // Context state

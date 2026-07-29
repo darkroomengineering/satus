@@ -26,7 +26,9 @@
 // Full walkthrough: see the manual (app/page.tsx) step 5 "Add a plugin".
 
 import { createClient, type SanityClient } from 'next-sanity'
+
 import { isConfigured } from '@/integrations/registry'
+
 import { apiVersion, dataset, projectId, studioUrl } from './env'
 
 /**

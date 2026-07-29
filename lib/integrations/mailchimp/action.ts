@@ -1,11 +1,13 @@
 'use server'
 
 import { z } from 'zod'
+
 import type { TurnstileValidationResult } from '@/lib/integrations/turnstile'
 import { validateFormWithTurnstile } from '@/lib/integrations/turnstile'
 import type { FormState } from '@/lib/types/form'
 import { runFormAction } from '@/lib/utils/form-action'
 import { emailSchema } from '@/utils/validation'
+
 import {
   addContactToMailchimp,
   addSubscriberToMailchimp,

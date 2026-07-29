@@ -17,11 +17,13 @@
  */
 
 import * as p from '@clack/prompts'
+
 import {
   type IntegrationId,
   isConfigured,
   integrations as registryIntegrations,
 } from '@/integrations/registry'
+
 import { isInstalled } from './bundle-installer'
 import { cancelGuard } from './generate-shared'
 import { getIntegrationEntries } from './integration-bundles'
@@ -533,14 +535,13 @@ const main = async (): Promise<void> => {
       generated.push('  - README.original.md (backup, gitignored)')
     }
     p.note(
-      (generated.length
-        ? `Generated files:\n${generated.join('\n')}\n\n`
-        : '') +
-        'Next steps:\n' +
-        '  1. Review generated files\n' +
-        '  2. Update README with project-specific info\n' +
-        '  3. Complete the deployment checklist\n' +
-        '  4. Push to client repository',
+      `${
+        generated.length ? `Generated files:\n${generated.join('\n')}\n\n` : ''
+      }Next steps:\n` +
+        `  1. Review generated files\n` +
+        `  2. Update README with project-specific info\n` +
+        `  3. Complete the deployment checklist\n` +
+        `  4. Push to client repository`,
       'Handoff complete!'
     )
     p.outro('Ready for client delivery!')

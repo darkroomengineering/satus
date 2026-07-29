@@ -1,6 +1,7 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { types } from '@theatre/core'
 import { useEffect, useState } from 'react'
+
 import { useCurrentSheet } from '@/dev/theatre'
 import { useTheatre } from '@/dev/theatre/hooks/use-theatre'
 import { usePointerInput } from '@/webgl/hooks/use-pointer-input'
@@ -24,7 +25,8 @@ export function useFluidSim(resolution = 128) {
   }, [resolution, gl])
 
   // Normalize pointer input and queue splats. The callback always reads the
-  // latest `size` and `fluid` via the ref pattern inside usePointerInput.
+  // latest `size` and `fluid`, because usePointerInput routes it through
+  // useEffectEvent.
   usePointerInput((clientX, clientY, dx, dy) => {
     if (!(Math.abs(dx) || Math.abs(dy))) return
     const normalizedX = clientX / size.width

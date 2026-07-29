@@ -5,7 +5,8 @@ import type {
   ISheetObject,
   UnknownShorthandCompoundProps,
 } from '@theatre/core'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useEffectEvent, useRef, useState } from 'react'
+
 import { useStudio } from './use-studio'
 
 export function useTheatreObject(
@@ -22,7 +23,6 @@ export function useTheatreObject(
   // without reading/writing refs during render (which the compiler can't track).
   const configKey = JSON.stringify(config)
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: deps spread is intentional
   useEffect(() => {
     if (!sheet) return
 
@@ -31,6 +31,7 @@ export function useTheatreObject(
     return () => {
       sheet.detachObject(theatreKey)
     }
+    // oxlint-disable-next-line react/exhaustive-deps -- complex dependency expression is intentional
   }, [configKey, sheet, theatreKey, ...deps])
 
   return object
@@ -51,10 +52,12 @@ export function useTheatre<Config extends UnknownShorthandCompoundProps>(
   config: Config,
   { onValuesChange, lazy = true, deps = [] }: UseTheatreOptions<Config> = {}
 ) {
-  const onValuesChangeRef = useRef(onValuesChange)
-  useEffect(() => {
-    onValuesChangeRef.current = onValuesChange
-  })
+  // Wrapped rather than passed straight in: `onValuesChange` is optional and
+  // `useEffectEvent` needs a function. The wrapper is stable, so the
+  // subscription effect below never re-runs just because the callback changed.
+  const handleValuesChange = useEffectEvent(
+    (values: TheatrePropsToValues<Config>) => onValuesChange?.(values)
+  )
 
   const object = useTheatreObject(sheet, theatreKey, config, deps)
 
@@ -69,11 +72,12 @@ export function useTheatre<Config extends UnknownShorthandCompoundProps>(
         lazyValues.current = values
         if (!lazy) setValues(values)
 
-        onValuesChangeRef.current?.(values as TheatrePropsToValues<Config>)
+        handleValuesChange(values as TheatrePropsToValues<Config>)
       })
     }
 
     return undefined
+    // oxlint-disable-next-line react/exhaustive-deps -- complex dependency expression is intentional
   }, [object, lazy, ...deps])
 
   const studio = useStudio()

@@ -1,6 +1,8 @@
 import { useMediaQuery, useWindowSize } from 'hamo'
 import { useEffect, useState } from 'react'
+
 import { breakpoints } from '@/styles/config'
+
 import { usePreferredReducedMotion } from './use-sync-external'
 
 function checkIsAutoplaySupported() {
@@ -81,7 +83,7 @@ export function useDeviceDetection() {
   useEffect(() => {
     setIsSafari(detectIsSafari())
     setSupportsWebGL(detectSupportsWebGL())
-    detectIsAutoplaySupported().then(setIsAutoplaySupported)
+    void detectIsAutoplaySupported().then(setIsAutoplaySupported)
   }, [])
 
   const isWebGL = supportsWebGL && isDesktop

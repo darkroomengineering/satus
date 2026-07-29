@@ -2,12 +2,14 @@
 
 import dynamic from 'next/dynamic'
 import { useState } from 'react'
+
 import {
   Image as DRImage,
   type ImageProps as DRImageProps,
 } from '@/components/ui/image'
 import { useDeviceDetection } from '@/hooks/use-device-detection'
 import { useWebGLElement } from '@/webgl/hooks/use-webgl-element'
+
 import { WebGLTunnel } from '../tunnel'
 
 const WebGLImage = dynamic(

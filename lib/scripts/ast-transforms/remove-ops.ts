@@ -8,6 +8,7 @@
  */
 
 import { type Node, type Project, SyntaxKind } from 'ts-morph'
+
 import type {
   RemoveArrayObjectElementOp,
   RemoveArrayStringElementOp,

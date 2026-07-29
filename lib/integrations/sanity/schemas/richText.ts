@@ -1,4 +1,5 @@
 import { defineType } from 'sanity'
+
 import { linkField } from './link'
 
 export const richText = defineType({

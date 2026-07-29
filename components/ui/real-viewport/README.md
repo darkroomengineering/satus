@@ -21,8 +21,8 @@ export default function RootLayout({ children }) {
 
 ## CSS Variables
 
-| Variable | Description | Example |
-|----------|-------------|---------|
+| Variable            | Description                       | Example                                       |
+| ------------------- | --------------------------------- | --------------------------------------------- |
 | `--scrollbar-width` | Browser scrollbar width in pixels | `width: calc(100vw - var(--scrollbar-width))` |
 
 ## Implementation notes

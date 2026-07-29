@@ -2,7 +2,7 @@
 
 # Satūs
 
-A modern Next.js 16 starter with React 19, Tailwind CSS v4, and optional WebGL. *Satūs* means "beginning" in Latin.
+A modern Next.js 16 starter with React 19, Tailwind CSS v4, and optional WebGL. _Satūs_ means "beginning" in Latin.
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/darkroomengineering/satus)
 
@@ -22,14 +22,14 @@ Run `bun dev` and open [localhost:3000](http://localhost:3000) — the landing p
 - **Opt-in integrations** — Sanity, Shopify, HubSpot, and WebGL stay isolated under `lib/integrations` until you configure them
 - **Interactive setup** — strip the integrations you don't need from a fresh clone
 - **One-command handoff** — strips branding, swaps in the prod README, and generates a component inventory
-- **Modern tooling** — Bun, Biome, and Turbopack
+- **Modern tooling** — Bun, Turbopack, and the oxc toolchain: `oxlint` and `oxfmt` cover TS, CSS, Markdown, YAML and TOML, and sort imports and Tailwind classes for you at format time
 
 ## Requirements
 
-| Tool | Version | Notes |
-|------|---------|-------|
+| Tool    | Version   | Notes                                     |
+| ------- | --------- | ----------------------------------------- |
 | Node.js | >= 22.0.0 | Required for native fetch and modern APIs |
-| Bun | >= 1.3.5 | Package manager & runtime |
+| Bun     | >= 1.3.5  | Package manager & runtime                 |
 
 ## Quick Start
 
@@ -66,15 +66,15 @@ When setup completes it removes its own machinery from the project (the setup sc
 
 ## Tech Stack
 
-| Category | Technologies |
-|----------|--------------|
-| Framework | Next.js 16, React 19.2, TypeScript |
-| Styling | Tailwind CSS v4, CSS Modules |
-| Catalogue | Storybook |
-| Optional | React Three Fiber, GSAP, Sanity, Shopify, HubSpot |
-| Tooling | Bun, Biome, Turbopack |
+| Category  | Technologies                                      |
+| --------- | ------------------------------------------------- |
+| Framework | Next.js 16, React 19.2, TypeScript                |
+| Styling   | Tailwind CSS v4, CSS Modules                      |
+| Catalogue | Storybook                                         |
+| Optional  | React Three Fiber, GSAP, Sanity, Shopify, HubSpot |
+| Tooling   | Bun, oxlint + oxfmt, Turbopack                    |
 
-> **Note**: `hamo` and `tempus` are Darkroom-owned packages published on a `dev` pre-release dist-tag. They do not follow semver guarantees — pin exact versions and review changes when bumping.
+> **Note**: `hamo` and `tempus` are Darkroom-owned packages. Both reached a stable 1.0 on 2026-07-29, so they follow semver and track caret ranges like everything else.
 
 ## Project Structure
 
@@ -93,17 +93,17 @@ lib/                    # Everything non-UI
 
 ## Documentation
 
-| Area | Documentation |
-|------|---------------|
-| Engineering Standards | [AGENTS.md](AGENTS.md) - Canonical rules for all AI tools and contributors |
-| Architecture | [ARCHITECTURE.md](ARCHITECTURE.md) - Key decisions, patterns, customization |
-| Component Catalogue | Storybook (`bun storybook`) - Isolated UI primitives with docs |
-| Component Inventory | [COMPONENTS.md](COMPONENTS.md) - Auto-generated component/hook/utility manifest |
-| Changelog | [CHANGELOG.md](CHANGELOG.md) - Release history and versioning policy |
-| App Router | [app/README.md](app/README.md) - Pages, layouts, routing |
-| Components | [components/README.md](components/README.md) - UI reference |
-| Library | [lib/README.md](lib/README.md) - Hooks, utils, integrations |
-| Integrations | [lib/integrations/README.md](lib/integrations/README.md) - Sanity, Shopify, etc. |
+| Area                  | Documentation                                                                    |
+| --------------------- | -------------------------------------------------------------------------------- |
+| Engineering Standards | [AGENTS.md](AGENTS.md) - Canonical rules for all AI tools and contributors       |
+| Architecture          | [ARCHITECTURE.md](ARCHITECTURE.md) - Key decisions, patterns, customization      |
+| Component Catalogue   | Storybook (`bun storybook`) - Isolated UI primitives with docs                   |
+| Component Inventory   | [COMPONENTS.md](COMPONENTS.md) - Auto-generated component/hook/utility manifest  |
+| Changelog             | [CHANGELOG.md](CHANGELOG.md) - Release history and versioning policy             |
+| App Router            | [app/README.md](app/README.md) - Pages, layouts, routing                         |
+| Components            | [components/README.md](components/README.md) - UI reference                      |
+| Library               | [lib/README.md](lib/README.md) - Hooks, utils, integrations                      |
+| Integrations          | [lib/integrations/README.md](lib/integrations/README.md) - Sanity, Shopify, etc. |
 
 ## Scripts
 
@@ -111,7 +111,9 @@ lib/                    # Everything non-UI
 bun dev              # Development server
 bun run build        # Production build
 bun storybook        # Component catalogue
-bun lint             # Biome linter
+bun lint             # oxlint
+bun run format       # oxfmt (also sorts imports + Tailwind classes)
+bun run check        # lint + format + types + tests (run this before pushing)
 bun run generate     # Generate pages/components
 bun run setup:project  # Strip integrations you don't need
 bun run handoff      # Prepare for client delivery
@@ -126,6 +128,7 @@ bun run handoff
 ```
 
 This interactive script:
+
 - Removes Satūs branding
 - Swaps README with the production version
 - Generates a component inventory

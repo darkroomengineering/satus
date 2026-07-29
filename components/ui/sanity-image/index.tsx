@@ -1,4 +1,5 @@
 import { getImageDimensions } from '@sanity/asset-utils'
+
 import { Image, type ImageProps } from '@/components/ui/image'
 import type {
   SanityImageCrop,
@@ -12,11 +13,10 @@ import { urlForImage } from '@/integrations/sanity/utils/image'
 // collapses to the union of each branch's key types, so leaving
 // fill/width/height in would let a caller pass a combination that no longer
 // matches any single ImageProps branch.
-interface SanityImageProps
-  extends Omit<
-    ImageProps,
-    'src' | 'aspectRatio' | 'fill' | 'width' | 'height' | 'alt'
-  > {
+interface SanityImageProps extends Omit<
+  ImageProps,
+  'src' | 'aspectRatio' | 'fill' | 'width' | 'height' | 'alt'
+> {
   image: {
     asset?: {
       _ref: string

@@ -6,4 +6,4 @@ alwaysApply: true
 
 The canonical engineering standards for this repo are in [`/AGENTS.md`](/AGENTS.md). Follow it for all code changes.
 
-`AGENTS.md` covers: enforced Biome + TypeScript rules, house style conventions, component patterns, React 19 / Next.js 16 / Tailwind v4 specifics, integrations, and commands.
+`AGENTS.md` covers: enforced oxlint + TypeScript rules, house style conventions, component patterns, React 19 / Next.js 16 / Tailwind v4 specifics, integrations, and commands.

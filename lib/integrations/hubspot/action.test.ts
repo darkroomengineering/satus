@@ -8,6 +8,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+
 import { hubspotNewsletterSchema } from './schema'
 
 /**

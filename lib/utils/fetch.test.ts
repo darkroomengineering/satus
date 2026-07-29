@@ -8,7 +8,9 @@
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test'
+
 import { z } from 'zod'
+
 import { fetchJSON, fetchWithTimeout } from './fetch'
 
 /**
@@ -79,7 +81,7 @@ beforeAll(() => {
 })
 
 afterAll(() => {
-  server.stop()
+  void server.stop()
 })
 
 describe('fetchWithTimeout', () => {

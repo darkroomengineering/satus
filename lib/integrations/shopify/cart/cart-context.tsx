@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { useOptimistic } from 'react'
+
 import type { Cart, Product, ProductVariant } from '../types'
 import {
   type CartActions,

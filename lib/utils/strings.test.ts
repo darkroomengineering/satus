@@ -5,6 +5,7 @@
  */
 
 import { describe, expect, it } from 'bun:test'
+
 import {
   capitalizeFirstLetter,
   isEmptyArray,

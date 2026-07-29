@@ -48,7 +48,7 @@ bun lint             # oxlint
 bun lint:fix         # oxlint, auto-fix
 bun lint:types       # type-aware rules (not in the pre-commit hook)
 bun run format       # oxfmt, writes in place
-bun run check        # all of the above + tsc + tests + manifest
+bun run check        # oxlint + oxfmt --check + lint:types + tsc + tests + manifest
 ```
 
 **Why?**
@@ -57,9 +57,23 @@ bun run check        # all of the above + tsc + tests + manifest
 - **One formatter for the whole repo.** Markdown, YAML, and TOML are formatted alongside TS/TSX/CSS, so docs and workflows stop drifting from house style.
 - **Type-aware linting.** `bun lint:types` reads the TypeScript program to catch un-awaited promises and async handlers passed where a void return is expected — bugs a syntax-only linter cannot see. It runs in `bun run check` and CI but stays out of the pre-commit hook, so commits stay fast.
 
-**Trade-off:** oxlint has no CSS parser, so there is no CSS _linting_. `oxfmt` still formats every stylesheet, CSS Modules and Tailwind v4 at-rules included.
+#### Compared to Biome
 
-Config lives in `oxlint.config.ts` and `oxfmt.config.ts` rather than JSON, so the rule list is typo-checked by `bun run typecheck` and each choice carries a comment. House style is pinned there explicitly (80 columns, 2-space indent, single quotes, semicolons only where required) because oxfmt's own defaults differ. See AGENTS.md § Enforced Rules for the rule-by-rule list.
+Biome is the obvious alternative and covers most of the same ground. What differs:
+
+|                               | Biome                                    | oxc                                                                                                   |
+| ----------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Import + Tailwind class order | Lint errors you fix, or an assist action | Sorted by the formatter on save                                                                       |
+| Type-aware rules              | None                                     | `no-floating-promises`, `no-misused-promises` (found 18 real floating promises here on the first run) |
+| Markdown / YAML / TOML        | Not formatted                            | Formatted                                                                                             |
+| CSS                           | Linted **and** formatted                 | Formatted only, no linter                                                                             |
+| Custom rules                  | GritQL plugin files                      | Built-in rules, no plugin files needed                                                                |
+
+The first three are why this repo uses oxc. The CSS row is the cost, and it is real: rules like `noUnknownProperty` and `noDescendingSpecificity` have no oxlint counterpart. If a project leans hard on CSS linting, add Stylelint or stay on Biome.
+
+**Trade-off:** oxlint has no CSS parser, so there is no CSS _linting_. `oxfmt` still formats stylesheets, CSS Modules and Tailwind v4 at-rules included, except the generated `lib/styles/css/tailwind.css` and `root.css`, which are deliberately left to their generator.
+
+Config lives in `oxlint.config.ts` and `oxfmt.config.ts` rather than JSON, so `bun run typecheck` covers it and each choice carries a comment. That catches invalid severities and duplicate rule keys, which a JSON config accepts silently; rule _names_ are still a permissive `Record`, so a typo'd rule name slips through either way. House style is pinned explicitly (80 columns, 2-space indent, single quotes, semicolons only where required) because oxfmt's own defaults differ. See AGENTS.md § Enforced Rules for the rule-by-rule list.
 
 ## Cache Components (Next.js 16)
 

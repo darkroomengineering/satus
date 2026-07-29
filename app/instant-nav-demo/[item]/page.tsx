@@ -12,8 +12,10 @@ export default async function ItemPage({
 }: {
   params: Promise<{ item: string }>
 }) {
-  const { item } = await params
-  await connection()
+  // `params` and `connection()` are independent, so they resolve together.
+  const [{ item }] = await Promise.all([params, connection()])
+  // The delay stays sequential on purpose — a slow route is what this demo is
+  // demonstrating.
   await new Promise((resolve) => setTimeout(resolve, 1200))
 
   return (

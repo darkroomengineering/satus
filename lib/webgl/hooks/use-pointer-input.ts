@@ -1,21 +1,20 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useEffectEvent } from 'react'
 
 /**
  * Attaches window mouse/touch listeners and calls `onMove` with raw client
  * coordinates and pixel deltas on each move event. Seeds on first input —
  * `onMove` is NOT called for the very first pointer event (no delta to compute).
  *
- * Uses a stable ref internally so consumers can safely close over reactive
- * values (e.g. Three.js size, sim instances) without re-subscribing the
- * window listeners on every render.
+ * `onMove` goes through `useEffectEvent`, so consumers can safely close over
+ * reactive values (e.g. Three.js size, sim instances) without re-subscribing
+ * the window listeners on every render.
  */
 export function usePointerInput(
   onMove: (x: number, y: number, dx: number, dy: number) => void
 ): void {
-  const onMoveRef = useRef(onMove)
-  onMoveRef.current = onMove
+  const handleMove = useEffectEvent(onMove)
 
   useEffect(() => {
     const last = { x: 0, y: 0, isInit: false }
@@ -47,7 +46,7 @@ export function usePointerInput(
       last.x = clientX
       last.y = clientY
 
-      onMoveRef.current(clientX, clientY, dx, dy)
+      handleMove(clientX, clientY, dx, dy)
     }
 
     const handleMouseMove = (event: MouseEvent) => handlePointer(event)

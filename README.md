@@ -22,7 +22,7 @@ Run `bun dev` and open [localhost:3000](http://localhost:3000) — the landing p
 - **Opt-in integrations** — Sanity, Shopify, HubSpot, and WebGL stay isolated under `lib/integrations` until you configure them
 - **Interactive setup** — strip the integrations you don't need from a fresh clone
 - **One-command handoff** — strips branding, swaps in the prod README, and generates a component inventory
-- **Modern tooling** — Bun, oxlint + oxfmt, and Turbopack
+- **Modern tooling** — Bun, Turbopack, and the oxc toolchain: `oxlint` and `oxfmt` cover TS, CSS, Markdown, YAML and TOML, and sort imports and Tailwind classes for you at format time
 
 ## Requirements
 
@@ -112,6 +112,8 @@ bun dev              # Development server
 bun run build        # Production build
 bun storybook        # Component catalogue
 bun lint             # oxlint
+bun run format       # oxfmt (also sorts imports + Tailwind classes)
+bun run check        # lint + format + types + tests (run this before pushing)
 bun run generate     # Generate pages/components
 bun run setup:project  # Strip integrations you don't need
 bun run handoff      # Prepare for client delivery

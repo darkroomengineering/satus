@@ -44,7 +44,7 @@ These are non-negotiable. Each is enforced by oxlint or TypeScript; the build or
 | `typescript/no-floating-promises`    | Un-awaited promises                                                                               | oxlint `typescript`, type-aware    |
 | `typescript/no-misused-promises`     | Async function passed where void expected                                                         | oxlint `typescript`, type-aware    |
 
-Tailwind class sorting and import ordering used to be lint rules under Biome; they're now handled by `oxfmt` at format time, so `bun run format` (or format-on-save) fixes them and they no longer fail `bun lint`. The two type-aware rules above only run under `bun run lint:types` (and `bun run check`) — they're not in the pre-commit hook.
+Tailwind class sorting and import ordering are handled by `oxfmt` at format time rather than by lint rules, so `bun run format` (or format-on-save) fixes them and they never fail `bun lint`. The two type-aware rules above only run under `bun run lint:types` (and `bun run check`) — they're not in the pre-commit hook, which keeps commits fast. See ARCHITECTURE.md § Linting and Formatting for why the toolchain is split this way.
 
 ### TypeScript strict flags (all active in `tsconfig.json`)
 

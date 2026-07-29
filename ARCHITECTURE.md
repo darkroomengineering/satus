@@ -39,6 +39,28 @@ import { OptionalFeatures } from '@/lib/features'
 ;<OptionalFeatures /> // Only loads WebGL, dev tools when needed
 ```
 
+### Linting and Formatting (oxc)
+
+`oxlint` lints, `oxfmt` formats. One toolchain, one editor extension (`oxc.oxc-vscode`), one pre-commit hook.
+
+```bash
+bun lint             # oxlint
+bun lint:fix         # oxlint, auto-fix
+bun lint:types       # type-aware rules (not in the pre-commit hook)
+bun run format       # oxfmt, writes in place
+bun run check        # all of the above + tsc + tests + manifest
+```
+
+**Why?**
+
+- **Sorting is a formatting concern, not a lint error.** `oxfmt` sorts imports and Tailwind classes on format or save, so they fix themselves instead of failing `bun lint`.
+- **One formatter for the whole repo.** Markdown, YAML, and TOML are formatted alongside TS/TSX/CSS, so docs and workflows stop drifting from house style.
+- **Type-aware linting.** `bun lint:types` reads the TypeScript program to catch un-awaited promises and async handlers passed where a void return is expected — bugs a syntax-only linter cannot see. It runs in `bun run check` and CI but stays out of the pre-commit hook, so commits stay fast.
+
+**Trade-off:** oxlint has no CSS parser, so there is no CSS _linting_. `oxfmt` still formats every stylesheet, CSS Modules and Tailwind v4 at-rules included.
+
+Config lives in `oxlint.config.ts` and `oxfmt.config.ts` rather than JSON, so the rule list is typo-checked by `bun run typecheck` and each choice carries a comment. House style is pinned there explicitly (80 columns, 2-space indent, single quotes, semicolons only where required) because oxfmt's own defaults differ. See AGENTS.md § Enforced Rules for the rule-by-rule list.
+
 ## Cache Components (Next.js 16)
 
 Server Components use advanced caching. Key rules:

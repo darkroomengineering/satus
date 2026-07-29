@@ -74,7 +74,7 @@ When setup completes it removes its own machinery from the project (the setup sc
 | Optional  | React Three Fiber, GSAP, Sanity, Shopify, HubSpot |
 | Tooling   | Bun, oxlint + oxfmt, Turbopack                    |
 
-> **Note**: `hamo` and `tempus` are Darkroom-owned packages published on a `dev` pre-release dist-tag. They do not follow semver guarantees — pin exact versions and review changes when bumping.
+> **Note**: `hamo` and `tempus` are Darkroom-owned packages. Both reached a stable 1.0 on 2026-07-29, so they follow semver and track caret ranges like everything else.
 
 ## Project Structure
 

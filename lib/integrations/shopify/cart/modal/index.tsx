@@ -34,7 +34,12 @@ interface QuantityProps {
 }
 
 interface QuantityButtonProps {
-  formAction: () => void
+  // Matches React's form action signature. It has to allow a promise: React
+  // keeps useFormStatus().pending true until the returned promise settles, and
+  // QuantitySubmitButton disables itself on that. Typing this `() => void`
+  // forces call sites to swallow the promise and the button stops staying
+  // disabled during the update.
+  formAction: () => void | Promise<void>
   className?: string
   children: ReactNode
   'aria-label': string
@@ -205,18 +210,14 @@ function Quantity({ className, payload }: QuantityProps) {
   return (
     <div className={className}>
       <QuantityButton
-        formAction={() => {
-          void formAction('minus')
-        }}
+        formAction={() => formAction('minus')}
         aria-label="Decrease quantity"
       >
         -
       </QuantityButton>
       <span>{payload.quantity}</span>
       <QuantityButton
-        formAction={() => {
-          void formAction('plus')
-        }}
+        formAction={() => formAction('plus')}
         aria-label="Increase quantity"
       >
         +

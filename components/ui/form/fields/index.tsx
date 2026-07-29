@@ -196,7 +196,6 @@ export function CheckboxesField({
       />
       <div className={s.options}>
         {options.map(({ label: optionLabel, value }) => (
-          // oxlint-disable-next-line jsx-a11y/label-has-associated-control -- Base UI checkbox is wrapped in label for accessibility
           <label
             key={value}
             className={cn(s.option, selected.includes(value) && s.selected)}

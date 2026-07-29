@@ -23,11 +23,9 @@ export function useTheatreObject(
   // without reading/writing refs during render (which the compiler can't track).
   const configKey = JSON.stringify(config)
 
-  // oxlint-disable-next-line react/exhaustive-deps -- deps spread is intentional
   useEffect(() => {
     if (!sheet) return
 
-    // oxlint-disable-next-line react/exhaustive-deps -- config is intentionally read once on mount
     setObject(sheet?.object(theatreKey, config, { reconfigure: true }))
 
     return () => {

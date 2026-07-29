@@ -67,7 +67,6 @@ function Checkbox({ label, labelClassName, ...props }: CheckboxProps) {
   }
 
   return (
-    // oxlint-disable-next-line jsx-a11y/label-has-associated-control -- Base UI checkbox is wrapped in label for accessibility
     <label className={cn(s.container, labelClassName)}>
       <CheckboxControl {...props} />
       <span className={s.label}>{label}</span>

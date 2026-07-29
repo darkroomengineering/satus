@@ -112,7 +112,7 @@
   "overrides": {
     "lodash": "^4.17.21",
     "lodash-es": "^4.17.21",
-    "playwright-core": "1.61.1"
+    "playwright-core": "1.62.0"
   },
   "engines": {
     "node": ">=22.0.0"

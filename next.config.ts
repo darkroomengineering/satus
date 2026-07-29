@@ -106,12 +106,28 @@ const nextConfig: NextConfig = {
   experimental: {
     taint: true,
     cachedNavigations: true,
+    // The rest of the instant-navigation cluster that `partialPrefetching` and
+    // `cachedNavigations` belong to (they are passed to renderOpts together in
+    // next/dist/esm/server/base-server.js).
+    //
+    // `varyParams` lets Cache Components key a segment on the params it
+    // actually reads, instead of invalidating the whole segment whenever any
+    // param changes. It is the one with the most to gain here, since
+    // `cacheComponents` is already on.
+    varyParams: true,
+    // `optimisticRouting` is the current route-tree match for the client
+    // segment cache. It replaces a deprecated search-params-based path that
+    // Next still ships behind `deprecated_requestOptimisticRouteCacheEntry`.
+    optimisticRouting: true,
     // 16.3 preview: persistent Turbopack FS cache for `next build` (faster
     // cached CI/Vercel builds) + the native Rust port of the React Compiler
     // (pairs with the top-level `reactCompiler: true`). Both experimental.
     turbopackFileSystemCacheForBuild: true,
     turbopackRustReactCompiler: true,
     sri: { algorithm: 'sha384' },
+    // Not setting `cssChunking: 'graph'`. Measured on this branch it produced
+    // 11 stylesheets instead of the default's 9, for identical total bytes —
+    // more requests, no saving. The default 'loose' heuristic wins here.
     optimizePackageImports: [
       '@react-three/drei',
       '@react-three/fiber',

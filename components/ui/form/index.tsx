@@ -3,7 +3,6 @@
 import cn from 'clsx'
 import { createContext, use, useEffect, useState } from 'react'
 
-import type { FormState } from '@/lib/types/form'
 import { mutate } from '@/utils/raf'
 
 import { useForm } from './hook'
@@ -84,6 +83,23 @@ export function Form<T = unknown>({
 }: FormProps<T>) {
   const [key, setKey] = useState<string | null>(null)
 
+  // onSuccess/onError fire from the action itself rather than from an effect
+  // watching formState. The effect had to list them as dependencies, so a
+  // parent re-rendering with fresh inline callbacks re-ran it and fired them a
+  // second time for a submission that had already been handled. The result is
+  // known right here, so there is nothing to observe after the fact.
+  const actionWithCallbacks: FormAction<T> = async (prevState, formData) => {
+    const result = await action(prevState, formData)
+
+    if (result.status === 200) {
+      onSuccess?.(result)
+    } else if (result.status >= 400) {
+      onError?.(result)
+    }
+
+    return result
+  }
+
   const {
     formAction,
     onSubmit,
@@ -95,32 +111,35 @@ export function Form<T = unknown>({
     errors,
     register,
   } = useForm({
-    action: action as FormAction<unknown>,
+    action: actionWithCallbacks as FormAction<unknown>,
     ...(formId && { formId }),
     initialState: null,
   })
 
-  // Handle success/error callbacks
+  // Clear the form a beat after a successful submit. Scheduling goes through
+  // the rAF write queue to keep it off the layout-read path.
+  //
+  // `cancelled` covers unmounting before that queue drains: `resetTimer` is
+  // assigned inside the queued callback, so without the flag the timer could be
+  // created after teardown and setKey would fire on a component that is gone.
   useEffect(() => {
-    if (!formState) return
+    if (formState?.status !== 200) return
 
     let resetTimer: ReturnType<typeof setTimeout> | undefined
-    if (formState.status === 200) {
-      onSuccess?.(formState as FormState<T>)
-      // Reset form after success
-      void mutate(() => {
-        resetTimer = setTimeout(() => {
-          setKey(crypto.randomUUID())
-        }, 2000)
-      })
-    } else if (formState.status >= 400) {
-      onError?.(formState as FormState<T>)
-    }
+    let cancelled = false
+
+    void mutate(() => {
+      if (cancelled) return
+      resetTimer = setTimeout(() => {
+        setKey(crypto.randomUUID())
+      }, 2000)
+    })
 
     return () => {
+      cancelled = true
       if (resetTimer) clearTimeout(resetTimer)
     }
-  }, [formState, onSuccess, onError])
+  }, [formState])
 
   // Reset form function for actions
   const resetForm = () => {

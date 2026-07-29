@@ -2,7 +2,7 @@ import { useThree } from '@react-three/fiber'
 import type { Rect } from 'hamo'
 import { useTransform } from 'hamo'
 import { useLenis } from 'lenis/react'
-import { useEffect, useEffectEvent, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Euler, Vector3 } from 'three'
 
 /**
@@ -29,8 +29,8 @@ interface UseWebGLRectOptions {
 /**
  * Hook for positioning WebGL meshes based on DOM element rects.
  *
- * Uses useEffectEvent for stable callback references that always
- * access latest values without causing effect re-runs.
+ * Uses a ref-held callback for a stable function reference that always
+ * accesses latest values without causing effect re-runs.
  *
  * Pass `visible: false` to skip position computations when the element
  * is off-screen, improving performance for many WebGL elements.
@@ -83,53 +83,56 @@ export function useWebGLRect(
     isVisible: true,
   })
 
-  // useEffectEvent: callback always has access to latest values
-  // without being a dependency that triggers re-subscriptions
-  const handleUpdate = useEffectEvent(() => {
-    // Skip computations when not visible
-    if (!visible) return
+  // Holds the latest render's update logic. Reassigned in an effect (never
+  // during render, which would be unsafe under concurrent rendering) so the
+  // stable wrapper below always runs against fresh closures after commit.
+  const callbackRef = useRef<(() => void) | null>(null)
 
-    const { translate, scale } = getTransform()
-    const scroll = lenis ? Math.floor(lenis.scroll) : window.scrollY
-    const transform = transformRef.current
+  useEffect(() => {
+    callbackRef.current = () => {
+      // Skip computations when not visible
+      if (!visible) return
 
-    if (
-      rect.top === undefined ||
-      rect.height === undefined ||
-      rect.left === undefined ||
-      rect.width === undefined
-    ) {
-      // Expected during initial render before DOM measurement completes
-      return
+      const { translate, scale } = getTransform()
+      const scroll = lenis ? Math.floor(lenis.scroll) : window.scrollY
+      const transform = transformRef.current
+
+      if (
+        rect.top === undefined ||
+        rect.height === undefined ||
+        rect.left === undefined ||
+        rect.width === undefined
+      ) {
+        // Expected during initial render before DOM measurement completes
+        return
+      }
+
+      transform.isVisible =
+        scroll > rect.top - size.height + translate.y &&
+        scroll < rect.top + translate.y + rect.height
+
+      transform.position.x = -size.width / 2 + (rect.left + rect.width / 2)
+      transform.position.y =
+        size.height / 2 - (rect.top + rect.height / 2) + scroll - translate.y
+      transform.scale.x = rect.width * scale.x
+      transform.scale.y = rect.height * scale.y
+
+      onUpdate?.(transformRef.current)
     }
-
-    transform.isVisible =
-      scroll > rect.top - size.height + translate.y &&
-      scroll < rect.top + translate.y + rect.height
-
-    transform.position.x = -size.width / 2 + (rect.left + rect.width / 2)
-    transform.position.y =
-      size.height / 2 - (rect.top + rect.height / 2) + scroll - translate.y
-    transform.scale.x = rect.width * scale.x
-    transform.scale.y = rect.height * scale.y
-
-    onUpdate?.(transformRef.current)
   })
 
-  // NOTE: these two suppressions are not about hook ordering. Both calls are
-  // unconditional and at the top level of this hook. What the rule objects to
-  // is passing `handleUpdate` (a useEffectEvent function) into another hook at
-  // all, which React forbids because the identity is only valid inside the
-  // effect that owns it. It works here because useTransform/useLenis invoke it
-  // from within their own effects, but the proper fix is to drop useEffectEvent
-  // for a ref-held callback. Tracked as a follow-up, not silenced and forgotten.
+  // Stable wrapper, created once via lazy useState initialization, that
+  // always delegates to the latest callback held in callbackRef. Its
+  // identity never changes, so passing it to useTransform/useLenis never
+  // causes them to re-subscribe.
+  const [handleUpdate] = useState<() => void>(
+    () => () => callbackRef.current?.()
+  )
 
   // Subscribe to transform changes
-  // oxlint-disable-next-line react/rules-of-hooks -- see NOTE above
   useTransform(handleUpdate, [])
 
   // Subscribe to lenis scroll
-  // oxlint-disable-next-line react/rules-of-hooks -- see NOTE above
   useLenis(handleUpdate, [])
 
   // Fallback for non-lenis scroll
@@ -142,7 +145,7 @@ export function useWebGLRect(
     return () => {
       window.removeEventListener('scroll', handleUpdate, false)
     }
-  }, [lenis]) // handleUpdate is stable from useEffectEvent
+  }, [lenis, handleUpdate])
 
   function get() {
     return transformRef.current

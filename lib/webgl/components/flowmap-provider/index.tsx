@@ -13,7 +13,7 @@
  * updated each frame inside the R3F render loop.
  */
 
-import { createContext, use } from 'react'
+import { createContext, type RefObject, use } from 'react'
 
 import { useFlowmapSim } from '@/webgl/utils/flowmaps'
 import type { Flowmap } from '@/webgl/utils/flowmaps/flowmap-sim'
@@ -23,12 +23,16 @@ import type { Fluid } from '@/webgl/utils/fluid/fluid-sim'
 /**
  * Shape of the flowmap context value.
  *
- * @property fluid - The GPU fluid simulation instance (Navier-Stokes).
- * @property flowmap - The GPU flowmap simulation instance (velocity-field displacement).
+ * The simulations are held in refs (not state) because they're mutated
+ * imperatively every frame — reading `.current` gives the latest instance
+ * without ever triggering a re-render.
+ *
+ * @property fluid - Ref to the GPU fluid simulation instance (Navier-Stokes).
+ * @property flowmap - Ref to the GPU flowmap simulation instance (velocity-field displacement).
  */
 type FlowmapContextType = {
-  fluid: Fluid | null
-  flowmap: Flowmap | null
+  fluid: RefObject<Fluid | null> | null
+  flowmap: RefObject<Flowmap | null> | null
 }
 
 export const FlowmapContext = createContext<FlowmapContextType>({
@@ -37,7 +41,7 @@ export const FlowmapContext = createContext<FlowmapContextType>({
 })
 
 /**
- * Retrieves the active GPU simulation instance from context.
+ * Retrieves the active GPU simulation instance ref from context.
  *
  * Must be called inside a {@link FlowmapProvider} (which itself must be
  * inside the R3F `<Canvas>` tree, since the simulations depend on the
@@ -46,18 +50,20 @@ export const FlowmapContext = createContext<FlowmapContextType>({
  * @param type - Which simulation to return.
  *   - `'flowmap'` (default) -- lightweight velocity-field displacement.
  *   - `'fluid'` -- full Navier-Stokes fluid simulation.
- * @returns The requested simulation instance (`Fluid` or `Flowmap`).
+ * @returns A ref to the requested simulation instance (`Fluid` or `Flowmap`).
+ *   Read `.current` inside an effect, event handler, or `useFrame` callback —
+ *   never during render.
  *
  * @example
  * ```tsx
  * function DistortedImage() {
- *   const flowmap = useFlowmap('flowmap')
- *   // Use flowmap.texture as a uniform in a custom shader
+ *   const flowmapRef = useFlowmap('flowmap')
+ *   // Use flowmapRef.current?.texture as a uniform in a custom shader
  * }
  *
  * function FluidBackground() {
- *   const fluid = useFlowmap('fluid')
- *   // Use fluid.density / fluid.velocity textures
+ *   const fluidRef = useFlowmap('fluid')
+ *   // Use fluidRef.current?.density / fluidRef.current?.velocity textures
  * }
  * ```
  */

@@ -1,6 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { types } from '@theatre/core'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 
 import { useCurrentSheet } from '@/dev/theatre'
 import { useTheatre } from '@/dev/theatre/hooks/use-theatre'
@@ -12,15 +12,18 @@ export function useFlowmapSim(resolution = 128) {
   const gl = useThree((state) => state.gl)
   const size = useThree((state) => state.size)
 
-  // Created/destroyed by the effect, keyed on gl + resolution.
-  const [flowmap, setFlowmap] = useState<Flowmap | null>(null)
+  // Created/destroyed by the effect, keyed on gl + resolution. Held in a ref
+  // (not state) because the instance is mutated imperatively below — the
+  // React Compiler cannot optimize a component that constructs-then-setStates
+  // an instance in an effect and later mutates that same state value.
+  const flowmapRef = useRef<Flowmap | null>(null)
 
   useEffect(() => {
     const flowmap = new Flowmap(gl, { size: resolution })
-    setFlowmap(flowmap)
+    flowmapRef.current = flowmap
     return () => {
       flowmap.destroy()
-      setFlowmap(null)
+      flowmapRef.current = null
     }
   }, [gl, resolution])
 
@@ -30,9 +33,10 @@ export function useFlowmapSim(resolution = 128) {
   const lastTimeRef = useRef<number | null>(null)
 
   // Mouse/touch input — drives the flowmap stamp position and velocity.
-  // The callback always reads the latest `size` and `flowmap`, because
-  // usePointerInput routes it through useEffectEvent.
+  // The callback always reads the latest `size` and `flowmapRef.current`,
+  // because usePointerInput routes it through useEffectEvent.
   usePointerInput((clientX, clientY, dx, dy) => {
+    const flowmap = flowmapRef.current
     if (!flowmap) return
 
     const now = performance.now()
@@ -52,10 +56,15 @@ export function useFlowmapSim(resolution = 128) {
   })
 
   // Aspect ratio so the cursor falloff stays round
+  // `gl` and `resolution` are dependencies even though they are not read here:
+  // they are what recreates the instance above, and a fresh Flowmap needs its
+  // aspect set. Before the instance moved into a ref, the old `flowmap` state
+  // value in this list did that job.
   useEffect(() => {
+    const flowmap = flowmapRef.current
     if (!flowmap) return
     flowmap.material.uniforms.uAspect.value = size.width / size.height
-  }, [flowmap, size])
+  }, [size, gl, resolution])
 
   useTheatre(
     sheet,
@@ -72,15 +81,21 @@ export function useFlowmapSim(resolution = 128) {
         falloff: number
         dissipation: number
       }) => {
+        const flowmap = flowmapRef.current
         if (!flowmap) return
         flowmap.falloff = falloff
         flowmap.dissipation = dissipation
       },
-      deps: [flowmap],
+      // Re-subscribe whenever the instance is rebuilt, so Theatre re-applies
+      // its current values to the new Flowmap. A ref's identity never changes,
+      // so listing `flowmapRef` here would mean never re-subscribing, and the
+      // initial values would be dropped on the floor.
+      deps: [gl, resolution],
     }
   )
 
   useFrame(() => {
+    const flowmap = flowmapRef.current
     if (flowmap && !movedRef.current) {
       // Pointer idle this frame: park off-screen + zero velocity so the
       // existing trail dissipates instead of stamping a fixed smear.
@@ -91,5 +106,5 @@ export function useFlowmapSim(resolution = 128) {
     flowmap?.update()
   }, -10)
 
-  return flowmap
+  return flowmapRef
 }

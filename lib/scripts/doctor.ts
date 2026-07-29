@@ -5,7 +5,7 @@
  * Run with: bun run doctor
  */
 
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 
 import { coreEnvSchema } from '../utils/validation'
@@ -16,53 +16,6 @@ interface Check {
   name: string
   check: () => boolean | Promise<boolean>
   fix?: string
-}
-
-/**
- * JSON.parse, tolerant of `//` and `/* *\/` comments. oxlint explicitly allows
- * comments in .oxlintrc.json, and this repo uses them to record why individual
- * rules are disabled, so a plain JSON.parse would report a false failure.
- */
-function parseJsonc(source: string): unknown {
-  let out = ''
-  let inString = false
-  let escaped = false
-
-  for (let i = 0; i < source.length; i++) {
-    const char = source[i]
-
-    if (inString) {
-      out += char
-      if (escaped) escaped = false
-      else if (char === '\\') escaped = true
-      else if (char === '"') inString = false
-      continue
-    }
-
-    if (char === '"') {
-      inString = true
-      out += char
-      continue
-    }
-
-    if (char === '/' && source[i + 1] === '/') {
-      while (i < source.length && source[i] !== '\n') i++
-      out += '\n'
-      continue
-    }
-
-    if (char === '/' && source[i + 1] === '*') {
-      i += 2
-      while (i < source.length && !(source[i] === '*' && source[i + 1] === '/'))
-        i++
-      i++
-      continue
-    }
-
-    out += char
-  }
-
-  return JSON.parse(out)
 }
 
 const colors = {
@@ -131,17 +84,15 @@ const checks: Check[] = [
     fix: 'Ensure next.config.ts exists',
   },
   {
-    name: 'Oxc config valid',
-    check: () => {
-      try {
-        parseJsonc(readFileSync(join(ROOT, '.oxlintrc.json'), 'utf-8'))
-        parseJsonc(readFileSync(join(ROOT, '.oxfmtrc.json'), 'utf-8'))
-        return true
-      } catch {
-        return false
-      }
-    },
-    fix: 'Check .oxlintrc.json and .oxfmtrc.json for syntax errors, or regenerate with: bunx oxlint --init',
+    name: 'Oxc config present',
+    // The configs are .ts, so `bun run typecheck` already validates their
+    // shape. All this needs to check is that they exist under the exact names
+    // oxlint/oxfmt auto-discover: `.oxlintrc.ts` and `.oxfmtrc.ts` are silently
+    // ignored, and the tools fall back to their defaults without complaining.
+    check: () =>
+      existsSync(join(ROOT, 'oxlint.config.ts')) &&
+      existsSync(join(ROOT, 'oxfmt.config.ts')),
+    fix: 'Expected oxlint.config.ts and oxfmt.config.ts in the project root (not .oxlintrc.ts / .oxfmtrc.ts, which are not auto-discovered)',
   },
   {
     name: 'Generated styles exist',

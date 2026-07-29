@@ -6,16 +6,27 @@ import { useOrchestra } from '@/lib/dev'
 
 let studioPackage: IStudio
 
+// Module scope on purpose. The React Compiler cannot lower an `import()`
+// expression that sits inside a component or hook body ("BuildHIR: Handle
+// Import expressions") and silently gives up on optimising the whole function.
+// Behind a plain function call it is just a call expression, so the compiler
+// is happy and the chunk still loads lazily.
+const loadStudio = () => import('@theatre/studio')
+
 export function useStudio() {
   const [studio, setStudio] = useState(studioPackage)
   const { studio: hasStudio } = useOrchestra()
 
   useEffect(() => {
     if (hasStudio && !studioPackage) {
-      void import('@theatre/studio').then((pkg) => {
-        studioPackage = pkg.default
-        setStudio(pkg.default)
-      })
+      loadStudio()
+        .then((pkg) => {
+          studioPackage = pkg.default
+          setStudio(pkg.default)
+        })
+        .catch((error: unknown) => {
+          console.error('Theatre: failed to load studio', error)
+        })
     }
   }, [hasStudio])
 

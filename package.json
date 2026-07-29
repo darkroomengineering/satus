@@ -48,7 +48,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
-    "@portabletext/react": "^6.2.0",
+    "@portabletext/react": "^7.0.1",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "@sanity/asset-utils": "^2.3.0",

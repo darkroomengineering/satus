@@ -84,7 +84,20 @@ export function InputField({
         required={required}
         placeholder={placeholder}
         className={cn(s.input)}
+        // `label` is optional, and without it no <Field.Label> is rendered, so
+        // the control would otherwise reach screen readers with no accessible
+        // name. Fall back to the placeholder, then to the field name, so there
+        // is always one. Deliberately NOT set when a visible label exists:
+        // aria-label would override it, and the announced name could then
+        // drift from the text on screen. Spread rather than passing
+        // `undefined`, which `exactOptionalPropertyTypes` rejects.
+        //
+        {...(label ? {} : { 'aria-label': placeholder ?? fieldName })}
         {...register(fieldName)}
+        // The finding lands on this inner element. Base UI merges id, name and
+        // the aria-label above onto it at runtime, so a static read of this
+        // line sees an unlabelled input that never reaches the DOM.
+        // react-doctor-disable-next-line react-doctor/control-has-associated-label
         render={<input />}
       />
       {error?.state && error.message && (
@@ -146,7 +159,13 @@ export function TextareaField({
         required={required}
         placeholder={placeholder}
         className={s.textarea}
+        // Same as InputField: no `label` means no <Field.Label>, so fall back
+        // to the placeholder and then the field name.
+        {...(label ? {} : { 'aria-label': placeholder ?? fieldName })}
         {...reg}
+        // Same as InputField: Base UI merges the real attributes onto this
+        // element at runtime.
+        // react-doctor-disable-next-line react-doctor/control-has-associated-label
         render={<textarea rows={rows} />}
       />
       {error?.state && error.message && (

@@ -151,6 +151,7 @@ All schemas live in `lib/utils/validation.ts`. The typed env singleton (`lib/env
 - [ ] Webhooks configured (Sanity, Shopify)
 - [ ] Cache invalidation tested
 - [ ] Performance score > 90
+- [ ] **Not deploying to Vercel?** If you keep Sanity and prune dev dependencies on the server, `/studio` will fail at request time. See [lib/integrations/sanity/README.md](lib/integrations/sanity/README.md) § Deploying outside Vercel.
 
 ## Customization Boundaries
 

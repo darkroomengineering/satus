@@ -164,6 +164,20 @@ export const landing = defineType({
 
 See [ARCHITECTURE.md](../../../ARCHITECTURE.md) for cache gotchas.
 
+## Deploying outside Vercel
+
+`sanity` and `@sanity/vision` sit in `devDependencies`, but the `/studio` route is part of the shipped app and imports both through `sanity.config.ts`. They have to be installed on the server that answers requests, not just on the machine that ran the build.
+
+On Vercel this is handled for you: the build installs everything and function bundling traces real `require()` calls, so both packages come along regardless of which list they are in.
+
+Anywhere else, the usual hardening step of pruning dev dependencies after the build will break `/studio` with `Cannot find module 'sanity'` at request time. If you self-host or deploy to another platform, pick one:
+
+- Don't prune dev dependencies on the server (simplest).
+- Move `sanity` and `@sanity/vision` into `dependencies` in your fork.
+- Drop the Studio route entirely and edit content at [sanity.io/manage](https://www.sanity.io/manage) instead, or host the Studio separately.
+
+Nothing else in this integration is affected. Reading content at runtime goes through `next-sanity` and `@sanity/client`, which are already regular dependencies.
+
 ## Troubleshooting
 
 **Visual editor not loading:**

@@ -96,7 +96,7 @@
     "@types/three": "^0.185.1",
     "babel-plugin-react-compiler": "^1.0.0",
     "colorjs.io": "^0.7.0",
-    "deslop-cli": "^0.8.1",
+    "deslop-cli": "^0.9.2",
     "happy-dom": "^20.11.0",
     "lefthook": "^2.1.10",
     "postcss-functions": "^4.0.2",

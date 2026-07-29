@@ -26,6 +26,15 @@ export function useTheatreObject(
   useEffect(() => {
     if (!sheet) return
 
+    // `set-state-in-effect` fires here, and it stays. The state is what makes
+    // the object observable: useTheatre's subscription effect keys on it, so it
+    // has to re-run when the object appears or is rebuilt. Holding it in a ref
+    // instead would leave subscribers with no signal, and the object is a
+    // Theatre handle that only exists once the sheet does, so it cannot be
+    // derived during render. The bailout costs auto-memoization on Theatre's
+    // dev tooling only — lazily loaded, gated behind a dev toggle, and removed
+    // outright by setup:project for projects that drop Theatre.
+    // react-doctor-disable-next-line react-hooks-js/set-state-in-effect
     setObject(sheet?.object(theatreKey, config, { reconfigure: true }))
 
     return () => {

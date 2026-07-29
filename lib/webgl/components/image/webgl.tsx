@@ -75,6 +75,15 @@ function WebGLImageMesh({ src, rect, visible = true }: WebGLImageMeshProps) {
     texture.magFilter = texture.minFilter = LinearFilter
     texture.generateMipmaps = false
 
+    // `immutability` fires on these two writes because `material` came out of
+    // useState. It stays that way on purpose. The material has to exist during
+    // render (it is handed to <primitive object={material} /> below), so it
+    // cannot be built in an effect; and lazily instantiating it into a ref
+    // during render just trades this finding for a `refs` one, since that is a
+    // ref write during render. Assigning a Three.js material's map is
+    // imperative GPU work on an object React only stores — there is no React
+    // state to keep in sync, and the identity never changes.
+    // react-doctor-disable-next-line react-hooks-js/immutability
     material.map = texture
     material.needsUpdate = true
   })

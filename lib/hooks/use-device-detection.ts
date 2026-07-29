@@ -1,5 +1,5 @@
 import { useMediaQuery, useWindowSize } from 'hamo'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 
 import { breakpoints } from '@/styles/config'
 
@@ -55,6 +55,18 @@ function detectIsAutoplaySupported() {
   return cache.isAutoplaySupported
 }
 
+// Safari / WebGL support never change after load, so there is nothing to
+// subscribe to — a stable no-op keeps useSyncExternalStore happy without
+// ever notifying.
+function subscribeToStaticDetection() {
+  // oxlint-disable-next-line eslint/no-empty-function -- required unsubscribe signature; nothing to tear down since the value is never notified
+  return () => {}
+}
+
+function getStaticDetectionServerSnapshot() {
+  return undefined
+}
+
 /**
  * Detect device capabilities: screen size, input method, motion preference,
  * WebGL support, Safari, and inline-video autoplay support.
@@ -74,15 +86,24 @@ export function useDeviceDetection() {
   const isTouchOnly = useMediaQuery('(any-pointer: coarse) and (hover: none)')
   const { dpr } = useWindowSize()
 
-  // Static detections — resolved from the module cache after mount (client-only
-  // so SSR stays consistent; undefined until then).
-  const [isSafari, setIsSafari] = useState<boolean>()
-  const [supportsWebGL, setSupportsWebGL] = useState<boolean>()
+  // Static detections — resolved from the module cache. Safari / WebGL are
+  // synchronous and read via useSyncExternalStore (undefined on the server so
+  // SSR stays consistent; the real value on the client, no effect needed).
+  const isSafari = useSyncExternalStore(
+    subscribeToStaticDetection,
+    detectIsSafari,
+    getStaticDetectionServerSnapshot
+  )
+  const supportsWebGL = useSyncExternalStore(
+    subscribeToStaticDetection,
+    detectSupportsWebGL,
+    getStaticDetectionServerSnapshot
+  )
+
+  // Autoplay support is genuinely async, so it keeps useState + an effect.
   const [isAutoplaySupported, setIsAutoplaySupported] = useState<boolean>()
 
   useEffect(() => {
-    setIsSafari(detectIsSafari())
-    setSupportsWebGL(detectSupportsWebGL())
     void detectIsAutoplaySupported().then(setIsAutoplaySupported)
   }, [])
 

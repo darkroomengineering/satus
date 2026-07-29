@@ -27,6 +27,7 @@
     "analyze:experimental": "next experimental-analyze",
     "dev:inspect": "bun ./lib/scripts/dev.ts --inspect",
     "lighthouse": "bunx @unlighthouse/cli --site http://localhost:3000",
+    "bench:rerender": "bun ./lib/scripts/bench-rerender.ts",
     "setup:project": "bun ./lib/scripts/setup-project.ts",
     "test": "bun test",
     "test:e2e": "playwright test",

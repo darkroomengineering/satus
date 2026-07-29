@@ -63,6 +63,15 @@ export function WebGLTunnel({ children }: PropsWithChildren) {
 
   return (
     <WebGLTunnel.In>
+      {/*
+        `static-components` fires because ContextBridge comes out of a hook, and
+        a component built during render would normally reset its state. It does
+        not here: drei wraps the returned component in `useMemo(..., [])`
+        (node_modules/@react-three/drei/core/useContextBridge.js), so it is
+        created once per hook instance and kept, with fresh context values read
+        through a ref. The `key` keeps identity stable across re-parents.
+      */}
+      {/* react-doctor-disable-next-line react-hooks-js/static-components */}
       <ContextBridge key={uuid}>{children}</ContextBridge>
     </WebGLTunnel.In>
   )

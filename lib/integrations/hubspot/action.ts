@@ -61,10 +61,10 @@ export async function HubspotNewsletterAction(
     run: async ({ email, formId }) => {
       const allowedFormIds = env.HUBSPOT_ALLOWED_FORM_IDS
       if (allowedFormIds) {
-        const allowList = allowedFormIds
-          .split(',')
-          .map((id) => id.trim())
-          .filter(Boolean)
+        const allowList = allowedFormIds.split(',').flatMap((id) => {
+          const trimmed = id.trim()
+          return trimmed ? [trimmed] : []
+        })
         if (!allowList.includes(formId)) {
           return {
             status: 400,

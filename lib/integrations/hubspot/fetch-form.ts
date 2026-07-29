@@ -128,22 +128,20 @@ function apiParser(id: string, data: HubspotFormResponse) {
   return {
     portalId: env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID,
     id: id,
-    inputs: data.fieldGroups
-      .flatMap((item) => item.fields ?? [])
-      .map((flatData) => {
-        return {
-          name: flatData.name || '',
-          label: flatData.label || '',
-          placeholder: flatData.placeholder || '',
-          required: flatData.required,
-          type: flatData.fieldType || '',
-          hidden: flatData.hidden,
-          helpText: flatData.helpText || '',
-          options: flatData.options
-            ? flatData.options.map((option) => option.label)
-            : [],
-        }
-      }),
+    inputs: data.fieldGroups.flatMap((item) =>
+      (item.fields ?? []).map((flatData) => ({
+        name: flatData.name || '',
+        label: flatData.label || '',
+        placeholder: flatData.placeholder || '',
+        required: flatData.required,
+        type: flatData.fieldType || '',
+        hidden: flatData.hidden,
+        helpText: flatData.helpText || '',
+        options: flatData.options
+          ? flatData.options.map((option) => option.label)
+          : [],
+      }))
+    ),
     submitButton: {
       text: data.displayOptions.submitButtonText || 'Submit',
     },

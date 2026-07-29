@@ -10,14 +10,14 @@ import {
   rateLimiters,
 } from '@/lib/utils/rate-limit'
 
-import { TAGS } from '../constants'
 import {
   addToCart,
   createCart,
   getCart,
   removeFromCart,
   updateCart,
-} from '../index'
+} from '../cart-operations'
+import { TAGS } from '../constants'
 import type { AddItemPayload, Cart } from '../types'
 
 /** Unified result shape for all cart mutations. */

@@ -8,7 +8,7 @@ import { runFormAction } from '@/lib/utils/form-action'
 import { rateLimiters } from '@/lib/utils/rate-limit'
 import { emailSchema } from '@/utils/validation'
 
-import { shopifyFetch } from '../index'
+import { shopifyFetch } from '../client'
 import {
   customerAccessTokenCreateMutation,
   customerAccessTokenDeleteMutation,

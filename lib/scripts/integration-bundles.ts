@@ -346,7 +346,15 @@ export const INTEGRATION_BUNDLES = defineBundles({
   webgl: {
     name: 'WebGL / 3D',
     description: 'Three.js and React Three Fiber for 3D graphics',
-    dependencies: ['@react-three/drei', '@react-three/fiber', 'three'],
+    dependencies: [
+      '@react-three/drei',
+      '@react-three/fiber',
+      'three',
+      // Both are imported only from lib/webgl, which this bundle deletes, so
+      // they have to be listed here or they survive as orphans in package.json.
+      'postprocessing',
+      'tunnel-rat',
+    ],
     devDependencies: ['@types/three'],
     folders: ['lib/webgl'],
     files: ['lib/hooks/use-device-detection.ts'],

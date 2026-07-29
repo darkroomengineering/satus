@@ -78,7 +78,7 @@
     "@csstools/postcss-global-data": "^4.0.0",
     "@happy-dom/global-registrator": "^20.11.0",
     "@next/bundle-analyzer": "16.2.11",
-    "@playwright/test": "1.61.1",
+    "@playwright/test": "1.62.0",
     "@sanity/vision": "^6.5.0",
     "@storybook/addon-mcp": "^0.7.0",
     "@storybook/nextjs-vite": "^10.5.3",

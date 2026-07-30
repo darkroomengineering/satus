@@ -14,6 +14,8 @@ import { APP_BASE_URL, env } from '@/lib/env'
 import { OptionalFeatures } from '@/lib/features'
 import { isConfigured } from '@/lib/integrations/registry'
 import { SanityLive } from '@/lib/integrations/sanity/live'
+import { JsonLd } from '@/lib/seo/json-ld'
+import { organizationSchema, websiteSchema } from '@/lib/seo/schemas'
 import { themes } from '@/lib/styles/colors'
 import { fontsVariable } from '@/lib/styles/fonts'
 import AppData from '@/package.json'
@@ -37,6 +39,10 @@ export const metadata: Metadata = {
     canonical: '/',
     languages: {
       'en-US': '/en-US',
+    },
+    // Advertises the plain-text mirror via <link rel="alternate" type="text/plain">.
+    types: {
+      'text/plain': [{ url: '/llms.txt', title: 'llms.txt' }],
     },
   },
   appleWebApp: {
@@ -107,6 +113,10 @@ export default async function Layout({ children }: PropsWithChildren) {
         async
       >{`window.satusVersion = '${AppData.version}';`}</Script>
       <body>
+        {/* Entity identity for search and answer engines, on every page — deep
+            pages are landed on directly far more often than the homepage. */}
+        <JsonLd data={organizationSchema()} />
+        <JsonLd data={websiteSchema()} />
         {/* Skip link for keyboard navigation accessibility */}
         <Suspense fallback={null}>
           <Link

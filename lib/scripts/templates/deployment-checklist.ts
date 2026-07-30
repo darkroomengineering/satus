@@ -111,6 +111,12 @@ export function renderDeploymentChecklist({
   lines.push('- [ ] robots.txt configured correctly')
   lines.push('- [ ] sitemap.xml generating correctly')
   lines.push('- [ ] Canonical URLs set')
+  // AEO: entity facts are hardcoded in lib/seo/site.ts and feed the JSON-LD,
+  // /llms.txt and /ai. They ship with Satus placeholder copy, and `logo`
+  // points at app/icon.png — which this same handoff deletes as branding.
+  lines.push('- [ ] `lib/seo/site.ts` facts replaced (name, description, logo)')
+  lines.push('- [ ] `SITE.logo` points at a real, deployed image (not a 404)')
+  lines.push('- [ ] `/llms.txt` and `/ai` reviewed for placeholder copy')
   lines.push('')
 
   lines.push('## Analytics')

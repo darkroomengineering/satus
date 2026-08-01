@@ -6,19 +6,18 @@ import type { PropsWithChildren } from 'react'
  * client components of its own. The page below is server-rendered end to
  * end, so an agent gets the entity and every link in the first byte.
  *
- * It is NOT provider-free, and the distinction matters: Satus keeps its
- * providers, analytics and RAF loop in the ROOT layout, so `/ai` inherits
- * them like every other route. To make the machine view genuinely
- * runtime-free, move that runtime into a `(site)` route group layout and
- * leave `app/layout.tsx` holding only `<html>`/`<body>` and the JSON-LD.
- * Worth doing on a heavy site; overkill for one that is already light.
+ * It is NOT provider-free, and the distinction matters: this route lives
+ * inside the `(app)` group, so it inherits the providers, analytics and RAF
+ * loop mounted by `app/(app)/layout.tsx` like every other app route. To make
+ * the machine view genuinely runtime-free, move it out of the `(app)` group —
+ * the root `app/layout.tsx` is already a bare `<html>`/`<body>` shell. Worth
+ * doing on a heavy site; overkill for one that is already light.
  *
- * The Organization/WebSite JSON-LD graph already renders from the ROOT
- * layout (`app/layout.tsx`) on every page, this one included. Unlike a site
- * that scopes its schema to a `(site)` route group, Satus's root layout
- * gives this route the entity graph for free — do not re-render
- * `organizationSchema()`/`websiteSchema()` here, it would duplicate `@id`
- * nodes in the graph.
+ * The Organization/WebSite JSON-LD graph already renders from the app
+ * layout (`app/(app)/layout.tsx`) on every page in the group, this one
+ * included — do not re-render `organizationSchema()`/`websiteSchema()` here,
+ * it would duplicate `@id` nodes in the graph. (If this route ever moves out
+ * of `(app)` to shed the runtime, it must start rendering the graph itself.)
  *
  * `font-mono` resolves to the project's configured mono font
  * (`--next-font-mono` / Spline Sans Mono, see `lib/styles/fonts.ts`), not

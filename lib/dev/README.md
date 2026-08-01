@@ -21,7 +21,7 @@ readout — Stats is a frame-time/GPU meter, React Scan is a re-render profiler.
 
 ## Usage
 
-Automatically included via `OptionalFeatures` in `app/layout.tsx`. Only loads in development.
+Automatically included via `OptionalFeatures` in `app/(app)/layout.tsx`. Only loads in development.
 
 State persists in `localStorage` and syncs across tabs.
 

@@ -30,7 +30,7 @@
 //     )
 //   }
 //
-// Full walkthrough: see the manual (app/page.tsx) step 5 "Add a plugin".
+// Full walkthrough: see the manual (app/(app)/page.tsx) step 5 "Add a plugin".
 
 export * from './cart-operations'
 export * from './client'

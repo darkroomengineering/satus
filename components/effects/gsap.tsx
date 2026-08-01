@@ -8,7 +8,7 @@
  *
  * @example
  * ```tsx
- * // app/layout.tsx
+ * // app/(app)/layout.tsx
  * import { GSAPRuntime } from '@/components/effects/gsap'
  *
  * <body>

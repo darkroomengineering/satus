@@ -1,20 +1,13 @@
-'use client'
+import { connection } from 'next/server'
 
-import { NextStudio } from 'next-sanity/studio'
-import { notFound } from 'next/navigation'
+import { Studio } from './studio'
 
-import config from '@/integrations/sanity/sanity.config'
-
-// `config` is `null` when Sanity isn't configured (no projectId) —
-// `sanity.config.ts` guards `defineConfig` behind `isConfigured('sanity')`
-// so this branch never mounts a Studio with an invalid config. Note: the
-// classic `export const dynamic = ...` route segment config is not
-// supported here — this project runs Next's Cache Components, which
-// forbids it.
-export default function StudioPage() {
-  if (!config) {
-    notFound()
-  }
-
-  return <NextStudio config={config} />
+// Defer Studio to request time: /studio sits outside the (app) group, so its
+// tree no longer reads any dynamic API — without this, Cache Components would
+// try to fully prerender NextStudio at build time, which crashes. The classic
+// `export const dynamic = ...` segment config is forbidden under Cache
+// Components; awaiting `connection()` is its replacement.
+export default async function StudioPage() {
+  await connection()
+  return <Studio />
 }

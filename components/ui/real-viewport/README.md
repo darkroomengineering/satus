@@ -5,7 +5,7 @@ Sets CSS custom properties for accurate viewport measurements.
 ## Usage
 
 ```tsx
-// app/layout.tsx
+// app/(app)/layout.tsx
 import { RealViewport } from '@/components/ui/real-viewport'
 
 export default function RootLayout({ children }) {

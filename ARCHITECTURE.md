@@ -28,7 +28,7 @@ import { Link } from '@/components/ui/link'
 
 ### Lenis for Scrolling
 
-Configured in `app/layout.tsx`. ScrollTrigger uses Lenis automatically.
+Configured in `app/(app)/layout.tsx`. ScrollTrigger uses Lenis automatically.
 
 ### Optional Features Pattern
 

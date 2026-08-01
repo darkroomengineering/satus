@@ -10,9 +10,9 @@ import s from './toast.module.css'
  * Toast component built on Base UI for accessible notifications.
  *
  * `ToastProvider` and `ToastViewport` are mounted app-wide in
- * `app/layout.tsx` — call `useToast()` from any client component.
+ * `app/(app)/layout.tsx` — call `useToast()` from any client component.
  *
- * `app/layout.tsx` is a Server Component, so it must import `ToastProvider`
+ * `app/(app)/layout.tsx` is a Server Component, so it must import `ToastProvider`
  * / `ToastViewport` as direct named exports rather than through the `Toast`
  * compound object below — property access on a plain object exported from a
  * `'use client'` module (`Toast.Provider`) isn't given a client reference by

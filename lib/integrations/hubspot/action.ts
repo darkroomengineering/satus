@@ -21,7 +21,7 @@
 // 3. The server action validates with Zod and posts to the HubSpot Forms v3 API.
 //    Rate limiting is applied automatically via runFormAction.
 //
-// Full walkthrough: see the manual (app/page.tsx) step 5 "Add a plugin".
+// Full walkthrough: see the manual (app/(app)/page.tsx) step 5 "Add a plugin".
 
 'use server'
 

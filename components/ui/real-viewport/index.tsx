@@ -12,7 +12,7 @@ import { type ReactNode, useEffect } from 'react'
  *
  * @example
  * ```tsx
- * // app/layout.tsx
+ * // app/(app)/layout.tsx
  * import { RealViewport } from '@/components/ui/real-viewport'
  *
  * export default function RootLayout({ children }) {

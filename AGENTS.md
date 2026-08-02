@@ -460,7 +460,7 @@ ALL color values are authored in `oklch()` — palette entries in `lib/styles/co
 ## AI SEO (AEO)
 
 - **Entity facts live in one file.** `lib/seo/site.ts`. JSON-LD, on-page prose, and `/llms.txt` all read from it, so they cannot disagree. Answer engines cross-check.
-- **Organization + WebSite JSON-LD render from the root layout**, never from the homepage. Answer-engine traffic lands on deep pages; an entity that only exists on `/` is invisible to it.
+- **Organization + WebSite JSON-LD render from the app layout** (`app/(site)/layout.tsx`), never from the homepage. Answer-engine traffic lands on deep pages; an entity that only exists on `/` is invisible to it.
 - **Never emit a JSON-LD key you cannot fill.** `"description": null` is worse than an absent key. Conditional-spread every optional field.
 - **Entity prose must be in the initial HTML and actually visible.** A visually quiet section is fine; `sr-only` or `display: none` reads as cloaking and gets discounted. If a page is visual-first (canvas, galleries), it needs a plain-prose block or crawlers have nothing to cite.
 - **`Suspense fallback={null}` ships HTML with zero links.** Any client subtree that bails out of prerendering — `useSearchParams`, `cookies()`, `headers()` — leaves its fallback in the static HTML. If that fallback is `null`, crawlers see an empty page and the linked routes lose their only internal link. Server-render a static mirror of the list as the fallback; hydration swaps in the interactive version.
@@ -528,7 +528,7 @@ Pre-commit hook (lefthook) runs on staged files: oxfmt + oxlint --fix (sequentia
 | `lib/webgl/README.md`          | WebGL/R3F architecture, tunnel system, device gating            |
 | `lib/hooks/README.md`          | Custom hook inventory                                           |
 | `lib/dev/README.md`            | Debug tools suite (Orchestra)                                   |
-| `lib/features/README.md`       | Optional feature loading for the root layout                    |
+| `lib/features/README.md`       | Optional feature loading for the app layout                     |
 
 ---
 

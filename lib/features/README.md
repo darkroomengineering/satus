@@ -4,7 +4,7 @@ Conditionally loaded features for the app layout.
 
 ## Overview
 
-`OptionalFeatures` is mounted in `app/(app)/layout.tsx` and conditionally loads heavy dependencies based on usage. This prevents unused features from bloating the client bundle.
+`OptionalFeatures` is mounted in `app/(site)/layout.tsx` and conditionally loads heavy dependencies based on usage. This prevents unused features from bloating the client bundle.
 
 ## Features
 
@@ -48,7 +48,7 @@ Automatically enabled in development. Access with `Cmd/Ctrl + O`.
 ## How It Works
 
 ```tsx
-// app/(app)/layout.tsx - already configured
+// app/(site)/layout.tsx - already configured
 <OptionalFeatures />
 ```
 

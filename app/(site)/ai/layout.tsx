@@ -7,17 +7,17 @@ import type { PropsWithChildren } from 'react'
  * end, so an agent gets the entity and every link in the first byte.
  *
  * It is NOT provider-free, and the distinction matters: this route lives
- * inside the `(app)` group, so it inherits the providers, analytics and RAF
- * loop mounted by `app/(app)/layout.tsx` like every other app route. To make
- * the machine view genuinely runtime-free, move it out of the `(app)` group —
+ * inside the `(site)` group, so it inherits the providers, analytics and RAF
+ * loop mounted by `app/(site)/layout.tsx` like every other app route. To make
+ * the machine view genuinely runtime-free, move it out of the `(site)` group —
  * the root `app/layout.tsx` is already a bare `<html>`/`<body>` shell. Worth
  * doing on a heavy site; overkill for one that is already light.
  *
  * The Organization/WebSite JSON-LD graph already renders from the app
- * layout (`app/(app)/layout.tsx`) on every page in the group, this one
+ * layout (`app/(site)/layout.tsx`) on every page in the group, this one
  * included — do not re-render `organizationSchema()`/`websiteSchema()` here,
  * it would duplicate `@id` nodes in the graph. (If this route ever moves out
- * of `(app)` to shed the runtime, it must start rendering the graph itself.)
+ * of `(site)` to shed the runtime, it must start rendering the graph itself.)
  *
  * `font-mono` resolves to the project's configured mono font
  * (`--next-font-mono` / Spline Sans Mono, see `lib/styles/fonts.ts`), not

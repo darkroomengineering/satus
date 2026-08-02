@@ -110,7 +110,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
     folders: [
       'lib/integrations/sanity',
       'components/ui/sanity-image',
-      'app/(app)/(examples)/sanity',
+      'app/(site)/(examples)/sanity',
       'app/studio',
     ],
     files: ['app/api/draft-mode/enable/route.ts'],
@@ -129,7 +129,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
     ],
     codeTransforms: [
       {
-        file: 'app/(app)/layout.tsx',
+        file: 'app/(site)/layout.tsx',
         ops: [
           // Remove `import { SanityLive } from '@/lib/integrations/sanity/live'`
           { kind: 'removeImport', specifier: '@/lib/integrations/sanity/live' },
@@ -190,10 +190,10 @@ export const INTEGRATION_BUNDLES = defineBundles({
         ],
       },
     ],
-    // app/(app)/layout.tsx has complex Sanity wiring (SanityLive, VisualEditing,
+    // app/(site)/layout.tsx has complex Sanity wiring (SanityLive, VisualEditing,
     // isConfigured call) that cannot be re-injected statement-by-statement
     // safely.  Restore wholesale from the payload on `satus add sanity`.
-    overwriteFiles: ['app/(app)/layout.tsx'],
+    overwriteFiles: ['app/(site)/layout.tsx'],
     addTransforms: [
       {
         file: 'next.config.ts',

@@ -10,9 +10,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'daily',
       priority: 1,
     },
-    // The machine view (`app/(app)/ai/page.tsx`) has no link from the design, so
+    // The machine view (`app/(site)/ai/page.tsx`) has no link from the design, so
     // crawlers only discover it here. New routes must be added both here
-    // and to `PAGES` in `app/(app)/ai/page.tsx`.
+    // and to `PAGES` in `app/(site)/ai/page.tsx`.
     {
       url: `${APP_BASE_URL}/ai`,
       lastModified: new Date(),

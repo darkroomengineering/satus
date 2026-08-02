@@ -23,7 +23,7 @@
 //      import config from '@/integrations/sanity/sanity.config'
 //      export default function StudioPage() { return <NextStudio config={config} /> }
 //
-// Full walkthrough: see the manual (app/(app)/page.tsx) step 5 "Add a plugin".
+// Full walkthrough: see the manual (app/(site)/page.tsx) step 5 "Add a plugin".
 
 import { createClient, type SanityClient } from 'next-sanity'
 

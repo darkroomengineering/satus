@@ -8,7 +8,7 @@ Next.js App Router pages and routes.
 app/
 ├── layout.tsx            # Bare html/body shell shared with /studio
 ├── global-error.tsx      # Root-level error boundary (wraps html+body)
-├── (app)/                # Every route EXCEPT /studio lives in this group
+├── (site)/               # Every route EXCEPT /studio lives in this group
 │   ├── layout.tsx        # App providers, metadata, analytics
 │   ├── page.tsx          # Manual / in-app documentation landing page
 │   ├── loading.tsx       # App loading fallback
@@ -23,7 +23,7 @@ app/
 
 The root layout stays a bare shell on purpose: anything added to it is a
 deliberate decision to ship it to `/studio` too. App-flavored concerns
-(providers, metadata, analytics) belong in `app/(app)/layout.tsx`.
+(providers, metadata, analytics) belong in `app/(site)/layout.tsx`.
 
 ## Getting Started
 
@@ -35,8 +35,8 @@ bun run setup:project       # Choose what to keep/remove
 
 Then:
 
-1. Customize `(app)/page.tsx` for your homepage
-2. Add routes as folders with `page.tsx` inside `(app)/`
+1. Customize `(site)/page.tsx` for your homepage
+2. Add routes as folders with `page.tsx` inside `(site)/`
 
 ## Page Pattern
 

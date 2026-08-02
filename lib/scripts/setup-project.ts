@@ -126,7 +126,7 @@ interface SetupOptions {
 
 /**
  * Minimal homepage written when the user opts to drop the demo marketing page.
- * Mirrors the reset documented in the header of `app/(app)/page.tsx`.
+ * Mirrors the reset documented in the header of `app/(site)/page.tsx`.
  */
 const BLANK_HOMEPAGE = `import { Wrapper } from '@/components/layout/wrapper'
 
@@ -141,18 +141,18 @@ export default function Home() {
 
 /**
  * Replace the manual landing page with a blank starter homepage.
- * Rewrites `app/(app)/page.tsx` to the minimal blank starter and removes the
+ * Rewrites `app/(site)/page.tsx` to the minimal blank starter and removes the
  * co-located CSS module so no orphan file remains.
  */
 const replaceManualLandingPage = async (dryRun: boolean): Promise<void> => {
   if (dryRun) {
     p.log.message(
-      '  Would replace app/(app)/page.tsx with a blank starter homepage'
+      '  Would replace app/(site)/page.tsx with a blank starter homepage'
     )
-    p.log.message('  Would delete app/(app)/page.module.css (if present)')
+    p.log.message('  Would delete app/(site)/page.module.css (if present)')
   } else {
-    await Bun.write(resolvePath('app/(app)/page.tsx'), BLANK_HOMEPAGE)
-    await removeFile('app/(app)/page.module.css', dryRun)
+    await Bun.write(resolvePath('app/(site)/page.tsx'), BLANK_HOMEPAGE)
+    await removeFile('app/(site)/page.module.css', dryRun)
   }
 }
 

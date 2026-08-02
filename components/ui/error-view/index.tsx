@@ -11,7 +11,7 @@ interface ErrorViewProps {
   /**
    * Element rendered in place of the default "Go Home" anchor. Pass the
    * project's `Link` (from '@/components/ui/link') when rendering inside the
-   * router (e.g. app/(app)/error.tsx). Defaults to a raw `<a>`, which is required
+   * router (e.g. app/(site)/error.tsx). Defaults to a raw `<a>`, which is required
    * in app/global-error.tsx since it renders outside the router.
    */
   homeLink?: ReactNode
@@ -28,7 +28,7 @@ const DEFAULT_HOME_LINK = (
 )
 
 /**
- * Shared error boundary view used by both app/(app)/error.tsx and app/global-error.tsx.
+ * Shared error boundary view used by both app/(site)/error.tsx and app/global-error.tsx.
  *
  * Uses only plain HTML elements (no next/link, no app providers) so it is safe
  * to render in both the standard error boundary context and in global-error's

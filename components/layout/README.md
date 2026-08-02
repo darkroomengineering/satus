@@ -6,7 +6,7 @@ Site-wide layout structure: header, footer, and page wrapper.
 
 ```
 app/layout.tsx          → Bare html/body shell shared with /studio
-  └── app/(app)/layout.tsx → App providers (NO header/footer here)
+  └── app/(site)/layout.tsx → App providers (NO header/footer here)
   └── page.tsx        → Uses <Wrapper>
        └── Wrapper    → Contains Header + main + Footer
 ```
@@ -17,7 +17,7 @@ app/layout.tsx          → Bare html/body shell shared with /studio
 
 Do NOT add Header or Footer to:
 
-- `app/layout.tsx` or `app/(app)/layout.tsx`
+- `app/layout.tsx` or `app/(site)/layout.tsx`
 - Individual page files
 - Nested layout files
 
@@ -36,7 +36,7 @@ They are automatically rendered when you use `<Wrapper>`.
 ## Usage
 
 ```tsx
-// app/(app)/page.tsx
+// app/(site)/page.tsx
 import { Wrapper } from '@/components/layout/wrapper'
 
 export default function Page() {

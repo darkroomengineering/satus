@@ -7,7 +7,7 @@ import '@/lib/styles/css/index.css'
 /*
   Bare shell shared by the app and /studio. Everything app-specific —
   providers, metadata, JSON-LD, analytics, the satus-version script — lives
-  in app/(app)/layout.tsx so /studio doesn't inherit it. Anything added here
+  in app/(site)/layout.tsx so /studio doesn't inherit it. Anything added here
   is a deliberate decision to ship it to Studio too.
 
   Font variables stay here on <html> so portaled UI (toasts, dialogs…)

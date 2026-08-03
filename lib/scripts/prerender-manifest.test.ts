@@ -54,15 +54,17 @@ describe.skipIf(!manifestExists)(
       ).toBe('PARTIALLY_STATIC')
     })
 
-    it('manifest parsed a plausible number of routes (sanity check)', async () => {
+    // Deliberately ≥ 1, not a higher bar: forks strip routes, and the real
+    // assertion above already fails if `/` is missing. This only proves the
+    // manifest parsed into a non-empty shape at all.
+    it('manifest parsed at least one route (sanity check)', async () => {
       const manifest: PrerenderManifest = await manifestFile.json()
       const routeCount = Object.keys(manifest.routes).length
 
       expect(
         routeCount,
-        `Only ${routeCount} route(s) found in the prerender manifest — this likely means the manifest ` +
-          'failed to parse correctly rather than the app genuinely shrinking to almost no routes.'
-      ).toBeGreaterThanOrEqual(3)
+        'The prerender manifest parsed to zero routes — the file format likely changed.'
+      ).toBeGreaterThanOrEqual(1)
     })
   }
 )

@@ -31,6 +31,17 @@
 //   }
 //
 // Full walkthrough: see the manual (app/page.tsx) step 5 "Add a plugin".
+//
+// 4. Catalog reads (products.ts, collections.ts, pages.ts) are wrapped in
+//    'use cache' with a one-hour cacheLife — required under Cache Components
+//    so the pages calling them can render statically instead of opting into
+//    fully dynamic rendering. That 'use cache' entry is the only cache layer:
+//    the underlying shopifyFetch call passes cache: 'no-store' so the Data
+//    Cache doesn't also hold its own indefinitely-cached copy underneath it.
+//    The Shopify webhook route invalidates via revalidateTag() on
+//    product/collection/page changes (see revalidate.ts). Cart operations
+//    (cart-operations.ts) are per-user and deliberately left uncached
+//    (cache: 'no-store') with no 'use cache' wrapper at all.
 
 export * from './cart-operations'
 export * from './client'

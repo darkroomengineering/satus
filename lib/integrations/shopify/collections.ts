@@ -1,3 +1,5 @@
+import { cacheLife, cacheTag } from 'next/cache'
+
 import { shopifyFetch } from './client'
 import { TAGS } from './constants'
 import {
@@ -42,9 +44,13 @@ const reshapeCollections = (
 export async function getCollection(
   handle: string
 ): Promise<Collection | undefined> {
+  'use cache'
+  cacheTag(TAGS.collections)
+  cacheLife('hours')
+
   const res = await shopifyFetch<GetCollectionResponseData>({
     query: getCollectionQuery,
-    tags: [TAGS.collections],
+    cache: 'no-store',
     variables: {
       handle,
     },
@@ -65,9 +71,13 @@ export async function getCollectionProducts({
   reverse,
   sortKey,
 }: GetCollectionProductsOptions): Promise<Product[]> {
+  'use cache'
+  cacheTag(TAGS.collections, TAGS.products)
+  cacheLife('hours')
+
   const res = await shopifyFetch<GetCollectionProductsResponseData>({
     query: getCollectionProductsQuery,
-    tags: [TAGS.collections, TAGS.products],
+    cache: 'no-store',
     variables: {
       handle: collection,
       reverse,
@@ -85,9 +95,13 @@ export async function getCollectionProducts({
 }
 
 export async function getCollections(): Promise<Collection[]> {
+  'use cache'
+  cacheTag(TAGS.collections)
+  cacheLife('hours')
+
   const res = await shopifyFetch<GetCollectionsResponseData>({
     query: getCollectionsQuery,
-    tags: [TAGS.collections],
+    cache: 'no-store',
     dataSchema: getCollectionsResponseSchema,
   })
   const shopifyCollections = removeEdgesAndNodes(res.body.data.collections)

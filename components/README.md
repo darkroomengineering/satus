@@ -87,7 +87,7 @@ Built on [Base UI](https://base-ui.com/) for accessibility.
 ```tsx
 // ✅ Always use custom Image
 import { Image } from '@/components/ui/image'
-<Image src="/photo.jpg" alt="Photo" aspectRatio={16/9} />
+<Image src="/photo.jpg" alt="Photo" aspectRatio={16/9} mobileSize="100vw" desktopSize="50vw" />
 
 // ✅ Always use custom Link
 import { Link } from '@/components/ui/link'

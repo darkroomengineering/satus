@@ -8,14 +8,23 @@ import type {
 import { urlForImage } from '@/integrations/sanity/utils/image'
 
 // Sizing is fully owned by this component (it always derives aspectRatio
-// from the Sanity asset), so fill/width/height are omitted alongside
-// src/aspectRatio — Omit over ImageProps' discriminated sizing union
-// collapses to the union of each branch's key types, so leaving
-// fill/width/height in would let a caller pass a combination that no longer
-// matches any single ImageProps branch.
+// from the Sanity asset and always sets `sizes` itself below), so
+// fill/width/height and mobileSize/desktopSize/sizes are all omitted —
+// Omit over ImageProps' discriminated unions collapses each union to a
+// single flattened object type, so leaving any of these in would let a
+// caller pass a combination that no longer matches any single ImageProps
+// branch.
 interface SanityImageProps extends Omit<
   ImageProps,
-  'src' | 'aspectRatio' | 'fill' | 'width' | 'height' | 'alt'
+  | 'src'
+  | 'aspectRatio'
+  | 'fill'
+  | 'width'
+  | 'height'
+  | 'alt'
+  | 'mobileSize'
+  | 'desktopSize'
+  | 'sizes'
 > {
   image: {
     asset?: {

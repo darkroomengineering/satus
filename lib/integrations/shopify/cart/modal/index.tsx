@@ -126,9 +126,7 @@ function InnerCart() {
                 src={merchandise.product.featuredImage?.url ?? ''}
                 alt={merchandise.product.featuredImage?.altText ?? ''}
                 // The drawer is 75vw (mobile) / 50vw (desktop) and `.media`
-                // spans 2 of its 6 columns — without this the 100vw default
-                // makes the browser fetch a full-viewport-width candidate for
-                // a thumbnail.
+                // spans 2 of its 6 columns, so a third of each.
                 mobileSize="25vw"
                 desktopSize="17vw"
                 // Product shots vary in aspect and must not be cropped in the

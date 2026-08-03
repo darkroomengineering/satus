@@ -2,50 +2,12 @@ import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 
 /**
- * No cart test here (or anywhere in e2e/): nothing in the starter mounts
- * `<Cart>` — it ships as a library primitive for forks to wire up — so there
- * is no cart UI to drive without first adding a demo shop page, which the
- * starter deliberately does not have. See `lib/integrations/shopify/README.md`.
+ * The `/ai` route's generic smoke (render, console errors, a11y) is now
+ * covered by `e2e/route-sweep.e2e.ts` — it's a static page like any other.
+ * This file keeps only what the sweep can't generate: the 404 route's
+ * bespoke soft-404 assertions below, which need real knowledge of Cache
+ * Components' status-line behavior, not a copy-pastable smoke.
  */
-
-test.describe('/ai machine view', () => {
-  test('renders, has no console errors, passes a11y', async ({ page }) => {
-    const consoleErrors: string[] = []
-    const pageErrors: string[] = []
-
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        consoleErrors.push(msg.text())
-      }
-    })
-
-    page.on('pageerror', (error) => {
-      pageErrors.push(error.message)
-    })
-
-    await page.goto('/ai')
-
-    // `networkidle` never settles here — the WebGL scene and the dev HMR
-    // socket keep the connection busy — so anchor on web assertions instead.
-    // Page renders: assert a non-empty document title (auto-waits).
-    await expect(page).toHaveTitle(/.+/)
-    await expect(page.locator('body')).toBeVisible()
-
-    // No console errors or uncaught exceptions during load
-    expect(consoleErrors).toEqual([])
-    expect(pageErrors).toEqual([])
-
-    // Basic a11y: scoped to critical + serious violations only.
-    // Minor/moderate issues in third-party assets are excluded to keep
-    // the baseline stable; tighten to all violations once the starter is
-    // confirmed clean at the full severity level.
-    const results = await new AxeBuilder({ page }).analyze()
-    const seriousViolations = results.violations.filter(
-      (v) => v.impact === 'critical' || v.impact === 'serious'
-    )
-    expect(seriousViolations).toEqual([])
-  })
-})
 
 test.describe('branded 404', () => {
   test('renders, returns 404, has no console errors, passes a11y', async ({

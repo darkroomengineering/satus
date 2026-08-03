@@ -59,32 +59,86 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Full history so the gate below can diff against the PR base branch.
+          fetch-depth: 0
+
+      # `e2e` is a REQUIRED branch-protection check, so this job must always
+      # report a conclusion — it may skip its expensive body, it must never be
+      # skipped at trigger level. This is why the gate lives HERE, as a step,
+      # rather than as a `paths:`/`paths-ignore:` filter on the workflow
+      # trigger: a trigger-level filter would leave the required `e2e` check
+      # stuck as "expected" forever on any PR that doesn't touch a matched
+      # path, permanently blocking merge.
+      #
+      # Semantics: a conservative SKIP-list, not a run-list — defaults to run.
+      #   - `push` (main): always run. Post-merge safety beats savings.
+      #   - `pull_request`: diff against the merge-base; run unless EVERY
+      #     changed file is one that cannot affect a rendered page. A change
+      #     to this workflow file itself always forces a run, so the gate
+      #     proves itself on the PR that edits it.
+      - name: Decide whether UI could have changed
+        id: gate
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          changed_files=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
+
+          if [ -z "$changed_files" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          run=false
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            case "$file" in
+              .github/workflows/ci.yml)
+                run=true
+                ;;
+              *.md | docs/* | plans/* | .claude/* | .cursor/* | .vscode/* | .github/* | LICENSE | .editorconfig | .gitattributes | .gitignore | lefthook.yml | SECURITY.md)
+                # Safe — cannot affect a rendered page.
+                ;;
+              *)
+                run=true
+                ;;
+            esac
+          done <<<"$changed_files"
+
+          echo "run=$run" >> "$GITHUB_OUTPUT"
 
       - uses: oven-sh/setup-bun@v2
+        if: steps.gate.outputs.run == 'true'
         with:
           bun-version-file: package.json
 
       - name: Install dependencies
+        if: steps.gate.outputs.run == 'true'
         run: bun install --frozen-lockfile
 
       - name: Cache Playwright browsers
         id: playwright-cache
+        if: steps.gate.outputs.run == 'true'
         uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
 
       - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        if: steps.gate.outputs.run == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
         run: bunx playwright install --with-deps chromium
 
       # playwright.config.ts boots the prod server itself in CI (webServer),
       # so no separate server step is needed here.
       - name: Run e2e tests
+        if: steps.gate.outputs.run == 'true'
         run: bun run test:e2e
 
       - name: Upload Playwright report
-        if: failure()
+        if: failure() && steps.gate.outputs.run == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: playwright-report
@@ -92,3 +146,7 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+
+      - name: Report gate result
+        if: steps.gate.outputs.run != 'true'
+        run: echo 'e2e skipped, no UI-affecting changes'

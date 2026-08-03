@@ -43,7 +43,10 @@
   font-weight: 400;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  opacity: 0.45;
+  /* 0.45 rendered #858585 on the panel's --surface (#f2f2f2 in the light-theme
+     fallback) — 3.29:1, under WCAG AA's 4.5:1 (e2e axe pass on /sanity's
+     unconfigured variant). 0.56 renders ≈#666666 — 4.83:1, still muted. */
+  opacity: 0.56;
   margin-bottom: calc(10 / 375 * 100vw);
 
   @media (--desktop) {
@@ -76,7 +79,8 @@
   font-family: var(--font-mono);
   font-size: calc(11 / 375 * 100vw);
   line-height: 1.6;
-  opacity: 0.45;
+  /* Same fix as .label above: 0.45 was 3.29:1 on --surface, 0.56 is 4.83:1. */
+  opacity: 0.56;
 
   @media (--desktop) {
     font-size: calc(12 / 1440 * 100vw);
@@ -100,7 +104,15 @@
   font-weight: 400;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--color-contrast);
+  /* var(--color-contrast) (the red token, #e9161a) is 4.08:1 on the panel's
+     --surface (#f2f2f2) at this ~9px size — under WCAG AA's 4.5:1 (e2e axe
+     pass). The red is meaningful here (it's the same accent used on .accent
+     and .envVar elsewhere in this component), so darken it locally rather
+     than dropping the color or bumping size past the large-text bar and
+     disturbing this label's layout. #c41317 is 5.43:1 on #f2f2f2 — the
+     global --color-red token is untouched. */
+  --instructions-label-accent: oklch(52.16% 0.2047 27.69);
+  color: var(--instructions-label-accent);
   margin-bottom: calc(14 / 375 * 100vw);
 
   @media (--desktop) {

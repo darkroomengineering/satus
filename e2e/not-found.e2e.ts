@@ -49,11 +49,12 @@ test.describe('branded 404', () => {
 
     // The noindex signal Next.js injects for a page resolved via notFound() —
     // the actual "this is a 404" marker crawlers see, since the HTTP status
-    // itself can't carry it (see comment above).
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
-      'content',
-      'noindex'
-    )
+    // itself can't carry it (see comment above). Scoped to the noindex meta
+    // rather than all robots metas: the layout's SEO defaults can emit their
+    // own robots tag, and matching the pair trips Playwright's strict mode.
+    await expect(
+      page.locator('meta[name="robots"][content*="noindex"]').first()
+    ).toBeAttached()
 
     // Branded not-found copy from components/ui/not-found-view/index.tsx —
     // rendered as sentence-case text nodes ("404" heading, "Page not found"

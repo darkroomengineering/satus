@@ -7,9 +7,11 @@
  *
  * WCAG 2.1 is the blocking metric because it is what accessibility law and
  * client contracts reference — the DOJ's 2024 ADA rule and EN 301 549 both cite
- * WCAG 2.1 AA. APCA is computed alongside it as an advisory signal: it is
- * perceptually better and is W3C's candidate for WCAG 3, but WCAG 3 is still a
- * working draft, so it does not gate anything.
+ * WCAG 2.1 AA, and it remains the absolute floor no baseline can waive below.
+ * APCA is computed alongside it as a second signal: it is perceptually better
+ * and is W3C's candidate for WCAG 3, but WCAG 3 is still a working draft, so
+ * rather than blocking on it directly, it gates *changes* against an accepted
+ * baseline — new or worsened sub-60 pairs fail, same as WCAG.
  */
 
 import { join } from 'node:path'
@@ -22,7 +24,7 @@ import { themes } from '../colors'
 export const AA_TEXT = 4.5
 export const AA_NON_TEXT = 3
 
-/** APCA floor for UI and body copy. Advisory only. */
+/** APCA floor for UI and body copy. Ratcheted against the accepted baseline. */
 export const APCA_MIN = 60
 
 export type Role = 'primary' | 'secondary' | 'contrast'
@@ -150,10 +152,16 @@ export const BASELINE_PATH = join(import.meta.dir, 'contrast-baseline.json')
 export type Baseline = {
   /** Failing pairs, keyed to the ratio recorded when the baseline was taken. */
   accepted: Record<string, number>
+  /** Sub-Lc-60 text pairs, keyed to the |Lc| recorded when the baseline was taken. */
+  apcaAccepted: Record<string, number>
 }
 
 export async function readBaseline(): Promise<Baseline> {
   const file = Bun.file(BASELINE_PATH)
-  if (!(await file.exists())) return { accepted: {} }
-  return file.json()
+  if (!(await file.exists())) return { accepted: {}, apcaAccepted: {} }
+  const baseline = (await file.json()) as Partial<Baseline>
+  return {
+    accepted: baseline.accepted ?? {},
+    apcaAccepted: baseline.apcaAccepted ?? {},
+  }
 }

@@ -12,6 +12,10 @@
  * so the baseline cannot quietly go stale. Both are fixed by re-accepting and
  * reviewing the diff.
  *
+ * APCA gets the same ratchet, scoped to text pairs (`min === AA_TEXT`) below
+ * Lc 60. WCAG remains the legal, absolute floor; APCA instead gates *changes*
+ * — quiet when nothing moved, failing on a new or worsened sub-60 pair.
+ *
  * Measurement itself lives in `contrast.ts`, shared with the accept command.
  *
  * Run with: bun test lib/styles/scripts/contrast.test.ts
@@ -28,8 +32,11 @@ import {
 } from './contrast'
 
 const measurements = await measureContrast()
-const { accepted } = await readBaseline()
+const { accepted, apcaAccepted } = await readBaseline()
 const failing = measurements.filter((m) => m.ratio < m.min)
+const weakApca = measurements.filter(
+  (m) => m.min === AA_TEXT && Math.abs(m.lc) < APCA_MIN
+)
 
 describe('WCAG 2.1 AA contrast (blocking)', () => {
   it('measures every theme against every used token pair', () => {
@@ -77,18 +84,51 @@ describe('WCAG 2.1 AA contrast (blocking)', () => {
   })
 })
 
-describe('APCA (advisory)', () => {
-  it('reports perceptual contrast for every measured pair', () => {
-    const weak = measurements
-      .filter((m) => m.min === AA_TEXT && Math.abs(m.lc) < APCA_MIN)
-      .map((m) => `${m.key}: Lc ${m.lc.toFixed(1)}`)
+describe('APCA (ratcheted)', () => {
+  it('introduces no sub-60 text pair outside the accepted baseline', () => {
+    const unexpected = weakApca
+      .filter((m) => !(m.key in apcaAccepted))
+      .map((m) => `${m.key} = Lc ${m.lc.toFixed(1)} (needs ${APCA_MIN})`)
 
-    if (weak.length > 0) {
+    if (unexpected.length > 0) {
       console.warn(
-        `\n  APCA advisory — ${weak.length} pair(s) below Lc ${APCA_MIN}:\n    ${weak.join('\n    ')}\n`
+        `\n  APCA regression — run \`bun run contrast:accept\` if intentional:\n    ${unexpected.join('\n    ')}\n`
       )
     }
 
-    expect(measurements.length).toBeGreaterThan(0)
+    // Run `bun run contrast:accept` if these are intentional.
+    expect(unexpected).toEqual([])
+  })
+
+  it('keeps the APCA baseline honest — improved pairs must leave it', () => {
+    const weakKeys = new Set(weakApca.map((m) => m.key))
+    const stale = Object.keys(apcaAccepted).filter((key) => !weakKeys.has(key))
+
+    if (stale.length > 0) {
+      console.warn(
+        `\n  APCA baseline stale — run \`bun run contrast:accept\` to drop:\n    ${stale.join('\n    ')}\n`
+      )
+    }
+
+    // Run `bun run contrast:accept` to drop these.
+    expect(stale).toEqual([])
+  })
+
+  it('never regresses an accepted APCA pair below its recorded |Lc|', () => {
+    const worsened = weakApca.flatMap((m) => {
+      const recorded = apcaAccepted[m.key]
+      if (recorded === undefined) return []
+      const current = Math.abs(m.lc)
+      const currentTenths = Math.round(current * 10)
+      const recordedTenths = Math.round(recorded * 10)
+      if (currentTenths >= recordedTenths) return []
+      return [`${m.key} fell to Lc ${current.toFixed(1)} from ${recorded}`]
+    })
+
+    if (worsened.length > 0) {
+      console.warn(`\n  APCA worsened:\n    ${worsened.join('\n    ')}\n`)
+    }
+
+    expect(worsened).toEqual([])
   })
 })

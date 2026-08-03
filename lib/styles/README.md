@@ -98,6 +98,14 @@ See the generated `css/tailwind.css` for the full generated set.
 }
 ```
 
+## Contrast
+
+The `contrast` token (red in the shipped palette) is not body-text-safe on the
+dark themes — APCA scores it ~Lc 32 against black even though WCAG 2 passes
+it — so treat it as an accent, focus-ring, and display-type colour only, not
+body copy. Run `bun run contrast:accept` after rebranding to re-record the
+accepted baseline for your palette.
+
 ## Design tokens
 
 Layout tokens are generated into `css/root.css`. Color and font tokens are

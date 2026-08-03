@@ -1,0 +1,38 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 48px 24px;
+}
+
+.scope {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.card {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  border: 1px solid var(--color-secondary);
+  border-radius: 8px;
+}
+
+.button {
+  align-self: flex-start;
+  padding: 12px 20px;
+  border: 1px solid var(--color-secondary);
+  border-radius: 100px;
+}
+
+.control {
+  display: grid;
+  place-items: center;
+  width: 240px;
+  height: 96px;
+  border: 1px dashed var(--color-secondary);
+  border-radius: 8px;
+  opacity: 0.6;
+}

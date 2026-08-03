@@ -85,7 +85,20 @@ jobs:
             exit 0
           fi
 
-          changed_files=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
+          # Fetch the base explicitly instead of trusting the checkout to have
+          # created origin/<base> — a fork that trims fetch-depth for checkout
+          # speed would otherwise hit "unknown revision" here, and under the
+          # runner's bash -e that turns a docs-only PR's required check red.
+          # Any failure in the pipeline fails OPEN: e2e runs.
+          if ! git fetch --quiet origin -- "${{ github.base_ref }}"; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if ! changed_files=$(git diff --name-only "FETCH_HEAD...HEAD"); then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
           if [ -z "$changed_files" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"

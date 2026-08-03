@@ -51,6 +51,30 @@ type ImageSizingProps =
     }
 
 /**
+ * `sizes` variants. Every render must declare how wide the image actually
+ * renders — there is no `100vw` fallback. A wrong-by-default `sizes` doesn't
+ * error or warn; it just tells the browser to fetch a full-viewport-width
+ * candidate for what might be an 89px thumbnail, and nothing short of
+ * measuring network requests in a browser catches it. Pick one:
+ * - `mobileSize` + `desktopSize`: the common two-breakpoint case
+ * - `sizes`: a raw sizes string, for layouts the two-breakpoint form can't express
+ */
+type ImageSizesProps =
+  | {
+      /** Rendered width below the desktop breakpoint (e.g. "50vw"). */
+      mobileSize: `${number}vw`
+      /** Rendered width at/above the desktop breakpoint (e.g. "33vw"). */
+      desktopSize: `${number}vw`
+      sizes?: never
+    }
+  | {
+      mobileSize?: never
+      desktopSize?: never
+      /** Raw `sizes` attribute, for layouts `mobileSize`/`desktopSize` can't express. */
+      sizes: string
+    }
+
+/**
  * Enhanced Image component props extending Next.js Image.
  *
  * Adds responsive sizing, aspect ratio support, and automatic blur placeholders.
@@ -60,24 +84,24 @@ type ImageSizingProps =
  * There is no dimension-less fallback — an image with no reserved box causes
  * layout shift when it loads, so the type system enforces one of these paths
  * instead of silently faking dimensions.
+ *
+ * `sizes` is required too: pass `mobileSize`+`desktopSize`, or a raw `sizes`
+ * string. There is no `100vw` fallback — see `ImageSizesProps`.
  */
 export type ImageProps = Omit<
   NextImageProps,
-  'objectFit' | 'alt' | 'width' | 'height' | 'fill'
+  'objectFit' | 'alt' | 'width' | 'height' | 'fill' | 'sizes'
 > & {
   /** CSS object-fit property for image positioning */
   objectFit?: CSSProperties['objectFit']
   /** Display as block element (adds display: block) */
   block?: boolean
-  /** Size on mobile devices (e.g., "100vw", "50vw") */
-  mobileSize?: `${number}vw`
-  /** Size on desktop devices (e.g., "33vw", "25vw") */
-  desktopSize?: `${number}vw`
   /** Ref for accessing the underlying img element */
   ref?: Ref<HTMLImageElement>
   /** Alt text for accessibility. Required — pass `alt=""` explicitly for decorative images. */
   alt: string
-} & ImageSizingProps
+} & ImageSizingProps &
+  ImageSizesProps
 
 // Base64 encoding for blur placeholders (works in browser and Node.js)
 function toBase64(str: string): string {
@@ -170,8 +194,8 @@ function getFinalPlaceholder(
  *
  * @param props - Image props extending Next.js Image
  * @param props.aspectRatio - Aspect ratio for layout stability and blur placeholder
- * @param props.mobileSize - Size on mobile (e.g., "100vw")
- * @param props.desktopSize - Size on desktop (e.g., "50vw")
+ * @param props.mobileSize - Rendered width below the desktop breakpoint (e.g. "50vw"). Required together with `desktopSize`, unless `sizes` is passed instead.
+ * @param props.desktopSize - Rendered width at/above the desktop breakpoint (e.g. "33vw"). Required together with `mobileSize`, unless `sizes` is passed instead.
  * @param props.block - Display as block element
  * @param props.preload - Ergonomic alias for next/image's native `preload` prop
  *   (the modern replacement for the deprecated `priority` prop). Also sets
@@ -184,6 +208,8 @@ function getFinalPlaceholder(
  *   src="/hero.jpg"
  *   alt="Hero image"
  *   aspectRatio={16/9}
+ *   mobileSize="100vw"
+ *   desktopSize="100vw"
  * />
  * ```
  *
@@ -194,6 +220,8 @@ function getFinalPlaceholder(
  *   src="/hero.jpg"
  *   alt="Hero image"
  *   aspectRatio={16/9}
+ *   mobileSize="100vw"
+ *   desktopSize="100vw"
  *   preload // Preloads image for LCP
  * />
  * ```
@@ -221,8 +249,8 @@ export function Image({
   block = !fill,
   width,
   height,
-  mobileSize = '100vw',
-  desktopSize = '100vw',
+  mobileSize,
+  desktopSize,
   sizes,
   src,
   unoptimized,
@@ -235,9 +263,9 @@ export function Image({
   // Determine loading strategy
   const finalLoading = loading ?? (preload ? 'eager' : 'lazy')
 
-  // Generate responsive sizes if not provided
+  // Compute `sizes` from whichever branch of ImageSizesProps was supplied.
   const finalSizes =
-    sizes || `(max-width: ${breakpoints.dt}px) ${mobileSize}, ${desktopSize}`
+    sizes ?? `(min-width: ${breakpoints.dt}px) ${desktopSize}, ${mobileSize}`
 
   // Early return after hooks
   if (!src) return null

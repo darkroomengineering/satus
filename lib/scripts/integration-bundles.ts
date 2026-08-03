@@ -243,11 +243,12 @@ export const INTEGRATION_BUNDLES = defineBundles({
     devDependencies: [],
     folders: ['lib/integrations/shopify'],
     files: [],
+    // Keep in sync with the SHOPIFY_* keys in lib/env.ts — that schema is the
+    // source of truth for what the integration actually reads.
     envVars: [
       'SHOPIFY_STORE_DOMAIN',
       'SHOPIFY_STOREFRONT_ACCESS_TOKEN',
-      'SHOPIFY_CUSTOMER_ACCOUNT_API_CLIENT_ID',
-      'SHOPIFY_CUSTOMER_ACCOUNT_API_URL',
+      'SHOPIFY_REVALIDATION_SECRET',
     ],
     barrelExports: [],
     codeTransforms: [

@@ -22,7 +22,7 @@
     "format": "oxfmt",
     "typecheck": "bun node_modules/typescript7/bin/tsc --noEmit",
     "typecheck:watch": "bun node_modules/typescript7/bin/tsc --noEmit --watch",
-    "deslop": "deslop",
+    "deslop": "deslop --ignore 'storybook-static/**'",
     "analyze": "ANALYZE=true bun run build",
     "analyze:experimental": "next experimental-analyze",
     "dev:inspect": "bun ./lib/scripts/dev.ts --inspect",

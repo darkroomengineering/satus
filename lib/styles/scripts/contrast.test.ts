@@ -117,8 +117,11 @@ describe('APCA (ratcheted)', () => {
   it('never regresses an accepted APCA pair below its recorded |Lc|', () => {
     const worsened = weakApca.flatMap((m) => {
       const recorded = apcaAccepted[m.key]
+      if (recorded === undefined) return []
       const current = Math.abs(m.lc)
-      if (recorded === undefined || current >= recorded - 0.1) return []
+      const currentTenths = Math.round(current * 10)
+      const recordedTenths = Math.round(recorded * 10)
+      if (currentTenths >= recordedTenths) return []
       return [`${m.key} fell to Lc ${current.toFixed(1)} from ${recorded}`]
     })
 

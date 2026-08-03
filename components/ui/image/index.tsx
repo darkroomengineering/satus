@@ -265,7 +265,7 @@ export function Image({
 
   // Compute `sizes` from whichever branch of ImageSizesProps was supplied.
   const finalSizes =
-    sizes ?? `(max-width: ${breakpoints.dt}px) ${mobileSize}, ${desktopSize}`
+    sizes ?? `(min-width: ${breakpoints.dt}px) ${desktopSize}, ${mobileSize}`
 
   // Early return after hooks
   if (!src) return null

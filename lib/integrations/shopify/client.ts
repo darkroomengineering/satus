@@ -35,6 +35,10 @@ const shopifyEnvelopeSchema = z.object({
   errors: z.array(z.object({ message: z.string() })).optional(),
 })
 
+// cache-exempt: shared low-level wrapper used by both cached callers (which
+// wrap it in 'use cache', e.g. products.ts) and uncached per-user/mutation
+// callers (which pass cache: 'no-store', e.g. cart-operations.ts) — caching
+// policy belongs to the caller, not this wrapper.
 export async function shopifyFetch<T = Record<string, unknown>>({
   cache = 'force-cache',
   headers: customHeaders,

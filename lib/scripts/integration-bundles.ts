@@ -117,6 +117,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
     envVars: [
       'NEXT_PUBLIC_SANITY_PROJECT_ID',
       'NEXT_PUBLIC_SANITY_DATASET',
+      'NEXT_PUBLIC_SANITY_API_VERSION',
       'NEXT_PUBLIC_SANITY_API_READ_TOKEN',
       'SANITY_API_READ_TOKEN',
       'SANITY_PRIVATE_TOKEN',
@@ -323,7 +324,11 @@ export const INTEGRATION_BUNDLES = defineBundles({
     devDependencies: [],
     folders: ['lib/integrations/hubspot'],
     files: [],
-    envVars: ['HUBSPOT_ACCESS_TOKEN', 'NEXT_PUBLIC_HUBSPOT_PORTAL_ID'],
+    envVars: [
+      'HUBSPOT_ACCESS_TOKEN',
+      'NEXT_PUBLIC_HUBSPOT_PORTAL_ID',
+      'HUBSPOT_ALLOWED_FORM_IDS',
+    ],
     barrelExports: [],
     codeTransforms: [],
   },

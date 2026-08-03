@@ -104,7 +104,7 @@ export function MyComponent({
 ### Animation
 
 - **Reveal-on-scroll / entrance** → `useReveal` (`lib/hooks/use-reveal.ts`). CSS-driven, runs on the compositor thread so it stays smooth through hydration. Mark staggered children `data-reveal-item`; tune per container with `--reveal-transform`, `--reveal-stagger`, `--reveal-duration`. Degrades to visible with JS off; short-circuits under reduced-motion. The mechanism lives once in `global.css`.
-- **Orchestration / scrubbing / pinning** → GSAP (timelines, ScrollTrigger via the Lenis bridge in `components/layout/lenis/`). GSAP's ticker is synced to Tempus (`components/effects/gsap.tsx`), so there's a single RAF loop. Don't reach for GSAP for simple reveals — that's main-thread work CSS does better off-thread.
+- **Orchestration / scrubbing / pinning** → GSAP (timelines, ScrollTrigger via the Lenis bridge in `components/layout/lenis/`). GSAP's ticker is synced to Tempus (`components/effects/gsap.tsx`), so there's a single RAF loop. Don't reach for GSAP for simple reveals — that's main-thread work CSS does better off-thread. Write component animations with `useGSAP` from `@gsap/react`, passing `{ scope: ref }` — it scopes selector strings to that ref and reverts everything created inside it on unmount. Use its `contextSafe` wrapper for animations kicked off from event handlers, which otherwise run outside the scope. A bare `useEffect` + `gsap.to()` leaks tweens and ScrollTriggers across navigations.
 - **Micro-interactions** (hover, toggle, ≤200ms) → CSS transitions.
 - **Smooth scroll** → Lenis; **RAF scheduling** → Tempus.
 - Honor reduced-motion: the global neutralizer in `global.css` zeroes CSS animation; JS/WebGL gates via `usePreferredReducedMotion`.

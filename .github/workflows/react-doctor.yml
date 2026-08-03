@@ -15,13 +15,11 @@ jobs:
   react-doctor:
     runs-on: ubuntu-latest
 
-    # Advisory for now. The step below surfaces React Doctor findings on the
-    # files a PR changes, but does not block the merge — this lets new PRs stay
-    # visible while the existing backlog is paid down incrementally. To turn the
-    # gate on once the backlog is clear, delete this line. The `--diff` scope
-    # already keeps pre-existing issues out of the PR gate (only files the PR
-    # actually touches are scanned), so enforcing later won't retroactively fail
-    # unrelated PRs.
+    # Advisory only — never blocks a PR. Scores and diffs here are informational,
+    # same stance as the Lighthouse workflow (see lighthouse-to-slack.yml). The
+    # `--diff` scope below still keeps pre-existing issues out of the noise (only
+    # files the PR actually touches are scanned), but nothing in this job can
+    # fail the check.
     continue-on-error: true
 
     steps:
@@ -39,11 +37,12 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      # --diff <base>   : only scan files changed vs the PR base — keeps the
-      #                   existing backlog out of the gate; new code stays clean.
-      # --blocking error: error-severity findings set a non-zero exit (shown as a
-      #                   failed step; non-blocking today via continue-on-error above).
-      # --no-telemetry  : no score upload / share URL / crash reporting in CI.
+      # --diff <base>  : only scan files changed vs the PR base — keeps the
+      #                  existing backlog out of the report; new code stays clean.
+      # --no-telemetry : no score upload / share URL / crash reporting in CI.
+      # No --blocking flag: this job is advisory only (continue-on-error above),
+      # so a blocking exit code would be inert anyway — dropped to stop implying
+      # enforcement that isn't there.
       # Pinned to 0.4.2 for reproducible runs — bump deliberately.
       - name: Run React Doctor on changed files
-        run: bunx react-doctor@0.4.2 --diff origin/${{ github.base_ref }} --verbose --blocking error --no-telemetry
+        run: bunx react-doctor@0.4.2 --diff origin/${{ github.base_ref }} --verbose --no-telemetry

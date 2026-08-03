@@ -47,6 +47,13 @@ jobs:
       - name: Run checks
         run: bun run check
 
+      # Advisory — a starter intentionally exports things nothing imports (see
+      # doctor.config.ts's deadCode note), so findings here are signal for
+      # humans to review, not a merge gate.
+      - name: deslop (advisory)
+        continue-on-error: true
+        run: bun run deslop
+
   e2e:
     runs-on: ubuntu-latest
 

@@ -23,15 +23,16 @@ pre-commit:
       run: bun node_modules/typescript7/bin/tsc --noEmit
       stage_fixed: false
 
-# NOTE: Build checks happen in CI, not pre-push (too slow for dev workflow)
-# Uncomment if you want local build verification:
-# pre-push:
-#   commands:
-#     build-check:
-#       run: bun run build
-#       skip:
-#         - merge
-#         - rebase
+# Build stays CI-only (too slow for a local pre-push gate). Tests (~4s) and
+# the manifest check (~1s) are cheap enough to run here, so a push can't land
+# with a broken suite or a stale COMPONENTS.md.
+pre-push:
+  commands:
+    test-and-manifest:
+      run: bun test && bun run manifest:check
+      skip:
+        - merge
+        - rebase
 
 # Branch switches leave the previous branch's generated route types in
 # .next/types (tsconfig includes them), producing ghost tsc errors about

@@ -1,6 +1,6 @@
 // USAGE — Shopify Storefront API
 // 1. Set env vars: SHOPIFY_STORE_DOMAIN, SHOPIFY_STOREFRONT_ACCESS_TOKEN
-//    Optionally: SHOPIFY_CUSTOMER_ACCOUNT_API_CLIENT_ID, SHOPIFY_CUSTOMER_ACCOUNT_API_URL
+//    Optionally: SHOPIFY_REVALIDATION_SECRET (to secure the webhook route)
 //
 // 2. Fetch products in a Server Component:
 //

@@ -507,6 +507,8 @@ bun run doctor       # Diagnose setup issues
 
 Pre-commit hook (lefthook) runs on staged files: oxfmt + oxlint --fix (sequential, one command), in parallel with tsc typecheck. Type-aware linting is excluded from the hook to keep commits fast.
 
+Route smoke coverage is automatic: `e2e/route-sweep.e2e.ts` discovers every `app/**/page.tsx` at test-collection time and runs the five-assertion smoke against it — creating the page is the only step. Write a bespoke `*.e2e.ts` only for behavior beyond the smoke (see `e2e/not-found.e2e.ts` for the soft-404 example).
+
 ---
 
 ## Documentation Map

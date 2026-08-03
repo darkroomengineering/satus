@@ -460,15 +460,15 @@ ALL color values are authored in `oklch()` — palette entries in `lib/styles/co
 ## AI SEO (AEO)
 
 - **Entity facts live in one file.** `lib/seo/site.ts`. JSON-LD, on-page prose, and `/llms.txt` all read from it, so they cannot disagree. Answer engines cross-check.
-- **Organization + WebSite JSON-LD render from the root layout**, never from the homepage. Answer-engine traffic lands on deep pages; an entity that only exists on `/` is invisible to it.
+- **Organization + WebSite JSON-LD render from the app layout** (`app/(site)/layout.tsx`), never from the homepage. Answer-engine traffic lands on deep pages; an entity that only exists on `/` is invisible to it.
 - **Never emit a JSON-LD key you cannot fill.** `"description": null` is worse than an absent key. Conditional-spread every optional field.
 - **Entity prose must be in the initial HTML and actually visible.** A visually quiet section is fine; `sr-only` or `display: none` reads as cloaking and gets discounted. If a page is visual-first (canvas, galleries), it needs a plain-prose block or crawlers have nothing to cite.
 - **`Suspense fallback={null}` ships HTML with zero links.** Any client subtree that bails out of prerendering — `useSearchParams`, `cookies()`, `headers()` — leaves its fallback in the static HTML. If that fallback is `null`, crawlers see an empty page and the linked routes lose their only internal link. Server-render a static mirror of the list as the fallback; hydration swaps in the interactive version.
 - **Never redirect on user-agent without exempting bots.** Googlebot Smartphone, site auditors, and AI crawlers send mobile UAs. A mobile redirect turns every sitemap entry into a 3XX. Gate the redirect behind a bot check (`isbot`) if you add one.
-- **`metadataBase` must be set** or OG/Twitter image paths stay relative and fail to resolve for scrapers. It is set in `app/layout.tsx`.
+- **`metadataBase` must be set** or OG/Twitter image paths stay relative and fail to resolve for scrapers. It is set in `app/(site)/layout.tsx`.
 - **Normalize CMS-authored hrefs** before rendering. Editors paste bare domains and mixed-case protocols; unnormalized values produce broken or duplicate-target links that leak crawl budget.
 - **`/llms.txt`** is generated from `lib/seo/site.ts` at `app/llms.txt/route.ts`. Markdown mirrors of content routes (`/page.md`, with a `Link: <…>; rel="alternate"` header) are the next step for content-heavy sites — not shipped here because they need a CMS to be worth it.
-- **Ship a `/ai` machine view.** One plain-HTML route (`app/ai/page.tsx`) that names the entity and links every page, under its own layout with no chrome, no canvas and no client components of its own. Visual-first pages give answer engines nothing to cite; this gives them everything in one fetch. Keep it in sync with `app/sitemap.ts` — a route missing from either is invisible. It still inherits whatever the root layout mounts; to make it genuinely runtime-free, move providers and analytics into a `(site)` route group and keep `app/layout.tsx` minimal.
+- **Ship a `/ai` machine view.** One plain-HTML route (`app/ai/page.tsx`) that names the entity and links every page, under its own layout with no chrome, no canvas and no client components of its own. Visual-first pages give answer engines nothing to cite; this gives them everything in one fetch. Keep it in sync with `app/sitemap.ts` — a route missing from either is invisible. It still inherits the app providers mounted by `app/(site)/layout.tsx`; to make it genuinely runtime-free, move it out of the `(site)` route group (the root `app/layout.tsx` is already a bare html/body shell).
 - **Fetch CMS content with the published perspective for machine-readable routes.** Draft/preview perspectives embed stega encoding — invisible Unicode characters interleaved through every string for visual editing. They are invisible to humans and corrupt the text an LLM reads. Anything rendered into `/ai`, `/llms.txt`, or a `.md` mirror must come from a published-perspective fetch or be run through `stegaClean`.
 - **Drive any human/machine view toggle from a server prop, not the pathname.** Reading `usePathname()` to decide which mode is active makes the first paint ambiguous and can flip after hydration. Pass `mode` down from the layout that already knows.
 
@@ -528,7 +528,7 @@ Pre-commit hook (lefthook) runs on staged files: oxfmt + oxlint --fix (sequentia
 | `lib/webgl/README.md`          | WebGL/R3F architecture, tunnel system, device gating            |
 | `lib/hooks/README.md`          | Custom hook inventory                                           |
 | `lib/dev/README.md`            | Debug tools suite (Orchestra)                                   |
-| `lib/features/README.md`       | Optional feature loading for the root layout                    |
+| `lib/features/README.md`       | Optional feature loading for the app layout                     |
 
 ---
 

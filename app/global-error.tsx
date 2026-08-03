@@ -1,11 +1,16 @@
 'use client'
 
-import { Wrapper } from '@/components/layout/wrapper'
 import { ErrorView } from '@/components/ui/error-view'
 
-// global-error.tsx replaces the root layout when a root-level error occurs,
-// so it must render its own <html> and <body>. Without them Next.js renders
-// broken, unstyled HTML at the worst possible moment for the user.
+// global-error replaces the root layout, so it must bring the stylesheet itself
+import '@/lib/styles/css/index.css'
+
+/**
+ * Last-resort boundary: replaces the ENTIRE root layout when it crashes, so it
+ * must render its own <html>/<body> and must not depend on any provider or
+ * heavy chrome (Wrapper pulls in Lenis/WebGL/theme machinery — all bundled on
+ * every route, and all liable to be the thing that just crashed).
+ */
 export default function GlobalError({
   error,
   reset,
@@ -16,14 +21,14 @@ export default function GlobalError({
   return (
     <html lang="en">
       <body>
-        <Wrapper theme="light" className="font-mono">
+        <div className="flex min-h-dvh flex-col items-center justify-center font-mono">
           <ErrorView
             error={error}
             reset={reset}
             title="Critical Error"
             description="A critical error occurred. Please refresh the page or contact support if the problem persists."
           />
-        </Wrapper>
+        </div>
       </body>
     </html>
   )

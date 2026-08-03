@@ -90,9 +90,38 @@ export const devOnlyRemovables = ['webgl', 'theatre'] as const
 export type RemovableId = IntegrationId | (typeof devOnlyRemovables)[number]
 
 /**
+ * Every check in this module validates the whole `process.env` object, which
+ * only holds real values on the server. Bundlers inline `process.env.FOO`
+ * literals into client code but leave a wholesale `process.env` reference
+ * pointing at the browser `process` polyfill, whose `env` is a permanently
+ * empty `{}`. A client-side call would therefore report every integration as
+ * unconfigured — silently, and wrongly. Throw instead of returning that.
+ *
+ * This is a runtime guard, not a build-time one: `import 'server-only'` would
+ * be stronger, but it resolves to a module that throws on import outside
+ * Next's RSC layer, which would break `bun test` and `bun run handoff` — both
+ * import this file legitimately.
+ */
+function assertServerEnvironment(): void {
+  // Both conditions are needed. `window` alone is not a browser tell here:
+  // the test suite registers happy-dom globals, so it has a `window` and a
+  // real `process.env`. The empty-env check alone is not one either — a
+  // genuinely bare server env is unconfigured, not broken. Together they
+  // describe only the bundled-for-browser case, where the polyfill hands
+  // back `{}` and every schema check would fail for the wrong reason.
+  if (typeof window !== 'undefined' && Object.keys(process.env).length === 0) {
+    throw new Error(
+      '@/integrations/registry reads process.env and cannot run in the browser — ' +
+        'call it from a Server Component, Route Handler, or Server Action.'
+    )
+  }
+}
+
+/**
  * Check if a specific integration is configured
  */
 export function isConfigured(id: IntegrationId): boolean {
+  assertServerEnvironment()
   return integrations[id].envSchema.safeParse(process.env).success
 }
 
@@ -117,6 +146,7 @@ export function hasCapability<Id extends IntegrationId>(
   id: Id,
   capability: CapabilityOf<Id> extends never ? string : CapabilityOf<Id>
 ): boolean {
+  assertServerEnvironment()
   // Widen from the literal entry union (where most entries lack the key)
   // to the interface, which declares `capabilities` as optional.
   const entry: IntegrationEntry = integrations[id]
@@ -131,6 +161,7 @@ export function hasCapability<Id extends IntegrationId>(
  * Get all configured integration ids
  */
 export function getConfiguredIds(): IntegrationId[] {
+  assertServerEnvironment()
   return (Object.keys(integrations) as IntegrationId[]).filter(
     (id) => integrations[id].envSchema.safeParse(process.env).success
   )
@@ -142,6 +173,7 @@ export function getConfiguredIds(): IntegrationId[] {
  * use `getConfiguredIds()`.
  */
 export function getConfigured(): string[] {
+  assertServerEnvironment()
   return Object.values(integrations).flatMap((entry) =>
     entry.envSchema.safeParse(process.env).success ? [entry.name] : []
   )
@@ -151,6 +183,7 @@ export function getConfigured(): string[] {
  * Get all unconfigured integration names
  */
 export function getUnconfigured(): string[] {
+  assertServerEnvironment()
   return Object.values(integrations).flatMap((entry) =>
     entry.envSchema.safeParse(process.env).success ? [] : [entry.name]
   )

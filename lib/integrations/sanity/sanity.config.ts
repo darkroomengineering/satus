@@ -13,8 +13,6 @@ import {
 } from 'sanity/presentation'
 import { structureTool } from 'sanity/structure'
 
-import { isConfigured } from '@/integrations/registry'
-
 import { apiVersion, dataset, previewURL, projectId } from './env'
 import { schema } from './schemas'
 
@@ -36,8 +34,16 @@ function resolveHref(documentType?: string, slug?: string): string | undefined {
  * on an empty projectId, so this must not be called during CI/preview
  * builds that have no Sanity secrets set. The studio page checks this and
  * renders a 404 instead of mounting `NextStudio`.
+ *
+ * Gated on the values from `./env`, NOT on `isConfigured('sanity')`. This
+ * module is dual-compiled into the client bundle (the Studio route imports
+ * it across a `'use client'` boundary), and `isConfigured` validates the
+ * whole `process.env` object — which the browser `process` polyfill defines
+ * as a permanently empty `{}`. Only literal `process.env.NEXT_PUBLIC_X`
+ * reads get inlined at build time, so the schema check was always false in
+ * the browser and 404'd a correctly configured Studio after hydration.
  */
-export default isConfigured('sanity')
+export default projectId && dataset
   ? defineConfig({
       basePath: '/studio',
       projectId,

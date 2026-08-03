@@ -30,7 +30,7 @@
 //     )
 //   }
 //
-// Full walkthrough: see the manual (app/page.tsx) step 5 "Add a plugin".
+// Full walkthrough: see the manual (app/(site)/page.tsx) step 5 "Add a plugin".
 //
 // 4. Catalog reads (products.ts, collections.ts, pages.ts) are wrapped in
 //    'use cache' with a one-hour cacheLife — required under Cache Components

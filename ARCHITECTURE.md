@@ -28,11 +28,11 @@ import { Link } from '@/components/ui/link'
 
 ### Lenis for Scrolling
 
-Configured in `app/layout.tsx`. ScrollTrigger uses Lenis automatically.
+Configured in `app/(site)/layout.tsx`. ScrollTrigger uses Lenis automatically.
 
 ### Optional Features Pattern
 
-Root layout conditionally loads features:
+The app layout (`app/(site)/layout.tsx`) conditionally loads features:
 
 ```tsx
 import { OptionalFeatures } from '@/lib/features'

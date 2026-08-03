@@ -22,6 +22,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | Marquee | `@/components/ui/marquee` | Client |
 | Menu | `@/components/ui/menu` | Client |
 | NotConfigured | `@/components/ui/not-configured` | Server |
+| NotFoundView | `@/components/ui/not-found-view` | Server |
 | RealViewport | `@/components/ui/real-viewport` | Client |
 | SanityImage | `@/components/ui/sanity-image` | Server |
 | Scrollbar | `@/components/ui/scrollbar` | Client |

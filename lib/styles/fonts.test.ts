@@ -47,9 +47,9 @@ function extractFontCalls(source: string, identifiers: string[]): FontCall[] {
 
   for (const identifier of identifiers) {
     const callRegex = new RegExp(`${identifier}\\(\\s*\\{`, 'g')
-    let match: RegExpExecArray | null
-    // biome-ignore lint: while-assign is the clearest way to iterate global regex matches
-    while ((match = callRegex.exec(source))) {
+    while (true) {
+      const match = callRegex.exec(source)
+      if (!match) break
       const openBraceIndex = match.index + match[0].length - 1
       let depth = 1
       let index = openBraceIndex + 1

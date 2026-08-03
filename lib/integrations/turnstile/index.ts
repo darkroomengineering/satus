@@ -23,6 +23,10 @@ export interface TurnstileValidationResult {
   errors: string[]
 }
 
+// cache-exempt: reads headers() for the requester's IP and verifies a
+// one-time challenge token with Cloudflare — inherently per-request, so
+// 'use cache' would both be illegal (headers() is banned inside it) and
+// wrong (a cached verdict would replay the verification for other visitors).
 export async function validateTurnstile(
   token: string
 ): Promise<TurnstileValidationResult> {

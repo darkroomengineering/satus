@@ -39,7 +39,12 @@ import type {
   SourceFile,
 } from 'ts-morph'
 
-const NETWORK_READ_PATTERNS = [/\bfetch\(/, /shopifyFetch/, /sanityFetch/]
+const NETWORK_READ_PATTERNS = [
+  /\bfetch\(/,
+  /fetchWithTimeout/,
+  /shopifyFetch/,
+  /sanityFetch/,
+]
 const CACHE_EXEMPT_PATTERN = /\/\/\s*cache-exempt:/
 
 /** Is `'use server'` the first statement in the file? */

@@ -73,8 +73,10 @@ function findPageFiles(dir: string, base = dir): string[] {
 
 /** `/(site)/(examples)/sanity/page.tsx` -> `/sanity`, or `null` if dynamic. */
 function toRoute(relativePagePath: string): string | null {
+  // path.join produces `\` separators on Windows; split on both so the
+  // sweep derives the same routes on every contributor's machine.
   const segments = relativePagePath
-    .split('/')
+    .split(/[\\/]/)
     .filter((segment) => segment.length > 0 && segment !== 'page.tsx')
 
   if (segments.some((segment) => segment.includes('['))) return null

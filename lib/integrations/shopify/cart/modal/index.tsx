@@ -131,6 +131,10 @@ function InnerCart() {
                 // a thumbnail.
                 mobileSize="25vw"
                 desktopSize="17vw"
+                // Product shots vary in aspect and must not be cropped in the
+                // cart. This has to be the prop, not CSS: Image writes
+                // object-fit inline, which outranks any stylesheet rule.
+                objectFit="contain"
                 {...(merchandise.product.featuredImage?.width &&
                 merchandise.product.featuredImage?.height
                   ? {

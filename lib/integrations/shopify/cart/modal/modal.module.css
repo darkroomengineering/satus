@@ -110,14 +110,14 @@
       width: 100%;
       height: mobile-vw(150px);
 
-      /* Both axes must be bound for object-fit to apply — the Image
-         wrapper's block style is width: auto, so height alone let a
-         product image render at its intrinsic aspect and spill out of
-         the grid cell. */
+      /* Both axes must be bound or the image renders at its intrinsic
+         aspect and spills out of the grid cell — the Image wrapper's
+         block style is width: auto, so height alone is not enough.
+         object-fit is set via the component's prop, since it writes that
+         one inline where a rule here could never win. */
       img {
         width: 100%;
         height: 100%;
-        object-fit: contain;
       }
 
       @media (--desktop) {

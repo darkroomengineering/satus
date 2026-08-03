@@ -9,15 +9,12 @@ import s from './scoped-animation.module.css'
 const CARDS = ['one', 'two', 'three', 'four']
 
 /**
- * Demonstrates the three things `useGSAP` gives you over a bare `useEffect`.
+ * Scoped GSAP animation.
  *
- * 1. Selector strings resolve against `scope`, so `.card` only matches inside
- *    this component. The control card below sits outside the scope with the
- *    same class and must never move.
- * 2. Everything created inside the hook is reverted on unmount, so navigating
- *    away leaves no live tweens behind.
- * 3. `contextSafe` pulls animations started from an event handler back into
- *    that same cleanup — without it they outlive the component.
+ * `useGSAP` resolves selector strings against `scope`, so `.card` matches only
+ * inside this component, and reverts every tween it creates on unmount.
+ * Animations started from an event handler run outside that scope unless you
+ * wrap them in `contextSafe`, as `nudge` does below.
  */
 export function ScopedAnimation() {
   const scope = useRef<HTMLDivElement>(null)
@@ -47,7 +44,7 @@ export function ScopedAnimation() {
 
   return (
     <div className={s.root}>
-      <div className={s.scope} ref={scope} data-testid="scope">
+      <div className={s.scope} ref={scope}>
         {CARDS.map((label) => (
           <div className={`card ${s.card}`} key={label}>
             {label}
@@ -56,13 +53,8 @@ export function ScopedAnimation() {
       </div>
 
       <button className={s.button} onClick={nudge} type="button">
-        nudge (contextSafe)
+        nudge
       </button>
-
-      {/* Outside the scope, same class. If this ever moves, scoping broke. */}
-      <div className={`card ${s.control}`} data-testid="control">
-        control — outside scope
-      </div>
     </div>
   )
 }

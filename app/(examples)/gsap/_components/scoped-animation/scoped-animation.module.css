@@ -26,13 +26,3 @@
   border: 1px solid var(--color-secondary);
   border-radius: 100px;
 }
-
-.control {
-  display: grid;
-  place-items: center;
-  width: 240px;
-  height: 96px;
-  border: 1px dashed var(--color-secondary);
-  border-radius: 8px;
-  opacity: 0.6;
-}

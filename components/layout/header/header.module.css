@@ -26,9 +26,11 @@
 }
 
 .brandPath {
-  /* 0.45 rendered #737373 on black — 4.42:1, just under WCAG AA's 4.5:1
-     for text. 0.5 lands ~5.3:1. Found by the e2e route sweep's axe pass. */
-  opacity: 0.5;
+  /* 0.5 rendered #808080 on white — 3.94:1, under WCAG AA's 4.5:1 (caught by
+     the e2e axe pass on /sanity's light-theme NotConfigured fallback). 0.55:
+     on black ≈#8c8c8c = 6.27:1; on white ≈#737373 = 4.74:1; both clear 4.5.
+     Opacity below ~0.535 fails white; below ~0.457 fails black. */
+  opacity: 0.55;
   max-width: 12ch;
   overflow: hidden;
   text-overflow: ellipsis;

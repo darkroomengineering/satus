@@ -74,7 +74,10 @@
 }
 
 .navLinkDim {
-  opacity: 0.5;
+  /* Same dual-polarity fix as .brandPath above (see its comment for the math):
+     0.5 rendered #808080 on white — 3.94:1, under WCAG AA. 0.55 clears 4.5:1
+     on both white and black. */
+  opacity: 0.55;
 }
 
 /* Mobile menu toggle button — only shown on mobile */

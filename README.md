@@ -83,17 +83,19 @@ lib/                    # Everything non-UI
 
 ## Documentation
 
-| Area                  | Documentation                                                                    |
-| --------------------- | -------------------------------------------------------------------------------- |
-| Engineering Standards | [AGENTS.md](AGENTS.md) - Canonical rules for all AI tools and contributors       |
-| Architecture          | [ARCHITECTURE.md](ARCHITECTURE.md) - Key decisions, patterns, customization      |
-| Component Catalogue   | Storybook (`bun storybook`) - Isolated UI primitives with docs                   |
-| Component Inventory   | [COMPONENTS.md](COMPONENTS.md) - Auto-generated component/hook/utility manifest  |
-| Changelog             | [CHANGELOG.md](CHANGELOG.md) - Release history and versioning policy             |
-| App Router            | [app/README.md](app/README.md) - Pages, layouts, routing                         |
-| Components            | [components/README.md](components/README.md) - UI reference                      |
-| Library               | [lib/README.md](lib/README.md) - Hooks, utils, integrations                      |
-| Integrations          | [lib/integrations/README.md](lib/integrations/README.md) - Sanity, Shopify, etc. |
+| Area                  | Documentation                                                                          |
+| --------------------- | -------------------------------------------------------------------------------------- |
+| Engineering Standards | [AGENTS.md](AGENTS.md) - Canonical rules for all AI tools and contributors             |
+| Architecture          | [ARCHITECTURE.md](ARCHITECTURE.md) - Key decisions, patterns, customization            |
+| Security              | [SECURITY.md](SECURITY.md) - Security policy, CSP composition, vulnerability reporting |
+| Component Catalogue   | Storybook (`bun storybook`) - Isolated UI primitives with docs                         |
+| Component Inventory   | [COMPONENTS.md](COMPONENTS.md) - Auto-generated component/hook/utility manifest        |
+| Changelog             | [CHANGELOG.md](CHANGELOG.md) - Release history and versioning policy                   |
+| App Router            | [app/README.md](app/README.md) - Pages, layouts, routing                               |
+| API Routes            | [app/api/README.md](app/api/README.md) - Endpoint reference, webhook setup             |
+| Components            | [components/README.md](components/README.md) - UI reference                            |
+| Library               | [lib/README.md](lib/README.md) - Hooks, utils, integrations                            |
+| Integrations          | [lib/integrations/README.md](lib/integrations/README.md) - Sanity, Shopify, etc.       |
 
 ## Scripts
 

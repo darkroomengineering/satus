@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 
-import { APP_BASE_URL } from '@/lib/env'
+import { BASE_URL } from '@/lib/seo/site'
 
 const DISALLOW = ['/api/draft-mode/']
 
@@ -43,6 +43,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: DISALLOW,
       },
     ],
-    sitemap: `${APP_BASE_URL}/sitemap.xml`,
+    sitemap: `${BASE_URL}/sitemap.xml`,
   }
 }

@@ -1,3 +1,4 @@
+import { getCmsRoutes } from '@/lib/seo/routes'
 import { formatList, SITE } from '@/lib/seo/site'
 
 /**
@@ -6,8 +7,11 @@ import { formatList, SITE } from '@/lib/seo/site'
  *
  * This is the cheapest possible AEO (answer-engine optimization) win: one
  * static endpoint that states the entity in the format crawlers already
- * expect. The body is generated from `lib/seo/site.ts` rather than
- * hand-written so it can never drift from the JSON-LD graph or on-page copy.
+ * expect. The entity section is generated from `lib/seo/site.ts` rather
+ * than hand-written so it can never drift from the JSON-LD graph or
+ * on-page copy; the content list is generated from the same
+ * `getCmsRoutes()` that feeds `app/sitemap.ts`, so both surfaces describe
+ * the same set of pages.
  *
  * No `export const dynamic = 'force-static'` here — this project runs
  * Next's Cache Components (`cacheComponents: true`), which forbids the
@@ -36,8 +40,26 @@ function buildAbout(): string {
   return clauses.join(' ')
 }
 
+function buildContent(
+  cmsRoutes: Awaited<ReturnType<typeof getCmsRoutes>>
+): string {
+  if (cmsRoutes.length === 0) return ''
+
+  const links = cmsRoutes
+    .map((route) => `- [${route.label}](${SITE.url}${route.path})`)
+    .join('\n')
+
+  return `
+
+## Content
+
+${links}`
+}
+
 async function buildBody(): Promise<string> {
   'use cache'
+  const cmsRoutes = await getCmsRoutes()
+
   return `# ${SITE.name}
 
 > ${SITE.description}
@@ -49,7 +71,7 @@ ${buildAbout()}
 ## Key pages
 
 - [Home](${SITE.url}/): ${SITE.description}
-- [Machine view](${SITE.url}/ai): Plain-HTML index of every page, for agents.
+- [Machine view](${SITE.url}/ai): Plain-HTML index of every page, for agents.${buildContent(cmsRoutes)}
 `
 }
 

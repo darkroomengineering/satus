@@ -42,13 +42,18 @@ export interface SiteFacts {
 }
 
 /**
- * `NEXT_PUBLIC_BASE_URL` is validated with `z.url()`, which permits a trailing
- * slash. Everything below concatenates onto this, so an unnormalized value
- * would emit `//icon.png` and `//#organization` — a broken logo and a JSON-LD
- * `@id` that no longer matches the one other nodes reference. Strip it once,
- * here, rather than in every consumer.
+ * Canonical, normalized base URL — the single place every absolute URL in
+ * the app (sitemap, robots, `/llms.txt`, JSON-LD) derives from.
+ *
+ * `APP_BASE_URL` (`lib/env.ts`) already carries the fallback chain
+ * (`NEXT_PUBLIC_BASE_URL` ?? `https://localhost:3000`); this just normalizes
+ * it once. `NEXT_PUBLIC_BASE_URL` is validated with `z.url()`, which permits
+ * a trailing slash. Everything below concatenates onto this, so an
+ * unnormalized value would emit `//icon.png` and `//#organization` — a
+ * broken logo and a JSON-LD `@id` that no longer matches the one other nodes
+ * reference. Strip it once, here, rather than in every consumer.
  */
-const BASE_URL = APP_BASE_URL.replace(/\/+$/, '')
+export const BASE_URL = APP_BASE_URL.replace(/\/+$/, '')
 
 export const SITE: SiteFacts = {
   name: 'Satūs',

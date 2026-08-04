@@ -500,13 +500,14 @@ All integrations are optional and self-contained in `lib/integrations/{name}/`. 
 ```bash
 bun dev              # Dev server (Turbopack)
 bun run build        # Production build (runs setup:styles first)
-bun run check        # oxlint + oxfmt --check + lint:types + tsc --noEmit + bun test + manifest:check + check:assets (must pass before commit)
+bun run check        # oxlint + oxfmt --check + lint:types + ensure:typegen + tsc --noEmit + bun test + manifest:check + check:assets (must pass before commit)
 bun lint             # oxlint
 bun lint:fix         # oxlint with auto-fix
 bun run lint:types   # oxlint type-aware rules (no-floating-promises, no-misused-promises)
 bun run format       # oxfmt (writes in place; sorts imports + Tailwind classes)
-bun run typecheck    # tsc --noEmit (TypeScript 7 native)
-bun run typecheck:watch  # tsc --noEmit --watch (native fast watcher; live feedback)
+bun run ensure:typegen  # generates next-env.d.ts via `next typegen` if missing (skipped if it already exists)
+bun run typecheck    # ensure:typegen + tsc --noEmit (TypeScript 7 native)
+bun run typecheck:watch  # ensure:typegen + tsc --noEmit --watch (native fast watcher; live feedback)
 bun test             # Unit tests (bun's built-in runner; ignores *.e2e.ts)
 bun run test:e2e     # Playwright E2E smoke test (boots dev server automatically)
 bun run setup:project  # Strip unused integrations (non-interactive: --preset/--keep, --yes, --clean-homepage, --skip-install, --dry-run)
@@ -514,6 +515,8 @@ bun run doctor       # Diagnose setup issues
 ```
 
 Pre-commit hook (lefthook) runs on staged files: oxfmt + oxlint --fix (sequential, one command), in parallel with tsc typecheck. Type-aware linting is excluded from the hook to keep commits fast.
+
+`next-env.d.ts` (gitignored) is what makes tsc resolve the ambient `.svg`/`.css` module declarations in `lib/utils/types.d.ts` — it's listed first in `tsconfig.json`'s `include`, and tsc needs that entry to exist for the rest of `include` to take effect. A byte-fresh clone has no `next-env.d.ts` (`next dev`/`next build` normally generate it), so `ensure:typegen` backfills it with `next typegen` — a route-type generation step, not a full build — before `typecheck`/`check` run. It's a no-op once the file exists, so `bun run check` is order-independent: run it before or after `bun run build`, doesn't matter.
 
 Route smoke coverage is automatic: `e2e/route-sweep.e2e.ts` discovers every `app/**/page.tsx` at test-collection time and runs the five-assertion smoke against it — creating the page is the only step. Write a bespoke `*.e2e.ts` only for behavior beyond the smoke (see `e2e/not-found.e2e.ts` for the soft-404 example).
 

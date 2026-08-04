@@ -66,6 +66,15 @@ export async function POST(request: NextRequest) {
       now: Date.now(),
     })
   } catch (error) {
+    // next-sanity's parseBody() runs `JSON.parse` on the raw request body
+    // after signature validation; malformed JSON throws a SyntaxError here.
+    // That's a client-input problem, not a server fault, so it gets a 400
+    // instead of feeding 5xx-triggered retries/alarms.
+    if (error instanceof SyntaxError) {
+      console.warn('Revalidation client error: invalid JSON body', error)
+      return new Response('Invalid JSON body', { status: 400 })
+    }
+
     console.error('Revalidation error:', error)
     return new Response('Internal Server Error', { status: 500 })
   }

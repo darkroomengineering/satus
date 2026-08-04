@@ -48,7 +48,7 @@ const STEPS: Step[] = [
         <p className={s.text}>
           Point the site at your domain: copy{' '}
           <code className={s.inline}>.env.example</code> to{' '}
-          <code className={s.inline}>.env</code> and set{' '}
+          <code className={s.inline}>.env.local</code> and set{' '}
           <code className={s.inline}>NEXT_PUBLIC_BASE_URL</code>.
         </p>
         <p className={s.text}>

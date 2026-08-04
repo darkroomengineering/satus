@@ -34,6 +34,41 @@ export const pathExists = async (path: string): Promise<boolean> => {
 }
 
 // ============================================================================
+// setup:project ↔ prepare handoff (P-B2)
+// ============================================================================
+
+/**
+ * Marker file `setup-project.ts` writes when it ran with `--skip-install`
+ * (oxfmt can't format anything until `bun install` has populated
+ * node_modules — see `setup-project.ts`'s "Post-run cleanup" docstring) and
+ * `prepare.ts` reads on the next `bun install` to finish the deferred
+ * formatting. Lives here (not in setup-project.ts) because prepare.ts ships
+ * with every scaffolded project and must keep working after setup-project.ts
+ * self-prunes.
+ */
+export const PENDING_FORMAT_MARKER = '.setup-project-pending-format.json'
+
+/** Shape of `PENDING_FORMAT_MARKER`'s JSON contents. */
+export interface PendingFormatMarker {
+  files: string[]
+  /**
+   * Number of times `prepare.ts` has already tried (and failed) to finish
+   * this marker. Absent/0 on the first attempt. `prepare.ts` deletes the
+   * marker with a loud instruction once `attempts` reaches
+   * `PENDING_FORMAT_MAX_ATTEMPTS`, instead of retrying forever on every
+   * future `bun install`.
+   */
+  attempts?: number
+}
+
+/**
+ * How many times `prepare.ts` retries a failed format/manifest step before
+ * giving up and deleting `PENDING_FORMAT_MARKER` outright (with a loud,
+ * copy-pasteable manual-recovery instruction).
+ */
+export const PENDING_FORMAT_MAX_ATTEMPTS = 2
+
+// ============================================================================
 // File System Operations (Cross-platform)
 // ============================================================================
 

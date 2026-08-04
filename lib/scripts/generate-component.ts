@@ -13,6 +13,8 @@ import * as p from '@clack/prompts'
 import { findBarrelLine, insertBarrelLine } from './barrel-file'
 import {
   cancelGuard,
+  formatGeneratedFiles,
+  refuseIfExists,
   toCamelCase,
   toPascalCase,
   withSpinner,
@@ -99,7 +101,7 @@ export async function promptComponentConfig(): Promise<ComponentConfig> {
 /**
  * Generate component index.tsx content
  */
-function generateComponentContent(
+export function generateComponentContent(
   componentName: string,
   options: ComponentOptions
 ): string {
@@ -110,6 +112,7 @@ function generateComponentContent(
 
   return `${directive}import cn from 'clsx'
 import type { HTMLAttributes, ReactNode } from 'react'
+
 import s from './${componentName}.module.css'
 
 interface ${pascalName}Props extends HTMLAttributes<HTMLDivElement> {
@@ -230,6 +233,12 @@ export async function createComponent(
   }
 
   const componentDir = `components/${componentPath}`
+  const indexPath = `${componentDir}/index.tsx`
+  const cssPath = `${componentDir}/${componentName}.module.css`
+
+  // Refuse to clobber an existing component — re-running the generator with
+  // the same name must never silently overwrite hand-edited output.
+  await refuseIfExists([indexPath, cssPath])
 
   await withSpinner(
     `Generating component "${componentPath}"`,
@@ -243,10 +252,14 @@ export async function createComponent(
       const componentContent = generateComponentContent(componentName, options)
       const cssContent = generateCssContent(componentName)
 
-      await Bun.write(`${componentDir}/index.tsx`, componentContent)
-      await Bun.write(`${componentDir}/${componentName}.module.css`, cssContent)
+      await Bun.write(indexPath, componentContent)
+      await Bun.write(cssPath, cssContent)
     }
   )
+
+  // Keep generated output aligned with the repo's formatting gate, even if
+  // the templates above drift out of sync with oxfmt's import-grouping rules.
+  await formatGeneratedFiles([indexPath, cssPath])
 
   // Show what was created
   p.log.success(`Created files:`)

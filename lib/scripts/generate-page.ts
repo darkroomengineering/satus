@@ -10,7 +10,13 @@
 
 import * as p from '@clack/prompts'
 
-import { cancelGuard, withSpinner } from './generate-shared'
+import {
+  cancelGuard,
+  formatGeneratedFiles,
+  refuseIfExists,
+  toPascalCase,
+  withSpinner,
+} from './generate-shared'
 import { getIntegrationEntries } from './integration-bundles'
 import { createDir } from './utils'
 
@@ -95,31 +101,42 @@ export async function promptPageConfig(): Promise<PageConfig> {
 /**
  * Generate page.tsx content
  */
-function generatePageContent(pageName: string, options: PageOptions): string {
+export function generatePageContent(
+  pageName: string,
+  options: PageOptions
+): string {
   const { webgl, sanity, shopify, theme = 'dark' } = options
+  // Display text (h1, metadata title/description) — the raw, human-facing
+  // name is fine here, hyphens and all.
   const title = pageName.charAt(0).toUpperCase() + pageName.slice(1)
+  // Identifier text (the exported function name) must be a valid PascalCase
+  // JS identifier — hyphens in `pageName` would otherwise break syntax.
+  const pascalName = toPascalCase(pageName)
 
-  const imports: string[] = [
-    `import type { Metadata } from 'next'`,
+  const externalImports: string[] = [`import type { Metadata } from 'next'`]
+  const internalImports: string[] = [
     `import { Wrapper } from '@/components/layout/wrapper'`,
   ]
   if (sanity || shopify) {
-    imports.push(
+    internalImports.push(
       `import { isConfigured } from '@/lib/integrations/registry'`,
       `import { NotConfigured } from '@/components/ui/not-configured'`
     )
   }
   if (sanity) {
-    imports.push(
-      `import { sanityFetch } from 'next-sanity/live'`,
+    externalImports.push(`import { sanityFetch } from 'next-sanity/live'`)
+    internalImports.push(
       `import { pageQuery } from '@/lib/integrations/sanity/queries'`,
       `import type { Page } from '@/lib/integrations/sanity/sanity.types'`,
       `import { generateSanityMetadata } from '@/lib/utils/metadata'`
     )
   }
   if (shopify) {
-    imports.push(`import { Cart } from '@/lib/integrations/shopify/cart'`)
+    internalImports.push(
+      `import { Cart } from '@/lib/integrations/shopify/cart'`
+    )
   }
+  const imports = [...externalImports, '', ...internalImports]
 
   const wrapperProps = [`theme="${theme}"`, ...(webgl ? ['webgl'] : [])].join(
     ' '
@@ -214,7 +231,7 @@ export const metadata: Metadata = {
   return `${imports.join('\n')}
 ${metadataExport}
 
-export default ${isAsync ? 'async ' : ''}function ${title}Page() {
+export default ${isAsync ? 'async ' : ''}function ${pascalName}Page() {
 ${body}
 }
 `
@@ -229,6 +246,15 @@ export async function createPage(
 ): Promise<void> {
   const pageDir = `app/${pageName}`
   const componentsDir = `${pageDir}/_components`
+  const pagePath = `${pageDir}/page.tsx`
+  const cssPath = `${pageDir}/${pageName}.module.css`
+
+  // Refuse to clobber an existing page — re-running the generator with the
+  // same name must never silently overwrite hand-edited output.
+  const targets = options.css ? [pagePath, cssPath] : [pagePath]
+  await refuseIfExists(targets)
+
+  const writtenPaths: string[] = []
 
   await withSpinner(
     `Creating page structure for "${pageName}"`,
@@ -246,7 +272,8 @@ export async function createPage(
 
       // Generate and write page.tsx
       const pageContent = generatePageContent(pageName, options)
-      await Bun.write(`${pageDir}/page.tsx`, pageContent)
+      await Bun.write(pagePath, pageContent)
+      writtenPaths.push(pagePath)
 
       // Create CSS module if requested
       if (options.css) {
@@ -256,10 +283,15 @@ export async function createPage(
   /* Add your styles here */
 }
 `
-        await Bun.write(`${pageDir}/${pageName}.module.css`, cssContent)
+        await Bun.write(cssPath, cssContent)
+        writtenPaths.push(cssPath)
       }
     }
   )
+
+  // Keep generated output aligned with the repo's formatting gate, even if
+  // the templates above drift out of sync with oxfmt's import-grouping rules.
+  await formatGeneratedFiles(writtenPaths)
 
   // Show what was created
   p.log.success(`Generated files:`)

@@ -114,6 +114,8 @@ The full list lives in `package.json`.
 vercel
 ```
 
+`vercel` (or the Deploy button above) links and deploys the project the first time. Once the project is linked, push to the tracked branch and Vercel deploys automatically — the CLI is only needed again for manual/preview deploys.
+
 **Optional GitHub Secrets** for the Lighthouse CI workflow: `VERCEL_TOKEN`
 (Vercel API token — the job skips gracefully with a warning when it's absent
 or invalid) and `VERCEL_AUTOMATION_BYPASS_SECRET` (needed when previews are

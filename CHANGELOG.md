@@ -36,6 +36,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 - `post-checkout` lefthook hook that clears `.next/types` + `.next/dev/types` on branch switches (git flag `1` only — file checkouts untouched, rebases skipped), killing the ghost `tsc` errors caused by the previous branch's generated route types. Types regenerate on the next dev/build.
 - Minimal Playwright E2E harness (`e2e/home.e2e.ts`) — smoke spec covering page render, zero console errors, and zero critical/serious a11y violations (via `@axe-core/playwright`). Run with `bun run test:e2e`. Specs use `.e2e.ts` extension so `bun test` ignores them. (#e2e)
+- Instant-navigation regression test (`e2e/instant-navigation.e2e.ts`) using `@next/playwright`'s `instant()` helper — wraps the 404 page's "Go Home" link click and asserts the home shell paints without waiting on the network, so a refactor that de-opts instant navigation (a `cookies()` read leaking into a shared layout, a moved Suspense boundary) fails CI instead of going unnoticed. (#339)
 - Storybook themed to match Satūs: stories render on the site palette through shared CSS tokens (edit the site, the catalogue follows), with a dark/light/red/evil theme toolbar and a branded manager. (#210)
 - Optional `/storybook` route that proxies to a standalone Storybook deployment, enabled per-environment via `NEXT_PUBLIC_STORYBOOK_URL` and force-disabled in Production. (#210)
 - One-click Deploy to Vercel button (README + in-app manual) and clearer domain-setup guidance. (#210)

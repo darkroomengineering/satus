@@ -9,4 +9,8 @@
  *   ast-transforms/index.ts       — dispatch + disk API
  */
 
-export { applyCodeTransforms, applyOpsToText } from './ast-transforms/index'
+export {
+  applyCodeTransforms,
+  applyOpsToText,
+  RequiredOpMatchError,
+} from './ast-transforms/index'

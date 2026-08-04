@@ -4,15 +4,109 @@
  * Contains only exported interface/type declarations — zero runtime code.
  */
 
+/**
+ * Shared by every op: a required-match contract (cross-model review
+ * finding). When `required` is true and the op matches nothing on the file
+ * it's applied to, the runner (`applyOpsToText` in `ast-transforms/index.ts`)
+ * throws instead of silently leaving the file unchanged — a source shape
+ * that drifted out from under a strip transform (a rename, a moved
+ * function, a restructured try/catch) would otherwise strip an import while
+ * leaving the code that used it, producing a tree that fails to build with
+ * no signal until `bun run build` — by which point `setup:project` has
+ * already self-pruned the machinery that could have caught it.
+ *
+ * Defaults to false/undefined: most ops are intentionally best-effort or
+ * idempotent by design (e.g. an additive op that's a legitimate no-op
+ * because the construct is already present, or a removal op reapplied to an
+ * already-lean file via `stripAbsentIntegrationWiring`) — `required` is only
+ * safe to set on ops whose single, deterministic application point is
+ * guaranteed to see pristine, never-before-touched source (see each op's
+ * `required: true` usage in `integration-bundles.ts` / `setup-project.ts`
+ * for the reasoning).
+ */
+export interface RequiredMatchOp {
+  /**
+   * When true, zero matches for this op on the file it's applied to is a
+   * hard failure, not a silent no-op.
+   */
+  required?: boolean
+}
+
 /** Remove a top-level import declaration by its module specifier. */
-export interface RemoveImportOp {
+export interface RemoveImportOp extends RequiredMatchOp {
   kind: 'removeImport'
   /** The module specifier string to match exactly, e.g. '@/webgl/components/canvas' */
   specifier: string
 }
 
+/**
+ * Remove a single named binding from an existing import declaration, keeping
+ * any other named/default/namespace bindings on that declaration intact.
+ * When the removed binding was the declaration's only binding, the whole
+ * declaration is removed (mirrors `removeImport`'s cleanup). No-op when the
+ * specifier or the named binding isn't found.
+ *
+ * Use this instead of `removeImport` when a declaration is shared by bindings
+ * owned by different integrations, e.g. `import { type NextRequest,
+ * NextResponse } from 'next/server'` where only `NextResponse` is
+ * sanity-owned and `NextRequest` must survive (it types the shared handler's
+ * parameter).
+ */
+export interface RemoveNamedImportOp extends RequiredMatchOp {
+  kind: 'removeNamedImport'
+  /** Module specifier of the import declaration to target, e.g. 'next/server' */
+  specifier: string
+  /** The named import to remove, e.g. 'NextResponse' */
+  name: string
+}
+
+/**
+ * Remove a `try { … } catch { … }` statement whose try-block source text
+ * contains `blockContains` (disambiguates multiple try statements in the same
+ * file). Matches at any scope depth; removes every occurrence, including its
+ * own leading comments. Pure deletion — no replacement — mirrors
+ * `removeIfStatement`.
+ */
+export interface RemoveTryStatementOp extends RequiredMatchOp {
+  kind: 'removeTryStatement'
+  /** Substring to match against the try block's own source text. */
+  blockContains: string
+}
+
+/**
+ * Remove a `'use cache'` directive that sits as the first statement of a
+ * named function's body. No-op when the function isn't found or its first
+ * statement isn't a `'use cache'` directive.
+ *
+ * Used to keep a `'use cache'` boundary from becoming a hard Next.js compile
+ * error once Cache Components is disabled (`cacheComponents: false` requires
+ * every `'use cache'` boundary in the app to be gone too) — see
+ * `setupCacheComponentsOptOut`.
+ */
+export interface RemoveUseCacheDirectiveOp extends RequiredMatchOp {
+  kind: 'removeUseCacheDirective'
+  /** Name of the function whose leading directive to remove, e.g. 'buildBody' */
+  functionName: string
+}
+
+/**
+ * Replace the entire body of a named function with `replacement` (source
+ * text including the surrounding braces, e.g. `{ return [] }`). Used to gut a
+ * function down to a lean stub when the codeTransform machinery can't express
+ * a targeted removal inside a complex body (mirrors `replaceJsDoc`'s
+ * whole-block-replacement approach, applied to a function body instead of a
+ * JSDoc comment).
+ */
+export interface ReplaceFunctionBodyOp extends RequiredMatchOp {
+  kind: 'replaceFunctionBody'
+  /** Name of the function whose body to replace, e.g. 'getCmsRoutes' */
+  functionName: string
+  /** Replacement body text, including braces, e.g. '{\n  return []\n}' */
+  replacement: string
+}
+
 /** Remove a `const NAME = …` variable statement by name (any scope depth). */
-export interface RemoveVariableStatementOp {
+export interface RemoveVariableStatementOp extends RequiredMatchOp {
   kind: 'removeVariableStatement'
   /** The variable name to remove, e.g. 'LazyWebGLCanvas' */
   name: string
@@ -23,7 +117,7 @@ export interface RemoveVariableStatementOp {
  * `useTheatre(sheet, 'fluid simulation', { … })` statement. Matches at any
  * scope depth; removes every occurrence in the file.
  */
-export interface RemoveCallStatementOp {
+export interface RemoveCallStatementOp extends RequiredMatchOp {
   kind: 'removeCallStatement'
   /** The called identifier, e.g. 'useTheatre' */
   callee: string
@@ -35,7 +129,7 @@ export interface RemoveCallStatementOp {
  * so the remaining `useContextBridge(TransformContext)` stops depending on the
  * stripped Theatre.js module. No-op when the argument is already absent.
  */
-export interface RemoveCallArgumentOp {
+export interface RemoveCallArgumentOp extends RequiredMatchOp {
   kind: 'removeCallArgument'
   /** The called identifier, e.g. 'useContextBridge' */
   callee: string
@@ -51,7 +145,7 @@ export interface RemoveCallArgumentOp {
  * - `unwrap` — when true, keep the element's children and remove only the
  *   opening / closing tags (e.g. strip <Canvas> but keep its content).
  */
-export interface RemoveJsxElementOp {
+export interface RemoveJsxElementOp extends RequiredMatchOp {
   kind: 'removeJsxElement'
   /** JSX tag name, e.g. 'LazyWebGLCanvas', 'Canvas', 'OrchestraToggle' */
   tagName: string
@@ -62,7 +156,7 @@ export interface RemoveJsxElementOp {
 }
 
 /** Remove a property (with its leading JSDoc) from a named interface. */
-export interface RemoveInterfacePropertyOp {
+export interface RemoveInterfacePropertyOp extends RequiredMatchOp {
   kind: 'removeInterfaceProperty'
   /** Interface name, e.g. 'WrapperProps' */
   interfaceName: string
@@ -77,7 +171,7 @@ export interface RemoveInterfacePropertyOp {
  * @example Remove `webgl` prop from every `<Wrapper webgl …>` usage:
  * `{ kind: 'removeJsxAttribute', tagName: 'Wrapper', attributeName: 'webgl' }`
  */
-export interface RemoveJsxAttributeOp {
+export interface RemoveJsxAttributeOp extends RequiredMatchOp {
   kind: 'removeJsxAttribute'
   /** Tag name of the element whose attribute to remove, e.g. 'Wrapper' */
   tagName: string
@@ -94,7 +188,7 @@ export interface RemoveJsxAttributeOp {
  * @example Remove `studio` from `const { stats, grid, studio } = useOrchestra()`
  * `{ kind: 'removeDestructuredBinding', variableName: 'studio', declarationPattern: 'useOrchestra' }`
  */
-export interface RemoveDestructuredBindingOp {
+export interface RemoveDestructuredBindingOp extends RequiredMatchOp {
   kind: 'removeDestructuredBinding'
   /** The binding name to remove, e.g. 'studio' */
   bindingName: string
@@ -107,7 +201,7 @@ export interface RemoveDestructuredBindingOp {
 }
 
 /** Remove a named parameter from a function's destructured props argument. */
-export interface RemoveFunctionParameterOp {
+export interface RemoveFunctionParameterOp extends RequiredMatchOp {
   kind: 'removeFunctionParameter'
   /** Exported function name, e.g. 'Wrapper' */
   functionName: string
@@ -120,7 +214,7 @@ export interface RemoveFunctionParameterOp {
  * Used when multiple partial-text edits to the JSDoc would be brittle; a full
  * replacement is simpler and guarantees the result is well-formed.
  */
-export interface ReplaceJsDocOp {
+export interface ReplaceJsDocOp extends RequiredMatchOp {
   kind: 'replaceJsDoc'
   /** Name of the function whose JSDoc to replace */
   functionName: string
@@ -143,7 +237,7 @@ export interface ReplaceJsDocOp {
  * @example Remove the Shopify webhook dispatch:
  * `{ kind: 'removeIfStatement', conditionContains: 'isShopifyWebhook' }`
  */
-export interface RemoveIfStatementOp {
+export interface RemoveIfStatementOp extends RequiredMatchOp {
   kind: 'removeIfStatement'
   /** Substring to match against the `if` statement's condition source text. */
   conditionContains: string
@@ -156,7 +250,7 @@ export interface RemoveIfStatementOp {
  * Matches an array element that is an object literal containing a property
  * whose name and string value both match the given `matchProperty`.
  */
-export interface RemoveArrayObjectElementOp {
+export interface RemoveArrayObjectElementOp extends RequiredMatchOp {
   kind: 'removeArrayObjectElement'
   /**
    * Dot-separated path from the variable declaration down to the array
@@ -173,7 +267,7 @@ export interface RemoveArrayObjectElementOp {
  * Remove a string-literal element from an array property nested inside a named
  * variable declaration.  Designed for `experimental.optimizePackageImports`.
  */
-export interface RemoveArrayStringElementOp {
+export interface RemoveArrayStringElementOp extends RequiredMatchOp {
   kind: 'removeArrayStringElement'
   /**
    * Dot-separated path from the variable declaration down to the array
@@ -208,7 +302,7 @@ export interface RemoveArrayStringElementOp {
  * already equals `valueText` — see `applySetObjectProperty`'s doc for the
  * exact conditions.
  */
-export interface SetObjectPropertyOp {
+export interface SetObjectPropertyOp extends RequiredMatchOp {
   kind: 'setObjectProperty'
   /** The variable name that holds the object, e.g. `'nextConfig'`. */
   variableName: string
@@ -236,7 +330,7 @@ export interface SetObjectPropertyOp {
  * Otherwise the declaration is inserted after the last existing import, e.g.
  * re-adding `import { Canvas } from '@/webgl/components/canvas'`.
  */
-export interface AddImportOp {
+export interface AddImportOp extends RequiredMatchOp {
   kind: 'addImport'
   /** Full import declaration text, e.g. `import { Canvas } from '@/webgl/components/canvas'` */
   text: string
@@ -249,7 +343,7 @@ export interface AddImportOp {
  *
  * No-op when an element with the same literal value already exists.
  */
-export interface AddArrayStringElementOp {
+export interface AddArrayStringElementOp extends RequiredMatchOp {
   kind: 'addArrayStringElement'
   /** The variable name that holds the object, e.g. `'nextConfig'`. */
   variableName: string
@@ -271,7 +365,7 @@ export interface AddArrayStringElementOp {
  * semantics as `removeArrayObjectElement`, including quoted-key
  * normalization).
  */
-export interface AddArrayObjectElementOp {
+export interface AddArrayObjectElementOp extends RequiredMatchOp {
   kind: 'addArrayObjectElement'
   /** The variable name that holds the object, e.g. `'nextConfig'`. */
   variableName: string
@@ -293,7 +387,7 @@ export interface AddArrayObjectElementOp {
  * No-op when a variable named `name` already exists anywhere in the file
  * (any scope depth, mirroring `removeVariableStatement`).
  */
-export interface AddVariableStatementOp {
+export interface AddVariableStatementOp extends RequiredMatchOp {
   kind: 'addVariableStatement'
   /** The declared variable name used for the idempotency check, e.g. 'LazyWebGLCanvas' */
   name: string
@@ -320,7 +414,7 @@ export interface AddVariableStatementOp {
  * `childTagName` already exists anywhere in the file — narrowed to elements
  * whose attribute matches when `childAttribute` is provided.
  */
-export interface AddJsxChildOp {
+export interface AddJsxChildOp extends RequiredMatchOp {
   kind: 'addJsxChild'
   /**
    * Tag name of the parent element to append into, e.g. 'Wrapper'.
@@ -339,8 +433,55 @@ export interface AddJsxChildOp {
   childAttribute?: { name: string; value: string }
 }
 
+/**
+ * Add a named binding to an existing destructured variable declaration.
+ * Inverse of `removeDestructuredBinding`.
+ *
+ * Targets `const { …, name, … } = expr` statements at any scope depth,
+ * narrowed by `initializerContains` (same matching semantics as
+ * `removeDestructuredBinding`). No-op when a binding with `bindingName`
+ * already exists on the matched pattern, or when no matching destructuring is
+ * found.
+ *
+ * @example Re-add `stats` to `const { grid, studio } = useOrchestra()`
+ * `{ kind: 'addDestructuredBinding', bindingName: 'stats', initializerContains: 'useOrchestra' }`
+ */
+export interface AddDestructuredBindingOp extends RequiredMatchOp {
+  kind: 'addDestructuredBinding'
+  /** The binding name to add, e.g. 'stats' */
+  bindingName: string
+  /**
+   * Substring of the initializer expression text used to find the target
+   * declaration (e.g. 'useOrchestra').
+   */
+  initializerContains: string
+}
+
+/**
+ * Insert a full statement into a named function's body. No-op when a
+ * statement containing `marker` already exists in the body (idempotency
+ * check, mirrors `addVariableStatement`'s name-based check).
+ *
+ * Positioning: when `afterContains` is given and a statement containing that
+ * substring exists, `text` is inserted immediately after it — a stable
+ * anchor independent of what other additive ops have already inserted.
+ * Otherwise `text` is appended as the body's last statement.
+ */
+export interface AddFunctionBodyStatementOp extends RequiredMatchOp {
+  kind: 'addFunctionBodyStatement'
+  /** Name of the function whose body to insert into, e.g. 'POST' */
+  functionName: string
+  /** Full statement text to insert. */
+  text: string
+  /** Substring used for the idempotency check against existing statements. */
+  marker: string
+  /** Optional anchor: insert immediately after the statement containing this substring. */
+  afterContains?: string
+}
+
 export type AstOperation =
   | RemoveImportOp
+  | RemoveNamedImportOp
   | RemoveVariableStatementOp
   | RemoveCallStatementOp
   | RemoveCallArgumentOp
@@ -351,6 +492,9 @@ export type AstOperation =
   | RemoveFunctionParameterOp
   | ReplaceJsDocOp
   | RemoveIfStatementOp
+  | RemoveTryStatementOp
+  | RemoveUseCacheDirectiveOp
+  | ReplaceFunctionBodyOp
   | RemoveArrayObjectElementOp
   | RemoveArrayStringElementOp
   | SetObjectPropertyOp
@@ -359,6 +503,8 @@ export type AstOperation =
   | AddArrayObjectElementOp
   | AddVariableStatementOp
   | AddJsxChildOp
+  | AddDestructuredBindingOp
+  | AddFunctionBodyStatementOp
 
 export interface CodeTransform {
   /** Path to the file to transform (relative to project root) */

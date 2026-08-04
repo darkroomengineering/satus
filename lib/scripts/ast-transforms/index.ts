@@ -15,6 +15,8 @@ import { resolvePath } from '../utils'
 import {
   applyAddArrayObjectElement,
   applyAddArrayStringElement,
+  applyAddDestructuredBinding,
+  applyAddFunctionBodyStatement,
   applyAddImport,
   applyAddJsxChild,
   applyAddVariableStatement,
@@ -31,10 +33,86 @@ import {
   applyRemoveInterfaceProperty,
   applyRemoveJsxAttribute,
   applyRemoveJsxElement,
+  applyRemoveNamedImport,
+  applyRemoveTryStatement,
+  applyRemoveUseCacheDirective,
   applyRemoveVariableStatement,
+  applyReplaceFunctionBody,
   applyReplaceJsDoc,
 } from './remove-ops'
 import { applySetObjectProperty } from './set-ops'
+
+// ---------------------------------------------------------------------------
+// Required-match contract
+// ---------------------------------------------------------------------------
+
+/**
+ * Thrown by `applyOpsToText` when a `required: true` op matches nothing —
+ * see `RequiredMatchOp`'s docstring in `ast-operation-types.ts` for the full
+ * rationale. Distinguished from a regular op-application error so
+ * `applyCodeTransforms` can re-throw it (hard-fail the whole run) instead of
+ * collecting it into `TransformFailure[]` like every other error.
+ */
+export class RequiredOpMatchError extends Error {
+  override readonly name = 'RequiredOpMatchError'
+}
+
+/** One-line, human-readable description of an op, for RequiredOpMatchError's message. */
+function describeOp(op: AstOperation): string {
+  switch (op.kind) {
+    case 'removeImport':
+      return `removeImport '${op.specifier}'`
+    case 'removeNamedImport':
+      return `removeNamedImport '${op.name}' from '${op.specifier}'`
+    case 'removeVariableStatement':
+      return `removeVariableStatement '${op.name}'`
+    case 'removeCallStatement':
+      return `removeCallStatement '${op.callee}'`
+    case 'removeCallArgument':
+      return `removeCallArgument '${op.argument}' from '${op.callee}'`
+    case 'removeJsxElement':
+      return `removeJsxElement '${op.tagName}'${op.attribute ? ` [${op.attribute.name}="${op.attribute.value}"]` : ''}`
+    case 'removeJsxAttribute':
+      return `removeJsxAttribute '${op.attributeName}' on '${op.tagName}'`
+    case 'removeDestructuredBinding':
+      return `removeDestructuredBinding '${op.bindingName}'`
+    case 'removeInterfaceProperty':
+      return `removeInterfaceProperty '${op.propertyName}' on '${op.interfaceName}'`
+    case 'removeFunctionParameter':
+      return `removeFunctionParameter '${op.parameterName}' on '${op.functionName}'`
+    case 'replaceJsDoc':
+      return `replaceJsDoc on '${op.functionName}'`
+    case 'removeIfStatement':
+      return `removeIfStatement '${op.conditionContains}'`
+    case 'removeTryStatement':
+      return `removeTryStatement '${op.blockContains}'`
+    case 'removeUseCacheDirective':
+      return `removeUseCacheDirective on '${op.functionName}'`
+    case 'replaceFunctionBody':
+      return `replaceFunctionBody on '${op.functionName}'`
+    case 'removeArrayObjectElement':
+      return `removeArrayObjectElement '${op.matchProperty.name}=${op.matchProperty.value}' from '${op.variableName}.${op.propertyPath}'`
+    case 'removeArrayStringElement':
+      return `removeArrayStringElement '${op.value}' from '${op.variableName}.${op.propertyPath}'`
+    case 'setObjectProperty':
+      return `setObjectProperty '${op.variableName}.${op.propertyPath}'`
+    case 'addImport':
+      return `addImport '${op.text}'`
+    case 'addArrayStringElement':
+      return `addArrayStringElement '${op.value}' to '${op.variableName}.${op.propertyPath}'`
+    case 'addArrayObjectElement':
+      return `addArrayObjectElement '${op.matchProperty.name}=${op.matchProperty.value}' to '${op.variableName}.${op.propertyPath}'`
+    case 'addVariableStatement':
+      return `addVariableStatement '${op.name}'`
+    case 'addJsxChild':
+      return `addJsxChild '${op.childTagName}' into '${op.parentTagName}'`
+    case 'addDestructuredBinding':
+      return `addDestructuredBinding '${op.bindingName}'`
+    case 'addFunctionBodyStatement':
+      return `addFunctionBodyStatement '${op.marker}' in '${op.functionName}'`
+    // Exhaustiveness — TypeScript ensures all union members are handled above.
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Per-file transform runner
@@ -49,6 +127,11 @@ import { applySetObjectProperty } from './set-ops'
  * any op kind — enabling the JSX handlers without affecting non-JSX ops.
  * Each handler creates and removes its own source file, so no AST state leaks
  * between sequential ops.
+ *
+ * Required-match contract: an op with `required: true` that leaves `text`
+ * byte-for-byte unchanged (no match found) throws `RequiredOpMatchError`
+ * instead of silently continuing — see `RequiredMatchOp`'s docstring in
+ * `ast-operation-types.ts`.
  */
 export function applyOpsToText(
   sourceText: string,
@@ -67,9 +150,13 @@ export function applyOpsToText(
   let text = sourceText
 
   for (const op of ops) {
+    const before = text
     switch (op.kind) {
       case 'removeImport':
         text = applyRemoveImport(project, text, op)
+        break
+      case 'removeNamedImport':
+        text = applyRemoveNamedImport(project, text, op)
         break
       case 'removeVariableStatement':
         text = applyRemoveVariableStatement(project, text, op)
@@ -101,6 +188,15 @@ export function applyOpsToText(
       case 'removeIfStatement':
         text = applyRemoveIfStatement(project, text, op)
         break
+      case 'removeTryStatement':
+        text = applyRemoveTryStatement(project, text, op)
+        break
+      case 'removeUseCacheDirective':
+        text = applyRemoveUseCacheDirective(project, text, op)
+        break
+      case 'replaceFunctionBody':
+        text = applyReplaceFunctionBody(project, text, op)
+        break
       case 'removeArrayObjectElement':
         text = applyRemoveArrayObjectElement(project, text, op)
         break
@@ -125,7 +221,19 @@ export function applyOpsToText(
       case 'addJsxChild':
         text = applyAddJsxChild(project, text, op)
         break
+      case 'addDestructuredBinding':
+        text = applyAddDestructuredBinding(project, text, op)
+        break
+      case 'addFunctionBodyStatement':
+        text = applyAddFunctionBodyStatement(project, text, op)
+        break
       // Exhaustiveness — TypeScript ensures all union members are handled above.
+    }
+
+    if (op.required && text === before) {
+      throw new RequiredOpMatchError(
+        `Required op matched nothing (source shape may have drifted): ${describeOp(op)}`
+      )
     }
   }
 
@@ -152,6 +260,16 @@ export interface TransformFailure {
  * reporting every failure at once). Failures are collected and returned
  * instead of only logged, so callers can fail loudly — and non-zero — once
  * the batch is done, rather than exiting 0 on a silently-incomplete run.
+ *
+ * Exception: a `RequiredOpMatchError` (a `required: true` op that matched
+ * nothing) is deliberately NOT collected into `failures` — it's re-thrown
+ * immediately, aborting this whole batch. Regular per-file failures are
+ * recoverable (the other files still get their intended changes; the run
+ * finishes and reports non-zero); a required-match miss means the source
+ * shape has drifted from what a strip transform expects, which risks
+ * leaving a broken tree (an import removed, the code that used it still
+ * there) — that must stop the run before `setup()` reaches self-prune, not
+ * just get reported alongside everything else at the end.
  */
 export async function applyCodeTransforms(
   transforms: CodeTransform[],
@@ -177,6 +295,9 @@ export async function applyCodeTransforms(
         totalChanges++
       }
     } catch (error) {
+      if (error instanceof RequiredOpMatchError) {
+        throw new RequiredOpMatchError(`${transform.file}: ${error.message}`)
+      }
       failures.push({
         file: transform.file,
         error: error instanceof Error ? error.message : String(error),

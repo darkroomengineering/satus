@@ -115,7 +115,7 @@ jobs:
           # audit the login page and report meaningless scores against it.
           # Skip loudly instead of reporting fake numbers.
           if [ -z "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
-            echo "::warning title=Lighthouse audit skipped::VERCEL_AUTOMATION_BYPASS_SECRET secret is not set, and this preview is behind Vercel Deployment Protection. Auditing it would score the SSO login page, not the app. Add VERCEL_AUTOMATION_BYPASS_SECRET in Settings → Secrets → Actions (value from Vercel → Project Settings → Deployment Protection → Protection Bypass for Automation) to enable the audit."
+            echo "::warning title=Lighthouse audit skipped::VERCEL_AUTOMATION_BYPASS_SECRET secret is not set. If this preview is behind Vercel Deployment Protection (the default for most teams), auditing it would score the SSO login page, not the app — so the audit is skipped rather than risk reporting fake numbers. Add VERCEL_AUTOMATION_BYPASS_SECRET in Settings → Secrets → Actions (value from Vercel → Project Settings → Deployment Protection → Protection Bypass for Automation) to enable the audit."
             echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi

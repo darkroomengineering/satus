@@ -27,13 +27,16 @@ describe('proxy.ts rate-limit wiring', () => {
     expect(existsSync(RATE_LIMIT_PATH)).toBe(true)
   })
 
+  // Read guarded by existsSync so a deleted proxy.ts fails these with the
+  // regex assertion (empty string, clear message) instead of an ENOENT throw.
+  const readProxy = () =>
+    existsSync(PROXY_PATH) ? Bun.file(PROXY_PATH).text() : Promise.resolve('')
+
   it('proxy.ts imports the rate-limit util — deleting/editing this out turns off API rate limiting silently', async () => {
-    const source = await Bun.file(PROXY_PATH).text()
-    expect(source).toMatch(/from ['"]@\/lib\/utils\/rate-limit['"]/)
+    expect(await readProxy()).toMatch(/from ['"]@\/lib\/utils\/rate-limit['"]/)
   })
 
   it('proxy.ts actually calls rateLimit(), not just imports it unused', async () => {
-    const source = await Bun.file(PROXY_PATH).text()
-    expect(source).toMatch(/\brateLimit\s*\(/)
+    expect(await readProxy()).toMatch(/\brateLimit\s*\(/)
   })
 })

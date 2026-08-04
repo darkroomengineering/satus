@@ -6,6 +6,23 @@
 # Optional GitHub Secrets:
 #   VERCEL_TOKEN - Vercel API token (Settings → Tokens). When absent or invalid,
 #                  the job skips gracefully with a warning instead of failing.
+#   VERCEL_AUTOMATION_BYPASS_SECRET - Vercel's "Protection Bypass for Automation"
+#                  secret (Project Settings → Deployment Protection). Without it,
+#                  a Deployment Protection-guarded preview 302s every Lighthouse
+#                  request to Vercel's SSO login page, and the reported scores
+#                  are the login page's, not the app's. When absent, the audit
+#                  step is skipped with a loud warning instead of reporting
+#                  those meaningless scores.
+#
+#                  This standing secret NEVER reaches Lighthouse directly —
+#                  Lighthouse's report (LHR) copies its resolved request
+#                  settings, including any extraHeaders, and this workflow
+#                  publishes that report (uploadArtifacts + temporaryPublicStorage)
+#                  on what may be a public repo. Instead, a preflight step
+#                  trades the standing secret for Vercel's short-lived,
+#                  deployment-scoped bypass cookie, and only that cookie (which
+#                  expires and is worthless outside this one preview) goes into
+#                  Lighthouse's settings.
 
 name: Lighthouse
 
@@ -86,12 +103,128 @@ jobs:
           poll-interval: 10
         continue-on-error: true
 
+      - name: Check Vercel Automation Bypass Secret
+        id: bypass_check
+        # Also require a non-empty preview URL: nothing to bypass-check without one.
+        if: steps.vercel_info.outputs.skip != 'true' && steps.await.outcome == 'success' && steps.vercel_url.outputs.preview_url != ''
+        env:
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: |
+          # Without the bypass secret, a Deployment Protection-guarded preview
+          # 302s every request to Vercel's SSO login page — Lighthouse would
+          # audit the login page and report meaningless scores against it.
+          # Skip loudly instead of reporting fake numbers.
+          if [ -z "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
+            echo "::warning title=Lighthouse audit skipped::VERCEL_AUTOMATION_BYPASS_SECRET secret is not set, and this preview is behind Vercel Deployment Protection. Auditing it would score the SSO login page, not the app. Add VERCEL_AUTOMATION_BYPASS_SECRET in Settings → Secrets → Actions (value from Vercel → Project Settings → Deployment Protection → Protection Bypass for Automation) to enable the audit."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "::add-mask::$VERCEL_AUTOMATION_BYPASS_SECRET"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+      # Downstream steps gate on `== 'false'`, not `!= 'true'`: if this step
+      # itself didn't run (vercel_info skipped, deploy failed, empty preview
+      # URL), its output is EMPTY, and `!= 'true'` would wrongly evaluate to
+      # true — running the guard/config/audit steps with no prerequisites and
+      # curling a bare "https://". `== 'false'` only passes when this step
+      # actually ran AND found the secret.
+      - name: Mint Vercel Bypass Cookie & Guard Against SSO Redirect
+        id: bypass_cookie
+        if: steps.bypass_check.outputs.skip == 'false'
+        env:
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          PREVIEW_URL: ${{ steps.vercel_url.outputs.preview_url }}
+        run: |
+          # Mask the standing secret before anything below could echo it.
+          echo "::add-mask::$VERCEL_AUTOMATION_BYPASS_SECRET"
+
+          # `x-vercel-set-bypass-cookie: true` makes Vercel return a Set-Cookie
+          # that bypasses Deployment Protection on its own, scoped to this one
+          # deployment and expiring — unlike the standing secret, safe to hand
+          # to Lighthouse (whose report may get published). The cookie jar (-c)
+          # captures whatever Vercel actually sets: read it back rather than
+          # assuming a cookie name, since that's undocumented/may change.
+          cookie_jar="${RUNNER_TEMP}/vercel-bypass-cookies.txt"
+          response=$(curl -sS -o /dev/null -w '%{http_code}|%{redirect_url}' \
+            -c "$cookie_jar" \
+            -H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET" \
+            -H "x-vercel-set-bypass-cookie: true" \
+            "https://$PREVIEW_URL")
+          status_code="${response%%|*}"
+          redirect_url="${response#*|}"
+
+          echo "Preflight response: $status_code -> ${redirect_url:-<no redirect>}"
+
+          # Sanity check the bypass actually worked before spending a
+          # Lighthouse run on it: if the response is still a redirect to
+          # Vercel's SSO host, fail loudly instead of letting Lighthouse
+          # silently score the login page.
+          if [[ "$status_code" =~ ^3 ]] && [[ "$redirect_url" == *"vercel.com"* ]]; then
+            echo "::error title=Lighthouse blocked by Deployment Protection::The preview URL still redirects to Vercel SSO ($redirect_url) even with the bypass header. Verify VERCEL_AUTOMATION_BYPASS_SECRET matches Vercel → Project Settings → Deployment Protection → Protection Bypass for Automation, and that Protection Bypass for Automation is enabled for this project."
+            exit 1
+          fi
+
+          # Note: curl always writes the jar's header comments even with zero
+          # actual cookies set, so a byte-size check on the file can't detect
+          # "no Set-Cookie came back" — the NF>=7 field-count filter below
+          # naturally returns nothing in that case, and the empty-cookie_name
+          # check further down reports it with a clear message instead.
+
+          # Netscape jar fields are tab-separated: domain flag path secure
+          # expiry name value. HttpOnly cookies (Vercel's bypass cookie is
+          # one — verified against a local mock) get a literal `#HttpOnly_`
+          # prefix glued onto the domain field, NOT a comment line — so
+          # filtering on `NF>=7` (not a leading '#' string match) keeps those
+          # while still dropping the genuine header/comment lines, which
+          # don't have 7 tab-separated fields. Vercel's bypass cookie name
+          # isn't documented as stable, so read it from what curl actually
+          # captured instead of hardcoding a guess.
+          cookie_line=$(awk -F'\t' 'NF>=7' "$cookie_jar" | grep -i vercel | head -1 || true)
+          if [ -z "$cookie_line" ]; then
+            cookie_line=$(awk -F'\t' 'NF>=7' "$cookie_jar" | head -1 || true)
+          fi
+          cookie_name=$(printf '%s' "$cookie_line" | awk -F'\t' '{print $6}')
+          cookie_value=$(printf '%s' "$cookie_line" | awk -F'\t' '{print $7}')
+
+          if [ -z "$cookie_name" ] || [ -z "$cookie_value" ]; then
+            echo "::error title=Lighthouse blocked by Deployment Protection::No bypass cookie came back from Vercel (status $status_code, no Set-Cookie) — the preview may not actually be Deployment Protection-guarded, or the bypass secret doesn't match. Check the response above."
+            exit 1
+          fi
+
+          echo "::add-mask::$cookie_value"
+          echo "Minted bypass cookie: $cookie_name=***"
+          echo "cookie_name=$cookie_name" >> "$GITHUB_OUTPUT"
+          echo "cookie_value=$cookie_value" >> "$GITHUB_OUTPUT"
+
+      - name: Write Lighthouse Extra Headers Config
+        id: lhci_config
+        if: steps.bypass_check.outputs.skip == 'false'
+        env:
+          COOKIE_NAME: ${{ steps.bypass_cookie.outputs.cookie_name }}
+          COOKIE_VALUE: ${{ steps.bypass_cookie.outputs.cookie_value }}
+        run: |
+          echo "::add-mask::$COOKIE_VALUE"
+
+          # Only the short-lived, deployment-scoped bypass cookie goes into
+          # Lighthouse's settings — never VERCEL_AUTOMATION_BYPASS_SECRET
+          # itself. `collect.settings.extraHeaders` is copied verbatim into
+          # the LHR this workflow publishes, so anything placed here should
+          # be safe to appear in a public report.
+          config_path="${RUNNER_TEMP}/lighthouserc.json"
+          jq -n \
+            --arg cookie "${COOKIE_NAME}=${COOKIE_VALUE}" \
+            '{ ci: { collect: { settings: { extraHeaders: { "Cookie": $cookie } } } } }' \
+            > "$config_path"
+          echo "config_path=$config_path" >> "$GITHUB_OUTPUT"
+
       - name: Run Lighthouse
         # Also require a non-empty preview URL: an empty URL would otherwise run
-        # Lighthouse against bare "https://" and report junk scores.
+        # Lighthouse against bare "https://" and report junk scores. Requires the
+        # bypass secret (or an unprotected deployment) — see "Check Vercel
+        # Automation Bypass Secret" above.
         # This workflow REPORTS scores (as a commit comment) but intentionally
         # does NOT gate/fail on them — scores are advisory, not a merge blocker.
-        if: steps.vercel_info.outputs.skip != 'true' && steps.await.outcome == 'success' && steps.vercel_url.outputs.preview_url != ''
+        if: steps.vercel_info.outputs.skip != 'true' && steps.await.outcome == 'success' && steps.vercel_url.outputs.preview_url != '' && steps.bypass_check.outputs.skip == 'false'
         id: lighthouse
         uses: treosh/lighthouse-ci-action@v12
         env:
@@ -101,12 +234,13 @@ jobs:
           # Average 3 runs to smooth out single-run cold-start variance (a cold
           # run can score 10-20 points below a warmed one).
           runs: 3
+          configPath: ${{ steps.lhci_config.outputs.config_path }}
           uploadArtifacts: true
           temporaryPublicStorage: true
 
       - name: Format Results
         id: format
-        if: steps.vercel_info.outputs.skip != 'true'
+        if: steps.vercel_info.outputs.skip != 'true' && steps.bypass_check.outputs.skip == 'false'
         uses: actions/github-script@v8
         env:
           DEPLOYMENT_FAILED: ${{ steps.await.outcome != 'success' }}
@@ -149,7 +283,7 @@ jobs:
             }
 
       - name: Post Commit Comment
-        if: steps.vercel_info.outputs.skip != 'true' && steps.format.outputs.comment != ''
+        if: steps.vercel_info.outputs.skip != 'true' && steps.bypass_check.outputs.skip == 'false' && steps.format.outputs.comment != ''
         uses: peter-evans/commit-comment@v4
         with:
           body: ${{ steps.format.outputs.comment }}

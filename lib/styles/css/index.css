@@ -1,6 +1,14 @@
 /* INDEX CSS FILE - Barrel file for importing all the css files */
-@import 'tailwindcss/utilities.css';
-@import './reset.css';
+/*
+ * Explicit layer order (lowest to highest priority): `base` loses to
+ * `utilities`, and both lose to any unlayered CSS — Tailwind utility classes
+ * must override the browser reset, and a CSS Module rule must override both.
+ * Layer order is fixed by this declaration, independent of import order.
+ */
+@layer base, utilities;
+
+@import 'tailwindcss/utilities.css' layer(utilities);
+@import './reset.css' layer(base);
 @import './easings.css';
 @import './tailwind.css';
 @import './root.css';

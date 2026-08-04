@@ -423,6 +423,12 @@ Critical rules:
 
 `proxy.ts` at the project root handles cross-cutting request concerns — currently rate limiting for `/api/*` routes via `@/utils/rate-limit`. Security headers stay in `next.config.ts`.
 
+### Error boundaries
+
+Route-segment errors are handled by the file convention: `app/(site)/error.tsx` and `app/global-error.tsx` render the shared `ErrorView`. Keep it that way — do not wrap those default exports in anything; the convention already provides the boundary, and its `reset()` only clears client state.
+
+For **component-level** isolation (one widget failing without blanking the page — the starter has no such boundary today), the tool is `catchError` from `next/error` (stable since Next 16.3), not a hand-rolled React error boundary: it doesn't swallow `notFound()`/`redirect()` from the wrapped subtree, and its fallback receives `retry()`, which re-renders failed Server Components in place — something `reset()` cannot do. One constraint carries over from `global-error.tsx`: a fallback must not depend on `Wrapper` (Lenis/WebGL/theme are liable to be the thing that crashed).
+
 ### Tailwind v4
 
 Configuration is CSS-first - no `tailwind.config.js`. Use `@theme` directive in CSS:

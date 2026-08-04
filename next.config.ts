@@ -158,7 +158,10 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
     qualities: [90],
     formats: ['image/avif', 'image/webp'],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    // Cap the largest generated variant at 2560px (Next's default tops out at
+    // 3840): full-bleed art on 4K/high-DPR screens produces multi-MB
+    // candidates that page-weight audits flag, with no visible gain over 2560.
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 2560],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
   headers: async () => [

@@ -17,6 +17,7 @@ const productWebhooks = new Set([
   'products/delete',
   'products/update',
 ])
+const pageWebhooks = new Set(['pages/create', 'pages/delete', 'pages/update'])
 
 // This is called from `app/api/revalidate/route.ts` so providers can control revalidation logic.
 export async function revalidate(req: NextRequest): Promise<NextResponse> {
@@ -27,13 +28,14 @@ export async function revalidate(req: NextRequest): Promise<NextResponse> {
   const secret = req.nextUrl.searchParams.get('secret')
   const isCollectionUpdate = collectionWebhooks.has(topic)
   const isProductUpdate = productWebhooks.has(topic)
+  const isPageUpdate = pageWebhooks.has(topic)
 
   if (!secret || secret !== env.SHOPIFY_REVALIDATION_SECRET) {
     console.error('Invalid revalidation secret.')
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  if (!(isCollectionUpdate || isProductUpdate)) {
+  if (!(isCollectionUpdate || isProductUpdate || isPageUpdate)) {
     // We don't need to revalidate anything for any other topics.
     return NextResponse.json({ status: 200 })
   }
@@ -44,6 +46,10 @@ export async function revalidate(req: NextRequest): Promise<NextResponse> {
 
   if (isProductUpdate) {
     revalidateTag(TAGS.products, {})
+  }
+
+  if (isPageUpdate) {
+    revalidateTag(TAGS.pages, {})
   }
 
   return NextResponse.json({ status: 200, revalidated: true, now: Date.now() })

@@ -3,5 +3,19 @@
     "light/contrast on surface-2": 3.62,
     "red/secondary on surface": 4.17,
     "red/secondary on surface-2": 3.79
+  },
+  "apcaAccepted": {
+    "dark/contrast on primary": 32.3,
+    "dark/contrast on surface-2": 32.3,
+    "dark/primary on contrast": 34.7,
+    "evil/primary on secondary": 34.7,
+    "evil/secondary on primary": 32.3,
+    "evil/secondary on surface": 32.3,
+    "evil/secondary on surface-2": 32.3,
+    "light/contrast on surface-2": 53.7,
+    "red/primary on secondary": 32.3,
+    "red/secondary on primary": 34.7,
+    "red/secondary on surface": 31.7,
+    "red/secondary on surface-2": 28.8
   }
 }

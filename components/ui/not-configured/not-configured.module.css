@@ -43,7 +43,10 @@
   font-weight: 400;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  opacity: 0.45;
+  /* 0.45 rendered #858585 on the panel's --surface (#f2f2f2 in the light-theme
+     fallback) — 3.29:1, under WCAG AA's 4.5:1 (e2e axe pass on /sanity's
+     unconfigured variant). 0.56 renders ≈#666666 — 4.83:1, still muted. */
+  opacity: 0.56;
   margin-bottom: calc(10 / 375 * 100vw);
 
   @media (--desktop) {
@@ -76,7 +79,8 @@
   font-family: var(--font-mono);
   font-size: calc(11 / 375 * 100vw);
   line-height: 1.6;
-  opacity: 0.45;
+  /* Same fix as .label above: 0.45 was 3.29:1 on --surface, 0.56 is 4.83:1. */
+  opacity: 0.56;
 
   @media (--desktop) {
     font-size: calc(12 / 1440 * 100vw);
@@ -88,6 +92,16 @@
 .instructions {
   padding: calc(24 / 375 * 100vw) calc(24 / 375 * 100vw);
   border-bottom: 1px solid var(--line);
+  /* var(--color-contrast) (the red token, #e9161a) is 4.08:1 on the panel's
+     --surface (#f2f2f2) and only 3.59:1 on the envBlock's --surface-2
+     (#e4e4e4) — both under WCAG AA's 4.5:1 (e2e axe pass on /sanity's
+     unconfigured variant). The red is meaningful here (the shared accent
+     used on .accent, .instructionsLabel, and .envVar), so darken it locally
+     rather than dropping the color. #c41317 is 5.43:1 on #f2f2f2 and 4.78:1
+     on #e4e4e4 — both clear 4.5. Scoped here (not on .instructionsLabel
+     alone) so .envVar, a sibling descendant of this container, can use it
+     too. The global --color-red token is untouched. */
+  --accent-readable: oklch(52.16% 0.2047 27.69);
 
   @media (--desktop) {
     padding: calc(28 / 1440 * 100vw) calc(32 / 1440 * 100vw);
@@ -100,7 +114,7 @@
   font-weight: 400;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--color-contrast);
+  color: var(--accent-readable);
   margin-bottom: calc(14 / 375 * 100vw);
 
   @media (--desktop) {
@@ -164,7 +178,10 @@
 .envVar {
   font-family: var(--font-mono);
   font-size: calc(10 / 375 * 100vw);
-  color: var(--color-contrast);
+  /* See --accent-readable comment on .instructions above: var(--color-contrast)
+     is 3.59:1 on this element's envBlock (--surface-2, #e4e4e4) — under
+     WCAG AA. --accent-readable is 4.78:1 on #e4e4e4. */
+  color: var(--accent-readable);
 
   @media (--desktop) {
     font-size: calc(12 / 1440 * 100vw);
@@ -198,7 +215,14 @@
 .hint {
   font-family: var(--font-mono);
   font-size: calc(10 / 375 * 100vw);
-  opacity: 0.45;
+  /* Sits on .footer's --surface-2 (#e4e4e4), darker than the --surface
+     (#f2f2f2) .label/.description are tuned against above — 0.45 rendered
+     #7d7d7d here, 3.23:1, under WCAG AA (e2e axe pass; this also darkens
+     the nested .code child via the same opacity blend, since opacity
+     composites the whole subtree). 0.56 renders ~#646464 on #e4e4e4 —
+     5.17:1, still muted. Tuned independently for this surface; not coupled
+     to .label/.description's 0.56 even though the number matches. */
+  opacity: 0.56;
   line-height: 1.5;
 
   @media (--desktop) {

@@ -110,13 +110,14 @@ export const INTEGRATION_BUNDLES = defineBundles({
     folders: [
       'lib/integrations/sanity',
       'components/ui/sanity-image',
-      'app/(examples)/sanity',
+      'app/(site)/(examples)/sanity',
       'app/studio',
     ],
     files: ['app/api/draft-mode/enable/route.ts'],
     envVars: [
       'NEXT_PUBLIC_SANITY_PROJECT_ID',
       'NEXT_PUBLIC_SANITY_DATASET',
+      'NEXT_PUBLIC_SANITY_API_VERSION',
       'NEXT_PUBLIC_SANITY_API_READ_TOKEN',
       'SANITY_API_READ_TOKEN',
       'SANITY_PRIVATE_TOKEN',
@@ -129,7 +130,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
     ],
     codeTransforms: [
       {
-        file: 'app/layout.tsx',
+        file: 'app/(site)/layout.tsx',
         ops: [
           // Remove `import { SanityLive } from '@/lib/integrations/sanity/live'`
           { kind: 'removeImport', specifier: '@/lib/integrations/sanity/live' },
@@ -190,10 +191,10 @@ export const INTEGRATION_BUNDLES = defineBundles({
         ],
       },
     ],
-    // app/layout.tsx has complex Sanity wiring (SanityLive, VisualEditing,
+    // app/(site)/layout.tsx has complex Sanity wiring (SanityLive, VisualEditing,
     // isConfigured call) that cannot be re-injected statement-by-statement
     // safely.  Restore wholesale from the payload on `satus add sanity`.
-    overwriteFiles: ['app/layout.tsx'],
+    overwriteFiles: ['app/(site)/layout.tsx'],
     addTransforms: [
       {
         file: 'next.config.ts',
@@ -243,11 +244,12 @@ export const INTEGRATION_BUNDLES = defineBundles({
     devDependencies: [],
     folders: ['lib/integrations/shopify'],
     files: [],
+    // Keep in sync with the SHOPIFY_* keys in lib/env.ts — that schema is the
+    // source of truth for what the integration actually reads.
     envVars: [
       'SHOPIFY_STORE_DOMAIN',
       'SHOPIFY_STOREFRONT_ACCESS_TOKEN',
-      'SHOPIFY_CUSTOMER_ACCOUNT_API_CLIENT_ID',
-      'SHOPIFY_CUSTOMER_ACCOUNT_API_URL',
+      'SHOPIFY_REVALIDATION_SECRET',
     ],
     barrelExports: [],
     codeTransforms: [
@@ -322,7 +324,11 @@ export const INTEGRATION_BUNDLES = defineBundles({
     devDependencies: [],
     folders: ['lib/integrations/hubspot'],
     files: [],
-    envVars: ['HUBSPOT_ACCESS_TOKEN', 'NEXT_PUBLIC_HUBSPOT_PORTAL_ID'],
+    envVars: [
+      'HUBSPOT_ACCESS_TOKEN',
+      'NEXT_PUBLIC_HUBSPOT_PORTAL_ID',
+      'HUBSPOT_ALLOWED_FORM_IDS',
+    ],
     barrelExports: [],
     codeTransforms: [],
   },

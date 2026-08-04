@@ -22,7 +22,7 @@
     "format": "oxfmt",
     "typecheck": "bun node_modules/typescript7/bin/tsc --noEmit",
     "typecheck:watch": "bun node_modules/typescript7/bin/tsc --noEmit --watch",
-    "deslop": "deslop",
+    "deslop": "deslop --ignore 'storybook-static/**'",
     "analyze": "ANALYZE=true bun run build",
     "analyze:experimental": "next experimental-analyze",
     "dev:inspect": "bun ./lib/scripts/dev.ts --inspect",
@@ -48,6 +48,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
+    "@gsap/react": "^2.1.2",
     "@portabletext/react": "^7.0.1",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",

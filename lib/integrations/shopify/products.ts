@@ -1,3 +1,5 @@
+import { cacheLife, cacheTag } from 'next/cache'
+
 import { shopifyFetch } from './client'
 import { TAGS } from './constants'
 import {
@@ -22,9 +24,13 @@ export async function getProduct({
 }: { handle: string; id?: string } | { id: string; handle?: string }): Promise<
   Product | undefined
 > {
+  'use cache'
+  cacheTag(TAGS.products)
+  cacheLife('hours')
+
   const res = await shopifyFetch<GetProductResponseData>({
     query: getProductQuery,
-    tags: [TAGS.products],
+    cache: 'no-store',
     variables: {
       handle,
       id,
@@ -38,9 +44,13 @@ export async function getProduct({
 export async function getProductRecommendations(
   productId: string
 ): Promise<Product[]> {
+  'use cache'
+  cacheTag(TAGS.products)
+  cacheLife('hours')
+
   const res = await shopifyFetch<GetProductRecommendationsResponseData>({
     query: getProductRecommendationsQuery,
-    tags: [TAGS.products],
+    cache: 'no-store',
     variables: {
       productId,
     },
@@ -61,9 +71,13 @@ export async function getProducts({
   reverse,
   sortKey,
 }: GetProductsOptions): Promise<Product[]> {
+  'use cache'
+  cacheTag(TAGS.products)
+  cacheLife('hours')
+
   const res = await shopifyFetch<GetProductsResponseData>({
     query: getProductsQuery,
-    tags: [TAGS.products],
+    cache: 'no-store',
     variables: {
       query,
       reverse,

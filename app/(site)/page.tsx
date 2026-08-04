@@ -53,7 +53,7 @@ const STEPS: Step[] = [
         </p>
         <p className={s.text}>
           The site title and SEO live in{' '}
-          <code className={s.inline}>app/layout.tsx</code>. Fonts are in{' '}
+          <code className={s.inline}>app/(site)/layout.tsx</code>. Fonts are in{' '}
           <code className={s.inline}>lib/styles/fonts</code>, colors and theme
           tokens in <code className={s.inline}>lib/styles/colors</code>.
         </p>
@@ -173,7 +173,7 @@ export default function HomePage() {
             ))}
           </ol>
           <p className={s.outro}>
-            Done here? Replace app/page.tsx with your homepage and delete
+            Done here? Replace app/(site)/page.tsx with your homepage and delete
             page.module.css. That&apos;s the only cleanup.
           </p>
         </div>

@@ -79,7 +79,7 @@ When setup completes it removes its own machinery from the project (the setup sc
 ## Project Structure
 
 ```
-app/                    # Next.js pages and routes (page.tsx is the manual)
+app/                    # Next.js routes ((site)/page.tsx is the manual; the root layout is a bare shell shared with /studio)
 components/             # UI components (catalogued in Storybook)
 lib/                    # Everything non-UI
   ├── hooks/           # Custom React hooks

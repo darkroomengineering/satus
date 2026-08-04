@@ -32,7 +32,7 @@ const liveExports = sanityLiveReady
       serverToken: privateToken,
       // Strict mode: `perspective`/`stega` required per fetch, `includeDrafts`
       // required on <SanityLive> — the calling convention this repo already
-      // uses everywhere (see app/(examples)/sanity/page.tsx).
+      // uses everywhere (see app/(site)/(examples)/sanity/page.tsx).
       strict: true,
     })
   : null

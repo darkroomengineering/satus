@@ -69,8 +69,8 @@ The GraphQL _envelope_ (`data` / `errors` fields) is always validated at the bou
 
 ## Caching
 
-- **Cart data**: Never cached (user-specific)
-- **Products**: Cached with `revalidateTag('products')`
+- **Cart data**: Never cached (user-specific) — every `cart-operations.ts` fetch passes `cache: 'no-store'`
+- **Products, collections, pages**: Every exported reader in `products.ts`, `collections.ts`, and `pages.ts` is wrapped in `'use cache'` with a one-hour `cacheLife`, required under Cache Components (`cacheComponents: true` in `next.config.ts`) so pages that call them can render statically instead of opting into fully dynamic rendering. The `'use cache'` entry is the only cache layer — the inner `shopifyFetch` call passes `cache: 'no-store'` so the Data Cache doesn't hold its own indefinitely-cached copy underneath it. Invalidated by tag via `revalidateTag('products')` / `revalidateTag('collections')` / `revalidateTag('pages')` — see Webhooks below.
 
 ## Webhooks
 
@@ -88,4 +88,4 @@ webhook (see `app/api/README.md`); Shopify and Sanity requests are distinguished
 so no separate endpoint is needed.
 
 Events: `products/create`, `products/update`, `products/delete`, `collections/create`,
-`collections/update`, `collections/delete`
+`collections/update`, `collections/delete`, `pages/create`, `pages/update`, `pages/delete`

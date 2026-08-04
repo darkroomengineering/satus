@@ -1,25 +1,16 @@
-import { Wrapper } from '@/components/layout/wrapper'
-import { Link } from '@/components/ui/link'
+import { NotFoundView } from '@/components/ui/not-found-view'
 
-import s from './not-found.module.css'
-
+/**
+ * Boundary for routes OUTSIDE the (site) group (e.g. /studio). It renders
+ * under the bare root layout, with none of the providers app/(site)/layout.tsx
+ * mounts (Lenis, Theme, Header, Footer, WebGL Canvas), so it must stay
+ * provider-free — same reasoning app/global-error.tsx documents for dropping
+ * Wrapper. Routes inside (site) get the richer group-level 404 instead.
+ */
 export default function NotFound() {
   return (
-    <Wrapper theme="dark">
-      <section className={s.section}>
-        <div className={s.panel}>
-          <div className={s.label}>Error</div>
-          <h1 className={s.code}>404</h1>
-          <p className={s.message}>Page not found</p>
-          <p className={s.description}>
-            The page you&apos;re looking for doesn&apos;t exist or has been
-            moved.
-          </p>
-          <Link href="/" className={s.cta}>
-            Go Home
-          </Link>
-        </div>
-      </section>
-    </Wrapper>
+    <div className="flex min-h-dvh flex-col items-center justify-center">
+      <NotFoundView />
+    </div>
   )
 }

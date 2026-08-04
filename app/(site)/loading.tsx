@@ -1,6 +1,6 @@
-// No <Wrapper> here: with cacheComponents, the root loading fallback must be
-// statically renderable — Wrapper mounts <Theme>, which reads uncached data
-// and fails prerendering (e.g. /studio). Keep this fallback dependency-free.
+// No <Wrapper> here: with cacheComponents, this group-level loading fallback
+// must be statically renderable — Wrapper mounts <Theme>, which reads
+// uncached data and fails prerendering. Keep this fallback dependency-free.
 export default function Loading() {
   return (
     // <output> carries an implicit role="status", so the role is redundant.

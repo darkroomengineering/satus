@@ -125,6 +125,14 @@ function InnerCart() {
               <Image
                 src={merchandise.product.featuredImage?.url ?? ''}
                 alt={merchandise.product.featuredImage?.altText ?? ''}
+                // The drawer is 75vw (mobile) / 50vw (desktop) and `.media`
+                // spans 2 of its 6 columns, so a third of each.
+                mobileSize="25vw"
+                desktopSize="17vw"
+                // Product shots vary in aspect and must not be cropped in the
+                // cart. This has to be the prop, not CSS: Image writes
+                // object-fit inline, which outranks any stylesheet rule.
+                objectFit="contain"
                 {...(merchandise.product.featuredImage?.width &&
                 merchandise.product.featuredImage?.height
                   ? {

@@ -657,12 +657,12 @@ export const shouldDisableCacheComponents = (
 /**
  * next.config.ts transform that flips Cache Components off.
  *
- * Both ops are required together: an empirical `bun run build` probe showed
- * `experimental.cachedNavigations: true` hard-errors Next's config
- * validation when `cacheComponents` is false ("`experimental.cachedNavigations`
- * requires `cacheComponents` to be enabled."). `experimental.prefetchInlining`
- * was probed too and needs no change — Next's config validation accepts it
- * fine with `cacheComponents` off.
+ * All three ops are required together: Next's config validation rejects
+ * `cacheComponents: false` combined with either `partialPrefetching: true`
+ * ("`partialPrefetching` requires `cacheComponents` to be enabled.") or
+ * `experimental.cachedNavigations: true` ("`experimental.cachedNavigations`
+ * requires `cacheComponents` to be enabled.") — both depend on Cache
+ * Components and must be flipped off in the same pass.
  */
 export const CACHE_COMPONENTS_DISABLE_TRANSFORM: CodeTransform = {
   file: 'next.config.ts',
@@ -671,6 +671,12 @@ export const CACHE_COMPONENTS_DISABLE_TRANSFORM: CodeTransform = {
       kind: 'setObjectProperty',
       variableName: 'nextConfig',
       propertyPath: 'cacheComponents',
+      valueText: 'false',
+    },
+    {
+      kind: 'setObjectProperty',
+      variableName: 'nextConfig',
+      propertyPath: 'partialPrefetching',
       valueText: 'false',
     },
     {

@@ -5,11 +5,8 @@
  * other two structurally cannot:
  *
  *   bun run lighthouse   one cold page load. Blind to re-renders entirely.
- *   (bench:nav)          client-side route swaps. Lives on the Next 16.3
- *                        preview branch, because its useful scenario needs the
- *                        instant-nav demo routes, which are branch-only.
- *                        Measures navigation, not the work a mounted tree does
- *                        when state changes.
+ *   bun run bench:nav    client-side route swaps. Measures navigation, not
+ *                        the work a mounted tree does when state changes.
  *   bun run bench:rerender  ← this. Main-thread cost of re-rendering an
  *                             already-mounted tree.
  *

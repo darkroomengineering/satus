@@ -93,6 +93,9 @@ const nextConfig: NextConfig = {
         : false,
   },
   cacheComponents: true,
+  // Shell-based prefetching: one reusable loading shell per route, cached
+  // client-side and shared by every link. Requires cacheComponents: true.
+  partialPrefetching: true,
   compress: true,
   logging: {
     fetches: {
@@ -102,9 +105,17 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     taint: true,
+    // Client-side cache for previously visited routes — the one piece of the
+    // instant-navigation cluster that is still opt-in (varyParams and
+    // optimisticRouting are default-on).
     cachedNavigations: true,
-    prefetchInlining: true,
+    // Native Rust port of the React Compiler, run inside Turbopack. Pairs
+    // with the top-level `reactCompiler: true`.
+    turbopackRustReactCompiler: true,
     sri: { algorithm: 'sha384' },
+    // Not setting `cssChunking: 'graph'`. Measured on this branch it produced
+    // 11 stylesheets instead of the default's 9, for identical total bytes —
+    // more requests, no saving. The default 'loose' heuristic wins here.
     optimizePackageImports: [
       '@react-three/drei',
       '@react-three/fiber',

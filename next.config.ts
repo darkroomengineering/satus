@@ -93,8 +93,8 @@ const nextConfig: NextConfig = {
         : false,
   },
   cacheComponents: true,
-  // 16.3: shell-based prefetching — the top-level successor to the
-  // experimental.prefetchInlining stepping stone; requires cacheComponents: true.
+  // Shell-based prefetching: one reusable loading shell per route, cached
+  // client-side and shared by every link. Requires cacheComponents: true.
   partialPrefetching: true,
   compress: true,
   logging: {
@@ -105,24 +105,12 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     taint: true,
+    // Client-side cache for previously visited routes — the one piece of the
+    // instant-navigation cluster that is still opt-in (varyParams and
+    // optimisticRouting are default-on).
     cachedNavigations: true,
-    // The rest of the instant-navigation cluster that `partialPrefetching` and
-    // `cachedNavigations` belong to (they are passed to renderOpts together in
-    // next/dist/esm/server/base-server.js).
-    //
-    // `varyParams` lets Cache Components key a segment on the params it
-    // actually reads, instead of invalidating the whole segment whenever any
-    // param changes. It is the one with the most to gain here, since
-    // `cacheComponents` is already on.
-    varyParams: true,
-    // `optimisticRouting` is the current route-tree match for the client
-    // segment cache. It replaces a deprecated search-params-based path that
-    // Next still ships behind `deprecated_requestOptimisticRouteCacheEntry`.
-    optimisticRouting: true,
-    // 16.3 preview: persistent Turbopack FS cache for `next build` (faster
-    // cached CI/Vercel builds) + the native Rust port of the React Compiler
-    // (pairs with the top-level `reactCompiler: true`). Both experimental.
-    turbopackFileSystemCacheForBuild: true,
+    // Native Rust port of the React Compiler, run inside Turbopack. Pairs
+    // with the top-level `reactCompiler: true`.
     turbopackRustReactCompiler: true,
     sri: { algorithm: 'sha384' },
     // Not setting `cssChunking: 'graph'`. Measured on this branch it produced

@@ -20,46 +20,13 @@
  *
  * Usage:
  *   bun run build && PORT=3123 bun run start &
- *   bun run bench:nav                          # demo scenario
- *   bun run bench:nav --scenario notfound      # works on any build
+ *   bun run bench:nav                      # 404 -> home, works on any build
  *   bun run bench:nav --runs 10 --url http://localhost:3124
  *
- * ---------------------------------------------------------------------------
- * What it found (7 runs each, 100ms RTT, `demo` scenario, this branch on next
- * 16.3.0-preview.10), toggling partialPrefetching + cachedNavigations +
- * varyParams + optimisticRouting together:
- *
- *                    flags off              flags on
- *   shell     110ms  (spread  84-250)   90ms  (spread 78-105)
- *   content  1420ms                    1915ms
- *
- * The shell median moves a little, but the useful part is the spread: an
- * on-demand shell fetch ranges 84-250ms, a prefetched one 78-105ms. Prefetching
- * buys predictability more than raw speed.
- *
- * The content number is a genuine cost, not noise — it reproduced unthrottled
- * (+537ms) and at 100ms RTT (+495ms). Splitting shell from data serialises
- * them: the shell paints from cache, and only then does the dynamic request
- * start, so this route's 1.5s server sleep begins ~500ms later than it would
- * in a single streamed response. Whether that trade is right depends on
- * whether an instant shell plus skeleton beats a shorter blank wait for the
- * route in question. It is a trade, not a free win.
- *
- * The `notfound` scenario, same 7 runs and 100ms RTT, comparing `main` (next
- * 16.2.12, no instant-nav flags) against this branch (16.3.0-preview.10, all
- * four on):
- *
- *   main    shell 116ms  (spread 83-223)
- *   branch  shell 107ms  (spread 81-327)
- *
- * No signal. 9ms apart with ~40ms of run-to-run variation and one large outlier
- * on each side. That is the expected result, and it is the useful half of the
- * comparison: `/` is statically prerendered, so there is no shell-versus-data
- * split for `partialPrefetching` to make. A static route is equally
- * prefetchable before and after. The flags target dynamic routes, which is
- * precisely why `demo` shows a difference and this does not — so do not read
- * this scenario as evidence the flags do nothing.
- * ---------------------------------------------------------------------------
+ * The built-in scenario only exercises a static target. A project with routes
+ * that stream dynamic content should add a scenario for one of them to
+ * SCENARIOS, with a `contentText` matcher — that is where prefetching flags
+ * actually move the needle.
  */
 import { chromium, type Page } from 'playwright-core'
 
@@ -83,32 +50,17 @@ type Scenario = {
 
 const SCENARIOS: Record<string, Scenario> = {
   /**
-   * The real measurement. Needs `app/instant-nav-demo/**`, which lives only on
-   * the Next 16.3 preview branch — those routes exist specifically to create a
-   * surface where instant navigation is observable.
-   */
-  demo: {
-    from: '/instant-nav-demo',
-    fromHeading: 'Instant Navigations demo',
-    linkName: /slow route/i,
-    shellHeading: 'Slow route',
-    contentText: /Streamed in after/,
-    describe: 'demo hub -> /instant-nav-demo/slow (shell + streamed content)',
-  },
-
-  /**
-   * Fallback that runs against ANY build, including `main`.
-   *
-   * `main` has no client-side navigation surface on its happy path: the only
-   * internal <Link>s are in error.tsx and not-found.tsx, there is no header
-   * nav, and nothing links `/` to `/sanity`. Since prefetching is a <Link>
-   * behaviour, the 404's "Go Home" link is the one real navigation available.
+   * The starter has no client-side navigation surface on its happy path: the
+   * only internal <Link>s are in error.tsx and not-found.tsx, there is no
+   * header nav, and nothing links `/` to `/sanity`. Since prefetching is a
+   * <Link> behaviour, the 404's "Go Home" link is the one real navigation
+   * available.
    *
    * Read it narrowly. `/` is statically prerendered, so this times a prefetched
-   * STATIC shell and nothing else. It cannot show the shell-vs-data
-   * serialisation trade the `demo` scenario found, because there is no dynamic
-   * data to serialise — which is exactly why it reports no `content` number.
-   * Useful as a same-scenario A/B across two builds; not comparable to `demo`.
+   * STATIC shell and nothing else. It cannot show a shell-vs-data split,
+   * because there is no dynamic data to serialise — which is exactly why it
+   * reports no `content` number. Useful as a same-scenario A/B across two
+   * builds.
    */
   notfound: {
     from: '/__bench-nonexistent-path',
@@ -129,7 +81,7 @@ function arg(name: string, fallback: string) {
 
 const BASE = arg('url', 'http://localhost:3123').replace(/\/+$/, '')
 const RUNS = Number(arg('runs', '7'))
-const SCENARIO_NAME = arg('scenario', 'demo')
+const SCENARIO_NAME = arg('scenario', 'notfound')
 
 /**
  * Round-trip latency to emulate, in ms. This is not optional decoration: on
@@ -235,7 +187,7 @@ async function main() {
     console.log(
       `\n  no content metric: this target has nothing streaming, so the only` +
         `\n  honest number is the shell. Compare against the same scenario on` +
-        `\n  another build, not against the demo scenario.\n`
+        `\n  another build.\n`
     )
   }
 }

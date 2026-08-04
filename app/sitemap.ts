@@ -1,25 +1,35 @@
 import type { MetadataRoute } from 'next'
 
-import { APP_BASE_URL } from '@/lib/env'
+import { getCmsRoutes, STATIC_ROUTES } from '@/lib/seo/routes'
+import { BASE_URL } from '@/lib/seo/site'
 
+/**
+ * Static routes are listed in `lib/seo/routes.ts` (`STATIC_ROUTES`) —
+ * shared with `/llms.txt` so the two surfaces can't drift. New static
+ * routes must be added there and to `PAGES` in `app/(site)/ai/page.tsx`;
+ * the machine view (`/ai`) has no link from the design, so crawlers only
+ * discover it here.
+ *
+ * CMS-driven routes (`getCmsRoutes`) are appended when the Sanity
+ * integration is configured; a fresh clone with no CMS env set gets the
+ * static routes only.
+ */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseRoutes: MetadataRoute.Sitemap = [
-    {
-      url: APP_BASE_URL,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 1,
-    },
-    // The machine view (`app/(site)/ai/page.tsx`) has no link from the design, so
-    // crawlers only discover it here. New routes must be added both here
-    // and to `PAGES` in `app/(site)/ai/page.tsx`.
-    {
-      url: `${APP_BASE_URL}/ai`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-  ]
+  const cmsRoutes = await getCmsRoutes()
 
-  return baseRoutes
+  const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.map((route) => ({
+    url: `${BASE_URL}${route.path}`,
+    lastModified: new Date(),
+    changeFrequency: route.changeFrequency,
+    priority: route.priority,
+  }))
+
+  const cmsEntries: MetadataRoute.Sitemap = cmsRoutes.map((route) => ({
+    url: `${BASE_URL}${route.path}`,
+    lastModified: route.lastModified,
+    changeFrequency: 'weekly',
+    priority: 0.6,
+  }))
+
+  return [...staticEntries, ...cmsEntries]
 }

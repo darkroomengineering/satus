@@ -2,6 +2,8 @@
 
 This is the **single source of truth** for engineering standards in this repo. Claude Code, Cursor, and all other AI tools read this file. The other docs (`CLAUDE.md`, `.cursor/rules/`) are thin pointers back here.
 
+This file changes only by deliberate review. `next dev` appends a managed `<!-- BEGIN:nextjs-agent-rules -->` block here when it detects an AI coding agent (no config opt-out exists) — revert that block on sight, never commit it.
+
 ---
 
 ## Stack

@@ -1,6 +1,24 @@
 import bundleAnalyzer from '@next/bundle-analyzer'
 import type { NextConfig } from 'next'
 
+// Relative import — see the comment on `./lib/integrations/registry`'s own
+// `@/utils/validation` import for why: Next's next.config.ts loader
+// mis-resolves `@/*` aliases for transitively-required files, so both this
+// import and everything it pulls in must use relative paths.
+import { composeCsp } from './lib/integrations/csp'
+
+// --- Content-Security-Policy --------------------------------------------------
+// Composed at config-eval time from the integration registry (see
+// lib/integrations/csp.ts for the full design rationale) — every `next
+// build`/`next dev` re-derives the policy from whatever integrations are
+// actually kept in this checkout, so stripping one via `setup:project` drops
+// its origins automatically, with nothing to keep in sync by hand.
+const CONTENT_SECURITY_POLICY = composeCsp({
+  isDev: process.env.NODE_ENV === 'development',
+  isVercelPreview: process.env.VERCEL_ENV === 'preview',
+})
+// -----------------------------------------------------------------------------
+
 // --- Storybook proxy ---------------------------------------------------------
 // Serves the standalone Storybook deployment at /storybook on this domain.
 // Active ONLY when NEXT_PUBLIC_STORYBOOK_URL is set (e.g. on Preview) AND the
@@ -162,17 +180,7 @@ const nextConfig: NextConfig = {
         },
         {
           key: 'Content-Security-Policy',
-          value: "frame-ancestors 'self' https://*.sanity.studio;",
-        },
-        // Report-only CSP baseline. Deliberately integration-agnostic (broad
-        // https:/wss: sources) so it stays valid whichever integrations
-        // `setup:project` strips. In your fork: replace the wildcards with the
-        // third-party origins you actually load, watch for violation reports,
-        // then promote it to an enforced Content-Security-Policy header above.
-        {
-          key: 'Content-Security-Policy-Report-Only',
-          value:
-            "default-src 'self'; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https: wss:; object-src 'none'; base-uri 'self';",
+          value: CONTENT_SECURITY_POLICY,
         },
         {
           key: 'X-Frame-Options',

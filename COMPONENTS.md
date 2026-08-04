@@ -176,6 +176,8 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | getConfiguredIds | `() => IntegrationId[]` |
 | getConfigured | `() => string[]` |
 | getUnconfigured | `() => string[]` |
+| CspDirective | `| 'script-src' | 'style-src' | 'img-src' | 'font-src' | 'connect-src' | 'fram...` |
+| CspSources | `Partial<Record<CspDirective, string[]>>` |
 | IntegrationEntry |  |
 | integrations | `{ readonly sanity: { readonly name: "Sanity"; readonly envSchema: ZodObject<{...` |
 | IntegrationId | `keyof typeof integrations` |

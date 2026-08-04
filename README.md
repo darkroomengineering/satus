@@ -147,7 +147,11 @@ This interactive script:
 vercel
 ```
 
-**Required GitHub Secret**: `VERCEL_TOKEN` for Lighthouse CI workflow.
+**Optional GitHub Secrets** for the Lighthouse CI workflow: `VERCEL_TOKEN`
+(Vercel API token — the job skips gracefully with a warning when it's absent
+or invalid) and `VERCEL_AUTOMATION_BYPASS_SECRET` (needed when previews are
+Deployment Protection-guarded — the audit step skips loudly without it
+instead of scoring the SSO login page).
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for deployment checklist and cache strategies.
 

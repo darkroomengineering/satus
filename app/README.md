@@ -8,6 +8,7 @@ Next.js App Router pages and routes.
 app/
 ├── layout.tsx            # Bare html/body shell shared with /studio
 ├── global-error.tsx      # Root-level error boundary (wraps html+body)
+├── not-found.tsx         # Bare-shell 404 for routes outside (site), e.g. /studio
 ├── (site)/               # Every route EXCEPT /studio lives in this group
 │   ├── layout.tsx        # App providers, metadata, analytics
 │   ├── page.tsx          # Manual / in-app documentation landing page

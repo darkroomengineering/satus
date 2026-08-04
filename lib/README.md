@@ -51,4 +51,5 @@ bun dev              # Start dev server
 bun run generate     # Generate pages/components
 bun run setup:project  # Configure integrations
 bun setup:styles     # Regenerate CSS
+bun run check:assets   # Fail on videos over 2MB or rasters over 2400px/1MB; part of bun run check
 ```

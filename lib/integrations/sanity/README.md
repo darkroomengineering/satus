@@ -15,12 +15,20 @@ SANITY_PRIVATE_TOKEN="your-editor-token"
 
 # Optional
 NEXT_PUBLIC_SANITY_API_VERSION="2024-03-15"
+
+# Optional, required for the revalidation webhook
+SANITY_REVALIDATE_SECRET="your-webhook-secret"
 ```
 
 > **Note**: Create tokens in [Sanity Dashboard](https://sanity.io/manage) → Your Project → API → Tokens.
 >
 > - **Viewer** token → `NEXT_PUBLIC_SANITY_API_READ_TOKEN`
 > - **Editor** token → `SANITY_PRIVATE_TOKEN`
+>
+> `SANITY_REVALIDATE_SECRET` is only needed to receive Sanity's revalidation
+> webhook — set it on the webhook's signing secret in Sanity's dashboard.
+> Without it, `app/api/revalidate/route.ts` returns `503` for Sanity webhook
+> requests.
 
 Env vars are validated with Zod schemas. Use `isConfigured('sanity')` from the integration registry to check if Sanity is properly configured.
 
@@ -158,9 +166,9 @@ export const landing = defineType({
 
 ## Caching
 
-- **Draft mode**: Uses `cache: 'no-store'` automatically
-- **Published content**: ISR with `revalidate: 3600`
-- All queries use `cacheSignal()` for automatic cleanup
+- `sanityFetch` calls `cacheTag()` internally, so every call must run inside a `'use cache'` function (see [Fetching Data](#fetching-data) above)
+- Revalidation happens via the webhook route (`app/api/revalidate/route.ts`), which calls `revalidateTag()` when Sanity's webhook fires
+- Draft mode switches `sanityFetch` to the draft perspective instead of relying on a separate no-store fetch path
 
 See [ARCHITECTURE.md](../../../ARCHITECTURE.md) for cache gotchas.
 

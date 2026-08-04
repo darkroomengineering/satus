@@ -23,13 +23,15 @@ const domain = env.SHOPIFY_STORE_DOMAIN // string | undefined with IntelliSense
 
 ## Available Integrations
 
-| Integration                      | Purpose         | Documentation                                 |
-| -------------------------------- | --------------- | --------------------------------------------- |
-| [Sanity](sanity/README.md)       | Headless CMS    | Visual editing, content management            |
-| [Shopify](shopify/README.md)     | E-commerce      | Cart, products, checkout                      |
-| [HubSpot](hubspot/README.md)     | Forms           | Marketing forms, CRM                          |
-| [Mailchimp](mailchimp/README.md) | Newsletter      | Email subscriptions                           |
-| [Turnstile](turnstile/README.md) | Spam protection | Cloudflare Turnstile CAPTCHA for form actions |
+| Integration                      | Purpose         | Documentation                                  |
+| -------------------------------- | --------------- | ---------------------------------------------- |
+| [Sanity](sanity/README.md)       | Headless CMS    | Visual editing, content management             |
+| [Shopify](shopify/README.md)     | E-commerce      | Cart, products, checkout                       |
+| [HubSpot](hubspot/README.md)     | Forms           | Marketing forms, CRM                           |
+| [Mailchimp](mailchimp/README.md) | Newsletter      | Email subscriptions                            |
+| [Turnstile](turnstile/README.md) | Spam protection | Cloudflare Turnstile CAPTCHA for form actions¹ |
+
+¹ Turnstile ships with every preset, including Blank — it has no `INTEGRATION_BUNDLES` entry, so `setup:project`'s `--keep`/`--preset` selection can't strip it. See [Removing Integrations](#removing-integrations) below for a manual recipe.
 
 ## Environment Variables
 
@@ -89,6 +91,8 @@ import { mailchimpSubscriptionAction } from '@/integrations/mailchimp'
 
 Run `bun run setup:project` for interactive removal. It is also drivable non-interactively (CI): `--preset <key>` or `--keep <id,id,...>` selects the integration set, `--yes` confirms it, `--clean-homepage` swaps in a blank starter homepage, and `--skip-install` skips the lockfile update. Keeping an integration also keeps whatever it requires (e.g. keeping `theatre` keeps `webgl`). When setup completes it removes its own machinery from the project (the setup script and its test suite) — `generate`, `doctor`, and `dev` stay.
 
+Turnstile is not part of this automated flow — it has no bundle for `setup:project` to remove, so it ships regardless of preset or `--keep` selection. Remove it manually with the recipe below.
+
 Or remove one manually:
 
 ```bash
@@ -105,6 +109,9 @@ bun remove @hubspot/api-client
 
 # Mailchimp (~20KB)
 rm -rf lib/integrations/mailchimp
+
+# Turnstile (no package deps — server-only fetch call, unused unless a form wires it in)
+rm -rf lib/integrations/turnstile
 ```
 
 After removal: `bun run lint:fix && bun run build`

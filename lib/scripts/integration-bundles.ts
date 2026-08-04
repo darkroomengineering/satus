@@ -125,9 +125,10 @@ export const INTEGRATION_BUNDLES = defineBundles({
       'SANITY_STUDIO_PROJECT_ID',
       'SANITY_REVALIDATE_SECRET',
     ],
-    barrelExports: [
-      { file: 'components/ui/index.ts', pattern: 'sanity-image' },
-    ],
+    // components/ui has no barrel file — components/ui/sanity-image is
+    // imported directly (see lib/integrations/sanity/components/rich-text.tsx),
+    // so there is no export line to restore on `satus add sanity`.
+    barrelExports: [],
     codeTransforms: [
       {
         file: 'app/(site)/layout.tsx',

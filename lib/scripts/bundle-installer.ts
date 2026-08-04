@@ -348,6 +348,16 @@ export const installBundle = async (
  * on disk, apply its subtractive `codeTransforms`. These ops are no-ops on
  * files already in the lean state, so calling this after an install is safe.
  *
+ * Downgrades every op's `required` flag to false before applying (regardless
+ * of how the bundle definition set it): by the time this runs, `setupLean`'s
+ * union pass has already applied every bundle's codeTransforms — including
+ * these — to the project's original files exactly once, which is where a
+ * required-match violation (drifted source) is caught. This is a genuinely
+ * separate, later pass over whatever's on disk NOW for a bundle that isn't
+ * kept; finding nothing left to strip here is the expected, idempotent
+ * outcome, not a sign of drift — enforcing `required` a second time here
+ * would false-positive on every preset that doesn't keep every integration.
+ *
  * @param installedOrAdded - Set (or array) of integration ids that are being
  *   added / were already added in this run and should NOT be stripped.
  * @param dryRun - When true, count changes but do not write files.
@@ -371,5 +381,10 @@ export const stripAbsentIntegrationWiring = async (
   }
 
   if (stripTransforms.length === 0) return { changes: 0, failures: [] }
-  return applyCodeTransforms(stripTransforms, dryRun)
+
+  const nonRequiredTransforms = stripTransforms.map((transform) => ({
+    ...transform,
+    ops: transform.ops.map((op) => ({ ...op, required: false })),
+  }))
+  return applyCodeTransforms(nonRequiredTransforms, dryRun)
 }

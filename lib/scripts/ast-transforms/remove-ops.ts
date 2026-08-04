@@ -21,7 +21,11 @@ import type {
   RemoveInterfacePropertyOp,
   RemoveJsxAttributeOp,
   RemoveJsxElementOp,
+  RemoveNamedImportOp,
+  RemoveTryStatementOp,
+  RemoveUseCacheDirectiveOp,
   RemoveVariableStatementOp,
+  ReplaceFunctionBodyOp,
   ReplaceJsDocOp,
 } from '../ast-operation-types'
 import {
@@ -44,6 +48,39 @@ export function applyRemoveImport(
         break
       }
     }
+  })
+}
+
+/**
+ * Remove a single named binding from an import declaration, keeping other
+ * bindings on the same declaration. Removes the whole declaration when the
+ * removed binding was its only one (no default/namespace import left either).
+ */
+export function applyRemoveNamedImport(
+  project: Project,
+  sourceText: string,
+  op: RemoveNamedImportOp
+): string {
+  return withSourceFile(project, sourceText, (sf) => {
+    const decl = sf
+      .getImportDeclarations()
+      .find((d) => d.getModuleSpecifierValue() === op.specifier)
+    if (!decl) return sourceText
+
+    const named = decl.getNamedImports().find((n) => n.getName() === op.name)
+    if (!named) return sourceText
+
+    named.remove()
+
+    if (
+      decl.getNamedImports().length === 0 &&
+      !decl.getDefaultImport() &&
+      !decl.getNamespaceImport()
+    ) {
+      decl.remove()
+    }
+
+    return undefined // proceed with sf.getFullText()
   })
 }
 
@@ -116,6 +153,84 @@ export function applyRemoveIfStatement(
 
       sf.removeText(stmt.getFullStart(), stmt.getEnd())
     }
+  })
+}
+
+/**
+ * Remove a `try { … } catch { … }` statement whose try-block text contains
+ * `blockContains`. Pure deletion (no replacement) — mirrors
+ * `applyRemoveIfStatement`.
+ */
+export function applyRemoveTryStatement(
+  project: Project,
+  sourceText: string,
+  op: RemoveTryStatementOp
+): string {
+  return withSourceFile(project, sourceText, (sf) => {
+    while (true) {
+      const stmt = sf
+        .getDescendantsOfKind(SyntaxKind.TryStatement)
+        .find((s) => s.getTryBlock().getText().includes(op.blockContains))
+      if (!stmt) break
+
+      sf.removeText(stmt.getFullStart(), stmt.getEnd())
+    }
+  })
+}
+
+/**
+ * Remove a `'use cache'` directive sitting as the first statement of a named
+ * function's body. No-op when the function isn't found, or its first
+ * statement isn't a `'use cache'` string-literal expression statement.
+ */
+export function applyRemoveUseCacheDirective(
+  project: Project,
+  sourceText: string,
+  op: RemoveUseCacheDirectiveOp
+): string {
+  return withSourceFile(project, sourceText, (sf) => {
+    const fn = sf.getFunction(op.functionName)
+    if (!fn) return sourceText
+
+    const body = fn.getBody()
+    if (!body || body.getKind() !== SyntaxKind.Block) return sourceText
+    const block = body.asKindOrThrow(SyntaxKind.Block)
+
+    const first = block.getStatements()[0]
+    if (!first) return sourceText
+
+    const expr = first.asKind(SyntaxKind.ExpressionStatement)?.getExpression()
+    if (!expr || expr.getKind() !== SyntaxKind.StringLiteral) return sourceText
+    if (
+      expr.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue() !==
+      'use cache'
+    ) {
+      return sourceText
+    }
+
+    sf.removeText(first.getFullStart(), first.getEnd())
+    return undefined // proceed with sf.getFullText()
+  })
+}
+
+/**
+ * Replace a named function's entire body with `replacement` (source text
+ * including the surrounding braces). No-op when the function isn't found.
+ */
+export function applyReplaceFunctionBody(
+  project: Project,
+  sourceText: string,
+  op: ReplaceFunctionBodyOp
+): string {
+  return withSourceFile(project, sourceText, (sf) => {
+    const fn = sf.getFunction(op.functionName)
+    if (!fn) return sourceText
+
+    const body = fn.getBody()
+    if (!body) return sourceText
+
+    body.replaceWithText(op.replacement)
+    return undefined // proceed with sf.getFullText()
   })
 }
 

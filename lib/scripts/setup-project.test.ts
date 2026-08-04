@@ -11,8 +11,11 @@
  */
 
 import { beforeAll, describe, expect, it } from 'bun:test'
+import { mkdtemp, rm, symlink } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { dirname, join } from 'node:path'
 
-import { applyOpsToText } from './ast-transforms'
+import { applyOpsToText, RequiredOpMatchError } from './ast-transforms'
 import {
   getIntegrationEntries,
   getIntegrationNames,
@@ -31,7 +34,7 @@ import {
   shouldDisableCacheComponents,
   shouldSkipConfirm,
 } from './setup-project'
-import { getFlagValue } from './utils'
+import { getFlagValue, pathExists, projectRoot } from './utils'
 
 // ---------------------------------------------------------------------------
 // Source file fixtures — loaded once, never written to disk
@@ -97,6 +100,7 @@ describe('Integration Bundle Configuration', () => {
           // Every op must have a known kind
           expect([
             'removeImport',
+            'removeNamedImport',
             'removeVariableStatement',
             'removeCallStatement',
             'removeCallArgument',
@@ -105,6 +109,8 @@ describe('Integration Bundle Configuration', () => {
             'removeFunctionParameter',
             'replaceJsDoc',
             'removeIfStatement',
+            'removeTryStatement',
+            'replaceFunctionBody',
             'removeArrayObjectElement',
             'removeArrayStringElement',
             'removeJsxAttribute',
@@ -147,6 +153,14 @@ describe('Integration Bundle Configuration', () => {
             expect(op.attributeName).toBeTruthy()
           } else if (op.kind === 'removeDestructuredBinding') {
             expect(op.bindingName).toBeTruthy()
+          } else if (op.kind === 'removeNamedImport') {
+            expect(op.specifier).toBeTruthy()
+            expect(op.name).toBeTruthy()
+          } else if (op.kind === 'removeTryStatement') {
+            expect(op.blockContains).toBeTruthy()
+          } else if (op.kind === 'replaceFunctionBody') {
+            expect(op.functionName).toBeTruthy()
+            expect(op.replacement).toBeTruthy()
           }
         }
       }
@@ -162,6 +176,8 @@ describe('Integration Bundle Configuration', () => {
       'addArrayObjectElement',
       'addVariableStatement',
       'addJsxChild',
+      'addDestructuredBinding',
+      'addFunctionBodyStatement',
     ]
 
     for (const [_name, bundle] of getIntegrationEntries()) {
@@ -192,6 +208,13 @@ describe('Integration Bundle Configuration', () => {
             expect(op.parentTagName).toBeTruthy()
             expect(op.childText).toBeTruthy()
             expect(op.childTagName).toBeTruthy()
+          } else if (op.kind === 'addDestructuredBinding') {
+            expect(op.bindingName).toBeTruthy()
+            expect(op.initializerContains).toBeTruthy()
+          } else if (op.kind === 'addFunctionBodyStatement') {
+            expect(op.functionName).toBeTruthy()
+            expect(op.text).toBeTruthy()
+            expect(op.marker).toBeTruthy()
           }
         }
       }
@@ -473,6 +496,114 @@ describe('Preset Configurations', () => {
 
   it('blank should have no integrations', () => {
     expect(presets.blank).toHaveLength(0)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// RequiredOpMatchError — the required-match contract (cross-model review
+// HIGH finding on the P-B7 ops): a `required: true` op that matches nothing
+// must fail the whole run loudly, not silently leave a broken tree.
+// ---------------------------------------------------------------------------
+
+describe('RequiredOpMatchError (required-match contract)', () => {
+  it('applyOpsToText throws when a required op matches nothing', () => {
+    const src = 'export function foo() {\n  return 1\n}\n'
+    expect(() =>
+      applyOpsToText(src, [
+        {
+          kind: 'removeVariableStatement',
+          name: 'doesNotExist',
+          required: true,
+        },
+      ])
+    ).toThrow(RequiredOpMatchError)
+  })
+
+  it('the thrown error names the op and hints at drift', () => {
+    const src = 'export function foo() {\n  return 1\n}\n'
+    expect(() =>
+      applyOpsToText(src, [
+        {
+          kind: 'removeImport',
+          specifier: '@/does/not/exist',
+          required: true,
+        },
+      ])
+    ).toThrow(/drifted.*removeImport '@\/does\/not\/exist'/is)
+  })
+
+  it('a required op that DOES match does not throw', () => {
+    const src = 'const foo = 1\nexport function bar() {\n  return foo\n}\n'
+    const result = applyOpsToText(src, [
+      { kind: 'removeVariableStatement', name: 'foo', required: true },
+    ])
+    expect(result).not.toContain('const foo')
+  })
+
+  it('a non-required op still silently no-ops on a miss (legacy semantics preserved)', () => {
+    const src = 'export function foo() {\n  return 1\n}\n'
+    const result = applyOpsToText(src, [
+      { kind: 'removeVariableStatement', name: 'doesNotExist' },
+    ])
+    expect(result).toBe(src)
+  })
+
+  // The exact scenario the finding describes: "a future rename moves
+  // getCmsRoutes" — proven against the REAL sanity bundle ops and the REAL
+  // (mutated) source, not a synthetic fixture.
+  it('drifted fixture: renaming getCmsRoutes makes the sanity lib/seo/routes.ts strip fail loudly', () => {
+    const content = sourceFiles['lib/seo/routes.ts']
+    const bundle = INTEGRATION_BUNDLES.sanity
+    const transform = bundle?.codeTransforms.find(
+      (t) => t.file === 'lib/seo/routes.ts'
+    )
+    if (!(content && transform)) return
+
+    const drifted = content.replaceAll('getCmsRoutes', 'getCMSRoutes')
+
+    expect(() => applyOpsToText(drifted, transform.ops)).toThrow(
+      RequiredOpMatchError
+    )
+    // Sanity-check the test itself: the un-drifted file must still strip cleanly.
+    expect(() => applyOpsToText(content, transform.ops)).not.toThrow()
+  })
+
+  // The other scenario the finding names: "the revalidate try-block shape
+  // drifts" — proven against the real shared-file ops.
+  it('drifted fixture: a restructured revalidate try-block makes the sanity strip fail loudly', () => {
+    const content = sourceFiles['app/api/revalidate/route.ts']
+    const bundle = INTEGRATION_BUNDLES.sanity
+    const transform = bundle?.codeTransforms.find(
+      (t) => t.file === 'app/api/revalidate/route.ts'
+    )
+    if (!(content && transform)) return
+
+    const drifted = content.replace(
+      'SANITY_REVALIDATE_SECRET',
+      'SANITY_SECRET_V2'
+    )
+
+    expect(() => applyOpsToText(drifted, transform.ops)).toThrow(
+      RequiredOpMatchError
+    )
+    expect(() => applyOpsToText(content, transform.ops)).not.toThrow()
+  })
+
+  // Mirrors bundle-installer.ts's stripAbsentIntegrationWiring downgrade:
+  // reapplying the SAME required ops (with `required` forced to false) to
+  // source that already had them applied once must never throw — that's
+  // the expected idempotent no-op, not drift.
+  it('downgrading required to false (stripAbsentIntegrationWiring-style) tolerates an already-lean file', () => {
+    const content = sourceFiles['lib/seo/routes.ts']
+    const bundle = INTEGRATION_BUNDLES.sanity
+    const transform = bundle?.codeTransforms.find(
+      (t) => t.file === 'lib/seo/routes.ts'
+    )
+    if (!(content && transform)) return
+
+    const lean = applyOpsToText(content, transform.ops)
+    const downgraded = transform.ops.map((op) => ({ ...op, required: false }))
+    expect(() => applyOpsToText(lean, downgraded)).not.toThrow()
   })
 })
 
@@ -1209,4 +1340,111 @@ describe('replaceAnchoredText (doc patching)', () => {
     expect(text).not.toContain(anchor)
     expect(text).toContain('Cache Components is disabled in this project')
   })
+})
+
+// ---------------------------------------------------------------------------
+// P-C3 regression — a kept bundle's dependency pins must survive selfPrune's
+// package.json write.
+//
+// `setupAddIntegrations` (step 8 of `setup()`) calls `addDependencies` per
+// kept bundle, which read-modify-writes package.json on disk to pin the
+// bundle's dependency versions. `selfPrune` (step 11) used to reuse the
+// step-5 in-memory `pkg` object — read from disk BEFORE step 8 ran — and
+// write IT back to disk, silently reverting every pin `setupAddIntegrations`
+// had just written. `--keep sanity` would report "N dependencies pinned"
+// while package.json on disk ended up with none of them, and the resulting
+// `bun install && bun run build` failed on module-not-found.
+//
+// This exercises the REAL script end-to-end (not just its exported helpers):
+// a throwaway rsync copy of the repo (node_modules symlinked, matching the
+// manual acceptance procedure), run non-interactively with --skip-install
+// (no network needed — this only proves the on-disk package.json is
+// correct, not that `bun install`/`bun run build` succeed; that's covered
+// by the manual acceptance procedure in the PR description).
+// ---------------------------------------------------------------------------
+
+describe("P-C3 regression: kept bundle deps survive selfPrune's package.json write", () => {
+  it('--keep sanity pins sanity deps to disk through a full (non-dry) run', async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-fullrun-'))
+    try {
+      const rsync = Bun.spawnSync([
+        'rsync',
+        '-a',
+        '--exclude',
+        'node_modules',
+        '--exclude',
+        '.next',
+        '--exclude',
+        '.git',
+        `${projectRoot}/`,
+        `${tmpRoot}/`,
+      ])
+      expect(rsync.exitCode).toBe(0)
+
+      // Symlink the nearest real node_modules so the copy can run bun
+      // scripts, mirroring the manual acceptance procedure. Walk up from
+      // projectRoot: a git-worktree checkout (as used by this harness) has
+      // no node_modules of its own and resolves via the main checkout's —
+      // Bun also falls back to its global install cache when no
+      // node_modules is found at all, so this is a best-effort speed-up,
+      // not a hard requirement.
+      let nodeModulesSource: string | undefined
+      for (let dir = projectRoot; dir !== dirname(dir); dir = dirname(dir)) {
+        const candidate = join(dir, 'node_modules')
+        if (await pathExists(candidate)) {
+          nodeModulesSource = candidate
+          break
+        }
+      }
+      if (nodeModulesSource) {
+        await symlink(nodeModulesSource, join(tmpRoot, 'node_modules'))
+      }
+
+      const proc = Bun.spawnSync(
+        [
+          'bun',
+          'run',
+          'lib/scripts/setup-project.ts',
+          '--keep',
+          'sanity',
+          '--yes',
+          '--skip-install',
+        ],
+        { cwd: tmpRoot, stdout: 'pipe', stderr: 'pipe' }
+      )
+
+      if (proc.exitCode !== 0) {
+        console.error(proc.stdout.toString())
+        console.error(proc.stderr.toString())
+      }
+      expect(proc.exitCode).toBe(0)
+
+      const pkg = JSON.parse(
+        await Bun.file(join(tmpRoot, 'package.json')).text()
+      ) as {
+        dependencies?: Record<string, string>
+        devDependencies?: Record<string, string>
+      }
+
+      for (const dep of [
+        '@portabletext/react',
+        '@sanity/asset-utils',
+        '@sanity/image-url',
+        'next-sanity',
+      ]) {
+        expect(
+          pkg.dependencies?.[dep],
+          `missing dependency "${dep}"`
+        ).toBeTruthy()
+      }
+      for (const devDep of ['@sanity/vision', 'sanity']) {
+        expect(
+          pkg.devDependencies?.[devDep],
+          `missing devDependency "${devDep}"`
+        ).toBeTruthy()
+      }
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true })
+    }
+  }, 60000)
 })

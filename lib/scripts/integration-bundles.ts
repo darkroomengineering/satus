@@ -18,6 +18,8 @@ import type { CodeTransform } from './ast-operation-types'
 export type {
   AddArrayObjectElementOp,
   AddArrayStringElementOp,
+  AddDestructuredBindingOp,
+  AddFunctionBodyStatementOp,
   AddImportOp,
   AddJsxChildOp,
   AddVariableStatementOp,
@@ -34,8 +36,13 @@ export type {
   RemoveInterfacePropertyOp,
   RemoveJsxAttributeOp,
   RemoveJsxElementOp,
+  RemoveNamedImportOp,
+  RemoveTryStatementOp,
+  RemoveUseCacheDirectiveOp,
   RemoveVariableStatementOp,
+  ReplaceFunctionBodyOp,
   ReplaceJsDocOp,
+  RequiredMatchOp,
 } from './ast-operation-types'
 
 export interface BarrelExport {
@@ -191,11 +198,108 @@ export const INTEGRATION_BUNDLES = defineBundles({
           },
         ],
       },
+      // lib/seo/routes.ts is a SHARED SEO surface (feeds app/sitemap.ts and
+      // app/llms.txt/route.ts) that stays present in every preset, but its
+      // getCmsRoutes() implementation is entirely Sanity-specific. Strip it
+      // to a lean stub that always returns [] — callers already degrade
+      // gracefully to STATIC_ROUTES / an empty Content section (P-B7: a
+      // no-sanity strip left this file's `next-sanity`/sanity imports
+      // unstripped, breaking the build once sanity's own deps were removed).
+      {
+        file: 'lib/seo/routes.ts',
+        // Every op here is `required: true`: this file is single-owner
+        // (only sanity touches it) and this array runs exactly once against
+        // pristine source per setup() run, so a zero-match here can only
+        // mean the source shape drifted (e.g. getCmsRoutes renamed) — never
+        // a legitimate idempotent re-application. See RequiredMatchOp's
+        // docstring in ast-operation-types.ts.
+        ops: [
+          {
+            kind: 'removeImport',
+            specifier: '@/integrations/registry',
+            required: true,
+          },
+          {
+            kind: 'removeImport',
+            specifier: '@/integrations/sanity/live',
+            required: true,
+          },
+          {
+            kind: 'removeImport',
+            specifier: '@/integrations/sanity/utils/link',
+            required: true,
+          },
+          { kind: 'removeImport', specifier: 'next-sanity', required: true },
+          { kind: 'removeImport', specifier: 'zod', required: true },
+          {
+            kind: 'removeVariableStatement',
+            name: 'routableDocumentSchema',
+            required: true,
+          },
+          {
+            kind: 'removeVariableStatement',
+            name: 'routableContentQuery',
+            required: true,
+          },
+          {
+            kind: 'removeVariableStatement',
+            name: 'staticPaths',
+            required: true,
+          },
+          {
+            kind: 'replaceFunctionBody',
+            functionName: 'getCmsRoutes',
+            replacement: '{\n  return []\n}',
+            required: true,
+          },
+        ],
+      },
+      // app/api/revalidate/route.ts is a SHARED webhook endpoint — Shopify
+      // owns its own guard/dispatch (see the shopify bundle's codeTransforms
+      // on this same file); everything else in the handler (the
+      // next-sanity/webhook parseBody call, NextResponse.json success path,
+      // revalidateTag calls) is Sanity's own logic and must be stripped when
+      // Sanity isn't kept, or `next-sanity` being removed from package.json
+      // breaks the build (P-B7).
+      {
+        file: 'app/api/revalidate/route.ts',
+        // required: true on all four — this is sanity's half of a two-owner
+        // file, applied exactly once per run against the pristine file by
+        // setupLean's union pass. stripAbsentIntegrationWiring (which CAN
+        // legitimately reapply this same array a second time, against an
+        // already-lean file, when sanity is absent but shopify is kept)
+        // downgrades `required` to false before calling applyCodeTransforms
+        // — see its docstring in bundle-installer.ts.
+        ops: [
+          {
+            kind: 'removeImport',
+            specifier: 'next-sanity/webhook',
+            required: true,
+          },
+          { kind: 'removeImport', specifier: 'next/cache', required: true },
+          {
+            kind: 'removeNamedImport',
+            specifier: 'next/server',
+            name: 'NextResponse',
+            required: true,
+          },
+          {
+            kind: 'removeTryStatement',
+            blockContains: 'SANITY_REVALIDATE_SECRET',
+            required: true,
+          },
+        ],
+      },
     ],
     // app/(site)/layout.tsx has complex Sanity wiring (SanityLive, VisualEditing,
     // isConfigured call) that cannot be re-injected statement-by-statement
     // safely.  Restore wholesale from the payload on `satus add sanity`.
-    overwriteFiles: ['app/(site)/layout.tsx'],
+    // lib/seo/routes.ts's only owner is Sanity (no other bundle touches it),
+    // so a wholesale restore on `satus add sanity` is safe — unlike
+    // app/api/revalidate/route.ts below, which Shopify also owns and must be
+    // restored surgically via addTransforms instead (overwriteFiles would
+    // reintroduce Shopify's wiring even when Shopify isn't kept).
+    overwriteFiles: ['app/(site)/layout.tsx', 'lib/seo/routes.ts'],
     addTransforms: [
       {
         file: 'next.config.ts',
@@ -235,6 +339,71 @@ export const INTEGRATION_BUNDLES = defineBundles({
           },
         ],
       },
+      // app/api/revalidate/route.ts is shared with Shopify (see that
+      // bundle's addTransforms on the same file) — restored surgically here
+      // rather than via overwriteFiles so keeping Sanity without Shopify
+      // never reintroduces Shopify's guard/dispatch import.
+      {
+        file: 'app/api/revalidate/route.ts',
+        ops: [
+          {
+            kind: 'addImport',
+            text: "import { parseBody } from 'next-sanity/webhook'",
+          },
+          {
+            kind: 'addImport',
+            text: "import { revalidateTag } from 'next/cache'",
+          },
+          {
+            kind: 'addImport',
+            text: "import { NextResponse } from 'next/server'",
+          },
+          {
+            kind: 'addFunctionBodyStatement',
+            functionName: 'POST',
+            marker: 'SANITY_REVALIDATE_SECRET',
+            text: `  try {
+    const secret = process.env.SANITY_REVALIDATE_SECRET
+    if (!secret) {
+      return new Response('Webhook secret not configured', { status: 503 })
+    }
+
+    const { body, isValidSignature } = await parseBody<{
+      _type: string
+      slug?: { current: string }
+    }>(request, secret)
+
+    if (!isValidSignature) {
+      return new Response('Invalid signature', { status: 401 })
+    }
+
+    if (!body?._type) {
+      return new Response('Bad Request', { status: 400 })
+    }
+
+    revalidateTag(body._type, {})
+
+    if (body.slug?.current) {
+      revalidateTag(\`\${body._type}:\${body.slug.current}\`, {})
+    }
+
+    return NextResponse.json({
+      status: 200,
+      revalidated: true,
+      now: Date.now(),
+    })
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      console.warn('Revalidation client error: invalid JSON body', error)
+      return new Response('Invalid JSON body', { status: 400 })
+    }
+
+    console.error('Revalidation error:', error)
+    return new Response('Internal Server Error', { status: 500 })
+  }`,
+          },
+        ],
+      },
     ],
   },
 
@@ -266,11 +435,10 @@ export const INTEGRATION_BUNDLES = defineBundles({
           },
         ],
       },
-      // app/api/revalidate/route.ts is a SHARED core route (not deleted by any
-      // bundle's `folders`/`files` — Sanity's revalidation logic in the same
-      // file has no bundle ownership either). Only Shopify currently wires
-      // anything into it, so stripping Shopify must remove exactly its own
-      // import + guard dispatch and nothing else.
+      // app/api/revalidate/route.ts is a SHARED core route — Sanity also owns
+      // part of it (its own codeTransforms entry on this file, above).
+      // Stripping Shopify must remove exactly its own import + guard dispatch
+      // and nothing else.
       {
         file: 'app/api/revalidate/route.ts',
         ops: [
@@ -292,15 +460,6 @@ export const INTEGRATION_BUNDLES = defineBundles({
         ],
       },
     ],
-    // The Shopify webhook dispatch (import + guard variable + if-statement)
-    // lives inside the exported `POST` function body, not at the top level —
-    // none of the existing additive ops can re-insert a statement mid-function,
-    // so the file is restored wholesale on `satus add shopify`, guarded by the
-    // lean-state comparison documented on `overwriteFiles`. Safe because no
-    // other bundle currently owns any part of this file (see codeTransforms
-    // comment above) — the "expected lean" check only ever compares against
-    // Shopify's own removal ops.
-    overwriteFiles: ['app/api/revalidate/route.ts'],
     addTransforms: [
       {
         file: 'next.config.ts',
@@ -312,6 +471,32 @@ export const INTEGRATION_BUNDLES = defineBundles({
             propertyPath: 'images.remotePatterns',
             objectText: "{ protocol: 'https', hostname: 'cdn.shopify.com' }",
             matchProperty: { name: 'hostname', value: 'cdn.shopify.com' },
+          },
+        ],
+      },
+      // app/api/revalidate/route.ts is shared with Sanity (see that bundle's
+      // addTransforms on the same file). Insert right after the rate-limit
+      // early-return so the guard runs before Sanity's webhook handling
+      // regardless of which bundle's addTransforms runs first.
+      {
+        file: 'app/api/revalidate/route.ts',
+        ops: [
+          {
+            kind: 'addImport',
+            text: "import { revalidate as shopifyRevalidate } from '@/integrations/shopify/revalidate'",
+          },
+          {
+            kind: 'addFunctionBodyStatement',
+            functionName: 'POST',
+            marker: 'isShopifyWebhook',
+            afterContains: 'Too many requests',
+            text: `  const isShopifyWebhook =
+    request.headers.has('x-shopify-topic') ||
+    request.nextUrl.searchParams.has('secret')
+
+  if (isShopifyWebhook) {
+    return shopifyRevalidate(request)
+  }`,
           },
         ],
       },
@@ -363,7 +548,13 @@ export const INTEGRATION_BUNDLES = defineBundles({
       'tunnel-rat',
     ],
     devDependencies: ['@types/three'],
-    folders: ['lib/webgl'],
+    // lib/dev/stats renders a WebGL frame-time/GPU meter via `stats-gl`, a
+    // package that isn't a direct project dependency — it's only present in
+    // node_modules as a transitive dependency of `@react-three/drei` above.
+    // Stripping webgl removes that package too, so lib/dev/stats must live
+    // and die with the bundle (P-B7: it was orphaned, breaking any no-webgl
+    // build on module-not-found).
+    folders: ['lib/webgl', 'lib/dev/stats'],
     files: ['lib/hooks/use-device-detection.ts'],
     envVars: [],
     barrelExports: [
@@ -408,10 +599,45 @@ export const INTEGRATION_BUNDLES = defineBundles({
         file: 'lib/dev/cmdo.tsx',
         ops: [
           // Remove only the webgl OrchestraToggle (disambiguate by id attr)
+          // — pre-existing op, left unmarked (see RequiredMatchOp's
+          // docstring: legacy ops keep their existing no-op-on-miss semantics).
           {
             kind: 'removeJsxElement',
             tagName: 'OrchestraToggle',
             attribute: { name: 'id', value: 'webgl' },
+          },
+          // The stats-gl overlay needs a WebGL canvas — remove its toggle too.
+          // required: true — this array runs once against pristine source
+          // per setup() run (stripAbsentIntegrationWiring's later reapplication
+          // downgrades `required`, see its docstring in bundle-installer.ts).
+          {
+            kind: 'removeJsxElement',
+            tagName: 'OrchestraToggle',
+            attribute: { name: 'id', value: 'stats' },
+            required: true,
+          },
+        ],
+      },
+      {
+        file: 'lib/dev/index.tsx',
+        // Every op here is new (P-B7, the stats-gl orphan fix) and
+        // `required: true` for the same reason as lib/seo/routes.ts above.
+        ops: [
+          // Remove `const Stats = dynamic(…)` (imports the webgl-only stats-gl overlay)
+          {
+            kind: 'removeVariableStatement',
+            name: 'Stats',
+            required: true,
+          },
+          // Remove `{stats && <Stats />}` JSX expression
+          { kind: 'removeJsxElement', tagName: 'Stats', required: true },
+          // Remove `stats` from `const { stats, grid, … } = useOrchestra()`
+          // (unused after the JSX element above is gone — TS6133)
+          {
+            kind: 'removeDestructuredBinding',
+            bindingName: 'stats',
+            initializerContains: 'useOrchestra',
+            required: true,
           },
         ],
       },
@@ -560,6 +786,42 @@ export const INTEGRATION_BUNDLES = defineBundles({
               '<OrchestraToggle id="webgl" defaultValue={true}>🧊</OrchestraToggle>',
             childTagName: 'OrchestraToggle',
             childAttribute: { name: 'id', value: 'webgl' },
+          },
+          // Re-add the stats OrchestraToggle next to the other toggles
+          {
+            kind: 'addJsxChild',
+            parentTagName: 'div',
+            childText: '<OrchestraToggle id="stats">📈</OrchestraToggle>',
+            childTagName: 'OrchestraToggle',
+            childAttribute: { name: 'id', value: 'stats' },
+          },
+        ],
+      },
+      {
+        file: 'lib/dev/index.tsx',
+        ops: [
+          // Ensure the dynamic() helper import is present
+          { kind: 'addImport', text: "import dynamic from 'next/dynamic'" },
+          // Re-add `stats` to `const { grid, … } = useOrchestra()`
+          {
+            kind: 'addDestructuredBinding',
+            bindingName: 'stats',
+            initializerContains: 'useOrchestra',
+          },
+          // Re-add `const Stats = dynamic(…)`
+          {
+            kind: 'addVariableStatement',
+            name: 'Stats',
+            text: `const Stats = dynamic(() => import('./stats').then(({ Stats }) => Stats), {
+  ssr: false,
+})`,
+          },
+          // Re-add `{stats && <Stats />}` inside the OrchestraTools fragment
+          {
+            kind: 'addJsxChild',
+            parentTagName: 'Fragment',
+            childText: '{stats && <Stats />}',
+            childTagName: 'Stats',
           },
         ],
       },

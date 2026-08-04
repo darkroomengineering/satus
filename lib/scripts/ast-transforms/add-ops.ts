@@ -17,6 +17,8 @@ import {
 import type {
   AddArrayObjectElementOp,
   AddArrayStringElementOp,
+  AddDestructuredBindingOp,
+  AddFunctionBodyStatementOp,
   AddImportOp,
   AddJsxChildOp,
   AddVariableStatementOp,
@@ -191,6 +193,90 @@ export function applyAddVariableStatement(
       sf.addStatements(op.text)
     } else {
       sf.insertStatements(insertIndexAfterImports(sf), op.text)
+    }
+    return undefined // proceed with sf.getFullText()
+  })
+}
+
+/**
+ * Add a named binding to an existing destructured variable declaration.
+ * Inverse of `removeDestructuredBinding`. No-op when the binding already
+ * exists, or when no destructuring matches `initializerContains`.
+ */
+export function applyAddDestructuredBinding(
+  project: Project,
+  sourceText: string,
+  op: AddDestructuredBindingOp
+): string {
+  return withSourceFile(project, sourceText, (sf) => {
+    for (const stmt of sf.getDescendantsOfKind(SyntaxKind.VariableStatement)) {
+      for (const decl of stmt.getDeclarations()) {
+        const nameNode = decl.getNameNode()
+        if (nameNode.getKind() !== SyntaxKind.ObjectBindingPattern) continue
+
+        const pattern = nameNode.asKindOrThrow(SyntaxKind.ObjectBindingPattern)
+        const initText = decl.getInitializer()?.getText() ?? ''
+        if (!initText.includes(op.initializerContains)) continue
+
+        const elements = pattern.getElements()
+        if (elements.some((el) => el.getName() === op.bindingName)) {
+          return sourceText // already present — idempotent no-op
+        }
+
+        const names = [...elements.map((el) => el.getText()), op.bindingName]
+        pattern.replaceWithText(`{ ${names.join(', ')} }`)
+        return undefined // proceed with sf.getFullText()
+      }
+    }
+    return sourceText // no matching destructuring found
+  })
+}
+
+/**
+ * Insert `text` into a named function's body. No-op when a statement
+ * containing `marker` already exists. When `afterContains` matches an
+ * existing statement, `text` is inserted right after it; otherwise `text` is
+ * appended as the last statement.
+ */
+export function applyAddFunctionBodyStatement(
+  project: Project,
+  sourceText: string,
+  op: AddFunctionBodyStatementOp
+): string {
+  return withSourceFile(project, sourceText, (sf) => {
+    const fn = sf.getFunction(op.functionName)
+    if (!fn) return sourceText
+
+    const body = fn.getBody()
+    if (!body || body.getKind() !== SyntaxKind.Block) return sourceText
+    const block = body.asKindOrThrow(SyntaxKind.Block)
+
+    const statements = block.getStatements()
+    const exists = statements.some((s) => s.getText().includes(op.marker))
+    if (exists) return sourceText
+
+    // Raw text insertion (rather than `block.insertStatements(index, …)`)
+    // deliberately: ts-morph's numeric-index insertion mis-positions by one
+    // when a leading comment precedes the block's first statement (the index
+    // returned by `getStatements()` and the index `insertStatements` expects
+    // stop agreeing once trivia is involved).
+    const anchor = op.afterContains
+      ? statements.find((s) => s.getText().includes(op.afterContains as string))
+      : undefined
+
+    if (anchor) {
+      sf.insertText(anchor.getEnd(), `\n${op.text}`)
+      return undefined // proceed with sf.getFullText()
+    }
+
+    const last = statements[statements.length - 1]
+    if (last) {
+      sf.insertText(last.getEnd(), `\n${op.text}`)
+    } else {
+      const openBrace = block.getFirstChildByKindOrThrow(
+        SyntaxKind.OpenBraceToken
+      )
+      sf.insertText(openBrace.getEnd(), `\n${op.text}`)
     }
     return undefined // proceed with sf.getFullText()
   })

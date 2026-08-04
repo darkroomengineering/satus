@@ -689,6 +689,32 @@ export const CACHE_COMPONENTS_DISABLE_TRANSFORM: CodeTransform = {
 }
 
 /**
+ * app/llms.txt/route.ts's `buildBody()` has its own `'use cache'` directive,
+ * independent of any CMS integration — it caches the plain-text response
+ * builder, not a Sanity fetch. `'use cache'` is a hard Next.js compile error
+ * once Cache Components is disabled, so this must be stripped in the same
+ * pass as the next.config.ts flip (P-B7: a blank/no-CMS build failed with
+ * "please enable the feature flag `cacheComponents`" pointing at this file).
+ *
+ * `required: true`: `setupCacheComponentsOptOut` applies this exactly once
+ * per setup() run, against the pristine file — a zero-match here can only
+ * mean `buildBody` was renamed or its directive moved, not a legitimate
+ * idempotent re-application (unlike the bundle-owned ops in
+ * integration-bundles.ts, this one is never touched by
+ * stripAbsentIntegrationWiring).
+ */
+export const CACHE_COMPONENTS_LLMS_TXT_TRANSFORM: CodeTransform = {
+  file: 'app/llms.txt/route.ts',
+  ops: [
+    {
+      kind: 'removeUseCacheDirective',
+      functionName: 'buildBody',
+      required: true,
+    },
+  ],
+}
+
+/**
  * Anchored doc-sentence replacements so a fork's docs don't claim Cache
  * Components is enabled after setup just disabled it. Each `anchor` is
  * matched as an exact substring; when absent (doc since reworded), the file
@@ -764,7 +790,7 @@ const setupCacheComponentsOptOut = async (
   s.start('Disabling Cache Components (no CMS/storefront kept)...')
 
   const { failures } = await applyCodeTransforms(
-    [CACHE_COMPONENTS_DISABLE_TRANSFORM],
+    [CACHE_COMPONENTS_DISABLE_TRANSFORM, CACHE_COMPONENTS_LLMS_TXT_TRANSFORM],
     dryRun
   )
 
@@ -953,13 +979,16 @@ const selfPrune = async (
  *  10. setupCacheComponentsOptOut — when the final kept set has neither
  *      sanity nor shopify, flip `cacheComponents` off in next.config.ts and
  *      patch the docs that claim it's enabled. No-op otherwise.
- *  11. selfPrune — delete setup files (including this script) and mutate
- *      pkg.scripts in-memory, THEN a second package.json write to persist
- *      the scripts removal. This is deliberately the LAST mutating step:
- *      running it only after setupAddIntegrations has completed
- *      successfully means any failure in steps 3–8 leaves
- *      lib/scripts/setup-project.ts (and its package.json script entry)
- *      intact, so the run can simply be repeated (H8).
+ *  11. selfPrune — re-reads package.json from disk (P-C3: step 8's
+ *      `addDependencies` writes dependency pins straight to disk, which the
+ *      step-5 `pkg` object never observes; reusing that stale object here
+ *      would silently revert those pins), then deletes setup files
+ *      (including this script) and mutates the freshly-read pkg.scripts,
+ *      THEN a second package.json write to persist the scripts removal.
+ *      This is deliberately the LAST mutating step: running it only after
+ *      setupAddIntegrations has completed successfully means any failure in
+ *      steps 3–8 leaves lib/scripts/setup-project.ts (and its package.json
+ *      script entry) intact, so the run can simply be repeated (H8).
  *  12. bun install (unless --skip-install). Non-fatal on failure (M5): a
  *      registry/offline error is reported and surfaced to the caller via
  *      the returned `installFailed` flag, but does not undo or block the
@@ -1062,9 +1091,21 @@ const setup = async (
   // 11. Self-prune: delete setup files (including this script), mutate
   //     pkg.scripts in-memory, and persist that with a second package.json
   //     write. Deliberately last — see the docstring above.
-  await selfPrune(pkg, dryRun)
+  //
+  //     Re-read package.json from disk here rather than reusing the `pkg`
+  //     object from step 5: `setupAddIntegrations` (step 8) calls
+  //     `addDependencies` per kept bundle, which does its own
+  //     read-modify-write cycle against package.json on disk to pin each
+  //     kept integration's dependency versions. The step-5 `pkg` object
+  //     predates that write and knows nothing about it — writing it back
+  //     here would silently revert every dependency pin `setupAddIntegrations`
+  //     just made (P-C3: `--keep sanity` reported "N dependencies pinned"
+  //     while package.json on disk ended up with none of them, and the
+  //     resulting build failed on module-not-found).
+  const prunePkg = (await Bun.file(pkgPath).json()) as PackageJson
+  await selfPrune(prunePkg, dryRun)
   if (!dryRun) {
-    await Bun.write(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
+    await Bun.write(pkgPath, `${JSON.stringify(prunePkg, null, 2)}\n`)
   }
 
   // 12. Run bun install to update the lockfile. Non-fatal: an offline /

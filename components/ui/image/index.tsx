@@ -92,7 +92,14 @@ export type ImageProps = Omit<
   NextImageProps,
   'objectFit' | 'alt' | 'width' | 'height' | 'fill' | 'sizes'
 > & {
-  /** CSS object-fit property for image positioning */
+  /**
+   * CSS object-fit property for image positioning. Omitted by default — the
+   * visual default (`cover`) comes from a zero-specificity CSS rule instead
+   * of an inline style, so a consumer CSS Module or Tailwind `object-*`
+   * utility can override it without fighting inline-style specificity.
+   * Passing this prop explicitly still applies it as an inline style, which
+   * wins over both.
+   */
   objectFit?: CSSProperties['objectFit']
   /** Display as block element (adds display: block) */
   block?: boolean
@@ -242,7 +249,7 @@ export function Image({
   style,
   className,
   loading,
-  objectFit = 'cover',
+  objectFit,
   quality = 90,
   alt,
   fill,
@@ -310,11 +317,15 @@ export function Image({
       quality={quality}
       alt={alt}
       style={{
-        objectFit,
+        // Only set inline when explicitly passed — an explicit request
+        // should always win. The unset default (visually `cover`) comes from
+        // the zero-specificity `:where(.img)` rule in image.module.css
+        // instead, so consumer CSS (module or utility) can override it.
+        ...(objectFit && { objectFit }),
         ...(block && aspectRatio ? { aspectRatio } : {}),
         ...style,
       }}
-      className={cn(className, block && s.block)}
+      className={cn(className, s.img, block && s.block)}
       sizes={finalSizes}
       src={src}
       unoptimized={unoptimized || isSvg}

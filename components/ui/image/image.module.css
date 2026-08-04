@@ -3,3 +3,18 @@
   height: auto;
   display: block;
 }
+
+/*
+ * Default object-fit for consumers that don't pass `objectFit`. `:where()`
+ * keeps this at (0,0,0) specificity, and it rides the same `utilities` layer
+ * as Tailwind's `object-*` classes (lib/styles/css/index.css) — so any
+ * consumer CSS Module rule (unlayered) always overrides it outright, and any
+ * Tailwind `object-*` utility (layered, but real specificity) overrides it
+ * within that layer. When `objectFit` is passed explicitly, the component
+ * applies it as an inline style instead, which still wins over both.
+ */
+@layer utilities {
+  :where(.img) {
+    object-fit: cover;
+  }
+}

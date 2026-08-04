@@ -76,6 +76,27 @@ When setup completes it removes its own machinery from the project (the setup sc
 
 > **Note**: `hamo` and `tempus` are Darkroom-owned packages. Both reached a stable 1.0 on 2026-07-29, so they follow semver and track caret ranges like everything else.
 
+## How it compares
+
+Satus is built for one job: content-driven marketing and creative sites with real motion, a CMS, and sometimes a storefront. The usual alternatives are good at different jobs — here is where the lines actually are, checked against each project in August 2026.
+
+| Starter           | Built for                              | Next.js today                          | What it gives you that Satus doesn't                                                 |
+| ----------------- | -------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------ |
+| `create-next-app` | a bare framework scaffold, no opinions | 16.3, `cacheComponents` off by default | nothing to unlearn — and nothing included: no CMS, tests, CI, or component library   |
+| `next-forge`      | SaaS products in a Turborepo           | 16.1                                   | auth, payments, database, and email wired end to end (Clerk, Stripe, Prisma, Resend) |
+| `create-t3-app`   | typesafe full-stack apps               | 15.5                                   | tRPC + ORM + auth scaffolding, and the largest community of the four                 |
+| `next-enterprise` | enterprise app platforms               | 15.5                                   | OpenTelemetry, Kubernetes health checks, CI bundle-size and performance tracking     |
+
+What none of them ship, and Satus does:
+
+- Next 16.3 with `cacheComponents` and instant navigations already on — opt-in everywhere else, including `create-next-app`
+- Bun as runtime and test runner, the oxc toolchain (`oxlint` + `oxfmt`), and a single TypeScript 7
+- Tailwind v4 and CSS Modules under an explicit cascade contract, so utility and module styles can't silently fight
+- Strippable integrations: `bun run setup:project` removes what you don't keep, and the enforced CSP recomposes itself from what's left
+- The creative-site stack — Lenis, GSAP, Tempus, optional WebGL — plus e2e tests asserting a11y and instant navigation, a Lighthouse workflow, and an asset-weight gate
+
+Pick something else when the job is different: `next-forge` for a SaaS with billing, `create-t3-app` when the product is a typesafe API-heavy app, `next-enterprise` when the org runs Kubernetes and wants observability from day one. For a content site that has to move well and ship fast, this is the shorter path.
+
 ## Project Structure
 
 ```

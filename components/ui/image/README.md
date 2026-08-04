@@ -45,14 +45,15 @@ import { Image } from '@/components/ui/image'
 
 ## Props
 
-| Prop                         | Description                                                                                                                                                              |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `aspectRatio`                | **Required** unless `fill` or `width`+`height` are given. Prevents layout shift, enables blur placeholder, and derives placeholder dimensions.                           |
-| `fill`                       | Fill the nearest positioned ancestor. Mutually exclusive with `width`/`height`.                                                                                          |
-| `width` / `height`           | Explicit intrinsic pixel dimensions. Required together (unless `aspectRatio` is provided instead).                                                                       |
-| `preload`                    | Ergonomic alias for next/image's native `preload` prop (LCP images) — also sets `loading="eager"`. Prefer this over passing next/image's deprecated `priority` directly. |
-| `mobileSize` / `desktopSize` | Rendered width below / at-and-above the desktop breakpoint (e.g. `"50vw"`). **Required together**, unless `sizes` is passed instead.                                     |
-| `sizes`                      | Raw `sizes` attribute, for layouts `mobileSize`/`desktopSize` can't express. **Required** unless `mobileSize`+`desktopSize` are given.                                   |
+| Prop                         | Description                                                                                                                                                                                                                               |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `aspectRatio`                | **Required** unless `fill` or `width`+`height` are given. Prevents layout shift, enables blur placeholder, and derives placeholder dimensions.                                                                                            |
+| `fill`                       | Fill the nearest positioned ancestor. Mutually exclusive with `width`/`height`.                                                                                                                                                           |
+| `width` / `height`           | Explicit intrinsic pixel dimensions. Required together (unless `aspectRatio` is provided instead).                                                                                                                                        |
+| `preload`                    | Ergonomic alias for next/image's native `preload` prop (LCP images) — also sets `loading="eager"`. Prefer this over passing next/image's deprecated `priority` directly.                                                                  |
+| `mobileSize` / `desktopSize` | Rendered width below / at-and-above the desktop breakpoint (e.g. `"50vw"`). **Required together**, unless `sizes` is passed instead.                                                                                                      |
+| `sizes`                      | Raw `sizes` attribute, for layouts `mobileSize`/`desktopSize` can't express. **Required** unless `mobileSize`+`desktopSize` are given.                                                                                                    |
+| `objectFit`                  | CSS `object-fit`. Defaults to `cover` via a zero-specificity CSS rule, so consumer CSS (a CSS Module or a Tailwind utility) overrides it without extra specificity. Passing the prop applies it as an inline style, which wins over both. |
 
 ## Best Practices
 

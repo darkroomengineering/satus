@@ -62,7 +62,7 @@ const STEPS: Step[] = [
           <code className={s.inline}>app/opengraph-image.jpg</code>.
         </p>
         <pre className={s.code}>
-          <code>cp .env.example .env</code>
+          <code>cp .env.example .env.local</code>
         </pre>
       </>
     ),

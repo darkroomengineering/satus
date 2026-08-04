@@ -52,7 +52,10 @@ clients (Sanity, Shopify, HubSpot, Mailchimp), and the CI/build configuration.
 ## Safeguards in this repo
 
 CodeQL scanning and Dependabot run on every change, sensitive routes are
-rate-limited, and external input is validated with Zod schemas. The CSP set in
-`next.config.ts` ships report-only as a starter baseline; forks should tighten
-its origins to their own domains and promote it to enforced before relying on
-it in production.
+rate-limited, and external input is validated with Zod schemas. The
+Content-Security-Policy ships enforced, composed per-integration: each kept
+integration declares the origins its browser-visible code needs in
+`lib/integrations/registry.ts`'s `cspSources`, and `lib/integrations/csp.ts`
+unions them into the single header set in `next.config.ts`. Forks that need
+project-specific origins the registry can't know about extend
+`PROJECT_CSP_EXTRA_SOURCES` in `lib/integrations/csp.ts`.

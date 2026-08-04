@@ -500,7 +500,7 @@ All integrations are optional and self-contained in `lib/integrations/{name}/`. 
 ```bash
 bun dev              # Dev server (Turbopack)
 bun run build        # Production build (runs setup:styles first)
-bun run check        # oxlint + oxfmt --check + lint:types + tsc --noEmit + bun test + manifest:check (must pass before commit)
+bun run check        # oxlint + oxfmt --check + lint:types + tsc --noEmit + bun test + manifest:check + check:assets (must pass before commit)
 bun lint             # oxlint
 bun lint:fix         # oxlint with auto-fix
 bun run lint:types   # oxlint type-aware rules (no-floating-promises, no-misused-promises)

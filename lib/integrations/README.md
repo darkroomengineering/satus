@@ -111,5 +111,6 @@ After removal: `bun run lint:fix && bun run build`
 
 1. Create Zod env schema in `lib/utils/validation.ts`
 2. Add entry to `lib/integrations/registry.ts`
-3. Create integration directory under `lib/integrations/`
-4. Add env vars to `.env.example` and `lib/env.ts`
+3. Declare the integration's browser-visible origins in that entry's `cspSources` (types in `lib/integrations/registry.ts`). `lib/integrations/csp.ts` composes the enforced CSP from these — a missing declaration means the integration's remote scripts, images, or requests get blocked in production.
+4. Create integration directory under `lib/integrations/`
+5. Add env vars to `.env.example` and `lib/env.ts`

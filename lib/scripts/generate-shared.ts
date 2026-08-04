@@ -82,3 +82,57 @@ export async function withSpinner(
     throw error instanceof Error ? error : new Error(String(error))
   }
 }
+
+// ---------------------------------------------------------------------------
+// Overwrite guard
+// ---------------------------------------------------------------------------
+
+/**
+ * Refuse to proceed if any of the given paths already exist on disk.
+ *
+ * Scaffolders must never silently overwrite hand-edited output. Throws
+ * before any file is written, naming the first existing path, so the
+ * caller's try/catch (see generate.ts) surfaces a clear message and exits
+ * non-zero with zero writes performed.
+ */
+export async function refuseIfExists(paths: string[]): Promise<void> {
+  for (const path of paths) {
+    if (await Bun.file(path).exists()) {
+      throw new Error(
+        `"${path}" already exists. Refusing to overwrite it — remove the file first or choose a different name.`
+      )
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Post-write formatting
+// ---------------------------------------------------------------------------
+
+/**
+ * Run oxfmt on freshly generated files so template drift can never regress
+ * the `oxfmt --check` gate that `bun run check` enforces.
+ *
+ * Best-effort: a formatting failure is surfaced as a warning, not thrown —
+ * a missing/broken oxfmt binary shouldn't block scaffolding.
+ */
+export async function formatGeneratedFiles(paths: string[]): Promise<void> {
+  if (paths.length === 0) return
+  try {
+    const proc = Bun.spawn(['bun', 'oxfmt', ...paths], {
+      stdout: 'ignore',
+      stderr: 'pipe',
+    })
+    const [exitCode, stderr] = await Promise.all([
+      proc.exited,
+      new Response(proc.stderr).text(),
+    ])
+    if (exitCode !== 0) {
+      p.log.warn(`oxfmt formatting failed: ${stderr.trim()}`)
+    }
+  } catch (error) {
+    p.log.warn(
+      `Could not run oxfmt on generated files: ${error instanceof Error ? error.message : String(error)}`
+    )
+  }
+}

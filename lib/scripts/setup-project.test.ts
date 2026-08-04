@@ -1080,6 +1080,7 @@ describe('shouldDisableCacheComponents', () => {
 describe('CACHE_COMPONENTS_DISABLE_TRANSFORM (production ops applied to a next.config-shaped fixture)', () => {
   const nextConfigFixture = `const nextConfig: NextConfig = {
   cacheComponents: true,
+  partialPrefetching: true,
   experimental: {
     taint: true,
     cachedNavigations: true,
@@ -1090,7 +1091,7 @@ describe('CACHE_COMPONENTS_DISABLE_TRANSFORM (production ops applied to a next.c
 export default nextConfig
 `
 
-  it('flips cacheComponents and experimental.cachedNavigations to false, leaving other flags untouched', () => {
+  it('flips cacheComponents, partialPrefetching, and experimental.cachedNavigations to false, leaving other flags untouched', () => {
     const result = applyOpsToText(
       nextConfigFixture,
       CACHE_COMPONENTS_DISABLE_TRANSFORM.ops
@@ -1098,6 +1099,8 @@ export default nextConfig
 
     expect(result).toContain('cacheComponents: false')
     expect(result).not.toContain('cacheComponents: true')
+    expect(result).toContain('partialPrefetching: false')
+    expect(result).not.toContain('partialPrefetching: true')
     expect(result).toContain('cachedNavigations: false')
     // Probed separately as not requiring cacheComponents — left untouched.
     expect(result).toContain('prefetchInlining: true')
@@ -1122,6 +1125,7 @@ describe('isCacheComponentsDisabled (docs-vs-config consistency guard)', () => {
   it('is true after the production transform runs', () => {
     const nextConfigFixture = `const nextConfig: NextConfig = {
   cacheComponents: true,
+  partialPrefetching: true,
   experimental: { cachedNavigations: true },
 }
 `
@@ -1130,6 +1134,7 @@ describe('isCacheComponentsDisabled (docs-vs-config consistency guard)', () => {
       CACHE_COMPONENTS_DISABLE_TRANSFORM.ops
     )
     expect(isCacheComponentsDisabled(flipped)).toBe(true)
+    expect(flipped).toContain('partialPrefetching: false')
   })
 
   it('is true for hand-edited spacing variants', () => {

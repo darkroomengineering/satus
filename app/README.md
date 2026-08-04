@@ -26,6 +26,8 @@ The root layout stays a bare shell on purpose: anything added to it is a
 deliberate decision to ship it to `/studio` too. App-flavored concerns
 (providers, metadata, analytics) belong in `app/(site)/layout.tsx`.
 
+See [app/api/README.md](api/README.md) for the API surface (endpoints, webhook setup).
+
 ## Getting Started
 
 **Use the interactive setup:**

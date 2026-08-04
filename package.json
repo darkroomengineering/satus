@@ -14,14 +14,14 @@
     "start": "next start",
     "preview": "bun run build && next start",
     "prepare": "bun ./lib/scripts/prepare.ts",
-    "check": "oxlint --report-unused-disable-directives --max-warnings=0 && oxfmt --check && bun run lint:types && bun node_modules/typescript7/bin/tsc --noEmit && bun test && bun run manifest:check",
+    "check": "oxlint --report-unused-disable-directives --max-warnings=0 && oxfmt --check && bun run lint:types && bun node_modules/typescript/bin/tsc --noEmit && bun test && bun run manifest:check",
     "clean": "rm -rf .next node_modules/.cache",
     "lint": "oxlint --report-unused-disable-directives --max-warnings=0",
     "lint:fix": "oxlint --fix --fix-suggestions",
     "lint:types": "oxlint --type-aware --max-warnings=0",
     "format": "oxfmt",
-    "typecheck": "bun node_modules/typescript7/bin/tsc --noEmit",
-    "typecheck:watch": "bun node_modules/typescript7/bin/tsc --noEmit --watch",
+    "typecheck": "bun node_modules/typescript/bin/tsc --noEmit",
+    "typecheck:watch": "bun node_modules/typescript/bin/tsc --noEmit --watch",
     "deslop": "deslop --ignore 'storybook-static/**'",
     "analyze": "ANALYZE=true bun run build",
     "analyze:experimental": "next experimental-analyze",
@@ -109,8 +109,7 @@
     "storybook": "^10.5.5",
     "tailwindcss": "^4.3.3",
     "ts-morph": "^28.0.0",
-    "typescript": "^6.0.3",
-    "typescript7": "npm:typescript@^7.0.2"
+    "typescript": "^7.0.2"
   },
   "overrides": {
     "lodash": "^4.17.21",

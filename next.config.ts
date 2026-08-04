@@ -24,7 +24,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   typedRoutes: true,
   typescript: {
-    // Type checking is owned by `bun run check` (typescript7).
+    // Type checking is owned by `bun run check`.
     ignoreBuildErrors: true,
   },
   turbopack: {

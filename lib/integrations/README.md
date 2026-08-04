@@ -87,7 +87,9 @@ import { mailchimpSubscriptionAction } from '@/integrations/mailchimp'
 
 ## Removing Integrations
 
-Run `bun run setup:project` for interactive removal, or manually:
+Run `bun run setup:project` for interactive removal. It is also drivable non-interactively (CI): `--preset <key>` or `--keep <id,id,...>` selects the integration set, `--yes` confirms it, `--clean-homepage` swaps in a blank starter homepage, and `--skip-install` skips the lockfile update. Keeping an integration also keeps whatever it requires (e.g. keeping `theatre` keeps `webgl`). When setup completes it removes its own machinery from the project (the setup script and its test suite) — `generate`, `doctor`, and `dev` stay.
+
+Or remove one manually:
 
 ```bash
 # Sanity (~150-200KB savings)

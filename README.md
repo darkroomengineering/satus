@@ -16,22 +16,15 @@ Run `bun dev` and open [localhost:3000](http://localhost:3000) — the landing p
 
 ## Features
 
-- **Next.js 16 + React 19** — App Router with React 19.2 and strict TypeScript out of the box
-- **Tailwind v4** — Tailwind CSS v4 alongside CSS Modules
-- **Components in Storybook** — every UI primitive is catalogued in Storybook, isolated with controls and docs
-- **Opt-in integrations** — Sanity, Shopify, HubSpot, and WebGL stay isolated under `lib/integrations` until you configure them
-- **Interactive setup** — strip the integrations you don't need from a fresh clone
-- **One-command handoff** — strips branding, swaps in the prod README, and generates a component inventory
-- **Modern tooling** — Bun, Turbopack, and the oxc toolchain: `oxlint` and `oxfmt` cover TS, CSS, Markdown, YAML and TOML, and sort imports and Tailwind classes for you at format time
-
-## Requirements
-
-| Tool    | Version   | Notes                                     |
-| ------- | --------- | ----------------------------------------- |
-| Node.js | >= 22.0.0 | Required for native fetch and modern APIs |
-| Bun     | >= 1.3.5  | Package manager & runtime                 |
+- **Next.js 16 + React 19** — App Router with `cacheComponents` and instant navigations on, React Compiler, strict TypeScript
+- **Tailwind v4 + CSS Modules** — side by side under one cascade contract, so utility and module styles can't silently fight
+- **Storybook** — every UI primitive catalogued in isolation with controls and docs (`bun storybook`)
+- **Opt-in integrations** — Sanity, Shopify, HubSpot, and WebGL stay isolated under `lib/integrations` until configured; `bun run setup:project` strips the rest
+- **Bun + oxc toolchain** — Bun as runtime and test runner; `oxlint` and `oxfmt` cover TS, CSS, Markdown, YAML and TOML, and sort imports and Tailwind classes at format time
 
 ## Quick Start
+
+Requires Node.js >= 22 and Bun >= 1.3.5.
 
 ```bash
 bun install
@@ -39,42 +32,7 @@ cp .env.example .env.local   # set NEXT_PUBLIC_BASE_URL
 bun dev                      # open localhost:3000 for the manual
 ```
 
-Trim what you don't need: `bun run setup:project` strips unused integrations (code, deps, env) interactively.
-
-## Components live in Storybook
-
-UI primitives are catalogued in Storybook rather than on an in-app page — isolated, with controls and autodocs. Source lives in `components/ui`; add a `*.stories.tsx` next to any new component.
-
-```bash
-bun storybook
-```
-
-**Hosting it (optional).** Storybook is its own static build, not a Next route. To serve it at `/storybook` on a deployment, create a second Vercel project from this repo (build command `bun run build-storybook`, output directory `storybook-static`), then set `NEXT_PUBLIC_STORYBOOK_URL` to its URL on the **Preview** environment. The app proxies `/storybook` to it there, and keeps the route disabled in Production by design.
-
-## Integrations are opt-in plugins
-
-Satūs keeps integrations — Sanity, Shopify, HubSpot, WebGL — isolated under `lib/integrations` (and `lib/webgl`). They only activate once you set their env vars, and each folder carries a `// USAGE` note showing how to wire it in. None is surfaced in the default app.
-
-- **Use one** — set its env vars (see `lib/env.ts`) and follow the `// USAGE` reference in its folder.
-- **Choose what to keep** — `bun run setup:project` strips everything else. Keeping an integration also keeps whatever it requires (e.g. keeping `theatre` keeps `webgl`, since theatre's r3f bindings depend on it).
-
-### Setup
-
-`setup:project` is interactive by default, or drivable non-interactively (CI): `--preset <key>` or `--keep <id,id,...>` selects the integration set, `--yes` confirms it, `--clean-homepage` swaps in a blank starter homepage, and `--skip-install` skips the lockfile update.
-
-When setup completes it removes its own machinery from the project (the setup script and its test suite) — `generate`, `doctor`, and `dev` stay.
-
-## Tech Stack
-
-| Category  | Technologies                                      |
-| --------- | ------------------------------------------------- |
-| Framework | Next.js 16, React 19.2, TypeScript                |
-| Styling   | Tailwind CSS v4, CSS Modules                      |
-| Catalogue | Storybook                                         |
-| Optional  | React Three Fiber, GSAP, Sanity, Shopify, HubSpot |
-| Tooling   | Bun, oxlint + oxfmt, Turbopack                    |
-
-> **Note**: `hamo` and `tempus` are Darkroom-owned packages. Both reached a stable 1.0 on 2026-07-29, so they follow semver and track caret ranges like everything else.
+Trim what you don't need: `bun run setup:project` strips unused integrations (code, deps, env) interactively. Details, including the non-interactive flags, live in [lib/integrations/README.md](lib/integrations/README.md).
 
 ## How it compares
 
@@ -121,7 +79,7 @@ lib/                    # Everything non-UI
   └── dev/             # Debug tools (optional)
 ```
 
-> **Mental model:** UI → `components/`, everything else → `lib/`. Integrations are opt-in plugins, not baked-in defaults.
+> **Mental model:** UI → `components/`, everything else → `lib/`. Integrations are opt-in plugins, not baked-in defaults. Conventions live in [AGENTS.md](AGENTS.md).
 
 ## Documentation
 
@@ -143,35 +101,12 @@ lib/                    # Everything non-UI
 bun dev              # Development server
 bun run build        # Production build
 bun storybook        # Component catalogue
-bun lint             # oxlint
-bun run format       # oxfmt (also sorts imports + Tailwind classes)
-bun run check        # lint + format + types + tests (run this before pushing)
-bun run generate     # Generate pages/components
+bun run check        # lint + format + types + tests + asset budget (run before pushing)
 bun run setup:project  # Strip integrations you don't need
-bun run handoff      # Prepare for client delivery
+bun run handoff      # Client delivery: strips branding, swaps in PROD-README, generates inventory
 ```
 
-## Client Handoff
-
-Prepare the codebase for client delivery:
-
-```bash
-bun run handoff
-```
-
-This interactive script:
-
-- Removes Satūs branding
-- Swaps README with the production version
-- Generates a component inventory
-- Updates package.json with the project name
-
-## Key Conventions
-
-- **Images**: Use `@/components/ui/image` (never `next/image` directly)
-- **Links**: Use `@/components/ui/link` (auto-handles external links)
-- **CSS Modules**: Import as `s` → `import s from './component.module.css'`
-- **Debug Tools**: Toggle with `Cmd/Ctrl + O`
+The full list lives in `package.json`.
 
 ## Deployment
 
@@ -185,7 +120,7 @@ or invalid) and `VERCEL_AUTOMATION_BYPASS_SECRET` (needed when previews are
 Deployment Protection-guarded — the audit step skips loudly without it
 instead of scoring the SSO login page).
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for deployment checklist and cache strategies.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the deployment checklist, cache strategies, and hosting Storybook at `/storybook`.
 
 ## License
 

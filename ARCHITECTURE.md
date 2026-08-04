@@ -152,6 +152,10 @@ All schemas live in `lib/utils/validation.ts`. The typed env singleton (`lib/env
 - [ ] Cache invalidation tested
 - [ ] Performance score > 90
 
+### Hosting Storybook
+
+Storybook is its own static build, not a Next route. To serve it at `/storybook` on a deployment, create a second Vercel project from this repo (build command `bun run build-storybook`, output directory `storybook-static`), then set `NEXT_PUBLIC_STORYBOOK_URL` to its URL on the **Preview** environment. The app proxies `/storybook` to it there, and keeps the route disabled in Production by design.
+
 ## Customization Boundaries
 
 One decision drives how you work in this repo: **are you building your project, or extending the starter?**

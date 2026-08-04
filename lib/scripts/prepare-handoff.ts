@@ -3,7 +3,9 @@
  * Client Handoff Preparation Script
  *
  * Prepares the codebase for delivery to clients by:
- * - Removing example pages
+ * - Removing Satūs branding assets
+ * - Updating package.json name and description
+ * - Cleaning up unused environment variables
  * - Swapping README with production version
  * - Generating component inventory
  * - Creating deployment checklist
@@ -12,6 +14,7 @@
  *   bun run handoff
  *   bun run handoff --dry-run
  *   bun run handoff --force        Overwrite an existing README.original.md backup
+ *   bun run handoff --help         Show usage and exit
  *
  * Cross-platform compatible (Windows, macOS, Linux)
  */
@@ -133,6 +136,17 @@ interface HandoffOptions {
   generateChecklist: boolean
   /** Overwrite an existing README.original.md backup instead of keeping it. */
   force: boolean
+}
+
+/** What actually happened during a `runHandoff` run, for the CLI summary. */
+interface HandoffResult {
+  /**
+   * True only when `swapReadme` actually wrote a fresh `README.original.md`
+   * this run — not merely when the swap action was selected (P-C6). A re-run
+   * where an existing backup is kept (no `--force`) or `PROD-README.md` is
+   * missing must not claim a backup was written.
+   */
+  readmeBackupWritten: boolean
 }
 
 /**
@@ -308,6 +322,18 @@ const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
   }
 }
 
+/** Outcome of `swapReadme`, distinguishing "swap happened" from "backup written" (P-C6). */
+interface SwapReadmeResult {
+  /** True when the README was actually swapped (PROD-README.md existed). */
+  swapped: boolean
+  /**
+   * True only when a fresh `README.original.md` backup was written this run.
+   * False on dry runs, when the swap was skipped, and when an existing
+   * backup was kept because `--force` wasn't passed.
+   */
+  backupWritten: boolean
+}
+
 /**
  * Swap README.md with PROD-README.md content
  */
@@ -315,14 +341,14 @@ const swapReadme = async (
   projectName: string,
   dryRun: boolean,
   force: boolean
-): Promise<boolean> => {
+): Promise<SwapReadmeResult> => {
   try {
     const prodReadmePath = resolvePath('PROD-README.md')
     const readmePath = resolvePath('README.md')
 
     if (!(await pathExists(prodReadmePath))) {
       p.log.warn('PROD-README.md not found, skipping README swap')
-      return false
+      return { swapped: false, backupWritten: false }
     }
 
     let content = await Bun.file(prodReadmePath).text()
@@ -330,6 +356,8 @@ const swapReadme = async (
     // Replace placeholders
     content = content.replace(/\[PROJECT NAME\]/g, projectName)
     content = content.replace(/\[your-domain\.com\]/g, 'your-domain.com')
+
+    let backupWritten = false
 
     if (!dryRun) {
       // Backup original README — never clobber a pre-existing backup unless
@@ -343,6 +371,7 @@ const swapReadme = async (
       } else {
         const originalReadme = await Bun.file(readmePath).text()
         await Bun.write(backupPath, originalReadme)
+        backupWritten = true
       }
 
       // Write new README
@@ -352,10 +381,10 @@ const swapReadme = async (
       await removeFile('PROD-README.md')
     }
 
-    return true
+    return { swapped: true, backupWritten }
   } catch (error) {
     p.log.error(`Failed to swap README: ${error}`)
-    return false
+    return { swapped: false, backupWritten: false }
   }
 }
 
@@ -409,7 +438,7 @@ const generateChecklist = async (
 /**
  * Main handoff function
  */
-const runHandoff = async (options: HandoffOptions): Promise<void> => {
+const runHandoff = async (options: HandoffOptions): Promise<HandoffResult> => {
   const {
     dryRun,
     projectName,
@@ -448,9 +477,15 @@ const runHandoff = async (options: HandoffOptions): Promise<void> => {
   }
 
   // Swap README
+  let readmeBackupWritten = false
   if (doSwapReadme) {
     s.start('Swapping README...')
-    const swapped = await swapReadme(projectName, dryRun, force)
+    const { swapped, backupWritten } = await swapReadme(
+      projectName,
+      dryRun,
+      force
+    )
+    readmeBackupWritten = backupWritten
     s.stop(
       swapped ? 'README swapped with production version' : 'README swap skipped'
     )
@@ -469,14 +504,40 @@ const runHandoff = async (options: HandoffOptions): Promise<void> => {
     await generateChecklist(projectName, dryRun)
     s.stop('Deployment checklist generated')
   }
+
+  return { readmeBackupWritten }
 }
+
+const HELP_TEXT = `Satūs Client Handoff
+
+Prepares the codebase for delivery to clients: removes Satūs branding,
+updates package.json, cleans up unused environment variables, swaps the
+README, and generates the component inventory and deployment checklist.
+
+Usage:
+  bun run handoff [options]
+
+Options:
+  --dry-run     Preview changes without writing any files
+  --force       Overwrite an existing README.original.md backup
+  --verbose     Print additional detail while running
+  --help, -h    Show this help message and exit
+`
 
 /**
  * CLI entry point
  */
 const main = async (): Promise<void> => {
-  const { dryRun } = parseCliFlags()
+  const { dryRun, help } = parseCliFlags()
   const force = process.argv.slice(2).includes('--force')
+
+  // --help must short-circuit before anything interactive starts (P-C5) —
+  // parseCliFlags already parsed it, but main() never read it, so `--help`
+  // launched the interactive prompts instead of printing usage.
+  if (help) {
+    console.log(HELP_TEXT)
+    process.exit(0)
+  }
 
   console.clear()
 
@@ -561,7 +622,7 @@ const main = async (): Promise<void> => {
   }
 
   // Run handoff
-  await runHandoff({
+  const handoffResult = await runHandoff({
     dryRun,
     projectName: projectNameValue,
     swapReadme: actionsValue.includes('swapReadme'),
@@ -584,7 +645,11 @@ const main = async (): Promise<void> => {
     if (actionsValue.includes('generateChecklist')) {
       generated.push('  - DEPLOYMENT-CHECKLIST.md (launch tasks)')
     }
-    if (actionsValue.includes('swapReadme')) {
+    // Gated on the actual outcome, not just the action being selected
+    // (P-C6) — a re-run that keeps an existing backup, or a swap skipped
+    // because PROD-README.md was missing, must not claim a backup was
+    // written.
+    if (handoffResult.readmeBackupWritten) {
       generated.push('  - README.original.md (backup, gitignored)')
     }
     p.note(

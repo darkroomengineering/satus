@@ -294,6 +294,7 @@ export const installBundle = async (
   depsAdded: string[]
   overwriteSkipped: string[]
   depsMissing: string[]
+  changedFiles: string[]
   failures: TransformFailure[]
 }> => {
   const details: string[] = []
@@ -333,6 +334,7 @@ export const installBundle = async (
     depsAdded: deps.added,
     overwriteSkipped: overwrite.skipped,
     depsMissing: deps.missing,
+    changedFiles: transformResult.changedFiles,
     failures: transformResult.failures,
   }
 }
@@ -367,7 +369,11 @@ export const installBundle = async (
 export const stripAbsentIntegrationWiring = async (
   installedOrAdded: Set<string> | string[],
   dryRun: boolean
-): Promise<{ changes: number; failures: TransformFailure[] }> => {
+): Promise<{
+  changes: number
+  changedFiles: string[]
+  failures: TransformFailure[]
+}> => {
   const skipSet =
     installedOrAdded instanceof Set
       ? installedOrAdded
@@ -380,7 +386,9 @@ export const stripAbsentIntegrationWiring = async (
     stripTransforms.push(...bundle.codeTransforms)
   }
 
-  if (stripTransforms.length === 0) return { changes: 0, failures: [] }
+  if (stripTransforms.length === 0) {
+    return { changes: 0, changedFiles: [], failures: [] }
+  }
 
   const nonRequiredTransforms = stripTransforms.map((transform) => ({
     ...transform,

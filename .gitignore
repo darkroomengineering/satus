@@ -71,3 +71,8 @@ plans
 
 # prepare-handoff backup — created by `bun run handoff` when swapping README
 README.original.md
+
+# setup:project --skip-install → prepare.ts handoff (P-B2) — see
+# PENDING_FORMAT_MARKER in lib/scripts/utils.ts; deleted by prepare.ts on the
+# next `bun install`, but ignore it in case that never runs.
+.setup-project-pending-format.json

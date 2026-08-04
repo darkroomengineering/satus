@@ -270,12 +270,22 @@ export interface TransformFailure {
  * leaving a broken tree (an import removed, the code that used it still
  * there) — that must stop the run before `setup()` reaches self-prune, not
  * just get reported alongside everything else at the end.
+ *
+ * `changedFiles` (relative paths, deduped, one entry per transform that
+ * actually wrote — a single file can appear once even if two transforms in
+ * `transforms` both touch it) lets callers reformat exactly the files this
+ * run modified afterward (P-B2), instead of the whole repo.
  */
 export async function applyCodeTransforms(
   transforms: CodeTransform[],
   dryRun: boolean
-): Promise<{ changes: number; failures: TransformFailure[] }> {
+): Promise<{
+  changes: number
+  changedFiles: string[]
+  failures: TransformFailure[]
+}> {
   let totalChanges = 0
+  const changedFiles = new Set<string>()
   const failures: TransformFailure[] = []
 
   for (const transform of transforms) {
@@ -293,6 +303,7 @@ export async function applyCodeTransforms(
           await Bun.write(fullPath, transformed)
         }
         totalChanges++
+        changedFiles.add(transform.file)
       }
     } catch (error) {
       if (error instanceof RequiredOpMatchError) {
@@ -305,5 +316,5 @@ export async function applyCodeTransforms(
     }
   }
 
-  return { changes: totalChanges, failures }
+  return { changes: totalChanges, changedFiles: [...changedFiles], failures }
 }

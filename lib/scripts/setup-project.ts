@@ -55,6 +55,8 @@ import {
   getFlagValue,
   parseCliFlags,
   pathExists,
+  PENDING_FORMAT_MARKER,
+  type PendingFormatMarker,
   projectRoot,
   removeDir,
   removeFile,
@@ -283,6 +285,95 @@ const ensureNextTypeStub = async (dryRun: boolean): Promise<void> => {
 }
 
 // ---------------------------------------------------------------------------
+// Post-run cleanup (P-B2): the AST-transform engine's output is functionally
+// correct but not always oxfmt-clean (a blank line off in a handful of
+// files), and COMPONENTS.md isn't self-updating. Both run as the final steps
+// of a real (non-dry) run so `bun run check` is green immediately after
+// setup, without a human having to notice and run them manually.
+//
+// Both need a real `bun install` to have already happened:
+//   - oxfmt needs `bun install` to have populated node_modules — its own
+//     `oxfmt.config.ts` (a typed config, not `.oxfmtrc.json`) imports the
+//     `oxfmt` package for `defineConfig`, which fails to resolve on a bare
+//     `--skip-install` tree even via `bunx` (unlike a plain module import,
+//     which Bun resolves from its global cache regardless of a local
+//     node_modules).
+//   - generate-manifest.ts resolves actual TYPE information via ts-morph
+//     (not just source text), so its output depends on which package
+//     versions are installed — regenerating it against a pre-install
+//     node_modules can produce a manifest that immediately fails
+//     `manifest:check` once the real install lands (an inferred type like
+//     `ZodEmail` reads as `any` against the wrong/stale zod install).
+//
+// When install already ran (`!skipInstall`), both run immediately — the
+// filesystem state right after `setup()` is exactly what `bun run check`
+// will see. When `--skip-install` was passed, both are deferred to a
+// `PENDING_FORMAT_MARKER` file that `prepare.ts` picks up and finishes the
+// next time `bun install` runs `prepare` (its normal lifecycle hook) — the
+// first point in that flow where both are guaranteed to work.
+// ---------------------------------------------------------------------------
+
+/**
+ * Run `bun run format` (oxfmt) over exactly the files this run's AST
+ * transforms modified — never the whole repo. No-op when nothing changed.
+ */
+const formatChangedFiles = async (files: string[]): Promise<void> => {
+  if (files.length === 0) return
+
+  const s = p.spinner()
+  const label = `${files.length} transformed file${files.length > 1 ? 's' : ''}`
+  s.start(`Formatting ${label}...`)
+  try {
+    await Bun.$`bun run format ${files}`.quiet()
+    s.stop(`Formatted ${label}`)
+  } catch (error) {
+    s.stop(`Formatting ${label} failed — run \`bun run format\` manually`)
+    p.log.warn(error instanceof Error ? error.message : String(error))
+  }
+}
+
+/**
+ * Regenerate COMPONENTS.md via the existing `generate:manifest` script so it
+ * reflects the strip/re-add's final component set.
+ */
+const regenerateManifest = async (): Promise<void> => {
+  const s = p.spinner()
+  s.start('Regenerating COMPONENTS.md...')
+  try {
+    await Bun.$`bun run generate:manifest`.quiet()
+    s.stop('Regenerated COMPONENTS.md')
+  } catch (error) {
+    s.stop(
+      'Regenerating COMPONENTS.md failed — run `bun run generate:manifest` manually'
+    )
+    p.log.warn(error instanceof Error ? error.message : String(error))
+  }
+}
+
+/**
+ * Persist the still-unformatted file list so `prepare.ts` can finish
+ * formatting AND regenerate COMPONENTS.md once `bun install` actually runs
+ * (see the module docstring above). Always written on a real, non-dry
+ * --skip-install run — even with an empty `files` list — because the
+ * manifest regeneration `prepare.ts` also performs needs deferring
+ * regardless of whether any AST transform changed a file.
+ */
+const writePendingFormatMarker = async (files: string[]): Promise<void> => {
+  const marker: PendingFormatMarker = { files }
+  await Bun.write(
+    resolvePath(PENDING_FORMAT_MARKER),
+    `${JSON.stringify(marker, null, 2)}\n`
+  )
+  const formatNote =
+    files.length > 0
+      ? `${files.length} file${files.length === 1 ? '' : 's'} formatted and `
+      : ''
+  p.log.step(
+    `Deferred to the next \`bun install\`: ${formatNote}COMPONENTS.md regenerated (--skip-install was passed)`
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Preflight (H8): validate before any mutation begins
 // ---------------------------------------------------------------------------
 
@@ -432,7 +523,12 @@ const setupSnapshot = async (
 const setupLean = async (
   pkg: PackageJson,
   dryRun: boolean
-): Promise<{ deps: number; devDeps: number; failures: TransformFailure[] }> => {
+): Promise<{
+  deps: number
+  devDeps: number
+  changedFiles: string[]
+  failures: TransformFailure[]
+}> => {
   const integrationNames = getIntegrationNames()
   const s = p.spinner()
 
@@ -445,10 +541,12 @@ const setupLean = async (
 
   // Apply code transformations BEFORE removing folders
   let failures: TransformFailure[] = []
+  let changedFiles: string[] = []
   if (allCodeTransforms.length > 0) {
     s.start('Stripping integrations (code transforms)...')
     const transformResult = await applyCodeTransforms(allCodeTransforms, dryRun)
     failures = transformResult.failures
+    changedFiles = transformResult.changedFiles
     s.stop(
       transformResult.changes > 0
         ? `Applied ${transformResult.changes} code transformations`
@@ -542,7 +640,7 @@ const setupLean = async (
     )
   }
 
-  return { deps: totalDeps, devDeps: totalDevDeps, failures }
+  return { deps: totalDeps, devDeps: totalDevDeps, changedFiles, failures }
 }
 
 /**
@@ -563,8 +661,8 @@ const setupAddIntegrations = async (
   keepIntegrations: RemovableId[],
   source: PayloadSource,
   dryRun: boolean
-): Promise<{ failures: TransformFailure[] }> => {
-  if (keepIntegrations.length === 0) return { failures: [] }
+): Promise<{ changedFiles: string[]; failures: TransformFailure[] }> => {
+  if (keepIntegrations.length === 0) return { changedFiles: [], failures: [] }
 
   const s = p.spinner()
 
@@ -578,6 +676,7 @@ const setupAddIntegrations = async (
   // is not needed here — the snapshot already has all files).
   const addedIntegrationIds = new Set<RemovableId>()
   const failures: TransformFailure[] = []
+  const changedFiles = new Set<string>()
 
   for (const id of keepIntegrations) {
     const bundle = getBundle(id)
@@ -585,16 +684,16 @@ const setupAddIntegrations = async (
 
     s.start(`Re-adding ${bundle.name}...`)
 
-    const { details, failures: bundleFailures } = await installBundle(
-      source,
-      bundle,
-      payloadPkg,
-      {
-        dryRun,
-        force: true, // we just stripped everything — always overwrite
-      }
-    )
+    const {
+      details,
+      failures: bundleFailures,
+      changedFiles: bundleChangedFiles,
+    } = await installBundle(source, bundle, payloadPkg, {
+      dryRun,
+      force: true, // we just stripped everything — always overwrite
+    })
     failures.push(...bundleFailures)
+    for (const file of bundleChangedFiles) changedFiles.add(file)
 
     addedIntegrationIds.add(id)
 
@@ -611,13 +710,14 @@ const setupAddIntegrations = async (
     dryRun
   )
   failures.push(...stripResult.failures)
+  for (const file of stripResult.changedFiles) changedFiles.add(file)
   if (stripResult.changes > 0) {
     p.log.step(
       `Stripped absent-integration wiring from ${stripResult.changes} copied files`
     )
   }
 
-  return { failures }
+  return { changedFiles: [...changedFiles], failures }
 }
 
 // ---------------------------------------------------------------------------
@@ -781,15 +881,15 @@ export const isCacheComponentsDisabled = (configText: string): boolean =>
 const setupCacheComponentsOptOut = async (
   keepIntegrations: RemovableId[],
   dryRun: boolean
-): Promise<{ failures: TransformFailure[] }> => {
+): Promise<{ changedFiles: string[]; failures: TransformFailure[] }> => {
   if (!shouldDisableCacheComponents(keepIntegrations)) {
-    return { failures: [] }
+    return { changedFiles: [], failures: [] }
   }
 
   const s = p.spinner()
   s.start('Disabling Cache Components (no CMS/storefront kept)...')
 
-  const { failures } = await applyCodeTransforms(
+  const { changedFiles, failures } = await applyCodeTransforms(
     [CACHE_COMPONENTS_DISABLE_TRANSFORM, CACHE_COMPONENTS_LLMS_TXT_TRANSFORM],
     dryRun
   )
@@ -811,7 +911,7 @@ const setupCacheComponentsOptOut = async (
         error:
           'setObjectProperty found no `cacheComponents` property on `nextConfig` to flip — disable it manually (and `experimental.cachedNavigations` with it)',
       })
-      return { failures }
+      return { changedFiles, failures }
     }
   }
 
@@ -849,7 +949,7 @@ const setupCacheComponentsOptOut = async (
     'Cache Components disabled (no CMS/storefront kept) — re-enable in next.config.ts if this project adds one'
   )
 
-  return { failures }
+  return { changedFiles, failures }
 }
 
 /**
@@ -993,6 +1093,13 @@ const selfPrune = async (
  *      registry/offline error is reported and surfaced to the caller via
  *      the returned `installFailed` flag, but does not undo or block the
  *      steps above — the setup itself already succeeded by this point.
+ *  13. formatChangedFiles — run `bun run format` (oxfmt) over exactly the
+ *      files steps 6/8/10 actually modified (P-B2: the AST-transform
+ *      engine's output isn't always oxfmt-clean). Real (non-dry) runs only;
+ *      independent of --skip-install.
+ *  14. regenerateManifest — regenerate COMPONENTS.md via the existing
+ *      `generate:manifest` script so it reflects the final component set
+ *      (P-B2). Real (non-dry) runs only; independent of --skip-install.
  *
  * Returns `installFailed` (bun install failed but setup files are all
  * written) and `transformFailures` (any AST code-transform that failed —
@@ -1066,6 +1173,7 @@ const setup = async (
   //    The snapshot cleanup is in `finally` so the temp dir is always removed,
   //    even when setupAddIntegrations throws.
   let addFailures: TransformFailure[] = []
+  let addChangedFiles: string[] = []
   if (snapshot) {
     try {
       const addResult = await setupAddIntegrations(
@@ -1074,6 +1182,7 @@ const setup = async (
         dryRun
       )
       addFailures = addResult.failures
+      addChangedFiles = addResult.changedFiles
     } finally {
       // 9. Cleanup snapshot temp directory (always runs — even on failure).
       await snapshot.cleanup()
@@ -1124,6 +1233,37 @@ const setup = async (
       p.log.warn(
         `Dependency install failed (offline?). Your files are ready — run \`bun install\` manually.\n${error instanceof Error ? error.message : String(error)}`
       )
+    }
+  }
+
+  // 13. Format exactly the files this run's AST transforms touched (P-B2) —
+  //     never the whole repo.
+  // 14. Regenerate COMPONENTS.md so it reflects the final component set
+  //     (P-B2).
+  // Both are final, best-effort steps: a real (non-dry) run only. Both also
+  // need a real `bun install` to have already happened: oxfmt can't run at
+  // all on a bare --skip-install tree (see the docstring above), and
+  // generate-manifest.ts resolves actual TYPE information via ts-morph (not
+  // just source text) — its output depends on which package versions are
+  // installed, so regenerating it against a pre-install node_modules can
+  // produce a manifest that immediately fails `manifest:check` once the
+  // real install lands. When bun install just ran (above), both run
+  // immediately; when --skip-install was passed, both are deferred to
+  // `prepare.ts` (see PENDING_FORMAT_MARKER's docstring), which runs the
+  // next time `bun install` does.
+  if (!dryRun) {
+    const changedFiles = [
+      ...new Set([
+        ...leanResult.changedFiles,
+        ...addChangedFiles,
+        ...cacheResult.changedFiles,
+      ]),
+    ]
+    if (skipInstall) {
+      await writePendingFormatMarker(changedFiles)
+    } else {
+      await formatChangedFiles(changedFiles)
+      await regenerateManifest()
     }
   }
 

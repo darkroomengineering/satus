@@ -34,7 +34,13 @@ import {
   shouldDisableCacheComponents,
   shouldSkipConfirm,
 } from './setup-project'
-import { getFlagValue, pathExists, projectRoot } from './utils'
+import {
+  getFlagValue,
+  PENDING_FORMAT_MARKER,
+  PENDING_FORMAT_MAX_ATTEMPTS,
+  pathExists,
+  projectRoot,
+} from './utils'
 
 // ---------------------------------------------------------------------------
 // Source file fixtures — loaded once, never written to disk
@@ -1442,6 +1448,178 @@ describe("P-C3 regression: kept bundle deps survive selfPrune's package.json wri
           pkg.devDependencies?.[devDep],
           `missing devDependency "${devDep}"`
         ).toBeTruthy()
+      }
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true })
+    }
+  }, 60000)
+})
+
+// ---------------------------------------------------------------------------
+// prepare.ts's pending-format marker handling (cross-model review MEDIUM
+// finding): the marker is unvalidated — a malformed/partial marker used to
+// throw BEFORE unlinking, bricking every subsequent `bun install` on the
+// same crash forever; and a format/manifest failure deleted the marker
+// anyway, losing the retry.
+// ---------------------------------------------------------------------------
+
+describe('prepare.ts pending-format marker (defensive handling)', () => {
+  const setupCopy = async (): Promise<string> => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-prepare-'))
+    const rsync = Bun.spawnSync([
+      'rsync',
+      '-a',
+      '--exclude',
+      'node_modules',
+      '--exclude',
+      '.next',
+      '--exclude',
+      '.git', // no .git → prepare.ts's lefthook step always no-ops cleanly
+      `${projectRoot}/`,
+      `${tmpRoot}/`,
+    ])
+    expect(rsync.exitCode).toBe(0)
+
+    // Symlink the nearest real node_modules so `bun run format` (oxfmt) can
+    // actually run — same rationale as the P-C3 test above.
+    for (let dir = projectRoot; dir !== dirname(dir); dir = dirname(dir)) {
+      const candidate = join(dir, 'node_modules')
+      if (await pathExists(candidate)) {
+        await symlink(candidate, join(tmpRoot, 'node_modules'))
+        break
+      }
+    }
+
+    return tmpRoot
+  }
+
+  const runPrepare = (cwd: string) =>
+    Bun.spawnSync(['bun', 'lib/scripts/prepare.ts'], {
+      cwd,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    })
+
+  it('a malformed marker (invalid JSON) is deleted, not thrown — install survives', async () => {
+    const tmpRoot = await setupCopy()
+    try {
+      const markerPath = join(tmpRoot, PENDING_FORMAT_MARKER)
+      await Bun.write(markerPath, '{ this is not valid json')
+
+      const proc = runPrepare(tmpRoot)
+
+      // Never crashes: prepare.ts must run to completion regardless of a
+      // corrupt marker, or `bun install` (which always runs `prepare`)
+      // would fail forever on the exact same crash.
+      expect(proc.exitCode).toBe(0)
+      expect(
+        (proc.stdout.toString() + proc.stderr.toString()).toLowerCase()
+      ).toContain('malformed')
+      expect(await pathExists(markerPath)).toBe(false)
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true })
+    }
+  }, 30000)
+
+  it('a marker missing the required "files" array is deleted, not thrown', async () => {
+    const tmpRoot = await setupCopy()
+    try {
+      const markerPath = join(tmpRoot, PENDING_FORMAT_MARKER)
+      await Bun.write(markerPath, `${JSON.stringify({ notFiles: 'oops' })}\n`)
+
+      const proc = runPrepare(tmpRoot)
+
+      expect(proc.exitCode).toBe(0)
+      expect(await pathExists(markerPath)).toBe(false)
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true })
+    }
+  }, 30000)
+
+  it('a listed file that no longer exists is skipped with a note, not a failure', async () => {
+    const tmpRoot = await setupCopy()
+    try {
+      const markerPath = join(tmpRoot, PENDING_FORMAT_MARKER)
+      await Bun.write(
+        markerPath,
+        `${JSON.stringify({ files: ['lib/scripts/this-file-does-not-exist.ts'] })}\n`
+      )
+
+      const proc = runPrepare(tmpRoot)
+
+      expect(proc.exitCode).toBe(0)
+      expect(
+        (proc.stdout.toString() + proc.stderr.toString()).toLowerCase()
+      ).toContain('no longer exists')
+      // Nothing left to retry — the marker is cleaned up.
+      expect(await pathExists(markerPath)).toBe(false)
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true })
+    }
+  }, 30000)
+
+  it('a real marker is finished successfully: files formatted, manifest regenerated, marker deleted', async () => {
+    const tmpRoot = await setupCopy()
+    try {
+      const markerPath = join(tmpRoot, PENDING_FORMAT_MARKER)
+      // A real, tracked file — formatting it is a genuine (harmless) no-op
+      // since it's already correctly formatted.
+      await Bun.write(
+        markerPath,
+        `${JSON.stringify({ files: ['lib/scripts/utils.ts'] })}\n`
+      )
+
+      const proc = runPrepare(tmpRoot)
+
+      if (proc.exitCode !== 0) {
+        console.error(proc.stdout.toString())
+        console.error(proc.stderr.toString())
+      }
+      expect(proc.exitCode).toBe(0)
+      expect(await pathExists(markerPath)).toBe(false)
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true })
+    }
+  }, 30000)
+
+  it('a repeatedly-failing step keeps the marker (with attempts incrementing) up to the cap, then gives up loudly instead of retrying forever', async () => {
+    const tmpRoot = await setupCopy()
+    try {
+      // Force the format step to fail deterministically.
+      const pkgPath = join(tmpRoot, 'package.json')
+      const pkg = JSON.parse(await Bun.file(pkgPath).text()) as {
+        scripts: Record<string, string>
+      }
+      pkg.scripts.format = 'exit 1'
+      await Bun.write(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
+
+      const markerPath = join(tmpRoot, PENDING_FORMAT_MARKER)
+      await Bun.write(
+        markerPath,
+        `${JSON.stringify({ files: ['lib/scripts/utils.ts'] })}\n`
+      )
+
+      // Run PENDING_FORMAT_MAX_ATTEMPTS times: every run but the last keeps
+      // the marker with `attempts` incremented; the last one gives up and
+      // deletes it instead of looping forever.
+      for (let attempt = 1; attempt <= PENDING_FORMAT_MAX_ATTEMPTS; attempt++) {
+        const proc = runPrepare(tmpRoot)
+        expect(proc.exitCode).toBe(0) // never bricks install, even on failure
+
+        if (attempt < PENDING_FORMAT_MAX_ATTEMPTS) {
+          expect(await pathExists(markerPath)).toBe(true)
+          const marker = JSON.parse(await Bun.file(markerPath).text()) as {
+            attempts?: number
+          }
+          expect(marker.attempts).toBe(attempt)
+          const output = proc.stdout.toString() + proc.stderr.toString()
+          expect(output).toContain('will retry')
+          expect(output).toContain('bun run format')
+        } else {
+          expect(await pathExists(markerPath)).toBe(false)
+          const output = proc.stdout.toString() + proc.stderr.toString()
+          expect(output.toLowerCase()).toContain('giving up')
+        }
       }
     } finally {
       await rm(tmpRoot, { recursive: true, force: true })

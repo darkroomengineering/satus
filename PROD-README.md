@@ -45,7 +45,7 @@ Manual cache clear: `GET https://[domain]/api/revalidate`
 
 ## Deployment
 
-Push to `main` branch for Vercel deployment.
+Vercel deploys automatically on every push to `main`. If the project isn't linked yet, run `vercel link` once first (see Quick Start).
 
 ## Troubleshooting
 

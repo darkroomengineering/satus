@@ -259,7 +259,7 @@ async function main() {
     if (!dimensions) {
       offenses.push({
         path,
-        detail: `cannot verify width (${ext} has no parser here) — re-encode to png/jpeg/webp or raise the size threshold in lib/scripts/check-assets.ts`,
+        detail: `cannot verify width (${ext} has no parser here) — re-encode to png/jpeg/webp, or add a parser / exempt the extension in lib/scripts/check-assets.ts`,
       })
       continue
     }

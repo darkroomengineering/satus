@@ -103,7 +103,7 @@ bun run build        # Production build
 bun storybook        # Component catalogue
 bun run check        # lint + format + types + tests + asset budget (run before pushing)
 bun run setup:project  # Strip integrations you don't need
-bun run handoff      # Client delivery: strips branding, swaps in PROD-README, generates inventory
+bun run handoff      # Client delivery: strips branding, swaps in PROD-README, generates inventory (--dry-run, --force)
 ```
 
 The full list lives in `package.json`.

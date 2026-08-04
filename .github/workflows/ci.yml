@@ -140,6 +140,18 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
 
+      # This job runs its own `next build` (playwright.config.ts webServer in
+      # CI), so it needs the same .next/cache step as the ci job — that path
+      # includes Turbopack's persistent build cache (.next/cache/turbopack).
+      - name: Cache Next.js build
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/cache@v6
+        with:
+          path: .next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('bun.lock') }}-${{ hashFiles('**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-${{ hashFiles('bun.lock') }}-
+
       - name: Install Playwright browsers
         if: steps.gate.outputs.run == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
         run: bunx playwright install --with-deps chromium

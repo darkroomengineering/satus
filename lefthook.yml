@@ -17,10 +17,11 @@ pre-commit:
       stage_fixed: true
     typecheck:
       glob: '*.{ts,tsx}'
-      # TS7 native (aliased as typescript7; the classic `typescript` package
-      # serves Next's build-time API). Incremental is on: this alias is the
-      # only writer of tsconfig.tsbuildinfo, and the warm cache is ~4x faster.
-      run: bun node_modules/typescript7/bin/tsc --noEmit
+      # TS7 native (single `typescript@^7` package; Next 16.3 shells out to
+      # the TS CLI itself, so no classic JS-API copy is needed). Incremental
+      # is on: typescript is the only writer of tsconfig.tsbuildinfo, and the
+      # warm cache is ~4x faster.
+      run: bun node_modules/typescript/bin/tsc --noEmit
       stage_fixed: false
 
 # Build stays CI-only (too slow for a local pre-push gate). Tests (~4s) and

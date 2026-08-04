@@ -10,7 +10,7 @@ This is the **single source of truth** for engineering standards in this repo. C
 | ------------------ | ----------------------------------------------------- |
 | Framework          | Next.js 16 (App Router, Cache Components, `proxy.ts`) |
 | UI                 | React 19.2 (React Compiler ON, no manual memoization) |
-| Language           | TypeScript 6, `strict: true`                          |
+| Language           | TypeScript 7, `strict: true`                          |
 | Styling            | Tailwind v4 (CSS-first) + CSS Modules                 |
 | Runtime            | Bun                                                   |
 | Linter / Formatter | oxlint + oxfmt                                        |

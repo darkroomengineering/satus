@@ -29,6 +29,7 @@
  * Cross-platform compatible (Windows, macOS, Linux)
  */
 
+import { rmSync } from 'node:fs'
 import { cp, mkdir, mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -43,7 +44,7 @@ import {
 } from './ast-transforms/index'
 import { removeBarrelLines } from './barrel-file'
 import { installBundle, stripAbsentIntegrationWiring } from './bundle-installer'
-import { cancelGuard } from './generate-shared'
+import { guardedPrompt } from './generate-shared'
 import {
   type CodeTransform,
   getBundle,
@@ -998,6 +999,17 @@ export const collectSelfPruneTestFiles = async (): Promise<string[]> => {
     .sort()
 }
 
+/**
+ * Replacement value for package.json's `setup:project` script entry once
+ * self-prune has deleted `lib/scripts/setup-project.ts` (P-B4). Previously
+ * the entry was deleted too, so `bun run setup:project` on an already-set-up
+ * project produced Bun's generic, unhelpful "Script not found" — this
+ * explains what happened and where to find the deleted script instead, and
+ * still exits non-zero (running it again was a mistake either way).
+ */
+export const SETUP_PROJECT_PRUNED_STUB =
+  "echo 'This project is already set up — setup:project deletes itself after its first run. Run `git log -- lib/scripts/setup-project.ts` (or check out an earlier commit) to find it again.' && exit 1"
+
 const selfPrune = async (
   pkg: PackageJson,
   dryRun: boolean
@@ -1018,23 +1030,29 @@ const selfPrune = async (
     }
   }
 
-  // Mutate the in-memory package.json scripts (no file write here)
+  // Mutate the in-memory package.json scripts (no file write here).
+  // test:setup's own test file is deleted above (self-prune's glob), so
+  // there's nothing coherent left for it to run — remove the entry
+  // outright, same as before. setup:project's script FILE is also deleted
+  // (below), but its package.json entry is REPLACED, not removed (P-B4) —
+  // see SETUP_PROJECT_PRUNED_STUB's docstring.
   const scriptsRemoved: string[] = []
   const scripts = pkg.scripts
   if (scripts) {
-    const scriptKeys = ['setup:project', 'test:setup']
-    for (const key of scriptKeys) {
-      if (key in scripts) {
-        scriptsRemoved.push(key)
-        if (!dryRun) {
-          delete scripts[key]
-        }
-      }
+    if ('test:setup' in scripts) {
+      scriptsRemoved.push('test:setup')
+      if (!dryRun) delete scripts['test:setup']
+    }
+    if ('setup:project' in scripts) {
+      scriptsRemoved.push('setup:project')
+      if (!dryRun) scripts['setup:project'] = SETUP_PROJECT_PRUNED_STUB
     }
   }
 
   if (dryRun && scriptsRemoved.length > 0) {
-    p.log.message(`  Would remove scripts: ${scriptsRemoved.join(', ')}`)
+    p.log.message(
+      `  Would remove test:setup and replace setup:project with a friendly stub`
+    )
   }
 
   s.stop(
@@ -1416,16 +1434,15 @@ const promptForIntegrations = async (): Promise<RemovableId[]> => {
   ]
 
   // Ask what kind of project to start
-  const selectedPreset = await p.select({
-    message: 'What kind of project are you building?',
-    options: presetOptions,
-  })
-
-  // Handle cancellation
-  if (p.isCancel(selectedPreset)) {
-    p.cancel('Setup cancelled')
-    process.exit(0)
-  }
+  const selectedPreset = await guardedPrompt(
+    () =>
+      p.select({
+        message: 'What kind of project are you building?',
+        options: presetOptions,
+      }),
+    'Setup cancelled',
+    '--preset <key> or --keep <id,id,...>'
+  )
 
   if (selectedPreset === 'custom') {
     // Build options for multiselect
@@ -1437,14 +1454,17 @@ const promptForIntegrations = async (): Promise<RemovableId[]> => {
     }))
 
     // Ask which integrations to keep
-    const customIntegrations = await p.multiselect({
-      message:
-        'Which integrations do you want to KEEP? (space to select, enter to confirm)',
-      options: integrationOptions,
-      required: false,
-    })
-
-    return cancelGuard(customIntegrations, 'Setup cancelled')
+    return guardedPrompt(
+      () =>
+        p.multiselect({
+          message:
+            'Which integrations do you want to KEEP? (space to select, enter to confirm)',
+          options: integrationOptions,
+          required: false,
+        }),
+      'Setup cancelled',
+      '--preset <key> or --keep <id,id,...>'
+    )
   }
 
   // Use preset integrations
@@ -1458,6 +1478,118 @@ const promptForIntegrations = async (): Promise<RemovableId[]> => {
   )
 
   return keepIntegrations
+}
+
+// ---------------------------------------------------------------------------
+// Concurrency guard (P-B3)
+// ---------------------------------------------------------------------------
+
+/** Lock directory guarding against two concurrent setup:project runs. */
+const LOCK_PATH = resolvePath('.setup-project.lock')
+/** PID file inside the lock dir — the backstop for stale-lock detection. */
+const LOCK_PID_FILE = `${LOCK_PATH}/pid`
+
+/**
+ * True when a process with this PID is currently running. Uses the
+ * `kill(pid, 0)` idiom: signal 0 sends nothing, it only probes whether the
+ * process exists and is signalable. ESRCH means no such process (dead);
+ * EPERM means it exists but is owned by someone else (still alive).
+ */
+const isProcessAlive = (pid: number): boolean => {
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code === 'EPERM'
+  }
+}
+
+/**
+ * Release the lock directory. Synchronous by design — called from
+ * `process.on('exit', …)` and from the explicit SIGINT/SIGTERM handlers
+ * below, neither of which can await async cleanup.
+ */
+const releaseLockSync = (): void => {
+  try {
+    rmSync(LOCK_PATH, { recursive: true, force: true })
+  } catch {
+    // Best-effort — a failed cleanup here shouldn't mask the real exit.
+  }
+}
+
+/**
+ * Prevent two concurrent `setup:project` runs in one workspace from
+ * interleaving their mutations into a silent, contradictory hybrid (both
+ * exit 0, but package.json / integration files reflect neither run
+ * cleanly). `mkdir` (non-recursive) is atomic on POSIX filesystems: a
+ * second run's `mkdir` fails with EEXIST the instant the first run's lock
+ * directory exists, so there's no check-then-create race window a plain
+ * "does this file exist" check would have.
+ *
+ * Stale-lock detection: the lock directory carries a `pid` file naming the
+ * process that created it. When `mkdir` hits EEXIST, that PID is checked —
+ * if it's no longer running (a crash, a `kill -9`, or any termination path
+ * that outran even the signal handlers below), the lock is treated as
+ * stale: removed and re-acquired instead of blocking the run forever. A
+ * lock whose owning process IS still alive is genuinely in progress and
+ * still throws.
+ *
+ * Release paths: a synchronous `process.on('exit', …)` handler (registered
+ * immediately after acquiring the lock) covers normal completion,
+ * `guardedPrompt`/`cancelGuard`'s direct `process.exit()` calls on
+ * cancel/EOF, and thrown errors. That alone isn't sufficient — Bun doesn't
+ * reliably emit 'exit' for SIGINT/SIGTERM, so a Ctrl+C or `kill -TERM`
+ * outside an active prompt (where @clack/prompts' own keypress handler
+ * would otherwise catch it) can tear the process down before 'exit' fires.
+ * Explicit SIGINT/SIGTERM handlers below release the lock and exit
+ * non-zero directly, so the common case doesn't have to fall back to
+ * stale-PID detection at all — that's the backstop for whatever still gets
+ * past both (e.g. SIGKILL, which no userspace handler can intercept).
+ */
+const acquireLock = async (): Promise<void> => {
+  try {
+    await mkdir(LOCK_PATH)
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
+      throw error
+    }
+
+    let stalePid: number | undefined
+    try {
+      const pidText = await Bun.file(LOCK_PID_FILE).text()
+      const parsed = Number.parseInt(pidText.trim(), 10)
+      if (Number.isFinite(parsed)) stalePid = parsed
+    } catch {
+      // No readable pid file — can't prove the owning process is gone, so
+      // fall through to the "still in progress" error below rather than
+      // guessing.
+    }
+
+    if (stalePid === undefined || isProcessAlive(stalePid)) {
+      throw new Error(
+        `Another setup:project run appears to be in progress (lock: ${LOCK_PATH}).\n` +
+          "If that's not actually the case — e.g. a previous run crashed without cleaning up — delete the lock and retry:\n" +
+          `  rm -rf "${LOCK_PATH}"`
+      )
+    }
+
+    p.log.warn(
+      `Removing a stale setup:project lock left behind by pid ${stalePid} (no longer running): ${LOCK_PATH}`
+    )
+    await rm(LOCK_PATH, { recursive: true, force: true })
+    await mkdir(LOCK_PATH)
+  }
+
+  await Bun.write(LOCK_PID_FILE, `${process.pid}\n`)
+
+  process.on('exit', releaseLockSync)
+
+  for (const signal of ['SIGINT', 'SIGTERM'] as const) {
+    process.on(signal, () => {
+      releaseLockSync()
+      process.exit(1)
+    })
+  }
 }
 
 /**
@@ -1484,13 +1616,61 @@ const guardProjectRoot = async (): Promise<void> => {
 }
 
 /**
+ * Print `--help`/`-h` usage (P-B6) and return — flags, every preset key
+ * (from `PROJECT_PRESETS`, so this can't drift out of sync with the actual
+ * preset list), and one example invocation.
+ */
+const printUsage = (): void => {
+  const presetLines = Object.entries(PROJECT_PRESETS)
+    .map(([key, preset]) => `    ${key.padEnd(10)} ${preset.description}`)
+    .join('\n')
+
+  console.log(`Satūs Project Setup
+
+Strip the template down to the integrations you're keeping, additively
+re-add them, and self-prune this setup machinery — see the file header of
+lib/scripts/setup-project.ts for the full step-by-step.
+
+Usage:
+  bun run setup:project [flags]
+
+Flags:
+  --preset <key>       Use a preset's integrations (skips the interactive prompt)
+  --keep <id,id,...>   Keep an explicit integration set ('' = lean core only)
+  --clean-homepage     Replace the manual landing page with a blank starter
+  --yes                Skip the final proceed/confirm prompt
+  --skip-install       Write package.json without running \`bun install\`
+  --dry-run, -d        Preview changes without writing anything
+  --help, -h           Show this help and exit
+
+Presets (--preset <key>):
+${presetLines}
+
+Example:
+  bun run setup:project --preset editorial --yes
+`)
+}
+
+/**
  * CLI entry point
  */
 const main = async (): Promise<void> => {
-  await guardProjectRoot()
-
   const argv = process.argv.slice(2)
-  const { dryRun } = parseCliFlags(argv)
+  const { dryRun, help } = parseCliFlags(argv)
+
+  // --help/-h (P-B6): parseCliFlags already computed this, but main() never
+  // checked it, so `--help` silently fell through into a live interactive
+  // setup:project run instead of showing usage. Checked before
+  // guardProjectRoot()/acquireLock() so it works regardless of cwd and never
+  // touches the lock file.
+  if (help) {
+    printUsage()
+    return
+  }
+
+  await guardProjectRoot()
+  await acquireLock()
+
   const presetFlag = getFlagValue(argv, '--preset')
   const keepFlag = getFlagValue(argv, '--keep')
   const yes = argv.includes('--yes')
@@ -1529,17 +1709,16 @@ const main = async (): Promise<void> => {
     keepIntegrations = await promptForIntegrations()
 
     // Offer to drop the manual landing page for a clean slate.
-    const cleanMarketingAnswer = await p.confirm({
-      message: 'Replace the manual landing page with a blank starter homepage?',
-      initialValue: false,
-    })
-
-    if (p.isCancel(cleanMarketingAnswer)) {
-      p.cancel('Setup cancelled')
-      process.exit(0)
-    }
-
-    cleanMarketing = cleanMarketingAnswer
+    cleanMarketing = await guardedPrompt(
+      () =>
+        p.confirm({
+          message:
+            'Replace the manual landing page with a blank starter homepage?',
+          initialValue: false,
+        }),
+      'Setup cancelled',
+      '--preset <key> or --keep <id,id,...>'
+    )
   }
 
   // Expand the kept set to include every transitive `requires` dependency
@@ -1596,11 +1775,19 @@ const main = async (): Promise<void> => {
   })
 
   if (!skipConfirm) {
-    const proceed = await p.confirm({
-      message: dryRun ? 'Preview changes?' : 'Proceed with setup?',
-    })
+    // guardedPrompt handles an explicit cancel (Ctrl+C) or stdin closing
+    // (EOF) — both exit 1 with a clear message. A deliberate "No" answer is
+    // a different, intentional outcome: exit 0, no error.
+    const proceed = await guardedPrompt(
+      () =>
+        p.confirm({
+          message: dryRun ? 'Preview changes?' : 'Proceed with setup?',
+        }),
+      'Setup cancelled',
+      '--yes (with --preset/--keep)'
+    )
 
-    if (p.isCancel(proceed) || !proceed) {
+    if (!proceed) {
       p.cancel('Setup cancelled')
       process.exit(0)
     }

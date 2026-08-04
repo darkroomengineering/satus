@@ -76,3 +76,7 @@ README.original.md
 # PENDING_FORMAT_MARKER in lib/scripts/utils.ts; deleted by prepare.ts on the
 # next `bun install`, but ignore it in case that never runs.
 .setup-project-pending-format.json
+
+# setup:project concurrency lock (P-B3) — removed on exit, but ignore it in
+# case a crash left it behind.
+.setup-project.lock

@@ -16,6 +16,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 
 import { applyOpsToText, RequiredOpMatchError } from './ast-transforms'
+import { guardedPrompt } from './generate-shared'
 import {
   getIntegrationEntries,
   getIntegrationNames,
@@ -31,6 +32,7 @@ import {
   replaceAnchoredText,
   resolveTransitiveKeepSet,
   SELF_PRUNE_KEEP_TEST_FILES,
+  SETUP_PROJECT_PRUNED_STUB,
   shouldDisableCacheComponents,
   shouldSkipConfirm,
 } from './setup-project'
@@ -1430,6 +1432,7 @@ describe("P-C3 regression: kept bundle deps survive selfPrune's package.json wri
       ) as {
         dependencies?: Record<string, string>
         devDependencies?: Record<string, string>
+        scripts?: Record<string, string>
       }
 
       for (const dep of [
@@ -1449,10 +1452,340 @@ describe("P-C3 regression: kept bundle deps survive selfPrune's package.json wri
           `missing devDependency "${devDep}"`
         ).toBeTruthy()
       }
+
+      // P-B4: self-prune replaces (not deletes) the setup:project entry
+      // with a friendly, non-zero-exit stub — Bun's generic "Script not
+      // found" is gone, and the script file itself is really deleted.
+      expect(pkg.scripts?.['setup:project']).toBe(SETUP_PROJECT_PRUNED_STUB)
+      expect(
+        await pathExists(join(tmpRoot, 'lib/scripts/setup-project.ts'))
+      ).toBe(false)
     } finally {
       await rm(tmpRoot, { recursive: true, force: true })
     }
   }, 60000)
+})
+
+// ---------------------------------------------------------------------------
+// P-D2 — cancel/EOF guard: stdin closing before a prompt resolves must exit
+// 1 with a readable message, never fall through to a silent exit 0.
+//
+// Runs against the real repo tree directly (no rsync copy needed): with no
+// flags, guardedPrompt's stdin-close race fires before guardProjectRoot()'s
+// checks would matter and before any mutation, so this is read-only.
+// ---------------------------------------------------------------------------
+
+describe('P-D2: stdin EOF guard (guardedPrompt)', () => {
+  it('bun run setup:project </dev/null exits 1 with a readable stderr message', async () => {
+    const proc = Bun.spawnSync(['bun', 'lib/scripts/setup-project.ts'], {
+      cwd: projectRoot,
+      stdin: new Response(''), // closed stdin — simulates `</dev/null`
+      stdout: 'pipe',
+      stderr: 'pipe',
+    })
+
+    expect(proc.exitCode).toBe(1)
+    const stderr = proc.stderr.toString()
+    expect(stderr).toContain('Setup cancelled')
+    expect(stderr).toContain('stdin closed')
+    expect(stderr).toContain('--preset')
+  }, 20000)
+})
+
+// ---------------------------------------------------------------------------
+// P-D2 (LOW, cross-model review follow-up) — answer-wins ordering:
+// guardedPrompt must not false-cancel when a legitimate final answer races
+// stdin's `close` event (reproduced: a valid default confirm answer
+// immediately followed by pipe closure, e.g. `printf '\n' | script`).
+// ---------------------------------------------------------------------------
+
+describe('guardedPrompt (answer-wins ordering)', () => {
+  it('a prompt that resolves synchronously (before stdin close) still wins — baseline sanity check', async () => {
+    const promptFn = () =>
+      new Promise<string>((resolve) => {
+        // Both the answer and the close are already-settled by the time
+        // Promise.race examines them here, so this alone doesn't exercise
+        // the actual race (Promise.race's array-order tie-break already
+        // favors index 0 in that case) — see the next test for the real
+        // regression repro.
+        resolve('yes')
+        process.stdin.emit('close')
+      })
+
+    const result = await guardedPrompt(promptFn, 'test cancelled')
+    expect(result).toBe('yes')
+  })
+
+  it('a prompt that resolves one microtask AFTER stdin close still wins (the actual repro: setImmediate defers long enough for the answer to land first)', async () => {
+    const promptFn = () =>
+      new Promise<string>((resolve) => {
+        // This is the real regression repro: stdin closes first (its `eof`
+        // promise is already-settled by the time Promise.race runs), and
+        // the prompt's answer settles one microtask later — exactly what a
+        // real @clack/core resolution racing a piped stream's `close` can
+        // look like. Without the setImmediate defer, Promise.race picks
+        // the already-settled `eof` and this incorrectly exits as
+        // cancelled (verified against the pre-fix implementation).
+        process.stdin.emit('close')
+        queueMicrotask(() => resolve('no'))
+      })
+
+    const result = await guardedPrompt(promptFn, 'test cancelled')
+    expect(result).toBe('no')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// P-B6 — --help/-h was computed by parseCliFlags but never checked by
+// main(), so it silently fell through into a live interactive run instead
+// of printing usage.
+// ---------------------------------------------------------------------------
+
+describe('P-B6: --help prints usage and exits 0', () => {
+  it('lists every flag and every preset key, and exits 0', async () => {
+    const proc = Bun.spawnSync(
+      ['bun', 'lib/scripts/setup-project.ts', '--help'],
+      {
+        cwd: projectRoot,
+        stdout: 'pipe',
+        stderr: 'pipe',
+      }
+    )
+
+    expect(proc.exitCode).toBe(0)
+    const stdout = proc.stdout.toString()
+    expect(stdout).toContain('Usage:')
+    expect(stdout).toContain('--preset')
+    expect(stdout).toContain('--keep')
+    expect(stdout).toContain('--yes')
+    expect(stdout).toContain('--skip-install')
+    for (const key of Object.keys(PROJECT_PRESETS)) {
+      expect(stdout).toContain(key)
+    }
+  }, 20000)
+
+  it('-h is equivalent to --help', async () => {
+    const proc = Bun.spawnSync(['bun', 'lib/scripts/setup-project.ts', '-h'], {
+      cwd: projectRoot,
+      stdout: 'pipe',
+    })
+    expect(proc.exitCode).toBe(0)
+    expect(proc.stdout.toString()).toContain('Usage:')
+  }, 20000)
+})
+
+// ---------------------------------------------------------------------------
+// P-B3 — a concurrency lock: two setup:project runs racing in one workspace
+// used to interleave into a silent, contradictory hybrid (both exit 0).
+// ---------------------------------------------------------------------------
+
+describe('P-B3: concurrent setup:project runs', () => {
+  it('one run succeeds, the other fails immediately naming the lock', async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-lock-'))
+    try {
+      const rsync = Bun.spawnSync([
+        'rsync',
+        '-a',
+        '--exclude',
+        'node_modules',
+        '--exclude',
+        '.next',
+        '--exclude',
+        '.git',
+        `${projectRoot}/`,
+        `${tmpRoot}/`,
+      ])
+      expect(rsync.exitCode).toBe(0)
+
+      const spawnRun = () =>
+        Bun.spawn(
+          [
+            'bun',
+            'run',
+            'setup:project',
+            '--preset',
+            'blank',
+            '--yes',
+            '--skip-install',
+          ],
+          { cwd: tmpRoot, stdout: 'pipe', stderr: 'pipe' }
+        )
+
+      const procA = spawnRun()
+      const procB = spawnRun()
+      const [exitA, exitB] = await Promise.all([procA.exited, procB.exited])
+      const [outA, outB, errA, errB] = await Promise.all([
+        new Response(procA.stdout).text(),
+        new Response(procB.stdout).text(),
+        new Response(procA.stderr).text(),
+        new Response(procB.stderr).text(),
+      ])
+
+      const exits = [exitA, exitB]
+      // clack's p.log.error writes to stdout, not stderr — check both so
+      // this doesn't depend on which stream the CLI library picks.
+      const combinedOutputs = [outA + errA, outB + errB]
+
+      // Exactly one succeeds, exactly one fails.
+      expect(exits.filter((code) => code === 0)).toHaveLength(1)
+      expect(exits.filter((code) => code !== 0)).toHaveLength(1)
+
+      // The failing run's message names the lock and gives a recovery step.
+      const failingOutput =
+        combinedOutputs[exits.findIndex((code) => code !== 0)] ?? ''
+      expect(failingOutput).toContain(
+        'setup:project run appears to be in progress'
+      )
+      expect(failingOutput).toContain('.setup-project.lock')
+      expect(failingOutput.toLowerCase()).toContain('delete the lock')
+
+      // The lock is cleaned up once both runs have finished.
+      expect(await pathExists(join(tmpRoot, '.setup-project.lock'))).toBe(false)
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true })
+    }
+  }, 60000)
+})
+
+// ---------------------------------------------------------------------------
+// P-B3 follow-up (cross-model review MEDIUM finding): the lock used to leak
+// on SIGINT/SIGTERM — Bun doesn't reliably emit 'exit' for those signals, so
+// a `kill -TERM` mid-run (or Ctrl+C outside an active prompt) could leave
+// the lock directory behind forever, blocking every future run. Fixed with
+// explicit SIGINT/SIGTERM handlers (release + exit non-zero) plus a PID-file
+// stale-lock backstop for whatever still gets past those (e.g. SIGKILL).
+// ---------------------------------------------------------------------------
+
+describe('P-B3 follow-up: lock survives SIGTERM / stale-lock detection', () => {
+  const rsyncCopy = async (tmpRoot: string): Promise<void> => {
+    const rsync = Bun.spawnSync([
+      'rsync',
+      '-a',
+      '--exclude',
+      'node_modules',
+      '--exclude',
+      '.next',
+      '--exclude',
+      '.git',
+      `${projectRoot}/`,
+      `${tmpRoot}/`,
+    ])
+    expect(rsync.exitCode).toBe(0)
+  }
+
+  it('kill -TERM on a mid-run process releases the lock instead of leaking it', async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-sigterm-'))
+    try {
+      await rsyncCopy(tmpRoot)
+
+      // No flags → fully interactive → hangs at the first prompt once
+      // guardProjectRoot()/acquireLock() have already run, giving us a
+      // window where the lock exists and the process is still alive to
+      // signal. stdin stays open (not `</dev/null`) so this is a genuine
+      // "process running, mid-prompt" state, not the P-D2 EOF path.
+      const child = Bun.spawn(['bun', 'lib/scripts/setup-project.ts'], {
+        cwd: tmpRoot,
+        stdin: 'pipe',
+        stdout: 'ignore',
+        stderr: 'ignore',
+      })
+
+      const lockPath = join(tmpRoot, '.setup-project.lock')
+      const deadline = Date.now() + 10000
+      while (!(await pathExists(lockPath)) && Date.now() < deadline) {
+        await Bun.sleep(50)
+      }
+      expect(await pathExists(lockPath)).toBe(true)
+
+      child.kill('SIGTERM')
+      await child.exited
+
+      expect(await pathExists(lockPath)).toBe(false)
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true })
+    }
+  }, 30000)
+
+  it('a lock left by a dead PID is treated as stale — removed, and the run proceeds', async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-stale-'))
+    try {
+      await rsyncCopy(tmpRoot)
+
+      // A PID guaranteed to be dead: spawn a trivial process and wait for
+      // it to exit, then reuse its (now-dead) pid.
+      const dead = Bun.spawn(['bun', '-e', 'process.exit(0)'])
+      await dead.exited
+      const deadPid = dead.pid
+
+      const lockPath = join(tmpRoot, '.setup-project.lock')
+      await Bun.$`mkdir -p ${lockPath}`.quiet()
+      await Bun.write(join(lockPath, 'pid'), `${deadPid}\n`)
+
+      const proc = Bun.spawnSync(
+        [
+          'bun',
+          'run',
+          'setup:project',
+          '--preset',
+          'blank',
+          '--yes',
+          '--skip-install',
+        ],
+        { cwd: tmpRoot, stdout: 'pipe', stderr: 'pipe' }
+      )
+
+      const output = proc.stdout.toString() + proc.stderr.toString()
+      if (proc.exitCode !== 0) console.error(output)
+
+      expect(proc.exitCode).toBe(0)
+      expect(output.toLowerCase()).toContain('stale')
+      expect(output).toContain(String(deadPid))
+      // The run replaced the stale lock with its own (and released it on
+      // completion) rather than treating it as a genuine collision.
+      expect(await pathExists(lockPath)).toBe(false)
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true })
+    }
+  }, 30000)
+
+  it('a lock left by a LIVE PID is NOT treated as stale — still a genuine collision', async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-live-'))
+    try {
+      await rsyncCopy(tmpRoot)
+
+      // Our own test-runner process is unambiguously alive for the
+      // duration of this test.
+      const livePid = process.pid
+
+      const lockPath = join(tmpRoot, '.setup-project.lock')
+      await Bun.$`mkdir -p ${lockPath}`.quiet()
+      await Bun.write(join(lockPath, 'pid'), `${livePid}\n`)
+
+      const proc = Bun.spawnSync(
+        [
+          'bun',
+          'run',
+          'setup:project',
+          '--preset',
+          'blank',
+          '--yes',
+          '--skip-install',
+        ],
+        { cwd: tmpRoot, stdout: 'pipe', stderr: 'pipe' }
+      )
+
+      const output = proc.stdout.toString() + proc.stderr.toString()
+      expect(proc.exitCode).not.toBe(0)
+      expect(output).toContain('setup:project run appears to be in progress')
+      // The still-alive owner's lock is left exactly as it was.
+      expect(await pathExists(lockPath)).toBe(true)
+      expect(await Bun.file(join(lockPath, 'pid')).text()).toContain(
+        String(livePid)
+      )
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true })
+    }
+  }, 30000)
 })
 
 // ---------------------------------------------------------------------------

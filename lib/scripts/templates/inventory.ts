@@ -90,8 +90,6 @@ export function renderInventory({
     '- Could not scan effect components'
   )
 
-  // Pages section intentionally has no trailing blank line (matches the
-  // original generator, which ended the document on the last page entry).
   lines.push('## Pages')
   lines.push('')
   if (pages === null) {
@@ -101,6 +99,10 @@ export function renderInventory({
       lines.push(`- \`/${route}\``)
     }
   }
+  // Trailing blank line so the joined text ends in `\n`, matching
+  // deployment-checklist.ts's pattern — a document without one fails
+  // `oxfmt --check` (P-C2).
+  lines.push('')
 
   return lines.join('\n')
 }

@@ -24,6 +24,8 @@ import {
   integrations as registryIntegrations,
 } from '@/integrations/registry'
 
+import type { AstOperation } from './ast-operation-types'
+import { applyOpsToText } from './ast-transforms'
 import { isInstalled } from './bundle-installer'
 import { cancelGuard } from './generate-shared'
 import { getIntegrationEntries } from './integration-bundles'
@@ -134,6 +136,53 @@ interface HandoffOptions {
 }
 
 /**
+ * AST ops that drop the Darkroom credit link (logo + link to
+ * darkroom.engineering) from the footer, and its now-dangling Logo import.
+ */
+const FOOTER_LOGO_OPS: AstOperation[] = [
+  { kind: 'removeImport', specifier: '@/components/ui/darkroom.svg' },
+  {
+    kind: 'removeJsxElement',
+    tagName: 'Link',
+    attribute: { name: 'aria-label', value: 'Darkroom Engineering' },
+  },
+]
+
+/**
+ * Remove the Darkroom credit logo/link from the footer (cross-platform).
+ *
+ * `removeBrandingAssets` deletes `components/ui/darkroom.svg`, and the
+ * footer is the only place in the tree that imports it — leaving the import
+ * in place breaks `bun run build` with a "Module not found" error. This
+ * rewrites the footer via the AST transform engine to drop the Logo import
+ * and the credit link that renders it, then collapses the whitespace-only
+ * line the JSX removal leaves behind so the file stays `oxfmt`-clean.
+ * Idempotent: re-running over an already-cleaned footer is a no-op.
+ */
+const removeFooterLogo = async (dryRun: boolean): Promise<boolean> => {
+  try {
+    const footerPath = resolvePath('components/layout/footer/index.tsx')
+    if (!(await pathExists(footerPath))) return false
+
+    const original = await Bun.file(footerPath).text()
+    const afterOps = applyOpsToText(original, FOOTER_LOGO_OPS)
+    if (afterOps === original) return false // already cleaned — no-op
+
+    // JSX-element removal leaves the credit link's former indentation as a
+    // whitespace-only line; collapse it so the file stays `oxfmt`-clean.
+    const transformed = afterOps.replace(/\n[ \t]+\n/, '\n')
+
+    if (!dryRun) {
+      await Bun.write(footerPath, transformed)
+    }
+    return true
+  } catch (error) {
+    p.log.error(`Failed to remove branding from footer: ${error}`)
+    return false
+  }
+}
+
+/**
  * Remove Satūs-specific branding and assets (cross-platform)
  */
 const removeBrandingAssets = async (dryRun: boolean): Promise<boolean> => {
@@ -153,6 +202,10 @@ const removeBrandingAssets = async (dryRun: boolean): Promise<boolean> => {
     if (await removeFile(file, dryRun)) {
       removedCount++
     }
+  }
+
+  if (await removeFooterLogo(dryRun)) {
+    removedCount++
   }
 
   return removedCount > 0

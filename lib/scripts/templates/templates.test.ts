@@ -189,4 +189,18 @@ describe('renderInventory', () => {
     expect(output).toContain('- Could not scan effect components')
     expect(output).toContain('- Could not scan pages')
   })
+
+  it('ends with a trailing newline (P-C2 — required for oxfmt --check)', () => {
+    const output = renderInventory({
+      date: '2026-01-01',
+      integrations: [],
+      uiComponents: [],
+      layoutComponents: [],
+      effectComponents: [],
+      pages: ['about'],
+    })
+
+    expect(output.endsWith('\n')).toBe(true)
+    expect(output.endsWith('\n\n')).toBe(false)
+  })
 })

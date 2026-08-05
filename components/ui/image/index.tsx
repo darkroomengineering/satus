@@ -101,8 +101,6 @@ export type ImageProps = Omit<
    * wins over both.
    */
   objectFit?: CSSProperties['objectFit']
-  /** Display as block element (adds display: block) */
-  block?: boolean
   /** Ref for accessing the underlying img element */
   ref?: Ref<HTMLImageElement>
   /** Alt text for accessibility. Required — pass `alt=""` explicitly for decorative images. */
@@ -203,7 +201,6 @@ function getFinalPlaceholder(
  * @param props.aspectRatio - Aspect ratio for layout stability and blur placeholder
  * @param props.mobileSize - Rendered width below the desktop breakpoint (e.g. "50vw"). Required together with `desktopSize`, unless `sizes` is passed instead.
  * @param props.desktopSize - Rendered width at/above the desktop breakpoint (e.g. "33vw"). Required together with `mobileSize`, unless `sizes` is passed instead.
- * @param props.block - Display as block element
  * @param props.preload - Ergonomic alias for next/image's native `preload` prop
  *   (the modern replacement for the deprecated `priority` prop). Also sets
  *   `loading="eager"` unless `loading` is explicitly provided.
@@ -253,7 +250,6 @@ export function Image({
   quality = 90,
   alt,
   fill,
-  block = !fill,
   width,
   height,
   mobileSize,
@@ -307,10 +303,15 @@ export function Image({
   const finalWidth = width ?? derivedDimensions?.width
   const finalHeight = height ?? derivedDimensions?.height
 
+  // Derived purely from the sizing union — never an independent prop, so
+  // the value passed to next/image's `fill` can never disagree with whether
+  // `width`/`height` are also being spread in (issue #393).
+  const isBlock = !fill
+
   return (
     <NextImage
       ref={ref}
-      fill={!block}
+      fill={Boolean(fill)}
       {...(finalWidth !== undefined && { width: finalWidth })}
       {...(finalHeight !== undefined && { height: finalHeight })}
       loading={finalLoading}
@@ -322,10 +323,10 @@ export function Image({
         // the zero-specificity `:where(.img)` rule in image.module.css
         // instead, so consumer CSS (module or utility) can override it.
         ...(objectFit && { objectFit }),
-        ...(block && aspectRatio ? { aspectRatio } : {}),
+        ...(isBlock && aspectRatio ? { aspectRatio } : {}),
         ...style,
       }}
-      className={cn(className, s.img, block && s.block)}
+      className={cn(className, s.img, isBlock && s.block)}
       sizes={finalSizes}
       src={src}
       unoptimized={unoptimized || isSvg}

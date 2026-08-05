@@ -212,7 +212,9 @@ ${rows.join('\n')}
 }
 
 function buildHooksSection(project: Project): string {
-  const hookFiles = glob('lib/hooks/*.ts')
+  const hookFiles = glob('lib/hooks/*.ts').filter(
+    (f) => !(f.endsWith('.test.ts') || f.endsWith('.d.ts'))
+  )
 
   const rows: string[] = []
 

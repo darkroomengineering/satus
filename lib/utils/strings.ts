@@ -77,7 +77,7 @@ export function capitalizeFirstLetter(inputString: string) {
  * ```ts
  * isEmptyArray([])      // true
  * isEmptyArray([1, 2])  // false
- * isEmptyArray('test')  // true (not an array)
+ * isEmptyArray('test')  // false (not an array, but truthy)
  * isEmptyArray(null)    // true
  * ```
  */

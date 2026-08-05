@@ -168,9 +168,37 @@ export function useForm<T = unknown>({
       ref: (node: HTMLInputElement | HTMLTextAreaElement | null) => {
         const isNewRegistration = !inputsRefs.current[name] && node
         inputsRefs.current[name] = node
+
         if (isNewRegistration) {
           initializeInput(name, node)
+          return
         }
+
+        if (node) return
+
+        // Unmounted (tab switch, multi-step wizard, feature flag). Leaving
+        // the field's isValid/isActive/errors entries behind would wedge
+        // isReady forever if this was a required field that mounted
+        // untouched — isReady requires every isValid entry to be true,
+        // including entries for fields that no longer exist.
+        setIsActive((prev) => {
+          if (!(name in prev)) return prev
+          const next = { ...prev }
+          delete next[name]
+          return next
+        })
+        setIsValid((prev) => {
+          if (!(name in prev)) return prev
+          const next = { ...prev }
+          delete next[name]
+          return next
+        })
+        setErrors((prev) => {
+          if (!(name in prev)) return prev
+          const next = { ...prev }
+          delete next[name]
+          return next
+        })
       },
       onChange: ({
         target,

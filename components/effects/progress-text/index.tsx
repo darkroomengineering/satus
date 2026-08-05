@@ -81,14 +81,22 @@ export function ProgressText({
   className,
   style,
 }: ProgressTextProps) {
-  const wordsRefs = useRef<HTMLSpanElement[]>([])
+  // Sparse array: a shrinking word count removes trailing entries (ref
+  // callback fires with `undefined` on detach), so the progress handler
+  // below filters to live nodes only — a stale detached node inflating the
+  // denominator would silently shift every surviving word's reveal
+  // threshold. Mirrors the same fix in `components/ui/marquee`.
+  const wordsRefs = useRef<(HTMLSpanElement | undefined)[]>([])
 
   const [setRectRef] = useScrollTrigger({
     start,
     end,
     onProgress: ({ progress }) => {
-      wordsRefs.current.forEach((node, i) => {
-        onChange?.(node, progress > i / wordsRefs.current.length)
+      const activeNodes = wordsRefs.current.filter(
+        (node): node is HTMLSpanElement => Boolean(node)
+      )
+      activeNodes.forEach((node, i) => {
+        onChange?.(node, progress > i / activeNodes.length)
       })
     },
   })
@@ -114,7 +122,13 @@ export function ProgressText({
           <span
             className={cn(s.word, word.className)}
             ref={(node) => {
-              if (!node) return
+              if (!node) {
+                // React calls the ref callback with null on detach — clear
+                // the slot so a shrinking word count doesn't leave a stale
+                // detached node in the array.
+                wordsRefs.current[index] = undefined
+                return
+              }
               wordsRefs.current[index] = node
             }}
             style={{ opacity: 0.33, ...word.style }}

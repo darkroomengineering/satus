@@ -211,6 +211,11 @@ export function CheckboxesField({
         name={name}
         id={hiddenInputId}
         value={JSON.stringify(selected)}
+        // Spread rather than picking `ref` off: only `ref` is live here (the
+        // value is React-state-driven and a hidden input never fires change
+        // or blur), but naming `reg.ref` in JSX reads as a render-time ref
+        // access to the React Compiler lint and fails the build. The unused
+        // handlers are inert.
         {...reg}
       />
       <div className={s.options}>

@@ -159,6 +159,16 @@ export function SheetProvider({
   // explicitly, e.g. for a non-default project) — resolve against it as-is.
   if (existingProject) return inner
 
+  // The self-bootstrapped default project is dev-only: it exists so the
+  // Studio editor (dev-panel-gated, see `lib/dev/theatre/studio`) has a live
+  // project to bind to. Production visitors never open Studio, so skip the
+  // fetch + `getProject` call entirely — `useSheet`/`useTheatre` resolve to
+  // `undefined` below `inner`, which every call site already treats as "no
+  // live values, use my own hard-coded defaults" (see `useTheatreObject`).
+  // `process.env.NODE_ENV` is inlined at build time, so production bundles
+  // dead-code-eliminate this branch rather than just skip it at runtime.
+  if (process.env.NODE_ENV !== 'development') return inner
+
   return (
     <TheatreProjectProvider
       id={DEFAULT_PROJECT_ID}

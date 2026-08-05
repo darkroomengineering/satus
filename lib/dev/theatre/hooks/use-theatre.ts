@@ -31,9 +31,13 @@ export function useTheatreObject(
     // has to re-run when the object appears or is rebuilt. Holding it in a ref
     // instead would leave subscribers with no signal, and the object is a
     // Theatre handle that only exists once the sheet does, so it cannot be
-    // derived during render. The bailout costs auto-memoization on Theatre's
-    // dev tooling only — lazily loaded, gated behind a dev toggle, and removed
-    // outright by setup:project for projects that drop Theatre.
+    // derived during render. The bailout costs auto-memoization only in
+    // development: `SheetProvider` (`lib/dev/theatre/index.tsx`) only
+    // bootstraps a live Theatre project when `NODE_ENV === 'development'`, so
+    // `sheet` is always `undefined` in production — this effect hits the
+    // early return above and the `setObject` call below never runs at all.
+    // The whole hook is also removed outright by setup:project for projects
+    // that drop Theatre.
     // react-doctor-disable-next-line react-hooks-js/set-state-in-effect
     setObject(sheet?.object(theatreKey, config, { reconfigure: true }))
 

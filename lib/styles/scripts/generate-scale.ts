@@ -98,24 +98,20 @@ function columnScaleUtility(name: string, properties: string | string[]) {
     .join('\n')}
 }`
 
-  const autoCompleteUtility = `@utility dr-${name}-col-value {
+  // Negate the whole expression, not just the column term. Negating only
+  // `--value(integer) * var(--column-width)` while leaving the gap term
+  // `(--value(integer) - 1) * var(--gap)` alone undercounts the negative
+  // value by 2 * (N - 1) * gap for every N >= 2.
+  const negatedUtility = `@utility -dr-${name}-col-* {
 	${propertiesArray
     .map(
       (property) =>
-        `${property}: calc((value * var(--column-width)) + ((value - 1) * var(--gap)));`
+        `${property}: calc(((--value(integer) * var(--column-width)) + ((--value(integer) - 1) * var(--gap))) * -1);`
     )
     .join('\n')}
 }`
 
-  const negatedUtility = utility
-    .replace('@utility ', '@utility -')
-    .replace('--value(integer)', '--value(integer) * -1')
-
-  const negatedAutoCompleteUtility = autoCompleteUtility
-    .replace('@utility ', '@utility -')
-    .replace('value', '-value')
-
-  return `${utility}\n${autoCompleteUtility}\n${negatedUtility}\n${negatedAutoCompleteUtility}`
+  return `${utility}\n${negatedUtility}`
 }
 
 export function generateScale() {

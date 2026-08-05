@@ -55,11 +55,6 @@ export async function promptComponentConfig(): Promise<ComponentConfig> {
             label: 'Effects Components',
             hint: 'Animations and visual enhancements',
           },
-          {
-            value: 'blocks',
-            label: 'Block Components',
-            hint: 'Pre-built page sections',
-          },
         ],
       }),
     'Component generation cancelled'
@@ -186,7 +181,6 @@ async function updateBarrelExport(
         ui: 'UI Primitives - Reusable across any project',
         layout: 'Layout Components - Site chrome (customize per project)',
         effects: 'Effects Components - Animations and visual enhancements',
-        blocks: 'Block Components - Pre-built page sections',
       }
 
       const header =

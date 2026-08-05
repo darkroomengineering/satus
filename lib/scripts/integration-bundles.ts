@@ -81,13 +81,15 @@ export interface IntegrationBundle {
    */
   addTransforms?: CodeTransform[]
   /**
-   * Integration-owned files copied wholesale from the payload source on
-   * `satus add`, used where statement-level re-injection would be brittle
-   * (e.g. the Theatre wiring inside the webgl fluid/flowmap hooks, or the
-   * webgl Canvas wiring in the Wrapper). A local file is only overwritten
-   * when it matches the payload version (no-op) or the expected lean state
-   * (payload with this bundle's removal ops applied); anything else is
-   * treated as locally modified and skipped with a warning unless --force.
+   * Integration-owned files copied wholesale from the payload source when
+   * re-adding a bundle, used where statement-level re-injection would be
+   * brittle (e.g. the Theatre wiring inside the webgl fluid/flowmap hooks,
+   * or the webgl Canvas wiring in the Wrapper). `setup:project` (the only
+   * caller) always strips every integration to lean core before re-adding
+   * the kept set, so these are overwritten unconditionally by design — by
+   * the time this runs there is nothing locally modified left to preserve.
+   * A file already matching the payload version is left untouched (a no-op
+   * check, not a "don't clobber local changes" guard).
    */
   overwriteFiles?: string[]
 }

@@ -16,7 +16,11 @@
 import { describe, expect, it } from 'bun:test'
 
 import type { AstOperation } from './ast-operation-types'
-import { applyOpsToText } from './ast-transforms'
+import {
+  applyCodeTransforms,
+  applyOpsToText,
+  RequiredOpMatchError,
+} from './ast-transforms'
 
 /** Number of times `needle` occurs in `haystack`. */
 function count(haystack: string, needle: string): number {
@@ -988,5 +992,51 @@ export default nextConfig
 
     expect(count(result, "from 'next'")).toBe(1)
     expect(result).toContain('NextConfig')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// applyCodeTransforms — missing target file (issue #381)
+//
+// The disk-writing orchestrator used to `continue` past a nonexistent target
+// file before ever calling `applyOpsToText`, so a `required: true` op was
+// silently skipped instead of failing loudly — defeating the whole point of
+// `required` (see ast-operation-types.ts's `RequiredMatchOp` docstring).
+// ---------------------------------------------------------------------------
+
+describe('applyCodeTransforms — missing target file (issue #381)', () => {
+  const missingFile = 'lib/scripts/__fixtures__/does-not-exist.ts'
+
+  it('throws RequiredOpMatchError when a required op targets a nonexistent file', async () => {
+    await expect(
+      applyCodeTransforms(
+        [
+          {
+            file: missingFile,
+            ops: [
+              {
+                kind: 'removeVariableStatement',
+                name: 'doesNotMatter',
+                required: true,
+              },
+            ],
+          },
+        ],
+        true // dryRun — no writes either way, the file doesn't exist
+      )
+    ).rejects.toThrow(RequiredOpMatchError)
+  })
+
+  it('a transform with no required ops still silently skips a missing file (legacy semantics preserved)', async () => {
+    const result = await applyCodeTransforms(
+      [
+        {
+          file: missingFile,
+          ops: [{ kind: 'removeVariableStatement', name: 'doesNotMatter' }],
+        },
+      ],
+      true
+    )
+    expect(result).toEqual({ changes: 0, changedFiles: [], failures: [] })
   })
 })

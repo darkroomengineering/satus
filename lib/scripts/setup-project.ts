@@ -816,6 +816,33 @@ export const CACHE_COMPONENTS_LLMS_TXT_TRANSFORM: CodeTransform = {
 }
 
 /**
+ * Collect the target file of every `codeTransform` across ALL bundles — not
+ * just kept ones. Unlike `declaredBundlePaths` (which only covers the kept
+ * bundles' folders/files/overwriteFiles), `codeTransforms` run against the
+ * tree unconditionally during `setupLean`'s strip pass (see `setup()`'s step
+ * 6: `allCodeTransforms` is built from every bundle regardless of what's
+ * kept), so a bundle NOT being kept doesn't make its codeTransform target
+ * files any less required to exist before that pass runs. Also includes the
+ * two Cache Components opt-out transforms (`setupCacheComponentsOptOut`
+ * likewise runs unconditionally whenever no CMS/storefront is kept — see
+ * `shouldDisableCacheComponents`). Deduplicated. Exported for unit testing.
+ */
+export const codeTransformTargetPaths = (): string[] => {
+  const paths = new Set<string>()
+
+  for (const bundle of Object.values(INTEGRATION_BUNDLES)) {
+    for (const transform of bundle.codeTransforms) {
+      paths.add(transform.file)
+    }
+  }
+
+  paths.add(CACHE_COMPONENTS_DISABLE_TRANSFORM.file)
+  paths.add(CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.file)
+
+  return [...paths]
+}
+
+/**
  * Anchored doc-sentence replacements so a fork's docs don't claim Cache
  * Components is enabled after setup just disabled it. Each `anchor` is
  * matched as an exact substring; when absent (doc since reworded), the file
@@ -1080,10 +1107,11 @@ const selfPrune = async (
 /**
  * Main setup orchestration (additive model):
  *
- *   1. PREFLIGHT — validate every file/folder the kept bundles declare
- *      exists on disk. Exits loudly with zero mutations performed when
- *      anything is missing (H8) — must run before ANY of the mutating
- *      steps below.
+ *   1. PREFLIGHT — validate every file/folder the kept bundles declare,
+ *      PLUS every codeTransform target file across ALL bundles (they run
+ *      unconditionally in step 6 regardless of what's kept), exists on
+ *      disk. Exits loudly with zero mutations performed when anything is
+ *      missing (H8) — must run before ANY of the mutating steps below.
  *   2. ensureNextTypeStub
  *   3. cleanMarketing (if flagged)
  *   4. snapshot(kept) — capture kept integration files before stripping
@@ -1097,16 +1125,28 @@ const selfPrune = async (
  *  10. setupCacheComponentsOptOut — when the final kept set has neither
  *      sanity nor shopify, flip `cacheComponents` off in next.config.ts and
  *      patch the docs that claim it's enabled. No-op otherwise.
- *  11. selfPrune — re-reads package.json from disk (P-C3: step 8's
+ *  11. selfPrune — gated on zero collected failures from steps 8 and 10
+ *      (`addFailures.length + cacheResult.failures.length === 0`). Those
+ *      steps never throw on a single file's failure (see
+ *      `applyCodeTransforms`'s docstring) — they collect into `failures` so
+ *      the batch can finish — but an ungated selfPrune used to run anyway on
+ *      that collected-failure path, deleting this script (and test:setup)
+ *      before the caller ever reported the failures, breaking the "just
+ *      re-run it" recovery the step order below is supposed to guarantee.
+ *      When failures exist, this step is skipped entirely: nothing is
+ *      deleted, pkg.scripts is not touched, and the caller (main()) still
+ *      reports every failure and exits non-zero.
+ *      When it DOES run: re-reads package.json from disk (P-C3: step 8's
  *      `addDependencies` writes dependency pins straight to disk, which the
  *      step-5 `pkg` object never observes; reusing that stale object here
  *      would silently revert those pins), then deletes setup files
  *      (including this script) and mutates the freshly-read pkg.scripts,
  *      THEN a second package.json write to persist the scripts removal.
  *      This is deliberately the LAST mutating step: running it only after
- *      setupAddIntegrations has completed successfully means any failure in
- *      steps 3–8 leaves lib/scripts/setup-project.ts (and its package.json
- *      script entry) intact, so the run can simply be repeated (H8).
+ *      setupAddIntegrations has completed with zero failures means any
+ *      failure in steps 3–10 — thrown OR collected — leaves
+ *      lib/scripts/setup-project.ts (and its package.json script entry)
+ *      intact, so the run can simply be repeated (H8).
  *  12. bun install (unless --skip-install). Non-fatal on failure (M5): a
  *      registry/offline error is reported and surfaced to the caller via
  *      the returned `installFailed` flag, but does not undo or block the
@@ -1132,11 +1172,17 @@ const setup = async (
 }> => {
   const { dryRun, keepIntegrations, cleanMarketing, skipInstall } = options
 
-  // 1. PREFLIGHT: every kept bundle's declared folders/files/overwriteFiles
-  //    must exist before any mutation begins. Zero mutations performed here.
-  const missingPaths = await findMissingPaths(
-    declaredBundlePaths(keepIntegrations)
-  )
+  // 1. PREFLIGHT: every kept bundle's declared folders/files/overwriteFiles,
+  //    PLUS every codeTransform target file across ALL bundles (they run
+  //    unconditionally regardless of what's kept — see
+  //    `codeTransformTargetPaths`'s docstring), must exist before any
+  //    mutation begins. Zero mutations performed here.
+  const missingPaths = await findMissingPaths([
+    ...new Set([
+      ...declaredBundlePaths(keepIntegrations),
+      ...codeTransformTargetPaths(),
+    ]),
+  ])
   if (missingPaths.length > 0) {
     throw new Error(
       `Cannot set up — kept integration(s) reference missing files/folders:\n${missingPaths
@@ -1217,7 +1263,13 @@ const setup = async (
 
   // 11. Self-prune: delete setup files (including this script), mutate
   //     pkg.scripts in-memory, and persist that with a second package.json
-  //     write. Deliberately last — see the docstring above.
+  //     write. Deliberately last — see the docstring above. Gated on zero
+  //     collected failures from steps 8/10: those steps never throw on a
+  //     single file's failure, so an ungated selfPrune would delete this
+  //     script even when the caller is about to report failures and exit
+  //     non-zero — breaking the "just re-run it" recovery the docstring
+  //     promises. When failures exist, skip entirely and leave the setup
+  //     script in place so the run can be repeated after fixing the cause.
   //
   //     Re-read package.json from disk here rather than reusing the `pkg`
   //     object from step 5: `setupAddIntegrations` (step 8) calls
@@ -1229,10 +1281,18 @@ const setup = async (
   //     just made (P-C3: `--keep sanity` reported "N dependencies pinned"
   //     while package.json on disk ended up with none of them, and the
   //     resulting build failed on module-not-found).
-  const prunePkg = (await Bun.file(pkgPath).json()) as PackageJson
-  await selfPrune(prunePkg, dryRun)
-  if (!dryRun) {
-    await Bun.write(pkgPath, `${JSON.stringify(prunePkg, null, 2)}\n`)
+  const collectedFailureCount = addFailures.length + cacheResult.failures.length
+  if (collectedFailureCount === 0) {
+    const prunePkg = (await Bun.file(pkgPath).json()) as PackageJson
+    await selfPrune(prunePkg, dryRun)
+    if (!dryRun) {
+      await Bun.write(pkgPath, `${JSON.stringify(prunePkg, null, 2)}\n`)
+    }
+  } else {
+    p.log.warn(
+      `Skipping self-prune — ${collectedFailureCount} code-transform failure(s) above. ` +
+        'lib/scripts/setup-project.ts was kept so the run can be repeated after fixing the cause.'
+    )
   }
 
   // 12. Run bun install to update the lockfile. Non-fatal: an offline /

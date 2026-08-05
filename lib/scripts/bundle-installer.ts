@@ -13,7 +13,6 @@ import * as p from '@clack/prompts'
 
 import {
   applyCodeTransforms,
-  applyOpsToText,
   type TransformFailure,
 } from './ast-transforms/index'
 import { findBarrelLine, insertBarrelLine } from './barrel-file'
@@ -91,51 +90,38 @@ export const copyBundleFiles = async (
 
 /**
  * Copy the bundle's integration-owned `overwriteFiles` wholesale from the
- * payload source. A local file is only overwritten when it matches either
- * the payload version (already wired — no-op) or the expected lean state
- * (the payload version with this bundle's removal codeTransforms applied).
- * Anything else means local modifications — skip with a warning unless
- * --force.
+ * payload source, unconditionally. `setup:project` (the sole caller, via
+ * `installBundle`) always strips every integration to lean core (step 6 of
+ * `setup()`) before re-adding the kept set, so by the time this runs there
+ * is nothing locally modified left to preserve — the file on disk is either
+ * already the payload version (a cheap no-op check below) or the lean/absent
+ * version the strip pass just produced. A no-op check against the payload
+ * text avoids a redundant write when the file already matches.
  */
 export const applyOverwriteFiles = async (
   source: PayloadSource,
   bundle: IntegrationBundle,
-  options: { dryRun: boolean; force: boolean }
-): Promise<{ written: string[]; skipped: string[] }> => {
+  options: { dryRun: boolean }
+): Promise<{ written: string[] }> => {
   const written: string[] = []
-  const skipped: string[] = []
 
   for (const rel of bundle.overwriteFiles ?? []) {
     const payloadText = await readPayloadFile(source, rel)
     const dest = resolvePath(rel)
 
-    if (!(await pathExists(dest))) {
-      if (!options.dryRun) {
-        await mkdir(dirname(dest), { recursive: true })
-        await Bun.write(dest, payloadText)
-      }
-      written.push(rel)
-      continue
+    if (await pathExists(dest)) {
+      const localText = await Bun.file(dest).text()
+      if (localText === payloadText) continue // already wired
     }
 
-    const localText = await Bun.file(dest).text()
-    if (localText === payloadText) continue // already wired
-
-    const removalOps =
-      bundle.codeTransforms.find((t) => t.file === rel)?.ops ?? []
-    const expectedLean = applyOpsToText(payloadText, removalOps)
-
-    if (localText === expectedLean || options.force) {
-      if (!options.dryRun) {
-        await Bun.write(dest, payloadText)
-      }
-      written.push(rel)
-    } else {
-      skipped.push(rel)
+    if (!options.dryRun) {
+      await mkdir(dirname(dest), { recursive: true })
+      await Bun.write(dest, payloadText)
     }
+    written.push(rel)
   }
 
-  return { written, skipped }
+  return { written }
 }
 
 const sortRecord = (record: Record<string, string>): Record<string, string> =>
@@ -292,8 +278,6 @@ export const installBundle = async (
 ): Promise<{
   details: string[]
   depsAdded: string[]
-  overwriteSkipped: string[]
-  depsMissing: string[]
   changedFiles: string[]
   failures: TransformFailure[]
 }> => {
@@ -332,8 +316,6 @@ export const installBundle = async (
   return {
     details,
     depsAdded: deps.added,
-    overwriteSkipped: overwrite.skipped,
-    depsMissing: deps.missing,
     changedFiles: transformResult.changedFiles,
     failures: transformResult.failures,
   }

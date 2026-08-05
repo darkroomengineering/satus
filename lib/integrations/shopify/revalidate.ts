@@ -1,3 +1,5 @@
+import { createHash, timingSafeEqual } from 'node:crypto'
+
 import { revalidateTag } from 'next/cache'
 import { headers } from 'next/headers'
 import type { NextRequest } from 'next/server'
@@ -6,6 +8,20 @@ import { NextResponse } from 'next/server'
 import { env } from '@/lib/env'
 
 import { TAGS } from './constants'
+
+/**
+ * Constant-time secret comparison. Plain `!==` on strings short-circuits on
+ * the first mismatched character, which leaks timing information an
+ * attacker can use to guess the secret byte-by-byte. `timingSafeEqual`
+ * requires equal-length buffers, so both sides are hashed first — this also
+ * sidesteps the case where `secret`/`env.SHOPIFY_REVALIDATION_SECRET` differ
+ * in length (which would otherwise throw before the safe comparison runs).
+ */
+function secretsMatch(a: string, b: string): boolean {
+  const hashA = createHash('sha256').update(a).digest()
+  const hashB = createHash('sha256').update(b).digest()
+  return timingSafeEqual(hashA, hashB)
+}
 
 const collectionWebhooks = new Set([
   'collections/create',
@@ -30,7 +46,11 @@ export async function revalidate(req: NextRequest): Promise<NextResponse> {
   const isProductUpdate = productWebhooks.has(topic)
   const isPageUpdate = pageWebhooks.has(topic)
 
-  if (!secret || secret !== env.SHOPIFY_REVALIDATION_SECRET) {
+  if (
+    !secret ||
+    !env.SHOPIFY_REVALIDATION_SECRET ||
+    !secretsMatch(secret, env.SHOPIFY_REVALIDATION_SECRET)
+  ) {
     console.error('Invalid revalidation secret.')
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

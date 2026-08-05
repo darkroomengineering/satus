@@ -23,7 +23,7 @@
 //         {products.map(p => (
 //           <div key={p.id}>
 //             <h2>{p.title}</h2>
-//             <AddToCart variants={p.variants} />
+//             <AddToCart product={p} variant={p.variants[0]} />
 //           </div>
 //         ))}
 //       </Cart>

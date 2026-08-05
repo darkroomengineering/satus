@@ -26,7 +26,7 @@ import { mailchimpSubscriptionAction } from '@/lib/integrations/mailchimp'
 
 ## Features
 
-- Double opt-in (GDPR compliant)
+- Double opt-in (GDPR compliant) — new members are added with `status: 'pending'` by default, which sends Mailchimp's confirmation email. Pass `status: 'subscribed'` to `addContactToMailchimp` / `addSubscriberToMailchimp` to skip it for projects with their own lawful basis for single opt-in.
 - Invisible Turnstile spam protection (via `lib/integrations/turnstile`)
 - Tag-based segmentation
 

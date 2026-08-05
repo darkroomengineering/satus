@@ -19,40 +19,26 @@
 //   }
 //
 // 3. The server action validates with Zod and posts to the HubSpot Forms v3 API.
-//    Rate limiting is applied automatically via runFormAction.
+//    Rate limiting and Turnstile verification are applied automatically via
+//    runFormAction, in that order — render a Turnstile widget in the form
+//    (see lib/integrations/turnstile/README.md) so the widget's token lands
+//    in the `cf-turnstile-response` field.
 //
 // Full walkthrough: see the manual (app/(site)/page.tsx) step 5 "Add a plugin".
 
 'use server'
 
 import { env } from '@/lib/env'
-import type { TurnstileValidationResult } from '@/lib/integrations/turnstile'
-import { validateFormWithTurnstile } from '@/lib/integrations/turnstile'
 import type { FormState } from '@/lib/types/form'
 import { runFormAction } from '@/lib/utils/form-action'
 import { fetchWithTimeout } from '@/utils/fetch'
 
 import { hubspotNewsletterSchema } from './schema'
 
-function turnstileError(validation: TurnstileValidationResult): FormState {
-  return {
-    status: 400,
-    message: 'invalid_input_',
-    fieldErrors: {
-      turnstile: validation.errors[0] ?? 'security_verification_required_',
-    },
-  }
-}
-
 export async function HubspotNewsletterAction(
   _: unknown,
   formData: FormData
 ): Promise<FormState> {
-  const turnstileValidation = await validateFormWithTurnstile(formData)
-  if (!turnstileValidation.isValid) {
-    return turnstileError(turnstileValidation)
-  }
-
   return runFormAction({
     rateLimitPrefix: 'hubspot',
     schema: hubspotNewsletterSchema,

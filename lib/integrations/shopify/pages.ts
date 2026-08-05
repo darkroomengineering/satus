@@ -1,6 +1,8 @@
 import { cacheLife, cacheTag } from 'next/cache'
 
-import { shopifyFetch } from './client'
+import { env } from '@/lib/env'
+
+import { normalizeStoreDomain, shopifyFetch } from './client'
 import { TAGS } from './constants'
 import { getMenuQuery } from './queries/menu'
 import { getPageQuery, getPagesQuery } from './queries/page'
@@ -24,26 +26,59 @@ interface MenuItem {
  * Extract the path portion of a Shopify menu item URL.
  *
  * Menu item URLs may be absolute (on the store's `.myshopify.com` domain, a
- * connected custom domain, or otherwise) or already-relative paths. Parsing
- * as a URL and taking `pathname + search` handles all absolute cases
- * regardless of host; invalid/relative URLs pass through unchanged.
+ * connected custom domain, or otherwise) or already-relative paths.
  *
- * The extracted path is then remapped onto this starter's route naming:
- * `/collections` -> `/search` (this app's collection/product browse route
- * is `/search`, not `/collections`), and the `/pages` prefix is stripped
- * (Shopify's static "pages" content is served at the site root here, e.g.
- * `/pages/about` -> `/about`). These remaps are Shopify-menu-specific and
- * only apply to `path`, not the original `url`.
+ * - Absolute URLs on the store's own domain are converted to a local path
+ *   (`pathname + search + hash`) and remapped below.
+ * - Absolute URLs on any other host (external sites, e.g. a menu item that
+ *   deliberately links to instagram.com) are returned UNCHANGED — rewriting
+ *   them to `pathname + search` would silently turn a working external link
+ *   into a dead local route.
+ * - Invalid/relative URLs pass through `new URL()` as a throw and are
+ *   treated as already-local paths, so the remap below still applies to
+ *   them (a menu item can be authored as a relative path directly).
+ *
+ * The extracted local path is then remapped onto this starter's route
+ * naming: `/collections` -> `/search` (this app's collection/product browse
+ * route is `/search`, not `/collections`), and a leading `/pages/` segment
+ * is stripped (Shopify's static "pages" content is served at the site root
+ * here, e.g. `/pages/about` -> `/about`). Both remaps are anchored to the
+ * leading path segment (`^/collections` / `^/pages/`) so they only ever
+ * rewrite the route prefix, never an arbitrary substring inside a handle
+ * (e.g. `/products/pages-and-things` must NOT become `/products-and-things`).
  */
-function menuItemPath(url: string): string {
+function isStoreHost(host: string): boolean {
+  // The env var only ever holds the store's `*.myshopify.com` domain — a
+  // connected custom domain isn't available at this call site without
+  // threading extra config through `getMenu`/`menuItemPath`, so as a
+  // deliberate, documented limitation, any `*.myshopify.com` host is also
+  // treated as the store (custom domains are not recognized here and will
+  // be returned as absolute URLs unchanged, same as any other external host).
+  if (host.endsWith('.myshopify.com')) return true
+
+  const storeOrigin = normalizeStoreDomain(env.SHOPIFY_STORE_DOMAIN)
+  if (!storeOrigin) return false
+  try {
+    return new URL(storeOrigin).host === host
+  } catch {
+    return false
+  }
+}
+
+export function menuItemPath(url: string): string {
   let path: string
   try {
     const parsed = new URL(url)
-    path = parsed.pathname + parsed.search
+    if (!isStoreHost(parsed.host)) {
+      return url
+    }
+    path = parsed.pathname + parsed.search + parsed.hash
   } catch {
     path = url
   }
-  return path.replace('/collections', '/search').replace('/pages', '')
+  return path
+    .replace(/^\/collections(?=\/|$)/, '/search')
+    .replace(/^\/pages\//, '/')
 }
 
 export async function getMenu(handle: string): Promise<MenuItem[]> {

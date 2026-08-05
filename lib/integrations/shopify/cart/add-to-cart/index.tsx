@@ -3,6 +3,7 @@
 import cn from 'clsx'
 import { useRouter } from 'next/navigation'
 import { startTransition, useState } from 'react'
+import { useFormStatus } from 'react-dom'
 
 import { formatMoney } from '@/integrations/shopify/money'
 import type { Product, ProductVariant } from '@/integrations/shopify/types'
@@ -61,19 +62,39 @@ export function AddToCart({
 
   return (
     <form action={formAction} className={className}>
-      <button
-        type="submit"
-        className={cn(s.cta, !variant && s.disable)}
+      <AddToCartSubmitButton
         disabled={!variant}
-        aria-label="Add to cart"
+        className={cn(s.cta, !variant && s.disable)}
       >
         {buttonState}
-      </button>
+      </AddToCartSubmitButton>
       {error && (
         <p role="status" aria-live="polite" className={cn('p1', s.actionError)}>
           {error}
         </p>
       )}
     </form>
+  )
+}
+
+function AddToCartSubmitButton({
+  disabled,
+  className,
+  children,
+}: {
+  disabled: boolean
+  className?: string
+  children: string
+}) {
+  const { pending } = useFormStatus()
+  return (
+    <button
+      type="submit"
+      className={className}
+      disabled={disabled || pending}
+      aria-label="Add to cart"
+    >
+      {children}
+    </button>
   )
 }

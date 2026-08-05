@@ -104,6 +104,13 @@ const shopifyProductSchema = z.object({
   tags: z.array(z.string()),
   availableForSale: z.boolean(),
   images: edgeNode(shopifyImageSchema),
+  // `Product.featuredImage` is unconditionally selected by `productFragment`
+  // (fragments/product.ts) but is a nullable field on Storefront API's
+  // `Product` type (`null` when the product has no images) — same shape as
+  // `cartLineProductSchema.featuredImage` below. Without this key, Zod's
+  // default strip-unknown-keys mode silently deletes it from every parsed
+  // product, which left `featuredImage` always `undefined` downstream.
+  featuredImage: shopifyImageSchema.nullable(),
   variants: edgeNode(shopifyProductVariantSchema),
   description: z.string(),
   descriptionHtml: z.string(),

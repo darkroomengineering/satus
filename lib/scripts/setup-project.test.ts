@@ -1001,11 +1001,17 @@ describe('declaredBundlePaths / findMissingPaths (H8 preflight)', () => {
 
   it('sanity bundle owns every route folder that imports from it', () => {
     // These routes import from lib/integrations/sanity. If they fall out of
-    // the bundle's folders, a fork that drops Sanity keeps them and fails to
-    // build on module-not-found (the lean-fork build break).
+    // the bundle's folders/overwriteFiles, a fork that drops Sanity keeps
+    // them and fails to build on module-not-found (the lean-fork build
+    // break). app/(site)/(examples)/sanity is NOT here — it's pruned
+    // unconditionally by setup:project (see the pruneExampleRoutes tests),
+    // regardless of which integrations are kept.
     const paths = declaredBundlePaths(['sanity'])
-    expect(paths).toContain('app/(site)/(examples)/sanity')
+    expect(paths).toContain('app/(site)/articles')
     expect(paths).toContain('app/studio')
+    // The in-chrome 404 handler is stripped in place (codeTransforms), not
+    // deleted with the bundle — it's declared via overwriteFiles instead.
+    expect(paths).toContain('app/(site)/[...slug]/page.tsx')
   })
 
   it('declaredBundlePaths is empty for an empty keep set', () => {
@@ -1629,6 +1635,87 @@ describe('issue #382: selfPrune is gated on collected transform failures', () =>
     },
     60000
   )
+})
+
+// -------------------------------------------------------------------------
+// Issue #392 — app/(site)/(examples) (the Sanity wiring tutorial at
+// `/sanity`) must never ship to a scaffolded project, regardless of which
+// integrations are kept. Before pruneExampleRoutes existed, the folder only
+// disappeared when Sanity was DROPPED (it lived in the sanity bundle's
+// `folders`), so a run that keeps Sanity — the common case — is the one that
+// regresses without this test.
+//
+// Same real end-to-end harness as the P-C3 regression above: an rsync copy
+// of the repo (node_modules symlinked), run non-interactively with
+// --skip-install.
+// ---------------------------------------------------------------------------
+
+describe('Issue #392: app/(site)/(examples) is pruned unconditionally', () => {
+  it('--keep sanity still deletes app/(site)/(examples)', async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-prune-examples-'))
+    try {
+      const rsync = Bun.spawnSync([
+        'rsync',
+        '-a',
+        '--exclude',
+        'node_modules',
+        '--exclude',
+        '.next',
+        '--exclude',
+        '.git',
+        `${projectRoot}/`,
+        `${tmpRoot}/`,
+      ])
+      expect(rsync.exitCode).toBe(0)
+
+      let nodeModulesSource: string | undefined
+      for (let dir = projectRoot; dir !== dirname(dir); dir = dirname(dir)) {
+        const candidate = join(dir, 'node_modules')
+        if (await pathExists(candidate)) {
+          nodeModulesSource = candidate
+          break
+        }
+      }
+      if (nodeModulesSource) {
+        await symlink(nodeModulesSource, join(tmpRoot, 'node_modules'))
+      }
+
+      expect(
+        await pathExists(join(tmpRoot, 'app/(site)/(examples)')),
+        'fixture sanity check: app/(site)/(examples) should exist before setup runs'
+      ).toBe(true)
+
+      const proc = Bun.spawnSync(
+        [
+          'bun',
+          'run',
+          'lib/scripts/setup-project.ts',
+          '--keep',
+          'sanity',
+          '--yes',
+          '--skip-install',
+        ],
+        { cwd: tmpRoot, stdout: 'pipe', stderr: 'pipe' }
+      )
+
+      if (proc.exitCode !== 0) {
+        console.error(proc.stdout.toString())
+        console.error(proc.stderr.toString())
+      }
+      expect(proc.exitCode).toBe(0)
+
+      expect(await pathExists(join(tmpRoot, 'app/(site)/(examples)'))).toBe(
+        false
+      )
+      // The catch-all that replaces app/(site)/[...unmatched] must survive —
+      // it's the in-chrome 404 handler, not part of the example group.
+      expect(
+        await pathExists(join(tmpRoot, 'app/(site)/[...slug]/page.tsx'))
+      ).toBe(true)
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true })
+    }
+  }, 60000)
 })
 
 // ---------------------------------------------------------------------------

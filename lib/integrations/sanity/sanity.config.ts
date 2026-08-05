@@ -16,13 +16,16 @@ import { structureTool } from 'sanity/structure'
 import { apiVersion, dataset, previewURL, projectId } from './env'
 import { schema } from './schemas'
 
-// Helper function for URL resolution
+// Helper function for URL resolution — kept in sync with
+// `resolveDocumentUrl` in `./utils/link.ts` (this file can't import that
+// module: it's dual-compiled into the client bundle for the Studio route).
 function resolveHref(documentType?: string, slug?: string): string | undefined {
   switch (documentType) {
     case 'page':
-      return slug === 'sanity' ? '/sanity' : `/sanity/${slug}`
+      if (!slug) return undefined
+      return slug === 'home' ? '/' : `/${slug}`
     case 'article':
-      return slug ? `/sanity/${slug}` : undefined
+      return slug ? `/articles/${slug}` : undefined
     default:
       console.warn('Invalid document type:', documentType)
       return undefined
@@ -55,13 +58,28 @@ export default projectId && dataset
           resolve: {
             // Map routes to documents and GROQ filters
             mainDocuments: defineDocuments([
+              // Static segments win over the catch-all — keep this first so
+              // the tutorial page (a real static route) resolves ahead of
+              // the generic page-by-slug entry below.
               {
                 route: '/sanity',
                 filter: `_type == "page" && slug.current == "sanity"`,
               },
               {
-                route: '/sanity/:slug',
+                route: '/articles/:slug',
                 filter: `_type == "article" && slug.current == $slug`,
+              },
+              // `resolveHref('page', 'home')` returns '/', so the homepage
+              // document needs its own mapping — '/:slug' cannot match an
+              // empty segment, and without this Presentation can't associate
+              // the previewed homepage back to its document.
+              {
+                route: '/',
+                filter: `_type == "page" && slug.current == "home"`,
+              },
+              {
+                route: '/:slug',
+                filter: `_type == "page" && slug.current == $slug`,
               },
             ]),
             locations: {

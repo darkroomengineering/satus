@@ -7,7 +7,6 @@
 import type { SchemaTypeDefinition } from 'sanity'
 
 import { article } from './article'
-import { example } from './example'
 // Import all schema definitions
 import { link } from './link'
 import { metadata } from './metadata'
@@ -16,7 +15,7 @@ import { page } from './page'
 import { richText } from './richText'
 
 // Re-export all schemas for convenience
-export { article, example, link, metadata, navigation, page, richText }
+export { article, link, metadata, navigation, page, richText }
 
 // Schema collection for Sanity configuration
 export const schema: { types: SchemaTypeDefinition[] } = {
@@ -29,7 +28,6 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     // Document types (content pages)
     page,
     article,
-    example,
 
     // Singleton types (one-off content)
     navigation,

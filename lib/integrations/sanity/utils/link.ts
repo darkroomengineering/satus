@@ -39,7 +39,7 @@ function resolveDocumentUrl(documentType?: string, slug?: string): string {
     case 'page':
       return slug === 'home' ? '/' : `/${slug}`
     case 'article':
-      return `/sanity/${slug}`
+      return `/articles/${slug}`
     default:
       console.warn('Unknown document type for URL resolution:', documentType)
       return '#'

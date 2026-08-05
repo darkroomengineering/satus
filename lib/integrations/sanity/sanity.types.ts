@@ -82,49 +82,6 @@ export type SanityImageHotspot = {
   width?: number
 }
 
-export type Example = {
-  _id: string
-  _type: 'example'
-  _createdAt: string
-  _updatedAt: string
-  _rev: string
-  title?: string
-  slug?: Slug
-  hero?: {
-    headline?: string
-    subheadline?: string
-    image?: {
-      asset?: SanityImageAssetReference
-      media?: unknown
-      hotspot?: SanityImageHotspot
-      crop?: SanityImageCrop
-      alt?: string
-      _type: 'image'
-    }
-    showCTA?: boolean
-    ctaText?: string
-    ctaLink?: string
-  }
-  content?: RichText
-  features?: Array<{
-    title?: string
-    description?: string
-    icon?: {
-      asset?: SanityImageAssetReference
-      media?: unknown
-      hotspot?: SanityImageHotspot
-      crop?: SanityImageCrop
-      _type: 'image'
-    }
-    _key: string
-  }>
-  tags?: string[]
-  metadata?: Metadata
-  publishedAt?: string
-  showInNavigation?: boolean
-  contactEmail?: string
-}
-
 export type Metadata = {
   _type: 'metadata'
   title?: string
@@ -321,7 +278,6 @@ export type AllSanitySchemaTypes =
   | Link
   | SanityImageCrop
   | SanityImageHotspot
-  | Example
   | Metadata
   | RichText
   | Slug

@@ -159,6 +159,24 @@ const replaceManualLandingPage = async (dryRun: boolean): Promise<void> => {
   }
 }
 
+/**
+ * Delete `app/(site)/(examples)` unconditionally, regardless of which
+ * integrations are kept.
+ *
+ * The `/sanity` route inside it is a Sanity wiring tutorial for this repo's
+ * own contributors, not real site content — it must never ship to a
+ * scaffolded project. Before this, the folder only disappeared when Sanity
+ * was dropped (it lived in the sanity bundle's `folders`), which left it in
+ * every project that kept Sanity — the common case.
+ */
+const pruneExampleRoutes = async (dryRun: boolean): Promise<void> => {
+  if (dryRun) {
+    p.log.message('  Would delete app/(site)/(examples)')
+    return
+  }
+  await removeDir('app/(site)/(examples)', dryRun)
+}
+
 // Parsed package.json shape used by the in-memory mutation helpers below.
 type PackageJson = {
   dependencies?: Record<string, string>
@@ -1123,7 +1141,9 @@ const selfPrune = async (
  *      disk. Exits loudly with zero mutations performed when anything is
  *      missing (H8) — must run before ANY of the mutating steps below.
  *   2. ensureNextTypeStub
- *   3. cleanMarketing (if flagged)
+ *   3. cleanMarketing (if flagged), then pruneExampleRoutes (unconditional —
+ *      deletes app/(site)/(examples), the Sanity wiring tutorial, regardless
+ *      of which integrations are kept)
  *   4. snapshot(kept) — capture kept integration files before stripping
  *   5. Read package.json ONCE into memory
  *   6. setupLean — strip ALL integrations (mutates in-memory pkg)
@@ -1214,6 +1234,14 @@ const setup = async (
     await replaceManualLandingPage(dryRun)
     ms.stop('Replaced manual landing page with a blank starter homepage')
   }
+
+  // Prune app/(site)/(examples) unconditionally — independent of both
+  // cleanMarketing and which integrations are kept. See pruneExampleRoutes'
+  // docstring for why this can't just live in the sanity bundle's `folders`.
+  const es = p.spinner()
+  es.start('Pruning example routes...')
+  await pruneExampleRoutes(dryRun)
+  es.stop('Pruned app/(site)/(examples)')
 
   // 4. Snapshot the kept integration files before stripping.
   let snapshot: PayloadSource | null = null

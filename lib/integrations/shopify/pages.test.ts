@@ -11,23 +11,38 @@
 
 import { describe, expect, test } from 'bun:test'
 
+import { env } from '@/lib/env'
+
+import { normalizeStoreDomain } from './client'
 import { menuItemPath } from './pages'
+
+/**
+ * Derive the fixture host the same way `isStoreHost` does, so these cases
+ * stay correct whether or not SHOPIFY_STORE_DOMAIN is configured in the
+ * environment running the tests. Hardcoding a host would fail the moment a
+ * developer has a real store domain in .env.local.
+ */
+const storeOrigin = normalizeStoreDomain(env.SHOPIFY_STORE_DOMAIN)
+const STORE_HOST = storeOrigin
+  ? new URL(storeOrigin).host
+  : 'your-store.myshopify.com'
+const storeUrl = (path: string) => `https://${STORE_HOST}${path}`
 
 describe('menuItemPath', () => {
   test.each([
     [
       'a product handle containing "pages" as a substring is not corrupted',
-      'https://your-store.myshopify.com/products/pages-and-things',
+      storeUrl('/products/pages-and-things'),
       '/products/pages-and-things',
     ],
     [
       '/collections is remapped to /search',
-      'https://your-store.myshopify.com/collections/x',
+      storeUrl('/collections/x'),
       '/search/x',
     ],
     [
       'a leading /pages/ segment is stripped',
-      'https://your-store.myshopify.com/pages/about',
+      storeUrl('/pages/about'),
       '/about',
     ],
     [
@@ -42,7 +57,7 @@ describe('menuItemPath', () => {
     ],
     [
       'a hash fragment on a store URL is preserved',
-      'https://your-store.myshopify.com/collections/x#section',
+      storeUrl('/collections/x#section'),
       '/search/x#section',
     ],
   ])('%s', (_label, input, expected) => {
@@ -52,9 +67,9 @@ describe('menuItemPath', () => {
   test('a substring match deeper than the leading segment is not remapped', () => {
     // "/collections" only inside a query string / later segment must not be
     // rewritten — only a *leading* /collections or /pages/ segment counts.
-    expect(
-      menuItemPath('https://your-store.myshopify.com/products/my-collections')
-    ).toBe('/products/my-collections')
+    expect(menuItemPath(storeUrl('/products/my-collections'))).toBe(
+      '/products/my-collections'
+    )
   })
 
   test('an unparseable / relative-looking value passes through the remap unchanged when it does not start with /collections or /pages/', () => {
@@ -62,13 +77,10 @@ describe('menuItemPath', () => {
   })
 
   test('another shop on the same platform is external, not local', () => {
-    // Without SHOPIFY_STORE_DOMAIN configured the `*.myshopify.com` fallback
-    // applies, so this documents the fallback's behaviour rather than the
-    // configured-domain path. With a domain configured, only that exact host
-    // is local — see isStoreHost.
+    // With a store domain configured, only that exact host is local. Without
+    // one, isStoreHost falls back to treating any *.myshopify.com host as the
+    // store, so this documents the fallback rather than the configured path.
     const other = 'https://a-different-shop.myshopify.com/products/thing'
-    expect(menuItemPath(other)).toBe(
-      process.env.SHOPIFY_STORE_DOMAIN ? other : '/products/thing'
-    )
+    expect(menuItemPath(other)).toBe(storeOrigin ? other : '/products/thing')
   })
 })

@@ -10,6 +10,7 @@ import type { Product, ProductVariant } from '@/integrations/shopify/types'
 
 import { addItem } from '../actions'
 import { useCartContext } from '../cart-context'
+import { ensureCart } from '../ensure-cart'
 import { useCartModal } from '../modal'
 
 import s from './add-to-cart.module.css'
@@ -48,6 +49,12 @@ export function AddToCart({
       addCartItem(variant, product, quantity)
       openCart()
     })
+
+    // Create the cart first, behind a cross-tab lock, so two simultaneous
+    // first-adds cannot each create one and orphan the loser's item. The
+    // action still creates a cart when this is skipped (no JS, no Web Locks),
+    // so this is protection, not a prerequisite.
+    await ensureCart()
 
     const result = await addItem(null, {
       variantId: variant?.id || '',

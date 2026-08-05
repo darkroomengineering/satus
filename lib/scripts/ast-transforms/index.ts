@@ -271,6 +271,13 @@ export interface TransformFailure {
  * there) — that must stop the run before `setup()` reaches self-prune, not
  * just get reported alongside everything else at the end.
  *
+ * A missing target file is silently skipped (`continue`, no failure entry)
+ * UNLESS the transform contains at least one `required: true` op — a missing
+ * file can't possibly satisfy a required match, so that's the same drifted-
+ * source signal as a required op matching nothing on a file that DOES exist,
+ * and is handled identically: `RequiredOpMatchError` is thrown and aborts
+ * the batch, same as above.
+ *
  * `changedFiles` (relative paths, deduped, one entry per transform that
  * actually wrote — a single file can appear once even if two transforms in
  * `transforms` both touch it) lets callers reformat exactly the files this
@@ -293,7 +300,15 @@ export async function applyCodeTransforms(
       const fullPath = resolvePath(transform.file)
       const file = Bun.file(fullPath)
 
-      if (!(await file.exists())) continue
+      if (!(await file.exists())) {
+        const requiredOps = transform.ops.filter((op) => op.required)
+        if (requiredOps.length > 0) {
+          throw new RequiredOpMatchError(
+            `target file does not exist (required op(s): ${requiredOps.map(describeOp).join(', ')})`
+          )
+        }
+        continue
+      }
 
       const original = await file.text()
       const transformed = applyOpsToText(original, transform.ops)

@@ -11,7 +11,7 @@
  */
 
 import { beforeAll, describe, expect, it } from 'bun:test'
-import { mkdtemp, rm, symlink } from 'node:fs/promises'
+import { chmod, mkdtemp, rm, symlink } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 
@@ -24,6 +24,8 @@ import {
 } from './integration-bundles'
 import {
   CACHE_COMPONENTS_DISABLE_TRANSFORM,
+  CACHE_COMPONENTS_LLMS_TXT_TRANSFORM,
+  codeTransformTargetPaths,
   collectSelfPruneTestFiles,
   declaredBundlePaths,
   findMissingPaths,
@@ -1035,6 +1037,65 @@ describe('declaredBundlePaths / findMissingPaths (H8 preflight)', () => {
 })
 
 // ---------------------------------------------------------------------------
+// issue #389 — preflight also covers codeTransform target files, not just
+// kept-bundle folders/files/overwriteFiles. codeTransforms run against the
+// tree unconditionally (setupLean's strip pass touches every bundle,
+// regardless of what's kept), so a shared file that's absent must fail the
+// preflight even when no bundle declares it in folders/files.
+// ---------------------------------------------------------------------------
+
+describe('codeTransformTargetPaths (issue #389 preflight)', () => {
+  it('collects the target file of every bundle codeTransform plus both Cache Components transforms', () => {
+    // Empty keep-set: no CMS and no storefront, so the Cache Components
+    // opt-out pass will run and its targets are required.
+    const paths = codeTransformTargetPaths([])
+
+    // A cross-bundle shared file: not in any bundle's folders/files, so
+    // declaredBundlePaths alone would never notice it going missing.
+    expect(paths).toContain('app/api/revalidate/route.ts')
+    expect(paths).toContain(CACHE_COMPONENTS_DISABLE_TRANSFORM.file)
+    expect(paths).toContain(CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.file)
+  })
+
+  it('is deduplicated', () => {
+    const paths = codeTransformTargetPaths([])
+    expect(new Set(paths).size).toBe(paths.length)
+  })
+
+  it('findMissingPaths reports nothing missing against the real repo tree', async () => {
+    // Runs against the actual repo tree (this IS the satus repo), so every
+    // codeTransform's target file must be present.
+    const missing = await findMissingPaths(codeTransformTargetPaths([]))
+    expect(missing).toEqual([])
+  })
+
+  it('omits the Cache Components-only target when a CMS is kept, matching the run', () => {
+    // setupCacheComponentsOptOut returns early when a CMS/storefront
+    // survives, so requiring its targets would make the preflight stricter
+    // than the execution path. Only app/llms.txt/route.ts is unique to that
+    // pass — next.config.ts is a bundle codeTransform target too, so it is
+    // required either way.
+    const paths = codeTransformTargetPaths(['sanity'])
+    expect(paths).not.toContain(CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.file)
+    expect(paths).toContain(CACHE_COMPONENTS_DISABLE_TRANSFORM.file)
+  })
+
+  it('a deleted transform-target file fails the preflight before any mutation', async () => {
+    const paths = codeTransformTargetPaths([])
+    const deletedFile = paths[0]
+    if (!deletedFile)
+      throw new Error('expected at least one codeTransform path')
+
+    const missing = await findMissingPaths(
+      paths,
+      async (rel) => rel !== deletedFile
+    )
+
+    expect(missing).toEqual([deletedFile])
+  })
+})
+
+// ---------------------------------------------------------------------------
 // L4 — duplicate CLI flags: first wins, but now with a warning
 // ---------------------------------------------------------------------------
 
@@ -1464,6 +1525,110 @@ describe("P-C3 regression: kept bundle deps survive selfPrune's package.json wri
       await rm(tmpRoot, { recursive: true, force: true })
     }
   }, 60000)
+})
+
+// ---------------------------------------------------------------------------
+// issue #382 — selfPrune must not run when steps 8/10 collected (non-thrown)
+// transform failures. `applyCodeTransforms` never throws on a single file's
+// failure (see its docstring) — it collects into `failures` so the batch can
+// finish — but selfPrune used to run regardless, deleting this script (and
+// its package.json entry) before the caller ever reported those failures,
+// breaking the "just re-run it" recovery the setup() docstring promises.
+//
+// This exercises the REAL script end-to-end (matching the P-C3 pattern
+// above): a throwaway rsync copy of the repo, with one Cache Components
+// target file made unreadable (EACCES) to force a genuine, non-required-
+// match transform failure — a plain fs error caught and collected by
+// `applyCodeTransforms`, not a `RequiredOpMatchError`.
+// ---------------------------------------------------------------------------
+
+describe('issue #382: selfPrune is gated on collected transform failures', () => {
+  // chmod 000 is a no-op permission check for uid 0 (root can read anything
+  // regardless of mode bits) — some CI containers run as root, where this
+  // wouldn't reproduce the failure it's testing for.
+  const isRoot = (process.getuid?.() ?? -1) === 0
+
+  it.skipIf(isRoot)(
+    'a collected (non-thrown) transform failure keeps setup-project.ts and its package.json script entry intact',
+    async () => {
+      const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-collected-failure-'))
+      const targetFile = join(tmpRoot, 'app/llms.txt/route.ts')
+      try {
+        const rsync = Bun.spawnSync([
+          'rsync',
+          '-a',
+          '--exclude',
+          'node_modules',
+          '--exclude',
+          '.next',
+          '--exclude',
+          '.git',
+          `${projectRoot}/`,
+          `${tmpRoot}/`,
+        ])
+        expect(rsync.exitCode).toBe(0)
+
+        let nodeModulesSource: string | undefined
+        for (let dir = projectRoot; dir !== dirname(dir); dir = dirname(dir)) {
+          const candidate = join(dir, 'node_modules')
+          if (await pathExists(candidate)) {
+            nodeModulesSource = candidate
+            break
+          }
+        }
+        if (nodeModulesSource) {
+          await symlink(nodeModulesSource, join(tmpRoot, 'node_modules'))
+        }
+
+        // `--keep ''` (lean/blank) makes `setupCacheComponentsOptOut` run
+        // unconditionally (no CMS/storefront kept). Stripping read
+        // permission from its llms.txt target makes `applyCodeTransforms`
+        // hit a genuine EACCES from `file.text()` — a plain Error, collected
+        // into `failures` regardless of whether the op it never got to
+        // apply was `required`.
+        await chmod(targetFile, 0o000)
+
+        const proc = Bun.spawnSync(
+          [
+            'bun',
+            'run',
+            'lib/scripts/setup-project.ts',
+            '--keep',
+            '',
+            '--yes',
+            '--skip-install',
+          ],
+          { cwd: tmpRoot, stdout: 'pipe', stderr: 'pipe' }
+        )
+
+        // Exit code 3: code-transform failures were collected and reported —
+        // see main()'s exit-code contract.
+        if (proc.exitCode !== 3) {
+          console.error(proc.stdout.toString())
+          console.error(proc.stderr.toString())
+        }
+        expect(proc.exitCode).toBe(3)
+
+        // The whole point of the fix: the setup script and its package.json
+        // entry survive a collected-failure run, so it can simply be re-run.
+        expect(
+          await pathExists(join(tmpRoot, 'lib/scripts/setup-project.ts'))
+        ).toBe(true)
+
+        const pkg = JSON.parse(
+          await Bun.file(join(tmpRoot, 'package.json')).text()
+        ) as { scripts?: Record<string, string> }
+        expect(pkg.scripts?.['setup:project']).not.toBe(
+          SETUP_PROJECT_PRUNED_STUB
+        )
+        expect(pkg.scripts?.['test:setup']).toBeTruthy()
+      } finally {
+        await chmod(targetFile, 0o644).catch(() => undefined)
+        await rm(tmpRoot, { recursive: true, force: true })
+      }
+    },
+    60000
+  )
 })
 
 // ---------------------------------------------------------------------------

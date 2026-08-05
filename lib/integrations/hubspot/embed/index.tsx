@@ -2,7 +2,7 @@
 
 import cn from 'clsx'
 import Script, { type ScriptProps } from 'next/script'
-import { useEffect, useRef } from 'react'
+import { useEffect, useId, useRef } from 'react'
 
 import s from './form.module.css'
 
@@ -20,10 +20,15 @@ let isScriptLoaded = false
 export function EmbedHubspotForm({
   strategy = 'afterInteractive',
   formId,
-  target = 'hubspot-form-wrapper',
+  target: targetProp,
   className,
   onSubmit,
 }: EmbedHubspotFormProps) {
+  // Default to a per-instance id so two embeds on the same page never collide
+  // on the DOM id `window.hbspt.forms.create` targets — useId()'s colons
+  // aren't valid in a bare `#id` CSS selector, so they're stripped.
+  const generatedId = useId().replace(/:/g, '')
+  const target = targetProp ?? `hubspot-form-wrapper-${generatedId}`
   const formCreatedRef = useRef(false)
   const targetRef = useRef<HTMLDivElement>(null)
 

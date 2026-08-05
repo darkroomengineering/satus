@@ -2,8 +2,6 @@
 
 import { z } from 'zod'
 
-import type { TurnstileValidationResult } from '@/lib/integrations/turnstile'
-import { validateFormWithTurnstile } from '@/lib/integrations/turnstile'
 import type { FormState } from '@/lib/types/form'
 import { runFormAction } from '@/lib/utils/form-action'
 import { emailSchema } from '@/utils/validation'
@@ -26,30 +24,16 @@ const subscriptionSchema = z.object({
   lastName: z.string().optional(),
 })
 
-function turnstileError(validation: TurnstileValidationResult): FormState {
-  return {
-    status: 400,
-    message: 'invalid_input_',
-    fieldErrors: {
-      turnstile: validation.errors[0] ?? 'security_verification_required_',
-    },
-  }
-}
-
 // Contact form action
 export async function mailchimpContactAction(
   _initialState: FormState,
   formData: FormData
 ): Promise<FormState> {
-  const turnstileValidation = await validateFormWithTurnstile(formData)
-  if (!turnstileValidation.isValid) {
-    return turnstileError(turnstileValidation)
-  }
-
   return runFormAction({
     rateLimitPrefix: 'mailchimp-contact',
     schema: contactSchema,
     formData,
+    turnstile: true,
     run: async (input) => {
       const result = await addContactToMailchimp({
         name: input.name,
@@ -73,15 +57,11 @@ export async function mailchimpSubscriptionAction(
   _initialState: FormState,
   formData: FormData
 ): Promise<FormState> {
-  const turnstileValidation = await validateFormWithTurnstile(formData)
-  if (!turnstileValidation.isValid) {
-    return turnstileError(turnstileValidation)
-  }
-
   return runFormAction({
     rateLimitPrefix: 'mailchimp-subscribe',
     schema: subscriptionSchema,
     formData,
+    turnstile: true,
     run: async (input) => {
       const result = await addSubscriberToMailchimp(input)
       if (!result.success) {

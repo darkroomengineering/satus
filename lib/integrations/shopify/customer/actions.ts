@@ -41,6 +41,11 @@ const createCustomerSchema = z.object({
     .min(8, { error: 'Password must be at least 8 characters' }),
 })
 
+// Both actions below go through runFormAction, which rate-limits and then
+// verifies Cloudflare Turnstile by default — these are exactly the endpoints
+// credential-stuffing and account-creation bots target. Render a Turnstile
+// widget in the corresponding form (see lib/integrations/turnstile/README.md)
+// so its token lands in the `cf-turnstile-response` field.
 export async function LoginCustomerAction(
   _prevState: FormState | null,
   formData: FormData
@@ -49,6 +54,7 @@ export async function LoginCustomerAction(
     rateLimitPrefix: 'login-form',
     schema: loginSchema,
     formData,
+    turnstile: true,
     rateLimiter: rateLimiters.strict,
     rateLimitMessage: 'Too many login attempts. Please try again later.',
     run: async ({ email, password }) => {
@@ -125,6 +131,7 @@ export async function CreateCustomerAction(
     rateLimitPrefix: 'register',
     schema: createCustomerSchema,
     formData,
+    turnstile: true,
     run: async ({ firstName, lastName, email, password }) => {
       try {
         const res = await shopifyFetch<CustomerCreateResponseData>({

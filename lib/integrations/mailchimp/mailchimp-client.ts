@@ -13,16 +13,27 @@ export interface MailchimpConfig {
   audienceId: string
 }
 
+/**
+ * Mailchimp member subscription status. Defaults to `'pending'`, which
+ * triggers Mailchimp's double opt-in confirmation email — the GDPR-compliant
+ * behaviour this integration advertises. Pass `'subscribed'` to skip the
+ * confirmation email for projects that have their own lawful basis for
+ * single opt-in.
+ */
+export type MailchimpMemberStatus = 'pending' | 'subscribed'
+
 export interface ContactData {
   name: string
   email: string
   note?: string
+  status?: MailchimpMemberStatus
 }
 
 export interface SubscriptionData {
   email: string
   firstName?: string | undefined
   lastName?: string | undefined
+  status?: MailchimpMemberStatus
 }
 
 // Typed error codes surfaced to callers
@@ -124,6 +135,13 @@ interface UpsertMemberOptions {
   email: string
   firstName: string
   lastName: string
+  status: MailchimpMemberStatus
+  /**
+   * Also apply `status` to an address that is already in the audience.
+   * Off by default so a re-submission cannot downgrade a confirmed
+   * subscriber back to 'pending'.
+   */
+  forceStatus?: boolean
   config: MailchimpConfig
 }
 
@@ -136,13 +154,21 @@ async function upsertMember(
 ): Promise<
   { ok: true; memberId: string } | { ok: false; result: MailchimpResult }
 > {
-  const { audienceId, email, firstName, lastName, config } = opts
+  const { audienceId, email, firstName, lastName, status, config } = opts
   const hash = subscriberHash(email)
 
+  // `status_if_new` alone drives the opt-in flow: a new address gets this
+  // status (so 'pending' sends Mailchimp's confirmation email), while an
+  // address already in the audience keeps whatever status it has. Sending
+  // `status` as well would apply it to existing members too, which for
+  // 'pending' means knocking an already-confirmed subscriber back to
+  // unconfirmed — they would silently stop receiving mail until they
+  // re-confirmed. Callers that genuinely need to move an existing member
+  // pass `forceStatus`.
   const subscriberData = {
     email_address: email,
-    status_if_new: 'subscribed',
-    status: 'subscribed',
+    status_if_new: status,
+    ...(opts.forceStatus ? { status } : {}),
     merge_fields: {
       FNAME: firstName,
       LNAME: lastName,
@@ -221,6 +247,10 @@ export async function addContactToMailchimp(
       email: contactData.email,
       firstName,
       lastName,
+      // Defaults to 'pending' (Mailchimp's double opt-in confirmation email)
+      // to match what the README promises. Pass status: 'subscribed'
+      // explicitly for projects with their own lawful basis to skip it.
+      status: contactData.status ?? 'pending',
       config,
     })
 
@@ -294,6 +324,10 @@ export async function addSubscriberToMailchimp(
       email: subscriptionData.email,
       firstName: subscriptionData.firstName ?? '',
       lastName: subscriptionData.lastName ?? '',
+      // Defaults to 'pending' so new subscribers go through Mailchimp's
+      // double opt-in confirmation email, matching the README. Pass
+      // status: 'subscribed' explicitly to skip it for single opt-in.
+      status: subscriptionData.status ?? 'pending',
       config,
     })
 

@@ -11,8 +11,8 @@
 import * as p from '@clack/prompts'
 
 import {
-  cancelGuard,
   formatGeneratedFiles,
+  guardedPrompt,
   refuseIfExists,
   toPascalCase,
   withSpinner,
@@ -37,52 +37,60 @@ export interface PageConfig {
  * Interactive prompts for page configuration
  */
 export async function promptPageConfig(): Promise<PageConfig> {
-  const name = cancelGuard(
-    await p.text({
-      message: 'What should the page be called?',
-      placeholder: 'about, contact, products',
-      validate: (value) => {
-        if (!value) return 'Page name is required'
-        if (!/^[a-zA-Z][a-zA-Z0-9-_]*$/.test(value)) {
-          return 'Page name must start with a letter and contain only letters, numbers, hyphens, and underscores'
-        }
-        return undefined
-      },
-    }),
+  const name = await guardedPrompt(
+    () =>
+      p.text({
+        message: 'What should the page be called?',
+        placeholder: 'about, contact, products',
+        validate: (value) => {
+          if (!value) return 'Page name is required'
+          if (!/^[a-zA-Z][a-zA-Z0-9-_]*$/.test(value)) {
+            return 'Page name must start with a letter and contain only letters, numbers, hyphens, and underscores'
+          }
+          return undefined
+        },
+      }),
     'Page generation cancelled'
   )
 
-  const theme = cancelGuard(
-    await p.select({
-      message: 'Choose a theme for the page',
-      options: [
-        { value: 'dark', label: 'Dark (default)', hint: 'Standard dark theme' },
-        { value: 'light', label: 'Light', hint: 'Light theme' },
-        { value: 'red', label: 'Red', hint: 'Red accent theme' },
-      ],
-      initialValue: 'dark',
-    }),
+  const theme = await guardedPrompt(
+    () =>
+      p.select({
+        message: 'Choose a theme for the page',
+        options: [
+          {
+            value: 'dark',
+            label: 'Dark (default)',
+            hint: 'Standard dark theme',
+          },
+          { value: 'light', label: 'Light', hint: 'Light theme' },
+          { value: 'red', label: 'Red', hint: 'Red accent theme' },
+        ],
+        initialValue: 'dark',
+      }),
     'Page generation cancelled'
   )
 
-  const integrations = cancelGuard(
-    await p.multiselect({
-      message: 'Which integrations should this page use?',
-      options: getIntegrationEntries().map(([key, bundle]) => ({
-        value: key,
-        label: bundle.name,
-        hint: bundle.description,
-      })),
-      required: false,
-    }),
+  const integrations = await guardedPrompt(
+    () =>
+      p.multiselect({
+        message: 'Which integrations should this page use?',
+        options: getIntegrationEntries().map(([key, bundle]) => ({
+          value: key,
+          label: bundle.name,
+          hint: bundle.description,
+        })),
+        required: false,
+      }),
     'Page generation cancelled'
   )
 
-  const includeCss = cancelGuard(
-    await p.confirm({
-      message: 'Include a CSS module file?',
-      initialValue: false,
-    }),
+  const includeCss = await guardedPrompt(
+    () =>
+      p.confirm({
+        message: 'Include a CSS module file?',
+        initialValue: false,
+      }),
     'Page generation cancelled'
   )
 

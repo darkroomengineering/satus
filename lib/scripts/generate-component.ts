@@ -12,8 +12,8 @@ import * as p from '@clack/prompts'
 
 import { findBarrelLine, insertBarrelLine } from './barrel-file'
 import {
-  cancelGuard,
   formatGeneratedFiles,
+  guardedPrompt,
   refuseIfExists,
   toCamelCase,
   toPascalCase,
@@ -35,57 +35,60 @@ export interface ComponentConfig {
  * Interactive prompts for component configuration
  */
 export async function promptComponentConfig(): Promise<ComponentConfig> {
-  const category = cancelGuard(
-    await p.select({
-      message: 'Which category should this component belong to?',
-      options: [
-        {
-          value: 'ui',
-          label: 'UI Components',
-          hint: 'Reusable primitives (buttons, inputs, etc.)',
-        },
-        {
-          value: 'layout',
-          label: 'Layout Components',
-          hint: 'Site structure (navigation, footer, etc.)',
-        },
-        {
-          value: 'effects',
-          label: 'Effects Components',
-          hint: 'Animations and visual enhancements',
-        },
-        {
-          value: 'blocks',
-          label: 'Block Components',
-          hint: 'Pre-built page sections',
-        },
-      ],
-    }),
+  const category = await guardedPrompt(
+    () =>
+      p.select({
+        message: 'Which category should this component belong to?',
+        options: [
+          {
+            value: 'ui',
+            label: 'UI Components',
+            hint: 'Reusable primitives (buttons, inputs, etc.)',
+          },
+          {
+            value: 'layout',
+            label: 'Layout Components',
+            hint: 'Site structure (navigation, footer, etc.)',
+          },
+          {
+            value: 'effects',
+            label: 'Effects Components',
+            hint: 'Animations and visual enhancements',
+          },
+          {
+            value: 'blocks',
+            label: 'Block Components',
+            hint: 'Pre-built page sections',
+          },
+        ],
+      }),
     'Component generation cancelled'
   )
 
-  const name = cancelGuard(
-    await p.text({
-      message: 'What should the component be called?',
-      placeholder: 'button, hero-section, animated-text',
-      validate: (value) => {
-        if (!value) return 'Component name is required'
-        if (!/^[a-z][a-z0-9-]*$/.test(value)) {
-          return 'Component name must be kebab-case (lowercase with hyphens)'
-        }
-        return undefined
-      },
-    }),
+  const name = await guardedPrompt(
+    () =>
+      p.text({
+        message: 'What should the component be called?',
+        placeholder: 'button, hero-section, animated-text',
+        validate: (value) => {
+          if (!value) return 'Component name is required'
+          if (!/^[a-z][a-z0-9-]*$/.test(value)) {
+            return 'Component name must be kebab-case (lowercase with hyphens)'
+          }
+          return undefined
+        },
+      }),
     'Component generation cancelled'
   )
 
   const componentPath = `${category}/${name}`
 
-  const isClientComponent = cancelGuard(
-    await p.confirm({
-      message: "Should this be a client component ('use client')?",
-      initialValue: false,
-    }),
+  const isClientComponent = await guardedPrompt(
+    () =>
+      p.confirm({
+        message: "Should this be a client component ('use client')?",
+        initialValue: false,
+      }),
     'Component generation cancelled'
   )
 

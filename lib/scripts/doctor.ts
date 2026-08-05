@@ -6,7 +6,7 @@
  */
 
 import { existsSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 
 import { coreEnvSchema } from '../utils/validation'
 
@@ -14,8 +14,34 @@ const ROOT = process.cwd()
 
 interface Check {
   name: string
-  check: () => boolean | Promise<boolean>
+  check: () => boolean | Promise<boolean> | 'skip'
   fix?: string
+  /** Explanation printed when `check` returns `'skip'`. */
+  skipReason?: string
+}
+
+/**
+ * Detect whether cwd is a git repo's main checkout, a linked worktree
+ * (`git worktree add`), or not a git repo at all — mirrors the exact
+ * detection `prepare.ts` uses to decide whether `lefthook install` is safe
+ * to run (linked worktrees share `core.hooksPath` with the main checkout
+ * and `lefthook install` refuses to run against that shared path).
+ *
+ * In a linked worktree, `.git` is a FILE (not a directory) pointing at
+ * `<main>/.git/worktrees/<name>`, so a plain `existsSync('.git/hooks/...')`
+ * check can never resolve there — it always reports a false failure.
+ */
+const detectGitLayout = (): 'main' | 'worktree' | 'no-git' => {
+  const git = Bun.spawnSync([
+    'git',
+    'rev-parse',
+    '--absolute-git-dir',
+    '--git-common-dir',
+  ])
+  if (git.exitCode !== 0) return 'no-git'
+  const [gitDir, commonDir] = git.stdout.toString().trim().split('\n')
+  if (gitDir && commonDir && gitDir !== resolve(commonDir)) return 'worktree'
+  return 'main'
 }
 
 const colors = {
@@ -121,8 +147,19 @@ const checks: Check[] = [
   },
   {
     name: 'Git hooks installed (lefthook)',
-    check: () => existsSync(join(ROOT, '.git/hooks/pre-commit')),
+    check: () => {
+      const layout = detectGitLayout()
+      // Outside a git repo there's nothing to check; in a linked worktree
+      // hooks are shared with the main checkout via `core.hooksPath` and
+      // `bunx lefthook install` refuses to run against that shared path
+      // (same skip prepare.ts already applies) — reporting a fix here would
+      // suggest a command that fails.
+      if (layout !== 'main') return 'skip'
+      return existsSync(join(ROOT, '.git/hooks/pre-commit'))
+    },
     fix: 'Run: bunx lefthook install',
+    skipReason:
+      'not applicable — no git repo, or a linked worktree where hooks are shared with the main checkout',
   },
 ]
 
@@ -132,11 +169,17 @@ async function runDoctor() {
 
   let passed = 0
   let failed = 0
+  let skipped = 0
 
-  for (const { name, check, fix } of checks) {
+  for (const { name, check, fix, skipReason } of checks) {
     try {
       const result = await check()
-      if (result) {
+      if (result === 'skip') {
+        console.log(
+          `${colors.dim('−')} ${name} ${colors.dim(`(${skipReason ?? 'not applicable'})`)}`
+        )
+        skipped++
+      } else if (result) {
         console.log(`${colors.green('✓')} ${name}`)
         passed++
       } else {
@@ -155,13 +198,16 @@ async function runDoctor() {
   }
 
   console.log('')
+  const skippedNote = skipped > 0 ? `, ${skipped} skipped` : ''
   if (failed === 0) {
     console.log(
-      colors.green(`All ${passed} checks passed! Your environment is ready.`)
+      colors.green(
+        `All ${passed} checks passed! Your environment is ready.${skippedNote}`
+      )
     )
   } else {
     console.log(
-      `${colors.green(`${passed} passed`)}, ${colors.red(`${failed} failed`)}`
+      `${colors.green(`${passed} passed`)}, ${colors.red(`${failed} failed`)}${skippedNote}`
     )
     console.log(
       colors.dim('\nFix the issues above and run again: bun run doctor')

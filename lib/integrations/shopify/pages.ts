@@ -48,21 +48,28 @@ interface MenuItem {
  * (e.g. `/products/pages-and-things` must NOT become `/products-and-things`).
  */
 function isStoreHost(host: string): boolean {
-  // The env var only ever holds the store's `*.myshopify.com` domain — a
-  // connected custom domain isn't available at this call site without
-  // threading extra config through `getMenu`/`menuItemPath`, so as a
-  // deliberate, documented limitation, any `*.myshopify.com` host is also
-  // treated as the store (custom domains are not recognized here and will
-  // be returned as absolute URLs unchanged, same as any other external host).
-  if (host.endsWith('.myshopify.com')) return true
-
+  // The configured domain is the authority. Match it exactly rather than
+  // accepting any `*.myshopify.com` host — a menu item pointing at a
+  // different store (a partner's shop, say) is an external link, and
+  // localizing it would turn a working URL into a dead route.
   const storeOrigin = normalizeStoreDomain(env.SHOPIFY_STORE_DOMAIN)
-  if (!storeOrigin) return false
-  try {
-    return new URL(storeOrigin).host === host
-  } catch {
-    return false
+  if (storeOrigin) {
+    try {
+      return new URL(storeOrigin).host === host
+    } catch {
+      // Malformed config — fall through to the heuristic below.
+    }
   }
+
+  // No usable config (a menu rendered before the env is wired, or a bad
+  // value): treat the store's own platform domain as local, since that is
+  // the only host Shopify itself authors absolute menu URLs on.
+  //
+  // Known limitation either way: a connected custom domain isn't visible at
+  // this call site without threading extra config through `getMenu`, so a
+  // menu item on one is returned as an absolute URL. That still works — it
+  // just doesn't get the local-route remap.
+  return host.endsWith('.myshopify.com')
 }
 
 export function menuItemPath(url: string): string {

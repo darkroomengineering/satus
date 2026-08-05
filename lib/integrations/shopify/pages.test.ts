@@ -60,4 +60,15 @@ describe('menuItemPath', () => {
   test('an unparseable / relative-looking value passes through the remap unchanged when it does not start with /collections or /pages/', () => {
     expect(menuItemPath('/about')).toBe('/about')
   })
+
+  test('another shop on the same platform is external, not local', () => {
+    // Without SHOPIFY_STORE_DOMAIN configured the `*.myshopify.com` fallback
+    // applies, so this documents the fallback's behaviour rather than the
+    // configured-domain path. With a domain configured, only that exact host
+    // is local — see isStoreHost.
+    const other = 'https://a-different-shop.myshopify.com/products/thing'
+    expect(menuItemPath(other)).toBe(
+      process.env.SHOPIFY_STORE_DOMAIN ? other : '/products/thing'
+    )
+  })
 })

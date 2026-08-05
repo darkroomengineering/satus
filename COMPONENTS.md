@@ -71,6 +71,12 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 
 ## Utilities
 
+### Assert-server-environment (`@/utils/assert-server-environment`)
+
+| Export | Signature |
+|--------|-----------|
+| assertServerEnvironment | `(moduleName: string) => void` |
+
 ### Fetch (`@/utils/fetch`)
 
 | Export | Signature |
@@ -142,7 +148,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | parseApiResponse | `(schema: z.ZodType<T>, data: unknown, context?: string) => T` |
 | emailSchema | `ZodEmail` |
 | phoneSchema | `ZodString` |
-| sanityEnvSchema | `ZodObject<{ NEXT_PUBLIC_SANITY_PROJECT_ID: ZodString; NEXT_PUBLIC_SANITY_DATA...` |
+| sanityEnvSchema | `ZodObject<{ NEXT_PUBLIC_SANITY_PROJECT_ID: ZodOptional<ZodString>; SANITY_STU...` |
 | shopifyEnvSchema | `ZodObject<{ SHOPIFY_STORE_DOMAIN: ZodString; SHOPIFY_STOREFRONT_ACCESS_TOKEN:...` |
 | hubspotEnvSchema | `ZodObject<{ HUBSPOT_ACCESS_TOKEN: ZodOptional<ZodString>; NEXT_PUBLIC_HUBSPOT...` |
 | hubspotFormsApiEnvSchema | `ZodObject<{ HUBSPOT_ACCESS_TOKEN: ZodString; }, $strip>` |

@@ -21,6 +21,7 @@ import type { z } from 'zod'
 // `@/*` import gets rewritten relative to the wrong directory and 404s
 // (verified empirically: `Cannot find module './lib/utils/validation'`
 // required from this file). A relative import sidesteps the bug entirely.
+import { assertServerEnvironment as assertServerEnv } from '../utils/assert-server-environment'
 import {
   analyticsEnvSchema,
   hubspotEmbedEnvSchema,
@@ -198,24 +199,12 @@ export type RemovableId = IntegrationId | (typeof devOnlyRemovables)[number]
  * empty `{}`. A client-side call would therefore report every integration as
  * unconfigured — silently, and wrongly. Throw instead of returning that.
  *
- * This is a runtime guard, not a build-time one: `import 'server-only'` would
- * be stronger, but it resolves to a module that throws on import outside
- * Next's RSC layer, which would break `bun test` and `bun run handoff` — both
- * import this file legitimately.
+ * Delegates to the shared `assertServerEnvironment` (see
+ * `../utils/assert-server-environment` for the full rationale) so this guard
+ * can't drift from `@/lib/env`'s copy of the same check.
  */
 function assertServerEnvironment(): void {
-  // Both conditions are needed. `window` alone is not a browser tell here:
-  // the test suite registers happy-dom globals, so it has a `window` and a
-  // real `process.env`. The empty-env check alone is not one either — a
-  // genuinely bare server env is unconfigured, not broken. Together they
-  // describe only the bundled-for-browser case, where the polyfill hands
-  // back `{}` and every schema check would fail for the wrong reason.
-  if (typeof window !== 'undefined' && Object.keys(process.env).length === 0) {
-    throw new Error(
-      '@/integrations/registry reads process.env and cannot run in the browser — ' +
-        'call it from a Server Component, Route Handler, or Server Action.'
-    )
-  }
+  assertServerEnv('@/integrations/registry')
 }
 
 /**

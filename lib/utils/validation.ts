@@ -18,15 +18,43 @@ export const phoneSchema = z
 // Per-integration env schemas
 // ---------------------------------------------------------------------------
 
-/** Environment variables required by the Sanity CMS integration. */
-export const sanityEnvSchema = z.object({
-  NEXT_PUBLIC_SANITY_PROJECT_ID: z
-    .string()
-    .min(1, { error: 'NEXT_PUBLIC_SANITY_PROJECT_ID is required' }),
-  NEXT_PUBLIC_SANITY_DATASET: z
-    .string()
-    .min(1, { error: 'NEXT_PUBLIC_SANITY_DATASET is required' }),
-})
+/**
+ * Environment variables required by the Sanity CMS integration.
+ *
+ * `NEXT_PUBLIC_SANITY_PROJECT_ID` and `SANITY_STUDIO_PROJECT_ID` (Sanity's
+ * own CLI/template convention) are both accepted as the project ID —
+ * matching the same fallback `lib/integrations/sanity/env.ts` reads at
+ * runtime, so this schema and that module can't disagree about whether
+ * Sanity is configured. See `lib/utils/sanity-env-alias.test.ts`, which
+ * fails if the two ever drift.
+ */
+export const sanityEnvSchema = z
+  .object({
+    NEXT_PUBLIC_SANITY_PROJECT_ID: z
+      .string()
+      .min(1, {
+        error: 'NEXT_PUBLIC_SANITY_PROJECT_ID must be non-empty when provided',
+      })
+      .optional(),
+    SANITY_STUDIO_PROJECT_ID: z
+      .string()
+      .min(1, {
+        error: 'SANITY_STUDIO_PROJECT_ID must be non-empty when provided',
+      })
+      .optional(),
+    NEXT_PUBLIC_SANITY_DATASET: z
+      .string()
+      .min(1, { error: 'NEXT_PUBLIC_SANITY_DATASET is required' }),
+  })
+  .refine(
+    (env) =>
+      env.NEXT_PUBLIC_SANITY_PROJECT_ID !== undefined ||
+      env.SANITY_STUDIO_PROJECT_ID !== undefined,
+    {
+      error:
+        'NEXT_PUBLIC_SANITY_PROJECT_ID or SANITY_STUDIO_PROJECT_ID is required',
+    }
+  )
 
 /** Environment variables required by the Shopify Storefront integration. */
 export const shopifyEnvSchema = z.object({
@@ -180,8 +208,16 @@ export function parseFormData<T>(
   formData: FormData
 ): FormState<T> | { success: true; data: T } {
   const raw: Record<string, unknown> = {}
-  for (const [key, value] of formData.entries()) {
-    raw[key] = value
+  const seenKeys = new Set<string>()
+  for (const key of formData.keys()) {
+    if (seenKeys.has(key)) continue
+    seenKeys.add(key)
+
+    const values = formData.getAll(key)
+    // A key that appears once stays a scalar (existing schemas expect a
+    // single value); a repeated key (e.g. a checkbox group sharing one
+    // `name`) collects into an array so `z.array(...)` fields work.
+    raw[key] = values.length > 1 ? values : values[0]
   }
 
   const result = schema.safeParse(raw)

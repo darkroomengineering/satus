@@ -1046,7 +1046,9 @@ describe('declaredBundlePaths / findMissingPaths (H8 preflight)', () => {
 
 describe('codeTransformTargetPaths (issue #389 preflight)', () => {
   it('collects the target file of every bundle codeTransform plus both Cache Components transforms', () => {
-    const paths = codeTransformTargetPaths()
+    // Empty keep-set: no CMS and no storefront, so the Cache Components
+    // opt-out pass will run and its targets are required.
+    const paths = codeTransformTargetPaths([])
 
     // A cross-bundle shared file: not in any bundle's folders/files, so
     // declaredBundlePaths alone would never notice it going missing.
@@ -1056,19 +1058,30 @@ describe('codeTransformTargetPaths (issue #389 preflight)', () => {
   })
 
   it('is deduplicated', () => {
-    const paths = codeTransformTargetPaths()
+    const paths = codeTransformTargetPaths([])
     expect(new Set(paths).size).toBe(paths.length)
   })
 
   it('findMissingPaths reports nothing missing against the real repo tree', async () => {
     // Runs against the actual repo tree (this IS the satus repo), so every
     // codeTransform's target file must be present.
-    const missing = await findMissingPaths(codeTransformTargetPaths())
+    const missing = await findMissingPaths(codeTransformTargetPaths([]))
     expect(missing).toEqual([])
   })
 
+  it('omits the Cache Components-only target when a CMS is kept, matching the run', () => {
+    // setupCacheComponentsOptOut returns early when a CMS/storefront
+    // survives, so requiring its targets would make the preflight stricter
+    // than the execution path. Only app/llms.txt/route.ts is unique to that
+    // pass — next.config.ts is a bundle codeTransform target too, so it is
+    // required either way.
+    const paths = codeTransformTargetPaths(['sanity'])
+    expect(paths).not.toContain(CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.file)
+    expect(paths).toContain(CACHE_COMPONENTS_DISABLE_TRANSFORM.file)
+  })
+
   it('a deleted transform-target file fails the preflight before any mutation', async () => {
-    const paths = codeTransformTargetPaths()
+    const paths = codeTransformTargetPaths([])
     const deletedFile = paths[0]
     if (!deletedFile)
       throw new Error('expected at least one codeTransform path')

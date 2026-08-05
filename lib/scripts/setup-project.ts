@@ -822,12 +822,20 @@ export const CACHE_COMPONENTS_LLMS_TXT_TRANSFORM: CodeTransform = {
  * tree unconditionally during `setupLean`'s strip pass (see `setup()`'s step
  * 6: `allCodeTransforms` is built from every bundle regardless of what's
  * kept), so a bundle NOT being kept doesn't make its codeTransform target
- * files any less required to exist before that pass runs. Also includes the
- * two Cache Components opt-out transforms (`setupCacheComponentsOptOut`
- * likewise runs unconditionally whenever no CMS/storefront is kept — see
- * `shouldDisableCacheComponents`). Deduplicated. Exported for unit testing.
+ * files any less required to exist before that pass runs.
+ *
+ * The two Cache Components opt-out transforms are different: they only run
+ * when the kept set has neither a CMS nor a storefront (see
+ * `setupCacheComponentsOptOut`, which returns early otherwise), so they are
+ * included only when `keepIntegrations` says that pass will actually
+ * happen. Requiring them unconditionally would make the preflight stricter
+ * than the run — a fork that deleted `app/llms.txt/route.ts` while keeping
+ * a CMS would be refused setup over a transform that was never going to
+ * execute. Deduplicated. Exported for unit testing.
  */
-export const codeTransformTargetPaths = (): string[] => {
+export const codeTransformTargetPaths = (
+  keepIntegrations: RemovableId[]
+): string[] => {
   const paths = new Set<string>()
 
   for (const bundle of Object.values(INTEGRATION_BUNDLES)) {
@@ -836,8 +844,10 @@ export const codeTransformTargetPaths = (): string[] => {
     }
   }
 
-  paths.add(CACHE_COMPONENTS_DISABLE_TRANSFORM.file)
-  paths.add(CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.file)
+  if (shouldDisableCacheComponents(keepIntegrations)) {
+    paths.add(CACHE_COMPONENTS_DISABLE_TRANSFORM.file)
+    paths.add(CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.file)
+  }
 
   return [...paths]
 }
@@ -1180,7 +1190,7 @@ const setup = async (
   const missingPaths = await findMissingPaths([
     ...new Set([
       ...declaredBundlePaths(keepIntegrations),
-      ...codeTransformTargetPaths(),
+      ...codeTransformTargetPaths(keepIntegrations),
     ]),
   ])
   if (missingPaths.length > 0) {
@@ -1281,7 +1291,15 @@ const setup = async (
   //     just made (P-C3: `--keep sanity` reported "N dependencies pinned"
   //     while package.json on disk ended up with none of them, and the
   //     resulting build failed on module-not-found).
-  const collectedFailureCount = addFailures.length + cacheResult.failures.length
+  // Every collected-failure source that feeds the returned
+  // `transformFailures` must be counted here, or the gate leaks: step 6's
+  // strip pass collects per-file failures the same way steps 8 and 10 do,
+  // and missing it meant a failed strip still deleted this script while
+  // main() reported the failure and exited non-zero.
+  const collectedFailureCount =
+    leanResult.failures.length +
+    addFailures.length +
+    cacheResult.failures.length
   if (collectedFailureCount === 0) {
     const prunePkg = (await Bun.file(pkgPath).json()) as PackageJson
     await selfPrune(prunePkg, dryRun)

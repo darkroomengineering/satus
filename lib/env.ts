@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { assertServerEnvironment } from '@/utils/assert-server-environment'
+
 /**
  * Typed Environment Variables
  *
@@ -44,7 +46,9 @@ const envSchema = z.object({
   SANITY_PRIVATE_TOKEN: z.string().optional(),
   // Alias for SANITY_PRIVATE_TOKEN used by Vercel Marketplace provisioning
   SANITY_API_WRITE_TOKEN: z.string().optional(),
-  // Vercel Marketplace may provision project ID under this name (Studio convention)
+  // Sanity's own CLI/template convention for the project ID env var name —
+  // recognized so a project provisioned by `sanity init` or the CLI
+  // template validator isn't treated as unconfigured.
   SANITY_STUDIO_PROJECT_ID: z.string().optional(),
   // Webhook secret for on-demand revalidation (app/api/revalidate)
   SANITY_REVALIDATE_SECRET: z.string().optional(),
@@ -85,6 +89,8 @@ type Env = z.infer<typeof envSchema>
  * via the registry's `isConfigured()`. This object provides type-safe access
  * without runtime validation overhead (parsing happens once at import).
  */
+assertServerEnvironment('@/lib/env')
+
 const parsedEnv = envSchema.safeParse(process.env)
 
 if (!parsedEnv.success) {

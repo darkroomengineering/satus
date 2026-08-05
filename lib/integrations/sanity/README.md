@@ -25,6 +25,12 @@ SANITY_REVALIDATE_SECRET="your-webhook-secret"
 > - **Viewer** token → `NEXT_PUBLIC_SANITY_API_READ_TOKEN`
 > - **Editor** token → `SANITY_PRIVATE_TOKEN`
 >
+> With only `NEXT_PUBLIC_SANITY_PROJECT_ID` and `NEXT_PUBLIC_SANITY_DATASET`
+> set, published content still renders — `sanityFetch` falls back to a plain,
+> unauthenticated read. The two tokens above are only needed for Visual
+> Editing, live preview, and draft mode; without them, those features are
+> unavailable but the site keeps working.
+>
 > `SANITY_REVALIDATE_SECRET` is only needed to receive Sanity's revalidation
 > webhook — set it on the webhook's signing secret in Sanity's dashboard.
 > Without it, `app/api/revalidate/route.ts` returns `503` for Sanity webhook
@@ -44,6 +50,8 @@ Satus supports the [Vercel Marketplace Sanity integration](https://vercel.com/ma
 | `SANITY_API_WRITE_TOKEN`        | `SANITY_PRIVATE_TOKEN`              | Both supported (fallback) |
 
 No configuration changes needed — just install from the Marketplace and deploy.
+
+`SANITY_STUDIO_PROJECT_ID` is a separate alias, unrelated to the Vercel Marketplace: it's Sanity's own CLI/template convention (the env var name `sanity init` and the CLI's template validator expect). Satus recognizes it as a fallback for `NEXT_PUBLIC_SANITY_PROJECT_ID`.
 
 ## Quick Start
 

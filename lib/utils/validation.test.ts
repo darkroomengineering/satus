@@ -53,6 +53,28 @@ describe('sanityEnvSchema', () => {
     })
     expect(result.success).toBe(false)
   })
+
+  test('SANITY_STUDIO_PROJECT_ID alias passes in place of NEXT_PUBLIC_SANITY_PROJECT_ID', () => {
+    const result = sanityEnvSchema.safeParse({
+      SANITY_STUDIO_PROJECT_ID: 'abc123',
+      NEXT_PUBLIC_SANITY_DATASET: 'production',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  test('SANITY_STUDIO_PROJECT_ID alone (no dataset) still fails', () => {
+    const result = sanityEnvSchema.safeParse({
+      SANITY_STUDIO_PROJECT_ID: 'abc123',
+    })
+    expect(result.success).toBe(false)
+  })
+
+  test('neither project ID variant fails', () => {
+    const result = sanityEnvSchema.safeParse({
+      NEXT_PUBLIC_SANITY_DATASET: 'production',
+    })
+    expect(result.success).toBe(false)
+  })
 })
 
 describe('shopifyEnvSchema', () => {
@@ -372,5 +394,42 @@ describe('parseFormData', () => {
     const result = parseFormData(testSchema, formData)
 
     expect('success' in result).toBe(true)
+  })
+
+  test('single-value keys stay scalars', () => {
+    const formData = new FormData()
+    formData.set('email', 'user@example.com')
+    formData.set('name', 'Alice')
+
+    const result = parseFormData(testSchema, formData)
+
+    expect('success' in result).toBe(true)
+    if ('success' in result) {
+      expect(result.data.name).toBe('Alice')
+    }
+  })
+
+  test('repeated keys collect into an array for a z.array field', () => {
+    const multiSchema = z.object({
+      email: z.email(),
+      interests: z.array(z.string()),
+    })
+
+    const formData = new FormData()
+    formData.set('email', 'user@example.com')
+    formData.append('interests', 'design')
+    formData.append('interests', 'engineering')
+    formData.append('interests', 'marketing')
+
+    const result = parseFormData(multiSchema, formData)
+
+    expect('success' in result).toBe(true)
+    if ('success' in result) {
+      expect(result.data.interests).toEqual([
+        'design',
+        'engineering',
+        'marketing',
+      ])
+    }
   })
 })

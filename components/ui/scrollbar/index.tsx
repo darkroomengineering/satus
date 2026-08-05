@@ -15,14 +15,18 @@ const ARROW_KEY_SCROLL_AMOUNT = 100
 interface ScrollbarProps {
   /**
    * DOM id of the element this scrollbar controls (the `ReactLenis`
-   * wrapper, or the page root when Lenis runs in `root` mode). Required by
-   * the `scrollbar` ARIA role's `aria-controls` — see
-   * https://www.w3.org/TR/wai-aria-1.2/#scrollbar.
+   * wrapper, or the page root when Lenis runs in `root` mode). Feeds
+   * `aria-controls` — see https://www.w3.org/TR/wai-aria-1.2/#scrollbar.
+   *
+   * Optional rather than required: this is an exported primitive, and forks
+   * already render `<Scrollbar />` with no props. Omitting it costs the
+   * `aria-controls` association and nothing else, so a missing id degrades
+   * the semantics instead of breaking the build.
    */
-  controlsId: string
+  controlsId?: string
 }
 
-export function Scrollbar({ controlsId }: ScrollbarProps) {
+export function Scrollbar({ controlsId }: ScrollbarProps = {}) {
   const thumbRef = useRef<HTMLDivElement>(null!)
   const lenis = useLenis()
   const [innerMeasureRef, { height: innerHeight = 0 }] = useRect()

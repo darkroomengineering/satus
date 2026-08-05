@@ -7,7 +7,6 @@ import {
   use,
   useEffect,
   useId,
-  useState,
   useSyncExternalStore,
 } from 'react'
 import type tunnel from 'tunnel-rat'
@@ -41,21 +40,30 @@ const WebGLCanvas = dynamic(
  * drops the dead branch — no persisted dev-panel state leaks into what
  * production visitors render.
  */
+const NOOP_UNSUBSCRIBE = () => {
+  // Production: nothing is subscribed, so nothing to tear down.
+}
+
+const subscribeToWebGLToggle = (onChange: () => void) =>
+  process.env.NODE_ENV === 'development'
+    ? Orchestra.subscribe((state) => state.webgl, onChange)
+    : NOOP_UNSUBSCRIBE
+
+const getWebGLToggle = () =>
+  process.env.NODE_ENV === 'development'
+    ? (Orchestra.getState().webgl ?? true)
+    : true
+
+// The toggle only exists in the browser; SSR always renders as enabled so the
+// server and the first client paint agree.
+const getWebGLToggleServerSnapshot = () => true
+
 function useWebGLDevKillSwitch(): boolean {
-  const [enabled, setEnabled] = useState(true)
-
-  useEffect(() => {
-    if (process.env.NODE_ENV !== 'development') return
-
-    setEnabled(Orchestra.getState().webgl ?? true)
-
-    return Orchestra.subscribe(
-      (state) => state.webgl,
-      (value) => setEnabled(value ?? true)
-    )
-  }, [])
-
-  return process.env.NODE_ENV === 'development' ? enabled : true
+  return useSyncExternalStore(
+    subscribeToWebGLToggle,
+    getWebGLToggle,
+    getWebGLToggleServerSnapshot
+  )
 }
 
 type TunnelInstance = ReturnType<typeof tunnel>

@@ -69,6 +69,14 @@ export default projectId && dataset
                 route: '/articles/:slug',
                 filter: `_type == "article" && slug.current == $slug`,
               },
+              // `resolveHref('page', 'home')` returns '/', so the homepage
+              // document needs its own mapping — '/:slug' cannot match an
+              // empty segment, and without this Presentation can't associate
+              // the previewed homepage back to its document.
+              {
+                route: '/',
+                filter: `_type == "page" && slug.current == "home"`,
+              },
               {
                 route: '/:slug',
                 filter: `_type == "page" && slug.current == $slug`,

@@ -1635,6 +1635,7 @@ describe('issue #382: selfPrune is gated on collected transform failures', () =>
     },
     60000
   )
+})
 
 // -------------------------------------------------------------------------
 // Issue #392 — app/(site)/(examples) (the Sanity wiring tutorial at

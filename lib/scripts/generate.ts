@@ -18,6 +18,7 @@ import * as p from '@clack/prompts'
 import { createComponent, promptComponentConfig } from './generate-component'
 // Import the existing generators
 import { createPage, promptPageConfig } from './generate-page'
+import { guardedPrompt } from './generate-shared'
 
 /**
  * Main CLI function
@@ -28,26 +29,25 @@ const main = async (): Promise<void> => {
   p.intro('Satūs Generator')
 
   // Ask what to create
-  const createType = await p.select({
-    message: 'What would you like to generate?',
-    options: [
-      {
-        value: 'page',
-        label: 'Page',
-        hint: 'New route/page with layout and components',
-      },
-      {
-        value: 'component',
-        label: 'Component',
-        hint: 'New reusable UI component',
-      },
-    ],
-  })
-
-  if (p.isCancel(createType)) {
-    p.cancel('Generation cancelled')
-    process.exit(0)
-  }
+  const createType = await guardedPrompt(
+    () =>
+      p.select({
+        message: 'What would you like to generate?',
+        options: [
+          {
+            value: 'page',
+            label: 'Page',
+            hint: 'New route/page with layout and components',
+          },
+          {
+            value: 'component',
+            label: 'Component',
+            hint: 'New reusable UI component',
+          },
+        ],
+      }),
+    'Generation cancelled'
+  )
 
   try {
     if (createType === 'page') {
@@ -73,8 +73,12 @@ const main = async (): Promise<void> => {
   }
 }
 
-// Run the CLI
-main().catch((err) => {
-  p.log.error(`Unexpected error: ${err.message}`)
-  process.exit(1)
-})
+// Run only when executed directly (not when imported by tests or other
+// modules — a bare top-level `main()` call would otherwise run the whole
+// interactive CLI as a side effect of importing this file).
+if (import.meta.main) {
+  main().catch((err) => {
+    p.log.error(`Unexpected error: ${err.message}`)
+    process.exit(1)
+  })
+}

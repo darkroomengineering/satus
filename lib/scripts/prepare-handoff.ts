@@ -30,7 +30,7 @@ import {
 import type { AstOperation } from './ast-operation-types'
 import { applyOpsToText } from './ast-transforms'
 import { isInstalled } from './bundle-installer'
-import { cancelGuard } from './generate-shared'
+import { guardedPrompt } from './generate-shared'
 import { getIntegrationEntries } from './integration-bundles'
 import {
   type IntegrationStatus,
@@ -269,9 +269,10 @@ const setPackageJsonNameAndDescription = async (
 }
 
 /**
- * Clean up unused environment variables from .env.example
+ * Clean up unused environment variables from .env.example.
+ * Exported for unit testing.
  */
-const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
+export const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
   try {
     const envExamplePath = resolvePath('.env.example')
 
@@ -292,10 +293,15 @@ const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
     }
 
     // Core variables unrelated to any single integration are always kept.
+    // Regexes are matched against the var name with any leading
+    // `NEXT_PUBLIC_` stripped (mirrors env-drift.test.ts's `ownsKey()`), so
+    // e.g. Turnstile's client-exposed NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY
+    // survives alongside its server-only CLOUDFLARE_TURNSTILE_SECRET_KEY
+    // sibling instead of being silently stripped for not matching literally.
     const alwaysKeep = [
-      /^NEXT_PUBLIC_BASE_URL$/,
-      /^NEXT_PUBLIC_GOOGLE_/,
-      /^NEXT_PUBLIC_FACEBOOK_/,
+      /^BASE_URL$/,
+      /^GOOGLE_/,
+      /^FACEBOOK_/,
       /^CLOUDFLARE_/,
       /^SOURCE_MAPS$/,
     ]
@@ -306,7 +312,12 @@ const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
       // Preserve blank lines and comments.
       if (!trimmed || trimmed.startsWith('#')) return true
       const varName = trimmed.split('=')[0] ?? ''
-      return keepVars.has(varName) || alwaysKeep.some((re) => re.test(varName))
+      const bareVarName = varName.startsWith('NEXT_PUBLIC_')
+        ? varName.slice('NEXT_PUBLIC_'.length)
+        : varName
+      return (
+        keepVars.has(varName) || alwaysKeep.some((re) => re.test(bareVarName))
+      )
     })
 
     const newContent = filteredLines.join('\n')
@@ -520,7 +531,6 @@ Usage:
 Options:
   --dry-run     Preview changes without writing any files
   --force       Overwrite an existing README.original.md backup
-  --verbose     Print additional detail while running
   --help, -h    Show this help message and exit
 `
 
@@ -548,75 +558,87 @@ const main = async (): Promise<void> => {
   }
 
   // Get project name
-  const projectName = await p.text({
-    message: 'What is the project name?',
-    placeholder: 'My Project',
-    validate: (value) => {
-      if (!value) return 'Project name is required'
-      return undefined
-    },
-  })
-
-  const projectNameValue = cancelGuard(projectName, 'Handoff cancelled')
+  const projectNameValue = await guardedPrompt(
+    () =>
+      p.text({
+        message: 'What is the project name?',
+        placeholder: 'My Project',
+        validate: (value) => {
+          if (!value) return 'Project name is required'
+          return undefined
+        },
+      }),
+    'Handoff cancelled'
+  )
 
   // Ask what to do
-  const actions = await p.multiselect({
-    message: 'What would you like to do?',
-    options: [
-      {
-        value: 'removeBranding',
-        label: 'Remove Satūs branding',
-        hint: 'Remove logos, default images, and Satūs references',
-      },
-      {
-        value: 'updatePackageJson',
-        label: 'Update package.json',
-        hint: 'Update name and description for the project',
-      },
-      {
-        value: 'cleanupEnvVars',
-        label: 'Clean environment variables',
-        hint: 'Remove unused integration env vars from .env.example',
-      },
-      {
-        value: 'swapReadme',
-        label: 'Swap README',
-        hint: 'Replace README.md with production version',
-      },
-      {
-        value: 'generateInventory',
-        label: 'Generate inventory',
-        hint: 'Create component and page inventory',
-      },
-      {
-        value: 'generateChecklist',
-        label: 'Generate checklist',
-        hint: 'Create deployment checklist',
-      },
-    ],
-    initialValues: [
-      'removeBranding',
-      'updatePackageJson',
-      'cleanupEnvVars',
-      'swapReadme',
-      'generateInventory',
-      'generateChecklist',
-    ],
-  })
-
-  const actionsValue = cancelGuard(actions, 'Handoff cancelled')
+  const actionsValue = await guardedPrompt(
+    () =>
+      p.multiselect({
+        message: 'What would you like to do?',
+        options: [
+          {
+            value: 'removeBranding',
+            label: 'Remove Satūs branding',
+            hint: 'Remove logos, default images, and Satūs references',
+          },
+          {
+            value: 'updatePackageJson',
+            label: 'Update package.json',
+            hint: 'Update name and description for the project',
+          },
+          {
+            value: 'cleanupEnvVars',
+            label: 'Clean environment variables',
+            hint: 'Remove unused integration env vars from .env.example',
+          },
+          {
+            value: 'swapReadme',
+            label: 'Swap README',
+            hint: 'Replace README.md with production version',
+          },
+          {
+            value: 'generateInventory',
+            label: 'Generate inventory',
+            hint: 'Create component and page inventory',
+          },
+          {
+            value: 'generateChecklist',
+            label: 'Generate checklist',
+            hint: 'Create deployment checklist',
+          },
+        ],
+        initialValues: [
+          'removeBranding',
+          'updatePackageJson',
+          'cleanupEnvVars',
+          'swapReadme',
+          'generateInventory',
+          'generateChecklist',
+        ],
+      }),
+    'Handoff cancelled'
+  )
 
   // Show summary
   p.log.step('Summary:')
   p.log.message(`  Project: ${projectNameValue}`)
   p.log.message(`  Actions: ${actionsValue.join(', ')}`)
 
-  // Confirm
-  const proceed = await p.confirm({
-    message: dryRun ? 'Preview changes?' : 'Proceed with handoff preparation?',
-  })
+  // Confirm — guardedPrompt handles an explicit cancel (Ctrl+C) or stdin
+  // closing (EOF), both exit 1 with a clear message. A deliberate "No"
+  // answer is a different, intentional outcome: exit 0, no error.
+  const proceed = await guardedPrompt(
+    () =>
+      p.confirm({
+        message: dryRun
+          ? 'Preview changes?'
+          : 'Proceed with handoff preparation?',
+      }),
+    'Handoff cancelled'
+  )
 
-  if (p.isCancel(proceed) || !proceed) {
+  if (!proceed) {
     p.cancel('Handoff cancelled')
     process.exit(0)
   }
@@ -666,8 +688,13 @@ const main = async (): Promise<void> => {
   }
 }
 
-// Run
-main().catch((err) => {
-  p.log.error(`Handoff failed: ${err.message}`)
-  process.exit(1)
-})
+// Run only when executed directly (not when imported by tests or other
+// modules — a bare top-level `main()` call would otherwise run the whole
+// interactive CLI as a side effect of importing this file for its exported
+// pure functions, e.g. `cleanupEnvVars`).
+if (import.meta.main) {
+  main().catch((err) => {
+    p.log.error(`Handoff failed: ${err.message}`)
+    process.exit(1)
+  })
+}

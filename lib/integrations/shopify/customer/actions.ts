@@ -54,6 +54,7 @@ export async function LoginCustomerAction(
     rateLimitPrefix: 'login-form',
     schema: loginSchema,
     formData,
+    turnstile: true,
     rateLimiter: rateLimiters.strict,
     rateLimitMessage: 'Too many login attempts. Please try again later.',
     run: async ({ email, password }) => {
@@ -130,6 +131,7 @@ export async function CreateCustomerAction(
     rateLimitPrefix: 'register',
     schema: createCustomerSchema,
     formData,
+    turnstile: true,
     run: async ({ firstName, lastName, email, password }) => {
       try {
         const res = await shopifyFetch<CustomerCreateResponseData>({

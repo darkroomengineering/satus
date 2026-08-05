@@ -136,6 +136,12 @@ interface UpsertMemberOptions {
   firstName: string
   lastName: string
   status: MailchimpMemberStatus
+  /**
+   * Also apply `status` to an address that is already in the audience.
+   * Off by default so a re-submission cannot downgrade a confirmed
+   * subscriber back to 'pending'.
+   */
+  forceStatus?: boolean
   config: MailchimpConfig
 }
 
@@ -151,10 +157,18 @@ async function upsertMember(
   const { audienceId, email, firstName, lastName, status, config } = opts
   const hash = subscriberHash(email)
 
+  // `status_if_new` alone drives the opt-in flow: a new address gets this
+  // status (so 'pending' sends Mailchimp's confirmation email), while an
+  // address already in the audience keeps whatever status it has. Sending
+  // `status` as well would apply it to existing members too, which for
+  // 'pending' means knocking an already-confirmed subscriber back to
+  // unconfirmed — they would silently stop receiving mail until they
+  // re-confirmed. Callers that genuinely need to move an existing member
+  // pass `forceStatus`.
   const subscriberData = {
     email_address: email,
     status_if_new: status,
-    status,
+    ...(opts.forceStatus ? { status } : {}),
     merge_fields: {
       FNAME: firstName,
       LNAME: lastName,

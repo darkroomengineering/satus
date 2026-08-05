@@ -30,8 +30,13 @@ interface RunFormActionOptions<T> {
   rateLimiter?: RateLimitConfig
   /**
    * Verify the `cf-turnstile-response` field via Cloudflare Turnstile.
-   * Defaults to `true` for every public form action. Set to `false` only for
-   * actions with no user-facing widget (there are none in this starter today).
+   *
+   * Opt-in, and every public form action in this starter opts in. It is not
+   * on by default because `validateTurnstile` rejects a request that carries
+   * no token at all, and this starter ships no widget component — a default
+   * of `true` would break any form a project writes with this helper until
+   * they wire Cloudflare's script themselves. Turn it on for anything
+   * reachable by an anonymous visitor.
    */
   turnstile?: boolean
   /** Business logic to run after validation succeeds. */
@@ -42,7 +47,7 @@ interface RunFormActionOptions<T> {
  * Shared server-action helper that handles:
  * 1. IP extraction from `x-forwarded-for`
  * 2. Rate limiting (configurable; defaults to standard limiter, 20 req/min)
- * 3. Turnstile verification (`turnstile: false` opts out)
+ * 3. Turnstile verification (opt in with `turnstile: true`)
  * 4. Zod schema validation via `parseFormData`
  * 5. Delegation to the provided `run` callback
  *
@@ -59,7 +64,7 @@ export async function runFormAction<T>({
   formData,
   rateLimitMessage = 'rate_limit_exceeded_',
   rateLimiter = rateLimiters.standard,
-  turnstile = true,
+  turnstile = false,
   run,
 }: RunFormActionOptions<T>): Promise<FormState> {
   const headersList = await headers()

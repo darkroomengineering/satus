@@ -33,6 +33,7 @@ export async function mailchimpContactAction(
     rateLimitPrefix: 'mailchimp-contact',
     schema: contactSchema,
     formData,
+    turnstile: true,
     run: async (input) => {
       const result = await addContactToMailchimp({
         name: input.name,
@@ -60,6 +61,7 @@ export async function mailchimpSubscriptionAction(
     rateLimitPrefix: 'mailchimp-subscribe',
     schema: subscriptionSchema,
     formData,
+    turnstile: true,
     run: async (input) => {
       const result = await addSubscriberToMailchimp(input)
       if (!result.success) {

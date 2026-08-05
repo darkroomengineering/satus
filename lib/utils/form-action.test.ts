@@ -52,6 +52,7 @@ describe('runFormAction — rate limit gates Turnstile', () => {
       schema,
       formData: makeFormData(),
       rateLimiter: { limit: 1, windowSeconds: 60 },
+      turnstile: true,
       run: async () => ({ status: 200, message: 'ok' }),
     })
 
@@ -69,6 +70,7 @@ describe('runFormAction — rate limit gates Turnstile', () => {
       schema,
       formData: makeFormData(),
       rateLimiter,
+      turnstile: true,
       run: async () => ({ status: 200, message: 'ok' }),
     })
     expect(first.status).toBe(200)
@@ -80,6 +82,7 @@ describe('runFormAction — rate limit gates Turnstile', () => {
       schema,
       formData: makeFormData(),
       rateLimiter,
+      turnstile: true,
       run: async () => ({ status: 200, message: 'ok' }),
     })
 
@@ -88,13 +91,15 @@ describe('runFormAction — rate limit gates Turnstile', () => {
     expect(turnstileCalls).toBe(1)
   })
 
-  test('turnstile: false opts a form action out of verification', async () => {
+  test('verification is opt-in, so a form action that does not ask for it is not blocked', async () => {
+    // Turnstile rejects a request carrying no token at all, and this starter
+    // ships no widget component — defaulting to on would break every form a
+    // project writes with this helper before they wire Cloudflare's script.
     turnstileCalls = 0
     const result = await runFormAction({
       rateLimitPrefix: uniquePrefix(),
       schema,
       formData: makeFormData(),
-      turnstile: false,
       run: async () => ({ status: 200, message: 'ok' }),
     })
 

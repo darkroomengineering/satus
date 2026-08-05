@@ -43,6 +43,7 @@ export async function HubspotNewsletterAction(
     rateLimitPrefix: 'hubspot',
     schema: hubspotNewsletterSchema,
     formData,
+    turnstile: true,
     rateLimitMessage: 'Too many requests. Please try again later.',
     run: async ({ email, formId }) => {
       const allowedFormIds = env.HUBSPOT_ALLOWED_FORM_IDS

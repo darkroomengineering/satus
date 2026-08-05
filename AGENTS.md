@@ -145,6 +145,18 @@ Dispose materials, textures, geometries, and render targets on unmount. Remove e
 - Conventional commits: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`
 - No force push to `main`; no `--no-verify` unless explicitly requested
 
+### Rules the audits keep re-deriving
+
+Four positions that repeated audits arrived at independently. Each exists because the alternative already shipped a bug.
+
+**A comment that calls something deliberate must say what it costs.** Stating the intent alone is what let two real defects survive review: form actions verified Turnstile before rate limiting (documented as deliberate, never traced to the flood it invited), and the Sanity live module claimed published fetching was unaffected by a missing token (it was, in fact, entirely disabled). If you cannot name the cost you are accepting, the decision has not been made yet.
+
+**"Is X configured" has one answer per integration.** `lib/env.ts`, the per-integration `env.ts` files, and the schemas in `lib/utils/validation.ts` each parse environment differently. They may not disagree. Where they cannot be merged — `lib/integrations/sanity/env.ts` is dual-compiled into the client bundle and must not import server-only code — a test asserts they stay in sync instead. Note that "reads the same module" is not sufficient on its own: a dual-compiled module answers differently per side when its fallbacks are not statically inlinable, which is how an alias-only Sanity config broke the front end and the Studio at once.
+
+**Anything a scaffold step did not expect blocks self-prune.** `setup:project` has three failure modes — thrown, collected, and skipped — and only a thrown one used to stop the run. A required transform whose target file had been renamed was skipped in silence, and self-prune deleted the script even after transforms failed, so the documented advice to fix the cause and re-run had nothing left to run. New failure paths join the collected set; they do not get a fourth behaviour.
+
+**Ship the claim with the fix.** Changelog, README, JSDoc, audit ledger: whatever states the old behaviour changes in the same diff. This is the rule with the worst track record — the changelog and a process-audit report both credited a PR with an EOF fix that only ever covered one of the three scripts it named, which made the gap invisible to anyone checking the record instead of the code.
+
 ---
 
 ## Code Patterns

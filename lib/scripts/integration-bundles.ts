@@ -510,7 +510,10 @@ export const INTEGRATION_BUNDLES = defineBundles({
     description: 'E-commerce platform integration with cart and checkout',
     dependencies: [],
     devDependencies: [],
-    folders: ['lib/integrations/shopify'],
+    // app/api/cart holds the cart-ensure endpoint, which imports this
+    // integration's cart operations — it must live and die with the bundle,
+    // or dropping Shopify leaves a route whose imports no longer resolve.
+    folders: ['lib/integrations/shopify', 'app/api/cart'],
     files: [],
     // Keep in sync with the SHOPIFY_* keys in lib/env.ts — that schema is the
     // source of truth for what the integration actually reads.

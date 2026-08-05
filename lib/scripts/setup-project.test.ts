@@ -1014,6 +1014,16 @@ describe('declaredBundlePaths / findMissingPaths (H8 preflight)', () => {
     expect(paths).toContain('app/(site)/[...slug]/page.tsx')
   })
 
+  it('shopify bundle owns every route folder that imports from it', () => {
+    // app/api/cart/ensure imports lib/integrations/shopify's cart operations.
+    // If it falls out of the bundle's folders, a fork that drops Shopify
+    // keeps the route and fails to build on module-not-found — the same
+    // lean-fork break the sanity assertions above guard against.
+    const paths = declaredBundlePaths(['shopify'])
+    expect(paths).toContain('lib/integrations/shopify')
+    expect(paths).toContain('app/api/cart')
+  })
+
   it('declaredBundlePaths is empty for an empty keep set', () => {
     expect(declaredBundlePaths([])).toEqual([])
   })

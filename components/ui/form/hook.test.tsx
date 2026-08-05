@@ -238,6 +238,46 @@ describe('useForm registration is keyed by field name', () => {
     expect(snapshot.current?.errors.name?.state).toBe(false)
   })
 
+  test('unmounting a required field removes its isValid/isActive/errors entries', () => {
+    // Regression test for issue #400: the ref callback only nulled
+    // `inputsRefs.current[name]` on unmount and left the isValid/isActive/
+    // errors entries in place forever. `isReady` requires every isValid
+    // entry to be true, so a required field that unmounts stays a
+    // permanent false in that map even though it no longer exists.
+    const snapshot: Snapshot = { current: null }
+    const emailField: FieldConfig = { name: 'email', type: 'email' }
+    const nameField: FieldConfig = { name: 'name' }
+    const conditionalField: FieldConfig = { name: 'conditional' } // required by default
+
+    const { rerender } = render(
+      <Harness
+        fields={[emailField, conditionalField, nameField]}
+        onSnapshot={(f) => {
+          snapshot.current = f
+        }}
+      />
+    )
+
+    // Required + untouched — registered as invalid.
+    expect(snapshot.current?.isValid.conditional).toBe(false)
+    expect('conditional' in (snapshot.current?.isActive ?? {})).toBe(true)
+    expect('conditional' in (snapshot.current?.errors ?? {})).toBe(true)
+
+    // Unmount it (tab switch / wizard step / feature flag)
+    rerender(
+      <Harness
+        fields={[emailField, nameField]}
+        onSnapshot={(f) => {
+          snapshot.current = f
+        }}
+      />
+    )
+
+    expect('conditional' in (snapshot.current?.isValid ?? {})).toBe(false)
+    expect('conditional' in (snapshot.current?.isActive ?? {})).toBe(false)
+    expect('conditional' in (snapshot.current?.errors ?? {})).toBe(false)
+  })
+
   test('only type="hidden" gets the auto-valid treatment', () => {
     const snapshot: Snapshot = { current: null }
     render(
@@ -294,6 +334,49 @@ describe('useForm submit gate', () => {
     // company was never touched but is optional — must not block isReady.
     expect(snapshot.current?.isValid.company).toBe(true)
     expect(snapshot.current?.isValid.name).toBe(true)
+    expect(snapshot.current?.isReady).toBe(true)
+  })
+
+  test('unmounting an untouched required field unwedges isReady', () => {
+    // The wedge case from issue #400: a required field that mounts
+    // untouched, then gets conditionally unmounted, used to leave the form
+    // permanently unsubmittable — its stale `isValid: false` entry never
+    // left the map even though the field itself was gone.
+    const snapshot: Snapshot = { current: null }
+    const nameField: FieldConfig = { name: 'name' }
+    const conditionalField: FieldConfig = { name: 'conditional' } // required by default
+
+    const { container, rerender } = render(
+      <SubmitHarness
+        fields={[nameField, conditionalField]}
+        formAction={action}
+        onSnapshot={(f) => {
+          snapshot.current = f
+        }}
+      />
+    )
+
+    fireEvent.change(getInput(container, 'name'), {
+      target: { value: 'Ada' },
+    })
+
+    // `name` is valid, but the untouched required `conditional` field blocks.
+    expect(snapshot.current?.isValid.name).toBe(true)
+    expect(snapshot.current?.isValid.conditional).toBe(false)
+    expect(snapshot.current?.isReady).toBe(false)
+
+    // Unmount the conditional field (e.g. a wizard step moves on).
+    rerender(
+      <SubmitHarness
+        fields={[nameField]}
+        formAction={action}
+        onSnapshot={(f) => {
+          snapshot.current = f
+        }}
+      />
+    )
+
+    expect('conditional' in (snapshot.current?.isValid ?? {})).toBe(false)
     expect(snapshot.current?.isReady).toBe(true)
   })
 

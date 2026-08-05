@@ -65,6 +65,51 @@ const routableContentQuery = defineQuery(`
 `)
 
 /**
+ * Turns the raw (`unknown`) Sanity query result into routes, skipping
+ * malformed documents one at a time rather than failing the whole batch.
+ * Pulled out of `getCmsRoutes` so the skip-per-entry behaviour is testable
+ * without a network dependency.
+ */
+export function buildRoutesFromDocuments(data: unknown): ContentRoute[] {
+  if (!Array.isArray(data)) return []
+
+  const routes = new Map<string, ContentRoute>()
+
+  for (const rawDoc of data) {
+    // Validated per entry, not as a whole array: `z.array(...).safeParse`
+    // fails closed on the FIRST malformed document, dropping every valid
+    // route from the sitemap and `/llms.txt`. One bad document should only
+    // cost that one document.
+    const parsedDoc = routableDocumentSchema.safeParse(rawDoc)
+    if (!parsedDoc.success) continue
+    const doc = parsedDoc.data
+
+    if (!doc.slug) continue
+
+    const lastModified = new Date(doc._updatedAt)
+    if (Number.isNaN(lastModified.getTime())) continue
+
+    const path = urlForReference({
+      linkType: 'internal',
+      internalLink: { _type: doc._type, slug: doc.slug },
+    })
+
+    // `path === '#'` is unresolvable; a `staticPaths` hit means the document
+    // stands in for an already-listed static route (e.g. a `page` with slug
+    // `home`, which `urlForReference` resolves to `/`).
+    if (path === '#' || staticPaths.has(path)) continue
+
+    routes.set(path, {
+      path,
+      label: doc.title ?? doc.slug.current,
+      lastModified,
+    })
+  }
+
+  return [...routes.values()]
+}
+
+/**
  * Every published `page`/`article` document, resolved to the same URL
  * `urlForReference` (`@/integrations/sanity/utils/link`) uses for internal
  * links elsewhere in the app — so the sitemap and `/llms.txt` can never
@@ -107,33 +152,5 @@ export async function getCmsRoutes(): Promise<ContentRoute[]> {
     return []
   }
 
-  const parsed = z.array(routableDocumentSchema).safeParse(data)
-  if (!parsed.success) return []
-
-  const routes = new Map<string, ContentRoute>()
-
-  for (const doc of parsed.data) {
-    if (!doc.slug) continue
-
-    const lastModified = new Date(doc._updatedAt)
-    if (Number.isNaN(lastModified.getTime())) continue
-
-    const path = urlForReference({
-      linkType: 'internal',
-      internalLink: { _type: doc._type, slug: doc.slug },
-    })
-
-    // `path === '#'` is unresolvable; a `staticPaths` hit means the document
-    // stands in for an already-listed static route (e.g. a `page` with slug
-    // `home`, which `urlForReference` resolves to `/`).
-    if (path === '#' || staticPaths.has(path)) continue
-
-    routes.set(path, {
-      path,
-      label: doc.title ?? doc.slug.current,
-      lastModified,
-    })
-  }
-
-  return [...routes.values()]
+  return buildRoutesFromDocuments(data)
 }

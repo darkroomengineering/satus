@@ -51,9 +51,17 @@ export default {
          * event handler that triggers it", and there is no React event
          * handler, only Theatre's own change notifications.
          *
-         * Scope note: this is dev-only tooling. It is lazily imported, gated
-         * behind a dev toggle, and `setup:project` deletes it outright for
-         * projects that do not keep Theatre — so none of it ships to users.
+         * Scope note: this is dev-only tooling. The Studio editor itself is
+         * lazily imported and gated behind a dev toggle (only mounts when
+         * `NODE_ENV === 'development'`, via `OptionalFeatures`), and the
+         * project-bootstrap runtime in `SheetProvider` (the fetch + live
+         * Theatre project) is now gated the same way — production visitors
+         * trigger neither. `setup:project` deletes the whole directory
+         * outright for projects that do not keep Theatre. The hook code
+         * itself (`useSheet`/`useTheatre`) still ships as part of the WebGL
+         * bundle, because production components (`fluid`, `flowmaps`) call
+         * it directly — but with no project, it resolves to inert no-ops
+         * that fall back to each call site's own hard-coded defaults.
          */
         files: ['lib/dev/theatre/**'],
         rules: [

@@ -7,10 +7,12 @@ import {
   use,
   useEffect,
   useId,
+  useState,
   useSyncExternalStore,
 } from 'react'
 import type tunnel from 'tunnel-rat'
 
+import Orchestra from '@/lib/dev/orchestra'
 import { useDeviceDetection } from '@/lib/hooks/use-device-detection'
 import {
   getDOMTunnel,
@@ -27,6 +29,34 @@ const WebGLCanvas = dynamic(
     ssr: false,
   }
 )
+
+/**
+ * Reads the Orchestra dev panel's 🧊 WebGL toggle (persisted in the same
+ * `orchestra` localStorage store every other panel toggle uses). Defaults to
+ * `true` — matches the toggle's own `defaultValue` in `lib/dev/cmdo.tsx` and
+ * the "on by default" behaviour documented in `lib/dev/README.md`.
+ *
+ * Collapses to a constant `true` in production: `process.env.NODE_ENV` is
+ * inlined at build time, so the subscription never runs and minification
+ * drops the dead branch — no persisted dev-panel state leaks into what
+ * production visitors render.
+ */
+function useWebGLDevKillSwitch(): boolean {
+  const [enabled, setEnabled] = useState(true)
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'development') return
+
+    setEnabled(Orchestra.getState().webgl ?? true)
+
+    return Orchestra.subscribe(
+      (state) => state.webgl,
+      (value) => setEnabled(value ?? true)
+    )
+  }, [])
+
+  return process.env.NODE_ENV === 'development' ? enabled : true
+}
 
 type TunnelInstance = ReturnType<typeof tunnel>
 
@@ -84,6 +114,7 @@ export function Canvas({
   ...props
 }: CanvasProps) {
   const { isWebGL, isReducedMotion } = useDeviceDetection()
+  const webglDevToggleEnabled = useWebGLDevKillSwitch()
 
   // Only a root canvas mounts the WebGL surface; it uses the shared store
   // tunnels so content portals into it from anywhere. A non-root <Canvas> is a
@@ -99,7 +130,12 @@ export function Canvas({
   // must account for a fallback for this state: render a static image / DOM
   // equivalent when the canvas is absent, or mount with `force` and damp
   // motion inside the scene.
-  const shouldRender = root && ((isWebGL && !isReducedMotion) || force)
+  //
+  // The Orchestra panel's 🧊 toggle is a dev-only kill switch on top of all
+  // of that (including `force`) — useful for isolating perf work to the DOM
+  // side of a page without physically deleting `<Canvas root>`.
+  const shouldRender =
+    webglDevToggleEnabled && root && ((isWebGL && !isReducedMotion) || force)
   const contextValue: CanvasContextValue =
     WebGLTunnel && DOMTunnel
       ? { active: true, WebGLTunnel, DOMTunnel }

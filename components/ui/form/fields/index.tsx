@@ -211,7 +211,11 @@ export function CheckboxesField({
         name={name}
         id={hiddenInputId}
         value={JSON.stringify(selected)}
-        {...reg}
+        // Only `ref` from `register(name)` is live here: the value is
+        // React-state-driven (`selected`) and the input is `type="hidden"`,
+        // which never receives focus or a user-triggered `change` event —
+        // `reg.onChange`/`reg.onBlur` can never fire, so they're left out.
+        ref={reg.ref}
       />
       <div className={s.options}>
         {options.map(({ label: optionLabel, value }) => (

@@ -5,6 +5,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
+import { unlink } from 'node:fs/promises'
 
 import { cleanupEnvVars } from './prepare-handoff'
 import { projectRoot, resolvePath } from './utils'
@@ -66,7 +67,17 @@ describe('cleanupEnvVars — Turnstile survives (#387)', () => {
   })
 
   afterEach(async () => {
-    if (originalContent === undefined) return
+    // Always restore, including the case where .env.example did not exist
+    // before the test — leaving this fixture behind would silently become
+    // the repo's committed .env.example.
+    if (originalContent === undefined) {
+      try {
+        await unlink(envExamplePath)
+      } catch {
+        // Already gone — nothing to restore.
+      }
+      return
+    }
     await Bun.write(envExamplePath, originalContent)
   })
 

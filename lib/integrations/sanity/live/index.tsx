@@ -10,6 +10,7 @@ import {
   type StrictDefinedFetchType,
   type StrictDefinedLiveProps,
 } from 'next-sanity/live'
+import { cacheTag } from 'next/cache'
 import type { ComponentType } from 'react'
 
 import { isConfigured } from '@/integrations/registry'
@@ -44,6 +45,30 @@ export function resolveSanityFetchMode(options: {
 }
 
 /**
+ * Tag names the Sanity webhook revalidates, derived from a fetch result.
+ * `app/api/revalidate/route.ts` calls `revalidateTag(_type)` and
+ * `revalidateTag(`${_type}:${slug}`)`, so a cache entry must carry those
+ * exact tags to be invalidated when an editor publishes.
+ */
+function tagsForResult(data: unknown): string[] {
+  const documents = Array.isArray(data) ? data : [data]
+  const tags = new Set<string>()
+
+  for (const doc of documents) {
+    if (typeof doc !== 'object' || doc === null) continue
+    const { _type, slug } = doc as {
+      _type?: unknown
+      slug?: { current?: unknown } | null
+    }
+    if (typeof _type !== 'string') continue
+    tags.add(_type)
+    if (typeof slug?.current === 'string') tags.add(`${_type}:${slug.current}`)
+  }
+
+  return [...tags]
+}
+
+/**
  * Published-content fetch built directly on the Sanity client — no
  * `serverToken`, no live/draft support. Used whenever a project has
  * projectId/dataset configured but no private token: published content
@@ -53,6 +78,14 @@ export function resolveSanityFetchMode(options: {
  * drop-in replacement for `defineLive`'s `sanityFetch` wherever it's called
  * (including inside `'use cache'` functions, which require `perspective`
  * and `stega` on every call under this repo's `strict: true` convention).
+ *
+ * Tags the surrounding cache entry the same way the live fetch does, so the
+ * revalidation webhook still invalidates this content on publish. Without
+ * that, a project on this path would serve a page until its cache profile
+ * expired no matter how often the document changed.
+ *
+ * `perspective` and `stega` are accepted and ignored: both need a token this
+ * path does not have, so it always serves published, un-annotated content.
  */
 export function createPublishedFetch(
   sanityClient: SanityClient
@@ -76,7 +109,21 @@ export function createPublishedFetch(
     const data = params
       ? await sanityClient.fetch(options.query, params)
       : await sanityClient.fetch(options.query)
-    return { data, sourceMap: null, tags: options.tags ?? [] }
+
+    const tags = [...new Set([...(options.tags ?? []), ...tagsForResult(data)])]
+
+    // Callers run this inside `'use cache'`, where `cacheTag` is legal and
+    // required for the webhook to reach this entry. The unit tests call the
+    // fetch directly, outside any cache scope, where it throws — tagging is
+    // an optimisation for the cached path, never a correctness requirement
+    // of the fetch itself.
+    try {
+      for (const tag of tags) cacheTag(tag)
+    } catch {
+      // Not inside a `'use cache'` scope; nothing to tag.
+    }
+
+    return { data, sourceMap: null, tags }
   }
 }
 

@@ -109,8 +109,9 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 
 | Export | Signature |
 |--------|-----------|
+| truncateDescription | `(text: string | null | undefined, maxLength: number = DESCRIPTION_MAX_LENGTH) => string` |
 | generatePageMetadata | `(options: GenerateMetadataOptions) => Metadata` |
-| generateSanityMetadata | `(options: { // Fields are nullable to accept TypeGen query-result types directly // (projections type optional fields as `T | null`). document: { title?: string | null metadata?: { title?: string | null description?: string | null keywords?: string[] | null noIndex?: boolean | null } | null _updatedAt?: string | null publishedAt?: string | null } url?: string type?: 'website' | 'article' }) => Metadata` |
+| generateSanityMetadata | `(options: { // Fields are nullable to accept TypeGen query-result types directly // (projections type optional fields as `T | null`). document: { title?: string | null metadata?: { title?: string | null description?: string | null keywords?: string[] | null noIndex?: boolean | null } | null _updatedAt?: string | null publishedAt?: string | null /** Body prose used to derive a description when the editor left one blank. */ excerpt?: string | null } url?: string type?: 'website' | 'article' }) => Metadata` |
 
 ### Raf (`@/utils/raf`)
 

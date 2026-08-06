@@ -67,6 +67,51 @@ export function breadcrumbSchema(
   }
 }
 
+/**
+ * A listing page — index, archive, category — as `CollectionPage` wrapping an
+ * `ItemList` of what it links to.
+ *
+ * Without this a listing is just a page of links: a crawler has to follow
+ * every one to learn what the collection contains, and an answer engine
+ * asking "what has this studio worked on?" has nothing to read in one fetch.
+ * The `ItemList` states the membership and the order directly.
+ *
+ * `url` and every item `url` must be absolute — relative paths are dropped by
+ * most consumers, and a half-relative `ItemList` validates clean while
+ * pointing nowhere.
+ */
+export function collectionPageSchema(input: {
+  name: string
+  url: string
+  description?: string
+  items: { name: string; url: string }[]
+}): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: input.name,
+    url: input.url,
+    isPartOf: { '@id': WEBSITE_ID },
+    ...(input.description ? { description: input.description } : {}),
+    // An empty list is worse than no list: it asserts the collection is
+    // empty rather than leaving the question open.
+    ...(input.items.length
+      ? {
+          mainEntity: {
+            '@type': 'ItemList',
+            numberOfItems: input.items.length,
+            itemListElement: input.items.map((item, index) => ({
+              '@type': 'ListItem',
+              position: index + 1,
+              name: item.name,
+              url: item.url,
+            })),
+          },
+        }
+      : {}),
+  }
+}
+
 export function articleSchema(input: {
   headline: string
   description?: string

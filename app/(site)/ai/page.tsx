@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 
+import { routeAlternates } from '@/lib/seo/alternates'
 import { formatList, SITE } from '@/lib/seo/site'
 
 /**
@@ -30,9 +31,7 @@ import { formatList, SITE } from '@/lib/seo/site'
 export const metadata: Metadata = {
   title: 'Machine view',
   description: `Plain-text index of ${SITE.name} for AI agents and crawlers.`,
-  alternates: {
-    canonical: '/ai',
-  },
+  alternates: routeAlternates('/ai'),
 }
 
 /**

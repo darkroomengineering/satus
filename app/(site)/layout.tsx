@@ -14,6 +14,7 @@ import { APP_BASE_URL, env } from '@/lib/env'
 import { OptionalFeatures } from '@/lib/features'
 import { isConfigured } from '@/lib/integrations/registry'
 import { SanityLive } from '@/lib/integrations/sanity/live'
+import { routeAlternates } from '@/lib/seo/alternates'
 import { JsonLd } from '@/lib/seo/json-ld'
 import { organizationSchema, websiteSchema } from '@/lib/seo/schemas'
 import { themes } from '@/lib/styles/colors'
@@ -33,13 +34,12 @@ export const metadata: Metadata = {
   },
   description: APP_DESCRIPTION,
   alternates: {
-    canonical: '/',
+    // Only the home route's canonical. Child routes build their own through
+    // `routeAlternates` — inheriting this one would canonicalize the whole
+    // site to `/`.
+    ...routeAlternates('/'),
     languages: {
       'en-US': '/en-US',
-    },
-    // Advertises the plain-text mirror via <link rel="alternate" type="text/plain">.
-    types: {
-      'text/plain': [{ url: '/llms.txt', title: 'llms.txt' }],
     },
   },
   appleWebApp: {

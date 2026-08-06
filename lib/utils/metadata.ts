@@ -1,6 +1,37 @@
 import type { Metadata } from 'next'
 
 import { APP_BASE_URL, env } from '@/lib/env'
+import { routeAlternates } from '@/lib/seo/alternates'
+
+/** Roughly where Google truncates a description in a result snippet. */
+const DESCRIPTION_MAX_LENGTH = 155
+
+/**
+ * Trims prose to snippet length on a word boundary.
+ *
+ * For deriving a description from body copy when a page has no hand-written
+ * one. A page that inherits the site-wide description is, to an answer
+ * engine, indistinguishable from every other page — a real sentence from the
+ * page's own content is worth more than a polished generic one.
+ *
+ * Returns `''` for empty input so callers can use `||` to fall through to
+ * their own fallback rather than emitting an empty `description` tag.
+ */
+export function truncateDescription(
+  text: string | null | undefined,
+  maxLength: number = DESCRIPTION_MAX_LENGTH
+): string {
+  const collapsed = text?.replace(/\s+/g, ' ').trim()
+  if (!collapsed) return ''
+  if (collapsed.length <= maxLength) return collapsed
+
+  const clipped = collapsed.slice(0, maxLength)
+  const lastSpace = clipped.lastIndexOf(' ')
+
+  // A single word longer than the limit has no space to cut at; hard-clip it
+  // rather than returning the whole untruncated string.
+  return `${(lastSpace > 0 ? clipped.slice(0, lastSpace) : clipped).trimEnd()}…`
+}
 
 /**
  * Metadata Generation Utilities
@@ -74,9 +105,7 @@ export function generatePageMetadata(
     title,
     description,
     keywords,
-    alternates: {
-      canonical: url ?? '/',
-    },
+    alternates: routeAlternates(url ?? '/'),
     openGraph: {
       title,
       description,
@@ -154,6 +183,8 @@ export function generateSanityMetadata(options: {
     } | null
     _updatedAt?: string | null
     publishedAt?: string | null
+    /** Body prose used to derive a description when the editor left one blank. */
+    excerpt?: string | null
   }
   url?: string
   type?: 'website' | 'article'
@@ -161,10 +192,16 @@ export function generateSanityMetadata(options: {
   const { document, url, type = 'website' } = options
   const metadata = document.metadata
 
+  // Editors leave the SEO description empty far more often than they leave the
+  // body empty, and a page with no description of its own inherits the
+  // site-wide one — which makes every such page look identical to a crawler.
+  const derivedDescription = truncateDescription(document.excerpt)
+
   if (!metadata) {
     // Fallback to basic metadata if none provided
     return generatePageMetadata({
       ...(document.title ? { title: document.title } : {}),
+      ...(derivedDescription ? { description: derivedDescription } : {}),
       ...(url && { url }),
       type,
     })
@@ -179,9 +216,11 @@ export function generateSanityMetadata(options: {
   const { description, keywords, noIndex } = metadata
   const { publishedAt, _updatedAt } = document
 
+  const resolvedDescription = description || derivedDescription
+
   return generatePageMetadata({
     ...(title ? { title } : {}),
-    ...(description ? { description } : {}),
+    ...(resolvedDescription ? { description: resolvedDescription } : {}),
     ...(keywords ? { keywords } : {}),
     ...(url && { url }),
     ...(noIndex != null && { noIndex }),

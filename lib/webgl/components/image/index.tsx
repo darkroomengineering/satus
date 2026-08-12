@@ -38,13 +38,20 @@ export function Image({
 }: DRImageProps) {
   const [src, setSrc] = useState<string>()
   const { setRef, rect, isVisible } = useWebGLElement<HTMLDivElement>()
-  const { isWebGL } = useDeviceDetection()
+  const { isWebGL, isReducedMotion } = useDeviceDetection()
+
+  // Hide the DOM image only when the WebGL canvas will actually render its
+  // replacement. `Canvas` mounts on `isWebGL && !isReducedMotion` (see
+  // components/canvas), so gating on `isWebGL` alone would blank the image for
+  // a reduced-motion visitor whose canvas never mounts — the exact fallback
+  // the module contract promises. Match the canvas's default gate.
+  const webglActive = isWebGL && !isReducedMotion
 
   return (
     <div
       className={className}
       style={{
-        opacity: src && isWebGL ? 0 : 1,
+        opacity: src && webglActive ? 0 : 1,
         position: 'relative',
       }}
       ref={setRef}

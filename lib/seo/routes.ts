@@ -94,9 +94,9 @@ export function buildRoutesFromDocuments(data: unknown): ContentRoute[] {
       internalLink: { _type: doc._type, slug: doc.slug },
     })
 
-    // `path === '#'` is unresolvable; a `staticPaths` hit means the document
-    // stands in for an already-listed static route (e.g. a `page` with slug
-    // `home`, which `urlForReference` resolves to `/`).
+    // `path === '#'` is unresolvable; a `staticPaths` hit means the document's
+    // slug collides with an already-listed static route (e.g. a `page` with
+    // slug `ai` resolves to `/ai`, which the static route already serves).
     if (path === '#' || staticPaths.has(path)) continue
 
     routes.set(path, {

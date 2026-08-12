@@ -21,9 +21,10 @@ import { schema } from './schemas'
 // module: it's dual-compiled into the client bundle for the Studio route).
 function resolveHref(documentType?: string, slug?: string): string | undefined {
   switch (documentType) {
+    // `home` is not special-cased: `/` is the developer-owned starter page,
+    // so a `home` document previews at `/home` like any other slug.
     case 'page':
-      if (!slug) return undefined
-      return slug === 'home' ? '/' : `/${slug}`
+      return slug ? `/${slug}` : undefined
     case 'article':
       return slug ? `/articles/${slug}` : undefined
     default:
@@ -68,14 +69,6 @@ export default projectId && dataset
               {
                 route: '/articles/:slug',
                 filter: `_type == "article" && slug.current == $slug`,
-              },
-              // `resolveHref('page', 'home')` returns '/', so the homepage
-              // document needs its own mapping — '/:slug' cannot match an
-              // empty segment, and without this Presentation can't associate
-              // the previewed homepage back to its document.
-              {
-                route: '/',
-                filter: `_type == "page" && slug.current == "home"`,
               },
               {
                 route: '/:slug',

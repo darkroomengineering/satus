@@ -8,7 +8,14 @@
  *   applyCodeTransforms — disk-writing orchestrator used by setup/satus
  */
 
-import { IndentationText, Project, QuoteKind, ts } from 'ts-morph'
+import {
+  IndentationText,
+  Project,
+  QuoteKind,
+  type SourceFile,
+  SyntaxKind,
+  ts,
+} from 'ts-morph'
 
 import type { AstOperation, CodeTransform } from '../ast-operation-types'
 import { resolvePath } from '../utils'
@@ -21,6 +28,7 @@ import {
   applyAddJsxChild,
   applyAddVariableStatement,
 } from './add-ops'
+import { resolvePropertyPath, withSourceFile } from './helpers'
 import {
   applyRemoveArrayObjectElement,
   applyRemoveArrayStringElement,
@@ -114,6 +122,102 @@ function describeOp(op: AstOperation): string {
   }
 }
 
+/**
+ * For a missed `required: true` op, decide whether the miss is provably
+ * drift rather than a previous run's completed work. Some op kinds target a
+ * construct INSIDE a container (a directive inside a named function, a
+ * property on a named interface) — for those, the two causes of a miss are
+ * distinguishable:
+ *
+ * - container present, construct gone → a previous run removed the
+ *   construct; the miss is the idempotent re-run case. Returns false.
+ * - container gone → the op's premise no longer exists in the source (a
+ *   renamed function, a restructured config object) — drift, even when the
+ *   file is otherwise byte-identical. Returns true.
+ *
+ * Kinds whose target IS the whole construct (an import, a variable
+ * statement, a JSX element) have no container to probe — absence is
+ * genuinely ambiguous there, and the function returns false (tolerated).
+ * Each probe mirrors the corresponding handler's lookup in remove-ops.ts /
+ * set-ops.ts, so "container present" means the handler would have found it.
+ *
+ * Caveat this encodes: a container-anchored required op assumes no sibling
+ * transform removes its container — if one did, the retry would read the
+ * missing container as drift and fail. No current bundle does this (there
+ * is no op kind that removes whole functions, interfaces, destructurings,
+ * or config variables).
+ */
+function missedRequiredOpAnchorAbsent(
+  project: Project,
+  sourceText: string,
+  op: AstOperation
+): boolean {
+  const probe = (check: (sf: SourceFile) => boolean) => {
+    let present = false
+    withSourceFile(project, sourceText, (sf) => {
+      present = check(sf)
+      return sourceText // never mutate — probe only
+    })
+    return !present
+  }
+
+  switch (op.kind) {
+    case 'removeUseCacheDirective':
+    case 'replaceFunctionBody':
+    case 'replaceJsDoc':
+    case 'removeFunctionParameter':
+      return probe((sf) => sf.getFunction(op.functionName) !== undefined)
+    case 'removeInterfaceProperty':
+      return probe((sf) => sf.getInterface(op.interfaceName) !== undefined)
+    case 'removeDestructuredBinding':
+      return probe((sf) =>
+        sf
+          .getDescendantsOfKind(SyntaxKind.VariableStatement)
+          .some((stmt) =>
+            stmt
+              .getDeclarations()
+              .some(
+                (decl) =>
+                  decl.getNameNode().getKind() ===
+                    SyntaxKind.ObjectBindingPattern &&
+                  (decl.getInitializer()?.getText() ?? '').includes(
+                    op.initializerContains
+                  )
+              )
+          )
+      )
+    case 'removeCallArgument':
+      return probe((sf) =>
+        sf
+          .getDescendantsOfKind(SyntaxKind.CallExpression)
+          .some((call) => call.getExpression().getText() === op.callee)
+      )
+    case 'removeJsxAttribute':
+      return probe(
+        (sf) =>
+          sf
+            .getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement)
+            .some((el) => el.getTagNameNode().getText() === op.tagName) ||
+          sf
+            .getDescendantsOfKind(SyntaxKind.JsxElement)
+            .some(
+              (el) =>
+                el.getOpeningElement().getTagNameNode().getText() === op.tagName
+            )
+      )
+    case 'removeArrayObjectElement':
+    case 'removeArrayStringElement':
+    case 'setObjectProperty':
+      return probe(
+        (sf) =>
+          resolvePropertyPath(sf, op.variableName, op.propertyPath) !==
+          undefined
+      )
+    default:
+      return false
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Per-file transform runner
 // ---------------------------------------------------------------------------
@@ -143,11 +247,23 @@ function describeOp(op: AstOperation): string {
  *   "repeat the run" permanently fail with no way forward but a manual
  *   `git checkout`.
  *
- * The tradeoff: a file so drifted that NO op matches is indistinguishable
- * from an already-transformed file and passes silently. Every pinned drift
- * scenario (a renamed function, a restructured try-block) leaves sibling
- * ops matching, so partial application still catches them — see
- * `RequiredMatchOp`'s docstring in `ast-operation-types.ts`.
+ * A byte-identical file gets one more check before passing: a missed
+ * required op whose CONTAINER construct is gone (a `'use cache'` directive
+ * whose named function no longer exists, an interface property whose
+ * interface is missing) is provable drift — the already-applied case leaves
+ * the container standing — and throws even with no other change. See
+ * `missedRequiredOpAnchorAbsent`. This is what keeps a single-op required
+ * transform (e.g. `CACHE_COMPONENTS_LLMS_TXT_TRANSFORM`) protected: it can
+ * never trip the partial-application signal, so the anchor probe is its
+ * only drift detection.
+ *
+ * The remaining tradeoff: for container-less op kinds (an import, a
+ * variable statement, a JSX element), a file so drifted that NO op matches
+ * is indistinguishable from an already-transformed file and passes
+ * silently. Every pinned drift scenario (a renamed function, a
+ * restructured try-block) leaves sibling ops matching, so partial
+ * application still catches them — see `RequiredMatchOp`'s docstring in
+ * `ast-operation-types.ts`.
  */
 export function applyOpsToText(
   sourceText: string,
@@ -254,10 +370,24 @@ export function applyOpsToText(
 
   // Judged after the whole sequence, not at the first miss — see the
   // required-match contract in this function's docstring.
-  if (missedRequiredOps.length > 0 && text !== sourceText) {
-    throw new RequiredOpMatchError(
-      `Required op(s) matched nothing while others applied (source shape may have drifted): ${missedRequiredOps.map(describeOp).join(', ')}`
+  if (missedRequiredOps.length > 0) {
+    if (text !== sourceText) {
+      throw new RequiredOpMatchError(
+        `Required op(s) matched nothing while others applied (source shape may have drifted): ${missedRequiredOps.map(describeOp).join(', ')}`
+      )
+    }
+
+    // Byte-identical file: usually a previous run's completed work — but a
+    // container-anchored op whose container is GONE is provable drift even
+    // here (the already-applied case leaves the container standing).
+    const orphaned = missedRequiredOps.filter((op) =>
+      missedRequiredOpAnchorAbsent(project, text, op)
     )
+    if (orphaned.length > 0) {
+      throw new RequiredOpMatchError(
+        `Required op(s) matched nothing and their anchor construct is missing (source shape may have drifted): ${orphaned.map(describeOp).join(', ')}`
+      )
+    }
   }
 
   return text

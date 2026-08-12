@@ -569,6 +569,38 @@ describe('RequiredOpMatchError (required-match contract)', () => {
     expect(result).toBe(src)
   })
 
+  // A single-op required transform can never trip the partial-application
+  // signal, so the anchor probe is its only drift detection: the miss is
+  // tolerated only while the op's container construct still exists.
+  it('single required op: container present without the construct no-ops (already applied)', async () => {
+    const content = await Bun.file(
+      CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.file
+    ).text()
+    // First application strips the directive; buildBody itself survives.
+    const stripped = applyOpsToText(
+      content,
+      CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.ops
+    )
+    expect(stripped).not.toBe(content)
+    expect(
+      applyOpsToText(stripped, CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.ops)
+    ).toBe(stripped)
+  })
+
+  it('single required op: a missing container throws even on a byte-identical file', async () => {
+    const content = await Bun.file(
+      CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.file
+    ).text()
+    // The drift Codex's cross-model review called out: buildBody renamed →
+    // the directive op misses AND nothing else changes the file, but the
+    // op's premise is gone — Cache Components would be disabled while a
+    // 'use cache' directive stays behind.
+    const drifted = content.replaceAll('buildBody', 'composeBody')
+    expect(() =>
+      applyOpsToText(drifted, CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.ops)
+    ).toThrow(RequiredOpMatchError)
+  })
+
   it('re-applying a real bundle transform to an already-stripped file no-ops', () => {
     // The exact H5 scenario: a required op late in setupLean's union fails
     // after lib/seo/routes.ts was already stripped and written; the retry

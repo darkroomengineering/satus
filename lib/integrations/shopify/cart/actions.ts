@@ -138,6 +138,20 @@ export async function addItem(
     const _cookies = await cookies()
     let cartId = _cookies.get('cartId')?.value
 
+    // A cart id in the cookie can be stale: Shopify nulls a cart once its
+    // checkout completes, but the 30-day cookie outlives it. Reusing a dead id
+    // makes every post-checkout add fail until the cookie expires. Verify the
+    // cart is still live and drop a dead id so the create-fresh branch runs.
+    // Guard the check: a transient getCart failure must not orphan a live cart,
+    // so on error keep the id and let addToCart surface any real problem.
+    if (cartId) {
+      try {
+        if (!(await getCart(cartId))) cartId = undefined
+      } catch {
+        // Liveness check failed transiently — keep the existing id.
+      }
+    }
+
     // This is here because cookie can only be set server side
     // and useFormState executes the addItem action in the server
     if (!cartId) {

@@ -3,12 +3,12 @@
 import cn from 'clsx'
 import { useRouter } from 'next/navigation'
 import type { KeyboardEvent, ReactNode } from 'react'
-import { createContext, use, useState } from 'react'
-import { useFormStatus } from 'react-dom'
+import { createContext, use, useState, useTransition } from 'react'
 
 import { Image } from '@/components/ui/image'
 import { Link } from '@/components/ui/link'
 import { formatMoney } from '@/integrations/shopify/money'
+import type { CartLineItem } from '@/integrations/shopify/types'
 
 import { removeItem, updateItemQuantity } from '../actions'
 import { useCartContext } from '../cart-store-context'
@@ -20,35 +20,6 @@ interface ModalContextType {
   isOpen: boolean
   openCart: () => void
   closeCart: () => void
-}
-
-interface QuantityPayload {
-  merchandiseId: string
-  quantity: number
-  lineId?: string | undefined
-}
-
-interface QuantityProps {
-  className?: string
-  payload: QuantityPayload
-}
-
-interface QuantityButtonProps {
-  // Matches React's form action signature. It has to allow a promise: React
-  // keeps useFormStatus().pending true until the returned promise settles, and
-  // QuantitySubmitButton disables itself on that. Typing this `() => void`
-  // forces call sites to swallow the promise and the button stops staying
-  // disabled during the update.
-  formAction: () => void | Promise<void>
-  className?: string
-  children: ReactNode
-  'aria-label': string
-}
-
-interface RemoveButtonProps {
-  merchandiseId: string
-  lineId?: string | undefined
-  className?: string
 }
 
 const ModalContext = createContext<ModalContextType>({
@@ -119,60 +90,8 @@ function InnerCart() {
     <>
       <p className={s.heading}>your cart</p>
       <div className={s.lines} data-lenis-prevent>
-        {cart?.lines?.map(({ id, merchandise, cost, quantity }) => (
-          <div className={s.line} key={id}>
-            <div className={s.media}>
-              <Image
-                src={merchandise.product.featuredImage?.url ?? ''}
-                alt={merchandise.product.featuredImage?.altText ?? ''}
-                // The drawer is 75vw (mobile) / 50vw (desktop) and `.media`
-                // spans 2 of its 6 columns, so a third of each.
-                mobileSize="25vw"
-                desktopSize="17vw"
-                // Product shots vary in aspect and must not be cropped in the
-                // cart. This has to be the prop, not CSS: Image writes
-                // object-fit inline, which outranks any stylesheet rule.
-                objectFit="contain"
-                {...(merchandise.product.featuredImage?.width &&
-                merchandise.product.featuredImage?.height
-                  ? {
-                      width: merchandise.product.featuredImage.width,
-                      height: merchandise.product.featuredImage.height,
-                    }
-                  : // Shopify doesn't guarantee image dimensions — fall back
-                    // to a square box so the cart line keeps a stable layout.
-                    { aspectRatio: 1 })}
-              />
-            </div>
-
-            <div className={s.info}>
-              <div className={s.details}>
-                <p className={s.title}>{merchandise?.product?.title}</p>
-                <p className={s.size}>
-                  SIZE: {merchandise?.selectedOptions?.[0]?.value}
-                </p>
-              </div>
-            </div>
-
-            <RemoveButton
-              merchandiseId={merchandise.id}
-              lineId={id}
-              className={s.remove ?? ''}
-            />
-
-            <Quantity
-              className={s.quantity ?? ''}
-              payload={{
-                merchandiseId: merchandise.id,
-                quantity,
-                lineId: id,
-              }}
-            />
-
-            <p className={s.price}>
-              {cost?.totalAmount ? formatMoney(cost.totalAmount) : ''}
-            </p>
-          </div>
+        {cart?.lines?.map((line) => (
+          <CartLine key={line.id} line={line} />
         ))}
       </div>
       <div className={s.checkout}>
@@ -194,126 +113,131 @@ function InnerCart() {
   )
 }
 
-function Quantity({ className, payload }: QuantityProps) {
+/**
+ * One cart line, with quantity steppers and a remove control.
+ *
+ * All three controls share a single `isPending` transition, so only one
+ * mutation for this line can be in flight at a time. This is the fix for the
+ * concurrent-mutation race: each control computes an ABSOLUTE target quantity
+ * from `quantity` (the current render's value), so two overlapping clicks
+ * (a fast +/− before the first resolves) would otherwise send conflicting
+ * absolutes — e.g. 6 and 4 off a base of 5 — and whichever server response
+ * landed last would win, never the intended value. Serialising per line means
+ * the second click is disabled until the first settles and the displayed
+ * quantity has advanced, so each mutation builds on the previous one.
+ */
+function CartLine({ line }: { line: CartLineItem }) {
+  const { id, merchandise, cost, quantity } = line
   const { actions } = useCartContext()
   const { updateCartItem } = actions
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition()
 
-  async function formAction(type: 'minus' | 'plus') {
-    const updatePayload = {
-      ...payload,
-      quantity: Math.max(1, payload.quantity + quantityAction[type]),
-    }
+  function changeQuantity(type: 'minus' | 'plus') {
+    startTransition(async () => {
+      updateCartItem(merchandise.id, type)
+      const result = await updateItemQuantity(null, {
+        merchandiseId: merchandise.id,
+        quantity: Math.max(1, quantity + quantityAction[type]),
+        lineId: id,
+      })
+      setError(result.ok ? null : result.error)
+      // Sync server state with the optimistic update.
+      router.refresh()
+    })
+  }
 
-    updateCartItem(payload.merchandiseId, type)
-    const result = await updateItemQuantity(null, updatePayload)
-
-    setError(result.ok ? null : result.error)
-
-    // Refresh the router to sync server state with optimistic state
-    router.refresh()
+  function remove() {
+    startTransition(async () => {
+      updateCartItem(merchandise.id, 'delete')
+      const result = await removeItem(null, merchandise.id, id)
+      setError(result.ok ? null : result.error)
+      router.refresh()
+    })
   }
 
   return (
-    <div className={className}>
-      <QuantityButton
-        formAction={() => formAction('minus')}
-        aria-label="Decrease quantity"
-      >
-        -
-      </QuantityButton>
-      <span>{payload.quantity}</span>
-      <QuantityButton
-        formAction={() => formAction('plus')}
-        aria-label="Increase quantity"
-      >
-        +
-      </QuantityButton>
-      {error && (
-        <p role="status" aria-live="polite" className={cn('p1', s.actionError)}>
-          {error}
-        </p>
-      )}
-    </div>
-  )
-}
+    <div className={s.line}>
+      <div className={s.media}>
+        <Image
+          src={merchandise.product.featuredImage?.url ?? ''}
+          alt={merchandise.product.featuredImage?.altText ?? ''}
+          // The drawer is 75vw (mobile) / 50vw (desktop) and `.media`
+          // spans 2 of its 6 columns, so a third of each.
+          mobileSize="25vw"
+          desktopSize="17vw"
+          // Product shots vary in aspect and must not be cropped in the
+          // cart. This has to be the prop, not CSS: Image writes
+          // object-fit inline, which outranks any stylesheet rule.
+          objectFit="contain"
+          {...(merchandise.product.featuredImage?.width &&
+          merchandise.product.featuredImage?.height
+            ? {
+                width: merchandise.product.featuredImage.width,
+                height: merchandise.product.featuredImage.height,
+              }
+            : // Shopify doesn't guarantee image dimensions — fall back
+              // to a square box so the cart line keeps a stable layout.
+              { aspectRatio: 1 })}
+        />
+      </div>
 
-function QuantitySubmitButton({
-  children,
-  'aria-label': ariaLabel,
-}: {
-  children: ReactNode
-  'aria-label': string
-}) {
-  const { pending } = useFormStatus()
-  return (
-    <button
-      type="submit"
-      className="p1"
-      aria-label={ariaLabel}
-      disabled={pending}
-    >
-      {children}
-    </button>
-  )
-}
+      <div className={s.info}>
+        <div className={s.details}>
+          <p className={s.title}>{merchandise?.product?.title}</p>
+          <p className={s.size}>
+            SIZE: {merchandise?.selectedOptions?.[0]?.value}
+          </p>
+        </div>
+      </div>
 
-function QuantityButton({
-  formAction,
-  className,
-  children,
-  'aria-label': ariaLabel,
-}: QuantityButtonProps) {
-  return (
-    <form action={formAction} className={className}>
-      <QuantitySubmitButton aria-label={ariaLabel}>
-        {children}
-      </QuantitySubmitButton>
-    </form>
-  )
-}
+      <div className={s.remove ?? ''}>
+        <button
+          type="button"
+          className="p1"
+          aria-label="Remove cart item"
+          disabled={isPending}
+          onClick={remove}
+        >
+          remove
+        </button>
+      </div>
 
-function RemoveSubmitButton() {
-  const { pending } = useFormStatus()
-  return (
-    <button
-      type="submit"
-      className="p1"
-      aria-label="Remove cart item"
-      disabled={pending}
-    >
-      remove
-    </button>
-  )
-}
+      <div className={s.quantity ?? ''}>
+        <button
+          type="button"
+          className="p1"
+          aria-label="Decrease quantity"
+          disabled={isPending}
+          onClick={() => changeQuantity('minus')}
+        >
+          -
+        </button>
+        <span>{quantity}</span>
+        <button
+          type="button"
+          className="p1"
+          aria-label="Increase quantity"
+          disabled={isPending}
+          onClick={() => changeQuantity('plus')}
+        >
+          +
+        </button>
+        {error && (
+          <p
+            role="status"
+            aria-live="polite"
+            className={cn('p1', s.actionError)}
+          >
+            {error}
+          </p>
+        )}
+      </div>
 
-function RemoveButton({ merchandiseId, lineId, className }: RemoveButtonProps) {
-  const { actions } = useCartContext()
-  const { updateCartItem } = actions
-  const router = useRouter()
-  const [error, setError] = useState<string | null>(null)
-
-  async function formAction() {
-    updateCartItem(merchandiseId, 'delete')
-    const result = await removeItem(null, merchandiseId, lineId)
-
-    setError(result.ok ? null : result.error)
-
-    // Refresh the router to sync server state with optimistic state
-    router.refresh()
-  }
-
-  return (
-    <div className={className}>
-      <form action={formAction}>
-        <RemoveSubmitButton />
-      </form>
-      {error && (
-        <p role="status" aria-live="polite" className={cn('p1', s.actionError)}>
-          {error}
-        </p>
-      )}
+      <p className={s.price}>
+        {cost?.totalAmount ? formatMoney(cost.totalAmount) : ''}
+      </p>
     </div>
   )
 }

@@ -516,10 +516,14 @@ describe('Preset Configurations', () => {
 // ---------------------------------------------------------------------------
 
 describe('RequiredOpMatchError (required-match contract)', () => {
-  it('applyOpsToText throws when a required op matches nothing', () => {
-    const src = 'export function foo() {\n  return 1\n}\n'
+  it('applyOpsToText throws when a required op misses while a sibling op applies', () => {
+    // Partial application is the hazard the contract guards: the `bar`
+    // removal succeeds (file changed) while the required `doesNotExist`
+    // removal finds nothing — drifted source, not an already-stripped file.
+    const src = 'const bar = 1\nexport function foo() {\n  return bar\n}\n'
     expect(() =>
       applyOpsToText(src, [
+        { kind: 'removeVariableStatement', name: 'bar', required: true },
         {
           kind: 'removeVariableStatement',
           name: 'doesNotExist',
@@ -529,10 +533,12 @@ describe('RequiredOpMatchError (required-match contract)', () => {
     ).toThrow(RequiredOpMatchError)
   })
 
-  it('the thrown error names the op and hints at drift', () => {
-    const src = 'export function foo() {\n  return 1\n}\n'
+  it('the thrown error names the missed op and hints at drift', () => {
+    const src =
+      "import { x } from '@/exists'\nconst bar = 1\nexport function foo() {\n  return bar + x\n}\n"
     expect(() =>
       applyOpsToText(src, [
+        { kind: 'removeVariableStatement', name: 'bar', required: true },
         {
           kind: 'removeImport',
           specifier: '@/does/not/exist',
@@ -540,6 +546,92 @@ describe('RequiredOpMatchError (required-match contract)', () => {
         },
       ])
     ).toThrow(/drifted.*removeImport '@\/does\/not\/exist'/is)
+  })
+
+  it('a transform where EVERY required op misses no-ops (re-run recovery)', () => {
+    // The inverse of the partial case: a byte-identical result means a
+    // previous run already applied this transform (writes are per-file
+    // atomic), so repeating an aborted setup:project run must succeed here
+    // instead of throwing on work the first run finished.
+    const src = 'export function foo() {\n  return 1\n}\n'
+    const result = applyOpsToText(src, [
+      {
+        kind: 'removeVariableStatement',
+        name: 'doesNotExist',
+        required: true,
+      },
+      {
+        kind: 'removeImport',
+        specifier: '@/does/not/exist',
+        required: true,
+      },
+    ])
+    expect(result).toBe(src)
+  })
+
+  // A single-op required transform can never trip the partial-application
+  // signal, so the anchor probe is its only drift detection: the miss is
+  // tolerated only while the op's container construct still exists.
+  it('single required op: container present without the construct no-ops (already applied)', async () => {
+    const content = await Bun.file(
+      CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.file
+    ).text()
+    // First application strips the directive; buildBody itself survives.
+    const stripped = applyOpsToText(
+      content,
+      CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.ops
+    )
+    expect(stripped).not.toBe(content)
+    expect(
+      applyOpsToText(stripped, CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.ops)
+    ).toBe(stripped)
+  })
+
+  it('single required op: a missing container throws even on a byte-identical file', async () => {
+    const content = await Bun.file(
+      CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.file
+    ).text()
+    // The drift Codex's cross-model review called out: buildBody renamed →
+    // the directive op misses AND nothing else changes the file, but the
+    // op's premise is gone — Cache Components would be disabled while a
+    // 'use cache' directive stays behind.
+    const drifted = content.replaceAll('buildBody', 'composeBody')
+    expect(() =>
+      applyOpsToText(drifted, CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.ops)
+    ).toThrow(RequiredOpMatchError)
+  })
+
+  it('single required op: a directive that MOVED to another function throws', async () => {
+    // Cross-model review round 2: the function-exists probe alone reads a
+    // relocated 'use cache' as already-applied — buildBody stands
+    // directive-less — but disabling Cache Components requires every
+    // directive gone, so a survivor anywhere in the file is drift.
+    const content = await Bun.file(
+      CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.file
+    ).text()
+    const stripped = applyOpsToText(
+      content,
+      CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.ops
+    )
+    const moved = `${stripped}\n\nasync function elsewhere() {\n  'use cache'\n  return null\n}\n`
+    expect(() =>
+      applyOpsToText(moved, CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.ops)
+    ).toThrow(RequiredOpMatchError)
+  })
+
+  it('re-applying a real bundle transform to an already-stripped file no-ops', () => {
+    // The exact H5 scenario: a required op late in setupLean's union fails
+    // after lib/seo/routes.ts was already stripped and written; the retry
+    // reapplies the same ops to the stripped file and must not throw.
+    const content = sourceFiles['lib/seo/routes.ts']
+    const bundle = INTEGRATION_BUNDLES.sanity
+    const transform = bundle?.codeTransforms.find(
+      (t) => t.file === 'lib/seo/routes.ts'
+    )
+    if (!(content && transform)) return
+
+    const lean = applyOpsToText(content, transform.ops)
+    expect(applyOpsToText(lean, transform.ops)).toBe(lean)
   })
 
   it('a required op that DOES match does not throw', () => {

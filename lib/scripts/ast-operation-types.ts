@@ -6,14 +6,22 @@
 
 /**
  * Shared by every op: a required-match contract (cross-model review
- * finding). When `required` is true and the op matches nothing on the file
- * it's applied to, the runner (`applyOpsToText` in `ast-transforms/index.ts`)
- * throws instead of silently leaving the file unchanged — a source shape
- * that drifted out from under a strip transform (a rename, a moved
- * function, a restructured try/catch) would otherwise strip an import while
- * leaving the code that used it, producing a tree that fails to build with
- * no signal until `bun run build` — by which point `setup:project` has
- * already self-pruned the machinery that could have caught it.
+ * finding). When `required` is true, the op matches nothing on the file
+ * it's applied to, AND a sibling op in the same transform DID change the
+ * file, the runner (`applyOpsToText` in `ast-transforms/index.ts`) throws
+ * instead of silently leaving a partial result — a source shape that
+ * drifted out from under a strip transform (a rename, a moved function, a
+ * restructured try/catch) would otherwise strip an import while leaving the
+ * code that used it, producing a tree that fails to build with no signal
+ * until `bun run build` — by which point `setup:project` has already
+ * self-pruned the machinery that could have caught it.
+ *
+ * When EVERY op in the transform misses (the file comes back
+ * byte-identical), the runner no-ops instead: file writes are per-transform
+ * atomic, so an all-miss file is one a previous run already transformed.
+ * That makes required ops idempotent — repeating a `setup:project` run that
+ * aborted mid-batch succeeds over the half-stripped tree instead of
+ * throwing on the files the first run finished.
  *
  * Defaults to false/undefined: most ops are intentionally best-effort or
  * idempotent by design (e.g. an additive op that's a legitimate no-op
@@ -26,8 +34,12 @@
  */
 export interface RequiredMatchOp {
   /**
-   * When true, zero matches for this op on the file it's applied to is a
-   * hard failure, not a silent no-op.
+   * When true, zero matches for this op is a hard failure when it is
+   * evidence of drift: a sibling op changed the file (partial application),
+   * or the op's container construct is gone (`missedRequiredOpAnchorAbsent`
+   * in `ast-transforms/index.ts`). A miss on a byte-identical file whose
+   * container survives is tolerated as a previous run's completed work —
+   * the idempotent re-run contract described above.
    */
   required?: boolean
 }

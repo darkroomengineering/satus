@@ -8,7 +8,14 @@
  *   applyCodeTransforms — disk-writing orchestrator used by setup/satus
  */
 
-import { IndentationText, Project, QuoteKind, ts } from 'ts-morph'
+import {
+  IndentationText,
+  Project,
+  QuoteKind,
+  type SourceFile,
+  SyntaxKind,
+  ts,
+} from 'ts-morph'
 
 import type { AstOperation, CodeTransform } from '../ast-operation-types'
 import { resolvePath } from '../utils'
@@ -21,6 +28,7 @@ import {
   applyAddJsxChild,
   applyAddVariableStatement,
 } from './add-ops'
+import { resolvePropertyPath, withSourceFile } from './helpers'
 import {
   applyRemoveArrayObjectElement,
   applyRemoveArrayStringElement,
@@ -114,6 +122,121 @@ function describeOp(op: AstOperation): string {
   }
 }
 
+/**
+ * For a missed `required: true` op, decide whether the miss is provably
+ * drift rather than a previous run's completed work. Some op kinds target a
+ * construct INSIDE a container (a directive inside a named function, a
+ * property on a named interface) — for those, the two causes of a miss are
+ * distinguishable:
+ *
+ * - container present, construct gone → a previous run removed the
+ *   construct; the miss is the idempotent re-run case. Returns false.
+ * - container gone → the op's premise no longer exists in the source (a
+ *   renamed function, a restructured config object) — drift, even when the
+ *   file is otherwise byte-identical. Returns true.
+ *
+ * Kinds whose target IS the whole construct (an import, a variable
+ * statement, a JSX element) have no container to probe — absence is
+ * genuinely ambiguous there, and the function returns false (tolerated).
+ * Each probe mirrors the corresponding handler's lookup in remove-ops.ts /
+ * set-ops.ts, so "container present" means the handler would have found it.
+ *
+ * Caveat this encodes: a container-anchored required op assumes no sibling
+ * transform removes its container — if one did, the retry would read the
+ * missing container as drift and fail. No current bundle does this (there
+ * is no op kind that removes whole functions, interfaces, destructurings,
+ * or config variables).
+ */
+function missedRequiredOpAnchorAbsent(
+  project: Project,
+  sourceText: string,
+  op: AstOperation
+): boolean {
+  const probe = (check: (sf: SourceFile) => boolean) => {
+    let present = false
+    withSourceFile(project, sourceText, (sf) => {
+      present = check(sf)
+      return sourceText // never mutate — probe only
+    })
+    return !present
+  }
+
+  switch (op.kind) {
+    // Stricter than function-exists: this op only runs when Cache Components
+    // is being disabled, which requires EVERY `'use cache'` boundary in the
+    // file to be gone (see the op's docstring). A directive that merely MOVED
+    // to another function leaves the named function standing directive-less —
+    // indistinguishable from already-applied by the container probe alone —
+    // so any surviving directive anywhere in the file is also drift.
+    case 'removeUseCacheDirective':
+      return probe(
+        (sf) =>
+          sf.getFunction(op.functionName) !== undefined &&
+          !sf
+            .getDescendantsOfKind(SyntaxKind.ExpressionStatement)
+            .some(
+              (stmt) =>
+                stmt
+                  .getExpression()
+                  .asKind(SyntaxKind.StringLiteral)
+                  ?.getLiteralValue() === 'use cache'
+            )
+      )
+    case 'replaceFunctionBody':
+    case 'replaceJsDoc':
+    case 'removeFunctionParameter':
+      return probe((sf) => sf.getFunction(op.functionName) !== undefined)
+    case 'removeInterfaceProperty':
+      return probe((sf) => sf.getInterface(op.interfaceName) !== undefined)
+    case 'removeDestructuredBinding':
+      return probe((sf) =>
+        sf
+          .getDescendantsOfKind(SyntaxKind.VariableStatement)
+          .some((stmt) =>
+            stmt
+              .getDeclarations()
+              .some(
+                (decl) =>
+                  decl.getNameNode().getKind() ===
+                    SyntaxKind.ObjectBindingPattern &&
+                  (decl.getInitializer()?.getText() ?? '').includes(
+                    op.initializerContains
+                  )
+              )
+          )
+      )
+    case 'removeCallArgument':
+      return probe((sf) =>
+        sf
+          .getDescendantsOfKind(SyntaxKind.CallExpression)
+          .some((call) => call.getExpression().getText() === op.callee)
+      )
+    case 'removeJsxAttribute':
+      return probe(
+        (sf) =>
+          sf
+            .getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement)
+            .some((el) => el.getTagNameNode().getText() === op.tagName) ||
+          sf
+            .getDescendantsOfKind(SyntaxKind.JsxElement)
+            .some(
+              (el) =>
+                el.getOpeningElement().getTagNameNode().getText() === op.tagName
+            )
+      )
+    case 'removeArrayObjectElement':
+    case 'removeArrayStringElement':
+    case 'setObjectProperty':
+      return probe(
+        (sf) =>
+          resolvePropertyPath(sf, op.variableName, op.propertyPath) !==
+          undefined
+      )
+    default:
+      return false
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Per-file transform runner
 // ---------------------------------------------------------------------------
@@ -129,8 +252,36 @@ function describeOp(op: AstOperation): string {
  * between sequential ops.
  *
  * Required-match contract: an op with `required: true` that leaves `text`
- * byte-for-byte unchanged (no match found) throws `RequiredOpMatchError`
- * instead of silently continuing — see `RequiredMatchOp`'s docstring in
+ * byte-for-byte unchanged (no match found) is a drift signal — but only when
+ * some OTHER op in the same sequence DID change the file. Misses are
+ * collected across the whole sequence and judged at the end:
+ *
+ * - Misses + a changed file → `RequiredOpMatchError`. Partial application is
+ *   the hazard the contract exists for (an import stripped while the code
+ *   that used it survives), and it can only happen on drifted source.
+ * - Misses + a byte-identical file → no-op. Disk writes are per-file atomic
+ *   (`applyCodeTransforms` writes once per transform), so a file where EVERY
+ *   op misses is a file a previous run already fully transformed — the
+ *   re-run recovery path after a mid-batch abort. Throwing here made
+ *   "repeat the run" permanently fail with no way forward but a manual
+ *   `git checkout`.
+ *
+ * A byte-identical file gets one more check before passing: a missed
+ * required op whose CONTAINER construct is gone (a `'use cache'` directive
+ * whose named function no longer exists, an interface property whose
+ * interface is missing) is provable drift — the already-applied case leaves
+ * the container standing — and throws even with no other change. See
+ * `missedRequiredOpAnchorAbsent`. This is what keeps a single-op required
+ * transform (e.g. `CACHE_COMPONENTS_LLMS_TXT_TRANSFORM`) protected: it can
+ * never trip the partial-application signal, so the anchor probe is its
+ * only drift detection.
+ *
+ * The remaining tradeoff: for container-less op kinds (an import, a
+ * variable statement, a JSX element), a file so drifted that NO op matches
+ * is indistinguishable from an already-transformed file and passes
+ * silently. Every pinned drift scenario (a renamed function, a
+ * restructured try-block) leaves sibling ops matching, so partial
+ * application still catches them — see `RequiredMatchOp`'s docstring in
  * `ast-operation-types.ts`.
  */
 export function applyOpsToText(
@@ -148,6 +299,7 @@ export function applyOpsToText(
     },
   })
   let text = sourceText
+  const missedRequiredOps: AstOperation[] = []
 
   for (const op of ops) {
     const before = text
@@ -231,8 +383,28 @@ export function applyOpsToText(
     }
 
     if (op.required && text === before) {
+      missedRequiredOps.push(op)
+    }
+  }
+
+  // Judged after the whole sequence, not at the first miss — see the
+  // required-match contract in this function's docstring.
+  if (missedRequiredOps.length > 0) {
+    if (text !== sourceText) {
       throw new RequiredOpMatchError(
-        `Required op matched nothing (source shape may have drifted): ${describeOp(op)}`
+        `Required op(s) matched nothing while others applied (source shape may have drifted): ${missedRequiredOps.map(describeOp).join(', ')}`
+      )
+    }
+
+    // Byte-identical file: usually a previous run's completed work — but a
+    // container-anchored op whose container is GONE is provable drift even
+    // here (the already-applied case leaves the container standing).
+    const orphaned = missedRequiredOps.filter((op) =>
+      missedRequiredOpAnchorAbsent(project, text, op)
+    )
+    if (orphaned.length > 0) {
+      throw new RequiredOpMatchError(
+        `Required op(s) matched nothing and their anchor construct is missing (source shape may have drifted): ${orphaned.map(describeOp).join(', ')}`
       )
     }
   }
@@ -262,14 +434,18 @@ export interface TransformFailure {
  * the batch is done, rather than exiting 0 on a silently-incomplete run.
  *
  * Exception: a `RequiredOpMatchError` (a `required: true` op that matched
- * nothing) is deliberately NOT collected into `failures` — it's re-thrown
+ * nothing while sibling ops changed the same file — see `applyOpsToText`'s
+ * contract) is deliberately NOT collected into `failures` — it's re-thrown
  * immediately, aborting this whole batch. Regular per-file failures are
  * recoverable (the other files still get their intended changes; the run
- * finishes and reports non-zero); a required-match miss means the source
- * shape has drifted from what a strip transform expects, which risks
+ * finishes and reports non-zero); a partial required-match miss means the
+ * source shape has drifted from what a strip transform expects, which risks
  * leaving a broken tree (an import removed, the code that used it still
  * there) — that must stop the run before `setup()` reaches self-prune, not
- * just get reported alongside everything else at the end.
+ * just get reported alongside everything else at the end. A file where
+ * EVERY op misses is instead treated as already transformed (a previous
+ * run's write) and skipped, so repeating an aborted run recovers instead of
+ * failing on work the first run already finished.
  *
  * A missing target file is silently skipped (`continue`, no failure entry)
  * UNLESS the transform contains at least one `required: true` op — a missing

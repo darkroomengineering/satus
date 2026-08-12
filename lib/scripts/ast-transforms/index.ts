@@ -129,9 +129,25 @@ function describeOp(op: AstOperation): string {
  * between sequential ops.
  *
  * Required-match contract: an op with `required: true` that leaves `text`
- * byte-for-byte unchanged (no match found) throws `RequiredOpMatchError`
- * instead of silently continuing — see `RequiredMatchOp`'s docstring in
- * `ast-operation-types.ts`.
+ * byte-for-byte unchanged (no match found) is a drift signal — but only when
+ * some OTHER op in the same sequence DID change the file. Misses are
+ * collected across the whole sequence and judged at the end:
+ *
+ * - Misses + a changed file → `RequiredOpMatchError`. Partial application is
+ *   the hazard the contract exists for (an import stripped while the code
+ *   that used it survives), and it can only happen on drifted source.
+ * - Misses + a byte-identical file → no-op. Disk writes are per-file atomic
+ *   (`applyCodeTransforms` writes once per transform), so a file where EVERY
+ *   op misses is a file a previous run already fully transformed — the
+ *   re-run recovery path after a mid-batch abort. Throwing here made
+ *   "repeat the run" permanently fail with no way forward but a manual
+ *   `git checkout`.
+ *
+ * The tradeoff: a file so drifted that NO op matches is indistinguishable
+ * from an already-transformed file and passes silently. Every pinned drift
+ * scenario (a renamed function, a restructured try-block) leaves sibling
+ * ops matching, so partial application still catches them — see
+ * `RequiredMatchOp`'s docstring in `ast-operation-types.ts`.
  */
 export function applyOpsToText(
   sourceText: string,
@@ -148,6 +164,7 @@ export function applyOpsToText(
     },
   })
   let text = sourceText
+  const missedRequiredOps: AstOperation[] = []
 
   for (const op of ops) {
     const before = text
@@ -231,10 +248,16 @@ export function applyOpsToText(
     }
 
     if (op.required && text === before) {
-      throw new RequiredOpMatchError(
-        `Required op matched nothing (source shape may have drifted): ${describeOp(op)}`
-      )
+      missedRequiredOps.push(op)
     }
+  }
+
+  // Judged after the whole sequence, not at the first miss — see the
+  // required-match contract in this function's docstring.
+  if (missedRequiredOps.length > 0 && text !== sourceText) {
+    throw new RequiredOpMatchError(
+      `Required op(s) matched nothing while others applied (source shape may have drifted): ${missedRequiredOps.map(describeOp).join(', ')}`
+    )
   }
 
   return text
@@ -262,14 +285,18 @@ export interface TransformFailure {
  * the batch is done, rather than exiting 0 on a silently-incomplete run.
  *
  * Exception: a `RequiredOpMatchError` (a `required: true` op that matched
- * nothing) is deliberately NOT collected into `failures` — it's re-thrown
+ * nothing while sibling ops changed the same file — see `applyOpsToText`'s
+ * contract) is deliberately NOT collected into `failures` — it's re-thrown
  * immediately, aborting this whole batch. Regular per-file failures are
  * recoverable (the other files still get their intended changes; the run
- * finishes and reports non-zero); a required-match miss means the source
- * shape has drifted from what a strip transform expects, which risks
+ * finishes and reports non-zero); a partial required-match miss means the
+ * source shape has drifted from what a strip transform expects, which risks
  * leaving a broken tree (an import removed, the code that used it still
  * there) — that must stop the run before `setup()` reaches self-prune, not
- * just get reported alongside everything else at the end.
+ * just get reported alongside everything else at the end. A file where
+ * EVERY op misses is instead treated as already transformed (a previous
+ * run's write) and skipped, so repeating an aborted run recovers instead of
+ * failing on work the first run already finished.
  *
  * A missing target file is silently skipped (`continue`, no failure entry)
  * UNLESS the transform contains at least one `required: true` op — a missing

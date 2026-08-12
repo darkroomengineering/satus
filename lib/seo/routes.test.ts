@@ -81,7 +81,22 @@ describe('buildRoutesFromDocuments', () => {
   })
 
   it('drops a document whose slug resolves to an already-listed static route', () => {
-    const homePath = STATIC_ROUTES[0]?.path
+    // `/ai` is a static route, so a page named `ai` collides with it.
+    const docs = [
+      {
+        _type: 'page',
+        title: 'AI',
+        slug: { current: 'ai' },
+        _updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ]
+
+    const routes = buildRoutesFromDocuments(docs)
+    expect(STATIC_ROUTES.some((route) => route.path === '/ai')).toBe(true)
+    expect(routes.some((route) => route.path === '/ai')).toBe(false)
+  })
+
+  it('lists a `home` page at /home — `/` stays developer-owned', () => {
     const docs = [
       {
         _type: 'page',
@@ -92,6 +107,6 @@ describe('buildRoutesFromDocuments', () => {
     ]
 
     const routes = buildRoutesFromDocuments(docs)
-    expect(routes.some((route) => route.path === homePath)).toBe(false)
+    expect(routes.map((route) => route.path)).toEqual(['/home'])
   })
 })

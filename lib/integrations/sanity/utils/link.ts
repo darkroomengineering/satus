@@ -72,8 +72,12 @@ function resolveDocumentUrl(documentType?: string, slug?: string): string {
   if (!slug) return '#'
 
   switch (documentType) {
+    // Every page slug maps to its own path — including `home` → `/home`.
+    // `/` is the developer-owned starter page (`app/(site)/page.tsx`) and the
+    // catch-all can't match an empty segment, so claiming `/` for a `home`
+    // document would link to a route that never serves it.
     case 'page':
-      return slug === 'home' ? '/' : `/${slug}`
+      return `/${slug}`
     case 'article':
       return `/articles/${slug}`
     default:

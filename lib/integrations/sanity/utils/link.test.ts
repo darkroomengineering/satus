@@ -39,6 +39,33 @@ describe('urlForReference — external scheme allowlist', () => {
   })
 })
 
+describe('urlForReference — internal document resolution', () => {
+  test('a page slug maps to its own path, including `home` → /home', () => {
+    for (const [slug, expected] of [
+      ['about', '/about'],
+      // `/` is the developer-owned starter page; the catch-all can't match
+      // an empty segment, so `home` must not claim the root.
+      ['home', '/home'],
+    ] as const) {
+      expect(
+        urlForReference({
+          linkType: 'internal',
+          internalLink: { _type: 'page', slug: { current: slug } },
+        })
+      ).toBe(expected)
+    }
+  })
+
+  test('articles resolve under /articles', () => {
+    expect(
+      urlForReference({
+        linkType: 'internal',
+        internalLink: { _type: 'article', slug: { current: 'hello' } },
+      })
+    ).toBe('/articles/hello')
+  })
+})
+
 describe('getLinkAttributes', () => {
   test('a rejected scheme yields href="#" and no new-tab attrs', () => {
     expect(

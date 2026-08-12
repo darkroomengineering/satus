@@ -601,6 +601,24 @@ describe('RequiredOpMatchError (required-match contract)', () => {
     ).toThrow(RequiredOpMatchError)
   })
 
+  it('single required op: a directive that MOVED to another function throws', async () => {
+    // Cross-model review round 2: the function-exists probe alone reads a
+    // relocated 'use cache' as already-applied — buildBody stands
+    // directive-less — but disabling Cache Components requires every
+    // directive gone, so a survivor anywhere in the file is drift.
+    const content = await Bun.file(
+      CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.file
+    ).text()
+    const stripped = applyOpsToText(
+      content,
+      CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.ops
+    )
+    const moved = `${stripped}\n\nasync function elsewhere() {\n  'use cache'\n  return null\n}\n`
+    expect(() =>
+      applyOpsToText(moved, CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.ops)
+    ).toThrow(RequiredOpMatchError)
+  })
+
   it('re-applying a real bundle transform to an already-stripped file no-ops', () => {
     // The exact H5 scenario: a required op late in setupLean's union fails
     // after lib/seo/routes.ts was already stripped and written; the retry

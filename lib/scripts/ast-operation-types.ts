@@ -34,8 +34,12 @@
  */
 export interface RequiredMatchOp {
   /**
-   * When true, zero matches for this op on the file it's applied to is a
-   * hard failure, not a silent no-op.
+   * When true, zero matches for this op is a hard failure when it is
+   * evidence of drift: a sibling op changed the file (partial application),
+   * or the op's container construct is gone (`missedRequiredOpAnchorAbsent`
+   * in `ast-transforms/index.ts`). A miss on a byte-identical file whose
+   * container survives is tolerated as a previous run's completed work —
+   * the idempotent re-run contract described above.
    */
   required?: boolean
 }

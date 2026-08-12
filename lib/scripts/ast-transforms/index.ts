@@ -162,7 +162,26 @@ function missedRequiredOpAnchorAbsent(
   }
 
   switch (op.kind) {
+    // Stricter than function-exists: this op only runs when Cache Components
+    // is being disabled, which requires EVERY `'use cache'` boundary in the
+    // file to be gone (see the op's docstring). A directive that merely MOVED
+    // to another function leaves the named function standing directive-less —
+    // indistinguishable from already-applied by the container probe alone —
+    // so any surviving directive anywhere in the file is also drift.
     case 'removeUseCacheDirective':
+      return probe(
+        (sf) =>
+          sf.getFunction(op.functionName) !== undefined &&
+          !sf
+            .getDescendantsOfKind(SyntaxKind.ExpressionStatement)
+            .some(
+              (stmt) =>
+                stmt
+                  .getExpression()
+                  .asKind(SyntaxKind.StringLiteral)
+                  ?.getLiteralValue() === 'use cache'
+            )
+      )
     case 'replaceFunctionBody':
     case 'replaceJsDoc':
     case 'removeFunctionParameter':

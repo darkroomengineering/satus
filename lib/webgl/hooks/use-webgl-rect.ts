@@ -94,7 +94,7 @@ export function useWebGLRect(
       if (!visible) return
 
       const { translate, scale } = getTransform()
-      const scroll = lenis ? Math.floor(lenis.scroll) : window.scrollY
+      const scroll = lenis ? Math.round(lenis.scroll) : window.scrollY
       const transform = transformRef.current
 
       if (

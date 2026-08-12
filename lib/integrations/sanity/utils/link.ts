@@ -13,12 +13,48 @@ type LinkLike = {
   } | null
 } | null
 
+/**
+ * Schemes allowed on a rendered external `href`. Mirrors the authoring-time
+ * allowlist on the `externalUrl` field (`schemas/link.ts`,
+ * `.uri({ scheme: ['http','https','mailto','tel'] })`). That schema check is
+ * advisory — never enforced by the Sanity content API — so a write token, a
+ * content import, or a direct API write can still plant a `javascript:` (or
+ * other dangerous-scheme) URL that reaches this anchor's `href`. Re-check at
+ * render time so a bad scheme becomes an inert `#` instead of executing.
+ */
+const SAFE_EXTERNAL_SCHEMES = new Set(['http:', 'https:', 'mailto:', 'tel:'])
+
+function isSafeExternalUrl(url: string): boolean {
+  const trimmed = url.trim()
+
+  // Relative targets (path, query, hash) are same-origin and always safe.
+  if (
+    trimmed.startsWith('/') ||
+    trimmed.startsWith('#') ||
+    trimmed.startsWith('?')
+  ) {
+    return true
+  }
+
+  try {
+    // A scheme-bearing URL keeps its own protocol; `javascript:`/`data:`/
+    // `vbscript:` therefore fail the allowlist. The base only resolves
+    // genuinely relative inputs, which the guard above already accepted.
+    return SAFE_EXTERNAL_SCHEMES.has(
+      new URL(trimmed, 'http://localhost').protocol
+    )
+  } catch {
+    return false
+  }
+}
+
 export const urlForReference = (link: LinkLike): string => {
   if (!link) return '#'
 
-  // External URL
+  // External URL — reject any scheme outside the allowlist (see
+  // isSafeExternalUrl) so CMS content can't inject a `javascript:` href.
   if (link.linkType === 'external' && link.externalUrl) {
-    return link.externalUrl
+    return isSafeExternalUrl(link.externalUrl) ? link.externalUrl : '#'
   }
 
   // Internal reference (dereferenced document with slug)

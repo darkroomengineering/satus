@@ -11,6 +11,7 @@
  */
 import cn from 'clsx'
 
+import { ProgressText } from '@/components/effects/progress-text'
 import { Wrapper } from '@/components/layout/wrapper'
 import { Link } from '@/components/ui/link'
 
@@ -172,9 +173,17 @@ export default function HomePage() {
               </li>
             ))}
           </ol>
+          {/* Scroll-driven reveal — the live example of the GSAP stack
+              (SplitText + ScrollTrigger scrubbed through Lenis). Delete with
+              the rest of this page. */}
           <p className={s.outro}>
-            Done here? Replace app/(site)/page.tsx with your homepage and delete
-            page.module.css. That&apos;s the only cleanup.
+            {/* end must be reachable at max scroll — the outro sits at the page
+                bottom, so its top never reaches viewport center; its bottom
+                does reach the viewport bottom, exactly at full scroll. */}
+            <ProgressText start="top bottom" end="bottom bottom">
+              Done here? Replace app/(site)/page.tsx with your homepage and
+              delete page.module.css. That&apos;s the only cleanup.
+            </ProgressText>
           </p>
         </div>
       </section>

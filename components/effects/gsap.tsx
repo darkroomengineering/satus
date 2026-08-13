@@ -64,7 +64,11 @@ import { useTempus } from 'tempus/react'
 // unlike the ticker config below, which touches browser-only APIs. Registering
 // is what GSAP's React guide prescribes: it binds the hook to this copy of the
 // core and keeps it from being tree-shaken. It only manages animation
-// lifecycle, so it leaves the Tempus-driven ticker alone.
+// lifecycle, so it leaves the Tempus-driven ticker alone. Plugins a single
+// component consumes (SplitText, ScrollTrigger) register in that component's
+// module instead — registering them here would ship their weight on every
+// page. See `components/effects/progress-text` for the canonical
+// useGSAP + SplitText usage.
 gsap.registerPlugin(useGSAP)
 
 if (typeof window !== 'undefined') {
@@ -78,9 +82,14 @@ if (typeof window !== 'undefined') {
  * Add to your root layout to enable GSAP animations.
  */
 export function GSAPRuntime() {
-  useTempus(({ time }) => {
-    gsap.updateRoot(time / 1000)
-  })
+  // order: 10 — after Lenis (order: 5) has written scroll state, so scrubbed
+  // ScrollTrigger tweens render this frame's scroll position, not last frame's.
+  useTempus(
+    ({ time }) => {
+      gsap.updateRoot(time / 1000)
+    },
+    { order: 10 }
+  )
 
   return null
 }

@@ -29,11 +29,18 @@ export function Lenis({
 }: LenisProps) {
   const lenisRef = useRef<LenisRef>(null)
 
-  useTempus(({ time }) => {
-    if (lenisRef.current?.lenis) {
-      lenisRef.current.lenis.raf(time)
-    }
-  })
+  // order: 5 — Lenis writes scroll state; GSAP's updateRoot (order: 10, see
+  // components/effects/gsap.tsx) reads it for scrubbed ScrollTriggers. Without
+  // an explicit order the sequencing is mount-order luck, and a scrub tween
+  // would render one frame behind the scroll.
+  useTempus(
+    ({ time }) => {
+      if (lenisRef.current?.lenis) {
+        lenisRef.current.lenis.raf(time)
+      }
+    },
+    { order: 5 }
+  )
 
   return (
     <ReactLenis

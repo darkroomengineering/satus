@@ -9,7 +9,7 @@ This directory is for GSAP-based effects: the runtime ticker bridge and orchestr
 | Component        | Purpose                                                         |
 | ---------------- | --------------------------------------------------------------- |
 | `gsap.tsx`       | `GSAPRuntime` — syncs GSAP's ticker to Tempus (single RAF loop) |
-| `progress-text/` | Scroll-driven progress text effect (hamo scroll-trigger)        |
+| `progress-text/` | Scroll-driven text reveal (SplitText + ScrollTrigger, scrubbed) |
 
 ## GSAPRuntime
 
@@ -21,12 +21,16 @@ Mount once in the root layout via `OptionalFeatures`. Ensures GSAP animations ru
 
 ## Progress Text
 
-Reveal text based on scroll progress.
+Words fade in as scroll progress advances, split by GSAP's SplitText and
+scrubbed 1:1 through a ScrollTrigger (which syncs to Lenis via the bridge in
+`components/layout/lenis`). Content is static after mount — remount with a
+`key` to change it. `prefers-reduced-motion` gets a single gentle fade
+instead of scroll linkage.
 
 ```tsx
 import { ProgressText } from '@/components/effects/progress-text'
 
-;<ProgressText>
+;<ProgressText start="top bottom" end="bottom bottom" dimOpacity={0.33}>
   This text reveals as you scroll through the section
 </ProgressText>
 ```

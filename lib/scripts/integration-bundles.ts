@@ -643,10 +643,9 @@ export const INTEGRATION_BUNDLES = defineBundles({
       '@react-three/drei',
       '@react-three/fiber',
       'three',
-      // Both are imported only from lib/webgl, which this bundle deletes, so
-      // they have to be listed here or they survive as orphans in package.json.
+      // Imported only from lib/webgl, which this bundle deletes, so it has to
+      // be listed here or it survives as an orphan in package.json.
       'postprocessing',
-      'tunnel-rat',
     ],
     devDependencies: ['@types/three'],
     // lib/dev/stats renders a WebGL frame-time/GPU meter via `stats-gl`, a

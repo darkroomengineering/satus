@@ -1,4 +1,4 @@
-import tunnel from 'tunnel-rat'
+import { tunnel } from '@/webgl/utils/tunnel'
 
 type WebGLTunnelInstance = ReturnType<typeof tunnel>
 

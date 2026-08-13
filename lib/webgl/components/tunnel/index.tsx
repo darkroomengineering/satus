@@ -6,9 +6,10 @@
  * Provides portal components for bridging React children across renderer
  * boundaries. React Three Fiber renders into its own React reconciler,
  * which means standard React contexts from the DOM tree are not available
- * inside the R3F canvas. This module uses `tunnel-rat` to teleport
- * JSX from the DOM tree into the WebGL scene graph (via {@link WebGLTunnel})
- * or into an HTML overlay layer on top of the canvas (via {@link DOMTunnel}).
+ * inside the R3F canvas. This module uses the `tunnel()` factory from
+ * `@/webgl/utils/tunnel` to teleport JSX from the DOM tree into the WebGL
+ * scene graph (via {@link WebGLTunnel}) or into an HTML overlay layer on
+ * top of the canvas (via {@link DOMTunnel}).
  */
 
 import { useContextBridge } from '@react-three/drei'

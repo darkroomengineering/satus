@@ -9,7 +9,6 @@ import {
   useId,
   useSyncExternalStore,
 } from 'react'
-import type tunnel from 'tunnel-rat'
 
 import Orchestra from '@/lib/dev/orchestra'
 import { useDeviceDetection } from '@/lib/hooks/use-device-detection'
@@ -21,6 +20,7 @@ import {
   registerRootCanvasMount,
   subscribeRootCanvas,
 } from '@/lib/webgl/store'
+import type { tunnel } from '@/webgl/utils/tunnel'
 
 const WebGLCanvas = dynamic(
   () => import('./webgl').then(({ WebGLCanvas }) => WebGLCanvas),

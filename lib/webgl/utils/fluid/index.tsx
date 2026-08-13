@@ -1,5 +1,4 @@
 import { useFrame, useThree } from '@react-three/fiber'
-import { types } from '@theatre/core'
 import { useEffect, useRef } from 'react'
 
 import { useCurrentSheet } from '@/dev/theatre'
@@ -54,11 +53,11 @@ export function useFluidSim(resolution = 128) {
     sheet,
     'fluid simulation',
     {
-      density: types.number(0.98, { range: [0, 1], nudgeMultiplier: 0.01 }),
-      velocity: types.number(1, { range: [0, 1], nudgeMultiplier: 0.01 }),
-      pressure: types.number(0.5, { range: [0, 1], nudgeMultiplier: 0.01 }),
-      curl: types.number(0, { range: [0, 100], nudgeMultiplier: 1 }),
-      radius: types.number(0.5, { range: [0, 1], nudgeMultiplier: 0.01 }),
+      density: { value: 0.98, range: [0, 1], nudgeMultiplier: 0.01 },
+      velocity: { value: 1, range: [0, 1], nudgeMultiplier: 0.01 },
+      pressure: { value: 0.5, range: [0, 1], nudgeMultiplier: 0.01 },
+      curl: { value: 0, range: [0, 100], nudgeMultiplier: 1 },
+      radius: { value: 0.5, range: [0, 1], nudgeMultiplier: 0.01 },
     },
     {
       onValuesChange: ({

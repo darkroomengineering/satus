@@ -9,10 +9,70 @@ import { useEffect, useEffectEvent, useRef, useState } from 'react'
 
 import { useStudio } from './use-studio'
 
+// Module scope on purpose. The React Compiler cannot lower an `import()`
+// expression that sits inside a component/hook body ("BuildHIR: Handle
+// Import expressions") and silently gives up on optimising the whole
+// function (see `use-studio.ts`). Behind a plain function call it is just a
+// call expression, so the compiler is happy and the chunk still loads
+// lazily.
+const loadTheatreCore = () => import('@theatre/core')
+
+// Plain, theatre-free descriptor format for `useTheatre` configs. Call sites
+// (the fluid/flowmap sims, `Group`) describe their controls with these
+// instead of importing `@theatre/core` themselves — the only place that
+// package's runtime is ever touched is the dynamic import below, which only
+// resolves once `sheet` exists (dev only, see `useTheatreObject`). That
+// keeps `@theatre/core` out of every bundle that doesn't already need it.
+export type NumberDescriptor = {
+  value: number
+  range?: [number, number]
+  nudgeMultiplier?: number
+}
+
+type PropDescriptor = NumberDescriptor | boolean | TheatrePropDescriptors
+
+export type TheatrePropDescriptors = {
+  [key: string]: PropDescriptor
+}
+
+function isNumberDescriptor(
+  descriptor: PropDescriptor
+): descriptor is NumberDescriptor {
+  return (
+    typeof descriptor === 'object' &&
+    'value' in descriptor &&
+    typeof descriptor.value === 'number'
+  )
+}
+
+function toTheatreConfig(
+  descriptors: TheatrePropDescriptors,
+  core: Awaited<ReturnType<typeof loadTheatreCore>>
+): UnknownShorthandCompoundProps {
+  const config: Record<string, unknown> = {}
+
+  for (const [key, descriptor] of Object.entries(descriptors)) {
+    if (typeof descriptor === 'boolean') {
+      config[key] = descriptor
+    } else if (isNumberDescriptor(descriptor)) {
+      config[key] = core.types.number(descriptor.value, {
+        ...(descriptor.range && { range: descriptor.range }),
+        ...(descriptor.nudgeMultiplier !== undefined && {
+          nudgeMultiplier: descriptor.nudgeMultiplier,
+        }),
+      })
+    } else {
+      config[key] = toTheatreConfig(descriptor, core)
+    }
+  }
+
+  return config as UnknownShorthandCompoundProps
+}
+
 export function useTheatreObject(
   sheet: ISheet | undefined,
   theatreKey: string,
-  config: UnknownShorthandCompoundProps,
+  config: TheatrePropDescriptors,
   deps = [] as unknown[]
 ) {
   const [object, setObject] = useState<ISheetObject>()
@@ -26,23 +86,45 @@ export function useTheatreObject(
   useEffect(() => {
     if (!sheet) return
 
-    // `set-state-in-effect` fires here, and it stays. The state is what makes
-    // the object observable: useTheatre's subscription effect keys on it, so it
-    // has to re-run when the object appears or is rebuilt. Holding it in a ref
-    // instead would leave subscribers with no signal, and the object is a
-    // Theatre handle that only exists once the sheet does, so it cannot be
-    // derived during render. The bailout costs auto-memoization only in
-    // development: `SheetProvider` (`lib/dev/theatre/index.tsx`) only
-    // bootstraps a live Theatre project when `NODE_ENV === 'development'`, so
-    // `sheet` is always `undefined` in production — this effect hits the
-    // early return above and the `setObject` call below never runs at all.
-    // The whole hook is also removed outright by setup:project for projects
-    // that drop Theatre.
-    // react-doctor-disable-next-line react-hooks-js/set-state-in-effect
-    setObject(sheet?.object(theatreKey, config, { reconfigure: true }))
+    // `@theatre/core` is only ever imported here, inside the effect, and this
+    // effect only runs at all once `sheet` exists — which `SheetProvider`
+    // (`lib/dev/theatre/index.tsx`) only bootstraps in development. Production
+    // bundles never execute this branch, so the dynamic `import()` never
+    // resolves and `@theatre/core`'s chunk is never fetched (or, if the
+    // bundler doesn't split it, its module code still never runs). The whole
+    // hook is also removed outright by setup:project for projects that drop
+    // Theatre.
+    let cancelled = false
+    let attached = false
+
+    loadTheatreCore()
+      .then((core) => {
+        if (cancelled) return
+        attached = true
+
+        // `set-state-in-effect` fires here, and it stays. The state is what
+        // makes the object observable: useTheatre's subscription effect keys
+        // on it, so it has to re-run when the object appears or is rebuilt.
+        // Holding it in a ref instead would leave subscribers with no signal,
+        // and the object is a Theatre handle that only exists once the sheet
+        // does, so it cannot be derived during render.
+        // react-doctor-disable-next-line react-hooks-js/set-state-in-effect
+        setObject(
+          sheet.object(theatreKey, toTheatreConfig(config, core), {
+            reconfigure: true,
+          })
+        )
+      })
+      .catch((error: unknown) => {
+        console.error(`Theatre: failed to load core for '${theatreKey}'`, error)
+      })
 
     return () => {
-      sheet.detachObject(theatreKey)
+      cancelled = true
+      // Only the run that actually attached an object needs to detach one —
+      // a cleanup that fires before the dynamic import resolves (e.g. an
+      // immediate deps change or unmount) never attached anything.
+      if (attached) sheet.detachObject(theatreKey)
     }
     // oxlint-disable-next-line react/exhaustive-deps -- complex dependency expression is intentional
   }, [configKey, sheet, theatreKey, ...deps])
@@ -50,16 +132,25 @@ export function useTheatreObject(
   return object
 }
 
-type TheatrePropsToValues<Config extends UnknownShorthandCompoundProps> =
-  Parameters<Parameters<ISheetObject<Config>['onValuesChange']>[0]>[0]
+type DescriptorValue<D extends PropDescriptor> = D extends NumberDescriptor
+  ? number
+  : D extends boolean
+    ? boolean
+    : D extends TheatrePropDescriptors
+      ? { [K in keyof D]: DescriptorValue<D[K]> }
+      : never
 
-type UseTheatreOptions<Config extends UnknownShorthandCompoundProps> = {
+type TheatrePropsToValues<Config extends TheatrePropDescriptors> = {
+  [K in keyof Config]: DescriptorValue<Config[K]>
+}
+
+type UseTheatreOptions<Config extends TheatrePropDescriptors> = {
   onValuesChange?: (values: TheatrePropsToValues<Config>) => void
   lazy?: boolean
   deps?: unknown[]
 }
 
-export function useTheatre<Config extends UnknownShorthandCompoundProps>(
+export function useTheatre<Config extends TheatrePropDescriptors>(
   sheet: ISheet | undefined,
   theatreKey: string,
   config: Config,

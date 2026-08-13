@@ -1,5 +1,4 @@
 import { useFrame, useThree } from '@react-three/fiber'
-import { types } from '@theatre/core'
 import { useEffect, useRef } from 'react'
 
 import { useCurrentSheet } from '@/dev/theatre'
@@ -70,8 +69,8 @@ export function useFlowmapSim(resolution = 128) {
     sheet,
     'flowmap',
     {
-      falloff: types.number(0.2, { range: [0, 1], nudgeMultiplier: 0.01 }),
-      dissipation: types.number(0.98, { range: [0, 1], nudgeMultiplier: 0.01 }),
+      falloff: { value: 0.2, range: [0, 1], nudgeMultiplier: 0.01 },
+      dissipation: { value: 0.98, range: [0, 1], nudgeMultiplier: 0.01 },
     },
     {
       onValuesChange: ({

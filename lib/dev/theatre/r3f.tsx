@@ -1,4 +1,3 @@
-import { types } from '@theatre/core'
 import { useRef } from 'react'
 import type { Group as ThreeGroup } from 'three'
 
@@ -33,19 +32,19 @@ export function Group({
     theatreKey,
     {
       position: {
-        x: types.number(position[0], { nudgeMultiplier: 0.01 }),
-        y: types.number(position[1], { nudgeMultiplier: 0.01 }),
-        z: types.number(position[2], { nudgeMultiplier: 0.01 }),
+        x: { value: position[0], nudgeMultiplier: 0.01 },
+        y: { value: position[1], nudgeMultiplier: 0.01 },
+        z: { value: position[2], nudgeMultiplier: 0.01 },
       },
       rotation: {
-        x: types.number(rotation[0], { nudgeMultiplier: 0.01 }),
-        y: types.number(rotation[1], { nudgeMultiplier: 0.01 }),
-        z: types.number(rotation[2], { nudgeMultiplier: 0.01 }),
+        x: { value: rotation[0], nudgeMultiplier: 0.01 },
+        y: { value: rotation[1], nudgeMultiplier: 0.01 },
+        z: { value: rotation[2], nudgeMultiplier: 0.01 },
       },
       scale: {
-        x: types.number(scale[0], { nudgeMultiplier: 0.01 }),
-        y: types.number(scale[1], { nudgeMultiplier: 0.01 }),
-        z: types.number(scale[2], { nudgeMultiplier: 0.01 }),
+        x: { value: scale[0], nudgeMultiplier: 0.01 },
+        y: { value: scale[1], nudgeMultiplier: 0.01 },
+        z: { value: scale[2], nudgeMultiplier: 0.01 },
       },
       visible: true,
     },

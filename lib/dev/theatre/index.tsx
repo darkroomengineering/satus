@@ -1,6 +1,6 @@
 'use client'
 
-import { getProject, type IProject, type ISheet, onChange } from '@theatre/core'
+import type { IProject, ISheet } from '@theatre/core'
 import {
   createContext,
   type PropsWithChildren,
@@ -12,6 +12,13 @@ import {
   useRef,
   useState,
 } from 'react'
+
+// Module scope on purpose. The React Compiler cannot lower an `import()`
+// expression that sits inside a component body ("BuildHIR: Handle Import
+// expressions") and silently gives up on optimising the whole component
+// (see `use-studio.ts`). Behind a plain function call it is just a call
+// expression, so the compiler is happy and the chunk still loads lazily.
+const loadTheatreCore = () => import('@theatre/core')
 
 const TheatreProjectContext = createContext<IProject | undefined>(undefined)
 
@@ -45,9 +52,15 @@ export function TheatreProjectProvider({
           console.log(`Theatre: project ${id} loading...`)
         }
         isLoadingRef.current = true
-        void fetch(config)
-          .then((response) => response.json())
-          .then((state) => {
+        // Fetch the checked-in state and load `@theatre/core` in parallel —
+        // neither depends on the other, and this is the only place in the
+        // dev-only project-bootstrap path that touches the package, so it's
+        // the only place its runtime is ever pulled into a chunk.
+        void Promise.all([
+          loadTheatreCore(),
+          fetch(config).then((response) => response.json()),
+        ])
+          .then(([{ getProject }, state]) => {
             const project = getProject(id, { state })
 
             if (project.isReady) {
@@ -58,13 +71,25 @@ export function TheatreProjectProvider({
               })
             }
           })
+          .catch((error: unknown) => {
+            // Reset so a remount can retry — a stuck flag would silently
+            // disable Theatre for the rest of the session.
+            isLoadingRef.current = false
+            console.error(`Theatre: project ${id} failed to load`, error)
+          })
       }
     } else {
-      const project = getProject(id)
+      loadTheatreCore()
+        .then(({ getProject }) => {
+          const project = getProject(id)
 
-      void project.ready.then(() => {
-        setproject(project)
-      })
+          void project.ready.then(() => {
+            setproject(project)
+          })
+        })
+        .catch((error: unknown) => {
+          console.error(`Theatre: project ${id} failed to load`, error)
+        })
     }
   }, [config, id])
 
@@ -96,11 +121,24 @@ export function useSheetDuration(sheet: ISheet) {
   useEffect(() => {
     if (!sheet) return
 
-    const unsubscribe = onChange(sheet.sequence.pointer.length, (duration) => {
-      setDuration(duration)
-    })
+    let cancelled = false
+    let unsubscribe: (() => void) | undefined
 
-    return unsubscribe
+    loadTheatreCore()
+      .then(({ onChange }) => {
+        if (cancelled) return
+        unsubscribe = onChange(sheet.sequence.pointer.length, (duration) => {
+          setDuration(duration)
+        })
+      })
+      .catch((error: unknown) => {
+        console.error('Theatre: failed to load core for sheet duration', error)
+      })
+
+    return () => {
+      cancelled = true
+      unsubscribe?.()
+    }
   }, [sheet])
 
   return duration

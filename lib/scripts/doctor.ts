@@ -12,6 +12,16 @@ import { coreEnvSchema } from '../utils/validation'
 
 const ROOT = process.cwd()
 
+// The single source of the runtime floor is package.json's engines field —
+// deriving it here keeps the doctor's check and fix hint from drifting when
+// a dependency raises the requirement (the way @portabletext/react v8 moved
+// the floor to 22.12).
+const packageJson = (await Bun.file(join(ROOT, 'package.json')).json()) as {
+  engines?: { node?: string }
+}
+const requiredNodeVersion =
+  packageJson.engines?.node?.replace(/^[^\d]*/, '') ?? '22.12.0'
+
 interface Check {
   name: string
   check: () => boolean | Promise<boolean> | 'skip'
@@ -53,13 +63,20 @@ const colors = {
 
 const checks: Check[] = [
   {
-    name: 'Node.js version >= 22',
+    name: `Node.js version >= ${requiredNodeVersion}`,
     check: () => {
-      const version = process.versions.node
-      const major = Number.parseInt(version.split('.')[0] ?? '0', 10)
-      return major >= 22
+      const [major = 0, minor = 0] = process.versions.node
+        .split('.')
+        .map((part) => Number.parseInt(part, 10))
+      const [requiredMajor = 0, requiredMinor = 0] = requiredNodeVersion
+        .split('.')
+        .map((part) => Number.parseInt(part, 10))
+      return (
+        major > requiredMajor ||
+        (major === requiredMajor && minor >= requiredMinor)
+      )
     },
-    fix: 'Install Node.js 22+ from https://nodejs.org or use nvm/fnm',
+    fix: `Install Node.js ${requiredNodeVersion}+ from https://nodejs.org or use nvm/fnm`,
   },
   {
     name: 'Bun installed',

@@ -95,48 +95,30 @@ export default defineConfig({
     // --- anti-slop (vendored, tools/oxlint/anti-slop) -------------------------
     // Rules that reject low-evidence TypeScript patterns, aimed at the code
     // agents tend to produce. Vendored per upstream's own recommendation
-    // (https://github.com/dmmulroy/anti-slop), so the rules are ours to edit.
+    // (https://github.com/dmmulroy/anti-slop), so the rules are ours to edit;
+    // no-module-mocking is extended locally to recognize bun:test mock.module.
     // The Effect-specific plugin is not vendored; this repo does not use Effect.
-    //
-    // `lint` runs with --max-warnings=0, so a rule with existing findings
-    // cannot land as warn. Clean rules are on; the rest are off below with
-    // their finding counts, to be re-enabled one at a time as the findings
-    // are fixed -- same protocol as the type-aware section.
+    'anti-slop/no-chained-type-assertions': 'error',
+    'anti-slop/no-conditional-empty-object-spread': 'error',
+    'anti-slop/no-known-value-widening': 'error',
     'anti-slop/no-module-mocking': 'error',
     'anti-slop/no-object-parameters': 'error',
     'anti-slop/no-reflect-apply': 'error',
     'anti-slop/no-reflect-get': 'error',
+    // allowInTypeGuards keeps `typeof` legal inside named type-guard
+    // functions. The remaining literal `typeof window` SSR guards carry
+    // per-site disable comments instead of an isServer utility: Next
+    // statically replaces literal `typeof window` in client bundles, so
+    // extracting the check into a shared const would defeat dead-code
+    // elimination of server-only branches.
+    'anti-slop/no-runtime-typeof': ['error', { allowInTypeGuards: true }],
+    'anti-slop/no-shape-in-symbol-names': 'error',
+    'anti-slop/no-unknown-parameters': 'error',
+    'anti-slop/no-unknown-returns': 'error',
     'anti-slop/no-unknown-type-aliases': 'error',
+    'anti-slop/no-unsafe-dictionary-type': 'error',
     'anti-slop/no-widen-then-assert': 'error',
-
-    // 9 + 3 findings -- the smallest backlogs, first re-enable candidates.
-    // Chained assertions (`as unknown as X`) sit mostly in test files;
-    // unknown returns are lib/utils/raf.ts.
-    'anti-slop/no-chained-type-assertions': 'off',
-    'anti-slop/no-unknown-returns': 'off',
-
-    // 113 findings. Wants a SAFETY: comment before every non-const assertion.
-    // A real convention change, not a cleanup; adopt deliberately or not at all.
-    'anti-slop/require-safety-comment-for-type-assertion': 'off',
-    // 34 findings, every one of them Shopify's reshapeCart/reshapeCartLineItem
-    // -- names inherited from Vercel Commerce. Renaming is a Shopify-
-    // integration decision, not lint fallout.
-    'anti-slop/no-shape-in-symbol-names': 'off',
-    // 31 findings. The rule bans all runtime `typeof`, but `typeof window`
-    // SSR guards and script-side value checks are idiomatic here, not
-    // unparsed-input slop. Off on purpose; revisit only if env detection
-    // gets centralized behind a single utility.
-    'anti-slop/no-runtime-typeof': 'off',
-    // 30 findings, mostly `...(cond ? { x } : {})` in JSON-LD schema builders.
-    'anti-slop/no-conditional-empty-object-spread': 'off',
-    // 24 + 20 findings, largely the same sites: schema builders returning
-    // Record<string, unknown>. Fixing means typing the JSON-LD layer.
-    'anti-slop/no-known-value-widening': 'off',
-    'anti-slop/no-unsafe-dictionary-type': 'off',
-    // 17 findings. Conflicts with the house "accept unknown, narrow with a
-    // guard" pattern (AGENTS.md); adopting parse-at-boundary instead is a
-    // standards decision, not a lint fix.
-    'anti-slop/no-unknown-parameters': 'off',
+    'anti-slop/require-safety-comment-for-type-assertion': 'error',
 
     'eslint/no-unused-vars': [
       'error',
@@ -366,6 +348,32 @@ export default defineConfig({
         'eslint/no-restricted-imports': 'off',
         'unicorn/filename-case': 'off',
         'react/forbid-elements': 'off',
+      },
+    },
+    {
+      // Test and storybook casts are fixture plumbing; a SAFETY: justification
+      // per cast would be noise, and typeof probing is routine in assertions.
+      files: ['e2e/**', '**/*.test.ts', '**/*.test.tsx', '.storybook/**'],
+      rules: {
+        'anti-slop/require-safety-comment-for-type-assertion': 'off',
+        'anti-slop/no-runtime-typeof': 'off',
+      },
+    },
+    {
+      // CLI tooling probes CLI/env/JSON values with typeof by nature; there
+      // is no upstream I/O boundary to push the parse to.
+      files: ['lib/scripts/**', 'lib/styles/scripts/**'],
+      rules: {
+        'anti-slop/no-runtime-typeof': 'off',
+      },
+    },
+    {
+      // runFormAction wraps next/headers and the Turnstile validator with no
+      // injectable seam; removing mock.module here would mean changing
+      // form-action's public API just to satisfy the rule.
+      files: ['lib/utils/form-action.test.ts'],
+      rules: {
+        'anti-slop/no-module-mocking': 'off',
       },
     },
   ],

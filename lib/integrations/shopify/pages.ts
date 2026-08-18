@@ -2,11 +2,11 @@ import { cacheLife, cacheTag } from 'next/cache'
 
 import { env } from '@/lib/env'
 
+import { removeEdgesAndNodes } from './adapters'
 import { normalizeStoreDomain, shopifyFetch } from './client'
 import { TAGS } from './constants'
 import { getMenuQuery } from './queries/menu'
 import { getPageQuery, getPagesQuery } from './queries/page'
-import { removeEdgesAndNodes } from './reshape'
 import {
   type GetMenuResponseData,
   type GetPageResponseData,

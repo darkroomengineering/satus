@@ -1,3 +1,5 @@
+import type { JsonLdSchema } from './schemas'
+
 /**
  * Renders a single JSON-LD `<script>` tag.
  *
@@ -7,7 +9,7 @@
  * inert to hydration and is what Google and answer engines parse most
  * reliably, so structured data goes here instead of inline `itemProp`s.
  */
-export function JsonLd({ data }: { data: Record<string, unknown> }) {
+export function JsonLd({ data }: { data: JsonLdSchema }) {
   // `<` is escaped to `<` before injection: without it, a CMS-sourced
   // string value containing "</script>" would close the script tag early and
   // turn the remainder of the JSON into executable HTML. This is the same

@@ -78,9 +78,10 @@ export const metadata: Metadata = {
   authors: [
     { name: 'darkroom.engineering', url: 'https://darkroom.engineering' },
   ],
-  ...(env.NEXT_PUBLIC_FACEBOOK_APP_ID
-    ? { other: { 'fb:app_id': env.NEXT_PUBLIC_FACEBOOK_APP_ID } }
-    : {}),
+}
+
+if (env.NEXT_PUBLIC_FACEBOOK_APP_ID) {
+  metadata.other = { 'fb:app_id': env.NEXT_PUBLIC_FACEBOOK_APP_ID }
 }
 
 export const viewport: Viewport = {

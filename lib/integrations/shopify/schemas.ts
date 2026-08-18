@@ -11,7 +11,7 @@ import { z } from 'zod'
  * `.passthrough()`, so their inferred types line up exactly with the plain
  * interfaces in `types.ts` (no leftover index signature). Where a GraphQL
  * fragment selects a field that isn't part of a call site's TS interface
- * but survives a `...rest` spread in `reshape.ts` (e.g. `Product.options`),
+ * but survives a `...rest` spread in `adapters.ts` (e.g. `Product.options`),
  * that field is declared explicitly below instead of relying on passthrough.
  *
  * Optionality/nullability is aligned field-by-field with the real
@@ -92,9 +92,9 @@ const productOptionSchema = z.object({
 // are unconditionally selected by `productFragment`, so they're required
 // here even though `ShopifyProduct` marks some of them optional (a required
 // source is assignable to an optional target). `options` and `updatedAt`
-// aren't part of the `ShopifyProduct` TS type, but `reshapeProduct()` does
+// aren't part of the `ShopifyProduct` TS type, but `toProduct()` does
 // `const { images, variants, ...rest } = product` and spreads `...rest`
-// into the reshaped `Product` (which *does* declare `options`) — declaring
+// into the adapted `Product` (which *does* declare `options`) — declaring
 // them explicitly here keeps that data alive without needing
 // `.passthrough()`.
 const shopifyProductSchema = z.object({
@@ -148,7 +148,7 @@ export type GetProductsResponseData = z.infer<typeof getProductsResponseSchema>
 // `Collection` type and are unconditionally selected by
 // `collectionFragment`, so they're required here even though `Collection`
 // marks them optional. `path` is deliberately NOT declared — it isn't a
-// Shopify field at all; `reshapeCollection()` computes it client-side.
+// Shopify field at all; `toCollection()` computes it client-side.
 const collectionSchema = z.object({
   handle: z.string(),
   title: z.string(),

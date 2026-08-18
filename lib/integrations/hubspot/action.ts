@@ -36,7 +36,7 @@ import { fetchWithTimeout } from '@/utils/fetch'
 import { hubspotNewsletterSchema } from './schema'
 
 export async function HubspotNewsletterAction(
-  _: unknown,
+  _: FormState | null,
   formData: FormData
 ): Promise<FormState> {
   return runFormAction({

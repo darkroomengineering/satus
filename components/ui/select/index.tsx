@@ -115,7 +115,7 @@ function Select<T extends string = string>({
       defaultValue={defaultValue}
       onValueChange={(val, _details) => {
         if (val !== null && onValueChange) {
-          onValueChange(val as T)
+          onValueChange(val)
         }
       }}
       {...(disabled !== undefined && { disabled })}

@@ -99,6 +99,11 @@ export async function readDerivedTokens() {
     join(import.meta.dir, '..', 'css', 'global.css')
   ).text()
 
+  // SAFETY: `token`, `from`, and `pct` are unconditional capture groups in
+  // MIX — TS types every named group as `string | undefined` regardless,
+  // but any successful match has all three set; `onto` is the pattern's one
+  // genuinely optional group (the `transparent` alternative doesn't capture
+  // it), handled by its own fallback below.
   return [...css.matchAll(MIX)].map(({ groups }) => ({
     token: groups?.token as string,
     from: groups?.from as Role,
@@ -113,7 +118,7 @@ export async function measureContrast(): Promise<Measurement[]> {
   const measurements: Measurement[] = []
 
   for (const [name, theme] of Object.entries(themes)) {
-    const t = theme as Record<Role, string>
+    const t: Record<Role, string> = theme
     const resolved = new Map<string, Color>()
 
     for (const role of ['primary', 'secondary', 'contrast'] as const) {
@@ -159,7 +164,7 @@ export type Baseline = {
 export async function readBaseline(): Promise<Baseline> {
   const file = Bun.file(BASELINE_PATH)
   if (!(await file.exists())) return { accepted: {}, apcaAccepted: {} }
-  const baseline = (await file.json()) as Partial<Baseline>
+  const baseline: Partial<Baseline> = await file.json()
   return {
     accepted: baseline.accepted ?? {},
     apcaAccepted: baseline.apcaAccepted ?? {},

@@ -49,6 +49,7 @@ import { useEffect, useLayoutEffect, useRef } from 'react'
 // Layout effect on the client (avoids a hidden→visible flash for elements
 // already in view on mount), plain effect on the server (no-op, no SSR warning).
 const useIsomorphicLayoutEffect =
+  // oxlint-disable-next-line anti-slop/no-runtime-typeof -- SSR guard; literal typeof enables bundler dead-code elimination
   typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 interface UseRevealOptions {

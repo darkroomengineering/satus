@@ -7,6 +7,8 @@
 
 import { access, mkdir, rm } from 'node:fs/promises'
 
+import { z } from 'zod'
+
 // ============================================================================
 // Path Utilities
 // ============================================================================
@@ -48,9 +50,9 @@ export const pathExists = async (path: string): Promise<boolean> => {
  */
 export const PENDING_FORMAT_MARKER = '.setup-project-pending-format.json'
 
-/** Shape of `PENDING_FORMAT_MARKER`'s JSON contents. */
-export interface PendingFormatMarker {
-  files: string[]
+/** Schema for `PENDING_FORMAT_MARKER`'s JSON contents. */
+export const PendingFormatMarkerSchema = z.object({
+  files: z.array(z.string()),
   /**
    * Number of times `prepare.ts` has already tried (and failed) to finish
    * this marker. Absent/0 on the first attempt. `prepare.ts` deletes the
@@ -58,8 +60,11 @@ export interface PendingFormatMarker {
    * `PENDING_FORMAT_MAX_ATTEMPTS`, instead of retrying forever on every
    * future `bun install`.
    */
-  attempts?: number
-}
+  attempts: z.number().optional(),
+})
+
+/** Shape of `PENDING_FORMAT_MARKER`'s JSON contents. */
+export type PendingFormatMarker = z.infer<typeof PendingFormatMarkerSchema>
 
 /**
  * How many times `prepare.ts` retries a failed format/manifest step before
@@ -147,14 +152,7 @@ export const bunExecutable = process.execPath
 /**
  * Parse common CLI flags from process.argv
  */
-export const parseCliFlags = (
-  argv: string[] = process.argv.slice(2)
-): {
-  dryRun: boolean
-  verbose: boolean
-  help: boolean
-  args: string[]
-} => {
+export const parseCliFlags = (argv: string[] = process.argv.slice(2)) => {
   return {
     dryRun: argv.includes('--dry-run') || argv.includes('-d'),
     verbose: argv.includes('--verbose') || argv.includes('-v'),
@@ -270,7 +268,10 @@ export const copyToClipboard = async (text: string): Promise<boolean> => {
  * Removes NO_COLOR to prevent warnings
  */
 export const colorEnv = (): Record<string, string | undefined> => {
-  const env = { ...process.env, FORCE_COLOR: '1' } as Record<
+  // SAFETY: Object.assign's overloads intersect process.env's index signature
+  // with the FORCE_COLOR literal, so the result is exactly a string-keyed,
+  // string-or-undefined-valued environment dictionary.
+  const env = Object.assign({}, process.env, { FORCE_COLOR: '1' }) as Record<
     string,
     string | undefined
   >

@@ -27,6 +27,7 @@ export function assertServerEnvironment(moduleName: string): void {
   // genuinely bare server env is unconfigured, not broken. Together they
   // describe only the bundled-for-browser case, where the polyfill hands
   // back `{}` and every schema check would fail for the wrong reason.
+  // oxlint-disable-next-line anti-slop/no-runtime-typeof -- environment assertion; literal typeof enables bundler dead-code elimination
   if (typeof window !== 'undefined' && Object.keys(process.env).length === 0) {
     throw new Error(
       `${moduleName} reads process.env and cannot run in the browser — ` +

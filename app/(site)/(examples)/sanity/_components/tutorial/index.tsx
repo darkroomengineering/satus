@@ -16,15 +16,20 @@ export function SanityTutorial({ data }: { data: SanityTutorialProps }) {
   if (!data) return null
 
   const linkAttrs = data.link ? getLinkAttributes(data.link) : null
+  // SAFETY: PageQueryResult's typegen'd `content` array is the same
+  // portable-text block/span/markDefs shape as next-sanity's
+  // PortableTextBlock, derived independently by typegen so TS can't unify
+  // the two structurally identical types.
+  const content = data.content as PortableTextBlock[] | null
 
   return (
     <div className="flex flex-col items-center gap-gap" data-sanity={data._id}>
       <h2 className="text-center" data-sanity="title">
         {data?.title}
       </h2>
-      {data.content && (
+      {content && (
         <div data-sanity="content">
-          <RichText content={data?.content as PortableTextBlock[]} />
+          <RichText content={content} />
         </div>
       )}
       {linkAttrs && (

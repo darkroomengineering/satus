@@ -71,6 +71,7 @@ import { useTempus } from 'tempus/react'
 // useGSAP + SplitText usage.
 gsap.registerPlugin(useGSAP)
 
+// oxlint-disable-next-line anti-slop/no-runtime-typeof -- SSR guard; literal typeof enables bundler dead-code elimination
 if (typeof window !== 'undefined') {
   gsap.defaults({ ease: 'none' })
   gsap.ticker.lagSmoothing(0)

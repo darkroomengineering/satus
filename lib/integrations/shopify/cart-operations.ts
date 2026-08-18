@@ -1,3 +1,4 @@
+import { removeEdgesAndNodes } from './adapters'
 import { shopifyFetch } from './client'
 import { TAGS } from './constants'
 import {
@@ -7,7 +8,6 @@ import {
   removeFromCartMutation,
 } from './mutations/cart'
 import { getCartQuery } from './queries/cart'
-import { removeEdgesAndNodes } from './reshape'
 import {
   type CartCreateResponseData,
   type CartLinesAddResponseData,
@@ -28,7 +28,7 @@ import type {
   ShopifyCartLineItem,
 } from './types'
 
-const reshapeCartLineItem = (item: ShopifyCartLineItem): CartLineItem => ({
+const toCartLineItem = (item: ShopifyCartLineItem): CartLineItem => ({
   id: item.id,
   quantity: item.quantity,
   cost: item.cost,
@@ -46,14 +46,14 @@ const reshapeCartLineItem = (item: ShopifyCartLineItem): CartLineItem => ({
   },
 })
 
-const reshapeCart = (cart: ShopifyCart): Cart => {
+const toCart = (cart: ShopifyCart): Cart => {
   const totalTaxAmount = cart.cost?.totalTaxAmount ?? {
     amount: '0.0',
     currencyCode: 'USD',
   }
 
   const lines: CartLineItem[] = removeEdgesAndNodes(cart.lines).map(
-    reshapeCartLineItem
+    toCartLineItem
   )
 
   return {
@@ -73,7 +73,7 @@ export async function createCart(): Promise<Cart> {
     dataSchema: cartCreateResponseSchema,
   })
 
-  return reshapeCart(res.body.data.cartCreate.cart)
+  return toCart(res.body.data.cartCreate.cart)
 }
 
 export async function addToCart(
@@ -84,13 +84,15 @@ export async function addToCart(
     query: addToCartMutation,
     variables: {
       cartId,
-      lines,
+      // Copied into plain objects: GraphQL variables are a JSON value bag,
+      // not a place for a named domain interface.
+      lines: lines.map((line) => ({ ...line })),
     },
     cache: 'no-store',
     dataSchema: cartLinesAddResponseSchema,
   })
 
-  return reshapeCart(res.body.data.cartLinesAdd.cart)
+  return toCart(res.body.data.cartLinesAdd.cart)
 }
 
 export async function removeFromCart(
@@ -107,7 +109,7 @@ export async function removeFromCart(
     dataSchema: cartLinesRemoveResponseSchema,
   })
 
-  return reshapeCart(res.body.data.cartLinesRemove.cart)
+  return toCart(res.body.data.cartLinesRemove.cart)
 }
 
 interface CartLineUpdateInput {
@@ -124,13 +126,15 @@ export async function updateCart(
     query: editCartItemsMutation,
     variables: {
       cartId,
-      lines,
+      // Copied into plain objects: GraphQL variables are a JSON value bag,
+      // not a place for a named domain interface.
+      lines: lines.map((line) => ({ ...line })),
     },
     cache: 'no-store',
     dataSchema: cartLinesUpdateResponseSchema,
   })
 
-  return reshapeCart(res.body.data.cartLinesUpdate.cart)
+  return toCart(res.body.data.cartLinesUpdate.cart)
 }
 
 export async function getCart(cartId: string): Promise<Cart | undefined> {
@@ -147,5 +151,5 @@ export async function getCart(cartId: string): Promise<Cart | undefined> {
     return undefined
   }
 
-  return reshapeCart(res.body.data.cart)
+  return toCart(res.body.data.cart)
 }

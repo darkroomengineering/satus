@@ -2,12 +2,7 @@
 
 import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip'
 import cn from 'clsx'
-import {
-  type ComponentProps,
-  isValidElement,
-  type ReactElement,
-  type ReactNode,
-} from 'react'
+import { type ComponentProps, isValidElement, type ReactNode } from 'react'
 
 import s from './tooltip.module.css'
 
@@ -46,13 +41,7 @@ function Tooltip({ content, children, side = 'top', className }: TooltipProps) {
     <BaseTooltip.Provider>
       <BaseTooltip.Root>
         <BaseTooltip.Trigger
-          render={
-            isValidElement(children) ? (
-              (children as ReactElement)
-            ) : (
-              <span>{children}</span>
-            )
-          }
+          render={isValidElement(children) ? children : <span>{children}</span>}
         />
         <BaseTooltip.Portal>
           <BaseTooltip.Positioner side={side} sideOffset={8}>

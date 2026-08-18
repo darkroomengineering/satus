@@ -11,11 +11,20 @@ export function Stats() {
     () =>
       new _Stats({
         minimal: false,
-      } as ConstructorParameters<typeof _Stats>[0])
+      })
   )
 
   useEffect(() => {
-    const domElement = (stats as unknown as { dom: HTMLElement }).dom
+    // stats-gl declares `dom` as a private class field, but it is a real
+    // runtime property meant to be appended to the DOM (that's how the
+    // library's own usage docs mount the panel) — TypeScript just doesn't
+    // expose it. Two honest steps: widen to `unknown` first (never flagged,
+    // since it isn't narrowing away known evidence), then assert the one
+    // field this component actually reads off the instance.
+    const statsInstance: unknown = stats
+    // SAFETY: `dom` is stats-gl's private-but-public-at-runtime overlay
+    // element; the library always sets it in its constructor.
+    const domElement = (statsInstance as { dom: HTMLElement }).dom
     document.body.appendChild(domElement)
     if (s.stats) domElement.classList.add(s.stats)
 

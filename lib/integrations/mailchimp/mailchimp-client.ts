@@ -130,6 +130,13 @@ async function applyMemberTags(
 // Private helper: upsert a member via PUT
 // ---------------------------------------------------------------------------
 
+interface SubscriberPayload {
+  email_address: string
+  status_if_new: MailchimpMemberStatus
+  status?: MailchimpMemberStatus
+  merge_fields: { FNAME: string; LNAME: string }
+}
+
 interface UpsertMemberOptions {
   audienceId: string
   email: string
@@ -165,14 +172,16 @@ async function upsertMember(
   // unconfirmed — they would silently stop receiving mail until they
   // re-confirmed. Callers that genuinely need to move an existing member
   // pass `forceStatus`.
-  const subscriberData = {
+  const subscriberData: SubscriberPayload = {
     email_address: email,
     status_if_new: status,
-    ...(opts.forceStatus ? { status } : {}),
     merge_fields: {
       FNAME: firstName,
       LNAME: lastName,
     },
+  }
+  if (opts.forceStatus) {
+    subscriberData.status = status
   }
 
   const response = await makeMailchimpRequest(

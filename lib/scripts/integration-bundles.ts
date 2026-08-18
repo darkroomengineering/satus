@@ -1099,6 +1099,9 @@ export type _BundleIdIsRemovable = BundleId extends RemovableId ? true : never
  * RemovableId; index INTEGRATION_BUNDLES directly only where the id is BundleId.
  */
 export function getBundle(id: RemovableId): IntegrationBundle | undefined {
+  // SAFETY: RemovableId is deliberately broader than BundleId (see docstring
+  // above) — the widened, Partial view is how a RemovableId with no
+  // INTEGRATION_BUNDLES entry (turnstile, analytics) legitimately misses.
   return (
     INTEGRATION_BUNDLES as Partial<Record<RemovableId, IntegrationBundle>>
   )[id]
@@ -1109,8 +1112,13 @@ export function getBundle(id: RemovableId): IntegrationBundle | undefined {
  * dev-only removables like webgl and theatre).
  */
 export const getIntegrationNames = (): BundleId[] =>
+  // SAFETY: Object.keys() widens to `string[]` by design; INTEGRATION_BUNDLES
+  // is a fully-typed const literal keyed exactly by BundleId.
   Object.keys(INTEGRATION_BUNDLES) as BundleId[]
 
 /** Typed entries of INTEGRATION_BUNDLES (defined keys only). */
 export const getIntegrationEntries = (): [BundleId, IntegrationBundle][] =>
+  // SAFETY: Object.entries() widens keys to `string` by design;
+  // INTEGRATION_BUNDLES is a fully-typed const literal keyed exactly by
+  // BundleId, with IntegrationBundle values throughout.
   Object.entries(INTEGRATION_BUNDLES) as [BundleId, IntegrationBundle][]

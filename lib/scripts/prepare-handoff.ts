@@ -81,6 +81,9 @@ const getShippedIntegrations = async (): Promise<IntegrationStatus[]> => {
     })
   }
 
+  // SAFETY: Object.keys() widens to `string[]` by design (TS can't rule out
+  // extra runtime keys); registryIntegrations is a fully-typed const literal
+  // keyed exactly by IntegrationId, so its own keys carry no such risk.
   for (const id of Object.keys(registryIntegrations) as IntegrationId[]) {
     if (bundleIds.has(id)) continue // already reported above via its bundle
     results.push({
@@ -244,7 +247,7 @@ const setPackageJsonNameAndDescription = async (
       .replace(/^-|-$/g, '')
 
     // Update package.json fields
-    const updates: Record<string, string> = {
+    const updates = {
       name: slug,
       description: `${projectName} - Built with Next.js`,
     }

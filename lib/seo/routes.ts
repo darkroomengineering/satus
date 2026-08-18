@@ -70,6 +70,7 @@ const routableContentQuery = defineQuery(`
  * Pulled out of `getCmsRoutes` so the skip-per-entry behaviour is testable
  * without a network dependency.
  */
+// oxlint-disable-next-line anti-slop/no-unknown-parameters -- this IS the I/O boundary: the untyped Sanity result is validated per entry below
 export function buildRoutesFromDocuments(data: unknown): ContentRoute[] {
   if (!Array.isArray(data)) return []
 

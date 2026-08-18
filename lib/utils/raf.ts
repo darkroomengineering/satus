@@ -17,13 +17,16 @@
 import Tempus from 'tempus'
 
 // Internal write queue
-const writeQueue: (() => unknown)[] = []
+const writeQueue: (() => void)[] = []
 
 // Guard against double-registration on module re-evaluation (HMR, duplicate
 // chunks) — Tempus.add's unsubscribe isn't retained, so without this a
 // re-eval would stack a second flush callback running every frame.
 const REGISTERED_KEY = Symbol.for('satus.raf.flush')
-const registry = globalThis as unknown as Record<symbol, unknown>
+// SAFETY: globalThis's declared type has no symbol-keyed index signature to
+// merge this module-private registration flag into; a single-step assertion
+// to the shape we actually read/write is honest about what's really there.
+const registry = globalThis as Record<symbol, boolean>
 if (!registry[REGISTERED_KEY]) {
   // Process queue each frame via Tempus
   Tempus.add(

@@ -1,12 +1,27 @@
 import type { ZodType } from 'zod'
 
+/**
+ * A JSON-serializable value accepted as a Storefront API GraphQL variable.
+ * Query variables (ids, handles, cart line arrays, etc.) are plain JSON —
+ * this is the value contract `JSON.stringify` in `shopifyFetch` actually
+ * requires, in place of an `unknown` escape hatch.
+ */
+export type GraphQLVariableValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | readonly GraphQLVariableValue[]
+  | { [key: string]: GraphQLVariableValue }
+
 /* Fetch types  */
 export interface ShopifyFetchOptions<T = unknown> {
   cache?: RequestCache
   headers?: HeadersInit
   query: string
   tags?: string[]
-  variables?: Record<string, unknown>
+  variables?: Record<string, GraphQLVariableValue>
   /**
    * Optional Zod schema for the GraphQL response payload (`data` field).
    * When provided, the payload is validated at the Shopify boundary before
@@ -16,7 +31,7 @@ export interface ShopifyFetchOptions<T = unknown> {
   dataSchema?: ZodType<T>
 }
 
-export interface ShopifyResponse<T = Record<string, unknown>> {
+export interface ShopifyResponse<T = unknown> {
   status: number
   body: {
     data: T
@@ -35,7 +50,7 @@ export interface DefaultCart {
   totalQuantity: number
   cost: {
     // `CartCost.totalTaxAmount` is a deprecated, nullable field on the
-    // Storefront API — Shopify can return `null`. `reshapeCart` already
+    // Storefront API — Shopify can return `null`. `toCart` already
     // falls back to a zero amount when it's absent.
     totalTaxAmount: Money | null
     subtotalAmount: Money

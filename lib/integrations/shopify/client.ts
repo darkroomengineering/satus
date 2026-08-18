@@ -39,7 +39,7 @@ const shopifyEnvelopeSchema = z.object({
 // wrap it in 'use cache', e.g. products.ts) and uncached per-user/mutation
 // callers (which pass cache: 'no-store', e.g. cart-operations.ts) — caching
 // policy belongs to the caller, not this wrapper.
-export async function shopifyFetch<T = Record<string, unknown>>({
+export async function shopifyFetch<T = unknown>({
   cache = 'force-cache',
   headers: customHeaders,
   query,
@@ -72,8 +72,11 @@ export async function shopifyFetch<T = Record<string, unknown>>({
       }),
       cache,
       timeout: 10000, // 10 second timeout for Shopify API
-      // Only pass signal if cacheSignal returns a non-null value
-      // Cast to AbortSignal for type compatibility
+      // Only pass signal if cacheSignal returns a non-null value.
+      // SAFETY: cacheSignal() is typed to return the opaque, memberless
+      // `CacheSignal` marker interface, but React always hands back a real
+      // AbortSignal (or null) at runtime — the empty interface just hides
+      // the DOM shape from the public type.
       ...(signal && { signal: signal as AbortSignal }),
       ...(tags && { next: { tags } }),
     })
@@ -111,6 +114,8 @@ export async function shopifyFetch<T = Record<string, unknown>>({
     // If a schema was provided, validate the payload at the boundary.
     // Otherwise, trust the cast (opt-in — callers without a schema are responsible
     // for ensuring T matches the actual response shape).
+    // SAFETY: no dataSchema means the caller opted out of boundary
+    // validation; T is asserted on the caller's contract, not verified here.
     const data = dataSchema
       ? parseApiResponse(dataSchema, envelope.data, 'Shopify Storefront data')
       : (envelope.data as T)

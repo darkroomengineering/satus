@@ -123,6 +123,10 @@ function isIntegrationKept(id: IntegrationId): boolean {
 function mergeSources(...sources: CspSources[]): CspSources {
   const merged: CspSources = {}
   for (const source of sources) {
+    // SAFETY: `source` is always a `CspSources` value, so every entry
+    // `Object.entries` produces has a `CspDirective` key and a `string[]`
+    // value — `Object.entries` itself only knows the generic `string` key
+    // type.
     for (const [directive, values] of Object.entries(source) as [
       CspDirective,
       string[],
@@ -265,13 +269,18 @@ export function composeCsp({
     : {}
 
   const keptIntegrationSources = mergeSources(
+    // SAFETY: `id` comes from `Object.entries(integrations)`, so it is
+    // always one of `integrations`' own keys — `Object.entries` types every
+    // key as plain `string` regardless of the source object.
     ...Object.entries(integrations)
       .filter(([id]) => isIntegrationKept(id as IntegrationId))
-      // Widen from the literal per-entry union (where entries without
-      // cspSources don't structurally carry the property at all) to the
-      // interface, which declares it optional — same pattern as
-      // `hasCapability`'s `entry: IntegrationEntry` widening in ./registry.
-      .map(([, entry]) => (entry as IntegrationEntry).cspSources ?? {})
+      .map(
+        // SAFETY: widen from the literal per-entry union (where entries
+        // without cspSources don't structurally carry the property at all)
+        // to the interface, which declares it optional — same pattern as
+        // `hasCapability`'s `entry: IntegrationEntry` widening in ./registry.
+        ([, entry]) => (entry as IntegrationEntry).cspSources ?? {}
+      )
   )
 
   const merged = mergeSources(
@@ -285,6 +294,10 @@ export function composeCsp({
   const directives = DIRECTIVE_ORDER.filter(
     (directive) => merged[directive]?.length
   ).map(
+    // SAFETY: the `.filter` above already dropped every directive whose
+    // `merged[directive]` is empty/undefined, so each remaining directive's
+    // value is a non-empty `string[]` — `noUncheckedIndexedAccess` can't see
+    // that guarantee across the two separate array methods.
     (directive) => `${directive} ${(merged[directive] as string[]).join(' ')}`
   )
 

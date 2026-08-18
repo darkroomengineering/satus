@@ -82,7 +82,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | Export | Signature |
 |--------|-----------|
 | fetchWithTimeout | `(url: string, options: FetchWithTimeoutOptions = {}) => Promise<Response>` |
-| fetchJSON | `(url: string, options?: FetchWithTimeoutOptions) => Promise<unknown>` |
+| fetchJSON | `(url: string, options?: FetchWithTimeoutOptions) => Promise<JsonValue>` |
 | FetchWithTimeoutOptions |  |
 
 ### Form-action (`@/utils/form-action`)
@@ -137,7 +137,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | slugify | `(text: { toString: () => string })` |
 | lowerFirstChar | `(inputString: string)` |
 | capitalizeFirstLetter | `(inputString: string)` |
-| isEmptyArray | `(arr: string | unknown[])` |
+| isEmptyArray | `(arr: string | unknown[] | null | undefined)` |
 | stripHtmlTags | `(input: string) => string` |
 
 ### Validation (`@/utils/validation`)
@@ -147,6 +147,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | parseFormData | `(schema: z.ZodType<T>, formData: FormData) => FormState<T> | { success: true; data: T }` |
 | zodToValidator | `(schema: z.ZodType) => (value: string) => boolean` |
 | parseApiResponse | `(schema: z.ZodType<T>, data: unknown, context?: string) => T` |
+| JsonValue | `| string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue }` |
 | emailSchema | `ZodEmail` |
 | phoneSchema | `ZodString` |
 | sanityEnvSchema | `ZodObject<{ NEXT_PUBLIC_SANITY_PROJECT_ID: ZodOptional<ZodString>; SANITY_STU...` |

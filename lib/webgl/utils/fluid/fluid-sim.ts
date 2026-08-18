@@ -382,6 +382,10 @@ export class Fluid {
     const texelSize = { value: new Vector2(1 / simRes, 1 / simRes) }
 
     // Fluid simulation materials
+    // SAFETY: the uniforms object literal below is created with exactly the
+    // keys named in the type argument — RawShaderMaterial's own return type
+    // only knows a generic uniforms record, not this narrowed uniform-key
+    // union.
     this.clearMaterial = new RawShaderMaterial({
       glslVersion: GLSL3,
       uniforms: {
@@ -396,6 +400,7 @@ export class Fluid {
       depthWrite: false,
     }) as ShaderMaterial<'uTexture' | 'value'>
 
+    // SAFETY: see the `clearMaterial` uniforms note above — same pattern.
     this.splatMaterial = new RawShaderMaterial({
       glslVersion: GLSL3,
       uniforms: {
@@ -413,6 +418,7 @@ export class Fluid {
       depthWrite: false,
     }) as ShaderMaterial<'uTarget' | 'uAspect' | 'color' | 'point' | 'radius'>
 
+    // SAFETY: see the `clearMaterial` uniforms note above — same pattern.
     this.advectionMaterial = new RawShaderMaterial({
       glslVersion: GLSL3,
       uniforms: {
@@ -432,6 +438,7 @@ export class Fluid {
       'dyeTexelSize' | 'uVelocity' | 'uSource' | 'dt' | 'dissipation'
     >
 
+    // SAFETY: see the `clearMaterial` uniforms note above — same pattern.
     this.divergenceMaterial = new RawShaderMaterial({
       glslVersion: GLSL3,
       uniforms: {
@@ -445,6 +452,7 @@ export class Fluid {
       depthWrite: false,
     }) as ShaderMaterial<'uVelocity'>
 
+    // SAFETY: see the `clearMaterial` uniforms note above — same pattern.
     this.curlMaterial = new RawShaderMaterial({
       glslVersion: GLSL3,
       uniforms: {
@@ -458,6 +466,7 @@ export class Fluid {
       depthWrite: false,
     }) as ShaderMaterial<'uVelocity'>
 
+    // SAFETY: see the `clearMaterial` uniforms note above — same pattern.
     this.vorticityMaterial = new RawShaderMaterial({
       glslVersion: GLSL3,
       uniforms: {
@@ -474,6 +483,7 @@ export class Fluid {
       depthWrite: false,
     }) as ShaderMaterial<'uVelocity' | 'uCurl' | 'curl' | 'dt'>
 
+    // SAFETY: see the `clearMaterial` uniforms note above — same pattern.
     this.pressureMaterial = new RawShaderMaterial({
       glslVersion: GLSL3,
       uniforms: {
@@ -488,6 +498,7 @@ export class Fluid {
       depthWrite: false,
     }) as ShaderMaterial<'uPressure' | 'uDivergence'>
 
+    // SAFETY: see the `clearMaterial` uniforms note above — same pattern.
     this.gradientSubtractMaterial = new RawShaderMaterial({
       glslVersion: GLSL3,
       uniforms: {

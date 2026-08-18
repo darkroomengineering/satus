@@ -36,13 +36,25 @@ async function requestEnsure(): Promise<void> {
   if (response.ok) ensured = true
 }
 
+/**
+ * Type-guard, not a bare `typeof navigator` check: checking the property on
+ * `globalThis` (rather than referencing the possibly-undeclared bare
+ * identifier) can never throw, so it is safe in non-browser execution
+ * contexts (SSR, tests) the same way `typeof navigator` would be.
+ */
+function hasNavigator(
+  scope: typeof globalThis
+): scope is typeof globalThis & { navigator: Navigator } {
+  return typeof scope.navigator !== 'undefined'
+}
+
 export async function ensureCart(): Promise<void> {
   if (ensured) return
 
   // Web Locks is unavailable on older Safari and in non-secure contexts.
   // Falling back to an unsynchronised call keeps the flow working; the worst
   // case is the pre-existing race, never a failed add.
-  if (typeof navigator === 'undefined' || !navigator.locks) {
+  if (!hasNavigator(globalThis) || !navigator.locks) {
     await requestEnsure()
     return
   }

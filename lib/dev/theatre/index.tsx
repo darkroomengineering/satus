@@ -71,7 +71,7 @@ export function TheatreProjectProvider({
               })
             }
           })
-          .catch((error: unknown) => {
+          .catch((error) => {
             // Reset so a remount can retry — a stuck flag would silently
             // disable Theatre for the rest of the session.
             isLoadingRef.current = false
@@ -87,7 +87,7 @@ export function TheatreProjectProvider({
             setproject(project)
           })
         })
-        .catch((error: unknown) => {
+        .catch((error) => {
           console.error(`Theatre: project ${id} failed to load`, error)
         })
     }
@@ -131,7 +131,7 @@ export function useSheetDuration(sheet: ISheet) {
           setDuration(duration)
         })
       })
-      .catch((error: unknown) => {
+      .catch((error) => {
         console.error('Theatre: failed to load core for sheet duration', error)
       })
 

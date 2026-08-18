@@ -45,14 +45,20 @@ function isNumberDescriptor(
   )
 }
 
+function isBooleanDescriptor(
+  descriptor: PropDescriptor
+): descriptor is boolean {
+  return typeof descriptor === 'boolean'
+}
+
 function toTheatreConfig(
   descriptors: TheatrePropDescriptors,
   core: Awaited<ReturnType<typeof loadTheatreCore>>
 ): UnknownShorthandCompoundProps {
-  const config: Record<string, unknown> = {}
+  const config: UnknownShorthandCompoundProps = {}
 
   for (const [key, descriptor] of Object.entries(descriptors)) {
-    if (typeof descriptor === 'boolean') {
+    if (isBooleanDescriptor(descriptor)) {
       config[key] = descriptor
     } else if (isNumberDescriptor(descriptor)) {
       config[key] = core.types.number(descriptor.value, {
@@ -66,14 +72,14 @@ function toTheatreConfig(
     }
   }
 
-  return config as UnknownShorthandCompoundProps
+  return config
 }
 
 export function useTheatreObject(
   sheet: ISheet | undefined,
   theatreKey: string,
   config: TheatrePropDescriptors,
-  deps = [] as unknown[]
+  deps: unknown[] = []
 ) {
   const [object, setObject] = useState<ISheetObject>()
 
@@ -115,7 +121,7 @@ export function useTheatreObject(
           })
         )
       })
-      .catch((error: unknown) => {
+      .catch((error) => {
         console.error(`Theatre: failed to load core for '${theatreKey}'`, error)
       })
 
@@ -176,6 +182,10 @@ export function useTheatre<Config extends TheatrePropDescriptors>(
         lazyValues.current = values
         if (!lazy) setValues(values)
 
+        // SAFETY: `object` was created by `useTheatreObject` from this same
+        // `config`, so Theatre's runtime `values` always match the shape
+        // `Config` was built from — Theatre's own types only know the
+        // broader default `UnknownShorthandCompoundProps` shape.
         handleValuesChange(values as TheatrePropsToValues<Config>)
       })
     }

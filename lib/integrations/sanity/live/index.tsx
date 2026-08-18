@@ -1,9 +1,4 @@
-import type {
-  ClientReturn,
-  ContentSourceMap,
-  QueryParams,
-  SanityClient,
-} from 'next-sanity'
+import type { ClientReturn, ContentSourceMap, QueryParams } from 'next-sanity'
 import {
   defineLive,
   type LivePerspective,
@@ -12,6 +7,7 @@ import {
 } from 'next-sanity/live'
 import { cacheTag } from 'next/cache'
 import type { ComponentType } from 'react'
+import { z } from 'zod'
 
 import { isConfigured } from '@/integrations/registry'
 
@@ -50,22 +46,39 @@ export function resolveSanityFetchMode(options: {
  * `revalidateTag(`${_type}:${slug}`)`, so a cache entry must carry those
  * exact tags to be invalidated when an editor publishes.
  */
-function tagsForResult(data: unknown): string[] {
-  const documents = Array.isArray(data) ? data : [data]
+// A Sanity document's shape is arbitrary per-query, so this only describes
+// the two fields `tagsForResult` reads — everything else is ignored, and a
+// document missing `_type` (or not an object at all) is simply skipped.
+const sanityTagFieldsSchema = z.object({
+  _type: z.string(),
+  slug: z.object({ current: z.string().optional() }).nullish(),
+})
+
+function tagsForResult(data: unknown[]): string[] {
   const tags = new Set<string>()
 
-  for (const doc of documents) {
-    if (typeof doc !== 'object' || doc === null) continue
-    const { _type, slug } = doc as {
-      _type?: unknown
-      slug?: { current?: unknown } | null
-    }
-    if (typeof _type !== 'string') continue
+  for (const doc of data) {
+    const parsed = sanityTagFieldsSchema.safeParse(doc)
+    if (!parsed.success) continue
+    const { _type, slug } = parsed.data
     tags.add(_type)
-    if (typeof slug?.current === 'string') tags.add(`${_type}:${slug.current}`)
+    if (slug?.current) tags.add(`${_type}:${slug.current}`)
   }
 
   return [...tags]
+}
+
+/**
+ * The narrow slice of `SanityClient` this module actually calls. Kept
+ * separate from the full class so tests can supply a plain fixture object
+ * instead of asserting one into the full, many-method `SanityClient` shape.
+ * A real `SanityClient` instance already satisfies this structurally.
+ */
+export interface FetchClient {
+  fetch: (
+    query: string,
+    params?: QueryParams
+  ) => Promise<ClientReturn<string, unknown>>
 }
 
 /**
@@ -88,7 +101,7 @@ function tagsForResult(data: unknown): string[] {
  * path does not have, so it always serves published, un-annotated content.
  */
 export function createPublishedFetch(
-  sanityClient: SanityClient
+  sanityClient: FetchClient
 ): StrictDefinedFetchType {
   return async function publishedFetch<
     const QueryString extends string,
@@ -106,11 +119,19 @@ export function createPublishedFetch(
     tags: string[]
   }> {
     const params = options.params ? await options.params : undefined
-    const data = params
+    const rawData = params
       ? await sanityClient.fetch(options.query, params)
       : await sanityClient.fetch(options.query)
+    // SAFETY: `rawData` is whatever the configured Sanity dataset returns for
+    // an arbitrary GROQ query — `ClientReturn` can only resolve a concrete
+    // shape for query strings covered by generated `SanityQueries` typegen,
+    // which this generic `QueryString` type parameter isn't.
+    const data = rawData as ClientReturn<QueryString, unknown>
 
-    const tags = [...new Set([...(options.tags ?? []), ...tagsForResult(data)])]
+    const dataList = Array.isArray(rawData) ? rawData : [rawData]
+    const tags = [
+      ...new Set([...(options.tags ?? []), ...tagsForResult(dataList)]),
+    ]
 
     // Callers run this inside `'use cache'`, where `cacheTag` is legal and
     // required for the webhook to reach this entry. The unit tests call the
@@ -132,11 +153,30 @@ export function createPublishedFetch(
  * which every typegen query result already models — instead of throwing.
  */
 export function createStubFetch(): StrictDefinedFetchType {
-  return (async () => ({
-    data: null,
-    sourceMap: null,
-    tags: [],
-  })) as unknown as StrictDefinedFetchType
+  return async function stubFetch<const QueryString extends string>(_options: {
+    query: QueryString
+    params?: QueryParams | Promise<QueryParams>
+    perspective: LivePerspective
+    variant?: string
+    stega: boolean
+    tags?: string[]
+    requestTag?: string
+  }): Promise<{
+    data: ClientReturn<QueryString, unknown>
+    sourceMap: ContentSourceMap | null
+    tags: string[]
+  }> {
+    return {
+      // SAFETY: Sanity isn't configured at all, so every call returns no
+      // data regardless of the query — `null` already models "no result"
+      // for every typegen query result, but `ClientReturn`'s conditional
+      // type can't be resolved for a generic `QueryString` inside this
+      // function body.
+      data: null as ClientReturn<QueryString, unknown>,
+      sourceMap: null,
+      tags: [],
+    }
+  }
 }
 
 /**

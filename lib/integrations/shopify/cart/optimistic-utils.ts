@@ -106,10 +106,10 @@ function addItem(state: Cart, action: AddItemAction): Cart {
   }
 }
 
-export const quantityAction: Record<'minus' | 'plus', number> = {
+export const quantityAction = {
   minus: -1,
   plus: 1,
-}
+} satisfies Record<'minus' | 'plus', number>
 
 function updateCartItem(
   item: CartLine,

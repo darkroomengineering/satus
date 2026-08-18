@@ -103,8 +103,8 @@ describe('isEmptyArray', () => {
   })
 
   it('should return true for null/undefined', () => {
-    expect(isEmptyArray(null as unknown as unknown[])).toBe(true)
-    expect(isEmptyArray(undefined as unknown as unknown[])).toBe(true)
+    expect(isEmptyArray(null)).toBe(true)
+    expect(isEmptyArray(undefined)).toBe(true)
   })
 })
 

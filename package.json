@@ -14,7 +14,7 @@
     "start": "next start",
     "preview": "bun run build && next start",
     "prepare": "bun ./lib/scripts/prepare.ts",
-    "check": "oxlint --report-unused-disable-directives --max-warnings=0 && oxfmt --check && bun run lint:types && bun run ensure:typegen && bun node_modules/typescript/bin/tsc --noEmit && bun test && bun run manifest:check && bun run check:assets",
+    "check": "oxlint --report-unused-disable-directives --max-warnings=0 && oxfmt --check && bun run lint:types && bun run ensure:typegen && bun node_modules/typescript/bin/tsc --noEmit && bun test && bun run test:oxlint-plugin && bun run manifest:check && bun run check:assets",
     "clean": "rm -rf .next node_modules/.cache",
     "lint": "oxlint --report-unused-disable-directives --max-warnings=0",
     "lint:fix": "oxlint --fix --fix-suggestions",
@@ -33,6 +33,7 @@
     "setup:project": "bun ./lib/scripts/setup-project.ts",
     "test": "bun test",
     "test:e2e": "playwright test",
+    "test:oxlint-plugin": "for f in tools/oxlint/anti-slop/rules/*.ruletest.ts; do node $f || exit 1; done",
     "test:setup": "bun test lib/scripts/setup-project.test.ts",
     "doctor": "bun ./lib/scripts/doctor.ts",
     "contrast:accept": "bun ./lib/styles/scripts/contrast-accept.ts",
@@ -80,6 +81,7 @@
     "@happy-dom/global-registrator": "^20.11.2",
     "@next/bundle-analyzer": "16.3.0",
     "@next/playwright": "16.3.0",
+    "@oxlint/plugins": "1.78.0",
     "@playwright/test": "1.62.1",
     "@sanity/vision": "^6.9.2",
     "@storybook/addon-mcp": "^0.7.0",
@@ -119,7 +121,7 @@
     "playwright-core": "1.62.1"
   },
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22.18.0"
   },
   "packageManager": "bun@1.3.5",
   "trustedDependencies": [

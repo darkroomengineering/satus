@@ -18,7 +18,7 @@ import { richText } from './richText'
 export { article, link, metadata, navigation, page, richText }
 
 // Schema collection for Sanity configuration
-export const schema: { types: SchemaTypeDefinition[] } = {
+export const schema = {
   types: [
     // Object types (reusable components)
     link,
@@ -32,4 +32,4 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     // Singleton types (one-off content)
     navigation,
   ],
-}
+} satisfies { types: SchemaTypeDefinition[] }

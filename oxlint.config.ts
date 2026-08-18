@@ -13,6 +13,9 @@ import { defineConfig } from 'oxlint'
  * `Record<string, ...>`), so a typo'd rule name still slips through.
  */
 export default defineConfig({
+  jsPlugins: [
+    { name: 'anti-slop', specifier: './tools/oxlint/anti-slop/index.ts' },
+  ],
   plugins: [
     'eslint',
     'typescript',
@@ -85,9 +88,38 @@ export default defineConfig({
     // generated output that the next typegen run reverts. oxfmt ignores it for
     // the same reason.
     'lib/integrations/sanity/sanity.types.ts',
+    'tools/oxlint/anti-slop/**',
   ],
 
   rules: {
+    // --- anti-slop (vendored, tools/oxlint/anti-slop) -------------------------
+    // Rules that reject low-evidence TypeScript patterns, aimed at the code
+    // agents tend to produce. Vendored per upstream's own recommendation
+    // (https://github.com/dmmulroy/anti-slop), so the rules are ours to edit;
+    // no-module-mocking is extended locally to recognize bun:test mock.module.
+    // The Effect-specific plugin is not vendored; this repo does not use Effect.
+    'anti-slop/no-chained-type-assertions': 'error',
+    'anti-slop/no-conditional-empty-object-spread': 'error',
+    'anti-slop/no-known-value-widening': 'error',
+    'anti-slop/no-module-mocking': 'error',
+    'anti-slop/no-object-parameters': 'error',
+    'anti-slop/no-reflect-apply': 'error',
+    'anti-slop/no-reflect-get': 'error',
+    // allowInTypeGuards keeps `typeof` legal inside named type-guard
+    // functions. The remaining literal `typeof window` SSR guards carry
+    // per-site disable comments instead of an isServer utility: Next
+    // statically replaces literal `typeof window` in client bundles, so
+    // extracting the check into a shared const would defeat dead-code
+    // elimination of server-only branches.
+    'anti-slop/no-runtime-typeof': ['error', { allowInTypeGuards: true }],
+    'anti-slop/no-shape-in-symbol-names': 'error',
+    'anti-slop/no-unknown-parameters': 'error',
+    'anti-slop/no-unknown-returns': 'error',
+    'anti-slop/no-unknown-type-aliases': 'error',
+    'anti-slop/no-unsafe-dictionary-type': 'error',
+    'anti-slop/no-widen-then-assert': 'error',
+    'anti-slop/require-safety-comment-for-type-assertion': 'error',
+
     'eslint/no-unused-vars': [
       'error',
       {
@@ -316,6 +348,32 @@ export default defineConfig({
         'eslint/no-restricted-imports': 'off',
         'unicorn/filename-case': 'off',
         'react/forbid-elements': 'off',
+      },
+    },
+    {
+      // Test and storybook casts are fixture plumbing; a SAFETY: justification
+      // per cast would be noise, and typeof probing is routine in assertions.
+      files: ['e2e/**', '**/*.test.ts', '**/*.test.tsx', '.storybook/**'],
+      rules: {
+        'anti-slop/require-safety-comment-for-type-assertion': 'off',
+        'anti-slop/no-runtime-typeof': 'off',
+      },
+    },
+    {
+      // CLI tooling probes CLI/env/JSON values with typeof by nature; there
+      // is no upstream I/O boundary to push the parse to.
+      files: ['lib/scripts/**', 'lib/styles/scripts/**'],
+      rules: {
+        'anti-slop/no-runtime-typeof': 'off',
+      },
+    },
+    {
+      // runFormAction wraps next/headers and the Turnstile validator with no
+      // injectable seam; removing mock.module here would mean changing
+      // form-action's public API just to satisfy the rule.
+      files: ['lib/utils/form-action.test.ts'],
+      rules: {
+        'anti-slop/no-module-mocking': 'off',
       },
     },
   ],

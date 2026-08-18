@@ -260,8 +260,9 @@ export function applyAddFunctionBodyStatement(
     // when a leading comment precedes the block's first statement (the index
     // returned by `getStatements()` and the index `insertStatements` expects
     // stop agreeing once trivia is involved).
-    const anchor = op.afterContains
-      ? statements.find((s) => s.getText().includes(op.afterContains as string))
+    const afterContains = op.afterContains
+    const anchor = afterContains
+      ? statements.find((s) => s.getText().includes(afterContains))
       : undefined
 
     if (anchor) {

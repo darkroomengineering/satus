@@ -2,6 +2,10 @@ import type { Route } from 'next'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef } from 'react'
 
+function isString(value: string | number | undefined): value is string {
+  return typeof value === 'string'
+}
+
 /**
  * Hook to prefetch a route when an element becomes visible in the viewport
  * @param href - The route to prefetch
@@ -38,6 +42,8 @@ export function usePrefetch<T extends HTMLElement = HTMLElement>(
       const [entry] = entries
       if (entry?.isIntersecting && !prefetchedRef.current) {
         // Check network conditions before prefetching
+        // SAFETY: Network Information API's `navigator.connection` is present
+        // on Chromium but absent from the DOM lib types.
         const connection = (
           navigator as Navigator & {
             connection?: NetworkInformation
@@ -57,10 +63,9 @@ export function usePrefetch<T extends HTMLElement = HTMLElement>(
       }
     }
 
-    const threshold =
-      typeof thresholdKey === 'string'
-        ? thresholdKey.split(',').map(Number)
-        : thresholdKey
+    const threshold = isString(thresholdKey)
+      ? thresholdKey.split(',').map(Number)
+      : thresholdKey
 
     const observer = new IntersectionObserver(handleIntersection, {
       rootMargin: rootMargin ?? '50px',

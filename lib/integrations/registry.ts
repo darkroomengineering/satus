@@ -240,6 +240,10 @@ export function hasCapability<Id extends IntegrationId>(
   // Widen from the literal entry union (where most entries lack the key)
   // to the interface, which declares `capabilities` as optional.
   const entry: IntegrationEntry = integrations[id]
+  // SAFETY: `capability`'s type is a deferred conditional on the generic
+  // `Id`, but both of its branches (`CapabilityOf<Id>` and the `string`
+  // fallback) are always string-like — TS just can't resolve a deferred
+  // conditional type for indexing purposes.
   const schema = entry.capabilities?.[capability as string]
   if (!schema) {
     return isConfigured(id)
@@ -252,6 +256,9 @@ export function hasCapability<Id extends IntegrationId>(
  */
 export function getConfiguredIds(): IntegrationId[] {
   assertServerEnvironment()
+  // SAFETY: `integrations` is keyed exactly by `IntegrationId` — `Object.keys`
+  // just types every result as plain `string[]` regardless of the source
+  // object's literal keys.
   return (Object.keys(integrations) as IntegrationId[]).filter(
     (id) => integrations[id].envSchema.safeParse(process.env).success
   )

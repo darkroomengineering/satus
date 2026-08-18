@@ -27,10 +27,13 @@ interface NotConfiguredProps {
   className?: string
 }
 
-const INTEGRATION_INFO: Record<
-  string,
-  { description: string; docsUrl: string; envVars: string[] }
-> = {
+interface IntegrationInfo {
+  description: string
+  docsUrl: string
+  envVars: string[]
+}
+
+const INTEGRATION_INFO = {
   Sanity: {
     description: 'Headless CMS with visual editing and real-time collaboration',
     docsUrl: 'https://www.sanity.io/docs',
@@ -59,6 +62,12 @@ const INTEGRATION_INFO: Record<
       'MAILCHIMP_AUDIENCE_ID',
     ],
   },
+} satisfies Record<string, IntegrationInfo>
+
+function isKnownIntegration(
+  name: string
+): name is keyof typeof INTEGRATION_INFO {
+  return Object.hasOwn(INTEGRATION_INFO, name)
 }
 
 /**
@@ -86,7 +95,9 @@ export function NotConfigured({
   envVars,
   className,
 }: NotConfiguredProps) {
-  const info = INTEGRATION_INFO[integration]
+  const info = isKnownIntegration(integration)
+    ? INTEGRATION_INFO[integration]
+    : undefined
   const finalDescription = description ?? info?.description
   const finalDocsUrl = docsUrl ?? info?.docsUrl
   const finalEnvVars = envVars ?? info?.envVars ?? []

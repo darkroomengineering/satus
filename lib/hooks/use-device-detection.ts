@@ -29,11 +29,13 @@ function checkIsAutoplaySupported() {
  * calls play()). Computing once and sharing across every hook instance avoids
  * re-running that work for each component that mounts.
  */
-const cache: {
+interface DeviceDetectionCache {
   isSafari?: boolean
   supportsWebGL?: boolean
   isAutoplaySupported?: Promise<boolean>
-} = {}
+}
+
+const cache: DeviceDetectionCache = {}
 
 function detectIsSafari() {
   cache.isSafari ??= /^((?!chrome|android).)*safari/i.test(navigator.userAgent)

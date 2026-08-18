@@ -8,23 +8,17 @@ import {
   useTransition,
 } from 'react'
 
-import type { FormState } from '@/lib/types/form'
 import { emailSchema, phoneSchema, zodToValidator } from '@/utils/validation'
 
-import type {
-  FieldError,
-  FormAction,
-  UseFormOptions,
-  UseFormReturn,
-} from './types'
+import type { FieldError, UseFormOptions, UseFormReturn } from './types'
 
 // Built-in validators (uses same Zod schemas as server-side validation).
 // Declared above useForm so validate() can reference it without a
-// use-before-define suppression.
-const validators: Record<string, (value: string) => boolean> = {
-  email: zodToValidator(emailSchema),
-  phone: zodToValidator(phoneSchema),
-}
+// use-before-define suppression. Starts empty and is populated below so the
+// dictionary type stays open for `addValidator` to extend at runtime.
+const validators: Record<string, (value: string) => boolean> = {}
+validators.email = zodToValidator(emailSchema)
+validators.phone = zodToValidator(phoneSchema)
 
 // Allow extending validators
 export function addValidator(id: string, fn: (value: string) => boolean) {
@@ -54,10 +48,7 @@ export function useForm<T = unknown>({
   onBlur = false,
   formId = '',
 }: UseFormOptions<T>): UseFormReturn<T> {
-  const [formState, formAction] = useActionState(
-    action as FormAction<unknown>,
-    initialState as FormState<unknown> | null
-  )
+  const [formState, formAction] = useActionState(action, initialState)
   const [isPending, startTransition] = useTransition()
   const [isActive, setIsActive] = useState<Record<string, boolean>>({})
   const [isValid, setIsValid] = useState<Record<string, boolean>>({})
@@ -223,7 +214,7 @@ export function useForm<T = unknown>({
   }
 
   return {
-    formState: formState as FormState<T> | null,
+    formState,
     formAction,
     onSubmit,
     register,

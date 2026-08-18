@@ -3,6 +3,19 @@ import { z } from 'zod'
 import type { FormState } from '@/lib/types/form'
 
 // ---------------------------------------------------------------------------
+// Shared types
+// ---------------------------------------------------------------------------
+
+/** Any value produced by `JSON.parse` — the honest shape of unparsed external JSON. */
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [key: string]: JsonValue }
+
+// ---------------------------------------------------------------------------
 // Shared field schemas
 // ---------------------------------------------------------------------------
 
@@ -207,7 +220,7 @@ export function parseFormData<T>(
   schema: z.ZodType<T>,
   formData: FormData
 ): FormState<T> | { success: true; data: T } {
-  const raw: Record<string, unknown> = {}
+  const raw: Record<string, FormDataEntryValue | FormDataEntryValue[]> = {}
   const seenKeys = new Set<string>()
   for (const key of formData.keys()) {
     if (seenKeys.has(key)) continue
@@ -216,8 +229,11 @@ export function parseFormData<T>(
     const values = formData.getAll(key)
     // A key that appears once stays a scalar (existing schemas expect a
     // single value); a repeated key (e.g. a checkbox group sharing one
-    // `name`) collects into an array so `z.array(...)` fields work.
-    raw[key] = values.length > 1 ? values : values[0]
+    // `name`) collects into an array so `z.array(...)` fields work. `key`
+    // came from `formData.keys()`, so `values` always has at least one
+    // entry — the `''` fallback is unreachable, only there to satisfy
+    // noUncheckedIndexedAccess honestly instead of asserting past it.
+    raw[key] = values.length > 1 ? values : (values[0] ?? '')
   }
 
   const result = schema.safeParse(raw)
@@ -286,6 +302,7 @@ export function zodToValidator(schema: z.ZodType): (value: string) => boolean {
  */
 export function parseApiResponse<T>(
   schema: z.ZodType<T>,
+  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- this function is itself the I/O-boundary parser; `lib/integrations/**` callers deliberately type `res.json()` as `unknown` and rely on this call to validate it
   data: unknown,
   context?: string
 ): T {

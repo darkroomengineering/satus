@@ -69,6 +69,8 @@ ${Object.entries(typography)
           'mobile' in value &&
           'desktop' in value
         ) {
+          // SAFETY: key === 'font-size' and TypeStyles only allows an object
+          // value for font-size as { mobile: number; desktop: number }.
           const v = value as { mobile: number; desktop: number }
           return [
             `font-size: ${scalingCalc(v.mobile)};`,
@@ -85,6 +87,9 @@ ${Object.entries(typography)
         'mobile' in value &&
         'desktop' in value
       ) {
+        // SAFETY: key !== 'font-size' (handled above), so per TypeStyles this
+        // is line-height or letter-spacing's { mobile; desktop } template-literal
+        // variant — checked here just for the shared mobile/desktop shape.
         const v = value as { mobile: string | number; desktop: string | number }
         return [
           `${key}: ${v.mobile};`,

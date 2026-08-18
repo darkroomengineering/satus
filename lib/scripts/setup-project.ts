@@ -178,11 +178,13 @@ const pruneExampleRoutes = async (dryRun: boolean): Promise<void> => {
 }
 
 // Parsed package.json shape used by the in-memory mutation helpers below.
+// Only the fields these helpers touch are typed — the parsed object retains
+// every other real package.json field at runtime; JSON.stringify(pkg) still
+// round-trips them untouched.
 type PackageJson = {
   dependencies?: Record<string, string>
   devDependencies?: Record<string, string>
   scripts?: Record<string, string>
-  [key: string]: unknown
 }
 
 /**
@@ -195,7 +197,7 @@ const removeDepsFromPackageJson = (
   depsToRemove: string[],
   devDepsToRemove: string[],
   dryRun: boolean
-): { deps: string[]; devDeps: string[] } => {
+) => {
   const removedDeps: string[] = []
   const removedDevDeps: string[] = []
 
@@ -689,7 +691,7 @@ const setupAddIntegrations = async (
   const payloadPkgText = await Bun.file(
     join(source.root, 'package.json')
   ).text()
-  const payloadPkg = JSON.parse(payloadPkgText) as PayloadPackageJson
+  const payloadPkg: PayloadPackageJson = JSON.parse(payloadPkgText)
 
   // Re-add each kept integration in order (respecting requires transitivity
   // is not needed here — the snapshot already has all files).
@@ -907,7 +909,7 @@ export const replaceAnchoredText = (
   content: string,
   anchor: string,
   replacement: string
-): { text: string; changed: boolean } => {
+) => {
   if (!content.includes(anchor)) return { text: content, changed: false }
   return { text: content.replace(anchor, replacement), changed: true }
 }
@@ -1257,7 +1259,7 @@ const setup = async (
   //    object later (step 11) and persisted with its own write, so this
   //    object stays the single source of truth throughout.
   const pkgPath = resolvePath('package.json')
-  const pkg = (await Bun.file(pkgPath).json()) as PackageJson
+  const pkg: PackageJson = await Bun.file(pkgPath).json()
 
   // 6. Strip ALL integrations unconditionally to lean core.
   //    Mutates `pkg` for dep removal; other file changes (folders, env) happen here.
@@ -1329,7 +1331,7 @@ const setup = async (
     addFailures.length +
     cacheResult.failures.length
   if (collectedFailureCount === 0) {
-    const prunePkg = (await Bun.file(pkgPath).json()) as PackageJson
+    const prunePkg: PackageJson = await Bun.file(pkgPath).json()
     await selfPrune(prunePkg, dryRun)
     if (!dryRun) {
       await Bun.write(pkgPath, `${JSON.stringify(prunePkg, null, 2)}\n`)
@@ -1450,6 +1452,9 @@ export const resolveKeepFromFlags = (
         `Unknown preset "${presetFlag}". Available: ${Object.keys(PROJECT_PRESETS).join(', ')}`
       )
     }
+    // SAFETY: the `in` check above confirmed presetFlag is one of
+    // PROJECT_PRESETS's own keys; TS's `in` narrowing doesn't propagate that
+    // to the key variable itself, only to the object being indexed.
     return [...PROJECT_PRESETS[presetFlag as PresetKey].integrations]
   }
 
@@ -1460,12 +1465,17 @@ export const resolveKeepFromFlags = (
       .filter((id) => id.length > 0)
     const known = getIntegrationNames()
     for (const id of ids) {
+      // SAFETY: Array<BundleId>.includes(id: string) needs the array widened
+      // to string[] — BundleId's literal-union element type otherwise rejects
+      // an arbitrary CLI-supplied string as the search argument.
       if (!(known as string[]).includes(id)) {
         throw new Error(
           `Unknown integration "${id}". Available: ${known.join(', ')}`
         )
       }
     }
+    // SAFETY: every id in `ids` just passed the `known.includes(id)` check
+    // above, so each one is a real, known integration id.
     return ids as RemovableId[]
   }
 
@@ -1484,18 +1494,20 @@ export const resolveKeepFromFlags = (
  * Fails loudly on unknown ids and circular `requires` chains. `implied` lists
  * ids pulled in beyond the request, for logging. Exported for unit testing.
  */
-export function resolveTransitiveKeepSet(requested: string[]): {
-  order: RemovableId[]
-  implied: RemovableId[]
-} {
+export function resolveTransitiveKeepSet(requested: string[]) {
   const knownIds = getIntegrationNames()
 
   const requestedIds: RemovableId[] = requested.map((id) => {
+    // SAFETY: Array<BundleId>.includes(id: string) needs the array widened
+    // to string[] — BundleId's literal-union element type otherwise rejects
+    // an arbitrary caller-supplied string as the search argument.
     if (!(knownIds as string[]).includes(id)) {
       throw new Error(
         `Unknown integration "${id}". Available: ${knownIds.join(', ')}`
       )
     }
+    // SAFETY: the `knownIds.includes(id)` check above just confirmed `id` is
+    // a real, known integration id.
     return id as RemovableId
   })
 
@@ -1574,6 +1586,9 @@ const promptForIntegrations = async (): Promise<RemovableId[]> => {
   }
 
   // Use preset integrations
+  // SAFETY: selectedPreset came from `p.select` with `presetOptions`, whose
+  // `value`s are exactly PROJECT_PRESETS's own keys plus 'custom' (handled
+  // and returned above), so anything reaching here is a real PresetKey.
   const preset = PROJECT_PRESETS[selectedPreset as PresetKey]
   const keepIntegrations = [...preset.integrations]
 
@@ -1606,6 +1621,8 @@ const isProcessAlive = (pid: number): boolean => {
     process.kill(pid, 0)
     return true
   } catch (error) {
+    // SAFETY: process.kill throws Node's own errno-carrying Error subclass
+    // on failure (ESRCH/EPERM/EINVAL); `catch` only types it `unknown`.
     return (error as NodeJS.ErrnoException).code === 'EPERM'
   }
 }
@@ -1656,6 +1673,8 @@ const acquireLock = async (): Promise<void> => {
   try {
     await mkdir(LOCK_PATH)
   } catch (error) {
+    // SAFETY: mkdir throws Node's own errno-carrying Error subclass on
+    // failure (EEXIST/EACCES/...); `catch` only types it `unknown`.
     if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
       throw error
     }
@@ -1711,9 +1730,8 @@ const guardProjectRoot = async (): Promise<void> => {
       `Run this from your project root (package.json not found at ${projectRoot})`
     )
   }
-  const pkg = (await Bun.file(pkgPath).json()) as {
-    scripts?: Record<string, string>
-  }
+  const pkg: { scripts?: Record<string, string> } =
+    await Bun.file(pkgPath).json()
   if (!pkg.scripts?.['setup:project']) {
     throw new Error(
       `Run this from your project root (package.json at ${projectRoot} does not look like a satus project — missing the "setup:project" script)`

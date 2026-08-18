@@ -23,7 +23,7 @@ export function Studio() {
     loadStudio()
       .then((mod) => {
         if (cancelled) return
-        const studio = mod.default as IStudio
+        const studio = mod.default
         studioRef.current = studio
         studio.initialize()
         studio.ui.restore()
@@ -31,7 +31,7 @@ export function Studio() {
           console.log('Theatre: Studio initialized')
         }
       })
-      .catch((error: unknown) => {
+      .catch((error) => {
         console.error('Theatre: failed to load studio', error)
       })
 

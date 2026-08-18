@@ -25,10 +25,7 @@ export function findBarrelLine(
  * quoted './specifier'). Pure: returns the new text and whether anything
  * changed. Callers handle dry-run and persistence.
  */
-export function removeBarrelLines(
-  sourceText: string,
-  pattern: string
-): { text: string; changed: boolean } {
+export function removeBarrelLines(sourceText: string, pattern: string) {
   const lines = sourceText.split('\n')
   const filtered = lines.filter(
     (line) =>

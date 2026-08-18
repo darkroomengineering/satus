@@ -111,7 +111,7 @@ export function Form<T = unknown>({
     errors,
     register,
   } = useForm({
-    action: actionWithCallbacks as FormAction<unknown>,
+    action: actionWithCallbacks,
     ...(formId && { formId }),
     initialState: null,
   })

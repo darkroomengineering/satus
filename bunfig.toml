@@ -1,5 +1,2 @@
 [test]
 preload = ["./lib/scripts/test-setup.ts"]
-# The vendored anti-slop rule tests use oxlint's RuleTester, which refuses to
-# run under Bun. Run them with `bun run test:oxlint-plugin` (Node) instead.
-pathIgnorePatterns = ["tools/oxlint/anti-slop"]

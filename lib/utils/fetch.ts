@@ -4,7 +4,7 @@
 
 import type { z } from 'zod'
 
-import { parseApiResponse } from './validation'
+import { type JsonValue, parseApiResponse } from './validation'
 
 export interface FetchWithTimeoutOptions extends RequestInit {
   timeout?: number // Timeout in milliseconds (default: 10000ms)
@@ -43,11 +43,11 @@ export async function fetchWithTimeout(
 /**
  * Fetch and parse JSON with timeout protection.
  *
- * Without a schema, returns `Promise<unknown>` — the caller must narrow the type.
+ * Without a schema, returns `Promise<JsonValue>` — the caller must narrow the type.
  *
  * @example
  * ```ts
- * // Unvalidated — returns unknown, caller must narrow
+ * // Unvalidated — returns a JsonValue, caller must narrow
  * const raw = await fetchJSON('https://api.example.com/data')
  *
  * // Validated — throws a descriptive error if the shape doesn't match
@@ -60,7 +60,7 @@ export async function fetchWithTimeout(
 export async function fetchJSON(
   url: string,
   options?: FetchWithTimeoutOptions
-): Promise<unknown>
+): Promise<JsonValue>
 export async function fetchJSON<T>(
   url: string,
   options: FetchWithTimeoutOptions,
@@ -70,14 +70,14 @@ export async function fetchJSON<T>(
   url: string,
   options: FetchWithTimeoutOptions = {},
   schema?: z.ZodType<T>
-): Promise<unknown> {
+): Promise<T | JsonValue> {
   const response = await fetchWithTimeout(url, options)
 
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}: ${response.statusText}`)
   }
 
-  const json: unknown = await response.json()
+  const json: JsonValue = await response.json()
 
   if (schema) {
     return parseApiResponse(schema, json)

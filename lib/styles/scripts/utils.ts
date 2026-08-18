@@ -9,11 +9,13 @@ export function scalingCalc(value: number) {
  * @param joiner - The string to join the mapped entries with
  * @returns A string of CSS variables
  */
-export function formatObject<Obj extends Record<string, unknown>>(
+export function formatObject<Obj extends object>(
   obj: Obj,
   mapper: (args: [key: keyof Obj, value: Obj[keyof Obj]]) => string,
   joiner = '\n\t'
 ) {
+  // SAFETY: Object.entries()'s built-in typing widens keys to `string`;
+  // the entries it returns are exactly `obj`'s own keys, i.e. `keyof Obj`.
   return (Object.entries(obj) as [keyof Obj, Obj[keyof Obj]][])
     .map(mapper)
     .join(joiner)

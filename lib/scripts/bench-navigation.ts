@@ -48,35 +48,43 @@ type Scenario = {
   describe: string
 }
 
-const SCENARIOS: Record<string, Scenario> = {
-  /**
-   * The starter has no client-side navigation surface on its happy path: the
-   * only internal <Link>s are in error.tsx and not-found.tsx, there is no
-   * header nav, and nothing links `/` to `/sanity`. Since prefetching is a
-   * <Link> behaviour, the 404's "Go Home" link is the one real navigation
-   * available.
-   *
-   * Read it narrowly. `/` is statically prerendered, so this times a prefetched
-   * STATIC shell and nothing else. It cannot show a shell-vs-data split,
-   * because there is no dynamic data to serialise — which is exactly why it
-   * reports no `content` number. Useful as a same-scenario A/B across two
-   * builds.
-   */
-  notfound: {
-    from: '/__bench-nonexistent-path',
-    fromHeading: '404',
-    linkName: /go home/i,
-    shellHeading: 'Satūs',
-    describe: '404 -> / via "Go Home" (static shell only, no streamed content)',
-  },
-}
+/**
+ * The starter has no client-side navigation surface on its happy path: the
+ * only internal <Link>s are in error.tsx and not-found.tsx, there is no
+ * header nav, and nothing links `/` to `/sanity`. Since prefetching is a
+ * <Link> behaviour, the 404's "Go Home" link is the one real navigation
+ * available.
+ *
+ * Read it narrowly. `/` is statically prerendered, so this times a prefetched
+ * STATIC shell and nothing else. It cannot show a shell-vs-data split,
+ * because there is no dynamic data to serialise — which is exactly why it
+ * reports no `content` number. Useful as a same-scenario A/B across two
+ * builds.
+ *
+ * A project with routes that stream dynamic content should add another
+ * `[name, Scenario]` entry below, with a `contentText` matcher.
+ */
+const SCENARIOS = new Map<string, Scenario>([
+  [
+    'notfound',
+    {
+      from: '/__bench-nonexistent-path',
+      fromHeading: '404',
+      linkName: /go home/i,
+      shellHeading: 'Satūs',
+      describe:
+        '404 -> / via "Go Home" (static shell only, no streamed content)',
+    },
+  ],
+])
 
 type Sample = { shell: number; content?: number }
 
 const args = process.argv.slice(2)
 function arg(name: string, fallback: string) {
   const i = args.indexOf(`--${name}`)
-  return i !== -1 && args[i + 1] ? (args[i + 1] as string) : fallback
+  const value = args[i + 1]
+  return i !== -1 && value ? value : fallback
 }
 
 const BASE = arg('url', 'http://localhost:3123').replace(/\/+$/, '')
@@ -107,10 +115,10 @@ function heading(page: Page, name: string | RegExp) {
 }
 
 async function main() {
-  const scenario = SCENARIOS[SCENARIO_NAME]
+  const scenario = SCENARIOS.get(SCENARIO_NAME)
   if (!scenario) {
     console.error(
-      `Unknown scenario "${SCENARIO_NAME}". Available: ${Object.keys(SCENARIOS).join(', ')}`
+      `Unknown scenario "${SCENARIO_NAME}". Available: ${[...SCENARIOS.keys()].join(', ')}`
     )
     process.exit(1)
   }

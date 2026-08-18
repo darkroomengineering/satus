@@ -177,14 +177,14 @@ async function updateBarrelExport(
 
     if (!exists) {
       // Create new barrel file with header comment based on category
-      const categoryTitles: Record<string, string> = {
-        ui: 'UI Primitives - Reusable across any project',
-        layout: 'Layout Components - Site chrome (customize per project)',
-        effects: 'Effects Components - Animations and visual enhancements',
-      }
+      const categoryTitles = new Map<string, string>([
+        ['ui', 'UI Primitives - Reusable across any project'],
+        ['layout', 'Layout Components - Site chrome (customize per project)'],
+        ['effects', 'Effects Components - Animations and visual enhancements'],
+      ])
 
       const header =
-        categoryTitles[category] || `${toPascalCase(category)} Components`
+        categoryTitles.get(category) || `${toPascalCase(category)} Components`
       const content = `// ${header}
 // Import from '@/components/${category}' or '@/components/${category}/[component]'
 

@@ -5,7 +5,7 @@ const fonts = {
   mono: '--next-font-mono', // this should be the variable name defined in fonts.ts
 } as const
 
-const typography: TypeStyles = {
+const typography = {
   h1: {
     'font-family': `var(${fonts.display})`,
     'font-style': 'normal',
@@ -62,7 +62,7 @@ const typography: TypeStyles = {
     'letter-spacing': '-0.01em',
     'font-size': { mobile: 12, desktop: 14 },
   },
-} as const
+} as const satisfies TypeStyles
 
 export { fonts, typography }
 

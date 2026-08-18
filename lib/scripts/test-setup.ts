@@ -33,5 +33,7 @@ Object.assign(globalThis, native)
 // Testing Library only enables React act() support when test hooks exist as
 // true runtime globals; Bun injects them per test file instead, so opt in
 // here to keep React from warning on state updates inside act().
-const testGlobals = globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
-testGlobals.IS_REACT_ACT_ENVIRONMENT = true
+declare global {
+  var IS_REACT_ACT_ENVIRONMENT: boolean | undefined
+}
+globalThis.IS_REACT_ACT_ENVIRONMENT = true

@@ -40,27 +40,13 @@ import { resolve } from 'node:path'
 import {
   PENDING_FORMAT_MARKER,
   PENDING_FORMAT_MAX_ATTEMPTS,
+  PendingFormatMarkerSchema,
   type PendingFormatMarker,
   pathExists,
   resolvePath,
 } from './utils'
 
 const markerPath = resolvePath(PENDING_FORMAT_MARKER)
-
-/** Type-guards a parsed JSON value into a `PendingFormatMarker`. */
-function isValidMarker(value: unknown): value is PendingFormatMarker {
-  if (!value || typeof value !== 'object') return false
-  const candidate = value as Partial<PendingFormatMarker>
-  if (!Array.isArray(candidate.files)) return false
-  if (!candidate.files.every((file) => typeof file === 'string')) return false
-  if (
-    candidate.attempts !== undefined &&
-    typeof candidate.attempts !== 'number'
-  ) {
-    return false
-  }
-  return true
-}
 
 const deleteMarker = async (): Promise<void> => {
   try {
@@ -74,7 +60,8 @@ if (await pathExists(markerPath)) {
   let marker: PendingFormatMarker | undefined
   try {
     const raw: unknown = await Bun.file(markerPath).json()
-    if (isValidMarker(raw)) marker = raw
+    const parsed = PendingFormatMarkerSchema.safeParse(raw)
+    if (parsed.success) marker = parsed.data
   } catch {
     // Malformed JSON — `marker` stays undefined, handled below.
   }

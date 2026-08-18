@@ -26,7 +26,6 @@ export interface PayloadSource {
 export interface PayloadPackageJson {
   dependencies?: Record<string, string>
   devDependencies?: Record<string, string>
-  [key: string]: unknown
 }
 
 /** True when `relPath` exists in the payload source (file or directory). */
@@ -52,7 +51,7 @@ export const readPayloadPackageJson = async (
   source: PayloadSource
 ): Promise<PayloadPackageJson> => {
   const text = await readPayloadFile(source, 'package.json')
-  return JSON.parse(text) as PayloadPackageJson
+  return JSON.parse(text)
 }
 
 /**

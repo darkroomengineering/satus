@@ -140,11 +140,13 @@ export const addDependencies = async (
   options: { dryRun: boolean }
 ): Promise<{ added: string[]; missing: string[] }> => {
   const pkgPath = resolvePath('package.json')
-  const pkg = (await Bun.file(pkgPath).json()) as {
+  // Only the fields touched below are typed — the parsed object retains every
+  // other real package.json field at runtime; JSON.stringify(pkg) still
+  // round-trips them untouched.
+  const pkg: {
     dependencies?: Record<string, string>
     devDependencies?: Record<string, string>
-    [key: string]: unknown
-  }
+  } = await Bun.file(pkgPath).json()
 
   const added: string[] = []
   const missing: string[] = []

@@ -69,7 +69,8 @@ import { chromium } from 'playwright-core'
 const args = process.argv.slice(2)
 function arg(name: string, fallback: string) {
   const i = args.indexOf(`--${name}`)
-  return i !== -1 && args[i + 1] ? (args[i + 1] as string) : fallback
+  const value = args[i + 1]
+  return i !== -1 && value ? value : fallback
 }
 
 const BASE = arg('url', 'http://localhost:3123').replace(/\/+$/, '')

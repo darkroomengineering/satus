@@ -81,7 +81,7 @@ export function capitalizeFirstLetter(inputString: string) {
  * isEmptyArray(null)    // true
  * ```
  */
-export function isEmptyArray(arr: string | unknown[]) {
+export function isEmptyArray(arr: string | unknown[] | null | undefined) {
   if (!arr) return true
   return Array.isArray(arr) && arr.length === 0
 }

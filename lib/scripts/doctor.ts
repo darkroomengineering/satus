@@ -16,9 +16,9 @@ const ROOT = process.cwd()
 // deriving it here keeps the doctor's check and fix hint from drifting when
 // a dependency raises the requirement (the way @portabletext/react v8 moved
 // the floor to 22.12).
-const packageJson = (await Bun.file(join(ROOT, 'package.json')).json()) as {
-  engines?: { node?: string }
-}
+const packageJson: { engines?: { node?: string } } = await Bun.file(
+  join(ROOT, 'package.json')
+).json()
 const requiredNodeVersion =
   packageJson.engines?.node?.replace(/^[^\d]*/, '') ?? '22.12.0'
 

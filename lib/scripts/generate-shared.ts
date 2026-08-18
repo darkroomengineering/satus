@@ -71,7 +71,7 @@ export function cancelGuard<T>(
     )
     process.exit(1)
   }
-  return value as T
+  return value
 }
 
 // ---------------------------------------------------------------------------

@@ -9,7 +9,11 @@ import { RichText } from '@/integrations/sanity/components/rich-text'
 import { sanityFetch } from '@/integrations/sanity/live'
 import { articleQuery } from '@/integrations/sanity/queries'
 import { JsonLd } from '@/lib/seo/json-ld'
-import { articleSchema, breadcrumbSchema } from '@/lib/seo/schemas'
+import {
+  type ArticleSchemaInput,
+  articleSchema,
+  breadcrumbSchema,
+} from '@/lib/seo/schemas'
 import { SITE } from '@/lib/seo/site'
 import { generateSanityMetadata } from '@/utils/metadata'
 
@@ -58,6 +62,21 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   const url = `${SITE.url}/articles/${slug}`
 
+  const articleInput: ArticleSchemaInput = {
+    headline: data.title ?? slug,
+    url,
+  }
+  if (data.excerpt) articleInput.description = data.excerpt
+  if (data.publishedAt) articleInput.datePublished = data.publishedAt
+  if (data._updatedAt) articleInput.dateModified = data._updatedAt
+  if (data.author) articleInput.authorName = data.author
+
+  // SAFETY: ArticleQueryResult's typegen'd `content` array is the same
+  // portable-text block/span/markDefs shape as next-sanity's
+  // PortableTextBlock, derived independently by typegen so TS can't unify
+  // the two structurally identical types.
+  const content = data.content as PortableTextBlock[] | null
+
   return (
     <Wrapper theme="light">
       {/* `/articles` has no index page — the breadcrumb trail goes
@@ -68,16 +87,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           { name: data.title ?? slug, url },
         ])}
       />
-      <JsonLd
-        data={articleSchema({
-          headline: data.title ?? slug,
-          ...(data.excerpt ? { description: data.excerpt } : {}),
-          url,
-          ...(data.publishedAt ? { datePublished: data.publishedAt } : {}),
-          ...(data._updatedAt ? { dateModified: data._updatedAt } : {}),
-          ...(data.author ? { authorName: data.author } : {}),
-        })}
-      />
+      <JsonLd data={articleSchema(articleInput)} />
       <article
         className="flex grow flex-col gap-gap dr-px-16 dr-py-32"
         data-sanity={data._id}
@@ -86,9 +96,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         {data.featuredImage && (
           <SanityImage image={data.featuredImage} maxWidth={1920} />
         )}
-        {data.content && (
+        {content && (
           <div data-sanity="content">
-            <RichText content={data.content as PortableTextBlock[]} />
+            <RichText content={content} />
           </div>
         )}
       </article>

@@ -8,7 +8,7 @@ import type {
 } from './types'
 
 /**
- * Shared Shopify response-reshaping helpers.
+ * Shared Shopify response-adapting helpers.
  *
  * Storefront API responses wrap lists in `{ edges: [{ node }] }` and nest
  * images/variants; these helpers flatten and normalize them into the app's
@@ -19,7 +19,7 @@ export const removeEdgesAndNodes = <T>(array: EdgeNode<T>): T[] => {
   return array.edges.map((edge) => edge?.node)
 }
 
-export const reshapeImages = (
+export const toImages = (
   images: EdgeNode<ShopifyImage>,
   productTitle: string
 ): Image[] => {
@@ -34,7 +34,7 @@ export const reshapeImages = (
   })
 }
 
-export const reshapeProduct = (
+export const toProduct = (
   product: ShopifyProduct | null,
   filterHiddenProducts = true
 ): Product | undefined => {
@@ -49,16 +49,14 @@ export const reshapeProduct = (
 
   return {
     ...rest,
-    images: reshapeImages(images, product.title),
+    images: toImages(images, product.title),
     variants: removeEdgesAndNodes(variants),
   }
 }
 
-export const reshapeProducts = (
-  products: (ShopifyProduct | null)[]
-): Product[] => {
+export const toProducts = (products: (ShopifyProduct | null)[]): Product[] => {
   return products.flatMap((p) => {
-    const reshaped = reshapeProduct(p)
-    return reshaped ? [reshaped] : []
+    const adapted = toProduct(p)
+    return adapted ? [adapted] : []
   })
 }

@@ -138,9 +138,10 @@ export function generatePageMetadata(
         },
       ],
     },
-    ...(env.NEXT_PUBLIC_FACEBOOK_APP_ID
-      ? { other: { 'fb:app_id': env.NEXT_PUBLIC_FACEBOOK_APP_ID } }
-      : {}),
+  }
+
+  if (env.NEXT_PUBLIC_FACEBOOK_APP_ID) {
+    metadata.other = { 'fb:app_id': env.NEXT_PUBLIC_FACEBOOK_APP_ID }
   }
 
   if (noIndex) {
@@ -199,12 +200,11 @@ export function generateSanityMetadata(options: {
 
   if (!metadata) {
     // Fallback to basic metadata if none provided
-    return generatePageMetadata({
-      ...(document.title ? { title: document.title } : {}),
-      ...(derivedDescription ? { description: derivedDescription } : {}),
-      ...(url && { url }),
-      type,
-    })
+    const fallbackOptions: GenerateMetadataOptions = { type }
+    if (document.title) fallbackOptions.title = document.title
+    if (derivedDescription) fallbackOptions.description = derivedDescription
+    if (url) fallbackOptions.url = url
+    return generatePageMetadata(fallbackOptions)
   }
 
   // Bind to locals so control-flow narrowing strips the `null` before the
@@ -218,14 +218,14 @@ export function generateSanityMetadata(options: {
 
   const resolvedDescription = description || derivedDescription
 
-  return generatePageMetadata({
-    ...(title ? { title } : {}),
-    ...(resolvedDescription ? { description: resolvedDescription } : {}),
-    ...(keywords ? { keywords } : {}),
-    ...(url && { url }),
-    ...(noIndex != null && { noIndex }),
-    type,
-    ...(publishedAt ? { publishedTime: publishedAt } : {}),
-    ...(_updatedAt ? { modifiedTime: _updatedAt } : {}),
-  })
+  const pageOptions: GenerateMetadataOptions = { type }
+  if (title) pageOptions.title = title
+  if (resolvedDescription) pageOptions.description = resolvedDescription
+  if (keywords) pageOptions.keywords = keywords
+  if (url) pageOptions.url = url
+  if (noIndex != null) pageOptions.noIndex = noIndex
+  if (publishedAt) pageOptions.publishedTime = publishedAt
+  if (_updatedAt) pageOptions.modifiedTime = _updatedAt
+
+  return generatePageMetadata(pageOptions)
 }

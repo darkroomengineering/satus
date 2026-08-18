@@ -15,8 +15,9 @@ import { describe, expect, test } from 'bun:test'
 import { parseApiResponse } from '@/lib/utils/validation'
 
 import { getProductResponseSchema } from './schemas'
+import type { ShopifyImage } from './types'
 
-function buildProductFixture(featuredImage: unknown) {
+function buildProductFixture(featuredImage: ShopifyImage | null | undefined) {
   return {
     product: {
       id: 'gid://shopify/Product/1',
@@ -77,7 +78,10 @@ describe('shopifyProductSchema featuredImage', () => {
 
   test('a fixture missing featuredImage entirely fails validation (field is required, not optional)', () => {
     const fixture = buildProductFixture(undefined) as {
-      product: Record<string, unknown>
+      product: Omit<
+        ReturnType<typeof buildProductFixture>['product'],
+        'featuredImage'
+      > & { featuredImage?: ShopifyImage | null }
     }
     delete fixture.product.featuredImage
 

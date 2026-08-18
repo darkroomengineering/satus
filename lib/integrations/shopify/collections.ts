@@ -1,5 +1,6 @@
 import { cacheLife, cacheTag } from 'next/cache'
 
+import { removeEdgesAndNodes, toProducts } from './adapters'
 import { shopifyFetch } from './client'
 import { TAGS } from './constants'
 import {
@@ -7,7 +8,6 @@ import {
   getCollectionQuery,
   getCollectionsQuery,
 } from './queries/collection'
-import { removeEdgesAndNodes, reshapeProducts } from './reshape'
 import {
   type GetCollectionProductsResponseData,
   type GetCollectionResponseData,
@@ -18,7 +18,7 @@ import {
 } from './schemas'
 import type { Collection, Product } from './types'
 
-const reshapeCollection = (
+const toCollection = (
   collection: Collection | null
 ): Collection | undefined => {
   if (!collection) {
@@ -31,13 +31,11 @@ const reshapeCollection = (
   }
 }
 
-const reshapeCollections = (
-  collections: (Collection | null)[]
-): Collection[] => {
+const toCollections = (collections: (Collection | null)[]): Collection[] => {
   return collections.flatMap((c) => {
     if (!c) return []
-    const reshaped = reshapeCollection(c)
-    return reshaped ? [reshaped] : []
+    const adapted = toCollection(c)
+    return adapted ? [adapted] : []
   })
 }
 
@@ -57,7 +55,7 @@ export async function getCollection(
     dataSchema: getCollectionResponseSchema,
   })
 
-  return reshapeCollection(res.body.data.collection)
+  return toCollection(res.body.data.collection)
 }
 
 interface GetCollectionProductsOptions {
@@ -91,7 +89,7 @@ export async function getCollectionProducts({
     return []
   }
 
-  return reshapeProducts(removeEdgesAndNodes(res.body.data.collection.products))
+  return toProducts(removeEdgesAndNodes(res.body.data.collection.products))
 }
 
 export async function getCollections(): Promise<Collection[]> {
@@ -119,7 +117,7 @@ export async function getCollections(): Promise<Collection[]> {
     },
     // Filter out the `hidden` collections.
     // Collections that start with `hidden-*` need to be hidden on the search page.
-    ...reshapeCollections(shopifyCollections).filter(
+    ...toCollections(shopifyCollections).filter(
       (collection) => !collection.handle.startsWith('hidden')
     ),
   ]

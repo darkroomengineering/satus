@@ -1,5 +1,6 @@
 import { cacheLife, cacheTag } from 'next/cache'
 
+import { removeEdgesAndNodes, toProduct, toProducts } from './adapters'
 import { shopifyFetch } from './client'
 import { TAGS } from './constants'
 import {
@@ -7,7 +8,6 @@ import {
   getProductRecommendationsQuery,
   getProductsQuery,
 } from './queries/product'
-import { removeEdgesAndNodes, reshapeProduct, reshapeProducts } from './reshape'
 import {
   type GetProductRecommendationsResponseData,
   type GetProductResponseData,
@@ -38,7 +38,7 @@ export async function getProduct({
     dataSchema: getProductResponseSchema,
   })
 
-  return reshapeProduct(res.body.data.product, false)
+  return toProduct(res.body.data.product, false)
 }
 
 export async function getProductRecommendations(
@@ -57,7 +57,7 @@ export async function getProductRecommendations(
     dataSchema: getProductRecommendationsResponseSchema,
   })
 
-  return reshapeProducts(res.body.data.productRecommendations)
+  return toProducts(res.body.data.productRecommendations)
 }
 
 interface GetProductsOptions {
@@ -86,5 +86,5 @@ export async function getProducts({
     dataSchema: getProductsResponseSchema,
   })
 
-  return reshapeProducts(removeEdgesAndNodes(res.body.data.products))
+  return toProducts(removeEdgesAndNodes(res.body.data.products))
 }

@@ -205,13 +205,6 @@ const nextConfig: NextConfig = {
       ],
     },
   ],
-  // Storybook's static build uses relative asset paths, so the entry must be
-  // /storybook/ (trailing slash) for them to resolve — the header links there.
-  // Skip Next's automatic trailing-slash redirect (preview/dev only) so
-  // /storybook/ is served as-is instead of being stripped to /storybook (which
-  // would break the relative asset URLs). No redirect rule: with skip enabled,
-  // a /storybook -> /storybook/ redirect matches /storybook/ too and self-loops.
-  ...(STORYBOOK_PROXY_ENABLED ? { skipTrailingSlashRedirect: true } : {}),
   rewrites: async () =>
     STORYBOOK_PROXY_ENABLED
       ? [
@@ -222,6 +215,16 @@ const nextConfig: NextConfig = {
           },
         ]
       : [],
+}
+
+// Storybook's static build uses relative asset paths, so the entry must be
+// /storybook/ (trailing slash) for them to resolve — the header links there.
+// Skip Next's automatic trailing-slash redirect (preview/dev only) so
+// /storybook/ is served as-is instead of being stripped to /storybook (which
+// would break the relative asset URLs). No redirect rule: with skip enabled,
+// a /storybook -> /storybook/ redirect matches /storybook/ too and self-loops.
+if (STORYBOOK_PROXY_ENABLED) {
+  nextConfig.skipTrailingSlashRedirect = true
 }
 
 const bundleAnalyzerPlugin = bundleAnalyzer({

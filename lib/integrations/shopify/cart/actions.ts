@@ -88,7 +88,7 @@ async function resolveLineId(
 }
 
 export async function removeItem(
-  _prevState: unknown,
+  _prevState: null,
   merchandiseId: string,
   lineId?: string
 ): Promise<CartActionResult> {
@@ -121,7 +121,7 @@ export async function removeItem(
 }
 
 export async function addItem(
-  _prevState: unknown,
+  _prevState: null,
   { variantId, quantity = 1 }: AddItemPayload
 ): Promise<CartActionResult> {
   return runCartAction('cart-add', async () => {
@@ -183,7 +183,7 @@ export async function addItem(
 }
 
 export async function updateItemQuantity(
-  _prevState: unknown,
+  _prevState: null,
   payload: {
     merchandiseId: string
     quantity: number

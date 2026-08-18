@@ -136,7 +136,11 @@ export function Link({
   // absolute URLs on its own, and prefetching a new-tab destination is waste.
   return (
     <NextLink
-      href={href}
+      // SAFETY: hrefs arrive as arbitrary strings (CMS links, external URLs),
+      // which typed routes cannot verify statically; this component resolves
+      // internal-vs-external handling at runtime. The cast only exists under
+      // `next typegen` output, so an un-typegen'd tsc run calls it redundant.
+      href={href as ComponentProps<typeof NextLink>['href']}
       prefetch={opensNewTab ? false : shouldPrefetch}
       scroll={scroll}
       data-active={isActive || undefined}

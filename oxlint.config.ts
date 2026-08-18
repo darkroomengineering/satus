@@ -13,6 +13,9 @@ import { defineConfig } from 'oxlint'
  * `Record<string, ...>`), so a typo'd rule name still slips through.
  */
 export default defineConfig({
+  jsPlugins: [
+    { name: 'anti-slop', specifier: './tools/oxlint/anti-slop/index.ts' },
+  ],
   plugins: [
     'eslint',
     'typescript',
@@ -85,9 +88,56 @@ export default defineConfig({
     // generated output that the next typegen run reverts. oxfmt ignores it for
     // the same reason.
     'lib/integrations/sanity/sanity.types.ts',
+    'tools/oxlint/anti-slop/**',
   ],
 
   rules: {
+    // --- anti-slop (vendored, tools/oxlint/anti-slop) -------------------------
+    // Rules that reject low-evidence TypeScript patterns, aimed at the code
+    // agents tend to produce. Vendored per upstream's own recommendation
+    // (https://github.com/dmmulroy/anti-slop), so the rules are ours to edit.
+    // The Effect-specific plugin is not vendored; this repo does not use Effect.
+    //
+    // `lint` runs with --max-warnings=0, so a rule with existing findings
+    // cannot land as warn. Clean rules are on; the rest are off below with
+    // their finding counts, to be re-enabled one at a time as the findings
+    // are fixed -- same protocol as the type-aware section.
+    'anti-slop/no-module-mocking': 'error',
+    'anti-slop/no-object-parameters': 'error',
+    'anti-slop/no-reflect-apply': 'error',
+    'anti-slop/no-reflect-get': 'error',
+    'anti-slop/no-unknown-type-aliases': 'error',
+    'anti-slop/no-widen-then-assert': 'error',
+
+    // 9 + 3 findings -- the smallest backlogs, first re-enable candidates.
+    // Chained assertions (`as unknown as X`) sit mostly in test files;
+    // unknown returns are lib/utils/raf.ts.
+    'anti-slop/no-chained-type-assertions': 'off',
+    'anti-slop/no-unknown-returns': 'off',
+
+    // 113 findings. Wants a SAFETY: comment before every non-const assertion.
+    // A real convention change, not a cleanup; adopt deliberately or not at all.
+    'anti-slop/require-safety-comment-for-type-assertion': 'off',
+    // 34 findings, every one of them Shopify's reshapeCart/reshapeCartLineItem
+    // -- names inherited from Vercel Commerce. Renaming is a Shopify-
+    // integration decision, not lint fallout.
+    'anti-slop/no-shape-in-symbol-names': 'off',
+    // 31 findings. The rule bans all runtime `typeof`, but `typeof window`
+    // SSR guards and script-side value checks are idiomatic here, not
+    // unparsed-input slop. Off on purpose; revisit only if env detection
+    // gets centralized behind a single utility.
+    'anti-slop/no-runtime-typeof': 'off',
+    // 30 findings, mostly `...(cond ? { x } : {})` in JSON-LD schema builders.
+    'anti-slop/no-conditional-empty-object-spread': 'off',
+    // 24 + 20 findings, largely the same sites: schema builders returning
+    // Record<string, unknown>. Fixing means typing the JSON-LD layer.
+    'anti-slop/no-known-value-widening': 'off',
+    'anti-slop/no-unsafe-dictionary-type': 'off',
+    // 17 findings. Conflicts with the house "accept unknown, narrow with a
+    // guard" pattern (AGENTS.md); adopting parse-at-boundary instead is a
+    // standards decision, not a lint fix.
+    'anti-slop/no-unknown-parameters': 'off',
+
     'eslint/no-unused-vars': [
       'error',
       {

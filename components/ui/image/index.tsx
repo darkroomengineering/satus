@@ -110,9 +110,14 @@ export type ImageProps = Omit<
 
 // Base64 encoding for blur placeholders (works in browser and Node.js)
 function toBase64(str: string): string {
+  // oxlint-disable-next-line anti-slop/no-runtime-typeof -- SSR guard; literal typeof enables bundler dead-code elimination
   return typeof window === 'undefined'
     ? Buffer.from(str).toString('base64')
     : btoa(str)
+}
+
+function isStringSrc(src: NextImageProps['src']): src is string {
+  return typeof src === 'string'
 }
 
 // Helper to generate blur placeholder with transparent background by default
@@ -156,7 +161,7 @@ function shouldUseBlurPlaceholder(
   blurDataURL: string | undefined
 ): boolean {
   if (!src) return false
-  const isSvg = typeof src === 'string' && src.includes('.svg')
+  const isSvg = isStringSrc(src) && src.includes('.svg')
   return !isSvg && placeholder === 'blur' && !blurDataURL
 }
 
@@ -274,7 +279,7 @@ export function Image({
   if (!src) return null
 
   // Determine SVG status and placeholder logic
-  const isSvg = typeof src === 'string' && src.includes('.svg')
+  const isSvg = isStringSrc(src) && src.includes('.svg')
   const shouldUsePlaceholder = shouldUseBlurPlaceholder(
     src,
     placeholder,
@@ -308,6 +313,20 @@ export function Image({
   // `width`/`height` are also being spread in (issue #393).
   const isBlock = !fill
 
+  // Only set inline when explicitly passed — an explicit request should
+  // always win. The unset default (visually `cover`) comes from the
+  // zero-specificity `:where(.img)` rule in image.module.css instead, so
+  // consumer CSS (module or utility) can override it. Built as statements
+  // (rather than conditional spreads) so each property is added only when
+  // present, then `style` is layered on top to let it override both.
+  const baseStyle: CSSProperties = {
+    ...(objectFit && { objectFit }),
+  }
+  if (isBlock && aspectRatio) {
+    baseStyle.aspectRatio = aspectRatio
+  }
+  const finalStyle = { ...baseStyle, ...style }
+
   return (
     <NextImage
       ref={ref}
@@ -317,15 +336,7 @@ export function Image({
       loading={finalLoading}
       quality={quality}
       alt={alt}
-      style={{
-        // Only set inline when explicitly passed — an explicit request
-        // should always win. The unset default (visually `cover`) comes from
-        // the zero-specificity `:where(.img)` rule in image.module.css
-        // instead, so consumer CSS (module or utility) can override it.
-        ...(objectFit && { objectFit }),
-        ...(isBlock && aspectRatio ? { aspectRatio } : {}),
-        ...style,
-      }}
+      style={finalStyle}
       className={cn(className, s.img, isBlock && s.block)}
       sizes={finalSizes}
       src={src}

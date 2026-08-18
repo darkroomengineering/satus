@@ -2,12 +2,7 @@
 
 import { AlertDialog as BaseAlertDialog } from '@base-ui/react/alert-dialog'
 import cn from 'clsx'
-import {
-  type ComponentProps,
-  isValidElement,
-  type ReactElement,
-  type ReactNode,
-} from 'react'
+import { type ComponentProps, isValidElement, type ReactNode } from 'react'
 
 import s from './alert-dialog.module.css'
 
@@ -91,7 +86,7 @@ function AlertDialog({
       <BaseAlertDialog.Trigger
         render={
           isValidElement(trigger) ? (
-            (trigger as ReactElement)
+            trigger
           ) : (
             <button type="button">{trigger}</button>
           )

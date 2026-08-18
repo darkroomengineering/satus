@@ -42,6 +42,9 @@ export const BLEND_FUNCTIONS =
   HUE +
   Object.keys(BlendFunction)
     .map((key) =>
+      // SAFETY: `key` is produced by `Object.keys(BlendFunction)`, so it is
+      // always one of `BlendFunction`'s own keys — `Object.keys` just types
+      // every result as plain `string[]` regardless of the source object.
       new BlendMode(BlendFunction[key as keyof typeof BlendFunction])
         .getShaderCode()
         ?.replace(

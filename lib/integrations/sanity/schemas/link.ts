@@ -28,6 +28,9 @@ export const link = defineType({
       hidden: ({ parent }) => parent?.linkType !== 'internal',
       validation: (Rule) =>
         Rule.custom((value, context) => {
+          // SAFETY: `context.parent` is this same `link` object's own field
+          // values at validation time — Sanity's validation context types it
+          // generically since it can't know a schema's own document shape.
           const parent = context.parent as { linkType?: string }
           if (parent?.linkType === 'internal' && !value) {
             return 'Internal link is required'
@@ -42,6 +45,9 @@ export const link = defineType({
       hidden: ({ parent }) => parent?.linkType !== 'external',
       validation: (Rule) =>
         Rule.custom((value, context) => {
+          // SAFETY: `context.parent` is this same `link` object's own field
+          // values at validation time — Sanity's validation context types it
+          // generically since it can't know a schema's own document shape.
           const parent = context.parent as { linkType?: string }
           if (parent?.linkType === 'external' && !value) {
             return 'External URL is required'

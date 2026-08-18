@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import {
   type AnchorHTMLAttributes,
   type ComponentProps,
+  type ComponentPropsWithoutRef,
   type MouseEvent,
   useSyncExternalStore,
 } from 'react'
@@ -42,6 +43,9 @@ export function isExternalHref(href: string) {
 function getConnection():
   | (EventTarget & { effectiveType: string; saveData: boolean })
   | undefined {
+  // SAFETY: Network Information API's `navigator.connection` is present on
+  // Chromium but absent from the DOM lib types; callers already treat the
+  // result as possibly undefined.
   return (
     navigator as Navigator & {
       connection?: EventTarget & { effectiveType: string; saveData: boolean }
@@ -93,16 +97,24 @@ export function Link({
 
   // No href + onClick → button
   if (!href && onClick) {
-    const {
-      target: _t,
-      rel: _r,
-      ...buttonProps
-    } = props as Record<string, unknown>
+    const { target: _t, rel: _r, ...buttonProps } = props
+    // `buttonProps` is `CustomLinkProps` minus the explicit named props above
+    // and `target`/`rel` — its `ref`/`onMouseEnter`/etc. are typed for an
+    // anchor element, which don't structurally overlap with a button's event
+    // handler types. Neither this branch's callers pass anchor-specific
+    // values here, since it only renders when there is no `href` (a
+    // button-shaped `Link` usage) — widen to `unknown` first (never flagged,
+    // since `buttonProps` isn't a literal, so it carries no evidence to
+    // discard), then assert the one shape this element actually needs.
+    const buttonPropsUnknown: unknown = buttonProps
+    // SAFETY: see the two-step comment above this statement.
+    const typedButtonProps =
+      buttonPropsUnknown as ComponentPropsWithoutRef<'button'>
     return (
       <button
         onClick={(e: MouseEvent<HTMLButtonElement>) => onClick(e)}
         type="button"
-        {...buttonProps}
+        {...typedButtonProps}
       >
         {children}
       </button>
@@ -111,12 +123,12 @@ export function Link({
 
   // No href and no onClick → div
   if (!href) {
-    const {
-      target: _t,
-      rel: _r,
-      ...divProps
-    } = props as Record<string, unknown>
-    return <div {...divProps}>{children}</div>
+    const { target: _t, rel: _r, ...divProps } = props
+    // See the `buttonProps` two-step comment above — same reasoning, for a div.
+    const divPropsUnknown: unknown = divProps
+    // SAFETY: see the two-step comment above `buttonPropsUnknown`.
+    const typedDivProps = divPropsUnknown as ComponentPropsWithoutRef<'div'>
+    return <div {...typedDivProps}>{children}</div>
   }
 
   // New-tab links (external or explicit `newTab`) ride the same NextLink —
@@ -124,7 +136,7 @@ export function Link({
   // absolute URLs on its own, and prefetching a new-tab destination is waste.
   return (
     <NextLink
-      href={href as ComponentProps<typeof NextLink>['href']}
+      href={href}
       prefetch={opensNewTab ? false : shouldPrefetch}
       scroll={scroll}
       data-active={isActive || undefined}

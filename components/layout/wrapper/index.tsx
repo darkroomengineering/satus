@@ -18,6 +18,10 @@ import { Theme } from '@/components/layout/theme'
 import type { ThemeName } from '@/styles/config'
 import { Canvas } from '@/webgl/components/canvas'
 
+function isLenisOptions(value: boolean | LenisOptions): value is LenisOptions {
+  return typeof value === 'object'
+}
+
 /**
  * Props for the Wrapper component.
  */
@@ -120,7 +124,7 @@ export function Wrapper({
       {lenis && (
         <Lenis
           root
-          options={typeof lenis === 'object' ? lenis : {}}
+          options={isLenisOptions(lenis) ? lenis : {}}
           syncScrollTrigger
         />
       )}

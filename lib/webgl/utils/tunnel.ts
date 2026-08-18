@@ -26,6 +26,7 @@ import { create, type StoreApi } from 'zustand'
 // Layout effect on the client (children must be registered before paint so
 // `Out` never flashes empty), plain effect on the server (no-op, no SSR warning).
 const useIsomorphicLayoutEffect =
+  // oxlint-disable-next-line anti-slop/no-runtime-typeof -- SSR guard; literal typeof enables bundler dead-code elimination
   typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 interface TunnelState {

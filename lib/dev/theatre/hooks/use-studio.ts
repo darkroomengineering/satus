@@ -24,7 +24,7 @@ export function useStudio() {
           studioPackage = pkg.default
           setStudio(pkg.default)
         })
-        .catch((error: unknown) => {
+        .catch((error) => {
           console.error('Theatre: failed to load studio', error)
         })
     }

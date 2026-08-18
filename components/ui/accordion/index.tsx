@@ -66,14 +66,27 @@ const AccordionsGroupContext = createContext<{
   setCurrentId: () => undefined,
   inGroup: false,
 })
-const AccordionContext = createContext({} as { isOpen: boolean; id: string })
+const AccordionContext = createContext<{
+  isOpen: boolean
+  id: string
+} | null>(null)
 
 function useAccordionsGroupContext() {
   return use(AccordionsGroupContext)
 }
 
 function useAccordionContext() {
-  return use(AccordionContext)
+  const context = use(AccordionContext)
+  if (!context) {
+    throw new Error('useAccordionContext must be used within an Accordion.Root')
+  }
+  return context
+}
+
+function isRenderFunction(
+  children: RootProps['children']
+): children is (props: { isOpen: boolean }) => ReactNode {
+  return typeof children === 'function'
 }
 
 /**
@@ -147,7 +160,7 @@ function Root({ children, className, ref, defaultOpen = false }: RootProps) {
         onOpenChange={toggle}
         className={cn(s.accordion, className)}
       >
-        {typeof children === 'function' ? children({ isOpen }) : children}
+        {isRenderFunction(children) ? children({ isOpen }) : children}
       </Collapsible.Root>
     </AccordionContext.Provider>
   )

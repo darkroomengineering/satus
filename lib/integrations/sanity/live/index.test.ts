@@ -11,11 +11,10 @@
 
 import { describe, expect, test } from 'bun:test'
 
-import type { SanityClient } from 'next-sanity'
-
 import {
   createPublishedFetch,
   createStubFetch,
+  type FetchClient,
   resolveSanityFetchMode,
 } from './index'
 
@@ -74,12 +73,12 @@ describe('createPublishedFetch', () => {
     const calls: { query: string; params: unknown }[] = []
     // Minimal double of `SanityClient` — only `.fetch` is exercised by
     // `createPublishedFetch`, so a full mock of the class isn't warranted.
-    const mockClient = {
-      fetch: async (query: string, params?: unknown) => {
+    const mockClient: FetchClient = {
+      fetch: async (query, params) => {
         calls.push({ query, params })
         return { _id: 'doc-1', title: 'Hello' }
       },
-    } as unknown as SanityClient
+    }
 
     const fetchFn = createPublishedFetch(mockClient)
     const result = await fetchFn({
@@ -104,12 +103,12 @@ describe('createPublishedFetch', () => {
 
   test('fetches without params when none are given', async () => {
     const calls: { query: string; params: unknown }[] = []
-    const mockClient = {
-      fetch: async (query: string, params?: unknown) => {
+    const mockClient: FetchClient = {
+      fetch: async (query, params) => {
         calls.push({ query, params })
         return []
       },
-    } as unknown as SanityClient
+    }
 
     const fetchFn = createPublishedFetch(mockClient)
     const result = await fetchFn({
@@ -125,9 +124,9 @@ describe('createPublishedFetch', () => {
   })
 
   test('passes through custom tags, defaulting to an empty array', async () => {
-    const mockClient = {
+    const mockClient: FetchClient = {
       fetch: async () => null,
-    } as unknown as SanityClient
+    }
 
     const fetchFn = createPublishedFetch(mockClient)
 

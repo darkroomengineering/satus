@@ -15,6 +15,7 @@ import s from './progress-text.module.css'
 // bridge (`components/layout/lenis/scroll-trigger.tsx`) has been dynamically
 // imported — registerPlugin is idempotent, so re-registering is a no-op once
 // that module has also loaded.
+// oxlint-disable-next-line anti-slop/no-runtime-typeof -- SSR guard; literal typeof enables bundler dead-code elimination
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger, SplitText)
 }

@@ -100,6 +100,10 @@ export class Flowmap {
 
   /** Cursor falloff radius — proxies the uFalloff shader uniform. */
   get falloff() {
+    // SAFETY: `uFalloff` is initialized with a `number` in the constructor
+    // below and only ever reassigned through this class's own `falloff`
+    // setter, which is typed `number` — three.js types a uniform's `value`
+    // as `any`.
     return this.material.uniforms.uFalloff.value as number
   }
   set falloff(value: number) {
@@ -108,6 +112,10 @@ export class Flowmap {
 
   /** Trail persistence — proxies the uDissipation shader uniform. */
   get dissipation() {
+    // SAFETY: `uDissipation` is initialized with a `number` in the
+    // constructor below and only ever reassigned through this class's own
+    // `dissipation` setter, which is typed `number` — three.js types a
+    // uniform's `value` as `any`.
     return this.material.uniforms.uDissipation.value as number
   }
   set dissipation(value: number) {
@@ -138,6 +146,10 @@ export class Flowmap {
     this.uniform = { value: this.mask.read.texture }
 
     // Flowmap material
+    // SAFETY: the uniforms object literal below is created with exactly
+    // these keys (tMap, uFalloff, uAlpha, uDissipation, uAspect, uMouse,
+    // uVelocity) — RawShaderMaterial's own return type only knows a generic
+    // uniforms record, not this class's narrowed uniform-key union.
     this.material = new RawShaderMaterial({
       glslVersion: GLSL3,
       uniforms: {

@@ -79,7 +79,7 @@
     "@clack/prompts": "^1.7.0",
     "@csstools/postcss-global-data": "^4.0.0",
     "@happy-dom/global-registrator": "^20.11.2",
-    "@next/bundle-analyzer": "16.3.0",
+    "@next/bundle-analyzer": "16.3.1",
     "@next/playwright": "16.3.0",
     "@oxlint/plugins": "1.78.0",
     "@playwright/test": "1.62.1",

@@ -34,7 +34,7 @@
         "@clack/prompts": "^1.7.0",
         "@csstools/postcss-global-data": "^4.0.0",
         "@happy-dom/global-registrator": "^20.11.2",
-        "@next/bundle-analyzer": "16.3.0",
+        "@next/bundle-analyzer": "16.3.1",
         "@next/playwright": "16.3.0",
         "@oxlint/plugins": "1.78.0",
         "@playwright/test": "1.62.1",
@@ -746,7 +746,7 @@
 
     "@napi-rs/wasm-runtime": ["@napi-rs/wasm-runtime@1.1.6", "", { "dependencies": { "@tybys/wasm-util": "^0.10.3" }, "peerDependencies": { "@emnapi/core": "^1.7.1", "@emnapi/runtime": "^1.7.1" } }, "sha512-ZLv/JdUfkvOy9eCnnBaGfiO+XimbjebAeO+MRQqD/B+FR1tnRN0tpKSJHRbE8sFfS6aqsXZ67TQjfwfsxULVbg=="],
 
-    "@next/bundle-analyzer": ["@next/bundle-analyzer@16.3.0", "", { "dependencies": { "webpack-bundle-analyzer": "4.10.1" } }, "sha512-o8OiXKIATcSC6kHm5BIEmaDEDTFUDhpy9POQIbzAQTlb8NWwFhEQheTLFSbyQXxH2ywhjZ/e8EUlbOjj2k22Yg=="],
+    "@next/bundle-analyzer": ["@next/bundle-analyzer@16.3.1", "", { "dependencies": { "webpack-bundle-analyzer": "4.10.1" } }, "sha512-/6XQeYPHM6jF1gTeJ82Mu6yXOHQIFVxzAn3DkPtHDp5v6SDXoCicBMTHloN+2h4WKFCQujSLCgLZHItJ3jN1uw=="],
 
     "@next/env": ["@next/env@16.3.0", "", {}, "sha512-o9r1S0BNiNreHP9Vs+Qnqd9kviDkJh8xIACY7UFZSmiGbbQRzPBBosvHzAU4TULHOIuOj/18RSsyz2qrREmIFw=="],
 

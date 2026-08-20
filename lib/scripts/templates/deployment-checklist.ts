@@ -102,6 +102,18 @@ export function renderDeploymentChecklist({
     lines.push('')
   }
 
+  const mailchimp = find('Mailchimp')
+  if (mailchimp) {
+    lines.push('## Mailchimp')
+    lines.push('')
+    if (!mailchimp.configured) lines.push(NEEDS_CONFIG_LINE)
+    lines.push('- [ ] API key configured for production audience')
+    lines.push('- [ ] Server prefix matches the API key (e.g. `us1`)')
+    lines.push('- [ ] Audience ID verified for production')
+    lines.push('- [ ] Test newsletter signup')
+    lines.push('')
+  }
+
   lines.push('## Performance')
   lines.push('')
   lines.push('- [ ] Lighthouse score > 90 for Performance')

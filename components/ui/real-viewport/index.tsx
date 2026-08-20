@@ -3,7 +3,10 @@
 import { type ReactNode, useEffect } from 'react'
 
 /**
- * Sets CSS custom properties for accurate viewport units on resize.
+ * Measures the browser's scrollbar width and exposes it as a CSS custom
+ * property, re-measuring on resize. Viewport units themselves are handled
+ * natively via `dvh`/`svh` — this component does not set any viewport-unit
+ * custom properties.
  *
  * Place this component once at the root of your app.
  *

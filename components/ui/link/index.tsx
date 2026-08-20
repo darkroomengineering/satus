@@ -39,6 +39,25 @@ export function isExternalHref(href: string) {
   return href.startsWith('http://') || href.startsWith('https://')
 }
 
+/**
+ * Single source of truth for a link's "intent" — whether it's external (and
+ * should therefore open in a new tab) and whether it matches the current
+ * pathname (and should therefore render as active). Both `Link` itself and
+ * callers that build their own nav markup (e.g. Header) derive from this
+ * instead of hand-rolling the same two checks, which drift on the first
+ * matching-logic change.
+ */
+export function getLinkIntent(
+  href: string,
+  pathname: string | null,
+  { newTab = false }: { newTab?: boolean | undefined } = {}
+) {
+  return {
+    isExternal: isExternalHref(href) || newTab,
+    isActive: pathname === href,
+  }
+}
+
 // Browser Network Information API (not in the DOM lib types). Present on Chromium.
 function getConnection():
   | (EventTarget & { effectiveType: string; saveData: boolean })
@@ -79,12 +98,14 @@ export function Link({
   ...props
 }: CustomLinkProps) {
   const pathname = usePathname()
-  const isActive = Boolean(href && pathname === href)
 
   // Derived during render straight from `href`. The string check is
   // deterministic on both server and client, so the SSR markup and the first
   // client render always agree — no mirror state + effect needed.
-  const opensNewTab = Boolean(href && isExternalHref(href)) || newTab
+  const { isExternal, isActive } = href
+    ? getLinkIntent(href, pathname, { newTab })
+    : { isExternal: false, isActive: false }
+  const opensNewTab = isExternal
 
   // Prefetch hint from the browser Network Information API. Read via
   // useSyncExternalStore so it's SSR-safe (server snapshot = false) with no

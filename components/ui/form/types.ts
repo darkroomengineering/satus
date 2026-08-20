@@ -101,32 +101,3 @@ export interface SubmitButtonProps extends Omit<
 export interface MessagesProps extends ComponentPropsWithoutRef<'div'> {
   className?: string
 }
-
-// Field base props
-export interface BaseFieldProps {
-  className?: string
-  id: string
-  name?: string
-  label?: ReactNode
-  defaultValue?: string
-  placeholder?: string
-  required?: boolean
-  disabled?: boolean
-  validation?: (value: string) => boolean
-}
-
-export interface InputProps extends BaseFieldProps {
-  type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search'
-}
-
-export interface TextareaProps extends BaseFieldProps {
-  rows?: number
-}
-
-export interface CheckboxFieldProps extends Omit<
-  BaseFieldProps,
-  'placeholder'
-> {
-  checked?: boolean
-  onCheckedChange?: (checked: boolean) => void
-}

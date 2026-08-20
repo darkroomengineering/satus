@@ -82,6 +82,11 @@ export function Form<T = unknown>({
   ...props
 }: FormProps<T>) {
   const [key, setKey] = useState<string | null>(null)
+  // formState from useActionState survives the `key` remount below (it lives
+  // in this component, not the inner <form>), so a stale success/error state
+  // would otherwise persist forever after the visual reset. Dismissed on
+  // every reset path and cleared again the moment a new submission starts.
+  const [isDismissed, setIsDismissed] = useState(false)
 
   // onSuccess/onError fire from the action itself rather than from an effect
   // watching formState. The effect had to list them as dependencies, so a
@@ -89,6 +94,7 @@ export function Form<T = unknown>({
   // second time for a submission that had already been handled. The result is
   // known right here, so there is nothing to observe after the fact.
   const actionWithCallbacks: FormAction<T> = async (prevState, formData) => {
+    setIsDismissed(false)
     const result = await action(prevState, formData)
 
     if (result.status === 200) {
@@ -132,6 +138,7 @@ export function Form<T = unknown>({
       if (cancelled) return
       resetTimer = setTimeout(() => {
         setKey(crypto.randomUUID())
+        setIsDismissed(true)
       }, 2000)
     })
 
@@ -144,11 +151,12 @@ export function Form<T = unknown>({
   // Reset form function for actions
   const resetForm = () => {
     setKey(crypto.randomUUID())
+    setIsDismissed(true)
   }
 
   const contextValue: FormContextStandard = {
     state: {
-      formState,
+      formState: isDismissed ? null : formState,
       isPending,
       isReady,
       isActive,

@@ -192,7 +192,7 @@ export function CheckboxesField({
 }: CheckboxesFieldProps) {
   const { actions } = useFormContext()
   const { register } = actions
-  const [selected, setSelected] = useState<string[]>(['all'])
+  const [selected, setSelected] = useState<string[]>([])
   const hiddenInputId = useId()
 
   const handleToggle = (value: string) => {

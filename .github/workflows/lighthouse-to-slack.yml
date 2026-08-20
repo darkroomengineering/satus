@@ -84,7 +84,7 @@ jobs:
       - name: Get Vercel Preview URL
         id: vercel_url
         if: steps.vercel_info.outputs.skip != 'true'
-        uses: zentered/vercel-preview-url@v1.4.0
+        uses: zentered/vercel-preview-url@fba568fc6d882ae788a9724d7e28dee618728771 # v1.4.0
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         with:
@@ -94,7 +94,7 @@ jobs:
       - name: Wait for Deployment
         id: await
         if: steps.vercel_info.outputs.skip != 'true'
-        uses: UnlyEd/github-action-await-vercel@v2.0.0
+        uses: UnlyEd/github-action-await-vercel@dc8556d58bdb7f211f7b7af6052c29288c7419a4 # v2.0.0
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         with:
@@ -226,7 +226,7 @@ jobs:
         # does NOT gate/fail on them — scores are advisory, not a merge blocker.
         if: steps.vercel_info.outputs.skip != 'true' && steps.await.outcome == 'success' && steps.vercel_url.outputs.preview_url != '' && steps.bypass_check.outputs.skip == 'false'
         id: lighthouse
-        uses: treosh/lighthouse-ci-action@v12
+        uses: treosh/lighthouse-ci-action@3e7e23fb74242897f95c0ba9cabad3d0227b9b18 # v12.6.2
         env:
           LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
         with:

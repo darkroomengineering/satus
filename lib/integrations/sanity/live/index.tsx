@@ -45,6 +45,9 @@ export function resolveSanityFetchMode(options: {
  * `app/api/revalidate/route.ts` calls `revalidateTag(_type)` and
  * `revalidateTag(`${_type}:${slug}`)`, so a cache entry must carry those
  * exact tags to be invalidated when an editor publishes.
+ *
+ * This alone is not enough to make revalidation work for every result: see
+ * `tagsForIntent` below for the null/empty-result case.
  */
 // A Sanity document's shape is arbitrary per-query, so this only describes
 // the two fields `tagsForResult` reads — everything else is ignored, and a
@@ -66,6 +69,47 @@ function tagsForResult(data: unknown[]): string[] {
   }
 
   return [...tags]
+}
+
+/**
+ * Tag names derived from the query's INTENT (the requested document type,
+ * plus `type:slug` when a slug param was passed) rather than from the fetch
+ * result.
+ *
+ * `tagsForResult` alone leaves a hole: a query for a document that doesn't
+ * exist yet (or a filter that currently matches nothing) returns `null`/`[]`,
+ * which carries zero tags. The publish webhook fires `revalidateTag('page')` /
+ * `revalidateTag('page:home')` (see `app/api/revalidate/route.ts`) regardless
+ * of whether anything was cached under those tags, so a cached miss with no
+ * intent tags can never be invalidated — the page 404s until the cache entry
+ * expires on its own, even though the editor just published the fix.
+ *
+ * Every GROQ query in this repo filters its target type as a literal
+ * `_type == "..."` (see `lib/integrations/sanity/queries.ts`), so the type is
+ * read off the query string itself rather than requiring a separate
+ * declaration at each call site. `slug` is read the same way every call site
+ * already passes it: a flat `params.slug` string (not the nested
+ * `{ current }` shape the webhook payload uses — that shape is Sanity's
+ * document field, not the fetch param).
+ */
+const slugParamSchema = z.object({ slug: z.string().min(1) })
+
+function tagsForIntent(
+  query: string,
+  params: QueryParams | undefined
+): string[] {
+  const typeMatch = query.match(/_type\s*==\s*['"]([^'"]+)['"]/)
+  if (!typeMatch?.[1]) return []
+
+  const type = typeMatch[1]
+  const tags = [type]
+
+  const parsedParams = slugParamSchema.safeParse(params)
+  if (parsedParams.success) {
+    tags.push(`${type}:${parsedParams.data.slug}`)
+  }
+
+  return tags
 }
 
 /**
@@ -130,7 +174,11 @@ export function createPublishedFetch(
 
     const dataList = Array.isArray(rawData) ? rawData : [rawData]
     const tags = [
-      ...new Set([...(options.tags ?? []), ...tagsForResult(dataList)]),
+      ...new Set([
+        ...(options.tags ?? []),
+        ...tagsForIntent(options.query, params),
+        ...tagsForResult(dataList),
+      ]),
     ]
 
     // Callers run this inside `'use cache'`, where `cacheTag` is legal and

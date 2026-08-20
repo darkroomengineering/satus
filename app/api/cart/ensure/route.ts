@@ -2,7 +2,10 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
 import { isConfigured } from '@/integrations/registry'
-import { createCart } from '@/integrations/shopify/cart-operations'
+import {
+  createCart,
+  setCartIdCookie,
+} from '@/integrations/shopify/cart-operations'
 
 /**
  * Idempotently ensure the visitor has a Shopify cart, and return nothing but
@@ -40,13 +43,7 @@ export async function POST() {
   try {
     const cart = await createCart()
 
-    cookieStore.set('cartId', cart.id, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
-      path: '/',
-    })
+    setCartIdCookie(cookieStore, cart.id)
 
     return NextResponse.json({ ready: true })
   } catch {

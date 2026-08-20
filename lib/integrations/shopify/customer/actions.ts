@@ -26,6 +26,10 @@ import {
   getCustomerResponseSchema,
 } from '../schemas'
 import type { Customer } from '../types'
+import {
+  type CreateCustomerAndSignInDeps,
+  createCustomerAndSignIn,
+} from './create-customer'
 
 const loginSchema = z.object({
   email: emailSchema,
@@ -40,6 +44,39 @@ const createCustomerSchema = z.object({
     .string()
     .min(8, { error: 'Password must be at least 8 characters' }),
 })
+
+/**
+ * Calls the customerAccessTokenCreate mutation and returns the raw result.
+ * Shared by LoginCustomerAction and CreateCustomerAction — a fresh account
+ * is signed in the same way an existing customer logs in.
+ */
+async function createCustomerAccessToken(
+  email: string,
+  password: string
+): Promise<CustomerAccessTokenCreateResponseData['customerAccessTokenCreate']> {
+  const res = await shopifyFetch<CustomerAccessTokenCreateResponseData>({
+    query: customerAccessTokenCreateMutation,
+    variables: { input: { email, password } },
+    cache: 'no-store',
+    dataSchema: customerAccessTokenCreateResponseSchema,
+  })
+
+  return res.body.data.customerAccessTokenCreate
+}
+
+/** Sets the httpOnly session cookie for a Shopify customer access token. */
+async function setCustomerAccessTokenCookie(
+  accessToken: string,
+  expiresAt: string
+): Promise<void> {
+  const _cookies = await cookies()
+  _cookies.set('customerAccessToken', accessToken, {
+    expires: new Date(expiresAt),
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+  })
+}
 
 // Both actions below go through runFormAction, which rate-limits and then
 // verifies Cloudflare Turnstile by default — these are exactly the endpoints
@@ -59,15 +96,8 @@ export async function LoginCustomerAction(
     rateLimitMessage: 'Too many login attempts. Please try again later.',
     run: async ({ email, password }) => {
       try {
-        const res = await shopifyFetch<CustomerAccessTokenCreateResponseData>({
-          query: customerAccessTokenCreateMutation,
-          variables: { input: { email, password } },
-          cache: 'no-store',
-          dataSchema: customerAccessTokenCreateResponseSchema,
-        })
-
         const { customerAccessToken, customerUserErrors } =
-          res.body.data.customerAccessTokenCreate
+          await createCustomerAccessToken(email, password)
 
         if (customerUserErrors.length) {
           return {
@@ -77,13 +107,10 @@ export async function LoginCustomerAction(
         }
 
         if (customerAccessToken) {
-          const _cookies = await cookies()
-          _cookies.set('customerAccessToken', customerAccessToken.accessToken, {
-            expires: new Date(customerAccessToken.expiresAt),
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-          })
+          await setCustomerAccessTokenCookie(
+            customerAccessToken.accessToken,
+            customerAccessToken.expiresAt
+          )
         }
 
         return { status: 200, message: 'Login successful' }
@@ -123,6 +150,24 @@ export async function LogoutCustomerAction(
   return { status: 200, message: 'Logged out successfully' }
 }
 
+/** Wires `createCustomerAndSignIn`'s dependencies to the real Shopify client and cookie jar. */
+const liveCreateCustomerAndSignInDeps: CreateCustomerAndSignInDeps = {
+  createCustomer: async (input) => {
+    const res = await shopifyFetch<CustomerCreateResponseData>({
+      query: customerCreateMutation,
+      // Copied into a plain object: GraphQL variables are a JSON value bag,
+      // not a place for a named domain interface (same pattern as
+      // cart-operations.ts's addToCart/updateCart).
+      variables: { input: { ...input } },
+      cache: 'no-store',
+      dataSchema: customerCreateResponseSchema,
+    })
+    return res.body.data.customerCreate
+  },
+  createAccessToken: createCustomerAccessToken,
+  setSessionCookie: setCustomerAccessTokenCookie,
+}
+
 export async function CreateCustomerAction(
   _prevState: FormState | null,
   formData: FormData
@@ -132,29 +177,12 @@ export async function CreateCustomerAction(
     schema: createCustomerSchema,
     formData,
     turnstile: true,
-    run: async ({ firstName, lastName, email, password }) => {
+    run: async (input) => {
       try {
-        const res = await shopifyFetch<CustomerCreateResponseData>({
-          query: customerCreateMutation,
-          variables: { input: { firstName, lastName, email, password } },
-          cache: 'no-store',
-          dataSchema: customerCreateResponseSchema,
-        })
-
-        const { customer, customerUserErrors } = res.body.data.customerCreate
-
-        if (customerUserErrors.length) {
-          return {
-            status: 400,
-            message: customerUserErrors[0]?.message ?? 'Unknown error',
-          }
-        }
-
-        return {
-          status: 200,
-          message: 'Account created successfully',
-          data: customer,
-        }
+        return await createCustomerAndSignIn(
+          input,
+          liveCreateCustomerAndSignInDeps
+        )
       } catch (_error) {
         return {
           status: 500,

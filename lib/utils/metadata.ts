@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 
-import { APP_BASE_URL, env } from '@/lib/env'
+import { env } from '@/lib/env'
 import { routeAlternates } from '@/lib/seo/alternates'
+import { BASE_URL, SITE } from '@/lib/seo/site'
 
 /** Roughly where Google truncates a description in a result snippet. */
 const DESCRIPTION_MAX_LENGTH = 155
@@ -86,7 +87,7 @@ export function generatePageMetadata(
     keywords,
     image,
     url,
-    siteName = 'Satūs',
+    siteName = SITE.name,
     noIndex = false,
     type = 'website',
     publishedTime,
@@ -94,14 +95,14 @@ export function generatePageMetadata(
     authors,
   } = options
 
-  const fullUrl = url ? `${APP_BASE_URL}${url}` : APP_BASE_URL
+  const fullUrl = url ? `${BASE_URL}${url}` : BASE_URL
   const imageUrl = image?.url ?? '/opengraph-image.jpg'
   const imageWidth = image?.width ?? 1200
   const imageHeight = image?.height ?? 630
   const imageAlt = image?.alt ?? title ?? siteName
 
   const metadata: Metadata = {
-    metadataBase: new URL(APP_BASE_URL),
+    metadataBase: new URL(BASE_URL),
     title,
     description,
     keywords,
@@ -159,14 +160,35 @@ export function generatePageMetadata(
  *
  * @example
  * ```ts
+ * import { draftMode } from 'next/headers'
  * import { sanityFetch } from '@/integrations/sanity/live'
  *
+ * // 'use cache' is required: sanityFetch calls cacheTag() internally, which
+ * // Cache Components only allow inside a 'use cache' boundary — see
+ * // app/(site)/articles/[slug]/page.tsx for the same pattern applied to a page.
+ * async function fetchPage(
+ *   slug: string,
+ *   perspective: 'published' | 'drafts',
+ *   stega: boolean
+ * ) {
+ *   'use cache'
+ *   return sanityFetch({ query: pageQuery, params: { slug }, perspective, stega })
+ * }
+ *
+ * async function fetchPageForRequest(slug: string) {
+ *   const { isEnabled: isDraftMode } = await draftMode()
+ *   return isDraftMode
+ *     ? fetchPage(slug, 'drafts', true)
+ *     : fetchPage(slug, 'published', false)
+ * }
+ *
  * export async function generateMetadata({ params }) {
- *   const { data } = await sanityFetch({ query: pageQuery, params })
+ *   const { slug } = await params
+ *   const { data } = await fetchPageForRequest(slug)
  *
  *   return generateSanityMetadata({
  *     document: data,
- *     url: `/sanity/${params.slug}`,
+ *     url: `/sanity/${slug}`,
  *   })
  * }
  * ```

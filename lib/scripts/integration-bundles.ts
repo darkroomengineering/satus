@@ -820,10 +820,10 @@ export const INTEGRATION_BUNDLES = defineBundles({
     // re-wrapping children and restoring interface members would need bespoke
     // ops — so the file is restored wholesale, guarded by the lean-state
     // comparison documented on `overwriteFiles`.
-    overwriteFiles: [
-      'components/layout/wrapper/index.tsx',
-      'lib/hooks/use-device-detection.ts',
-    ],
+    // 'lib/hooks/use-device-detection.ts' is NOT listed here — it's already
+    // in `files` above, and with `force: true` the only call mode (L17),
+    // an overwriteFiles entry for the same path is a redundant no-op.
+    overwriteFiles: ['components/layout/wrapper/index.tsx'],
     addTransforms: [
       {
         file: 'next.config.ts',

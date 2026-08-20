@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useEffectEvent } from 'react'
+import { useEffect, useEffectEvent, useRef } from 'react'
 
 /**
  * Attaches window mouse/touch listeners and calls `onMove` with raw client
@@ -62,4 +62,44 @@ export function usePointerInput(
       window.removeEventListener('touchmove', handleTouchMove)
     }
   }, [])
+}
+
+export type PointerMoveHandler = (
+  x: number,
+  y: number,
+  dx: number,
+  dy: number
+) => void
+
+/**
+ * Multiplexes a single set of window pointer listeners to N subscribers.
+ * Mount once — e.g. in `FlowmapProvider` — and hand the returned `subscribe`
+ * function down through context so `useFluidSim`/`useFlowmapSim` each
+ * register their own handler instead of every sim mounting its own
+ * `usePointerInput` (which doubles mousemove/touchmove work per event when
+ * both sims are active on the same canvas).
+ *
+ * The returned `subscribe` function has a stable identity for the lifetime
+ * of the component, so consumers can safely list it in an effect's deps
+ * without resubscribing on every render.
+ */
+export function usePointerInputSubscribe(): (
+  handler: PointerMoveHandler
+) => () => void {
+  const handlersRef = useRef<Set<PointerMoveHandler>>(new Set())
+
+  usePointerInput((x, y, dx, dy) => {
+    for (const handler of handlersRef.current) {
+      handler(x, y, dx, dy)
+    }
+  })
+
+  const subscribeRef = useRef((handler: PointerMoveHandler) => {
+    handlersRef.current.add(handler)
+    return () => {
+      handlersRef.current.delete(handler)
+    }
+  })
+
+  return subscribeRef.current
 }

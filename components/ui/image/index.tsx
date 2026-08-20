@@ -275,7 +275,6 @@ export function Image({
   const finalSizes =
     sizes ?? `(min-width: ${breakpoints.dt}px) ${desktopSize}, ${mobileSize}`
 
-  // Early return after hooks
   if (!src) return null
 
   // Determine SVG status and placeholder logic

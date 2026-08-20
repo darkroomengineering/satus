@@ -3,6 +3,10 @@ import { CopyPass, EffectComposer, RenderPass } from 'postprocessing'
 import { useEffect, useRef, useState } from 'react'
 import { HalfFloatType } from 'three'
 
+/**
+ * Sanctioned starter scaffold: no default consumer wires this up in the repo
+ * today, enable it per-canvas via the `postprocessing` prop on WebGLCanvas.
+ */
 export function PostProcessing() {
   const gl = useThree((state) => state.gl)
   const viewport = useThree((state) => state.viewport)
@@ -57,7 +61,12 @@ export function PostProcessing() {
     setDpr(dpr)
 
     composer.setSize(size.width, size.height)
-  }, [composer, size, setDpr])
+    // Recompute MSAA sample count for the new dpr — `needsAA`/`maxSamples`
+    // were only read once, in the useState initializer above, so a resize
+    // that changes dpr (e.g. moving the window to another display) never
+    // updated the composer's actual sample count.
+    composer.multisampling = isWebgl2 && dpr < 2 ? maxSamples : 0
+  }, [composer, size, setDpr, isWebgl2, maxSamples])
 
   useFrame((_, deltaTime) => {
     composer.render(deltaTime)

@@ -1,3 +1,5 @@
+import type { cookies } from 'next/headers'
+
 import { removeEdgesAndNodes } from './adapters'
 import { shopifyFetch } from './client'
 import { TAGS } from './constants'
@@ -64,6 +66,27 @@ const toCart = (cart: ShopifyCart): Cart => {
     },
     lines,
   }
+}
+
+type CookieStore = Awaited<ReturnType<typeof cookies>>
+
+/**
+ * Sets the httpOnly `cartId` cookie. Shared by both places that mint a cart
+ * id — `addItem` (lib/integrations/shopify/cart/actions.ts) and the
+ * `/api/cart/ensure` race-protection route — so the cookie config (expiry,
+ * security flags) can't drift between the two call sites.
+ */
+export function setCartIdCookie(
+  cookieStore: CookieStore,
+  cartId: string
+): void {
+  cookieStore.set('cartId', cartId, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 60 * 60 * 24 * 30, // 30 days
+    path: '/',
+  })
 }
 
 export async function createCart(): Promise<Cart> {

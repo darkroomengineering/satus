@@ -12,13 +12,15 @@ import * as p from '@clack/prompts'
 // ---------------------------------------------------------------------------
 
 /**
- * Convert kebab-case to PascalCase.
+ * Convert kebab-case (or snake_case — `generate-page.ts`'s name validator
+ * allows both hyphens and underscores, L9) to PascalCase.
  *
  * @example toPascalCase('my-component') → 'MyComponent'
+ * @example toPascalCase('my_page') → 'MyPage'
  */
 export function toPascalCase(str: string): string {
   return str
-    .split('-')
+    .split(/[-_]/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join('')
 }

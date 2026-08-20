@@ -85,6 +85,7 @@ Generated: 2026-01-01
     expect(output).toContain('- URL: `https://your-domain.com/api/revalidate`')
     expect(output).toContain('## HubSpot')
     expect(output).not.toContain('## Shopify')
+    expect(output).not.toContain('## Mailchimp')
 
     // Integration sections appear between Pre-Deployment and Performance.
     expect(output.indexOf('## Sanity CMS')).toBeLessThan(
@@ -92,6 +93,44 @@ Generated: 2026-01-01
     )
     expect(output.indexOf('## HubSpot')).toBeLessThan(
       output.indexOf('## Performance')
+    )
+  })
+
+  // M8: Mailchimp ships in the `boutique` preset (same shape as HubSpot —
+  // MAILCHIMP_API_KEY / MAILCHIMP_SERVER_PREFIX / MAILCHIMP_AUDIENCE_ID),
+  // but its section was missing entirely — a shipped integration with no
+  // pre-launch checklist entry.
+  it('includes a Mailchimp section when Mailchimp ships (M8)', () => {
+    const output = renderDeploymentChecklist({
+      projectName: 'Acme',
+      integrations: [
+        { name: 'HubSpot', configured: true },
+        { name: 'Mailchimp', configured: true },
+      ],
+      date: '2026-01-01',
+    })
+
+    expect(output).toContain('## Mailchimp')
+    expect(output).toContain('- [ ] API key configured for production audience')
+    expect(output).toContain('- [ ] Audience ID verified for production')
+    expect(output.indexOf('## HubSpot')).toBeLessThan(
+      output.indexOf('## Mailchimp')
+    )
+    expect(output.indexOf('## Mailchimp')).toBeLessThan(
+      output.indexOf('## Performance')
+    )
+  })
+
+  it('flags an unconfigured Mailchimp section the same way as HubSpot (H7)', () => {
+    const output = renderDeploymentChecklist({
+      projectName: 'Acme',
+      integrations: [{ name: 'Mailchimp', configured: false }],
+      date: '2026-01-01',
+    })
+
+    expect(output).toContain('## Mailchimp')
+    expect(output).toContain(
+      '- [ ] ⚠️ Not yet configured in this environment — see .env.example'
     )
   })
 

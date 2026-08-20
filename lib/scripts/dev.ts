@@ -66,17 +66,26 @@ const killTree = (proc: Bun.Subprocess) => {
 
 // Handle graceful shutdown. Idempotent: a process exiting and an incoming
 // signal can both trigger this, and we must only tear down (and exit) once.
+// `exitCode` defaults to 0 for the SIGINT/SIGTERM path (a requested
+// shutdown, not a crash); the race below passes through whichever exit code
+// actually ended it, so a crashed child propagates non-zero instead of this
+// script always reporting success — see the L8 comment above the race.
 let shuttingDown = false
-const cleanup = () => {
+const cleanup = (exitCode = 0) => {
   if (shuttingDown) return
   shuttingDown = true
   for (const proc of processes) killTree(proc)
-  process.exit(0)
+  process.exit(exitCode)
 }
 
-process.on('SIGINT', cleanup)
-process.on('SIGTERM', cleanup)
+// Wrapped in arrow functions — `process.on('SIGINT', cleanup)` would pass
+// the signal name ('SIGINT') as cleanup's `exitCode` argument, which is not
+// what we want here (a requested shutdown should still exit 0).
+process.on('SIGINT', () => cleanup())
+process.on('SIGTERM', () => cleanup())
 
-// Wait for any process to exit (if one crashes, we want to know)
-await Promise.race(processes.map((p) => p.exited))
-cleanup()
+// Wait for any process to exit (if one crashes, we want to know) and exit
+// with that process's own code — a crash must propagate non-zero, not get
+// silently reported as success (L8).
+const exitCode = await Promise.race(processes.map((proc) => proc.exited))
+cleanup(exitCode)

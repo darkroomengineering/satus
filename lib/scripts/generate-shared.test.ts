@@ -25,6 +25,18 @@ describe('toPascalCase', () => {
   it('handles multi-hyphen names', () => {
     expect(toPascalCase('my-long-component-name')).toBe('MyLongComponentName')
   })
+
+  // L9: generate-page.ts's name validator allows underscores
+  // (`/^[a-zA-Z][a-zA-Z0-9-_]*$/`), but toPascalCase only split on hyphens —
+  // `my_page` generated `My_pagePage` instead of `MyPage`.
+  it("splits on underscores too, matching generate-page.ts's name validator", () => {
+    expect(toPascalCase('my_page')).toBe('MyPage')
+    expect(toPascalCase('my_long_page_name')).toBe('MyLongPageName')
+  })
+
+  it('handles a mix of hyphens and underscores', () => {
+    expect(toPascalCase('my-long_page-name')).toBe('MyLongPageName')
+  })
 })
 
 describe('toCamelCase', () => {

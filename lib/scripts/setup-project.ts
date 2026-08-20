@@ -677,8 +677,40 @@ const setupLean = async (
  * Returns any code-transform failures collected along the way instead of
  * swallowing them — callers report and fail loudly once the whole batch is
  * done (M6).
+ *
+ * `installBundle` itself can also throw a raw `Error` (not a collected
+ * `TransformFailure`) — `copyBundleFiles`/`readPayloadFile`/`listPayloadFiles`
+ * fail loudly when the snapshot is missing a declared path or a write fails.
+ * Each bundle's `installBundle` call is caught individually so one bundle's
+ * I/O failure doesn't abort the whole re-add batch: step 6 (`setupLean`) has
+ * already stripped every integration's files from the live tree by the time
+ * this runs, so an uncaught throw here would leave every bundle AFTER the
+ * failing one un-re-added too — not just the one that failed (M1). The
+ * failure is recorded into the same `failures` array (reusing
+ * `TransformFailure`'s `{file, error}` shape with the bundle's display name
+ * standing in for `file`) so it flows through the existing collected-failure
+ * reporting/exit-code path (`setup()`'s step 11 gate, `main()`'s exit 3).
+ *
+ * KNOWN LIMITATION (documented, not fixed here — see the M1 finding's escape
+ * hatch): this makes the failing bundle's OWN files best-effort — whatever
+ * `installBundle` wrote before throwing stays on disk, worse than nothing but
+ * not further worsened, and it does NOT make a re-run reliably recover. A
+ * re-run's preflight (`findMissingPaths` against `declaredBundlePaths`, see
+ * `setup()` step 1) checks the CURRENT on-disk tree, which this same failed
+ * run already stripped in step 6 before ever reaching this loop — so if the
+ * failing bundle never got far enough to write its probe path back, the next
+ * invocation's preflight finds it missing and refuses before any mutation,
+ * same as before this fix. What this DOES fix: bundles other than the failing
+ * one still get fully re-added in this run, and the run ends with every
+ * failure reported and a non-zero exit instead of one abort erasing the
+ * status of bundles that never got a chance to run at all. Making retry
+ * itself reliable needs a snapshot/restore or resumable-apply mechanism,
+ * which is out of scope here (would require restructuring `setup()`'s
+ * strip-then-readd shape, not just this function's signature).
+ *
+ * Exported for unit testing.
  */
-const setupAddIntegrations = async (
+export const setupAddIntegrations = async (
   keepIntegrations: RemovableId[],
   source: PayloadSource,
   dryRun: boolean
@@ -704,23 +736,34 @@ const setupAddIntegrations = async (
     if (!bundle) continue // id: RemovableId — guard is honest
 
     s.start(`Re-adding ${bundle.name}...`)
-
-    const {
-      details,
-      failures: bundleFailures,
-      changedFiles: bundleChangedFiles,
-    } = await installBundle(source, bundle, payloadPkg, {
-      dryRun,
-      force: true, // we just stripped everything — always overwrite
-    })
-    failures.push(...bundleFailures)
-    for (const file of bundleChangedFiles) changedFiles.add(file)
-
+    // Counted as "kept" regardless of the outcome below — the user asked to
+    // keep it, and stripAbsentIntegrationWiring (next) must not treat a
+    // bundle that merely failed to fully re-add as "absent" and strip its
+    // wiring out of other files too.
     addedIntegrationIds.add(id)
 
-    const verb = dryRun ? 'Would re-add' : 'Re-added'
-    const detail = details.length > 0 ? ` (${details.join(', ')})` : ''
-    s.stop(`${verb} ${bundle.name}${detail}`)
+    try {
+      const {
+        details,
+        failures: bundleFailures,
+        changedFiles: bundleChangedFiles,
+      } = await installBundle(source, bundle, payloadPkg, {
+        dryRun,
+        force: true, // we just stripped everything — always overwrite
+      })
+      failures.push(...bundleFailures)
+      for (const file of bundleChangedFiles) changedFiles.add(file)
+
+      const verb = dryRun ? 'Would re-add' : 'Re-added'
+      const detail = details.length > 0 ? ` (${details.join(', ')})` : ''
+      s.stop(`${verb} ${bundle.name}${detail}`)
+    } catch (error) {
+      s.stop(`Failed to re-add ${bundle.name}`)
+      failures.push({
+        file: bundle.name,
+        error: error instanceof Error ? error.message : String(error),
+      })
+    }
   }
 
   // Strip absent-integration wiring from freshly copied files.
@@ -852,6 +895,12 @@ export const CACHE_COMPONENTS_LLMS_TXT_TRANSFORM: CodeTransform = {
  * than the run — a fork that deleted `app/llms.txt/route.ts` while keeping
  * a CMS would be refused setup over a transform that was never going to
  * execute. Deduplicated. Exported for unit testing.
+ *
+ * `addTransforms` targets are folded in too (L16): unlike `codeTransforms`
+ * (which run unconditionally against every bundle regardless of what's
+ * kept), a bundle's `addTransforms` only run for KEPT bundles — via
+ * `installBundle` in `setupAddIntegrations` (step 8) — so only kept bundles'
+ * `addTransforms` targets are required to exist here.
  */
 export const codeTransformTargetPaths = (
   keepIntegrations: RemovableId[]
@@ -860,6 +909,14 @@ export const codeTransformTargetPaths = (
 
   for (const bundle of Object.values(INTEGRATION_BUNDLES)) {
     for (const transform of bundle.codeTransforms) {
+      paths.add(transform.file)
+    }
+  }
+
+  for (const id of keepIntegrations) {
+    const bundle = getBundle(id)
+    if (!bundle) continue // id: RemovableId — guard is honest
+    for (const transform of bundle.addTransforms ?? []) {
       paths.add(transform.file)
     }
   }
@@ -1740,6 +1797,53 @@ const guardProjectRoot = async (): Promise<void> => {
 }
 
 /**
+ * Every CLI flag `setup-project.ts`'s `main()` actually reads: the
+ * `parseCliFlags`-shared trio (`--dry-run`/`--verbose`/`--help`, each also
+ * with its short form) plus this script's own `--preset`/`--keep`/`--yes`/
+ * `--clean-homepage`/`--skip-install`. Kept as a single source of truth for
+ * `findUnknownFlags` (M4) — a typo'd flag here (e.g. `--presett`) used to be
+ * silently absorbed and fall through to the interactive prompt, which hangs
+ * forever on a non-TTY-but-open stdin (CI).
+ */
+export const KNOWN_SETUP_FLAGS: readonly string[] = [
+  '--dry-run',
+  '-d',
+  '--verbose',
+  '-v',
+  '--help',
+  '-h',
+  '--preset',
+  '--keep',
+  '--yes',
+  '--clean-homepage',
+  '--skip-install',
+]
+
+/**
+ * Find every `--`-prefixed argv token that isn't a known flag.
+ *
+ * Only `--`-prefixed tokens are checked — a flag's VALUE (e.g. the
+ * `editorial` in `--preset editorial`, or a `--keep` id list) is a bare
+ * token and never flagged; short flags (`-d`/`-v`/`-h`) are few, fixed, and
+ * not the typo surface this guards (M4 is about long-flag typos like
+ * `--presett`). A `--flag=value` token is checked by its flag name only (the
+ * part before `=`). Exported for unit testing.
+ */
+export const findUnknownFlags = (
+  argv: string[],
+  knownFlags: readonly string[] = KNOWN_SETUP_FLAGS
+): string[] =>
+  argv.filter((arg) => {
+    if (!arg.startsWith('--')) return false
+    // SAFETY: `arg.split('=')` on a non-empty string always yields at least
+    // one element (the part before the first '=', or the whole string when
+    // there's no '=') — `arg` is non-empty because it just passed the
+    // startsWith('--') check above.
+    const name = arg.split('=')[0] as string
+    return !knownFlags.includes(name)
+  })
+
+/**
  * Print `--help`/`-h` usage (P-B6) and return — flags, every preset key
  * (from `PROJECT_PRESETS`, so this can't drift out of sync with the actual
  * preset list), and one example invocation.
@@ -1780,6 +1884,21 @@ Example:
  */
 const main = async (): Promise<void> => {
   const argv = process.argv.slice(2)
+
+  // Unknown-flag guard (M4): a typo'd flag (e.g. `--presett`) was silently
+  // absorbed by parseCliFlags/getFlagValue and fell through to the
+  // interactive prompt — which hangs forever on a non-TTY-but-open stdin
+  // (CI). Checked first, before anything else (including --help), so a bad
+  // invocation fails loudly and immediately rather than reaching a prompt.
+  const unknownFlags = findUnknownFlags(argv)
+  if (unknownFlags.length > 0) {
+    p.log.error(
+      `Unknown flag${unknownFlags.length > 1 ? 's' : ''}: ${unknownFlags.join(', ')}`
+    )
+    p.log.message(`Valid flags: ${KNOWN_SETUP_FLAGS.join(', ')}`)
+    process.exit(1)
+  }
+
   const { dryRun, help } = parseCliFlags(argv)
 
   // --help/-h (P-B6): parseCliFlags already computed this, but main() never

@@ -11,7 +11,7 @@
  */
 
 import { beforeAll, describe, expect, it } from 'bun:test'
-import { chmod, mkdtemp, rm, symlink } from 'node:fs/promises'
+import { chmod, mkdir, mkdtemp, rm, symlink } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 
@@ -22,6 +22,7 @@ import {
   getIntegrationNames,
   INTEGRATION_BUNDLES,
 } from './integration-bundles'
+import type { PayloadSource } from './payload-source'
 import {
   CACHE_COMPONENTS_DISABLE_TRANSFORM,
   CACHE_COMPONENTS_LLMS_TXT_TRANSFORM,
@@ -29,12 +30,15 @@ import {
   collectSelfPruneTestFiles,
   declaredBundlePaths,
   findMissingPaths,
+  findUnknownFlags,
   isCacheComponentsDisabled,
+  KNOWN_SETUP_FLAGS,
   PROJECT_PRESETS,
   replaceAnchoredText,
   resolveTransitiveKeepSet,
   SELF_PRUNE_KEEP_TEST_FILES,
   SETUP_PROJECT_PRUNED_STUB,
+  setupAddIntegrations,
   shouldDisableCacheComponents,
   shouldSkipConfirm,
 } from './setup-project'
@@ -250,6 +254,21 @@ describe('Integration Bundle Configuration', () => {
       for (const file of bundle.overwriteFiles ?? []) {
         expect(file).toBeTruthy()
         expect(file.startsWith('/')).toBe(false)
+      }
+    }
+  })
+
+  // L17: with `force: true` the only call mode `installBundle` ever uses,
+  // an overwriteFiles entry for a path ALSO in the same bundle's `files` is
+  // a redundant no-op — copyBundleFiles already force-overwrites it.
+  it('overwriteFiles never duplicates a path already in files (L17)', () => {
+    for (const [name, bundle] of getIntegrationEntries()) {
+      const fileSet = new Set(bundle.files)
+      for (const file of bundle.overwriteFiles ?? []) {
+        expect(
+          fileSet.has(file),
+          `Bundle "${name}": "${file}" is in both files and overwriteFiles — redundant with force: true`
+        ).toBe(false)
       }
     }
   })
@@ -1200,6 +1219,167 @@ describe('codeTransformTargetPaths (issue #389 preflight)', () => {
     )
 
     expect(missing).toEqual([deletedFile])
+  })
+
+  // L16: addTransforms only ran for KEPT bundles (via installBundle, step 8),
+  // but the preflight never walked addTransforms at all — it only required
+  // codeTransforms targets. Every addTransforms target happens to coincide
+  // with some bundle's codeTransforms target today (verified below), so the
+  // gap was silent; this pins the contract so a FUTURE addTransforms-only
+  // target (the exact drift L16 warns about) fails loudly here instead of
+  // wedging setupAddIntegrations mid-run.
+  it('includes every kept bundle addTransforms target file (L16)', () => {
+    for (const [id, bundle] of getIntegrationEntries()) {
+      const addTransformFiles = (bundle.addTransforms ?? []).map((t) => t.file)
+      if (addTransformFiles.length === 0) continue
+
+      const paths = codeTransformTargetPaths([id])
+      for (const file of addTransformFiles) {
+        expect(paths).toContain(file)
+      }
+    }
+  })
+
+  it('does not require a bundle addTransforms target when that bundle is not kept and no other bundle needs it', () => {
+    // Cross-check against the real bundle set: today every addTransforms
+    // target coincides with SOME bundle's unconditional codeTransforms
+    // target, so codeTransformTargetPaths([]) already contains it via that
+    // path — this documents why the empty-keep-set case looks unchanged,
+    // rather than leaving that coincidence unexplained.
+    const codeTransformFiles = new Set<string>()
+    for (const bundle of Object.values(INTEGRATION_BUNDLES)) {
+      for (const transform of bundle.codeTransforms) {
+        codeTransformFiles.add(transform.file)
+      }
+    }
+    for (const bundle of Object.values(INTEGRATION_BUNDLES)) {
+      for (const transform of bundle.addTransforms ?? []) {
+        expect(codeTransformFiles.has(transform.file)).toBe(true)
+      }
+    }
+  })
+})
+
+// ---------------------------------------------------------------------------
+// M4 — a typo'd CLI flag used to be silently absorbed and fall through to
+// the interactive prompt, which hangs forever on a non-TTY-but-open stdin
+// (CI). findUnknownFlags rejects it loudly instead.
+// ---------------------------------------------------------------------------
+
+describe('findUnknownFlags (M4 — unknown-flag rejection)', () => {
+  it('returns [] for every documented flag, long and short form', () => {
+    expect(findUnknownFlags(['--preset', 'editorial'])).toEqual([])
+    expect(findUnknownFlags(['--keep', 'sanity,shopify'])).toEqual([])
+    expect(findUnknownFlags(['--yes'])).toEqual([])
+    expect(findUnknownFlags(['--clean-homepage'])).toEqual([])
+    expect(findUnknownFlags(['--skip-install'])).toEqual([])
+    expect(findUnknownFlags(['--dry-run'])).toEqual([])
+    expect(findUnknownFlags(['--help'])).toEqual([])
+    expect(findUnknownFlags(['--preset=editorial'])).toEqual([])
+  })
+
+  it('flags a typo of a known long flag', () => {
+    expect(findUnknownFlags(['--presett', 'editorial'])).toEqual(['--presett'])
+  })
+
+  it('never flags a bare value, even one that looks flag-like as an id', () => {
+    // --keep's value is a comma-separated id list, never itself `--`-prefixed
+    // in practice, but the value token itself must never be checked — only
+    // `--`-prefixed tokens are.
+    expect(findUnknownFlags(['--keep', 'sanity'])).toEqual([])
+  })
+
+  it('collects every unknown flag, not just the first', () => {
+    expect(findUnknownFlags(['--bogus', '--yes', '--nope'])).toEqual([
+      '--bogus',
+      '--nope',
+    ])
+  })
+
+  it('KNOWN_SETUP_FLAGS matches what printUsage documents', () => {
+    expect(KNOWN_SETUP_FLAGS).toContain('--preset')
+    expect(KNOWN_SETUP_FLAGS).toContain('--keep')
+    expect(KNOWN_SETUP_FLAGS).toContain('--yes')
+    expect(KNOWN_SETUP_FLAGS).toContain('--clean-homepage')
+    expect(KNOWN_SETUP_FLAGS).toContain('--skip-install')
+    expect(KNOWN_SETUP_FLAGS).toContain('--dry-run')
+    expect(KNOWN_SETUP_FLAGS).toContain('--help')
+  })
+
+  it('an unknown flag exits 1 before reaching the interactive prompt (subprocess)', () => {
+    const proc = Bun.spawnSync(
+      ['bun', 'lib/scripts/setup-project.ts', '--totally-bogus-flag'],
+      {
+        cwd: projectRoot,
+        stdout: 'pipe',
+        stderr: 'pipe',
+        stdin: 'ignore',
+      }
+    )
+    expect(proc.exitCode).toBe(1)
+    const output = proc.stdout.toString() + proc.stderr.toString()
+    expect(output).toContain('--totally-bogus-flag')
+  }, 20000)
+})
+
+// ---------------------------------------------------------------------------
+// M1 — a raw throw from installBundle's copyBundleFiles/readPayloadFile/
+// listPayloadFiles used to escape uncaught, aborting the whole re-add batch
+// (every bundle after the failing one never even attempted a re-add) after
+// step 6 had already stripped every bundle's files from the live tree.
+// setupAddIntegrations now catches per-bundle, collects the failure, and
+// keeps processing the remaining bundles.
+// ---------------------------------------------------------------------------
+
+describe('M1: setupAddIntegrations collects per-bundle installBundle failures', () => {
+  it('a bundle whose payload is missing a declared folder fails without aborting the batch', async () => {
+    // Minimal synthetic payload source — NOT built via setupSnapshot, so it
+    // can deliberately omit a declared path. webgl's payload is incomplete
+    // ('lib/webgl' is never created), which makes copyBundleFiles's
+    // listPayloadFiles call throw a raw Error — the exact M1 escape hatch.
+    // hubspot's payload is complete, so it should install cleanly right
+    // after webgl's failure.
+    const payloadRoot = await mkdtemp(join(tmpdir(), 'satus-m1-payload-'))
+    try {
+      await Bun.write(
+        join(payloadRoot, 'package.json'),
+        JSON.stringify({ dependencies: {}, devDependencies: {} })
+      )
+      await mkdir(join(payloadRoot, 'lib/integrations/hubspot'), {
+        recursive: true,
+      })
+      await Bun.write(
+        join(payloadRoot, 'lib/integrations/hubspot/index.ts'),
+        'export {}\n'
+      )
+
+      const source: PayloadSource = {
+        root: payloadRoot,
+        label: 'test-payload',
+        cleanup: async () => undefined,
+      }
+
+      // dryRun: true — this calls the real setupAddIntegrations/installBundle
+      // against the REAL project tree's resolvePath (not a sandboxed copy),
+      // so dryRun is required to guarantee zero writes.
+      const result = await setupAddIntegrations(
+        ['webgl', 'hubspot'],
+        source,
+        true
+      )
+
+      // The raw throw was caught and collected, not left to propagate —
+      // this whole call resolving (not rejecting) IS the M1 fix.
+      expect(result.failures.length).toBe(1)
+      expect(result.failures[0]?.file).toBe('WebGL / 3D')
+      expect(result.failures[0]?.error).toContain('lib/webgl')
+
+      // hubspot, re-added AFTER the failing webgl bundle, still succeeded —
+      // the batch did not abort on webgl's failure.
+      expect(result.failures.some((f) => f.file === 'HubSpot')).toBe(false)
+    } finally {
+      await rm(payloadRoot, { recursive: true, force: true })
+    }
   })
 })
 

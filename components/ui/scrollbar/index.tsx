@@ -80,6 +80,14 @@ export function Scrollbar({ controlsId }: ScrollbarProps = {}) {
       document.documentElement.classList.remove('scrollbar-grabbing')
     }
 
+    // A cancelled gesture (OS interruption, alt-tab, touch cancel) never
+    // fires `pointerup` — without this, `start` stays non-null and
+    // `.scrollbar-grabbing` sticks on `<html>` permanently.
+    function onPointerCancel() {
+      start = null
+      document.documentElement.classList.remove('scrollbar-grabbing')
+    }
+
     function onKeyDown(e: KeyboardEvent) {
       if (!lenis) return
       if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
@@ -97,12 +105,14 @@ export function Scrollbar({ controlsId }: ScrollbarProps = {}) {
     element?.addEventListener('keydown', onKeyDown)
     window.addEventListener('pointermove', onPointerMove, false)
     window.addEventListener('pointerup', onPointerUp, false)
+    window.addEventListener('pointercancel', onPointerCancel, false)
 
     return () => {
       element?.removeEventListener('pointerdown', onPointerDown, false)
       element?.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('pointermove', onPointerMove, false)
       window.removeEventListener('pointerup', onPointerUp, false)
+      window.removeEventListener('pointercancel', onPointerCancel, false)
     }
   }, [lenis, innerHeight, thumbHeight])
 

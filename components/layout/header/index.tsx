@@ -4,7 +4,7 @@ import cn from 'clsx'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 
-import { isExternalHref, Link } from '@/components/ui/link'
+import { getLinkIntent, Link } from '@/components/ui/link'
 
 import s from './header.module.css'
 
@@ -67,8 +67,11 @@ export function Header() {
       {/* Level 1: Main navigation */}
       <ul className={cn(s.navList, menuOpen && s.navListOpen)} id="header-nav">
         {LINKS.map((link) => {
-          const opensNewTab = isExternalHref(link.href) || Boolean(link.newTab)
-          const isActive = pathname === link.href
+          const { isExternal: opensNewTab, isActive } = getLinkIntent(
+            link.href,
+            pathname,
+            { newTab: link.newTab }
+          )
 
           return (
             <li key={link.href} className={s.navItem}>

@@ -1801,9 +1801,9 @@ const guardProjectRoot = async (): Promise<void> => {
  * `parseCliFlags`-shared trio (`--dry-run`/`--verbose`/`--help`, each also
  * with its short form) plus this script's own `--preset`/`--keep`/`--yes`/
  * `--clean-homepage`/`--skip-install`. Kept as a single source of truth for
- * `findUnknownFlags` (M4) — a typo'd flag here (e.g. `--presett`) used to be
- * silently absorbed and fall through to the interactive prompt, which hangs
- * forever on a non-TTY-but-open stdin (CI).
+ * `findUnknownFlags` — without the guard, a typo'd flag (e.g. `--presett`)
+ * would be silently absorbed and fall through to the interactive prompt,
+ * which hangs forever on a non-TTY-but-open stdin (CI).
  */
 export const KNOWN_SETUP_FLAGS: readonly string[] = [
   '--dry-run',
@@ -1825,8 +1825,8 @@ export const KNOWN_SETUP_FLAGS: readonly string[] = [
  * Only `--`-prefixed tokens are checked — a flag's VALUE (e.g. the
  * `editorial` in `--preset editorial`, or a `--keep` id list) is a bare
  * token and never flagged; short flags (`-d`/`-v`/`-h`) are few, fixed, and
- * not the typo surface this guards (M4 is about long-flag typos like
- * `--presett`). A `--flag=value` token is checked by its flag name only (the
+ * not the typo surface this guards (long-flag typos like `--presett`
+ * are). A `--flag=value` token is checked by its flag name only (the
  * part before `=`). Exported for unit testing.
  */
 export const findUnknownFlags = (
@@ -1885,11 +1885,11 @@ Example:
 const main = async (): Promise<void> => {
   const argv = process.argv.slice(2)
 
-  // Unknown-flag guard (M4): a typo'd flag (e.g. `--presett`) was silently
-  // absorbed by parseCliFlags/getFlagValue and fell through to the
-  // interactive prompt — which hangs forever on a non-TTY-but-open stdin
-  // (CI). Checked first, before anything else (including --help), so a bad
-  // invocation fails loudly and immediately rather than reaching a prompt.
+  // Unknown-flag guard: parseCliFlags/getFlagValue silently absorb any
+  // token they don't read, so a typo'd flag (e.g. `--presett`) would fall
+  // through to the interactive prompt — which hangs forever on a
+  // non-TTY-but-open stdin (CI). Checked first, before anything else
+  // (including --help), so a bad invocation fails loudly and immediately.
   const unknownFlags = findUnknownFlags(argv)
   if (unknownFlags.length > 0) {
     p.log.error(

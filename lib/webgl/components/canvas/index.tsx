@@ -13,12 +13,14 @@ import {
 import Orchestra from '@/lib/dev/orchestra'
 import { useDeviceDetection } from '@/lib/hooks/use-device-detection'
 import {
+  claimPrimary,
   getDOMTunnel,
-  getPrimaryRootCanvasId,
-  getServerPrimaryRootCanvasId,
+  getPrimaryClaimId,
+  getServerPrimaryClaimId,
   getWebGLTunnel,
   registerRootCanvasMount,
-  subscribeRootCanvas,
+  releasePrimary,
+  subscribePrimaryClaim,
 } from '@/lib/webgl/store'
 import type { tunnel } from '@/webgl/utils/tunnel'
 
@@ -150,30 +152,38 @@ export function Canvas({
       : { active: false }
 
   // Guard against two <Canvas root> instances both mounting the WebGL surface
-  // at once (e.g. layout canvas + <Wrapper webgl> on the same page). The
-  // mount registry is external module state, so it's read through
-  // useSyncExternalStore: only the first-registered id is primary; any other
-  // root canvas renders nothing — a real no-op in every environment, not just
-  // a dev warning. Before this instance's registration lands (primary id
-  // undefined) it optimistically counts as primary, so the common
-  // single-canvas case never flickers. Registration lives in an effect with a
-  // symmetric cleanup, so StrictMode's mount→cleanup→mount on one instance
-  // never miscounts it as a duplicate — and if the primary unmounts, the
-  // survivor is promoted automatically.
+  // at once (e.g. layout canvas + <Wrapper webgl> on the same page). Two
+  // instances rendering in the same commit both read `primaryClaimId ===
+  // undefined` from a post-commit-only source, so both would optimistically
+  // mount a full r3f Canvas + WebGLRenderer for that one commit — the claim
+  // below is decided synchronously in the render body instead (a token, not
+  // the GL resource itself, which still only ever mounts via normal
+  // JSX/effects), so the second instance in the same commit already sees the
+  // first instance's claim. `claimPrimary` is idempotent per id, so React
+  // Strict Mode's double-render of a single instance is safe. Subscribing via
+  // useSyncExternalStore exists only to re-render this instance when the
+  // claim changes elsewhere (e.g. the primary unmounted and a survivor was
+  // promoted) — its return value isn't used, `claimPrimary` is the source of
+  // truth for `isPrimary`. Release happens in the mounting effect's cleanup,
+  // never from render, and promotes the next registered candidate.
   const id = useId()
-  const primaryRootCanvasId = useSyncExternalStore(
-    subscribeRootCanvas,
-    getPrimaryRootCanvasId,
-    getServerPrimaryRootCanvasId
+  useSyncExternalStore(
+    subscribePrimaryClaim,
+    getPrimaryClaimId,
+    getServerPrimaryClaimId
   )
-  const isPrimary =
-    primaryRootCanvasId === undefined || primaryRootCanvasId === id
-  const isMounting = contextValue.active && shouldRender && isPrimary
+  const canMount = contextValue.active && shouldRender
+  const isPrimary = canMount && claimPrimary(id)
+  const isMounting = isPrimary
 
   useEffect(() => {
-    if (!(contextValue.active && shouldRender)) return
-    return registerRootCanvasMount(id)
-  }, [contextValue.active, shouldRender, id])
+    if (!canMount) return
+    const unregister = registerRootCanvasMount(id)
+    return () => {
+      unregister()
+      releasePrimary(id)
+    }
+  }, [canMount, id])
 
   return (
     <CanvasContext.Provider value={contextValue}>

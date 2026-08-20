@@ -1,15 +1,32 @@
 import { useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useRef } from 'react'
+import { useEffect, useEffectEvent, useRef, useSyncExternalStore } from 'react'
 
 import { useCurrentSheet } from '@/dev/theatre'
 import { useTheatre } from '@/dev/theatre/hooks/use-theatre'
-import { usePointerInput } from '@/webgl/hooks/use-pointer-input'
+import type { PointerMoveHandler } from '@/webgl/hooks/use-pointer-input'
+import {
+  getContextGeneration,
+  getServerContextGeneration,
+  subscribeContextGeneration,
+} from '@/webgl/store'
 import { Flowmap } from '@/webgl/utils/flowmaps/flowmap-sim'
 
-export function useFlowmapSim(resolution = 128) {
+export function useFlowmapSim(
+  resolution = 128,
+  subscribePointerMove?: ((handler: PointerMoveHandler) => () => void) | null
+) {
   const sheet = useCurrentSheet()
   const gl = useThree((state) => state.gl)
   const size = useThree((state) => state.size)
+
+  // Bumped after a WebGL context restore (see webgl.tsx's ContextLossHandler)
+  // — included below so the create/destroy effect replays and rebuilds the
+  // sim, which sits outside three.js's own tracked-restore path.
+  const contextGeneration = useSyncExternalStore(
+    subscribeContextGeneration,
+    getContextGeneration,
+    getServerContextGeneration
+  )
 
   // Created/destroyed by the effect, keyed on gl + resolution. Held in a ref
   // (not state) because the instance is mutated imperatively below — the
@@ -24,7 +41,7 @@ export function useFlowmapSim(resolution = 128) {
       flowmap.destroy()
       flowmapRef.current = null
     }
-  }, [gl, resolution])
+  }, [gl, resolution, contextGeneration])
 
   // Track whether the pointer moved this frame (for idle detection in useFrame)
   // and the timestamp of the last event (for velocity calculation).
@@ -32,27 +49,36 @@ export function useFlowmapSim(resolution = 128) {
   const lastTimeRef = useRef<number | null>(null)
 
   // Mouse/touch input — drives the flowmap stamp position and velocity.
-  // The callback always reads the latest `size` and `flowmapRef.current`,
-  // because usePointerInput routes it through useEffectEvent.
-  usePointerInput((clientX, clientY, dx, dy) => {
-    const flowmap = flowmapRef.current
-    if (!flowmap) return
+  // The handler always reads the latest `size` and `flowmapRef.current`,
+  // because it's routed through useEffectEvent — same guarantee
+  // usePointerInput itself gives its callers.
+  const handlePointerMove = useEffectEvent(
+    (clientX: number, clientY: number, dx: number, dy: number) => {
+      const flowmap = flowmapRef.current
+      if (!flowmap) return
 
-    const now = performance.now()
-    // Use a safe default on the very first call; clamp to avoid velocity spikes
-    // after an idle period or tab switch.
-    const dt =
-      lastTimeRef.current !== null
-        ? Math.max(14, now - lastTimeRef.current)
-        : 16
-    lastTimeRef.current = now
-    movedRef.current = true
+      const now = performance.now()
+      // Use a safe default on the very first call; clamp to avoid velocity spikes
+      // after an idle period or tab switch.
+      const dt =
+        lastTimeRef.current !== null
+          ? Math.max(14, now - lastTimeRef.current)
+          : 16
+      lastTimeRef.current = now
+      movedRef.current = true
 
-    // Normalized cursor (y flipped into UV space)
-    flowmap.mouse.set(clientX / size.width, 1 - clientY / size.height)
-    // Pixels per millisecond; the shader flips Y via vec2(1, -1)
-    flowmap.velocity.set(dx / dt, dy / dt)
-  })
+      // Normalized cursor (y flipped into UV space)
+      flowmap.mouse.set(clientX / size.width, 1 - clientY / size.height)
+      // Pixels per millisecond; the shader flips Y via vec2(1, -1)
+      flowmap.velocity.set(dx / dt, dy / dt)
+    }
+  )
+
+  // Subscribes to the shared pointer bus (mounted once in FlowmapProvider)
+  // instead of mounting its own window listeners — see usePointerInputSubscribe.
+  useEffect(() => {
+    return subscribePointerMove?.(handlePointerMove)
+  }, [subscribePointerMove])
 
   // Aspect ratio so the cursor falloff stays round
   // `gl` and `resolution` are dependencies even though they are not read here:
@@ -63,7 +89,7 @@ export function useFlowmapSim(resolution = 128) {
     const flowmap = flowmapRef.current
     if (!flowmap) return
     flowmap.material.uniforms.uAspect.value = size.width / size.height
-  }, [size, gl, resolution])
+  }, [size, gl, resolution, contextGeneration])
 
   useTheatre(
     sheet,
@@ -89,7 +115,7 @@ export function useFlowmapSim(resolution = 128) {
       // its current values to the new Flowmap. A ref's identity never changes,
       // so listing `flowmapRef` here would mean never re-subscribing, and the
       // initial values would be dropped on the floor.
-      deps: [gl, resolution],
+      deps: [gl, resolution, contextGeneration],
     }
   )
 

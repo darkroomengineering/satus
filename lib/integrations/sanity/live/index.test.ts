@@ -91,7 +91,11 @@ describe('createPublishedFetch', () => {
     expect(result).toEqual({
       data: { _id: 'doc-1', title: 'Hello' },
       sourceMap: null,
-      tags: [],
+      // Derived from query intent (issue: a null/empty result must still
+      // carry the tags the publish webhook revalidates, or a cached miss
+      // can never be invalidated) — not from the result, which has no
+      // `_type`/`slug` fields of its own here.
+      tags: ['page', 'page:about'],
     })
     expect(calls).toEqual([
       {
@@ -136,14 +140,49 @@ describe('createPublishedFetch', () => {
       stega: false,
       tags: ['custom-tag'],
     })
-    expect(withTags.tags).toEqual(['custom-tag'])
+    // Custom tags are additive to the intent-derived 'page' tag, not a
+    // replacement for it.
+    expect(withTags.tags).toEqual(['custom-tag', 'page'])
 
     const withoutTags = await fetchFn({
       query: '*[_type == "page"][0]',
       perspective: 'published',
       stega: false,
     })
-    expect(withoutTags.tags).toEqual([])
+    expect(withoutTags.tags).toEqual(['page'])
+  })
+
+  test('derives tags from query intent even when the result is null/empty', async () => {
+    // Covers the bug this function fixes: a query for a document that
+    // doesn't exist yet (or matches nothing) must still carry the tags the
+    // publish webhook revalidates (app/api/revalidate/route.ts fires
+    // revalidateTag('page') / revalidateTag('page:home') on publish,
+    // regardless of what was previously cached), or a cached miss can never
+    // be invalidated and the page 404s until time-based expiry.
+    const mockClient: FetchClient = { fetch: async () => null }
+    const fetchFn = createPublishedFetch(mockClient)
+
+    const noSlug = await fetchFn({
+      query: '*[_type == "page" && slug.current == $slug][0]',
+      perspective: 'published',
+      stega: false,
+    })
+    expect(noSlug.tags).toEqual(['page'])
+
+    const withSlug = await fetchFn({
+      query: '*[_type == "page" && slug.current == $slug][0]',
+      params: { slug: 'not-yet-published' },
+      perspective: 'published',
+      stega: false,
+    })
+    expect(withSlug.tags).toEqual(['page', 'page:not-yet-published'])
+
+    const noTypeFilter = await fetchFn({
+      query: '*[_type in ["page", "article"]]',
+      perspective: 'published',
+      stega: false,
+    })
+    expect(noTypeFilter.tags).toEqual([])
   })
 })
 

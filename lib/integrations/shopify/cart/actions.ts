@@ -15,6 +15,7 @@ import {
   createCart,
   getCart,
   removeFromCart,
+  setCartIdCookie,
   updateCart,
 } from '../cart-operations'
 import { TAGS } from '../constants'
@@ -157,13 +158,7 @@ export async function addItem(
     if (!cartId) {
       const cart = await createCart()
       cartId = cart.id
-      _cookies.set('cartId', cartId, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 30, // 30 days
-        path: '/',
-      })
+      setCartIdCookie(_cookies, cartId)
     }
 
     try {

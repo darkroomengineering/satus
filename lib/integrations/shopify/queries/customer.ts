@@ -5,20 +5,6 @@ export const getCustomerQuery = /* GraphQL */ `
       firstName
       lastName
       email
-      phone
-      addresses(first: 5) {
-        edges {
-          node {
-            id
-            address1
-            address2
-            city
-            province
-            country
-            zip
-          }
-        }
-      }
       orders(first: 5) {
         edges {
           node {
@@ -28,8 +14,6 @@ export const getCustomerQuery = /* GraphQL */ `
               amount
               currencyCode
             }
-            processedAt
-            fulfillmentStatus
           }
         }
       }

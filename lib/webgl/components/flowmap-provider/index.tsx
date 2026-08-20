@@ -15,6 +15,10 @@
 
 import { createContext, type RefObject, use } from 'react'
 
+import {
+  type PointerMoveHandler,
+  usePointerInputSubscribe,
+} from '@/webgl/hooks/use-pointer-input'
 import { useFlowmapSim } from '@/webgl/utils/flowmaps'
 import type { Flowmap } from '@/webgl/utils/flowmaps/flowmap-sim'
 import { useFluidSim } from '@/webgl/utils/fluid'
@@ -29,15 +33,21 @@ import type { Fluid } from '@/webgl/utils/fluid/fluid-sim'
  *
  * @property fluid - Ref to the GPU fluid simulation instance (Navier-Stokes).
  * @property flowmap - Ref to the GPU flowmap simulation instance (velocity-field displacement).
+ * @property subscribePointerMove - Shared window pointer-move subscription
+ *   (see `usePointerInputSubscribe`), mounted once in `FlowmapProvider` so
+ *   `fluid` and `flowmap` sims don't each mount their own window listeners.
+ *   `null` when no sim is active (`simTypes` empty).
  */
 type FlowmapContextType = {
   fluid: RefObject<Fluid | null> | null
   flowmap: RefObject<Flowmap | null> | null
+  subscribePointerMove: ((handler: PointerMoveHandler) => () => void) | null
 }
 
 export const FlowmapContext = createContext<FlowmapContextType>({
   fluid: null,
   flowmap: null,
+  subscribePointerMove: null,
 })
 
 /**
@@ -75,8 +85,8 @@ export function useFlowmap(type: 'fluid' | 'flowmap' = 'flowmap') {
 }
 
 function FluidSimInner({ children }: { children: React.ReactNode }) {
-  const fluid = useFluidSim()
   const parent = use(FlowmapContext)
+  const fluid = useFluidSim(undefined, parent.subscribePointerMove)
   return (
     <FlowmapContext.Provider value={{ ...parent, fluid }}>
       {children}
@@ -85,10 +95,25 @@ function FluidSimInner({ children }: { children: React.ReactNode }) {
 }
 
 function FlowmapSimInner({ children }: { children: React.ReactNode }) {
-  const flowmap = useFlowmapSim()
   const parent = use(FlowmapContext)
+  const flowmap = useFlowmapSim(undefined, parent.subscribePointerMove)
   return (
     <FlowmapContext.Provider value={{ ...parent, flowmap }}>
+      {children}
+    </FlowmapContext.Provider>
+  )
+}
+
+/**
+ * Mounts the shared pointer-move subscription once and puts it on context —
+ * only rendered when at least one sim is opted in (see `FlowmapProvider`
+ * below), so a page with `simTypes` empty pays for zero window listeners.
+ */
+function PointerInputBus({ children }: { children: React.ReactNode }) {
+  const subscribePointerMove = usePointerInputSubscribe()
+  const parent = use(FlowmapContext)
+  return (
+    <FlowmapContext.Provider value={{ ...parent, subscribePointerMove }}>
       {children}
     </FlowmapContext.Provider>
   )
@@ -143,8 +168,13 @@ export function FlowmapProvider({
   if (simTypes.includes('fluid')) {
     tree = <FluidSimInner>{tree}</FluidSimInner>
   }
+  if (simTypes.length > 0) {
+    tree = <PointerInputBus>{tree}</PointerInputBus>
+  }
   return (
-    <FlowmapContext.Provider value={{ fluid: null, flowmap: null }}>
+    <FlowmapContext.Provider
+      value={{ fluid: null, flowmap: null, subscribePointerMove: null }}
+    >
       {tree}
     </FlowmapContext.Provider>
   )

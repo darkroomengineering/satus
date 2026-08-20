@@ -1,11 +1,12 @@
 'use client'
 
 import { OrthographicCamera, Preload } from '@react-three/drei'
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useThree } from '@react-three/fiber'
 import cn from 'clsx'
-import { Suspense } from 'react'
+import { Suspense, useEffect } from 'react'
 
 import { SheetProvider } from '@/lib/dev/theatre'
+import { bumpContextGeneration } from '@/lib/webgl/store'
 import { FlowmapProvider } from '@/webgl/components/flowmap-provider'
 import { PostProcessing } from '@/webgl/components/postprocessing'
 import { RAF } from '@/webgl/components/raf'
@@ -25,6 +26,47 @@ type WebGLCanvasProps = React.HTMLAttributes<HTMLDivElement> & {
    * paying for a GPU pass and window listeners with no consumer.
    */
   simTypes?: ('fluid' | 'flowmap')[]
+}
+
+/**
+ * Attaches `webglcontextlost`/`webglcontextrestored` listeners to the r3f
+ * canvas element. `preventDefault()` on loss tells the browser to attempt
+ * automatic restoration instead of treating the loss as permanent (mobile
+ * GPU resets and long-backgrounded tabs are the common causes — the root
+ * canvas persists across client-side navigation, so without this the sims
+ * stay visually broken for the rest of the session). On restore, bumps the
+ * shared context generation counter so GPU-resource-owning hooks
+ * (useFluidSim, useFlowmapSim) rebuild via their existing create/destroy
+ * effect cleanup — their hand-built double-buffered render targets sit
+ * outside three.js's own tracked-restore path and don't come back on their
+ * own.
+ */
+function ContextLossHandler() {
+  const gl = useThree((state) => state.gl)
+
+  useEffect(() => {
+    const canvasEl = gl.domElement
+
+    const handleContextLost = (event: Event) => {
+      event.preventDefault()
+    }
+    const handleContextRestored = () => {
+      bumpContextGeneration()
+    }
+
+    canvasEl.addEventListener('webglcontextlost', handleContextLost)
+    canvasEl.addEventListener('webglcontextrestored', handleContextRestored)
+
+    return () => {
+      canvasEl.removeEventListener('webglcontextlost', handleContextLost)
+      canvasEl.removeEventListener(
+        'webglcontextrestored',
+        handleContextRestored
+      )
+    }
+  }, [gl])
+
+  return null
 }
 
 /**
@@ -79,6 +121,7 @@ export function WebGLCanvas({
             zoom={1}
           />
           <RAF render={render} />
+          <ContextLossHandler />
           <FlowmapProvider {...(simTypes && { simTypes })}>
             {postprocessing && <PostProcessing />}
             <Suspense>

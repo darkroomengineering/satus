@@ -54,38 +54,45 @@ export function Marquee({
 
   const lenis = useLenis()
 
-  useTempus(({ deltaTime }) => {
-    const entry = getEntry()
+  // order: 6 — Lenis writes scroll state at order 5 (see
+  // components/layout/lenis/index.tsx); without an explicit order here,
+  // Tempus defaults this callback to order 0 and sequencing becomes
+  // mount-order luck, reading `lenis.velocity` one frame stale.
+  useTempus(
+    ({ deltaTime }) => {
+      const entry = getEntry()
 
-    if (!intersection?.isIntersecting) return
-    if (pauseOnHover && isHovered.current) return
+      if (!intersection?.isIntersecting) return
+      if (pauseOnHover && isHovered.current) return
 
-    if (!entry?.borderBoxSize[0]?.inlineSize) return
+      if (!entry?.borderBoxSize[0]?.inlineSize) return
 
-    let velocity = lenis?.velocity ?? 0
-    if (!scrollVelocity) {
-      velocity = 0
-    }
-    velocity = 1 + Math.abs(velocity / 5)
+      let velocity = lenis?.velocity ?? 0
+      if (!scrollVelocity) {
+        velocity = 0
+      }
+      velocity = 1 + Math.abs(velocity / 5)
 
-    const offset = deltaTime * (speed * 0.1 * velocity)
+      const offset = deltaTime * (speed * 0.1 * velocity)
 
-    if (reversed) {
-      transformRef.current -= offset
-    } else {
-      transformRef.current += offset
-    }
+      if (reversed) {
+        transformRef.current -= offset
+      } else {
+        transformRef.current += offset
+      }
 
-    const width = entry.borderBoxSize[0].inlineSize
-    transformRef.current = modulo(transformRef.current, width)
+      const width = entry.borderBoxSize[0].inlineSize
+      transformRef.current = modulo(transformRef.current, width)
 
-    // Sparse array: shrinking `repeat` removes entries (ref callback fires
-    // with null on detach), so iterate defined slots only — no stale nodes.
-    for (const node of elementsRef.current) {
-      if (!node) continue
-      node.style.transform = `translate3d(${-transformRef.current}px,0,0)`
-    }
-  })
+      // Sparse array: shrinking `repeat` removes entries (ref callback fires
+      // with null on detach), so iterate defined slots only — no stale nodes.
+      for (const node of elementsRef.current) {
+        if (!node) continue
+        node.style.transform = `translate3d(${-transformRef.current}px,0,0)`
+      }
+    },
+    { order: 6 }
+  )
 
   return (
     // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- hover-to-pause is a progressive enhancement; marquee content stays readable without it

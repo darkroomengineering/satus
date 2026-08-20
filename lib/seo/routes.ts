@@ -31,9 +31,9 @@ export interface ContentRoute {
  * `app/(site)/ai/page.tsx`, which links the same route from its own
  * hardcoded `PAGES` list for the human/agent-facing machine view.
  *
- * The `(examples)` route group (`/sanity`) is a Sanity wiring tutorial for
- * developers, not real site content — deliberately excluded here so
- * search/AI indexes don't cite a demo page as part of the site.
+ * This list is what gets *advertised* — every entry here is emitted into
+ * `sitemap.xml`/`llms.txt`. See `RESERVED_PATHS` below for routes that must
+ * be excluded from CMS dedup without being advertised themselves.
  */
 export const STATIC_ROUTES: readonly StaticRoute[] = [
   { path: '/', changeFrequency: 'daily', priority: 1 },
@@ -41,6 +41,24 @@ export const STATIC_ROUTES: readonly StaticRoute[] = [
 ]
 
 const staticPaths = new Set(STATIC_ROUTES.map((route) => route.path))
+
+/**
+ * Literal first-path-segment routes that live outside the `[...slug]`
+ * catch-all and win over it at request time, but that have no
+ * `sitemap.xml`/`llms.txt` presence of their own — so unlike `STATIC_ROUTES`
+ * they are never emitted, only used to exclude colliding CMS slugs below.
+ *
+ * - `/studio` — `app/studio/[[...tool]]/page.tsx`, Sanity Studio.
+ * - `/sanity` — `app/(site)/(examples)/sanity/page.tsx`, a Sanity wiring
+ *   tutorial for developers, not real site content.
+ *
+ * Without this, a CMS document slugged `studio` or `sanity` would resolve to
+ * `/studio` or `/sanity` via `urlForReference` and get emitted into the
+ * sitemap/llms.txt, even though the real route at that path serves something
+ * else entirely. (`/api` needs no entry: there's no page/route at that root
+ * segment, so it already falls through to the catch-all untouched.)
+ */
+const RESERVED_PATHS = new Set(['/studio', '/sanity'])
 
 /**
  * Every document type with a `slug` — kept permissive (`nullable()` fields)
@@ -98,7 +116,10 @@ export function buildRoutesFromDocuments(data: unknown): ContentRoute[] {
     // `path === '#'` is unresolvable; a `staticPaths` hit means the document's
     // slug collides with an already-listed static route (e.g. a `page` with
     // slug `ai` resolves to `/ai`, which the static route already serves).
-    if (path === '#' || staticPaths.has(path)) continue
+    // A `RESERVED_PATHS` hit means it collides with a route outside the
+    // catch-all that isn't advertised in the sitemap at all (e.g. `studio`).
+    if (path === '#' || staticPaths.has(path) || RESERVED_PATHS.has(path))
+      continue
 
     routes.set(path, {
       path,

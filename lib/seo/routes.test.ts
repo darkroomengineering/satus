@@ -96,6 +96,38 @@ describe('buildRoutesFromDocuments', () => {
     expect(routes.some((route) => route.path === '/ai')).toBe(false)
   })
 
+  it('drops a document slugged `studio` — Sanity Studio owns that path', () => {
+    // `/studio` (app/studio/[[...tool]]/page.tsx) lives outside the
+    // catch-all and isn't in STATIC_ROUTES, but a CMS doc slugged `studio`
+    // must still be excluded, not emitted into the sitemap/llms.txt.
+    const docs = [
+      {
+        _type: 'page',
+        title: 'Studio',
+        slug: { current: 'studio' },
+        _updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ]
+
+    const routes = buildRoutesFromDocuments(docs)
+    expect(STATIC_ROUTES.some((route) => route.path === '/studio')).toBe(false)
+    expect(routes.some((route) => route.path === '/studio')).toBe(false)
+  })
+
+  it('drops a document slugged `sanity` — the wiring tutorial owns that path', () => {
+    const docs = [
+      {
+        _type: 'page',
+        title: 'Sanity',
+        slug: { current: 'sanity' },
+        _updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ]
+
+    const routes = buildRoutesFromDocuments(docs)
+    expect(routes.some((route) => route.path === '/sanity')).toBe(false)
+  })
+
   it('lists a `home` page at /home — `/` stays developer-owned', () => {
     const docs = [
       {

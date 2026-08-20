@@ -72,17 +72,30 @@ This project enables Next.js Cache Components (`cacheComponents: true`), and
 dedupes the fetch across the page and `generateMetadata`):
 
 ```tsx
+import { draftMode } from 'next/headers'
+
 import { sanityFetch } from '@/lib/integrations/sanity/live'
 import { pageQuery } from '@/lib/integrations/sanity/queries'
 
-async function getPage(slug: string) {
+async function fetchPage(
+  slug: string,
+  perspective: 'published' | 'drafts',
+  stega: boolean
+) {
   'use cache'
-  return sanityFetch({ query: pageQuery, params: { slug } })
+  return sanityFetch({ query: pageQuery, params: { slug }, perspective, stega })
+}
+
+async function fetchPageForRequest(slug: string) {
+  const { isEnabled: isDraftMode } = await draftMode()
+  return isDraftMode
+    ? fetchPage(slug, 'drafts', true)
+    : fetchPage(slug, 'published', false)
 }
 
 export default async function Page({ params }) {
   const { slug } = await params
-  const { data } = await getPage(slug)
+  const { data } = await fetchPageForRequest(slug)
   return <YourComponent data={data} />
 }
 ```
@@ -145,7 +158,7 @@ import { generateSanityMetadata } from '@/lib/utils/metadata'
 
 export async function generateMetadata({ params }) {
   const { slug } = await params
-  const { data } = await getPage(slug) // the 'use cache' helper from above
+  const { data } = await fetchPageForRequest(slug) // the helper from above
   return generateSanityMetadata({ document: data, url: `/page/${slug}` })
 }
 ```

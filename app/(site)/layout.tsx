@@ -38,9 +38,6 @@ export const metadata: Metadata = {
     // `routeAlternates` — inheriting this one would canonicalize the whole
     // site to `/`.
     ...routeAlternates('/'),
-    languages: {
-      'en-US': '/en-US',
-    },
   },
   appleWebApp: {
     capable: true,

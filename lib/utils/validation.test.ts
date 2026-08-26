@@ -409,6 +409,29 @@ describe('parseFormData', () => {
     }
   })
 
+  test('a root-level .refine() issue surfaces under a _form key', () => {
+    const matchingPasswordsSchema = z
+      .object({
+        password: z.string().min(1),
+        confirmPassword: z.string().min(1),
+      })
+      .refine((data) => data.password === data.confirmPassword, {
+        error: 'Passwords must match',
+      })
+
+    const formData = new FormData()
+    formData.set('password', 'abc123')
+    formData.set('confirmPassword', 'xyz789')
+
+    const result = parseFormData(matchingPasswordsSchema, formData)
+
+    expect('success' in result).toBe(false)
+    if (!('success' in result)) {
+      expect(result.status).toBe(400)
+      expect(result.fieldErrors?._form).toBe('Passwords must match')
+    }
+  })
+
   test('repeated keys collect into an array for a z.array field', () => {
     const multiSchema = z.object({
       email: z.email(),

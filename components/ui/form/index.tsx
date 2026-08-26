@@ -1,7 +1,7 @@
 'use client'
 
 import cn from 'clsx'
-import { createContext, use, useEffect, useState } from 'react'
+import { createContext, type ReactNode, use, useEffect, useState } from 'react'
 
 import { mutate } from '@/utils/raf'
 
@@ -175,11 +175,14 @@ export function Form<T = unknown>({
   return (
     <FormContext.Provider value={contextValue}>
       <form
+        {...props}
+        // Internal submission control — `action`/`onSubmit` (and `key`,
+        // which drives the post-submit remount) are not overridable by a
+        // consumer's spread; they must win over `...props`.
         key={key}
         className={cn(s.form, className)}
         action={formAction}
         onSubmit={onSubmit}
-        {...props}
       >
         {children}
       </form>
@@ -202,7 +205,7 @@ export function SubmitButton({
   const isSuccess = formState?.status === 200
   const isError = formState?.status && formState.status >= 400
 
-  let buttonText = children?.toString() ?? defaultText
+  let buttonText: ReactNode = children ?? defaultText
   if (isSuccess) {
     buttonText = successText
   } else if (isError) {
@@ -213,6 +216,10 @@ export function SubmitButton({
 
   return (
     <button
+      {...props}
+      // Internal submission control — `type` and the disabled-gate
+      // `onClick` are not overridable by a consumer's spread; they must win
+      // over `...props`.
       type="submit"
       aria-disabled={!isReady || isPending}
       onClick={(e) => {
@@ -228,7 +235,6 @@ export function SubmitButton({
         isSuccess && s.submitted,
         isError && s.error
       )}
-      {...props}
     >
       <span>{buttonText}</span>
     </button>

@@ -86,6 +86,11 @@ export function useForm<T = unknown>({
   const inputsRefs = useRef<
     Record<string, HTMLInputElement | HTMLTextAreaElement | null>
   >({})
+  // `isPending` only updates after a render, so two submit events dispatched
+  // in the same tick (double Enter before React re-renders) both read it as
+  // false. This ref updates synchronously, so the second dispatch in the
+  // same tick sees the lock the first one set.
+  const submitLockRef = useRef(false)
 
   // Initialize state for a field when it first registers.
   // Hidden fields are always auto-valid. Otherwise, seed validity from the
@@ -136,6 +141,10 @@ export function useForm<T = unknown>({
   const onSubmit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
 
+    if (submitLockRef.current) {
+      return
+    }
+
     // A submission is already in flight — Enter-to-submit must respect the
     // same gate as the SubmitButton's disabled state instead of dispatching
     // a second server action while the first is still pending. The form is
@@ -156,8 +165,14 @@ export function useForm<T = unknown>({
       formData.append('formId', formId)
     }
 
+    submitLockRef.current = true
     startTransition(async () => {
+      // No try/finally: React Compiler can't lower a TryStatement with a
+      // finally clause. That's fine here — `formAction` is `useActionState`'s
+      // dispatch, typed `() => void`; it never returns a rejectable promise,
+      // so this await can't throw and skip the release below.
       await formAction(formData)
+      submitLockRef.current = false
     })
   }
 

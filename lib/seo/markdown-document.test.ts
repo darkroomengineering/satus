@@ -78,6 +78,25 @@ describe('buildMarkdownDocument', () => {
     )
   })
 
+  it('preserves the original query string in the HTML-fallback redirect alongside format=html', () => {
+    const document = buildMarkdownDocumentFromRoutes(
+      '/about',
+      [
+        {
+          path: '/about',
+          label: 'About',
+          lastModified: new Date('2026-01-01T00:00:00.000Z'),
+        },
+      ],
+      { htmlAcceptable: true, search: '?variant=x' }
+    )
+
+    expect(document.status).toBe(303)
+    expect(document.status === 303 && document.location).toBe(
+      '/about?variant=x&format=html'
+    )
+  })
+
   it('defaults to html-acceptable when the caller does not specify — never 406s without confirming the client rejected html', () => {
     const document = buildMarkdownDocumentFromRoutes('/about', [
       {

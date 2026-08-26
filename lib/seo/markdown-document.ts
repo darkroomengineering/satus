@@ -42,6 +42,13 @@ export type MarkdownDocument =
 interface BuildMarkdownDocumentOptions {
   /** Whether the requesting client's Accept header also permits text/html. */
   htmlAcceptable?: boolean
+  /**
+   * Original request query string, including its leading `?` (or `''` when
+   * absent). Preserved through the proxy rewrite so the HTML-fallback 303
+   * below merges `format=html` into it instead of replacing it and dropping
+   * params like `?variant=x`.
+   */
+  search?: string
 }
 
 function normalizeRoutePath(path: string): string {
@@ -81,22 +88,24 @@ function buildMarkdownDegraded(path: string): MarkdownDocument {
   }
 }
 
-function htmlOverrideUrl(path: string): string {
-  const separator = path.includes('?') ? '&' : '?'
-  return `${path}${separator}${HTML_FORMAT_OVERRIDE_PARAM}=${HTML_FORMAT_OVERRIDE_VALUE}`
+function htmlOverrideUrl(path: string, search: string): string {
+  const params = new URLSearchParams(search)
+  params.set(HTML_FORMAT_OVERRIDE_PARAM, HTML_FORMAT_OVERRIDE_VALUE)
+  return `${path}?${params.toString()}`
 }
 
 function buildMarkdownUnavailable(
   path: string,
   label: string,
-  htmlAcceptable: boolean
+  htmlAcceptable: boolean,
+  search: string
 ): MarkdownDocument {
   // The client's Accept header still permits text/html — RFC 9110 only
   // allows a 406 when none of the available representations are
   // acceptable, and HTML is available here. Send it to the HTML document
   // instead of explaining that Markdown doesn't exist for it.
   if (htmlAcceptable) {
-    return { status: 303, location: htmlOverrideUrl(path) }
+    return { status: 303, location: htmlOverrideUrl(path, search) }
   }
 
   const htmlUrl = absoluteSiteUrl(path)
@@ -114,7 +123,11 @@ export function buildMarkdownDocumentFromRoutes(
   cmsRoutes: readonly ContentRoute[],
   options: BuildMarkdownDocumentOptions & { catalogDegraded?: boolean } = {}
 ): MarkdownDocument {
-  const { htmlAcceptable = true, catalogDegraded = false } = options
+  const {
+    htmlAcceptable = true,
+    catalogDegraded = false,
+    search = '',
+  } = options
   const path = normalizeRoutePath(requestedPath)
   const route = STATIC_ROUTES.find((candidate) => candidate.path === path)
   if (!route) {
@@ -123,7 +136,8 @@ export function buildMarkdownDocumentFromRoutes(
       return buildMarkdownUnavailable(
         cmsRoute.path,
         cmsRoute.label,
-        htmlAcceptable
+        htmlAcceptable,
+        search
       )
     }
     // A degraded catalog can't confirm the route is absent — only that it
@@ -170,6 +184,7 @@ export async function buildMarkdownDocument(
     ...(options.htmlAcceptable !== undefined && {
       htmlAcceptable: options.htmlAcceptable,
     }),
+    ...(options.search !== undefined && { search: options.search }),
     catalogDegraded: degraded,
   })
 }

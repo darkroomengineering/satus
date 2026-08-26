@@ -101,6 +101,6 @@ export function usePointerInputSubscribe(): (
     }
   })
 
-  // oxlint-disable-next-line react/refs -- stable-identity subscribe function: the ref is initialized once and never reassigned, so this render read can never observe a changing value
-  return subscribeRef.current
+  // react-doctor-disable-next-line react-hooks-js/refs
+  return subscribeRef.current // oxlint-disable-line react/refs -- stable-identity subscribe function: initialized once, never reassigned, so this render read can never observe a changing value
 }

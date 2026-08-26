@@ -12,13 +12,7 @@
 
 import { afterEach, describe, expect, test } from 'bun:test'
 
-import {
-  act,
-  cleanup,
-  fireEvent,
-  render,
-  waitFor,
-} from '@testing-library/react'
+import { act, cleanup, fireEvent, render } from '@testing-library/react'
 import { useEffect, useState } from 'react'
 
 import type { FormState } from '@/lib/types/form'
@@ -448,14 +442,15 @@ describe('useForm submit gate', () => {
     const formElement = container.querySelector('form')
     if (!formElement) throw new Error('form not found')
 
-    fireEvent.submit(formElement)
-
-    await waitFor(() => {
-      expect(snapshot.current?.isPending).toBe(true)
+    // Dispatch both submits synchronously in the same act() pass — this is
+    // the race the ref-based lock in useForm guards against: two submit
+    // events in the same tick both read `isPending` as false (it only
+    // updates after a render), so only a synchronous ref, not render state,
+    // can prevent the second dispatch from reaching formAction.
+    act(() => {
+      fireEvent.submit(formElement)
+      fireEvent.submit(formElement)
     })
-
-    // Enter again while the first submission is still in flight.
-    fireEvent.submit(formElement)
 
     expect(callCount).toBe(1)
 

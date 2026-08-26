@@ -114,6 +114,23 @@ describe('buildRoutesFromDocuments', () => {
     expect(routes.some((route) => route.path === '/studio')).toBe(false)
   })
 
+  it('drops a document slugged `agent-content` — the Markdown negotiation handler owns that path', () => {
+    // Without RESERVED_PATHS excluding it, a CMS page slugged `agent-content`
+    // would be advertised in the sitemap/`/ai` while proxy.ts's
+    // MACHINE_PATHS still 404s direct requests to it.
+    const docs = [
+      {
+        _type: 'page',
+        title: 'Agent Content',
+        slug: { current: 'agent-content' },
+        _updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ]
+
+    const routes = buildRoutesFromDocuments(docs)
+    expect(routes.some((route) => route.path === '/agent-content')).toBe(false)
+  })
+
   it('drops a document slugged `sanity` — the wiring tutorial owns that path', () => {
     const docs = [
       {

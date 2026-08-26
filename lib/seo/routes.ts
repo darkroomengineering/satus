@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { isConfigured } from '@/integrations/registry'
 import { sanityFetch } from '@/integrations/sanity/live'
 import { urlForReference } from '@/integrations/sanity/utils/link'
+import { MARKDOWN_HANDLER_PATH } from '@/lib/seo/markdown-path'
 import { STATIC_ROUTES } from '@/lib/seo/route-catalog'
 
 export { STATIC_ROUTES }
@@ -50,6 +51,10 @@ const staticPaths = new Set(STATIC_ROUTES.map((route) => route.path))
  * - `/studio` — `app/studio/[[...tool]]/page.tsx`, Sanity Studio.
  * - `/sanity` — `app/(site)/(examples)/sanity/page.tsx`, a Sanity wiring
  *   tutorial for developers, not real site content.
+ * - `/agent-content` — the internal Markdown negotiation handler proxy.ts
+ *   rewrites to (`app/agent-content/route.ts`); a CMS doc slugged
+ *   `agent-content` would otherwise be advertised in the sitemap/`/ai` while
+ *   direct requests to it still 404 (see `MACHINE_PATHS` in `proxy.ts`).
  *
  * Without this, a CMS document slugged `studio` or `sanity` would resolve to
  * `/studio` or `/sanity` via `urlForReference` and get emitted into the
@@ -57,7 +62,7 @@ const staticPaths = new Set(STATIC_ROUTES.map((route) => route.path))
  * else entirely. (`/api` needs no entry: there's no page/route at that root
  * segment, so it already falls through to the catch-all untouched.)
  */
-const RESERVED_PATHS = new Set(['/studio', '/sanity'])
+const RESERVED_PATHS = new Set(['/studio', '/sanity', MARKDOWN_HANDLER_PATH])
 
 /**
  * Every document type with a `slug` — kept permissive (`nullable()` fields)

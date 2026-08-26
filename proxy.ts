@@ -180,10 +180,14 @@ export function proxy(request: NextRequest) {
     const rewriteUrl = request.nextUrl.clone()
     rewriteUrl.pathname = MARKDOWN_HANDLER_PATH
     rewriteUrl.search = ''
+    // Carries the original query string (e.g. `?variant=x`) alongside the
+    // path so the HTML-fallback 303 in markdown-document.ts can merge
+    // `format=html` into it instead of discarding it — rewriteUrl.search was
+    // cleared above because MARKDOWN_HANDLER_PATH itself takes no query.
     const requestHeaders = new Headers(request.headers)
     requestHeaders.set(
       MARKDOWN_SOURCE_PATH_HEADER,
-      markdownRoute ?? request.nextUrl.pathname
+      (markdownRoute ?? request.nextUrl.pathname) + request.nextUrl.search
     )
 
     return addAcceptVary(

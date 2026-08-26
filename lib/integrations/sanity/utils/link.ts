@@ -23,9 +23,49 @@ type LinkLike = {
  * render time so a bad scheme becomes an inert `#` instead of executing.
  */
 const SAFE_EXTERNAL_SCHEMES = new Set(['http:', 'https:', 'mailto:', 'tel:'])
+const MAX_INTERNAL_SLUG_LENGTH = 96
+
+function hasUnsafeInternalSlugCharacter(value: string): boolean {
+  return (
+    value.includes('/') ||
+    value.includes('\\') ||
+    value.includes('?') ||
+    value.includes('#') ||
+    [...value].some((character) => {
+      const codePoint = character.codePointAt(0)
+      return (
+        codePoint !== undefined && (codePoint <= 0x1f || codePoint === 0x7f)
+      )
+    })
+  )
+}
+
+function isSafeInternalSlug(slug: string): boolean {
+  if (
+    slug.length === 0 ||
+    slug.length > MAX_INTERNAL_SLUG_LENGTH ||
+    slug === '.' ||
+    slug === '..' ||
+    hasUnsafeInternalSlugCharacter(slug)
+  ) {
+    return false
+  }
+
+  try {
+    const decoded = decodeURIComponent(slug)
+    return (
+      decoded !== '.' &&
+      decoded !== '..' &&
+      !hasUnsafeInternalSlugCharacter(decoded)
+    )
+  } catch {
+    return false
+  }
+}
 
 function isSafeExternalUrl(url: string): boolean {
   const trimmed = url.trim()
+  if (trimmed.startsWith('//') || trimmed.includes('\\')) return false
 
   // Relative targets (path, query, hash) are same-origin and always safe.
   if (
@@ -69,7 +109,7 @@ export const urlForReference = (link: LinkLike): string => {
 }
 
 function resolveDocumentUrl(documentType?: string, slug?: string): string {
-  if (!slug) return '#'
+  if (!slug || !isSafeInternalSlug(slug)) return '#'
 
   switch (documentType) {
     // Every page slug maps to its own path — including `home` → `/home`.

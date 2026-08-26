@@ -62,6 +62,17 @@ test.describe('branded 404', () => {
     // Assert on the actual DOM text, not the rendered case.
     await expect(page.getByRole('heading', { name: '404' })).toBeVisible()
     await expect(page.getByText('Page not found')).toBeVisible()
+    await expect(
+      page.getByRole('link', { name: 'Agent index' })
+    ).toHaveAttribute('href', '/ai')
+    await expect(page.getByRole('link', { name: 'llms.txt' })).toHaveAttribute(
+      'href',
+      '/llms.txt'
+    )
+    await expect(page.getByRole('link', { name: 'Sitemap' })).toHaveAttribute(
+      'href',
+      '/sitemap.xml'
+    )
 
     // Verified empirically: this 404 navigation logs zero console errors and
     // zero pageerrors (Chromium's "Failed to load resource" console message

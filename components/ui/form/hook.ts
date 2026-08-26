@@ -19,10 +19,40 @@ import type { FieldError, UseFormOptions, UseFormReturn } from './types'
 const validators: Record<string, (value: string) => boolean> = {}
 validators.email = zodToValidator(emailSchema)
 validators.phone = zodToValidator(phoneSchema)
+// Registered under both the field-name convention ('phone') and the DOM
+// input type used by <InputField type="tel" /> ('tel') — the type-fallback
+// lookup in resolveValidator keys off `element.type`, which is "tel" for
+// phone inputs, never "phone".
+validators.tel = zodToValidator(phoneSchema)
 
 // Allow extending validators
 export function addValidator(id: string, fn: (value: string) => boolean) {
   validators[id] = fn
+}
+
+// Pure: resolves an input's validity the same way regardless of whether it's
+// called from a live change/blur event or at registration time against a
+// prefilled value. Empty values are judged by requiredness so an untouched
+// optional field starts/stays valid and an untouched required field starts
+// invalid; a non-empty value always goes through the validator (or, absent
+// one, counts as valid).
+function computeValidity(
+  value: string,
+  element: HTMLInputElement | HTMLTextAreaElement
+): boolean {
+  const elementType =
+    element instanceof HTMLInputElement ? element.type : 'textarea'
+  const validator = resolveValidator(validators, {
+    name: element.name,
+    id: element.id,
+    type: elementType,
+  })
+  const isRequired = element.required
+
+  if (validator) {
+    return value === '' ? !isRequired : validator(value)
+  }
+  return value !== '' || !isRequired
 }
 
 /**
@@ -56,11 +86,17 @@ export function useForm<T = unknown>({
   const inputsRefs = useRef<
     Record<string, HTMLInputElement | HTMLTextAreaElement | null>
   >({})
+  // `isPending` only updates after a render, so two submit events dispatched
+  // in the same tick (double Enter before React re-renders) both read it as
+  // false. This ref updates synchronously, so the second dispatch in the
+  // same tick sees the lock the first one set.
+  const submitLockRef = useRef(false)
 
   // Initialize state for a field when it first registers.
-  // Hidden fields are always auto-valid. Otherwise, seed by requiredness:
-  // required fields start invalid (must be filled to become valid), optional
-  // fields start valid (an untouched optional field must not block isReady).
+  // Hidden fields are always auto-valid. Otherwise, seed validity from the
+  // element's current value (defaultValue / SSR prefill) using the same
+  // computation validate() uses, so a prefilled required field starts ready
+  // instead of blocking submit until the user re-types it.
   function initializeInput(
     name: string,
     input: HTMLInputElement | HTMLTextAreaElement | null
@@ -69,8 +105,11 @@ export function useForm<T = unknown>({
     setIsValid((prev) => {
       const isHidden =
         input instanceof HTMLInputElement && input.type === 'hidden'
-      const isRequired = input?.required ?? false
-      return { ...prev, [name]: isHidden || !isRequired }
+      if (isHidden || !input) {
+        const isRequired = input?.required ?? false
+        return { ...prev, [name]: isHidden || !isRequired }
+      }
+      return { ...prev, [name]: computeValidity(input.value, input) }
     })
     setErrors((prev) => ({
       ...prev,
@@ -102,6 +141,18 @@ export function useForm<T = unknown>({
   const onSubmit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
 
+    if (submitLockRef.current) {
+      return
+    }
+
+    // A submission is already in flight — Enter-to-submit must respect the
+    // same gate as the SubmitButton's disabled state instead of dispatching
+    // a second server action while the first is still pending. The form is
+    // valid, just busy, so this does not reveal errors.
+    if (isPending) {
+      return
+    }
+
     // Enter-to-submit must respect the same gate as the SubmitButton.
     // Server-side Zod validation remains the authoritative gate either way.
     if (!isReady) {
@@ -114,8 +165,14 @@ export function useForm<T = unknown>({
       formData.append('formId', formId)
     }
 
+    submitLockRef.current = true
     startTransition(async () => {
+      // No try/finally: React Compiler can't lower a TryStatement with a
+      // finally clause. That's fine here — `formAction` is `useActionState`'s
+      // dispatch, typed `() => void`; it never returns a rejectable promise,
+      // so this await can't throw and skip the release below.
       await formAction(formData)
+      submitLockRef.current = false
     })
   }
 
@@ -127,22 +184,7 @@ export function useForm<T = unknown>({
     const element = inputsRefs.current[name]
     if (!element) return
 
-    const elementType =
-      element instanceof HTMLInputElement ? element.type : 'textarea'
-    const validator = resolveValidator(validators, {
-      name: element.name,
-      id: element.id,
-      type: elementType,
-    })
-
-    const isRequired = element.required
-    let isValidValue: boolean
-
-    if (validator) {
-      isValidValue = value === '' ? false : validator(value)
-    } else {
-      isValidValue = value !== '' || !isRequired
-    }
+    const isValidValue = computeValidity(value, element)
 
     setIsValid((prev) => ({ ...prev, [name]: isValidValue }))
     setErrors((prev) => ({

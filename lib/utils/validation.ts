@@ -241,9 +241,12 @@ export function parseFormData<T>(
   if (!result.success) {
     const fieldErrors: Record<string, string> = {}
     for (const issue of result.error.issues) {
-      const path = issue.path.join('.')
-      if (path && !fieldErrors[path]) {
-        fieldErrors[path] = issue.message
+      // A schema-level `.refine()` produces an empty path — surface it under
+      // `_form` instead of dropping it, so cross-field validation errors
+      // (e.g. password confirmation) reach the caller.
+      const key = issue.path.join('.') || '_form'
+      if (!fieldErrors[key]) {
+        fieldErrors[key] = issue.message
       }
     }
     return {

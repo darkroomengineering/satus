@@ -12,20 +12,19 @@ export default function manifest(): MetadataRoute.Manifest {
     display: 'standalone',
     background_color: themes.red.primary,
     theme_color: themes.red.primary,
+    // `sizes` must match the real pixel dimensions of each file — a browser
+    // that trusts a wrong value picks the wrong icon, and nothing validates
+    // this. One entry per file: listing `/icon.png` twice made the same
+    // bytes look like two separate icons.
     icons: [
       {
         src: '/icon.png',
-        sizes: 'any',
-        type: 'image/png',
-      },
-      {
-        src: '/icon.png',
-        sizes: '512x512',
+        sizes: '192x192',
         type: 'image/png',
       },
       {
         src: '/apple-icon.png',
-        sizes: '192x192',
+        sizes: '180x180',
         type: 'image/png',
         purpose: 'any',
       },

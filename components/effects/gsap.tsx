@@ -58,6 +58,7 @@
 
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
+import { useEffect } from 'react'
 import { useTempus } from 'tempus/react'
 
 // `useGSAP` declares itself headless, so it registers in either environment —
@@ -74,15 +75,29 @@ gsap.registerPlugin(useGSAP)
 // oxlint-disable-next-line anti-slop/no-runtime-typeof -- SSR guard; literal typeof enables bundler dead-code elimination
 if (typeof window !== 'undefined') {
   gsap.defaults({ ease: 'none' })
-  gsap.ticker.lagSmoothing(0)
-  gsap.ticker.remove(gsap.updateRoot)
 }
 
 /**
  * Syncs GSAP ticker with Tempus frame loop.
- * Add to your root layout to enable GSAP animations.
+ *
+ * Importing this module pulls in the GSAP core (~43KB gzipped), so it is
+ * mounted only when a layout opts in — see `OptionalFeatures`' `gsap` prop.
+ * A page that never animates ships none of it.
  */
 export function GSAPRuntime() {
+  // Tempus owns the frame loop, so GSAP's own rAF ticker must not advance the
+  // root clock at the same time. Paired here rather than at module scope: the
+  // handover is only correct while this component is mounted, and unmounting
+  // without giving the ticker back would freeze every in-flight tween.
+  useEffect(() => {
+    gsap.ticker.lagSmoothing(0)
+    gsap.ticker.remove(gsap.updateRoot)
+
+    return () => {
+      gsap.ticker.add(gsap.updateRoot)
+    }
+  }, [])
+
   // order: 10 — after Lenis (order: 5) has written scroll state, so scrubbed
   // ScrollTrigger tweens render this frame's scroll position, not last frame's.
   useTempus(

@@ -31,9 +31,17 @@ describe('urlForReference — external scheme allowlist', () => {
   })
 
   test('allows relative targets', () => {
-    for (const url of ['/about', '#section', '?tab=2']) {
+    for (const url of ['/safe-path', '#hash', '?query']) {
       expect(urlForReference({ linkType: 'external', externalUrl: url })).toBe(
         url
+      )
+    }
+  })
+
+  test('rejects protocol-relative and backslash-prefixed external targets', () => {
+    for (const url of ['//evil.example', '/\\evil.example']) {
+      expect(urlForReference({ linkType: 'external', externalUrl: url })).toBe(
+        '#'
       )
     }
   })
@@ -63,6 +71,45 @@ describe('urlForReference — internal document resolution', () => {
         internalLink: { _type: 'article', slug: { current: 'hello' } },
       })
     ).toBe('/articles/hello')
+  })
+
+  test('rejects internal slugs that could escape the canonical route shape', () => {
+    for (const slug of [
+      '//evil.example',
+      '\\evil.example',
+      '../ai',
+      'foo/bar',
+      'foo?bar',
+      'foo#bar',
+      '.',
+      '..',
+      '%2f%2fevil.example',
+      'invalid%encoding',
+      'a'.repeat(97),
+    ]) {
+      expect(
+        urlForReference({
+          linkType: 'internal',
+          internalLink: { _type: 'page', slug: { current: slug } },
+        })
+      ).toBe('#')
+    }
+  })
+
+  test('preserves safe slugs instead of narrowing the CMS naming policy', () => {
+    for (const slug of [
+      'lowercase-kebab-slug',
+      'release_notes',
+      'café',
+      'Uppercase',
+    ]) {
+      expect(
+        urlForReference({
+          linkType: 'internal',
+          internalLink: { _type: 'page', slug: { current: slug } },
+        })
+      ).toBe(`/${slug}`)
+    }
   })
 })
 

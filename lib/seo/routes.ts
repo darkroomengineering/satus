@@ -1,10 +1,14 @@
-import type { MetadataRoute } from 'next'
 import { defineQuery } from 'next-sanity'
 import { z } from 'zod'
 
 import { isConfigured } from '@/integrations/registry'
 import { sanityFetch } from '@/integrations/sanity/live'
 import { urlForReference } from '@/integrations/sanity/utils/link'
+import { MARKDOWN_HANDLER_PATH } from '@/lib/seo/markdown-path'
+import { STATIC_ROUTES } from '@/lib/seo/route-catalog'
+
+export { STATIC_ROUTES }
+export type { StaticRoute } from '@/lib/seo/route-catalog'
 
 /**
  * Route enumeration shared by `app/sitemap.ts` and `app/llms.txt/route.ts` —
@@ -12,12 +16,6 @@ import { urlForReference } from '@/integrations/sanity/utils/link'
  * about which URLs exist, so both read from here instead of keeping their
  * own copies.
  */
-
-export interface StaticRoute {
-  path: string
-  changeFrequency: NonNullable<MetadataRoute.Sitemap[number]['changeFrequency']>
-  priority: number
-}
 
 export interface ContentRoute {
   path: string
@@ -28,18 +26,20 @@ export interface ContentRoute {
 /**
  * Routes with no CMS backing. `/ai` has no link from the design, so
  * `app/sitemap.ts` is the only place crawlers discover it — see
- * `app/(site)/ai/page.tsx`, which links the same route from its own
- * hardcoded `PAGES` list for the human/agent-facing machine view.
+ * `app/(site)/ai/page.tsx`, which reads the same catalog for the
+ * human/agent-facing machine view.
  *
  * This list is what gets *advertised* — every entry here is emitted into
  * `sitemap.xml`/`llms.txt`. See `RESERVED_PATHS` below for routes that must
  * be excluded from CMS dedup without being advertised themselves.
+ *
+ * The `(examples)` route group (`/sanity`) is a Sanity wiring tutorial for
+ * developers, not real site content — excluded here so it never appears in
+ * the sitemap or the `/ai` machine view. Indexability is enforced on the
+ * page itself: `app/(site)/(examples)/sanity/page.tsx` sets `robots: {
+ * index: false, follow: false }`. A `robots.txt` disallow would defeat that
+ * — it blocks the crawl a noindex directive needs in order to be read.
  */
-export const STATIC_ROUTES: readonly StaticRoute[] = [
-  { path: '/', changeFrequency: 'daily', priority: 1 },
-  { path: '/ai', changeFrequency: 'monthly', priority: 0.5 },
-]
-
 const staticPaths = new Set(STATIC_ROUTES.map((route) => route.path))
 
 /**
@@ -51,6 +51,10 @@ const staticPaths = new Set(STATIC_ROUTES.map((route) => route.path))
  * - `/studio` — `app/studio/[[...tool]]/page.tsx`, Sanity Studio.
  * - `/sanity` — `app/(site)/(examples)/sanity/page.tsx`, a Sanity wiring
  *   tutorial for developers, not real site content.
+ * - `/agent-content` — the internal Markdown negotiation handler proxy.ts
+ *   rewrites to (`app/agent-content/route.ts`); a CMS doc slugged
+ *   `agent-content` would otherwise be advertised in the sitemap/`/ai` while
+ *   direct requests to it still 404 (see `MACHINE_PATHS` in `proxy.ts`).
  *
  * Without this, a CMS document slugged `studio` or `sanity` would resolve to
  * `/studio` or `/sanity` via `urlForReference` and get emitted into the
@@ -58,7 +62,7 @@ const staticPaths = new Set(STATIC_ROUTES.map((route) => route.path))
  * else entirely. (`/api` needs no entry: there's no page/route at that root
  * segment, so it already falls through to the catch-all untouched.)
  */
-const RESERVED_PATHS = new Set(['/studio', '/sanity'])
+const RESERVED_PATHS = new Set(['/studio', '/sanity', MARKDOWN_HANDLER_PATH])
 
 /**
  * Every document type with a `slug` — kept permissive (`nullable()` fields)
@@ -69,7 +73,14 @@ const RESERVED_PATHS = new Set(['/studio', '/sanity'])
 const routableDocumentSchema = z.object({
   _type: z.enum(['page', 'article']),
   title: z.string().nullable(),
-  slug: z.object({ current: z.string() }).nullable(),
+  // A dot is a valid Sanity slug character but collides with proxy.ts's
+  // FILE_EXTENSION heuristic (`/\/[^/]+\.[^/]+$/`): any dotted last path
+  // segment is treated as a static asset and skips Markdown content
+  // negotiation. Rejecting it here — same as any other malformed document —
+  // keeps that heuristic correct for every routable document.
+  slug: z
+    .object({ current: z.string().refine((value) => !value.includes('.')) })
+    .nullable(),
   _updatedAt: z.string(),
 })
 
@@ -131,14 +142,28 @@ export function buildRoutesFromDocuments(data: unknown): ContentRoute[] {
   return [...routes.values()]
 }
 
+export interface CmsRoutesResult {
+  routes: ContentRoute[]
+  /**
+   * True when the last fetch attempt failed (Sanity unreachable) rather
+   * than the CMS genuinely having zero published `page`/`article`
+   * documents. `getCmsRoutes` collapses both cases to `[]` on purpose —
+   * sitemap/llms.txt/`/ai` must always respond, degraded or not — but the
+   * Markdown handler needs to tell them apart to avoid 404ing a route that
+   * would exist once the outage clears.
+   */
+  degraded: boolean
+}
+
 /**
  * Every published `page`/`article` document, resolved to the same URL
  * `urlForReference` (`@/integrations/sanity/utils/link`) uses for internal
  * links elsewhere in the app — so the sitemap and `/llms.txt` can never
  * disagree with on-page navigation about where a document lives.
  *
- * Returns `[]` when Sanity isn't configured (a fresh clone's default
- * state): no fetch runs, and callers degrade to `STATIC_ROUTES` only.
+ * Returns `{ routes: [], degraded: false }` when Sanity isn't configured (a
+ * fresh clone's default state): no fetch runs, and callers degrade to
+ * `STATIC_ROUTES` only.
  *
  * `'use cache'` is required: `sanityFetch` calls `cacheTag()` internally,
  * which Cache Components (`cacheComponents: true`) only allows inside a
@@ -148,10 +173,10 @@ export function buildRoutesFromDocuments(data: unknown): ContentRoute[] {
  * draft content, so there's no request-level (draft mode) state to branch
  * on here, unlike a rendered page.
  */
-export async function getCmsRoutes(): Promise<ContentRoute[]> {
+async function fetchCmsRoutesResult(): Promise<CmsRoutesResult> {
   'use cache'
 
-  if (!isConfigured('sanity')) return []
+  if (!isConfigured('sanity')) return { routes: [], degraded: false }
 
   // A schema-valid env (`isConfigured`) doesn't guarantee the project/dataset
   // it points to actually exists or is reachable — `sanityFetch` throws on a
@@ -171,8 +196,18 @@ export async function getCmsRoutes(): Promise<ContentRoute[]> {
       '[seo/routes] Sanity fetch failed, omitting CMS routes:',
       error
     )
-    return []
+    return { routes: [], degraded: true }
   }
 
-  return buildRoutesFromDocuments(data)
+  return { routes: buildRoutesFromDocuments(data), degraded: false }
+}
+
+/** Graceful-empty-on-failure accessor for sitemap.xml, llms.txt, and /ai. */
+export async function getCmsRoutes(): Promise<ContentRoute[]> {
+  return (await fetchCmsRoutesResult()).routes
+}
+
+/** Outage-aware accessor — see `CmsRoutesResult.degraded`. Used by markdown-document.ts. */
+export async function getCmsRoutesResult(): Promise<CmsRoutesResult> {
+  return fetchCmsRoutesResult()
 }

@@ -12,7 +12,7 @@
 
 import { afterEach, describe, expect, test } from 'bun:test'
 
-import { cleanup, fireEvent, render } from '@testing-library/react'
+import { act, cleanup, fireEvent, render } from '@testing-library/react'
 import { useEffect, useState } from 'react'
 
 import type { FormState } from '@/lib/types/form'
@@ -30,7 +30,7 @@ const action = async (): Promise<FormState> => ({
 type FieldConfig = {
   name: string
   id?: string
-  type?: 'text' | 'email' | 'hidden'
+  type?: 'text' | 'email' | 'hidden' | 'tel'
   defaultValue?: string
   required?: boolean
 }
@@ -411,5 +411,147 @@ describe('useForm submit gate', () => {
     expect(callCount).toBe(0)
     expect(snapshot.current?.errors.name?.state).toBe(true)
     expect(snapshot.current?.errors.name?.message).toContain('Invalid')
+  })
+
+  test('a second Enter/submit while the first is still pending is a no-op', async () => {
+    const snapshot: Snapshot = { current: null }
+    let callCount = 0
+    let resolveAction: ((state: FormState) => void) | undefined
+    const pendingAction = (): Promise<FormState> => {
+      callCount++
+      return new Promise((resolve) => {
+        resolveAction = resolve
+      })
+    }
+    const nameField: FieldConfig = { name: 'name' }
+
+    const { container } = render(
+      <SubmitHarness
+        fields={[nameField]}
+        formAction={pendingAction}
+        onSnapshot={(f) => {
+          snapshot.current = f
+        }}
+      />
+    )
+
+    fireEvent.change(getInput(container, 'name'), {
+      target: { value: 'Ada' },
+    })
+
+    const formElement = container.querySelector('form')
+    if (!formElement) throw new Error('form not found')
+
+    // Dispatch both submits synchronously in the same act() pass — this is
+    // the race the ref-based lock in useForm guards against: two submit
+    // events in the same tick both read `isPending` as false (it only
+    // updates after a render), so only a synchronous ref, not render state,
+    // can prevent the second dispatch from reaching formAction.
+    act(() => {
+      fireEvent.submit(formElement)
+      fireEvent.submit(formElement)
+    })
+
+    expect(callCount).toBe(1)
+
+    await act(async () => {
+      resolveAction?.({ status: 200, message: 'ok' })
+    })
+  })
+})
+
+describe('useForm optional-field revalidation', () => {
+  test('clearing an optional validated field stays ready, not wedged invalid', () => {
+    const snapshot: Snapshot = { current: null }
+    const nameField: FieldConfig = { name: 'name' }
+    const emailField: FieldConfig = {
+      name: 'email',
+      type: 'email',
+      required: false,
+    }
+
+    const { container } = render(
+      <SubmitHarness
+        fields={[nameField, emailField]}
+        formAction={action}
+        onSnapshot={(f) => {
+          snapshot.current = f
+        }}
+      />
+    )
+
+    fireEvent.change(getInput(container, 'name'), {
+      target: { value: 'Ada' },
+    })
+    fireEvent.change(getInput(container, 'email'), {
+      target: { value: 'ada@example.com' },
+    })
+
+    expect(snapshot.current?.isValid.email).toBe(true)
+    expect(snapshot.current?.isReady).toBe(true)
+
+    // Clear the optional field back out.
+    fireEvent.change(getInput(container, 'email'), {
+      target: { value: '' },
+    })
+
+    expect(snapshot.current?.isValid.email).toBe(true)
+    expect(snapshot.current?.errors.email?.state).toBe(false)
+    expect(snapshot.current?.isReady).toBe(true)
+  })
+})
+
+describe('useForm phone/tel validator', () => {
+  test('type="tel" engages the phone validator via the type fallback', () => {
+    const snapshot: Snapshot = { current: null }
+    // Name is deliberately not "phone" — this proves the type-fallback
+    // lookup (element.type === 'tel'), not a name/id match, engages it.
+    const phoneField: FieldConfig = {
+      name: 'contact-number',
+      type: 'tel',
+      required: false,
+    }
+
+    const { container } = render(
+      <Harness
+        fields={[phoneField]}
+        onSnapshot={(f) => {
+          snapshot.current = f
+        }}
+      />
+    )
+
+    fireEvent.change(getInput(container, 'contact-number'), {
+      target: { value: 'not-a-phone' },
+    })
+    expect(snapshot.current?.isValid['contact-number']).toBe(false)
+
+    fireEvent.change(getInput(container, 'contact-number'), {
+      target: { value: '+14155552671' },
+    })
+    expect(snapshot.current?.isValid['contact-number']).toBe(true)
+  })
+})
+
+describe('useForm prefilled required fields', () => {
+  test('a required field prefilled with a valid value starts valid (SSR/defaultValue)', () => {
+    const snapshot: Snapshot = { current: null }
+    const emailField: FieldConfig = {
+      name: 'email',
+      type: 'email',
+      defaultValue: 'ada@example.com',
+    }
+
+    render(
+      <Harness
+        fields={[emailField]}
+        onSnapshot={(f) => {
+          snapshot.current = f
+        }}
+      />
+    )
+
+    expect(snapshot.current?.isValid.email).toBe(true)
+    expect(snapshot.current?.errors.email?.state).toBe(false)
   })
 })

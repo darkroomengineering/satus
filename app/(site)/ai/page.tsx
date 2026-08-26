@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 
 import { routeAlternates } from '@/lib/seo/alternates'
+import { getCmsRoutes, STATIC_ROUTES } from '@/lib/seo/routes'
 import { formatList, SITE } from '@/lib/seo/site'
 
 /**
@@ -17,8 +18,9 @@ import { formatList, SITE } from '@/lib/seo/site'
  * the same whether it's parsed by a browser, a crawler, or an LLM's HTML
  * parser tool.
  *
- * Must stay in sync with `app/sitemap.ts` — a route missing from either is
- * invisible to the surface it's missing from.
+ * Reads the same `lib/seo/route-catalog` STATIC_ROUTES catalog that
+ * `app/sitemap.ts` and `/llms.txt` do — the single source those surfaces
+ * share, so none of them can drift from the others.
  *
  * `Link` (`@/components/ui/link`) is a `'use client'` component (it reads
  * `usePathname` for active-link state and `useSyncExternalStore` for
@@ -34,19 +36,9 @@ export const metadata: Metadata = {
   alternates: routeAlternates('/ai'),
 }
 
-/**
- * Every route the machine view links to. Satus ships one page today — add
- * an entry here (and to `app/sitemap.ts`) for every route the project adds.
- */
-const PAGES = [
-  {
-    href: '/',
-    label: 'Home',
-    description: SITE.description,
-  },
-]
+export default async function AiPage() {
+  const cmsRoutes = await getCmsRoutes()
 
-export default function AiPage() {
   return (
     <>
       <h1>{SITE.name}</h1>
@@ -94,13 +86,58 @@ export default function AiPage() {
 
       <h2>Pages</h2>
       <ul>
-        {PAGES.map((page) => (
-          <li key={page.href}>
+        {STATIC_ROUTES.map((page) => (
+          <li key={page.path}>
             {/* oxlint-disable-next-line react/forbid-elements -- this route is intentionally client-component-free; the Link component is 'use client', so a bare anchor keeps the whole page server-only (see file header) */}
-            <a href={page.href}>{page.label}</a>: {page.description}
+            <a href={page.path}>{page.label}</a>: {page.description}
+          </li>
+        ))}
+        {cmsRoutes.map((page) => (
+          <li key={page.path}>
+            {/* oxlint-disable-next-line react/forbid-elements -- this route is intentionally client-component-free; the Link component is 'use client', so a bare anchor keeps the whole page server-only (see file header) */}
+            <a href={page.path}>{page.label}</a>
           </li>
         ))}
       </ul>
+
+      {SITE.agentGuidance?.whenToUse.length ? (
+        <>
+          <h2>When to use</h2>
+          <ul>
+            {SITE.agentGuidance.whenToUse.map((useCase) => (
+              <li key={useCase.name}>
+                <strong>{useCase.name}:</strong> {useCase.description}
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+
+      {SITE.agentGuidance?.howToUse.length ? (
+        <>
+          <h2>How to use</h2>
+          <ol>
+            {SITE.agentGuidance.howToUse.map((instruction) => (
+              <li key={instruction}>{instruction}</li>
+            ))}
+          </ol>
+        </>
+      ) : null}
+
+      {SITE.developerResources?.length ? (
+        <>
+          <h2>Developer resources</h2>
+          <ul>
+            {SITE.developerResources.map((resource) => (
+              <li key={resource.url}>
+                {/* oxlint-disable-next-line react/forbid-elements -- external link, and this route is intentionally client-component-free (see file header) */}
+                <a href={resource.url}>{resource.name}</a>:{' '}
+                {resource.description}
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
 
       {SITE.sameAs.length > 0 && (
         <>

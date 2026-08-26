@@ -1,5 +1,8 @@
 import type { Metadata } from 'next'
 
+import { markdownPathForRoute } from '@/lib/seo/markdown-path'
+import { STATIC_ROUTES } from '@/lib/seo/route-catalog'
+
 /**
  * Builds the `alternates` block for one route.
  *
@@ -17,6 +20,10 @@ import type { Metadata } from 'next'
  * against `metadataBase`.
  */
 export function routeAlternates(path: string): Metadata['alternates'] {
+  const hasMarkdownRepresentation = STATIC_ROUTES.some(
+    (route) => route.path === path
+  )
+
   return {
     // Self-referential on every route. A single hardcoded canonical in a
     // layout is inherited by every child that doesn't override it, which
@@ -25,6 +32,14 @@ export function routeAlternates(path: string): Metadata['alternates'] {
     // Advertises the plain-text mirror via <link rel="alternate" type="text/plain">.
     types: {
       'text/plain': [{ url: '/llms.txt', title: 'llms.txt' }],
+      ...(hasMarkdownRepresentation && {
+        'text/markdown': [
+          {
+            url: markdownPathForRoute(path),
+            title: `${path === '/' ? 'Home' : path} as Markdown`,
+          },
+        ],
+      }),
     },
   }
 }

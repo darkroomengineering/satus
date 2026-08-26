@@ -81,7 +81,7 @@
     "@happy-dom/global-registrator": "^20.11.2",
     "@next/bundle-analyzer": "16.3.1",
     "@next/playwright": "16.3.0",
-    "@oxlint/plugins": "1.78.0",
+    "@oxlint/plugins": "1.79.0",
     "@playwright/test": "1.62.1",
     "@sanity/vision": "^6.9.2",
     "@storybook/addon-mcp": "^0.7.0",

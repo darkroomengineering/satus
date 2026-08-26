@@ -141,4 +141,62 @@ describe('buildRoutesFromDocuments', () => {
     const routes = buildRoutesFromDocuments(docs)
     expect(routes.map((route) => route.path)).toEqual(['/home'])
   })
+
+  it('omits CMS documents whose slugs cannot form canonical internal routes', () => {
+    const invalidSlugs = [
+      '//evil.example',
+      '\\evil.example',
+      '../ai',
+      'foo/bar',
+      'foo?bar',
+      'foo#bar',
+      '.',
+      '..',
+      '%2f%2fevil.example',
+      'invalid%encoding',
+      'a'.repeat(97),
+    ]
+    const docs = invalidSlugs.map((slug, index) => ({
+      _type: 'page',
+      title: `Unsafe route ${index}`,
+      slug: { current: slug },
+      _updatedAt: '2026-01-01T00:00:00.000Z',
+    }))
+
+    expect(buildRoutesFromDocuments(docs)).toEqual([])
+  })
+
+  it('rejects a CMS slug containing a dot — it would collide with the file-extension heuristic proxy.ts uses to skip Markdown negotiation', () => {
+    const docs = [
+      {
+        _type: 'page',
+        title: 'Item v2',
+        slug: { current: 'item.v2' },
+        _updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ]
+
+    expect(buildRoutesFromDocuments(docs)).toEqual([])
+  })
+
+  it('keeps CMS documents whose safe slugs use the project naming policy', () => {
+    const safeSlugs = [
+      'lowercase-kebab-slug',
+      'release_notes',
+      'café',
+      'Uppercase',
+    ]
+    const routes = buildRoutesFromDocuments(
+      safeSlugs.map((slug) => ({
+        _type: 'page',
+        title: `Safe route: ${slug}`,
+        slug: { current: slug },
+        _updatedAt: '2026-01-01T00:00:00.000Z',
+      }))
+    )
+
+    expect(routes.map((route) => route.path)).toEqual(
+      safeSlugs.map((slug) => `/${slug}`)
+    )
+  })
 })

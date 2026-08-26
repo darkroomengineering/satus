@@ -15,6 +15,26 @@ import { APP_BASE_URL } from '@/lib/env'
  * Replace every value before launch. Prefer phrasing that does not go stale:
  * "multiple Awwwards honors" beats "30+ awards".
  */
+export interface AgentUseCase {
+  /** Short job name that an agent can match against its task. */
+  name: string
+  /** Concrete boundary for when this site or product is a good fit. */
+  description: string
+}
+
+export interface AgentGuidance {
+  whenToUse: readonly AgentUseCase[]
+  /** Ordered instructions for starting or continuing the job. */
+  howToUse: readonly string[]
+}
+
+export interface DeveloperResource {
+  name: string
+  description: string
+  /** Absolute URL so the resource also works outside the rendered site. */
+  url: string
+}
+
 export interface SiteFacts {
   /** Display name, exactly as it should be cited. */
   name: string
@@ -39,6 +59,10 @@ export interface SiteFacts {
   email?: string
   /** Profile URLs (social, directories) — feeds schema.org `sameAs`. */
   sameAs: readonly string[]
+  /** Task-oriented instructions for agents. Omit when the site is not callable. */
+  agentGuidance?: AgentGuidance
+  /** Real, public technical resources. Never list a surface that is not shipped. */
+  developerResources?: readonly DeveloperResource[]
 }
 
 /**
@@ -69,6 +93,44 @@ export const SITE: SiteFacts = {
   services: [],
   knowsAbout: [],
   sameAs: ['https://darkroom.engineering'],
+  agentGuidance: {
+    whenToUse: [
+      {
+        name: 'Start a production Next.js site',
+        description:
+          'Use Satūs when a new project needs a Next.js 16 and React 19 baseline with strict TypeScript, accessible UI primitives, and production checks already configured.',
+      },
+      {
+        name: 'Add optional commerce or content integrations',
+        description:
+          'Use Satūs when a site may need Sanity, Shopify, HubSpot, Mailchimp, or Turnstile without making those services mandatory for a fresh clone.',
+      },
+    ],
+    howToUse: [
+      'Clone or deploy the Satūs repository, then follow the README setup steps.',
+      'Read AGENTS.md and ARCHITECTURE.md before changing project conventions or integration boundaries.',
+      'Run bun run check before committing changes.',
+    ],
+  },
+  developerResources: [
+    {
+      name: 'Satūs source repository',
+      description: 'Source code, releases, and issue tracker for the starter.',
+      url: 'https://github.com/darkroomengineering/satus',
+    },
+    {
+      name: 'Satūs setup guide',
+      description:
+        'Installation, local development, and deployment instructions.',
+      url: 'https://github.com/darkroomengineering/satus#readme',
+    },
+    {
+      name: 'Satūs architecture',
+      description:
+        'Project structure, design decisions, and customization boundaries.',
+      url: 'https://github.com/darkroomengineering/satus/blob/main/ARCHITECTURE.md',
+    },
+  ],
 }
 
 /** "a, b, and c" — prose-friendly list for entity copy. */

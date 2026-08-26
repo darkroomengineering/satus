@@ -1,4 +1,19 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "routes": [
+    {
+      "src": "/(?!api(?:/|$)|_next(?:/|$)|agent-content(?:/|$)|(?:llms\\.txt|robots\\.txt|sitemap\\.xml|manifest\\.webmanifest)$|.*\\.[^/]+$).*",
+      "methods": ["GET", "HEAD"],
+      "transforms": [
+        {
+          "type": "response.headers",
+          "op": "append",
+          "target": { "key": "Vary" },
+          "args": "Accept"
+        }
+      ],
+      "continue": true
+    }
+  ]
 }

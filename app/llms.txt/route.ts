@@ -1,3 +1,10 @@
+import {
+  buildAgentGuidanceMarkdown,
+  buildCmsRoutesMarkdown,
+  buildDeveloperResourcesMarkdown,
+  buildStaticRoutesMarkdown,
+} from '@/lib/seo/agent-content'
+import { mergeVary } from '@/lib/seo/content-negotiation'
 import { getCmsRoutes } from '@/lib/seo/routes'
 import { formatList, SITE } from '@/lib/seo/site'
 
@@ -40,22 +47,6 @@ function buildAbout(): string {
   return clauses.join(' ')
 }
 
-function buildContent(
-  cmsRoutes: Awaited<ReturnType<typeof getCmsRoutes>>
-): string {
-  if (cmsRoutes.length === 0) return ''
-
-  const links = cmsRoutes
-    .map((route) => `- [${route.label}](${SITE.url}${route.path})`)
-    .join('\n')
-
-  return `
-
-## Content
-
-${links}`
-}
-
 async function buildBody(): Promise<string> {
   'use cache'
   const cmsRoutes = await getCmsRoutes()
@@ -70,14 +61,16 @@ ${buildAbout()}
 
 ## Key pages
 
-- [Home](${SITE.url}/): ${SITE.description}
-- [Machine view](${SITE.url}/ai): Plain-HTML index of every page, for agents.${buildContent(cmsRoutes)}
+${buildStaticRoutesMarkdown()}${buildCmsRoutesMarkdown(cmsRoutes)}${buildAgentGuidanceMarkdown()}${buildDeveloperResourcesMarkdown()}
 `
 }
 
 export async function GET() {
   const body = await buildBody()
   return new Response(body, {
-    headers: { 'content-type': 'text/plain; charset=utf-8' },
+    headers: {
+      'content-type': 'text/plain; charset=utf-8',
+      vary: mergeVary(null, 'Accept'),
+    },
   })
 }

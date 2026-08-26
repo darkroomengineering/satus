@@ -13,6 +13,15 @@ export default function NotFound() {
             Go Home
           </Link>
         }
+        recoveryLinks={
+          <>
+            <Link href="/ai">Agent index</Link>
+            {' · '}
+            <Link href="/llms.txt">llms.txt</Link>
+            {' · '}
+            <Link href="/sitemap.xml">Sitemap</Link>
+          </>
+        }
       />
     </Wrapper>
   )

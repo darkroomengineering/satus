@@ -29,6 +29,19 @@ const MAX_VIDEO_BYTES = 2 * 1024 * 1024 // 2MB
 const MAX_IMAGE_BYTES = 1 * 1024 * 1024 // 1MB
 const MAX_IMAGE_WIDTH_PX = 2400
 
+// Next file-based metadata icons — `app/icon.png`, `app/apple-icon.png`, and
+// their per-segment variants. These get a far tighter budget than a content
+// image: every visitor downloads them, browsers draw them at 16-180px, and a
+// manifest can pull one a second time under a different URL. A full-resolution
+// export here is invisible waste, and the general 1MB limit is far too loose
+// to catch it.
+// A ceiling, not a target: this is what a 192px icon costs from a plain
+// resize, so it passes without a quantizing encoder in the toolchain. Run the
+// icons through pngquant/oxipng and they land nearer 15KB.
+const MAX_ICON_BYTES = 48 * 1024 // 48KB
+const MAX_ICON_WIDTH_PX = 512
+const ICON_BASENAME_PATTERN = /^(icon|apple-icon|favicon)\d*$/
+
 // Bytes read from the start of a raster image to find its dimensions header.
 // Generous for real-world files — SOF markers/IHDR chunks sit within the
 // first few KB unless preceded by an unusually large EXIF/ICC payload.
@@ -52,6 +65,11 @@ interface Dimensions {
 }
 
 function formatBytes(bytes: number): string {
+  // Icon budgets live in the tens of KB, where an MB figure reads as "0.03MB"
+  // and tells the reader nothing.
+  if (bytes < 1024 * 1024) {
+    return `${Math.round(bytes / 1024)}KB`
+  }
   return `${(bytes / (1024 * 1024)).toFixed(2)}MB`
 }
 
@@ -197,6 +215,13 @@ function extname(path: string): string {
   return dot === -1 ? '' : path.slice(dot).toLowerCase()
 }
 
+/** Filename without its directory or extension: `app/icon.png` -> `icon`. */
+function stem(path: string): string {
+  const name = path.slice(path.lastIndexOf('/') + 1)
+  const dot = name.lastIndexOf('.')
+  return dot === -1 ? name : name.slice(0, dot)
+}
+
 function getTrackedFiles(): string[] {
   const result = Bun.spawnSync(['git', 'ls-files'])
   if (result.exitCode !== 0) {
@@ -241,11 +266,16 @@ async function main() {
       continue
     }
 
+    const isIcon = ICON_BASENAME_PATTERN.test(stem(path))
+    const maxBytes = isIcon ? MAX_ICON_BYTES : MAX_IMAGE_BYTES
+    const maxWidth = isIcon ? MAX_ICON_WIDTH_PX : MAX_IMAGE_WIDTH_PX
+    const role = isIcon ? 'icon' : 'image'
+
     // Raster image: byte-size check always applies.
-    if (size > MAX_IMAGE_BYTES) {
+    if (size > maxBytes) {
       offenses.push({
         path,
-        detail: `${formatBytes(size)} > ${formatBytes(MAX_IMAGE_BYTES)} image limit`,
+        detail: `${formatBytes(size)} > ${formatBytes(maxBytes)} ${role} limit`,
       })
     }
 
@@ -263,10 +293,10 @@ async function main() {
       })
       continue
     }
-    if (dimensions.width > MAX_IMAGE_WIDTH_PX) {
+    if (dimensions.width > maxWidth) {
       offenses.push({
         path,
-        detail: `${dimensions.width}px wide > ${MAX_IMAGE_WIDTH_PX}px limit`,
+        detail: `${dimensions.width}px wide > ${maxWidth}px ${role} limit`,
       })
     }
   }

@@ -60,11 +60,17 @@ export default async function SanityPage() {
 export async function generateMetadata() {
   const { data } = await fetchPageForRequest()
 
-  if (!data) return
+  const baseMetadata = data
+    ? generateSanityMetadata({
+        document: data,
+        url: '/sanity',
+        type: 'website',
+      })
+    : {}
 
-  return generateSanityMetadata({
-    document: data,
-    url: '/sanity',
-    type: 'website',
-  })
+  // A Sanity wiring tutorial for developers, not real site content — see
+  // lib/seo/routes.ts for why it's also excluded from the sitemap/llms.txt
+  // catalog. noindex, not a robots.txt disallow: a crawl block would
+  // prevent this directive from ever being read.
+  return { ...baseMetadata, robots: { index: false, follow: false } }
 }

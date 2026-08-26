@@ -73,6 +73,7 @@ export function WebGLTunnel({ children }: PropsWithChildren) {
         through a ref. The `key` keeps identity stable across re-parents.
       */}
       {/* react-doctor-disable-next-line react-hooks-js/static-components */}
+      {/* oxlint-disable-next-line react/static-components -- see comment above: drei memoizes the component once per hook instance */}
       <ContextBridge key={uuid}>{children}</ContextBridge>
     </WebGLTunnel.In>
   )

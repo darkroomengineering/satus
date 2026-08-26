@@ -84,6 +84,7 @@ function WebGLImageMesh({ src, rect, visible = true }: WebGLImageMeshProps) {
     // imperative GPU work on an object React only stores — there is no React
     // state to keep in sync, and the identity never changes.
     // react-doctor-disable-next-line react-hooks-js/immutability
+    // oxlint-disable-next-line react/immutability -- see comment above: imperative Three.js GPU work on a render-stable object
     material.map = texture
     material.needsUpdate = true
   })

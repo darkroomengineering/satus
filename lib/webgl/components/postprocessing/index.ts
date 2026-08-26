@@ -65,6 +65,7 @@ export function PostProcessing() {
     // were only read once, in the useState initializer above, so a resize
     // that changes dpr (e.g. moving the window to another display) never
     // updated the composer's actual sample count.
+    // oxlint-disable-next-line react/immutability -- imperative GPU work on a state-held composer whose identity never changes; there is no React state to keep in sync
     composer.multisampling = isWebgl2 && dpr < 2 ? maxSamples : 0
   }, [composer, size, setDpr, isWebgl2, maxSamples])
 

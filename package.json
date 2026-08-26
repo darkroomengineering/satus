@@ -103,7 +103,7 @@
     "deslop-cli": "^0.9.12",
     "happy-dom": "^20.11.2",
     "lefthook": "^2.1.10",
-    "oxfmt": "^0.63.0",
+    "oxfmt": "^0.64.0",
     "oxlint": "^1.78.0",
     "oxlint-tsgolint": "^7.0.2001",
     "postcss-functions": "^4.0.2",

@@ -58,9 +58,9 @@ Edit these files directly:
 
 ## Wrapper Props
 
-| Prop        | Type                         | Default  | Description                 |
-| ----------- | ---------------------------- | -------- | --------------------------- |
-| `theme`     | `'dark' \| 'light' \| 'red'` | `'dark'` | Color theme                 |
-| `lenis`     | `boolean \| LenisOptions`    | `true`   | Smooth scrolling            |
-| `webgl`     | `boolean`                    | `false`  | Enable WebGL canvas         |
-| `className` | `string`                     | -        | Additional classes for main |
+| Prop        | Type                                   | Default  | Description                 |
+| ----------- | -------------------------------------- | -------- | --------------------------- |
+| `theme`     | `'dark' \| 'light' \| 'red' \| 'evil'` | `'dark'` | Color theme                 |
+| `lenis`     | `boolean \| LenisOptions`              | `true`   | Smooth scrolling            |
+| `webgl`     | `boolean`                              | `false`  | Enable WebGL canvas         |
+| `className` | `string`                               | -        | Additional classes for main |

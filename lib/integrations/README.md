@@ -23,46 +23,15 @@ const domain = env.SHOPIFY_STORE_DOMAIN // string | undefined with IntelliSense
 
 ## Available Integrations
 
-| Integration                      | Purpose         | Documentation                                  |
-| -------------------------------- | --------------- | ---------------------------------------------- |
-| [Sanity](sanity/README.md)       | Headless CMS    | Visual editing, content management             |
-| [Shopify](shopify/README.md)     | E-commerce      | Cart, products, checkout                       |
-| [HubSpot](hubspot/README.md)     | Forms           | Marketing forms, CRM                           |
-| [Mailchimp](mailchimp/README.md) | Newsletter      | Email subscriptions                            |
-| [Turnstile](turnstile/README.md) | Spam protection | Cloudflare Turnstile CAPTCHA for form actions¹ |
+| Integration                      | Purpose         | Documentation                                                                        |
+| -------------------------------- | --------------- | ------------------------------------------------------------------------------------ |
+| [Sanity](sanity/README.md)       | Headless CMS    | Visual editing, content management. Env vars: see `sanity/README.md`.                |
+| [Shopify](shopify/README.md)     | E-commerce      | Cart, products, checkout. Env vars: see `shopify/README.md`.                         |
+| [HubSpot](hubspot/README.md)     | Forms           | Marketing forms, CRM. Env vars: see `hubspot/README.md`.                             |
+| [Mailchimp](mailchimp/README.md) | Newsletter      | Email subscriptions. Env vars: see `mailchimp/README.md`.                            |
+| [Turnstile](turnstile/README.md) | Spam protection | Cloudflare Turnstile CAPTCHA for form actions¹. Env vars: see `turnstile/README.md`. |
 
-¹ Turnstile ships with every preset, including Blank — it has no `INTEGRATION_BUNDLES` entry, so `setup:project`'s `--keep`/`--preset` selection can't strip it. See [Removing Integrations](#removing-integrations) below for a manual recipe.
-
-## Environment Variables
-
-```env
-# Sanity CMS
-NEXT_PUBLIC_SANITY_PROJECT_ID="your-project-id"
-NEXT_PUBLIC_SANITY_DATASET="production"
-SANITY_API_WRITE_TOKEN="your-write-token"
-
-# Shopify
-SHOPIFY_STORE_DOMAIN="your-store.myshopify.com"
-SHOPIFY_STOREFRONT_ACCESS_TOKEN="your-token"
-SHOPIFY_REVALIDATION_SECRET="your-secret"
-
-# HubSpot
-HUBSPOT_ACCESS_TOKEN=your-token
-NEXT_PUBLIC_HUBSPOT_PORTAL_ID=your-portal-id
-
-# Mailchimp
-MAILCHIMP_API_KEY=your-api-key
-MAILCHIMP_SERVER_PREFIX=us1
-MAILCHIMP_AUDIENCE_ID=your-audience-id
-
-# Cloudflare Turnstile (spam protection)
-NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY=your-site-key
-CLOUDFLARE_TURNSTILE_SECRET_KEY=your-secret-key
-
-# Analytics
-NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID=GTM-XXXXXX
-NEXT_PUBLIC_GOOGLE_ANALYTICS=G-XXXXXXXXXX
-```
+¹ Turnstile ships with every preset, including Blank — it has no `INTEGRATION_BUNDLES` entry, so `setup:project`'s `--keep`/`--preset` selection can't strip it. Remove it by deleting `lib/integrations/turnstile` and the form wiring that imports it, then run `bun run check`.
 
 ## Quick Usage
 
@@ -73,7 +42,8 @@ import { RichText } from '@/integrations/sanity/components/rich-text'
 const { data } = await sanityFetch({ query: pageQuery })
 
 // Shopify
-import { Cart, AddToCart } from '@/integrations/shopify/cart'
+import { Cart } from '@/integrations/shopify/cart'
+import { AddToCart } from '@/integrations/shopify/cart/add-to-cart'
 ;<Cart>
   <AddToCart product={product} />
 </Cart>
@@ -89,37 +59,16 @@ import { mailchimpSubscriptionAction } from '@/integrations/mailchimp'
 
 ## Removing Integrations
 
-Run `bun run setup:project` for interactive removal. It is also drivable non-interactively (CI): `--preset <key>` or `--keep <id,id,...>` selects the integration set, `--yes` confirms it, `--clean-homepage` swaps in a blank starter homepage, and `--skip-install` skips the lockfile update. Keeping an integration also keeps whatever it requires (e.g. keeping `theatre` keeps `webgl`). When setup completes it removes its own machinery from the project (the setup script and its test suite) — `generate`, `doctor`, and `dev` stay.
+Run `bun run setup:project` for interactive removal. It is also drivable non-interactively (CI): `--preset <key>` or `--keep <id,id,...>` selects the integration set, `--yes` confirms it, `--clean-homepage` swaps in a blank starter homepage, and `--skip-install` skips the lockfile update. Keeping an integration also keeps whatever it requires (e.g. keeping `theatre` keeps `webgl`). When setup completes it removes its own machinery from the project (the setup script and its test suite) — `generate`, `doctor`, `dev`, and `handoff` stay; `generate`, `doctor`, and `prepare-handoff` keep using the shared bundle machinery.
 
-Turnstile is not part of this automated flow — it has no bundle for `setup:project` to remove, so it ships regardless of preset or `--keep` selection. Remove it manually with the recipe below.
+Turnstile is not part of this automated flow — it has no bundle for `setup:project` to remove, so it ships regardless of preset or `--keep` selection.
 
-Or remove one manually:
-
-```bash
-# Sanity (~150-200KB savings)
-rm -rf lib/integrations/sanity
-bun remove @sanity/asset-utils @sanity/image-url next-sanity sanity
-
-# Shopify (~50-80KB)
-rm -rf lib/integrations/shopify
-
-# HubSpot (~30-50KB)
-rm -rf lib/integrations/hubspot
-bun remove @hubspot/api-client
-
-# Mailchimp (~20KB)
-rm -rf lib/integrations/mailchimp
-
-# Turnstile (no package deps — server-only fetch call, unused unless a form wires it in)
-rm -rf lib/integrations/turnstile
-```
-
-After removal: `bun run lint:fix && bun run build`
+`setup:project --keep <ids> --yes` is the only supported removal path for Sanity and Shopify: both own routes under `app/api`, `app/(site)`, and `app/studio`, plus config transforms, so deleting their directories by hand leaves the build broken. Run `bun run setup:project --keep <ids> --yes` (or the interactive form), then `bun run check`.
 
 ## Adding a New Integration
 
-1. Create Zod env schema in `lib/utils/validation.ts`
-2. Add entry to `lib/integrations/registry.ts`
-3. Declare the integration's browser-visible origins in that entry's `cspSources` (types in `lib/integrations/registry.ts`). `lib/integrations/csp.ts` composes the enforced CSP from these — a missing declaration means the integration's remote scripts, images, or requests get blocked in production.
-4. Create integration directory under `lib/integrations/`
-5. Add env vars to `.env.example` and `lib/env.ts`
+1. Create a Zod env schema in `lib/utils/validation.ts`
+2. Add an entry to `lib/integrations/registry.ts` (env schema, capabilities, `cspSources`). `lib/integrations/csp.ts` composes the enforced CSP from `cspSources` — a missing declaration means the integration's remote scripts, images, or requests get blocked in production.
+3. Create `lib/integrations/<name>/` and add its env vars to `lib/env.ts` (and `.env.example` if they are required to boot)
+4. Add an `INTEGRATION_BUNDLES` entry in `lib/scripts/integration-bundles.ts` (files, deps, transforms, env stubs) so `setup:project` can strip it
+5. Create `lib/integrations/<name>/README.md` and add a row to AGENTS.md § Documentation Map

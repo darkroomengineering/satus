@@ -22,22 +22,24 @@ export default function Page() {
 }
 ```
 
-No configuration needed — the root canvas is mounted once in the shared layout
-(`lib/features`), so any page can portal 3D content into it with `<WebGLTunnel>`.
+The canvas is mounted with `<Canvas root>`, either once in the shared layout
+(`lib/features`, via `<OptionalFeatures webgl />`) so it persists across route
+navigation, or per page by passing `webgl` to the Wrapper (`<Wrapper webgl>`).
+Pick exactly one — the store enforces a single root canvas at runtime, so if
+both are mounted the first one wins and the second is a no-op (with a dev
+warning), not a second canvas eating GPU.
 
-### Two canvas strategies (pick one)
-
-The canvas is mounted with `<Canvas root>`. Choose **one** place to do it:
-
-- **Shared (default):** `<Canvas root />` lives in the layout (`lib/features`),
-  so the context persists across route navigation. Pages just use
-  `<WebGLTunnel>`.
-- **Per page:** remove the shared canvas and pass `webgl` to the Wrapper
-  (`<Wrapper webgl>`), which mounts the canvas only on that page.
-
-There is exactly one root canvas at a time — the store enforces this at
-runtime, so if both are mounted the first one wins and the second is a no-op
-(with a dev warning), not a second canvas eating GPU.
+```mermaid
+flowchart TD
+    A{Scene shared across routes?} -->|yes| B["Layout: &lt;OptionalFeatures webgl /&gt; → &lt;Canvas root&gt;"]
+    A -->|no, per page| C["Page: &lt;Wrapper webgl&gt; → &lt;Canvas root&gt;"]
+    B --> S[registerRootCanvasMount: first wins]
+    C --> S
+    S -->|second mount| W[dev warning, no-op]
+    S --> T["&lt;WebGLTunnel&gt; portals scene content"]
+    T --> G{useDeviceDetection.isWebGL?}
+    G -->|false| N[nothing rendered]
+```
 
 ### Perf: opting into GPU simulations
 

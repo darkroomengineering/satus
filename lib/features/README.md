@@ -8,11 +8,13 @@ Conditionally loaded features for the app layout.
 
 ## Features
 
-| Feature      | Trigger                          | Description                                             |
-| ------------ | -------------------------------- | ------------------------------------------------------- |
-| GSAP Runtime | Always loaded                    | Syncs GSAP with Tempus RAF                              |
-| WebGL Canvas | Always mounted (shared strategy) | Persistent Three.js canvas (no-op on non-WebGL devices) |
-| Dev Tools    | Development mode                 | Orchestra debug panel                                   |
+| Feature      | Trigger                                      | Description                                             |
+| ------------ | -------------------------------------------- | ------------------------------------------------------- |
+| GSAP Runtime | Opt-in via the `gsap` prop (default `false`) | Syncs GSAP with Tempus RAF                              |
+| WebGL Canvas | Always mounted (shared strategy)             | Persistent Three.js canvas (no-op on non-WebGL devices) |
+| Dev Tools    | Development mode                             | Orchestra debug panel                                   |
+
+`OptionalFeatures({ gsap = false, webgl, ... })` keeps the GSAP runtime off by default, saving the ~43 KB it adds to the client bundle on sites that never animate with GSAP. `app/(site)/layout.tsx` passes `<OptionalFeatures gsap />`, which turns it on for every page under that layout. Drop the `gsap` prop only if no page under that layout uses `useGSAP` or ScrollTrigger — otherwise scrubbed animations end up a frame behind Tempus. This file is the single source of truth for that default; other docs should link here instead of restating it.
 
 ## WebGL
 
@@ -49,7 +51,7 @@ Automatically enabled in development. Access with `Cmd/Ctrl + O`.
 
 ```tsx
 // app/(site)/layout.tsx - already configured
-<OptionalFeatures />
+<OptionalFeatures gsap />
 ```
 
 The component:

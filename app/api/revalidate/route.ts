@@ -11,12 +11,15 @@ export async function POST(request: NextRequest) {
   const rateLimitResult = rateLimit(`revalidate:${ip}`, rateLimiters.standard)
 
   if (!rateLimitResult.success) {
-    return new Response('Too many requests', {
-      status: 429,
-      headers: {
-        'Retry-After': String(rateLimitResult.resetIn),
-      },
-    })
+    return NextResponse.json(
+      { data: null, error: 'Too many requests' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(rateLimitResult.resetIn),
+        },
+      }
+    )
   }
 
   // Shopify webhooks identify themselves with an `x-shopify-topic` header and
@@ -34,7 +37,10 @@ export async function POST(request: NextRequest) {
   try {
     const secret = process.env.SANITY_REVALIDATE_SECRET
     if (!secret) {
-      return new Response('Webhook secret not configured', { status: 503 })
+      return NextResponse.json(
+        { data: null, error: 'Webhook secret not configured' },
+        { status: 503 }
+      )
     }
 
     const { body, isValidSignature } = await parseBody<{
@@ -43,11 +49,17 @@ export async function POST(request: NextRequest) {
     }>(request, secret)
 
     if (!isValidSignature) {
-      return new Response('Invalid signature', { status: 401 })
+      return NextResponse.json(
+        { data: null, error: 'Invalid signature' },
+        { status: 401 }
+      )
     }
 
     if (!body?._type) {
-      return new Response('Bad Request', { status: 400 })
+      return NextResponse.json(
+        { data: null, error: 'Bad Request' },
+        { status: 400 }
+      )
     }
 
     // Revalidate the specific document type.
@@ -61,9 +73,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      status: 200,
-      revalidated: true,
-      now: Date.now(),
+      data: { revalidated: true, now: Date.now() },
+      error: null,
     })
   } catch (error) {
     // next-sanity's parseBody() runs `JSON.parse` on the raw request body
@@ -72,10 +83,16 @@ export async function POST(request: NextRequest) {
     // instead of feeding 5xx-triggered retries/alarms.
     if (error instanceof SyntaxError) {
       console.warn('Revalidation client error: invalid JSON body', error)
-      return new Response('Invalid JSON body', { status: 400 })
+      return NextResponse.json(
+        { data: null, error: 'Invalid JSON body' },
+        { status: 400 }
+      )
     }
 
     console.error('Revalidation error:', error)
-    return new Response('Internal Server Error', { status: 500 })
+    return NextResponse.json(
+      { data: null, error: 'Internal Server Error' },
+      { status: 500 }
+    )
   }
 }

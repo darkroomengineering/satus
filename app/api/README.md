@@ -2,6 +2,13 @@
 
 Server-side API endpoints for integrations and webhooks.
 
+## Response Shape
+
+Every JSON response follows `{ data, error }`: `error` is `null` and `data`
+holds the payload on success; `data` is `null` and `error` is a message string
+on failure. The HTTP status still carries the outcome (200 vs. 4xx/5xx) — the
+body shape never changes based on it.
+
 ## Endpoints
 
 | Route                     | Method | Purpose                                             |
@@ -19,13 +26,16 @@ Server-side API endpoints for integrations and webhooks.
 POST /api/cart/ensure
 ```
 
-Gated on `isConfigured('shopify')` — returns 503 when Shopify isn't
+Gated on `isConfigured('shopify')` — returns 503 with
+`{ data: null, error: 'Shopify is not configured' }` when Shopify isn't
 configured. If the visitor already has a `cartId` cookie, it returns
-`{ ready: true }` immediately. Otherwise it creates a Shopify cart and sets it
-as an httpOnly cookie, then returns `{ ready: true }`. If cart creation fails,
-it returns `{ ready: false }` with a 502 — non-fatal to the caller, since
-`addItem` still creates a cart when the cookie is missing. The cart id never
-reaches the client; the route reports only presence.
+`{ data: { ready: true }, error: null }` immediately. Otherwise it creates a
+Shopify cart and sets it as an httpOnly cookie, then returns
+`{ data: { ready: true }, error: null }`. If cart creation fails, it returns
+`{ data: { ready: false }, error: 'Cart creation failed' }` with a 502 —
+non-fatal to the caller, since `addItem` still creates a cart when the cookie
+is missing. The cart id never reaches the client; the route reports only
+presence.
 
 Clients call this behind a cross-tab Web Lock so only one request is in
 flight per browser, closing a race where two concurrent first-adds each
@@ -77,7 +87,7 @@ sequenceDiagram
         R-->>W: 401 if invalid, 503 if secret unset
         R->>T: revalidateTag(_type) + revalidateTag(_type:slug)
     end
-    R-->>W: 200 { status, revalidated, now }
+    R-->>W: 200 { data: { revalidated, now }, error: null }
 ```
 
 ### Sanity Webhook Setup
@@ -116,6 +126,8 @@ returns 401, otherwise 200 so Shopify does not retry.
 - Rate limiting is applied to prevent abuse (429 on excess requests)
 - Invalid Sanity signature returns 401; malformed body returns 400; unset secret returns 503
 - Invalid or missing Shopify secret returns 401 (constant-time compare)
+- Every JSON response is `{ data, error }`: `error` is null on success, a
+  message string on failure
 
 See also: [SECURITY.md](../../SECURITY.md)
 
@@ -129,6 +141,6 @@ import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   // Handle request
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ data: { success: true }, error: null })
 }
 ```

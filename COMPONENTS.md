@@ -153,7 +153,6 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | sanityEnvSchema | `ZodObject<{ NEXT_PUBLIC_SANITY_PROJECT_ID: ZodOptional<ZodString>; SANITY_STU...` |
 | shopifyEnvSchema | `ZodObject<{ SHOPIFY_STORE_DOMAIN: ZodString; SHOPIFY_STOREFRONT_ACCESS_TOKEN:...` |
 | hubspotEnvSchema | `ZodObject<{ HUBSPOT_ACCESS_TOKEN: ZodOptional<ZodString>; NEXT_PUBLIC_HUBSPOT...` |
-| hubspotFormsApiEnvSchema | `ZodObject<{ HUBSPOT_ACCESS_TOKEN: ZodString; }, $strip>` |
 | hubspotEmbedEnvSchema | `ZodObject<{ NEXT_PUBLIC_HUBSPOT_PORTAL_ID: ZodString; }, $strip>` |
 | mailchimpEnvSchema | `ZodObject<{ MAILCHIMP_API_KEY: ZodString; MAILCHIMP_SERVER_PREFIX: ZodString;...` |
 | turnstileEnvSchema | `ZodObject<{ NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY: ZodString; CLOUDFLARE_...` |

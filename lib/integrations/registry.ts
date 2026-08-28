@@ -26,7 +26,6 @@ import {
   analyticsEnvSchema,
   hubspotEmbedEnvSchema,
   hubspotEnvSchema,
-  hubspotFormsApiEnvSchema,
   mailchimpEnvSchema,
   sanityEnvSchema,
   shopifyEnvSchema,
@@ -68,8 +67,8 @@ export interface IntegrationEntry {
    * Optional narrower schemas for sub-capabilities of this integration.
    * Use `hasCapability(id, capability)` to check one of these instead of
    * `isConfigured(id)` when a code path needs more than "some env var is
-   * set" (e.g. HubSpot's Forms API needs the access token specifically,
-   * not just the portal ID that satisfies `isConfigured('hubspot')`).
+   * set" (e.g. HubSpot's `embed` capability requires only the public
+   * portal id, while `isConfigured('hubspot')` accepts either var).
    */
   capabilities?: Record<string, z.ZodType>
   /** Documentation or setup link */
@@ -127,7 +126,6 @@ export const integrations = {
     name: 'HubSpot',
     envSchema: hubspotEnvSchema,
     capabilities: {
-      formsApi: hubspotFormsApiEnvSchema,
       embed: hubspotEmbedEnvSchema,
     },
     docsUrl: 'https://developers.hubspot.com/docs/api',
@@ -225,9 +223,8 @@ export type CapabilityOf<Id extends IntegrationId> =
  * Check if a specific capability of an integration is configured.
  *
  * Capabilities are narrower env requirements than the integration's overall
- * `envSchema` (e.g. HubSpot's `formsApi` capability requires the access
- * token specifically, while `isConfigured('hubspot')` only requires *some*
- * HubSpot env var to be set).
+ * `envSchema` (e.g. HubSpot's `embed` capability requires only the public
+ * portal id, while `isConfigured('hubspot')` accepts either var).
  *
  * Fallback: if the integration declares no `capabilities` (or the named
  * capability doesn't exist on it), this falls back to `isConfigured(id)`.

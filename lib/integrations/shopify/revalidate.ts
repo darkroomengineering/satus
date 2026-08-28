@@ -52,12 +52,18 @@ export async function revalidate(req: NextRequest): Promise<NextResponse> {
     !secretsMatch(secret, env.SHOPIFY_REVALIDATION_SECRET)
   ) {
     console.error('Invalid revalidation secret.')
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json(
+      { data: null, error: 'Unauthorized' },
+      { status: 401 }
+    )
   }
 
   if (!(isCollectionUpdate || isProductUpdate || isPageUpdate)) {
     // We don't need to revalidate anything for any other topics.
-    return NextResponse.json({ status: 200 })
+    return NextResponse.json({
+      data: { revalidated: false, now: Date.now() },
+      error: null,
+    })
   }
 
   if (isCollectionUpdate) {
@@ -72,5 +78,8 @@ export async function revalidate(req: NextRequest): Promise<NextResponse> {
     revalidateTag(TAGS.pages, {})
   }
 
-  return NextResponse.json({ status: 200, revalidated: true, now: Date.now() })
+  return NextResponse.json({
+    data: { revalidated: true, now: Date.now() },
+    error: null,
+  })
 }

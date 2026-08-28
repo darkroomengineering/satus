@@ -27,7 +27,7 @@ import {
 export async function POST() {
   if (!isConfigured('shopify')) {
     return NextResponse.json(
-      { error: 'Shopify is not configured' },
+      { data: null, error: 'Shopify is not configured' },
       { status: 503 }
     )
   }
@@ -37,7 +37,7 @@ export async function POST() {
   // Already have one — the common case once a visitor has added anything, and
   // the case every request queued behind the Web Lock hits.
   if (cookieStore.get('cartId')?.value) {
-    return NextResponse.json({ ready: true })
+    return NextResponse.json({ data: { ready: true }, error: null })
   }
 
   try {
@@ -45,10 +45,13 @@ export async function POST() {
 
     setCartIdCookie(cookieStore, cart.id)
 
-    return NextResponse.json({ ready: true })
+    return NextResponse.json({ data: { ready: true }, error: null })
   } catch {
     // Not fatal to the caller: `addItem` still creates a cart when the cookie
     // is missing, so a failure here costs the race protection, not the sale.
-    return NextResponse.json({ ready: false }, { status: 502 })
+    return NextResponse.json(
+      { data: { ready: false }, error: 'Cart creation failed' },
+      { status: 502 }
+    )
   }
 }

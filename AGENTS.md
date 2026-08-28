@@ -299,7 +299,7 @@ All integrations are optional and self-contained in `lib/integrations/{name}/`. 
 - Never commit secrets; document required vars in `.env.example`
 - Server actions return `{ status: number, message: string, fieldErrors?: Record<string, string> }`
 - Client form validation reuses the same Zod schemas via `zodToValidator()` bridge
-- These are deliberate splits, not drift. Form actions (HubSpot, Mailchimp, Shopify customer) return `{ status, message, fieldErrors? }` because they are UI state consumed by a form hook, not an API response. Shopify cart actions return `CartActionResult = { ok: true } | { ok: false, error }` because they feed optimistic UI, not a form. API route handlers return a purpose-specific JSON body plus an `error` string on failure — `app/api/cart/ensure` returns `{ ready: true }`, `app/api/revalidate` returns `{ status, revalidated, now }`. Don't unify these shapes.
+- These are deliberate splits, not drift. Form actions (HubSpot, Mailchimp, Shopify customer) return `{ status, message, fieldErrors? }` because they are UI state consumed by a form hook, not an API response. Shopify cart actions return `CartActionResult = { ok: true } | { ok: false, error }` because they feed optimistic UI, not a form. API route handlers return `{ data, error }` — `error` is null on success and a message string on failure, `data` is the payload or null — see `app/api/README.md`. Don't unify these shapes.
 
 ---
 

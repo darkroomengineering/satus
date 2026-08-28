@@ -24,7 +24,7 @@ This file changes only by deliberate review. `next dev` appends a managed block 
 
 ## Enforced Rules (CI fails without these)
 
-These are non-negotiable. Each is enforced by oxlint or TypeScript; the build or pre-commit hook will fail on violation.
+These are non-negotiable. Each is enforced by oxlint or TypeScript; `bun run check` and CI fail on violation; the pre-commit hook runs oxlint and tsc, and the two type-aware rules run only in `lint:types`, `check`, and CI (`next build` does not typecheck: `ignoreBuildErrors` is on).
 
 ### oxlint rules
 
@@ -46,7 +46,7 @@ These are non-negotiable. Each is enforced by oxlint or TypeScript; the build or
 | `typescript/no-floating-promises`    | Un-awaited promises                                                                               | oxlint `typescript`, type-aware    |
 | `typescript/no-misused-promises`     | Async function passed where void expected                                                         | oxlint `typescript`, type-aware    |
 
-A vendored plugin (`tools/oxlint/anti-slop/`, from [dmmulroy/anti-slop](https://github.com/dmmulroy/anti-slop)) adds rules against low-evidence TypeScript patterns: no `Reflect.get`/`Reflect.apply`, no `object`-typed parameters, no type aliases that merely rename `unknown`, no widen-then-assert flows, no module mocking in tests. These run at `error` in `bun lint`. Further anti-slop rules are off with documented finding counts in `oxlint.config.ts`; re-enable them one at a time as their findings are fixed. The plugin's own rule tests run under Node via `bun run test:oxlint-plugin`, not `bun test` — they're named `*.ruletest.ts` so bun's test discovery never collects them, because oxlint's RuleTester refuses the Bun runtime.
+A vendored plugin (`tools/oxlint/anti-slop/`, from [dmmulroy/anti-slop](https://github.com/dmmulroy/anti-slop)) adds rules against low-evidence TypeScript patterns: no `Reflect.get`/`Reflect.apply`, no `object`-typed parameters, no type aliases that merely rename `unknown`, no widen-then-assert flows, no module mocking in tests. All fifteen anti-slop rules run at `error`. Two unrelated rules (`eslint/prefer-named-capture-group`, `typescript/prefer-nullish-coalescing`) are off with their pre-existing finding counts documented in `oxlint.config.ts`; re-enable them one at a time as the findings are fixed. The plugin's own rule tests run under Node via `bun run test:oxlint-plugin`, not `bun test` — they're named `*.ruletest.ts` so bun's test discovery never collects them, because oxlint's RuleTester refuses the Bun runtime.
 
 Tailwind class sorting and import ordering are handled by `oxfmt` at format time rather than by lint rules, so `bun run format` (or format-on-save) fixes them and they never fail `bun lint`. The two type-aware rules above only run under `bun run lint:types` (and `bun run check`) — they're not in the pre-commit hook, which keeps commits fast. See ARCHITECTURE.md § Linting and Formatting for why the toolchain is split this way.
 
@@ -54,7 +54,7 @@ Tailwind class sorting and import ordering are handled by `oxfmt` at format time
 
 `strict`, `noImplicitOverride`, `exactOptionalPropertyTypes`, `useUnknownInCatchVariables`, `noFallthroughCasesInSwitch`, `noImplicitReturns`, `noUnusedLocals`, `noUnusedParameters`, `noUncheckedIndexedAccess`, `noUncheckedSideEffectImports`, `verbatimModuleSyntax`
 
-### Path aliases (required, enforced by `no-relative-parent-imports`)
+### Path aliases (required, enforced by `eslint/no-restricted-imports`)
 
 ```tsx
 import { Image } from '@/components/ui/image' // NOT next/image
@@ -126,17 +126,17 @@ export function MyComponent({
 - Component state: React built-in (`useState`, `useReducer`)
 - Global state: Zustand (dedicated store files, e.g. `lib/webgl/store.ts`)
 - Shared sub-tree state: standard context pattern (see Code Patterns below)
-- Standard context shape: `{ state, actions, meta? }` via `lib/utils/context.ts`
+- Standard context shape: `{ state, actions, meta? }`, declared inline next to the provider (see `components/layout/theme/index.tsx`)
 
 ### Server Components by default
 
-Only add `'use client'` when you need hooks, event handlers, or browser APIs. Keep data fetching in Server Components; pass serializable props down. All `components/ui/` primitives are `'use client'`.
+Only add `'use client'` when you need hooks, event handlers, or browser APIs. Keep data fetching in Server Components; pass serializable props down. Interactive `components/ui/` primitives are `'use client'`; presentational ones (`not-configured`, `not-found-view`, `sanity-image`) stay server components.
 
 ### No manual memoization
 
 React Compiler handles all optimization. Never use `useMemo`, `useCallback`, or `React.memo`.
 
-Exception: use `useRef` for class/object instantiation to prevent infinite loops (see Code Patterns).
+Exception: use `useRef` for class/object instantiation to prevent infinite loops (see ARCHITECTURE.md § Code Patterns).
 
 ### WebGL cleanup
 
@@ -159,196 +159,7 @@ Four positions that repeated audits arrived at independently. Each exists becaus
 
 **Ship the claim with the fix.** Changelog, README, JSDoc, audit ledger: whatever states the old behaviour changes in the same diff. This is the rule with the worst track record — the changelog and a process-audit report both credited a PR with an EOF fix that only ever covered one of the three scripts it named, which made the gap invisible to anyone checking the record instead of the code.
 
----
-
-## Code Patterns
-
-### 1. Compound Component
-
-UI primitives wrap `@base-ui/react` with project styling. Two patterns:
-
-**Pattern A - Namespace + named exports** (Accordion, Tabs):
-
-```tsx
-'use client'
-import { Collapsible } from '@base-ui/react/collapsible'
-import cn from 'clsx'
-import s from './accordion.module.css'
-
-function Root({ children, className, ...props }: RootProps) {
-  return (
-    <Collapsible.Root className={cn(s.accordion, className)} {...props}>
-      {children}
-    </Collapsible.Root>
-  )
-}
-
-export { Body, Button, Group, Root }
-export const Accordion = { Group, Root, Button, Body }
-```
-
-**Pattern B - Function properties** (Tooltip, Checkbox, Switch):
-
-```tsx
-function Tooltip({ content, children, side = 'top', className }: TooltipProps) {
-  /* simple API */
-}
-Tooltip.Root = BaseTooltip.Root
-Tooltip.Popup = Popup
-export { Tooltip }
-```
-
-Rules: always pass `className` through as `cn(s.root, className)`, spread `{...props}` for extensibility, provide both simple and compound API.
-
-### 2. CSS Modules + Tailwind Hybrid
-
-```tsx
-import s from './component.module.css'
-import cn from 'clsx'
-
-<div className="flex items-center gap-4 p-2">              {/* Tailwind only */}
-<div className={s.animatedPanel}>                           {/* Module only */}
-<div className={cn(s.root, 'p-4', className)}>             {/* Combined */}
-```
-
-### 3. Context Pattern
-
-Shared contexts (theme, cart, form) use a typed `createContext` with a
-`{ state, actions, meta? }` value shape, plus a hook that throws when used
-outside the provider. See `components/layout/theme/index.tsx` for the
-reference implementation.
-
-```tsx
-interface MyState {
-  count: number
-}
-interface MyActions {
-  increment: () => void
-}
-type MyContextValue = { state: MyState; actions: MyActions }
-
-const MyContext = createContext<MyContextValue | null>(null)
-
-function useMyComponent(): MyContextValue {
-  const context = use(MyContext)
-  if (!context) throw new Error('useMyComponent must be used within MyProvider')
-  return context
-}
-
-function MyProvider({ children }: PropsWithChildren) {
-  const [count, setCount] = useState(0)
-  return (
-    <MyContext.Provider
-      value={{
-        state: { count },
-        actions: { increment: () => setCount((c) => c + 1) },
-      }}
-    >
-      {children}
-    </MyContext.Provider>
-  )
-}
-```
-
-For component-scoped contexts, inline `createContext` + `useContext` is fine.
-
-### 4. Server vs Client Split
-
-```tsx
-// product-page.tsx - Server Component (no directive)
-export default async function ProductPage({
-  params,
-}: {
-  params: { slug: string }
-}) {
-  const data = await fetchProduct(params.slug)
-  return <ProductView product={data} /> // serializable props only
-}
-
-// product-view.tsx - Client Component
-;('use client')
-export function ProductView({ product }: { product: Product }) {
-  const [qty, setQty] = useState(1)
-}
-```
-
-`'use client'` goes on the first line, before imports.
-
-### 5. Integration Optionality
-
-```tsx
-import { isConfigured } from '@/integrations/registry'
-import { NotConfigured } from '@/components/ui/not-configured'
-
-export default async function SanityPage() {
-  if (!isConfigured('sanity')) {
-    return <NotConfigured integration="Sanity" />
-  }
-  // ... normal page logic
-}
-```
-
-Available checks: `isConfigured('sanity' | 'shopify' | 'hubspot' | 'mailchimp' | 'turnstile')`.
-
-Adding a new integration: add its Zod schema to `@/utils/validation`, add one entry to `lib/integrations/registry.ts`. The `doctor.ts` and listing helpers derive automatically. See `lib/integrations/README.md`.
-
-Validate external API _responses_ at the boundary, not just env config. Pass
-untrusted upstream JSON (GraphQL envelopes, REST payloads) through
-`parseApiResponse(schema, data, context)` (`@/utils/validation`) so a malformed
-response fails clearly at the edge with context instead of crashing downstream.
-The Shopify, HubSpot, and Mailchimp clients all do this.
-
-### 6. WebGL Element Lifecycle
-
-DOM-synced WebGL via tunnel system. A single root canvas (`<Canvas root>`)
-hosts the scene — mounted either in the shared layout (`lib/features`, persists
-across routes) or per page via `<Wrapper webgl>`. Pick one strategy.
-
-```
-<Canvas root> (layout OR <Wrapper webgl>) -> WebGLTunnel.Out, DOMTunnel.Out
-Page -> <WebGLTunnel> (portals 3D content up into the root canvas)
-```
-
-```tsx
-// DOM side
-'use client'
-import { useWebGLElement } from '@/webgl/hooks/use-webgl-element'
-import { WebGLTunnel } from '@/webgl/components/tunnel'
-
-function MyWebGLComponent({ className }: { className?: string }) {
-  const { setRef, rect, isVisible } = useWebGLElement()
-  return (
-    <div ref={setRef} className={className}>
-      <WebGLTunnel>
-        <MyMesh rect={rect} visible={isVisible} />
-      </WebGLTunnel>
-    </div>
-  )
-}
-```
-
-`WebGLTunnel` (and `DOMTunnel`, for HTML overlays) already wrap `useCanvas()`
-internally — this is the intended public API. Reach for `useCanvas()` directly
-only as a low-level escape hatch, e.g. building a new portal primitive. See
-`lib/webgl/README.md`.
-
-Always dispose GPU resources (materials, textures, geometries, render targets) on unmount.
-
-### 7. useRef for Object Instantiation
-
-```tsx
-// Persistent instances (compiler cannot optimize class instantiation)
-const instanceRef = useRef<MyClass | null>(null)
-if (!instanceRef.current) {
-  instanceRef.current = new MyClass()
-}
-
-// Three.js objects with cleanup
-const [material] = useState(() => new MeshBasicMaterial())
-useEffect(() => () => material.dispose(), [material])
-```
-
-The compiler handles simple calculations and callbacks automatically - no manual memoization needed.
+Worked patterns (compound components, context, server/client split, integration optionality, WebGL lifecycle, useRef instantiation) are in `ARCHITECTURE.md` § Code Patterns.
 
 ---
 
@@ -399,7 +210,7 @@ async function fetchUserData(id: string) {
 }
 ```
 
-All `sanityFetch` calls include `cacheSignal()` automatically.
+The Shopify client passes `cacheSignal()` so in-flight requests are cancelled when the cache entry is dropped (`lib/integrations/shopify/client.ts`); `sanityFetch` relies on `cacheTag` alone.
 
 **React 19 ref as prop** - No `forwardRef` needed.
 
@@ -414,13 +225,7 @@ function Button({
 
 ### Next.js 16 Cache Components
 
-Cache Components are enabled globally (`cacheComponents: true` in `next.config.ts`).
-
-| Data type                       | Cache strategy                                         |
-| ------------------------------- | ------------------------------------------------------ |
-| Public content                  | ISR with `revalidate`, inside a `'use cache'` function |
-| User-specific (carts, accounts) | `cache: 'no-store'` - never cache                      |
-| Real-time (live feeds, prices)  | `cache: 'no-store'`                                    |
+Cache Components are enabled globally (`cacheComponents: true` in `next.config.ts`). Data is fetched inside `'use cache'` functions that call `cacheTag()` and `cacheLife()`; a webhook hits `POST /api/revalidate`, which calls `revalidateTag()` to drop the matching cache entries; `draftMode` bypasses the cache entirely. Every fetch goes through this tag-based model — this codebase has no other opt-out-of-caching mechanism. See ARCHITECTURE.md § Cache Components (Next.js 16) for the diagram.
 
 Critical rules:
 
@@ -431,7 +236,7 @@ Critical rules:
   and reuse it across the page body and `generateMetadata` (this also dedupes the
   request). See `lib/integrations/sanity/README.md`.
 - Wrap cached components in `<Suspense>` boundaries with loading fallbacks
-- Use `revalidateTag()` / `revalidatePath()` in webhook handlers
+- Use `revalidateTag()` in webhook handlers (`POST /api/revalidate`)
 - Test with hard refresh (bypasses router cache) AND normal navigation
 - Dev and prod behave differently - test both
 
@@ -481,18 +286,7 @@ ALL color values are authored in `oklch()` — palette entries in `lib/styles/co
 
 ## AI SEO (AEO)
 
-- **Entity facts live in one file.** `lib/seo/site.ts`. JSON-LD, on-page prose, and `/llms.txt` all read from it, so they cannot disagree. Answer engines cross-check.
-- **Organization + WebSite JSON-LD render from the app layout** (`app/(site)/layout.tsx`), never from the homepage. Answer-engine traffic lands on deep pages; an entity that only exists on `/` is invisible to it.
-- **Never emit a JSON-LD key you cannot fill.** `"description": null` is worse than an absent key. Conditional-spread every optional field.
-- **Entity prose must be in the initial HTML and actually visible.** A visually quiet section is fine; `sr-only` or `display: none` reads as cloaking and gets discounted. If a page is visual-first (canvas, galleries), it needs a plain-prose block or crawlers have nothing to cite.
-- **`Suspense fallback={null}` ships HTML with zero links.** Any client subtree that bails out of prerendering — `useSearchParams`, `cookies()`, `headers()` — leaves its fallback in the static HTML. If that fallback is `null`, crawlers see an empty page and the linked routes lose their only internal link. Server-render a static mirror of the list as the fallback; hydration swaps in the interactive version.
-- **Never redirect on user-agent without exempting bots.** Googlebot Smartphone, site auditors, and AI crawlers send mobile UAs. A mobile redirect turns every sitemap entry into a 3XX. Gate the redirect behind a bot check (`isbot`) if you add one.
-- **`metadataBase` must be set** or OG/Twitter image paths stay relative and fail to resolve for scrapers. It is set in `app/(site)/layout.tsx`.
-- **Normalize CMS-authored hrefs** before rendering. Editors paste bare domains and mixed-case protocols; unnormalized values produce broken or duplicate-target links that leak crawl budget.
-- **`/llms.txt`** is generated from `lib/seo/site.ts` at `app/llms.txt/route.ts`. Markdown mirrors of content routes (`/page.md`, with a `Link: <…>; rel="alternate"` header) are the next step for content-heavy sites — not shipped here because they need a CMS to be worth it.
-- **Ship a `/ai` machine view.** One plain-HTML route (`app/ai/page.tsx`) that names the entity and links every page, under its own layout with no chrome, no canvas and no client components of its own. Visual-first pages give answer engines nothing to cite; this gives them everything in one fetch. Keep it in sync with `app/sitemap.ts` — a route missing from either is invisible. It still inherits the app providers mounted by `app/(site)/layout.tsx`; to make it genuinely runtime-free, move it out of the `(site)` route group (the root `app/layout.tsx` is already a bare html/body shell).
-- **Fetch CMS content with the published perspective for machine-readable routes.** Draft/preview perspectives embed stega encoding — invisible Unicode characters interleaved through every string for visual editing. They are invisible to humans and corrupt the text an LLM reads. Anything rendered into `/ai`, `/llms.txt`, or a `.md` mirror must come from a published-perspective fetch or be run through `stegaClean`.
-- **Drive any human/machine view toggle from a server prop, not the pathname.** Reading `usePathname()` to decide which mode is active makes the first paint ambiguous and can flip after hydration. Pass `mode` down from the layout that already knows.
+Policy and mechanics live in `lib/seo/README.md`.
 
 ---
 
@@ -505,7 +299,7 @@ All integrations are optional and self-contained in `lib/integrations/{name}/`. 
 - Never commit secrets; document required vars in `.env.example`
 - Server actions return `{ status: number, message: string, fieldErrors?: Record<string, string> }`
 - Client form validation reuses the same Zod schemas via `zodToValidator()` bridge
-- This is a deliberate split, not drift: API route handlers return `{ data, error }` (the darkroom team convention for API responses), while server-action FORM results use the `{ status, message, fieldErrors }` shape above because they are UI state consumed by form hooks, not API responses. Don't unify the two shapes.
+- These are deliberate splits, not drift. Form actions (HubSpot, Mailchimp, Shopify customer) return `{ status, message, fieldErrors? }` because they are UI state consumed by a form hook, not an API response. Shopify cart actions return `CartActionResult = { ok: true } | { ok: false, error }` because they feed optimistic UI, not a form. API route handlers return a purpose-specific JSON body plus an `error` string on failure — `app/api/cart/ensure` returns `{ ready: true }`, `app/api/revalidate` returns `{ status, revalidated, now }`. Don't unify these shapes.
 
 ---
 
@@ -514,7 +308,7 @@ All integrations are optional and self-contained in `lib/integrations/{name}/`. 
 ```bash
 bun dev              # Dev server (Turbopack)
 bun run build        # Production build (runs setup:styles first)
-bun run check        # oxlint + oxfmt --check + lint:types + ensure:typegen + tsc --noEmit + bun test + manifest:check + check:assets (must pass before commit)
+bun run check        # oxlint + oxfmt --check + lint:types + ensure:typegen + tsc --noEmit + bun test + test:oxlint-plugin + manifest:check + check:assets (must pass before pushing)
 bun lint             # oxlint
 bun lint:fix         # oxlint with auto-fix
 bun run lint:types   # oxlint type-aware rules (no-floating-promises, no-misused-promises)
@@ -532,7 +326,7 @@ Pre-commit hook (lefthook) runs on staged files: oxfmt + oxlint --fix (sequentia
 
 `next-env.d.ts` (gitignored) is what makes tsc resolve the ambient `.svg`/`.css` module declarations in `lib/utils/types.d.ts` — it's listed first in `tsconfig.json`'s `include`, and tsc needs that entry to exist for the rest of `include` to take effect. A byte-fresh clone has no `next-env.d.ts` (`next dev`/`next build` normally generate it), so `ensure:typegen` backfills it with `next typegen` — a route-type generation step, not a full build — before `typecheck`/`check` run. It's a no-op once the file exists, so `bun run check` is order-independent: run it before or after `bun run build`, doesn't matter.
 
-Route smoke coverage is automatic: `e2e/route-sweep.e2e.ts` discovers every `app/**/page.tsx` at test-collection time and runs the five-assertion smoke against it — creating the page is the only step. Write a bespoke `*.e2e.ts` only for behavior beyond the smoke (see `e2e/not-found.e2e.ts` for the soft-404 example).
+Route smoke coverage is automatic: `e2e/route-sweep.e2e.ts` discovers every `app/**/page.tsx` at test-collection time and runs the five-assertion smoke against it with only static segments; dynamic routes (`[slug]`, `[...slug]`) need a bespoke `*.e2e.ts` with fixtures — creating the page is the only step for a static route. Write a bespoke `*.e2e.ts` only for behavior beyond the smoke (see `e2e/not-found.e2e.ts` for the soft-404 example).
 
 When verifying behavior that depends on env vars being _absent_ (e.g. an integration's unconfigured fallback), wipe `.next` before building: `NEXT_PUBLIC_*` values are inlined at build time, so hiding `.env.local` against a stale build still renders the configured page and your verification silently measures the wrong variant. This burned a real review round — three contrast fixes "passed" env-hidden e2e against a build that had the env baked in.
 
@@ -540,30 +334,43 @@ When verifying behavior that depends on env vars being _absent_ (e.g. an integra
 
 ## Documentation Map
 
-| Document                       | Purpose                                                         |
-| ------------------------------ | --------------------------------------------------------------- |
-| `ARCHITECTURE.md`              | Architectural decisions, patterns, and customization boundaries |
-| `COMPONENTS.md`                | Auto-generated component / hook / utility inventory             |
-| `CHANGELOG.md`                 | Release history and versioning policy                           |
-| `SECURITY.md`                  | Security policy and vulnerability reporting                     |
-| `app/README.md`                | App Router structure, page patterns, Wrapper props              |
-| `components/README.md`         | Component inventory and conventions                             |
-| `components/layout/README.md`  | Header, footer, and page wrapper architecture                   |
-| `components/effects/README.md` | Animation component docs                                        |
-| `lib/README.md`                | Library structure overview                                      |
-| `lib/seo/`                     | Entity facts (`site.ts`), JSON-LD builders, `/llms.txt` source  |
-| `lib/integrations/README.md`   | Per-integration docs (Sanity, Shopify, HubSpot)                 |
-| `lib/styles/README.md`         | Design system and style generation                              |
-| `lib/webgl/README.md`          | WebGL/R3F architecture, tunnel system, device gating            |
-| `lib/hooks/README.md`          | Custom hook inventory                                           |
-| `lib/dev/README.md`            | Debug tools suite (Orchestra)                                   |
-| `lib/features/README.md`       | Optional feature loading for the app layout                     |
+| Document                                | Purpose                                                                     |
+| --------------------------------------- | --------------------------------------------------------------------------- |
+| `README.md`                             | Project overview, setup, project structure                                  |
+| `PROD-README.md`                        | Production deployment notes                                                 |
+| `ARCHITECTURE.md`                       | Architectural decisions, patterns, and customization boundaries             |
+| `COMPONENTS.md`                         | Auto-generated component / hook / utility inventory                         |
+| `CHANGELOG.md`                          | Release history and versioning policy                                       |
+| `SECURITY.md`                           | Security policy and vulnerability reporting                                 |
+| `THIRD-PARTY-NOTICES.md`                | Third-party license attributions                                            |
+| `app/README.md`                         | App Router structure, page patterns, Wrapper props                          |
+| `app/api/README.md`                     | API route conventions and inventory                                         |
+| `components/README.md`                  | Component inventory and conventions                                         |
+| `components/layout/README.md`           | Header, footer, and page wrapper architecture                               |
+| `components/effects/README.md`          | Animation component docs                                                    |
+| `components/ui/image/README.md`         | Image component API and WebGL integration                                   |
+| `components/ui/real-viewport/README.md` | Real viewport unit hook and CSS variables                                   |
+| `lib/README.md`                         | Library structure overview                                                  |
+| `lib/seo/README.md`                     | AEO/SEO module: entity facts, JSON-LD, `/llms.txt`, `/ai`, markdown mirrors |
+| `lib/integrations/README.md`            | Integration index, `setup:project` flags, adding a new integration          |
+| `lib/integrations/sanity/README.md`     | Sanity CMS integration docs                                                 |
+| `lib/integrations/shopify/README.md`    | Shopify integration docs                                                    |
+| `lib/integrations/hubspot/README.md`    | HubSpot integration docs                                                    |
+| `lib/integrations/mailchimp/README.md`  | Mailchimp integration docs                                                  |
+| `lib/integrations/turnstile/README.md`  | Turnstile integration docs                                                  |
+| `lib/styles/README.md`                  | Design system and style generation                                          |
+| `lib/styles/scripts/README.md`          | Style generation scripts                                                    |
+| `lib/utils/README.md`                   | Shared utility inventory                                                    |
+| `lib/webgl/README.md`                   | WebGL/R3F architecture, tunnel system, device gating                        |
+| `lib/hooks/README.md`                   | Custom hook inventory                                                       |
+| `lib/dev/README.md`                     | Debug tools suite (Orchestra)                                               |
+| `lib/features/README.md`                | Optional feature loading for the app layout                                 |
 
 ---
 
 ## Versioning
 
-Satus follows [Semantic Versioning](https://semver.org), read from the perspective of a project that forked it: **MAJOR** = changes that break a fork on update (removing or renaming a core primitive, restructuring directories or path aliases, dropping an integration, a Node.js / Next.js major); **MINOR** = additive (new components, hooks, utilities, integrations); **PATCH** = fixes, dependency bumps, docs, internal refactors. `package.json` tracks the latest release tag, and forks track upstream by rebasing onto it (no long-term support branches). Full policy and release history: [`CHANGELOG.md`](./CHANGELOG.md).
+Semver read from a fork's perspective; full policy and history in `CHANGELOG.md`.
 
 ---
 

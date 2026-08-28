@@ -25,7 +25,7 @@ jobs:
 
       # test:oxlint-plugin (run via `bun run check`) invokes `node` directly on
       # each ruletest file, so the runner's node must meet the engines floor
-      # (>=22.18.0, needed for unflagged native type-stripping of .ts files).
+      # (>=24.20.0, the current LTS; native type-stripping of .ts files is unflagged).
       - uses: actions/setup-node@v7
         with:
           node-version-file: .node-version

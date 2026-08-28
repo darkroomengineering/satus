@@ -47,14 +47,14 @@ const quantity = meta.totalQuantity()
 import { getProducts, getProduct } from '@/integrations/shopify'
 
 const products = await getProducts({ sortKey: 'CREATED_AT' })
-const product = await getProduct('product-handle')
+const product = await getProduct({ handle: 'product-handle' })
 ```
 
 ### Validation
 
 All Shopify server actions validate input with Zod schemas:
 
-- **Cart actions** (`addItem`, `updateItemQuantity`, `removeItem`): validate variant IDs, quantity bounds (1-99), rate limiting. `updateItemQuantity` and `removeItem` take the client-held `lineId` (the cart line's id) to patch that line directly. All three return `CartActionResult` — `{ ok: true }` on success, `{ ok: false; error: string }` on failure.
+- **Cart actions**: `addItem` validates the variant id and a quantity of 1–99 with Zod. `updateItemQuantity` accepts a quantity of 0–99 (0 removes the line). `removeItem` takes the client-held `lineId` and checks only that it is present — there is no Zod schema for it. All three return `CartActionResult` — `{ ok: true }` on success, `{ ok: false; error: string }` on failure.
 - **Customer actions** (`LoginCustomerAction`, `CreateCustomerAction`): validate email format, password length, rate limiting via `runFormAction`. `LoginCustomerAction` passes the strict limiter (5 req/min) to `runFormAction` to throttle brute-force attempts.
 - **Error handling**: Cart actions use `CartActionResult`; customer actions return `FormState` objects; there is no `Error` instance wrapping
 

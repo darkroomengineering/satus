@@ -13,11 +13,7 @@ This directory is for GSAP-based effects: the runtime ticker bridge and orchestr
 
 ## GSAPRuntime
 
-Mount once in the root layout via `OptionalFeatures`. Ensures GSAP animations run on the Tempus RAF loop. ScrollTrigger↔Lenis sync is handled by the Lenis component.
-
-```tsx
-// Already loaded via OptionalFeatures — do not import manually
-```
+Mounted by the layout through `<OptionalFeatures gsap />` (off by default; see `lib/features/README.md`) — do not import it in pages. Ensures GSAP animations run on the Tempus RAF loop. ScrollTrigger↔Lenis sync is handled by the Lenis component.
 
 ## Progress Text
 

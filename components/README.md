@@ -26,7 +26,8 @@ import { Wrapper } from '@/components/layout/wrapper'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 
-// Effects Components (GSAPRuntime is auto-loaded via OptionalFeatures - do not import manually)
+// Effects Components (GSAPRuntime is mounted by the layout through <OptionalFeatures gsap /> —
+// off by default; see lib/features/README.md — do not import it in pages)
 ```
 
 ## Component Inventory
@@ -57,6 +58,8 @@ Built on [Base UI](https://base-ui.com/) for accessibility.
 | `marquee/`        | Infinite scrolling text                                |
 | `sanity-image/`   | Sanity-optimized image component                       |
 | `not-configured/` | Placeholder for unconfigured integrations              |
+| `error-view/`     | Renders a route's `error.tsx` boundary UI              |
+| `not-found-view/` | Renders a route's `not-found.tsx` UI                   |
 
 ## Layout Components
 
@@ -75,12 +78,12 @@ Built on [Base UI](https://base-ui.com/) for accessibility.
 
 ## Effects Components
 
-`GSAPRuntime` is automatically loaded via `OptionalFeatures` in the root layout - do not import it manually.
+`GSAPRuntime` is mounted by the layout through `<OptionalFeatures gsap />` (off by default; see `lib/features/README.md`) — do not import it in pages.
 
-| Component        | Purpose                                 |
-| ---------------- | --------------------------------------- |
-| `gsap/`          | GSAP + Tempus integration (auto-loaded) |
-| `progress-text/` | Scroll-based text reveal                |
+| Component        | Purpose                                                             |
+| ---------------- | ------------------------------------------------------------------- |
+| `gsap/`          | GSAP + Tempus integration (mounted via `<OptionalFeatures gsap />`) |
+| `progress-text/` | Scroll-based text reveal                                            |
 
 ## Best Practices
 

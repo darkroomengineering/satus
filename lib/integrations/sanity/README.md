@@ -74,8 +74,8 @@ dedupes the fetch across the page and `generateMetadata`):
 ```tsx
 import { draftMode } from 'next/headers'
 
-import { sanityFetch } from '@/lib/integrations/sanity/live'
-import { pageQuery } from '@/lib/integrations/sanity/queries'
+import { sanityFetch } from '@/integrations/sanity/live'
+import { pageQuery } from '@/integrations/sanity/queries'
 
 async function fetchPage(
   slug: string,
@@ -109,8 +109,8 @@ export default async function Page({ params }) {
 For `generateStaticParams` or other build-time functions, use the client directly:
 
 ```tsx
-import { client } from '@/lib/integrations/sanity/client'
-import { allArticlesQuery } from '@/lib/integrations/sanity/queries'
+import { client } from '@/integrations/sanity/client'
+import { allArticlesQuery } from '@/integrations/sanity/queries'
 
 export async function generateStaticParams() {
   if (!client) return []
@@ -124,7 +124,7 @@ export async function generateStaticParams() {
 Add `data-sanity` attributes for visual editing:
 
 ```tsx
-import { RichText } from '@/lib/integrations/sanity/components/rich-text'
+import { RichText } from '@/integrations/sanity/components/rich-text'
 
 function MyComponent({ data }) {
   return (
@@ -139,15 +139,18 @@ function MyComponent({ data }) {
 ### Image Handling
 
 ```tsx
-import { urlForImage } from '@/lib/integrations/sanity/utils/image'
+import { urlForImage } from '@/integrations/sanity/utils/image'
+import { Image } from '@/components/ui/image'
 import { SanityImage } from '@/components/ui/sanity-image'
 
-// Option 1: Using urlForImage utility
-<img src={urlForImage(image).width(800).url()} alt={image.alt} />
+// Option 1: Using urlForImage with the generic Image component
+<Image src={urlForImage(image).width(800).url()} alt={image.alt} width={800} height={600} />
 
 // Option 2: Using SanityImage component
 <SanityImage image={image} maxWidth={800} />
 ```
+
+A raw `<img>` is not an option here — oxlint's `nextjs/no-img-element` rule rejects it project-wide.
 
 ### SEO Metadata
 

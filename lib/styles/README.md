@@ -121,14 +121,19 @@ in the hand-authored `css/easings.css`. Key families:
   semantic tokens — never hard-code a hex in a component.
 - **Easing** — `--ease-out-expo`, `--ease-in-out-cubic`, `--ease-gleasing`, … are
   defined in `css/easings.css` as a hand-authored `@theme` block (static
-  cubic-bezier strings, no generation needed). Easing tokens live only in
-  `css/easings.css` — no `@theme` duplication in `css/tailwind.css`.
+  cubic-bezier strings, no generation needed). Easing values live only in
+  `css/easings.css` — there is no JS twin and no `@theme` duplication in
+  `css/tailwind.css`.
 - **Layout** — `--gap`, `--device-width`, and the column grid that powers
   `columns()` and `dr-*-col-*`.
 
 ## Adding a design token
 
-Edit the **source** config (never the generated CSS), then regenerate:
+The raw palette is authored in `lib/styles/colors.ts`. `bun setup:styles`
+(also run by `bun run build`) regenerates `css/tailwind.css` from it, so edit
+`colors.ts`, never the generated file. The same applies to the other tokens
+below — edit the **source** config, never the generated CSS, then
+regenerate:
 
 ```bash
 # 1. Add the value — e.g. a new brand color in lib/styles/colors.ts
@@ -140,14 +145,13 @@ bun setup:styles
 #    Tailwind: className="text-(--color-brand)"
 ```
 
-| File            | Purpose                                                                                 |
-| --------------- | --------------------------------------------------------------------------------------- |
-| `colors.ts`     | Color palette & per-theme semantic mapping                                              |
-| `typography.ts` | Font sizes & weights                                                                    |
-| `layout.mjs`    | Grid, breakpoints, spacing, device widths                                               |
-| `easings.ts`    | Easing values as a JS object (animation utilities). CSS authority is `css/easings.css`. |
-| `fonts.ts`      | Font loading                                                                            |
-| `config.ts`     | Aggregates the above (imported as `@/config`)                                           |
+| File            | Purpose                                       |
+| --------------- | --------------------------------------------- |
+| `colors.ts`     | Color palette & per-theme semantic mapping    |
+| `typography.ts` | Font sizes & weights                          |
+| `layout.mjs`    | Grid, breakpoints, spacing, device widths     |
+| `fonts.ts`      | Font loading                                  |
+| `config.ts`     | Aggregates the above (imported as `@/config`) |
 
 ## Generated files — do not edit
 
@@ -157,9 +161,9 @@ are **generated** by `bun setup:styles`. Hand-edits are overwritten on the next 
 `css/easings.css` and `css/global.css` are **not generated** — edit them directly.
 
 - `css/easings.css` — hand-authored `@theme` block for all `--ease-*` custom
-  properties. Static cubic-bezier strings; update by editing this file directly.
-  Values must stay in sync with `easings.ts` (the JS object exported via the
-  `@/styles` barrel).
+  properties. Static cubic-bezier strings; update by editing this file
+  directly. There is no JS twin — this file is the only source of truth for
+  easing values.
 - `css/global.css` — the `[data-reveal]` reveal-animation contract (used by
   `useReveal`) and the global `prefers-reduced-motion` neutralizer.
 

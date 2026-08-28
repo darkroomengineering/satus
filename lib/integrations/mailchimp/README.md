@@ -16,11 +16,26 @@ Turnstile env vars are configured separately — see `lib/integrations/turnstile
 
 ```tsx
 import { Form, Input, SubmitButton } from '@/components/ui/form'
-import { mailchimpSubscriptionAction } from '@/lib/integrations/mailchimp'
+import { mailchimpSubscriptionAction } from '@/integrations/mailchimp'
 
 ;<Form action={mailchimpSubscriptionAction}>
   <Input name="email" type="email" required />
   <SubmitButton>Subscribe</SubmitButton>
+</Form>
+```
+
+`mailchimpContactAction` (also exported from `@/integrations/mailchimp`) handles a contact form instead of a newsletter signup. Its schema requires `name`, `email`, `subject`, and `message`; on submit it posts the message as a note on a new Mailchimp contact. It returns the same `FormState` shape as `mailchimpSubscriptionAction`.
+
+```tsx
+import { Form, Input, SubmitButton } from '@/components/ui/form'
+import { mailchimpContactAction } from '@/integrations/mailchimp'
+
+;<Form action={mailchimpContactAction}>
+  <Input name="name" required />
+  <Input name="email" type="email" required />
+  <Input name="subject" required />
+  <Input name="message" required />
+  <SubmitButton>Send</SubmitButton>
 </Form>
 ```
 
@@ -38,7 +53,7 @@ import { mailchimpSubscriptionAction } from '@/lib/integrations/mailchimp'
 
 ### Validation
 
-Contact and subscription actions validate email format using Zod's `emailSchema`. Env vars are validated via `mailchimpEnvSchema` in the integration registry. Error responses use the unified `fieldErrors: Record<string, string>` pattern.
+Both actions validate email format (and the contact action's other fields) using Zod. Env vars are validated via `mailchimpEnvSchema` in the integration registry. Validation failures return `{ fieldErrors: Record<string, string> }`; API and network failures return only `{ status, message }`, with no `fieldErrors`.
 
 ## Notes
 

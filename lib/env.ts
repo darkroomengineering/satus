@@ -61,6 +61,8 @@ const envSchema = z.object({
   // HubSpot
   HUBSPOT_ACCESS_TOKEN: z.string().optional(),
   NEXT_PUBLIC_HUBSPOT_PORTAL_ID: z.string().optional(),
+  // Form ID used by the Forms API (getForm) to fetch a form's field definitions
+  NEXT_HUBSPOT_FORM_ID: z.string().optional(),
   // Opt-in allowlist of form IDs the newsletter action may submit to
   // (comma-separated). Server-only — unset means no restriction.
   HUBSPOT_ALLOWED_FORM_IDS: z.string().optional(),

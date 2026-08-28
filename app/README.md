@@ -9,15 +9,26 @@ app/
 ├── layout.tsx            # Bare html/body shell shared with /studio
 ├── global-error.tsx      # Root-level error boundary (wraps html+body)
 ├── not-found.tsx         # Bare-shell 404 for routes outside (site), e.g. /studio
-├── (site)/               # Every route EXCEPT /studio lives in this group
+├── manifest.ts           # Web app manifest
+├── robots.ts             # robots.txt
+├── sitemap.ts            # sitemap.xml
+├── llms.txt/             # /llms.txt route
+├── agent-content/        # /agent-content route
+├── icon.png, apple-icon.png, opengraph-image.jpg, twitter-image.jpg
+├── (site)/               # Site routes with app providers; /studio, /api and the machine-readable routes live outside
 │   ├── layout.tsx        # App providers, metadata, analytics
 │   ├── page.tsx          # Manual / in-app documentation landing page
 │   ├── loading.tsx       # App loading fallback
 │   ├── error.tsx         # Error boundary (thin wrapper over components/ui/error-view)
 │   ├── not-found.tsx     # 404 page
-│   └── [...unmatched]/   # Catch-all routing unmatched URLs to the 404 above
+│   ├── ai/                # /ai route
+│   ├── articles/[slug]/   # Sanity article pages
+│   ├── [...slug]/         # Catch-all: renders one-segment Sanity pages by slug, 404 otherwise
+│   └── (examples)/
+│       └── sanity/       # Manual's Sanity tutorial route (kept on purpose)
 ├── api/
-│   ├── draft-mode/       # Sanity draft mode
+│   ├── cart/ensure/      # Shopify: idempotently ensures a cart cookie exists
+│   ├── draft-mode/       # Sanity draft mode (enable/disable)
 │   └── revalidate/       # Webhook endpoint
 └── studio/               # Sanity Studio — inherits only the bare root shell
 ```

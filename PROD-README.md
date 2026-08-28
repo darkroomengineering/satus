@@ -10,13 +10,13 @@ bun dev
 
 ## Scripts
 
-| Command            | Description                                                                       |
-| ------------------ | --------------------------------------------------------------------------------- |
-| `bun dev`          | Development server                                                                |
-| `bun run build`    | Production build                                                                  |
-| `bun lint`         | Run linter                                                                        |
-| `bun run check`    | Run oxlint + oxfmt --check + type-aware lint + typecheck + tests + manifest check |
-| `bun setup:styles` | Regenerate CSS                                                                    |
+| Command            | Description                                                                           |
+| ------------------ | ------------------------------------------------------------------------------------- |
+| `bun dev`          | Development server                                                                    |
+| `bun run build`    | Production build                                                                      |
+| `bun lint`         | Run linter                                                                            |
+| `bun run check`    | Lint, format check, type-aware lint, typecheck, unit tests, manifest and asset checks |
+| `bun setup:styles` | Regenerate CSS                                                                        |
 
 ## Tech Stack
 
@@ -25,23 +25,25 @@ Next.js 16, React 19, TypeScript, Tailwind CSS v4, Bun
 ## Project Structure
 
 ```
-app/           # Pages and routes
-components/    # UI components
-lib/
-  hooks/       # Custom hooks + stores
-  utils/       # Pure utilities
-  styles/      # Design system, Tailwind config
-  integrations/ # Third-party services (Sanity, Shopify, HubSpot)
-  webgl/       # 3D graphics (optional)
-  dev/         # Debug tools
-  scripts/     # CLI tools
+app/                    # Next.js routes; llms.txt/, agent-content/, sitemap.ts, robots.ts, and manifest.ts (AEO surfaces) live at the app/ root
+components/             # UI components (Storybook for the interactive ones)
+lib/                    # Everything non-UI
+  ├── hooks/           # Custom React hooks
+  ├── integrations/    # Third-party services (Sanity, Shopify, HubSpot)
+  ├── features/        # Feature flags gating opt-in surfaces (e.g. WebGL)
+  ├── webgl/           # 3D graphics (optional, behind lib/features)
+  ├── seo/             # Sitemap, robots, and metadata helpers
+  ├── utils/           # Pure utilities
+  ├── scripts/         # CLI tools
+  ├── styles/          # Design system, Tailwind config
+  └── dev/             # Debug tools
 ```
 
 ## Content Management
 
 If the Sanity integration is enabled, manage content at [sanity.io/manage](https://sanity.io/manage) or through your project's Sanity Studio. Changes publish via webhooks.
 
-Manual cache clear: `GET https://[domain]/api/revalidate`
+Content updates publish through webhooks (Sanity publish, Shopify product/collection updates), which call `POST /api/revalidate`. To trigger it by hand: `curl -X POST "https://[domain]/api/revalidate?secret=$SHOPIFY_REVALIDATION_SECRET"` for Shopify tags, or re-publish the document in Sanity Studio. GET is not supported.
 
 ## Deployment
 

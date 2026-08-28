@@ -7,9 +7,10 @@ infrastructure is your responsibility.
 
 ## Supported Versions
 
-Security fixes land on the **latest release** and `main`. There are no long-term
-support branches; if you forked an older copy, rebase onto the latest `main` to
-pick up fixes.
+Security fixes land on `main`. Releases are tagged from `main`. There are no
+long-term support branches, so a fork that tracks a tag should check
+`CHANGELOG.md`'s `[Unreleased]` section for fixes that have landed since that
+tag.
 
 | Version      | Supported |
 | ------------ | --------- |
@@ -58,4 +59,7 @@ integration declares the origins its browser-visible code needs in
 `lib/integrations/registry.ts`'s `cspSources`, and `lib/integrations/csp.ts`
 unions them into the single header set in `next.config.ts`. Forks that need
 project-specific origins the registry can't know about extend
-`PROJECT_CSP_EXTRA_SOURCES` in `lib/integrations/csp.ts`.
+`PROJECT_CSP_EXTRA_SOURCES` in `lib/integrations/csp.ts`. The Shopify webhook
+secret on `/api/revalidate` is compared in constant time (`timingSafeEqual`):
+an unset secret returns 503, an invalid one 401. See
+[app/api/README.md](app/api/README.md) for the full revalidation flow.

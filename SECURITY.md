@@ -14,8 +14,8 @@ tag.
 
 | Version      | Supported |
 | ------------ | --------- |
-| 2.x (latest) | ✅        |
-| < 2.0        | ❌        |
+| 3.x (latest) | ✅        |
+| < 3.0        | ❌        |
 
 ## Reporting a Vulnerability
 

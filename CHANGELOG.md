@@ -22,6 +22,8 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-08-28
+
 ### Changed
 
 #### Toolchain and CI
@@ -60,6 +62,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 #### Integrations
 
+- API route handlers now return the team-convention `{ data, error }` shape: `error` is `null` on success and a message string on failure, `data` is the payload or `null`. `POST /api/cart/ensure` and `POST /api/revalidate` (both the Sanity and Shopify branches) are affected; every status code is unchanged. Clients that only checked `response.ok` keep working.
 - Integration registry is single-source: `INTEGRATION_BUNDLES` keys are typed against `RemovableId` from `lib/integrations/registry`, `prepare-handoff` matches integrations by id, and `next.config.ts` cleanup runs through typed ts-morph AST ops — the regex `updateNextConfig` is deleted.
 - Removing the theatre integration now also strips the Theatre.js debug wiring from the webgl fluid/flowmap hooks (via a new `removeCallStatement` AST op), so keeping webgl without theatre builds cleanly.
 - Integrations: Shopify customer actions run through `runFormAction`; Turnstile validation extracted to `lib/integrations/turnstile` (shared across integrations); the cart reconciler uses a discriminated union and every cart action returns one `CartActionResult` shape; optimistic add wraps in `startTransition`; the Mailchimp error path validates with Zod.
@@ -93,6 +96,8 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Removed
 
+- The HubSpot Forms API path: `getForm` (`lib/integrations/hubspot/fetch-form.ts`), the `formsApi` registry capability, `hubspotFormsApiEnvSchema`, and the `NEXT_HUBSPOT_FORM_ID` env var. The embed path is the supported way to render HubSpot forms; nothing in the starter called the fetch path.
+- The `evil` color theme. `Wrapper`'s `theme` prop, `themeNames`, the Storybook theme toolbar, and the generated `[data-theme=evil]` CSS now cover `light`, `dark`, and `red` only.
 - CSS linting. oxlint has no CSS parser, so the Biome CSS rules (`noUnknownFunction`, `noUnknownProperty`, `noDescendingSpecificity`, `noDuplicateCustomProperties`, `noUnknownMediaFeatureName`) have no counterpart and the 15 CSS `biome-ignore` comments they needed are deleted. `oxfmt` still formats every stylesheet, CSS Modules and Tailwind v4 at-rules included.
 
 - The `satus add`/`satus list` CLI (`bun run satus`) and the GitHub-tarball payload fetch behind it. It let you restore a stripped integration into a live project, but almost nobody used it, it downloaded and extracted an archive from a remote ref with no path checks, and its `--force` flag silently did nothing. `setup:project` — the command every project and `create-darkroom` actually run — is unaffected and stays the one way to configure a fresh clone. The one thing worth keeping from the old CLI came with it: `setup:project` now expands a kept integration to include whatever it requires (keeping `theatre` also keeps `webgl`, since theatre's bindings depend on it), fixing a bug where `--keep theatre` used to strip webgl out from under it and leave a build that doesn't compile.
@@ -210,6 +215,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 - Browsers without WebGPU now use the WebGL2 backend instead of the classic
   renderer, so TSL materials and animations work everywhere.
 
-[Unreleased]: https://github.com/darkroomengineering/satus/compare/v2.0.1...HEAD
+[Unreleased]: https://github.com/darkroomengineering/satus/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/darkroomengineering/satus/compare/v2.0.1...v3.0.0
 [2.0.1]: https://github.com/darkroomengineering/satus/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/darkroomengineering/satus/releases/tag/v2.0.0

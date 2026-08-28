@@ -1687,7 +1687,8 @@ describe('replaceAnchoredText (doc patching)', () => {
 
   it("finds the current ARCHITECTURE.md sentence claiming Cache Components is enabled (anchor hasn't gone stale)", async () => {
     const architectureMd = await Bun.file('ARCHITECTURE.md').text()
-    const anchor = 'Server Components use advanced caching. Key rules:'
+    const anchor =
+      "Data is fetched inside `'use cache'` functions that call `cacheTag()` and `cacheLife()`."
     const { text, changed } = replaceAnchoredText(
       architectureMd,
       anchor,

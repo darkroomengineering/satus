@@ -950,7 +950,8 @@ const CACHE_COMPONENTS_DOC_PATCHES: readonly {
   },
   {
     file: 'ARCHITECTURE.md',
-    anchor: 'Server Components use advanced caching. Key rules:',
+    anchor:
+      "Data is fetched inside `'use cache'` functions that call `cacheTag()` and `cacheLife()`.",
     replacement:
       'Cache Components is disabled in this project (no CMS/storefront integration kept at setup). Re-enable `cacheComponents` in next.config.ts when adding one.',
   },

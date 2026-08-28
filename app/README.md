@@ -68,7 +68,7 @@ export default function Page() {
 
 **Wrapper Props:**
 
-- `theme` — 'dark' | 'light' | 'red' | 'evil'
+- `theme` — 'dark' | 'light' | 'red'
 - `lenis` — Enable smooth scrolling
 - `webgl` — Enable WebGL canvas
 

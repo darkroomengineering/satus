@@ -115,7 +115,7 @@ in the hand-authored `css/easings.css`. Key families:
 - **Color** — `@theme` in `css/tailwind.css` is the single source of truth for
   the raw palette (`--color-red`, `--color-blue`, …) plus **theme-aware**
   `--color-primary` / `--color-secondary` / `--color-contrast`, which are remapped
-  per theme (`light`, `dark`, `evil`, `red`). Tailwind v4 compiles `@theme` into
+  per theme (`light`, `dark`, `red`). Tailwind v4 compiles `@theme` into
   `:root` custom properties, so there is no separate `:root` copy. Set the active
   theme via the Theme wrapper (e.g. `<Wrapper theme="dark">`), then reference the
   semantic tokens — never hard-code a hex in a component.

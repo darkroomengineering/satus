@@ -10,7 +10,7 @@ const colors = {
   green: 'oklch(0.8763 0.2278 152.55)',
 } as const
 
-const themeNames = ['light', 'dark', 'red', 'evil'] as const
+const themeNames = ['light', 'dark', 'red'] as const
 const colorNames = ['primary', 'secondary', 'contrast'] as const
 
 const themes = {
@@ -23,11 +23,6 @@ const themes = {
     primary: colors.black,
     secondary: colors.white,
     contrast: colors.red,
-  },
-  evil: {
-    primary: colors.black,
-    secondary: colors.red,
-    contrast: colors.white,
   },
   red: {
     primary: colors.red,

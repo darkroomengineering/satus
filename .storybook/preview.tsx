@@ -8,7 +8,7 @@ import '../lib/styles/css/index.css'
 // iframe's documentElement (not a wrapper) makes those derived tokens resolve
 // exactly as they do on the site, so editing the site's CSS tokens updates
 // Storybook too.
-const THEMES = ['dark', 'light', 'red', 'evil'] as const
+const THEMES = ['dark', 'light', 'red'] as const
 
 const withTheme: Decorator = (Story, context) => {
   const theme = (context.globals.theme as string) ?? 'dark'

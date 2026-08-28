@@ -1,17 +1,17 @@
 // USAGE — HubSpot Forms
-// 1. Set env vars: HUBSPOT_ACCESS_TOKEN, NEXT_PUBLIC_HUBSPOT_PORTAL_ID, NEXT_HUBSPOT_FORM_ID
+// 1. Set env vars: NEXT_PUBLIC_HUBSPOT_PORTAL_ID (embed widget), and the
+//    form's own ID (passed to the action below, e.g. from an embedded form's
+//    `formId` field or hardcoded in the page).
 //
-// 2. Fetch the form definition and render it in a Server Component page:
+// 2. Wire the server action to a form that submits an `email` and `formId`:
 //
 //   import { Form } from '@/components/ui/form'
 //   import { HubspotNewsletterAction } from '@/integrations/hubspot/action'
-//   import { getForm } from '@/integrations/hubspot/fetch-form'
 //
-//   export default async function NewsletterPage() {
-//     const result = await getForm(process.env.NEXT_HUBSPOT_FORM_ID)
-//     if ('error' in result) return <p>Form not configured.</p>
+//   export default function NewsletterPage() {
 //     return (
-//       <Form action={HubspotNewsletterAction} formId={result.form.id}>
+//       <Form action={HubspotNewsletterAction}>
+//         <input type="hidden" name="formId" value="your-hubspot-form-id" />
 //         <input type="email" name="email" placeholder="Your email" required />
 //         <button type="submit">Subscribe</button>
 //       </Form>

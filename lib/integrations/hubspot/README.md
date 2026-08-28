@@ -8,9 +8,6 @@ Form handling and marketing automation, with Cloudflare Turnstile spam protectio
 HUBSPOT_ACCESS_TOKEN=your-token
 NEXT_PUBLIC_HUBSPOT_PORTAL_ID=your-portal-id
 
-# Required for the Forms API (getForm) — the HubSpot form ID to fetch and render server-side
-NEXT_HUBSPOT_FORM_ID=your-form-id
-
 # Optional — comma-separated allowlist of form IDs the newsletter server
 # action may submit to. Pins which HubSpot forms this app can post to,
 # instead of trusting whatever formId a client sends. Unset means no
@@ -31,29 +28,6 @@ import { EmbedHubspotForm } from '@/integrations/hubspot/embed'
 />
 ```
 
-### Server-rendered forms (Forms API)
-
-`getForm` (`@/integrations/hubspot/fetch-form`) fetches a form's field definitions from the HubSpot Forms v3 API, so the form can be rendered server-side instead of embedded via HubSpot's client script. It reads `NEXT_HUBSPOT_FORM_ID` and requires `HUBSPOT_ACCESS_TOKEN`. This is the `formsApi` capability in the registry — check it with `hasCapability('hubspot', 'formsApi')` before rendering.
-
-```tsx
-import { Form } from '@/components/ui/form'
-import { HubspotNewsletterAction } from '@/integrations/hubspot/action'
-import { getForm } from '@/integrations/hubspot/fetch-form'
-
-export default async function NewsletterPage() {
-  const result = await getForm(process.env.NEXT_HUBSPOT_FORM_ID)
-  if ('error' in result) return <p>Form not configured.</p>
-  return (
-    <Form action={HubspotNewsletterAction} formId={result.form.id}>
-      <input type="email" name="email" placeholder="Your email" required />
-      <button type="submit">Subscribe</button>
-    </Form>
-  )
-}
-```
-
-The server action validates with Zod and posts to the HubSpot Forms v3 API. Rate limiting and Turnstile verification run first, in that order, via `runFormAction` — render a Turnstile widget in the form (see `lib/integrations/turnstile/README.md`) so its token lands in the `cf-turnstile-response` field.
-
 ### Server Action
 
 ```tsx
@@ -65,6 +39,8 @@ import { HubspotNewsletterAction } from '@/integrations/hubspot/action'
   <SubmitButton>Subscribe</SubmitButton>
 </Form>
 ```
+
+The action validates with Zod and posts directly to the HubSpot Forms v3 API. Rate limiting and Turnstile verification run first, in that order, via `runFormAction` — render a Turnstile widget in the form (see `lib/integrations/turnstile/README.md`) so its token lands in the `cf-turnstile-response` field.
 
 ### Validation
 

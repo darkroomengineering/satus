@@ -214,25 +214,28 @@ export function applyRemoveUseCacheDirective(
 }
 
 /**
- * Compare two blocks of source text ignoring per-line indentation.
- *
- * `replaceWithText` re-indents what it inserts to match the node's position,
- * so a replacement that has already been applied never reads back
- * byte-identical to the text the op declares. Without this, re-running a
- * transform over an already-stripped file rewrites it with slightly
- * different whitespace instead of no-opping — which breaks the idempotent
- * re-run contract `applyOpsToText` depends on (see `RequiredMatchOp` in
- * `ast-operation-types.ts`).
+ * Splice `replacement` verbatim over the node's exact source range, bypassing
+ * ts-morph's manipulation printer. `replaceWithText` re-indents inserted
+ * lines relative to the replaced node's original shape, so the first
+ * application and a re-application of the same replacement produce different
+ * whitespace — breaking the idempotent re-run contract `applyOpsToText`
+ * depends on (see `RequiredMatchOp` in `ast-operation-types.ts`). A verbatim
+ * splice makes re-applying an already-applied replacement byte-identical,
+ * which the runner's change detection (`text === before`) counts as the
+ * required-op miss it is. No text-similarity heuristic is involved, so
+ * whitespace that is content (a multiline template literal's interior, a
+ * JSDoc's spacing) can never make a needed replacement look already applied.
+ * The trade-off: `replacement` must be authored pre-indented for its target
+ * (both current targets are top-level, authored flush).
  */
-const sameIgnoringIndent = (a: string, b: string): boolean =>
-  a
-    .split('\n')
-    .map((line) => line.trim())
-    .join('\n') ===
-  b
-    .split('\n')
-    .map((line) => line.trim())
-    .join('\n')
+const spliceNodeText = (
+  sourceText: string,
+  node: { getStart: () => number; getEnd: () => number },
+  replacement: string
+): string =>
+  sourceText.slice(0, node.getStart()) +
+  replacement +
+  sourceText.slice(node.getEnd())
 
 /**
  * Replace a named function's entire body with `replacement` (source text
@@ -250,10 +253,7 @@ export function applyReplaceFunctionBody(
 
     const body = fn.getBody()
     if (!body) return sourceText
-    if (sameIgnoringIndent(body.getText(), op.replacement)) return sourceText
-
-    body.replaceWithText(op.replacement)
-    return undefined // proceed with sf.getFullText()
+    return spliceNodeText(sourceText, body, op.replacement)
   })
 }
 
@@ -570,18 +570,12 @@ export function applyReplaceJsDoc(
     const docs = fn.getJsDocs()
     if (docs.length === 0) return sourceText
 
-    // Replace the first (and typically only) JSDoc block.
-    // We pass the full /** … */ text directly to replaceWithText; ts-morph
-    // treats JSDoc nodes as replaceable text ranges.
+    // Replace the first (and typically only) JSDoc block — verbatim splice
+    // over the /** … */ range; see `spliceNodeText` for why not
+    // `replaceWithText`.
     const firstDoc = docs[0]
     if (!firstDoc) return sourceText
-    // Already says what the op says — see `sameIgnoringIndent`.
-    if (sameIgnoringIndent(firstDoc.getText(), op.replacement)) {
-      return sourceText
-    }
-
-    firstDoc.replaceWithText(op.replacement)
-    return undefined // proceed with sf.getFullText()
+    return spliceNodeText(sourceText, firstDoc, op.replacement)
   })
 }
 

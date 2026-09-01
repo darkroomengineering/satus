@@ -93,6 +93,53 @@ describe('removeCallArgument', () => {
 // removeIfStatement
 // ---------------------------------------------------------------------------
 
+describe('replaceFunctionBody / replaceJsDoc — indentation-insensitive skip', () => {
+  it('applies when the body differs only inside a template literal interior', () => {
+    // Per-line trim comparison would judge these bodies equal (every line's
+    // trimmed text matches) and skip the replacement; only the literal's
+    // interior indentation differs, and that whitespace is content.
+    const fixture = `function greet() {
+  return \`hello
+      world\`
+}
+`
+    const op: AstOperation = {
+      kind: 'replaceFunctionBody',
+      functionName: 'greet',
+      replacement: '{\n  return `hello\n  world`\n}',
+    }
+    const result = applyOpsToText(fixture, [op])
+    expect(result).toContain('  world`')
+    expect(result).not.toContain('      world`')
+    // Re-applying the now-satisfied op is a byte-identical no-op.
+    expect(applyOpsToText(result, [op])).toBe(result)
+  })
+
+  it('applies when the JSDoc differs only in trailing whitespace', () => {
+    const fixture = `/** greets */
+function greet() {
+  return 1
+}
+`
+    const op: AstOperation = {
+      kind: 'replaceJsDoc',
+      functionName: 'greet',
+      replacement: '/** greets loudly */',
+    }
+    const trailing: AstOperation = {
+      kind: 'replaceJsDoc',
+      functionName: 'greet',
+      replacement: '/** greets  loudly */',
+    }
+    const once = applyOpsToText(fixture, [op])
+    expect(once).toContain('/** greets loudly */')
+    // Interior double space is content, not indentation — must still apply.
+    const twice = applyOpsToText(once, [trailing])
+    expect(twice).toContain('/** greets  loudly */')
+    expect(applyOpsToText(twice, [trailing])).toBe(twice)
+  })
+})
+
 describe('removeIfStatement', () => {
   const op: AstOperation = {
     kind: 'removeIfStatement',

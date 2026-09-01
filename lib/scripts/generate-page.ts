@@ -47,8 +47,8 @@ export interface PageCapability {
  * The page-template capabilities this generator supports, listed here rather
  * than derived from the bundle manifest (M2): the manifest holds every
  * removable integration, but `generatePageContent` understands only these
- * three — picking HubSpot, Mailchimp, or Theatre in the old prompt silently
- * produced an identical page.
+ * three, so the prompt must offer exactly these — an option it can't act on
+ * would silently produce an identical page.
  */
 export const PAGE_CAPABILITIES: readonly PageCapability[] = [
   {

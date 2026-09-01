@@ -323,9 +323,9 @@ function findPrecedingJsxComment(target: Node): Node | undefined {
  *
  * Open/close elements without `unwrap`: remove entirely, including any
  * wrapping JsxExpression container (handles `{studio && <Studio />}`) and the
- * same preceding comment the self-closing branch removes (L4 — the two
- * branches used to disagree, leaving an orphaned comment behind a removed
- * `<Studio>…</Studio>`).
+ * same preceding comment the self-closing branch removes (L4 — both branches
+ * must share the cleanup, or a removed `<Studio>…</Studio>` leaves its
+ * documenting comment orphaned).
  */
 export function applyRemoveJsxElement(
   project: Project,

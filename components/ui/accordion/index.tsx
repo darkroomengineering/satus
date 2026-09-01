@@ -201,11 +201,21 @@ function Body({
   const { isOpen } = useAccordionContext()
   const [setRectRef, entry] = useResizeObserver()
 
+  // Before the ResizeObserver's first measurement, `entry` is undefined —
+  // falling back to 'auto' (instead of the literal "undefinedpx", which the
+  // browser drops as invalid CSS) renders the panel at its natural height for
+  // that first frame. The transition still animates normally afterward, once
+  // `entry` is set and this resolves to a real pixel value.
+  let panelHeight = '0px'
+  if (isOpen) {
+    panelHeight = entry ? `${entry.contentRect.height}px` : 'auto'
+  }
+
   return (
     <Collapsible.Panel
       className={cn(s.body, isOpen && s.isOpen)}
       style={{
-        height: `${isOpen ? entry?.contentRect.height : 0}px`,
+        height: panelHeight,
       }}
     >
       <div ref={setRectRef}>

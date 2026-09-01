@@ -8,6 +8,7 @@ import {
   type ImageProps as DRImageProps,
 } from '@/components/ui/image'
 import { useDeviceDetection } from '@/hooks/use-device-detection'
+import { useRootCanvasMounted } from '@/webgl/components/canvas'
 import { useWebGLElement } from '@/webgl/hooks/use-webgl-element'
 
 import { WebGLTunnel } from '../tunnel'
@@ -40,12 +41,18 @@ export function Image({
   const { setRef, rect, isVisible } = useWebGLElement<HTMLDivElement>()
   const { isWebGL, isReducedMotion } = useDeviceDetection()
 
-  // Hide the DOM image only when the WebGL canvas will actually render its
+  // Hide the DOM image only when a WebGL canvas will actually render its
   // replacement. `Canvas` mounts on `isWebGL && !isReducedMotion` (see
   // components/canvas), so gating on `isWebGL` alone would blank the image for
   // a reduced-motion visitor whose canvas never mounts — the exact fallback
-  // the module contract promises. Match the canvas's default gate.
-  const webglActive = isWebGL && !isReducedMotion
+  // the module contract promises. `rootCanvasMounted` covers the other way
+  // this can go blank: no `<Canvas root>` mounted anywhere (neither the
+  // layout canvas nor a page's `<Wrapper webgl>`), which the device-capability
+  // checks alone can't detect. It's reactive, so the image reappears/hides
+  // correctly regardless of whether the root canvas mounts before or after
+  // this component (mount order isn't guaranteed across routes).
+  const rootCanvasMounted = useRootCanvasMounted()
+  const webglActive = isWebGL && !isReducedMotion && rootCanvasMounted
 
   return (
     <div

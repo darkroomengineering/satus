@@ -22,6 +22,21 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ## [Unreleased]
 
+### Fixed
+
+- `setup:project` output now typechecks on every keep-combination. The sanity strip used to leave the shared revalidate route referencing a removed import and `lib/seo/routes.ts` referencing six stripped symbols, so blank and shopify-only scaffolds failed their first `bun run check` with 7 type errors. Sanity's webhook handler moved into its own module (`lib/integrations/sanity/revalidate.ts`) with a guard + dispatch pair in the route matching shopify's, the routes strip stubs every function that read a stripped symbol, and a lean-variant validity test now applies all four keep-combinations in-memory on every test run. Verified by running the real script end to end: all four variants pass typecheck, lint, and tests at 0 errors.
+- Negative multi-property scale utilities (`-dr-rounded-{t,r,b,l}-*` and their `-px` variants) negated only their first border-radius property, so a negative top radius came out asymmetric. The generator now negates per property; the committed CSS is regenerated and a multi-property regression test covers the case the #394 column fix missed.
+- The WebGL `Image` blanked silently on pages with no `<Canvas root>` mounted: the DOM image hid on device capability alone while the replacement mesh portaled into a tunnel nothing consumed. The image now also requires a registered root canvas (reactive, mount-order independent) and `useCanvas()` warns in development when its fallback has no canvas to render into.
+- Rate limiting no longer buckets every visitor without a proxy IP header into one shared counter (which produced false 429s for the sixth concurrent stranger). `getIPFromHeaders`/`getClientIP` return `null` when no header is present and every caller skips the check instead.
+- Smaller fixes: setup's barrel-export and filesystem failures now feed the self-prune gate instead of warning past it; `ensure:typegen` regenerates when the `.next/types` files are missing, not just `next-env.d.ts` (closing the post-branch-switch typecheck hole); self-prune keeps the test files for commands that ship with scaffolds; `generate:page` only offers integrations actually present on disk; component generation validates every path segment; `Select` forwards a cleared (`null`) selection; `Accordion` no longer renders an invalid height before first measurement.
+
+### Changed
+
+- A webhook request hitting `/api/revalidate` with neither shopify's nor sanity's signal now gets a `404 { data, error }` response instead of falling through to sanity's body parsing (previously 401/503).
+- `HUBSPOT_ALLOWED_FORM_IDS` is now required in production: with it unset, the newsletter action rejects submissions (matching the turnstile fail-closed pattern) instead of relaying any form id under the public portal id. Development still allows and warns.
+- Shopify search queries are trimmed and capped at 200 characters before forwarding; the cart modal's open/close state moved into `CartProvider` (same `useCartModal` hook, new import path from `cart-context`); the shopify README marks customer auth as template surface that ships unwired.
+- CI hardening: the `ci` and `e2e` jobs carry explicit timeouts, the last two tag-pinned actions in the Lighthouse workflow are SHA-pinned, and the three anti-slop rules that ran without a ruletest are now covered.
+
 ## [3.0.0] - 2026-08-28
 
 ### Changed

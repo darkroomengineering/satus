@@ -66,7 +66,7 @@ export async function validateTurnstile(
         body: new URLSearchParams({
           secret,
           response: token,
-          ...(ip && ip !== 'unknown' && { remoteip: ip }),
+          ...(ip && { remoteip: ip }),
         }),
         timeout: 5000, // 5 second timeout for Turnstile verification
       }

@@ -55,7 +55,7 @@ const product = await getProduct({ handle: 'product-handle' })
 All Shopify server actions validate input with Zod schemas:
 
 - **Cart actions**: `addItem` validates the variant id and a quantity of 1–99 with Zod. `updateItemQuantity` accepts a quantity of 0–99 (0 removes the line). `removeItem` takes the client-held `lineId` and checks only that it is present — there is no Zod schema for it. All three return `CartActionResult` — `{ ok: true }` on success, `{ ok: false; error: string }` on failure.
-- **Customer actions** (`LoginCustomerAction`, `CreateCustomerAction`): validate email format, password length, rate limiting via `runFormAction`. `LoginCustomerAction` passes the strict limiter (5 req/min) to `runFormAction` to throttle brute-force attempts.
+- **Customer actions** (`LoginCustomerAction`, `CreateCustomerAction`): validate email format, password length, rate limiting via `runFormAction`. `LoginCustomerAction` passes the strict limiter (5 req/min) to `runFormAction` to throttle brute-force attempts. These actions ship unwired — no route or component in this repo calls them; a client build that needs customer accounts adds the route and UI that consume them.
 - **Error handling**: Cart actions use `CartActionResult`; customer actions return `FormState` objects; there is no `Error` instance wrapping
 
 Env vars are validated via `shopifyEnvSchema` in the integration registry.
@@ -65,7 +65,7 @@ The GraphQL _envelope_ (`data` / `errors` fields) is always validated at the bou
 
 - Optimistic UI updates
 - Cart persistence (cookies)
-- Customer authentication
+- Customer authentication (unwired template surface — see Validation above)
 
 ## Caching
 

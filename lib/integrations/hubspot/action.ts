@@ -59,6 +59,14 @@ export async function HubspotNewsletterAction(
             fieldErrors: { formId: 'Form is not allowed' },
           }
         }
+      } else if (process.env.NODE_ENV === 'production') {
+        // Fail closed in production, fail open in development
+        console.error('HUBSPOT_ALLOWED_FORM_IDS not configured in production')
+        return { status: 500, message: 'security_configuration_error_' }
+      } else {
+        console.warn(
+          'HUBSPOT_ALLOWED_FORM_IDS not set - allowing any formId in development'
+        )
       }
 
       const portalId = env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID

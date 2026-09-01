@@ -70,12 +70,16 @@ export async function runFormAction<T>({
   const headersList = await headers()
   const ip = getIPFromHeaders(headersList)
 
-  const rateLimitResult = rateLimit(`${rateLimitPrefix}:${ip}`, rateLimiter)
+  // No IP header present: skip rate limiting rather than bucket every
+  // headerless visitor under one shared counter (fail open, not shared-fail).
+  if (ip) {
+    const rateLimitResult = rateLimit(`${rateLimitPrefix}:${ip}`, rateLimiter)
 
-  if (!rateLimitResult.success) {
-    return {
-      status: 429,
-      message: rateLimitMessage,
+    if (!rateLimitResult.success) {
+      return {
+        status: 429,
+        message: rateLimitMessage,
+      }
     }
   }
 

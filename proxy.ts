@@ -117,20 +117,22 @@ export function proxy(request: NextRequest) {
   // Rate limit API routes
   if (request.nextUrl.pathname.startsWith('/api/')) {
     const ip = getClientIP(request)
-    const result = rateLimit(`api:${ip}`, rateLimiters.relaxed)
+    if (ip) {
+      const result = rateLimit(`api:${ip}`, rateLimiters.relaxed)
 
-    if (!result.success) {
-      return NextResponse.json(
-        { error: 'Too many requests' },
-        {
-          status: 429,
-          headers: {
-            'Retry-After': String(result.resetIn),
-            'X-RateLimit-Limit': String(result.limit),
-            'X-RateLimit-Remaining': '0',
-          },
-        }
-      )
+      if (!result.success) {
+        return NextResponse.json(
+          { error: 'Too many requests' },
+          {
+            status: 429,
+            headers: {
+              'Retry-After': String(result.resetIn),
+              'X-RateLimit-Limit': String(result.limit),
+              'X-RateLimit-Remaining': '0',
+            },
+          }
+        )
+      }
     }
   }
 

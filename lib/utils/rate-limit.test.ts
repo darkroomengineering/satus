@@ -9,7 +9,12 @@
 
 import { describe, expect, it } from 'bun:test'
 
-import { getClientIP, rateLimit, rateLimiters } from './rate-limit'
+import {
+  getClientIP,
+  getIPFromHeaders,
+  rateLimit,
+  rateLimiters,
+} from './rate-limit'
 
 /**
  * Helper to generate a unique identifier per test to avoid cross-test pollution
@@ -219,9 +224,9 @@ describe('getClientIP', () => {
     expect(getClientIP(request)).toBe('203.0.113.50')
   })
 
-  it('should return "unknown" when no IP headers are present', () => {
+  it('should return null when no IP headers are present', () => {
     const request = new Request('http://localhost')
-    expect(getClientIP(request)).toBe('unknown')
+    expect(getClientIP(request)).toBeNull()
   })
 
   it('should handle IPv6 addresses', () => {
@@ -229,6 +234,48 @@ describe('getClientIP', () => {
       headers: { 'x-forwarded-for': '::1' },
     })
     expect(getClientIP(request)).toBe('::1')
+  })
+})
+
+describe('getIPFromHeaders', () => {
+  it('should return null when no IP headers are present (headerless visitor)', () => {
+    const headers = new Headers()
+    expect(getIPFromHeaders(headers)).toBeNull()
+  })
+
+  it('should return null when x-forwarded-for is present but empty', () => {
+    const headers = new Headers({ 'x-forwarded-for': '' })
+    expect(getIPFromHeaders(headers)).toBeNull()
+  })
+
+  it('should return null when x-forwarded-for is only whitespace before the first comma', () => {
+    const headers = new Headers({ 'x-forwarded-for': '  ,10.0.0.1' })
+    expect(getIPFromHeaders(headers)).toBeNull()
+  })
+
+  it('should extract IP from x-forwarded-for', () => {
+    const headers = new Headers({ 'x-forwarded-for': '192.168.1.1' })
+    expect(getIPFromHeaders(headers)).toBe('192.168.1.1')
+  })
+})
+
+describe('rate-limit callers skip limiting when the IP is unresolvable', () => {
+  it('a null IP means callers must not build a shared "<prefix>:null" bucket', () => {
+    // Mirrors the pattern every caller (form-action.ts, proxy.ts,
+    // app/api/revalidate/route.ts, shopify cart actions.ts) now follows:
+    // `if (ip) { rateLimit(...) }` — a headerless request skips the call
+    // entirely instead of falling into a bucket every other headerless
+    // visitor also lands in.
+    const request = new Request('http://localhost')
+    const ip = getClientIP(request)
+    expect(ip).toBeNull()
+
+    let rateLimitCalled = false
+    if (ip) {
+      rateLimitCalled = true
+      rateLimit(`prefix:${ip}`, rateLimiters.standard)
+    }
+    expect(rateLimitCalled).toBe(false)
   })
 })
 

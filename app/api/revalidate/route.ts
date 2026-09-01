@@ -8,18 +8,20 @@ import { getClientIP, rateLimit, rateLimiters } from '@/lib/utils/rate-limit'
 export async function POST(request: NextRequest) {
   // Rate limit to prevent cache flooding
   const ip = getClientIP(request)
-  const rateLimitResult = rateLimit(`revalidate:${ip}`, rateLimiters.standard)
+  if (ip) {
+    const rateLimitResult = rateLimit(`revalidate:${ip}`, rateLimiters.standard)
 
-  if (!rateLimitResult.success) {
-    return NextResponse.json(
-      { data: null, error: 'Too many requests' },
-      {
-        status: 429,
-        headers: {
-          'Retry-After': String(rateLimitResult.resetIn),
-        },
-      }
-    )
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { data: null, error: 'Too many requests' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(rateLimitResult.resetIn),
+          },
+        }
+      )
+    }
   }
 
   // Shopify webhooks identify themselves with an `x-shopify-topic` header and

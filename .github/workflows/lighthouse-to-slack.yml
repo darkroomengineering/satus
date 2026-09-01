@@ -241,7 +241,7 @@ jobs:
       - name: Format Results
         id: format
         if: steps.vercel_info.outputs.skip != 'true' && steps.bypass_check.outputs.skip == 'false'
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           DEPLOYMENT_FAILED: ${{ steps.await.outcome != 'success' }}
           PREVIEW_URL: ${{ steps.vercel_url.outputs.preview_url }}
@@ -284,6 +284,6 @@ jobs:
 
       - name: Post Commit Comment
         if: steps.vercel_info.outputs.skip != 'true' && steps.bypass_check.outputs.skip == 'false' && steps.format.outputs.comment != ''
-        uses: peter-evans/commit-comment@v4
+        uses: peter-evans/commit-comment@f6d60c65d05bb59f750fa51ad3de1d443ba0eb52 # v4
         with:
           body: ${{ steps.format.outputs.comment }}

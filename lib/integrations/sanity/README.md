@@ -191,7 +191,7 @@ export const landing = defineType({
 ## Caching
 
 - `sanityFetch` calls `cacheTag()` internally, so every call must run inside a `'use cache'` function (see [Fetching Data](#fetching-data) above)
-- Revalidation happens via the webhook route (`app/api/revalidate/route.ts`), which calls `revalidateTag()` when Sanity's webhook fires
+- Revalidation happens via the webhook route (`app/api/revalidate/route.ts`), which dispatches to `revalidate()` in `lib/integrations/sanity/revalidate.ts`; that handler validates the signature and calls `revalidateTag()`
 - Draft mode switches `sanityFetch` to the draft perspective instead of relying on a separate no-store fetch path
 
 See [ARCHITECTURE.md](../../../ARCHITECTURE.md) for cache gotchas.

@@ -187,7 +187,7 @@ const removeFooterLogo = async (dryRun: boolean): Promise<boolean> => {
 
     // JSX-element removal leaves the credit link's former indentation as a
     // whitespace-only line; collapse it so the file stays `oxfmt`-clean.
-    const transformed = afterOps.replace(/\n[ \t]+\n/, '\n')
+    const transformed = afterOps.replace(/\n[ \t]+\n/g, '\n')
 
     if (!dryRun) {
       await Bun.write(footerPath, transformed)

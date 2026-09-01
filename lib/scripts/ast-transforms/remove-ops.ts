@@ -214,8 +214,30 @@ export function applyRemoveUseCacheDirective(
 }
 
 /**
+ * Compare two blocks of source text ignoring per-line indentation.
+ *
+ * `replaceWithText` re-indents what it inserts to match the node's position,
+ * so a replacement that has already been applied never reads back
+ * byte-identical to the text the op declares. Without this, re-running a
+ * transform over an already-stripped file rewrites it with slightly
+ * different whitespace instead of no-opping — which breaks the idempotent
+ * re-run contract `applyOpsToText` depends on (see `RequiredMatchOp` in
+ * `ast-operation-types.ts`).
+ */
+const sameIgnoringIndent = (a: string, b: string): boolean =>
+  a
+    .split('\n')
+    .map((line) => line.trim())
+    .join('\n') ===
+  b
+    .split('\n')
+    .map((line) => line.trim())
+    .join('\n')
+
+/**
  * Replace a named function's entire body with `replacement` (source text
- * including the surrounding braces). No-op when the function isn't found.
+ * including the surrounding braces). No-op when the function isn't found, or
+ * when its body already says what `replacement` says.
  */
 export function applyReplaceFunctionBody(
   project: Project,
@@ -228,6 +250,7 @@ export function applyReplaceFunctionBody(
 
     const body = fn.getBody()
     if (!body) return sourceText
+    if (sameIgnoringIndent(body.getText(), op.replacement)) return sourceText
 
     body.replaceWithText(op.replacement)
     return undefined // proceed with sf.getFullText()
@@ -258,16 +281,51 @@ export function applyRemoveCallArgument(
 }
 
 /**
+ * Find the JSX comment expression that documents `target`, if any: the nearest
+ * preceding sibling in the JSX child list, skipping the whitespace-only
+ * JsxText between them. Returns the comment node so the caller can remove it
+ * AFTER removing `target` — the comment sits earlier in the source, so its
+ * position survives the target's removal, while the reverse order would
+ * invalidate the target node.
+ */
+function findPrecedingJsxComment(target: Node): Node | undefined {
+  const siblings =
+    target.getParentSyntaxList()?.getChildren() ??
+    target.getParent()?.getChildren() ??
+    []
+
+  for (let index = siblings.indexOf(target) - 1; index >= 0; index--) {
+    const sibling = siblings[index]
+    if (!sibling) return undefined
+    if (
+      sibling.getKind() === SyntaxKind.JsxText &&
+      sibling.getText().trim() === ''
+    ) {
+      continue
+    }
+    return sibling.getKind() === SyntaxKind.JsxExpression &&
+      sibling.getText().trim().startsWith('{/*')
+      ? sibling
+      : undefined
+  }
+  return undefined
+}
+
+/**
  * Walk all JSX elements in the source file and find those matching the op.
  *
  * Self-closing elements: remove the whole element (plus any immediately
  * preceding JSX comment expression on the prior sibling position).
  *
  * Open/close elements with `unwrap: true`: replace the element with its
- * children, preserving indentation.
+ * children, preserving indentation. The comment cleanup is skipped here —
+ * the children stay, so whatever the comment documents is still rendered.
  *
  * Open/close elements without `unwrap`: remove entirely, including any
- * wrapping JsxExpression container (handles `{studio && <Studio />}`).
+ * wrapping JsxExpression container (handles `{studio && <Studio />}`) and the
+ * same preceding comment the self-closing branch removes (L4 — the two
+ * branches used to disagree, leaving an orphaned comment behind a removed
+ * `<Studio>…</Studio>`).
  */
 export function applyRemoveJsxElement(
   project: Project,
@@ -316,27 +374,10 @@ export function applyRemoveJsxElement(
           cursor = cursor.getParent()
         }
 
-        if (enclosingJsxExpr) {
-          // Also remove any immediately preceding JSX comment sibling.
-          const container = enclosingJsxExpr.getParent()
-          if (container) {
-            const siblings = container.getChildren()
-            const idx = siblings.indexOf(enclosingJsxExpr)
-            if (idx > 0) {
-              const prev = siblings[idx - 1]
-              if (
-                prev &&
-                prev.getKind() === SyntaxKind.JsxExpression &&
-                prev.getText().trim().startsWith('{/*')
-              ) {
-                prev.replaceWithText('')
-              }
-            }
-          }
-          enclosingJsxExpr.replaceWithText('')
-        } else {
-          node.replaceWithText('')
-        }
+        const removed = enclosingJsxExpr ?? node
+        const comment = findPrecedingJsxComment(removed)
+        removed.replaceWithText('')
+        comment?.replaceWithText('')
       } else {
         // JsxElement (open+close pair)
         const node = match.node
@@ -366,11 +407,10 @@ export function applyRemoveJsxElement(
             }
             cur = cur.getParent()
           }
-          if (enclosingExpr) {
-            enclosingExpr.replaceWithText('')
-          } else {
-            node.replaceWithText('')
-          }
+          const removed = enclosingExpr ?? node
+          const comment = findPrecedingJsxComment(removed)
+          removed.replaceWithText('')
+          comment?.replaceWithText('')
         }
       }
     }
@@ -535,6 +575,10 @@ export function applyReplaceJsDoc(
     // treats JSDoc nodes as replaceable text ranges.
     const firstDoc = docs[0]
     if (!firstDoc) return sourceText
+    // Already says what the op says — see `sameIgnoringIndent`.
+    if (sameIgnoringIndent(firstDoc.getText(), op.replacement)) {
+      return sourceText
+    }
 
     firstDoc.replaceWithText(op.replacement)
     return undefined // proceed with sf.getFullText()

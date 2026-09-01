@@ -10,7 +10,14 @@
 
 import { describe, expect, it } from 'bun:test'
 
-import { generatePageContent } from './generate-page'
+import {
+  availablePageCapabilities,
+  detectPageCapabilities,
+  generatePageContent,
+  PAGE_CAPABILITIES,
+  type PageCapabilityId,
+} from './generate-page'
+import { pathExists, resolvePath } from './utils'
 
 describe('generatePageContent — identifier safety (P-C8)', () => {
   it('builds a valid PascalCase function name for a hyphenated page name', () => {
@@ -71,5 +78,65 @@ describe('generatePageContent — import grouping (P-C9)', () => {
       line.includes("from '@/")
     )
     expect(lines[firstInternalIndex - 1]).toBe('')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// M2 — the integration prompt offered every bundle while the template builder
+// understood only three of them, so picking HubSpot, Mailchimp, or Theatre
+// changed nothing, and a scaffold that dropped an integration still offered
+// it. The list is local now, and filtered by what the project still has.
+// ---------------------------------------------------------------------------
+
+describe('page capabilities (M2)', () => {
+  it('offers exactly the three capabilities the template builder implements', () => {
+    expect(PAGE_CAPABILITIES.map((c) => c.value)).toEqual([
+      'webgl',
+      'sanity',
+      'shopify',
+    ])
+    for (const capability of PAGE_CAPABILITIES) {
+      expect(capability.label).toBeTruthy()
+      expect(capability.hint).toBeTruthy()
+    }
+  })
+
+  it('every offered capability actually changes the generated page', () => {
+    const plain = generatePageContent('about', {})
+    for (const capability of PAGE_CAPABILITIES) {
+      const withCapability = generatePageContent('about', {
+        [capability.value]: true,
+      })
+      expect(withCapability).not.toBe(plain)
+    }
+  })
+
+  it('drops a capability whose integration is gone from the project', () => {
+    const present = new Set<PageCapabilityId>(['webgl'])
+    expect(
+      availablePageCapabilities((id) => present.has(id)).map((c) => c.value)
+    ).toEqual(['webgl'])
+  })
+
+  it('returns nothing when the project kept none of the three', () => {
+    expect(availablePageCapabilities(() => false)).toEqual([])
+  })
+
+  // Deliberately not "this repo has all three": this test ships with every
+  // scaffolded project, so it asserts the RULE (a capability is offered
+  // exactly when its code is on disk) rather than a capability set that a
+  // scaffold is free to have pruned.
+  it('offers a capability exactly when its code is present', async () => {
+    const present = await detectPageCapabilities()
+
+    expect(present.has('sanity')).toBe(
+      await pathExists(resolvePath('lib/integrations/sanity'))
+    )
+    expect(present.has('shopify')).toBe(
+      await pathExists(resolvePath('lib/integrations/shopify'))
+    )
+    expect(present.has('webgl')).toBe(
+      await pathExists(resolvePath('lib/webgl'))
+    )
   })
 })

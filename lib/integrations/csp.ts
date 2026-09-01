@@ -109,8 +109,13 @@ const NEVER_STRIPPED: ReadonlySet<IntegrationId> = new Set([
  * set), and the policy still needs to allow that origin the moment
  * credentials land. Composing from "kept" rather than "configured" means the
  * header only moves when the codebase changes, not when an env var does.
+ *
+ * Exported so tooling that must answer the same question — `generate-page`
+ * offers a page template's Sanity/Shopify options only when that integration
+ * is still in the project — shares this one detector instead of growing a
+ * second copy of the rule.
  */
-function isIntegrationKept(id: IntegrationId): boolean {
+export function isIntegrationKept(id: IntegrationId): boolean {
   if (NEVER_STRIPPED.has(id)) return true
   return existsSync(join(PROJECT_ROOT, 'lib/integrations', id))
 }

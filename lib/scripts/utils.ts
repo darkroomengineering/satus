@@ -78,7 +78,33 @@ export const PENDING_FORMAT_MAX_ATTEMPTS = 2
 // ============================================================================
 
 /**
- * Remove a directory recursively
+ * Turn a failed removal into the error the caller sees. ENOENT is the one
+ * code that legitimately means "there was nothing to delete" (the path
+ * vanished between the existence check and the removal) and maps to a plain
+ * "nothing removed" result; every other code (EACCES, EPERM, EBUSY,
+ * ENOTEMPTY on a locked tree) is a removal that FAILED and must not be read
+ * as success.
+ */
+const describeRemovalError = (
+  what: string,
+  path: string,
+  error: Error | NodeJS.ErrnoException
+): Error | undefined =>
+  'code' in error && error.code === 'ENOENT'
+    ? undefined
+    : new Error(`Failed to remove ${what} ${path}: ${error.message}`, {
+        cause: error,
+      })
+
+/**
+ * Remove a directory recursively.
+ *
+ * Returns true when the directory was there and is now gone, false when there
+ * was nothing to remove. A removal that fails for any other reason THROWS
+ * (M7): collapsing a permission or lock error into "absent" reported a
+ * half-stripped tree as a clean one, and `setup:project` then self-pruned on
+ * top of it.
+ *
  * @param path - Relative path from project root
  * @param dryRun - If true, skip actual deletion
  */
@@ -86,25 +112,26 @@ export const removeDir = async (
   path: string,
   dryRun = false
 ): Promise<boolean> => {
+  const fullPath = resolvePath(path)
+
+  if (!(await pathExists(fullPath))) return false
+  if (dryRun) return true
+
   try {
-    const fullPath = resolvePath(path)
-
-    // Check if path exists
-    if (!(await pathExists(fullPath))) {
-      return false
-    }
-
-    if (!dryRun) {
-      await rm(fullPath, { recursive: true, force: true })
-    }
-    return true
-  } catch {
+    await rm(fullPath, { recursive: true, force: true })
+  } catch (error) {
+    if (!(error instanceof Error)) throw error
+    const failure = describeRemovalError('directory', path, error)
+    if (failure) throw failure
     return false
   }
+  return true
 }
 
 /**
- * Remove a file
+ * Remove a file. Same contract as `removeDir`: false means "nothing to
+ * remove", a real failure throws (M7).
+ *
  * @param path - Relative path from project root
  * @param dryRun - If true, skip actual deletion
  */
@@ -112,20 +139,20 @@ export const removeFile = async (
   path: string,
   dryRun = false
 ): Promise<boolean> => {
+  const fullPath = resolvePath(path)
+
+  if (!(await Bun.file(fullPath).exists())) return false
+  if (dryRun) return true
+
   try {
-    const fullPath = resolvePath(path)
-    const file = Bun.file(fullPath)
-    const exists = await file.exists()
-
-    if (!exists) return false
-
-    if (!dryRun) {
-      await rm(fullPath, { force: true })
-    }
-    return true
-  } catch {
+    await rm(fullPath, { force: true })
+  } catch (error) {
+    if (!(error instanceof Error)) throw error
+    const failure = describeRemovalError('file', path, error)
+    if (failure) throw failure
     return false
   }
+  return true
 }
 
 /**

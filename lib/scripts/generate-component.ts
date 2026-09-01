@@ -222,10 +222,16 @@ export async function createComponent(
   const pathParts = componentPath.split('/')
   const componentName = pathParts[pathParts.length - 1] ?? ''
 
-  // Validate component name
-  if (!/^[a-z][a-z0-9-]*$/.test(componentName)) {
+  // Validate EVERY segment, not just the trailing one (L2): the earlier
+  // segments build `components/${componentPath}`, so an unchecked `..` there
+  // writes outside components/. The repo's only caller picks the category
+  // from a fixed select, but this function is exported.
+  if (
+    pathParts.length === 0 ||
+    !pathParts.every((part) => /^[a-z][a-z0-9-]*$/.test(part))
+  ) {
     throw new Error(
-      'Component name must be kebab-case (lowercase with hyphens)'
+      'Component path segments must be kebab-case (lowercase with hyphens)'
     )
   }
 

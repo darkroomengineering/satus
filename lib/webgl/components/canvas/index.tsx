@@ -17,7 +17,9 @@ import {
   getDOMTunnel,
   getPrimaryClaimId,
   getServerPrimaryClaimId,
+  getServerRootCanvasRegistered,
   getWebGLTunnel,
+  isRootCanvasRegistered,
   registerRootCanvasMount,
   releasePrimary,
   subscribePrimaryClaim,
@@ -194,12 +196,56 @@ export function Canvas({
 }
 
 /**
+ * Reactive read of {@link isRootCanvasRegistered} — re-renders the caller
+ * when a `<Canvas root>` mounts or unmounts anywhere in the tree. Consumers
+ * that hide DOM content in favor of a WebGL replacement (e.g. `Image`) need
+ * this: mount order isn't guaranteed (a tunnel consumer can render before or
+ * after the root canvas, or across a route change), so a mount-time snapshot
+ * would go stale.
+ */
+export function useRootCanvasMounted(): boolean {
+  return useSyncExternalStore(
+    subscribePrimaryClaim,
+    isRootCanvasRegistered,
+    getServerRootCanvasRegistered
+  )
+}
+
+// Warned-once guard for the dev-only notice below, mirroring the multi-root
+// warning in store.ts — one console.warn per occurrence, not just per page
+// load, so it fires again if the misconfiguration recurs later in the
+// session (e.g. a root canvas unmounts and nothing replaces it).
+let hasWarnedFallbackWithNoRoot = false
+
+/**
  * Hook to access the Canvas context (tunnels for WebGL and DOM content).
  */
 export function useCanvas() {
   const localContext = use(CanvasContext)
+  const rootCanvasMounted = useRootCanvasMounted()
+  const usesFallback = !localContext.active
+
+  // Fall back to the root singletons — the tunnels always exist once the
+  // store is loaded, but nothing is listening on the other end unless a
+  // `<Canvas root>` is actually mounted somewhere. Warn loudly in dev so
+  // that misconfiguration (e.g. forgetting `<Canvas root>` in the layout and
+  // never using `<Wrapper webgl>`) doesn't read as a silent blank instead.
+  // Runs in an effect, not render, so the warned-once module flag is only
+  // ever mutated as a post-commit side effect.
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'development') return
+    if (usesFallback && !rootCanvasMounted && !hasWarnedFallbackWithNoRoot) {
+      hasWarnedFallbackWithNoRoot = true
+      console.warn(
+        'useCanvas() fell back to the shared tunnels but no <Canvas root> is mounted — portaled content has nothing to render into. Mount <Canvas root> in the layout or via <Wrapper webgl>.'
+      )
+    } else if (rootCanvasMounted) {
+      hasWarnedFallbackWithNoRoot = false
+    }
+  }, [usesFallback, rootCanvasMounted])
+
   if (localContext.active) return localContext
-  // Fall back to the root singletons — always present once the store is loaded.
+
   return {
     active: true as const,
     WebGLTunnel: getWebGLTunnel(),

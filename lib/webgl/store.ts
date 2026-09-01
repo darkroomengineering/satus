@@ -146,6 +146,24 @@ export function getServerPrimaryClaimId(): undefined {
   return undefined
 }
 
+/**
+ * Whether a `<Canvas root>` currently holds the primacy claim — i.e. a
+ * mounted root canvas exists somewhere for tunnel content to portal into.
+ * Reuses the primacy claim rather than a separate flag: the two are
+ * equivalent (a claim only exists while its root canvas is mounted, see
+ * `claimPrimary`/`releasePrimary` above) and staying on one source of truth
+ * means this can subscribe via `subscribePrimaryClaim` instead of adding a
+ * second listener set that could drift out of sync with it.
+ */
+export function isRootCanvasRegistered(): boolean {
+  return primaryClaimId !== undefined
+}
+
+/** Server snapshot — no root canvas is ever mounted during SSR. */
+export function getServerRootCanvasRegistered(): boolean {
+  return false
+}
+
 // Bumped whenever the root canvas's WebGL context is restored after a loss
 // (mobile GPU reset, long-backgrounded tab — see webgl.tsx's
 // `webglcontextlost`/`webglcontextrestored` listeners). Hand-built

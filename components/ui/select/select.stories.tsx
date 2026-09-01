@@ -75,7 +75,7 @@ export const ControlledFruits: Story = {
         <Select
           options={FRUIT_OPTIONS}
           value={value ?? ''}
-          onValueChange={setValue}
+          onValueChange={(v) => setValue(v ?? undefined)}
           placeholder="Choose a fruit..."
         />
         {value && (

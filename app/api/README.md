@@ -63,7 +63,9 @@ Clears draft mode cookies and redirects to homepage.
 ## Revalidation Webhook
 
 A single endpoint receives both Sanity and Shopify webhooks and dispatches to the matching
-provider's revalidation logic.
+provider's revalidation logic. Each provider owns its handler in its own integration folder
+(`lib/integrations/<provider>/revalidate.ts`); the route only rate-limits, matches the request
+to a provider, and answers 404 when nothing matches.
 
 ```
 POST /api/revalidate
@@ -82,10 +84,12 @@ sequenceDiagram
         R->>R: timingSafeEqual(secret, SHOPIFY_REVALIDATION_SECRET)
         R-->>W: 401 if missing or wrong
         R->>T: revalidateTag(products | collections | pages)
-    else Sanity signed body
+    else has sanity-webhook-signature header
         R->>R: parseBody(request, SANITY_REVALIDATE_SECRET) → isValidSignature
         R-->>W: 401 if invalid, 503 if secret unset
         R->>T: revalidateTag(_type) + revalidateTag(_type:slug)
+    else neither
+        R-->>W: 404 { data: null, error: 'No webhook handler configured' }
     end
     R-->>W: 200 { data: { revalidated, now }, error: null }
 ```
@@ -101,7 +105,9 @@ sequenceDiagram
 SANITY_REVALIDATE_SECRET=your-secret-here
 ```
 
-The route uses `parseBody` from `next-sanity/webhook` to verify the Sanity signature.
+Sanity signs the request body and sends the signature in the `sanity-webhook-signature` header,
+which is how the route recognizes the request. `lib/integrations/sanity/revalidate.ts` then
+verifies it with `parseBody` from `next-sanity/webhook`.
 
 ### Shopify Webhook Setup
 

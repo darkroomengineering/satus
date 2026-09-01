@@ -238,6 +238,67 @@ export async function POST(request: NextRequest) {
 })
 
 // ---------------------------------------------------------------------------
+// removeJsxElement — the JSX comment that documents a removed element goes
+// with it, whichever element form it documents (L4: only the self-closing
+// branch cleaned up, so removing `<Studio>…</Studio>` orphaned its comment).
+// ---------------------------------------------------------------------------
+
+describe('removeJsxElement — adjacent comment cleanup', () => {
+  const fixture = (element: string) => `export function App() {
+  return (
+    <div>
+      {/* documents the target */}
+      ${element}
+      <span>keep</span>
+    </div>
+  )
+}
+`
+
+  const cases: { label: string; element: string; tagName: string }[] = [
+    { label: 'self-closing', element: '<Canvas root />', tagName: 'Canvas' },
+    {
+      label: 'self-closing in an expression container',
+      element: '{studio && <Canvas root />}',
+      tagName: 'Canvas',
+    },
+    {
+      label: 'open/close pair',
+      element: '<Studio>child</Studio>',
+      tagName: 'Studio',
+    },
+    {
+      label: 'open/close pair in an expression container',
+      element: '{studio && <Studio>child</Studio>}',
+      tagName: 'Studio',
+    },
+  ]
+
+  for (const { label, element, tagName } of cases) {
+    it(`removes the element and its comment (${label})`, () => {
+      const result = applyOpsToText(fixture(element), [
+        { kind: 'removeJsxElement', tagName },
+      ])
+
+      expect(result).not.toContain(tagName)
+      expect(result).not.toContain('documents the target')
+      // Neighbouring content is untouched.
+      expect(result).toContain('<span>keep</span>')
+    })
+  }
+
+  it('keeps the comment when the element is only unwrapped', () => {
+    const result = applyOpsToText(fixture('<Studio>child</Studio>'), [
+      { kind: 'removeJsxElement', tagName: 'Studio', unwrap: true },
+    ])
+
+    expect(result).not.toContain('<Studio>')
+    expect(result).toContain('child')
+    expect(result).toContain('documents the target')
+  })
+})
+
+// ---------------------------------------------------------------------------
 // setObjectProperty
 // ---------------------------------------------------------------------------
 

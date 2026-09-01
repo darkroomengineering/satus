@@ -41,6 +41,7 @@ import {
   setupAddIntegrations,
   shouldDisableCacheComponents,
   shouldSkipConfirm,
+  updateBarrelExports,
 } from './setup-project'
 import {
   getFlagValue,
@@ -48,6 +49,8 @@ import {
   PENDING_FORMAT_MAX_ATTEMPTS,
   pathExists,
   projectRoot,
+  removeDir,
+  removeFile,
 } from './utils'
 
 // ---------------------------------------------------------------------------
@@ -689,9 +692,10 @@ describe('RequiredOpMatchError (required-match contract)', () => {
     expect(() => applyOpsToText(content, transform.ops)).not.toThrow()
   })
 
-  // The other scenario the finding names: "the revalidate try-block shape
-  // drifts" — proven against the real shared-file ops.
-  it('drifted fixture: a restructured revalidate try-block makes the sanity strip fail loudly', () => {
+  // The other scenario the finding names: the shared revalidate route's
+  // sanity dispatch is renamed or restructured — proven against the real
+  // shared-file ops.
+  it('drifted fixture: renaming the revalidate route guard makes the sanity strip fail loudly', () => {
     const content = sourceFiles['app/api/revalidate/route.ts']
     const bundle = INTEGRATION_BUNDLES.sanity
     const transform = bundle?.codeTransforms.find(
@@ -699,10 +703,10 @@ describe('RequiredOpMatchError (required-match contract)', () => {
     )
     if (!(content && transform)) return
 
-    const drifted = content.replace(
-      'SANITY_REVALIDATE_SECRET',
-      'SANITY_SECRET_V2'
-    )
+    // The import op still matches (the file changes) while the guard
+    // variable and its dispatch no longer do — partial application, which is
+    // exactly what the required-match contract must refuse.
+    const drifted = content.replaceAll('isSanityWebhook', 'isSanityHook')
 
     expect(() => applyOpsToText(drifted, transform.ops)).toThrow(
       RequiredOpMatchError
@@ -1049,6 +1053,231 @@ describe('Additive Transforms (remove → add round trips)', () => {
 
     const lean = applyOpsToText(content, removal.ops)
     expect(applyOpsToText(lean, removal.ops)).toBe(lean)
+  })
+
+  it('sanity: app/api/revalidate/route.ts regains its guard and dispatch exactly once', () => {
+    const result = roundTrip('sanity', 'app/api/revalidate/route.ts')
+    if (!result) return
+
+    expect(result.lean).not.toContain('sanityRevalidate')
+    expect(count(result.restored, 'sanityRevalidate')).toBe(2) // import + dispatch
+    expect(count(result.restored, 'const isSanityWebhook')).toBe(1)
+    // Shopify's half of the shared file is untouched by sanity's round trip.
+    expect(count(result.restored, 'const isShopifyWebhook')).toBe(1)
+  })
+
+  it('shopify: app/api/revalidate/route.ts regains its guard and dispatch exactly once', () => {
+    const result = roundTrip('shopify', 'app/api/revalidate/route.ts')
+    if (!result) return
+
+    expect(result.lean).not.toContain('shopifyRevalidate')
+    expect(count(result.restored, 'shopifyRevalidate')).toBe(2) // import + dispatch
+    expect(count(result.restored, 'const isShopifyWebhook')).toBe(1)
+    expect(count(result.restored, 'const isSanityWebhook')).toBe(1)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// H1 — the shared webhook route must compile in EVERY keep-combination.
+// The bug this pins: the sanity strip used to remove the `NextResponse`
+// import that the provider-neutral rate-limit block still called, and to
+// delete the handler's terminal returns along with its try block, so a blank
+// or shopify-only scaffold failed its very first `bun run check` (TS2304 plus
+// noImplicitReturns). Asserting strip/re-add mechanics never caught it —
+// these assertions are about the VALIDITY of each variant's output.
+// ---------------------------------------------------------------------------
+
+describe('Lean-variant validity: app/api/revalidate/route.ts (H1)', () => {
+  const FILE = 'app/api/revalidate/route.ts'
+
+  const transformFor = (
+    bundleName: 'sanity' | 'shopify',
+    phase: 'strip' | 'add'
+  ) => {
+    const bundle = INTEGRATION_BUNDLES[bundleName]
+    const transforms =
+      phase === 'strip' ? bundle?.codeTransforms : (bundle?.addTransforms ?? [])
+    return transforms?.find((t) => t.file === FILE)
+  }
+
+  /**
+   * Reproduce what `setup()` does to this file for a given kept set:
+   * `setupLean` applies EVERY bundle's strip ops against the pristine source
+   * (a union pass, regardless of what is kept), then `setupAddIntegrations`
+   * re-adds each kept bundle.
+   */
+  const variantFor = (kept: ('sanity' | 'shopify')[]): string | undefined => {
+    const pristine = sourceFiles[FILE]
+    if (!pristine) return undefined
+
+    let text = pristine
+    for (const id of ['sanity', 'shopify'] as const) {
+      const strip = transformFor(id, 'strip')
+      if (strip) text = applyOpsToText(text, strip.ops)
+    }
+    for (const id of kept) {
+      const add = transformFor(id, 'add')
+      if (add) text = applyOpsToText(text, add.ops)
+    }
+    return text
+  }
+
+  const combinations: {
+    label: string
+    kept: ('sanity' | 'shopify')[]
+  }[] = [
+    { label: 'both kept', kept: ['sanity', 'shopify'] },
+    { label: 'sanity only', kept: ['sanity'] },
+    { label: 'shopify only', kept: ['shopify'] },
+    { label: 'blank', kept: [] },
+  ]
+
+  for (const { label, kept } of combinations) {
+    describe(label, () => {
+      it('references NextResponse only while its import survives', () => {
+        const variant = variantFor(kept)
+        if (variant === undefined) return
+
+        if (variant.includes('NextResponse.')) {
+          expect(variant).toContain("from 'next/server'")
+          expect(variant).toMatch(/import \{[^}]*NextResponse[^}]*\} from/)
+        }
+      })
+
+      it('ends the POST handler on a return statement', () => {
+        const variant = variantFor(kept)
+        if (variant === undefined) return
+
+        // Statements at POST's top level start at a two-space indent; the
+        // character class drops comment lines and the closing brackets of
+        // multi-line statements. The last such line must be the
+        // provider-neutral fallback return, or the handler falls through and
+        // `noImplicitReturns` rejects the file.
+        const topLevelStatements = variant
+          .split('\n')
+          .filter((line) => /^ {2}(?![)\]}/*])\S/.test(line))
+        const last = topLevelStatements.at(-1)
+        expect(last).toBe('  return NextResponse.json(')
+        expect(variant).toContain("error: 'No webhook handler configured'")
+      })
+
+      it('leaves no reference to a stripped integration', () => {
+        const variant = variantFor(kept)
+        if (variant === undefined) return
+
+        for (const id of ['sanity', 'shopify'] as const) {
+          if (kept.includes(id)) continue
+          expect(variant).not.toContain(`@/integrations/${id}/revalidate`)
+          expect(variant).not.toContain(`${id}Revalidate`)
+        }
+      })
+    })
+  }
+
+  it('keeps the rate-limit block in every combination', () => {
+    for (const { kept } of combinations) {
+      const variant = variantFor(kept)
+      if (variant === undefined) return
+      expect(variant).toContain("error: 'Too many requests'")
+      expect(variant).toContain('rateLimiters.standard')
+    }
+  })
+})
+
+// ---------------------------------------------------------------------------
+// The same validity gate for lib/seo/routes.ts — the second file where a
+// partial strip shipped code referencing symbols it had just removed:
+// `getCmsRoutes` was stubbed while `buildRoutesFromDocuments` and
+// `fetchCmsRoutesResult` still read the deleted schema, query, and sanity
+// helpers (six TS2304s on a blank or shopify-only scaffold).
+//
+// Sanity restores this file wholesale via overwriteFiles (single-owner, see
+// the bundle's comment), so a kept-sanity variant IS the pristine file; only
+// the stripped variant needs asserting.
+// ---------------------------------------------------------------------------
+
+describe('Lean-variant validity: lib/seo/routes.ts', () => {
+  const FILE = 'lib/seo/routes.ts'
+
+  const stripTransform = INTEGRATION_BUNDLES.sanity?.codeTransforms.find(
+    (t) => t.file === FILE
+  )
+
+  const variantFor = (kept: ('sanity' | 'shopify')[]): string | undefined => {
+    const pristine = sourceFiles[FILE]
+    if (!(pristine && stripTransform)) return undefined
+    // Shopify owns nothing here; keeping sanity restores the pristine file.
+    return kept.includes('sanity')
+      ? pristine
+      : applyOpsToText(pristine, stripTransform.ops)
+  }
+
+  const combinations: ('sanity' | 'shopify')[][] = [
+    ['sanity', 'shopify'],
+    ['sanity'],
+    ['shopify'],
+    [],
+  ]
+
+  for (const kept of combinations) {
+    const label = kept.length > 0 ? kept.join(' + ') : 'blank'
+
+    it(`keeps the exported route API (${label})`, () => {
+      const variant = variantFor(kept)
+      if (variant === undefined) return
+
+      expect(variant).toContain('export function buildRoutesFromDocuments')
+      expect(variant).toContain('export async function getCmsRoutes(')
+      expect(variant).toContain('export async function getCmsRoutesResult(')
+      expect(variant).toContain('export { STATIC_ROUTES }')
+    })
+
+    it(`references nothing the strip removed (${label})`, () => {
+      const variant = variantFor(kept)
+      if (variant === undefined || kept.includes('sanity')) return
+
+      // Derived from the ops themselves, so a new op is covered the day it
+      // lands: whatever the strip deletes must not be referenced afterwards.
+      for (const op of stripTransform?.ops ?? []) {
+        if (op.kind === 'removeImport') {
+          expect(variant).not.toContain(op.specifier)
+        }
+        if (op.kind === 'removeVariableStatement') {
+          expect(variant).not.toContain(op.name)
+        }
+      }
+
+      // The identifiers those imports provided, which the old strip left
+      // behind inside the two un-stubbed functions.
+      for (const identifier of [
+        'sanityFetch',
+        'urlForReference',
+        'isConfigured',
+        'defineQuery',
+      ]) {
+        expect(variant).not.toContain(identifier)
+      }
+    })
+
+    it(`leaves no 'use cache' boundary behind (${label})`, () => {
+      const variant = variantFor(kept)
+      if (variant === undefined || kept.includes('sanity')) return
+
+      // A kept set with no CMS/storefront turns Cache Components off, and a
+      // surviving directive is a hard compile error there.
+      expect(variant).not.toContain("'use cache'")
+    })
+  }
+
+  it('is idempotent when re-applied to an already-lean file', () => {
+    const lean = variantFor([])
+    if (!(lean && stripTransform)) return
+
+    const downgraded = stripTransform.ops.map((op) => ({
+      ...op,
+      required: false,
+    }))
+    expect(applyOpsToText(lean, downgraded)).toBe(lean)
   })
 })
 
@@ -1464,7 +1693,7 @@ describe('collectSelfPruneTestFiles (L10 — glob-derived, not hardcoded)', () =
     const files = await collectSelfPruneTestFiles()
 
     expect(files).toContain('lib/scripts/setup-project.test.ts')
-    expect(files).toContain('lib/scripts/ast-transforms.test.ts')
+    expect(files).toContain('lib/scripts/create-darkroom-contract.test.ts')
     expect(files).toContain('lib/scripts/payload-source.test.ts')
   })
 
@@ -1478,6 +1707,45 @@ describe('collectSelfPruneTestFiles (L10 — glob-derived, not hardcoded)', () =
     // scaffolded project (it tests prepare-handoff's templates) and must
     // survive self-prune.
     expect(files).not.toContain('lib/scripts/templates/templates.test.ts')
+  })
+
+  // M1: the glob used to delete tests for commands the scaffold keeps
+  // running — `generate`, `handoff`, the AST engine, and the env-parity
+  // guarantee. Each entry here names a command that ships.
+  it('keeps the tests for commands that ship', async () => {
+    const files = await collectSelfPruneTestFiles()
+
+    for (const kept of [
+      'lib/scripts/generate.test.ts',
+      'lib/scripts/generate-component.test.ts',
+      'lib/scripts/generate-page.test.ts',
+      'lib/scripts/generate-shared.test.ts',
+      'lib/scripts/prepare-handoff.test.ts',
+      'lib/scripts/env-drift.test.ts',
+      'lib/scripts/ast-transforms.test.ts',
+    ]) {
+      expect(SELF_PRUNE_KEEP_TEST_FILES.has(kept)).toBe(true)
+      expect(files).not.toContain(kept)
+    }
+  })
+
+  // The allowlist may only name files that exist — a stale entry silently
+  // stops protecting anything.
+  it('every allowlist entry exists on disk', async () => {
+    for (const kept of SELF_PRUNE_KEEP_TEST_FILES) {
+      expect(await pathExists(join(projectRoot, kept))).toBe(true)
+    }
+  })
+
+  // Setup-only tests must still go: they import setup-project.ts (deleted by
+  // this same step) or assert on this repo's own integration folders.
+  it('still deletes the setup-only tests', async () => {
+    const files = await collectSelfPruneTestFiles()
+
+    expect(files).toContain('lib/scripts/setup-project.test.ts')
+    expect(files).toContain('lib/scripts/create-darkroom-contract.test.ts')
+    expect(files).toContain('lib/scripts/payload-source.test.ts')
+    expect(files).toContain('lib/scripts/prerender-manifest.test.ts')
   })
 })
 
@@ -1918,6 +2186,122 @@ describe('issue #382: selfPrune is gated on collected transform failures', () =>
     },
     60000
   )
+})
+
+// ---------------------------------------------------------------------------
+// M7 — the two holes in setup's failure gate.
+//   (a) updateBarrelExports only warned, so a barrel file left re-exporting a
+//       deleted module never reached the gate.
+//   (b) removeDir/removeFile turned every error into "path absent", so an
+//       EACCES or a lock reported a half-stripped tree as a clean one.
+// ---------------------------------------------------------------------------
+
+describe('M7: removal and barrel failures reach the failure gate', () => {
+  const isRoot = (process.getuid?.() ?? -1) === 0
+
+  /** A scratch directory inside projectRoot — removeDir/removeFile resolve there. */
+  const withFixture = async (
+    run: (relative: string, absolute: string) => Promise<void>
+  ) => {
+    const absolute = await mkdtemp(join(projectRoot, '.satus-m7-'))
+    const relative = absolute.slice(projectRoot.length + 1)
+    try {
+      await run(relative, absolute)
+    } finally {
+      await chmod(absolute, 0o755).catch(() => undefined)
+      await rm(absolute, { recursive: true, force: true })
+    }
+  }
+
+  it('removeFile reports an absent path as "nothing removed", not a failure', async () => {
+    expect(await removeFile('does/not/exist.ts')).toBe(false)
+  })
+
+  it('removeDir reports an absent path as "nothing removed", not a failure', async () => {
+    expect(await removeDir('does/not/exist')).toBe(false)
+  })
+
+  it('removeFile deletes a real file and reports true', async () => {
+    await withFixture(async (relative, absolute) => {
+      await Bun.write(join(absolute, 'doomed.ts'), 'export {}\n')
+      expect(await removeFile(`${relative}/doomed.ts`)).toBe(true)
+      expect(await pathExists(join(absolute, 'doomed.ts'))).toBe(false)
+    })
+  })
+
+  it('removeDir deletes a real directory and reports true', async () => {
+    await withFixture(async (relative, absolute) => {
+      await mkdir(join(absolute, 'doomed'), { recursive: true })
+      expect(await removeDir(`${relative}/doomed`)).toBe(true)
+      expect(await pathExists(join(absolute, 'doomed'))).toBe(false)
+    })
+  })
+
+  // The M7 regression itself: a removal that fails must never be reported as
+  // an absent path, or self-prune runs over a half-stripped tree.
+  it.skipIf(isRoot)(
+    'removeFile throws when the removal itself fails',
+    async () => {
+      await withFixture(async (relative, absolute) => {
+        await Bun.write(join(absolute, 'locked.ts'), 'export {}\n')
+        await chmod(absolute, 0o555) // no write permission on the parent
+        await expect(removeFile(`${relative}/locked.ts`)).rejects.toThrow(
+          /Failed to remove file/
+        )
+      })
+    }
+  )
+
+  it.skipIf(isRoot)(
+    'removeDir throws when the removal itself fails',
+    async () => {
+      await withFixture(async (relative, absolute) => {
+        await mkdir(join(absolute, 'locked'), { recursive: true })
+        await chmod(absolute, 0o555)
+        await expect(removeDir(`${relative}/locked`)).rejects.toThrow(
+          /Failed to remove directory/
+        )
+      })
+    }
+  )
+
+  it('updateBarrelExports returns a failure instead of only warning', async () => {
+    await withFixture(async (relative, absolute) => {
+      // A directory where a barrel FILE is expected: the read throws EISDIR,
+      // which stands in for any unreadable/unwritable barrel file.
+      await mkdir(join(absolute, 'index.ts'), { recursive: true })
+
+      const result = await updateBarrelExports(
+        [{ file: `${relative}/index.ts`, pattern: 'use-device-detection' }],
+        false
+      )
+
+      expect(result.changes).toBe(0)
+      expect(result.failures).toHaveLength(1)
+      expect(result.failures[0]?.file).toBe(`${relative}/index.ts`)
+      expect(result.failures[0]?.error).toContain('barrel export')
+    })
+  })
+
+  it('updateBarrelExports reports no failure for a barrel it can rewrite', async () => {
+    await withFixture(async (relative, absolute) => {
+      await Bun.write(
+        join(absolute, 'index.ts'),
+        "export { useDeviceDetection } from './use-device-detection'\nexport { other } from './other'\n"
+      )
+
+      const result = await updateBarrelExports(
+        [{ file: `${relative}/index.ts`, pattern: 'use-device-detection' }],
+        false
+      )
+
+      expect(result.failures).toEqual([])
+      expect(result.changes).toBe(1)
+      const text = await Bun.file(join(absolute, 'index.ts')).text()
+      expect(text).not.toContain('use-device-detection')
+      expect(text).toContain('other')
+    })
+  })
 })
 
 // -------------------------------------------------------------------------

@@ -455,4 +455,28 @@ describe('parseFormData', () => {
       ])
     }
   })
+
+  test('per-item errors in a z.array field collapse under the array field key', () => {
+    // Pins z.flattenError's key format: an invalid item at `interests[1]`
+    // reports under the top-level `interests` key, not a dotted/indexed
+    // path like `interests.1` — matching FormState.fieldErrors' flat,
+    // per-field contract.
+    const multiSchema = z.object({
+      email: z.email(),
+      interests: z.array(z.string().min(1)),
+    })
+
+    const formData = new FormData()
+    formData.set('email', 'user@example.com')
+    formData.append('interests', 'design')
+    formData.append('interests', '')
+
+    const result = parseFormData(multiSchema, formData)
+
+    expect('success' in result).toBe(false)
+    if (!('success' in result)) {
+      expect(result.fieldErrors?.interests).toBeDefined()
+      expect(Object.keys(result.fieldErrors ?? {})).toEqual(['interests'])
+    }
+  })
 })

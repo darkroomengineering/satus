@@ -42,10 +42,44 @@ function detectIsSafari() {
   return cache.isSafari
 }
 
+/**
+ * Renderer strings that mean WebGL is being emulated on the CPU: Chrome's
+ * SwiftShader (headless Chrome, cloud audit runners such as PageSpeed
+ * Insights, VMs without a GPU), Mesa's llvmpipe/softpipe (Linux without
+ * drivers), and generic "Software" adapters. A context still comes back, so
+ * a bare `getContext('webgl2')` check passes, but every frame is main-thread
+ * work: measured on shield.fi with `--use-angle=swiftshader` (2026-08-28),
+ * Lighthouse recorded 28 s of blocking time on desktop and 149 s on mobile,
+ * and PageSpeed Insights gave up with "the page stopped responding". Those
+ * machines get the DOM fallback instead, same as no-WebGL2 devices.
+ */
+const SOFTWARE_RENDERER = /swiftshader|llvmpipe|softpipe|software/i
+
+function probeSupportsWebGL(): boolean {
+  const probe = document.createElement('canvas').getContext('webgl2')
+  if (!probe) return false
+
+  try {
+    // Chrome 101+ returns the unmasked renderer from RENDERER directly; older
+    // browsers and Firefox need the debug extension for the real string.
+    const debug = probe.getExtension('WEBGL_debug_renderer_info')
+    const renderer = String(
+      debug
+        ? probe.getParameter(debug.UNMASKED_RENDERER_WEBGL)
+        : probe.getParameter(probe.RENDERER)
+    )
+    return !SOFTWARE_RENDERER.test(renderer)
+  } finally {
+    // Chrome caps live WebGL contexts at ~16 per page and evicts the oldest
+    // when a new one is created. A probe context that is never released holds
+    // one of those slots for the rest of the session, and once the cap is hit
+    // the real canvas can be the one evicted. Release it explicitly.
+    probe.getExtension('WEBGL_lose_context')?.loseContext()
+  }
+}
+
 function detectSupportsWebGL() {
-  cache.supportsWebGL ??= !!document
-    .createElement('canvas')
-    .getContext('webgl2')
+  cache.supportsWebGL ??= probeSupportsWebGL()
   return cache.supportsWebGL
 }
 
@@ -71,7 +105,8 @@ function getStaticDetectionServerSnapshot() {
 
 /**
  * Detect device capabilities: screen size, input method, motion preference,
- * WebGL support, Safari, and inline-video autoplay support.
+ * WebGL support (hardware-accelerated only, see `SOFTWARE_RENDERER`), Safari,
+ * and inline-video autoplay support.
  *
  * @example
  * ```tsx

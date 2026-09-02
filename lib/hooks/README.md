@@ -9,15 +9,16 @@ import { useMediaQuery } from 'hamo'
 
 ## Available Hooks
 
-| Hook                        | Purpose                                                                                                |
-| --------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `useReveal`                 | Reveal-on-scroll via IntersectionObserver — CSS-driven, compositor-thread; reduced-motion + no-JS safe |
-| `useDeviceDetection`        | Detect screen size, input, motion preference, WebGL support                                            |
-| `usePrefetch`               | Prefetch routes on visibility                                                                          |
-| `useOnlineStatus`           | Network online/offline status                                                                          |
-| `usePreferredColorScheme`   | System theme preference                                                                                |
-| `usePreferredReducedMotion` | Reduced motion preference                                                                              |
-| `useDocumentVisibility`     | Tab visibility state                                                                                   |
+| Hook                         | Purpose                                                                                                |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `useReveal`                  | Reveal-on-scroll via IntersectionObserver — CSS-driven, compositor-thread; reduced-motion + no-JS safe |
+| `useDeviceDetection`         | Detect screen size, input, motion preference, WebGL support (hardware only)                            |
+| `useAfterLoad` / `AfterLoad` | True once `window.load` fired — mount gate for deferrable heavy boot (WebGL, third-party runtimes)     |
+| `usePrefetch`                | Prefetch routes on visibility                                                                          |
+| `useOnlineStatus`            | Network online/offline status                                                                          |
+| `usePreferredColorScheme`    | System theme preference                                                                                |
+| `usePreferredReducedMotion`  | Reduced motion preference                                                                              |
+| `useDocumentVisibility`      | Tab visibility state                                                                                   |
 
 ## useReveal
 
@@ -38,6 +39,34 @@ function Cards({ items }) {
     </div>
   )
 }
+```
+
+## useAfterLoad
+
+True once the window has fully loaded. Use it as the mount gate for work that
+is heavy and invisible during hydration: a WebGL context boot, a shader
+compile, a third-party runtime. The root `<Canvas>` already uses it, so
+WebGL content portaled into the root canvas needs nothing extra.
+
+```tsx
+import { useAfterLoad } from '@/hooks/use-after-load'
+
+function Ground() {
+  const afterLoad = useAfterLoad()
+  return afterLoad ? <ShaderGround /> : <div className={s.still} />
+}
+```
+
+`<AfterLoad>` is the same gate as a component, for server trees that cannot
+call the hook. Children pass through as references, so nothing new enters the
+client bundle:
+
+```tsx
+import { AfterLoad } from '@/hooks/use-after-load'
+
+;<AfterLoad>
+  <SanityLive />
+</AfterLoad>
 ```
 
 ## Browser API Hooks
@@ -176,6 +205,8 @@ Types: `Rect`, `Transform`, `TransformRef`, `UseScrollTriggerOptions`.
 
 Detect device capabilities (SSR-safe): screen size, input method, motion
 preference, WebGL support, Safari, and inline-video autoplay support.
+`isWebGL` is false on software renderers (SwiftShader, llvmpipe, headless
+audit runners), so the DOM fallback is what PageSpeed Insights measures.
 
 ```tsx
 import { useDeviceDetection } from '@/hooks/use-device-detection'

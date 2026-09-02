@@ -11,6 +11,7 @@ import {
 } from 'react'
 
 import Orchestra from '@/lib/dev/orchestra'
+import { useAfterLoad } from '@/lib/hooks/use-after-load'
 import { useDeviceDetection } from '@/lib/hooks/use-device-detection'
 import {
   claimPrimary,
@@ -127,6 +128,7 @@ export function Canvas({
 }: CanvasProps) {
   const { isWebGL, isReducedMotion } = useDeviceDetection()
   const webglDevToggleEnabled = useWebGLDevKillSwitch()
+  const afterLoad = useAfterLoad()
 
   // Only a root canvas mounts the WebGL surface; it uses the shared store
   // tunnels so content portals into it from anywhere. A non-root <Canvas> is a
@@ -134,8 +136,16 @@ export function Canvas({
   const WebGLTunnel = root ? getWebGLTunnel() : undefined
   const DOMTunnel = root ? getDOMTunnel() : undefined
 
-  // `force` is an explicit escape hatch — it bypasses both the WebGL
-  // capability check and the reduced-motion preference.
+  // `force` is an explicit escape hatch — it bypasses the WebGL capability
+  // check, the reduced-motion preference, and the after-load gate.
+  //
+  // The after-load gate (`useAfterLoad`) keeps the renderer boot and shader
+  // compile off the critical path: during hydration that work is billed as
+  // blocking time against pixels the DOM is already painting, so the canvas
+  // mounts once `window.load` fires instead. `force` skips it because a
+  // canvas that carries CONTENT (not decoration) may need to be up for first
+  // paint; the cost of that choice is the blocking time this gate exists to
+  // avoid, so `force` should come with a measurement.
   //
   // ⚠ Because reduced-motion (and non-WebGL devices) means the canvas may
   // never mount, anything that puts CONTENT in WebGL — not just decoration —
@@ -147,7 +157,9 @@ export function Canvas({
   // of that (including `force`) — useful for isolating perf work to the DOM
   // side of a page without physically deleting `<Canvas root>`.
   const shouldRender =
-    webglDevToggleEnabled && root && ((isWebGL && !isReducedMotion) || force)
+    webglDevToggleEnabled &&
+    root &&
+    ((isWebGL && !isReducedMotion && afterLoad) || force)
   const contextValue: CanvasContextValue =
     WebGLTunnel && DOMTunnel
       ? { active: true, WebGLTunnel, DOMTunnel }

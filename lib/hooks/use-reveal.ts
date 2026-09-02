@@ -19,8 +19,9 @@ import { useEffect, useLayoutEffect, useRef } from 'react'
  *
  * Degrades gracefully: with JS disabled the `data-reveal` attribute is never
  * set, so the CSS hidden state (scoped under `[data-reveal]`) never applies and
- * content renders visible. Under `prefers-reduced-motion` the element is
- * revealed immediately and the observer is skipped.
+ * content renders visible. Under `prefers-reduced-motion`, or when the bundle
+ * hydrated late enough that the visitor was already reading the SSR text, the
+ * element is revealed immediately and the observer is skipped.
  *
  * The reveal CSS contract lives once, globally, in `lib/styles/css/global.css`;
  * per-section knobs are set on the container in its own CSS module:
@@ -52,6 +53,24 @@ const useIsomorphicLayoutEffect =
   // oxlint-disable-next-line anti-slop/no-runtime-typeof -- SSR guard; literal typeof enables bundler dead-code elimination
   typeof window === 'undefined' ? useEffect : useLayoutEffect
 
+/**
+ * Entrance animations are for content the visitor has not seen yet. On a slow
+ * connection the server-rendered text paints and is readable long before the
+ * bundle arrives; hydrating then hides it and replays the entrance, yanking
+ * copy the visitor is mid-sentence in, and stamps LCP at hydration time
+ * (measured on shield.fi, throttled mobile, 2026-08-28: 7.0 s LCP for a
+ * paragraph that first painted at 1.2 s). When the bundle itself landed this
+ * late, skip the choreography and reveal instantly.
+ *
+ * Module scope on purpose: this captures how late the FIRST load's bundle
+ * was, once. Client-side navigations mount fresh DOM that has never painted,
+ * so their entrances stay correct regardless of this flag, and on a session
+ * that started slow, skipping later entrances too errs on the side of the
+ * struggling device.
+ */
+// oxlint-disable-next-line anti-slop/no-runtime-typeof -- SSR guard; literal typeof enables bundler dead-code elimination
+const HYDRATED_LATE = typeof window !== 'undefined' && performance.now() > 2500
+
 interface UseRevealOptions {
   /** IntersectionObserver threshold (0–1). Default 0. */
   threshold?: number
@@ -82,8 +101,12 @@ export function useReveal<T extends HTMLElement = HTMLElement>({
       item.style.setProperty('--reveal-index', String(index))
     })
 
-    // Respect reduced motion: reveal immediately, never observe.
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    // Respect reduced motion, and never re-hide content the visitor could
+    // already read (see HYDRATED_LATE): reveal immediately, never observe.
+    if (
+      HYDRATED_LATE ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
       element.dataset.reveal = 'visible'
       return
     }

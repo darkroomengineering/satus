@@ -104,6 +104,7 @@ export function MyComponent({
 - Combine with `cn()` from `clsx`
 - Use `h-dvh` not `h-screen`
 - Animate only `transform`, `opacity` (compositor properties)
+- A below-fold CSS `background-image` downloads at page load on any rendered element, even at `opacity: 0` or inside a collapsed section; only `display: none` on the element itself, or a missing rule, prevents the fetch. Gate the class that carries the `url()` behind an IntersectionObserver (`rootMargin: '100% 0px'` starts the fetch one viewport early), or use `<img loading="lazy">`. Measured on shield.fi (2026-08-28): three hidden stills, 302 KB, cost 5.4 s of Slow 3G load before anyone scrolled.
 
 ### Animation
 
@@ -112,6 +113,7 @@ export function MyComponent({
 - **Micro-interactions** (hover, toggle, ≤200ms) → CSS transitions.
 - **Smooth scroll** → Lenis; **RAF scheduling** → Tempus.
 - Honor reduced-motion: the global neutralizer in `global.css` zeroes CSS animation; JS/WebGL gates via `usePreferredReducedMotion`.
+- **Deferrable heavy boot** (WebGL contexts, shader compiles, third-party runtimes) → `useAfterLoad` / `<AfterLoad>` (`lib/hooks/use-after-load.ts`). Work done during hydration is billed as blocking time for pixels the DOM is already painting. The root `<Canvas>` already waits for `window.load`; `force` opts out.
 
 ### Design tokens and custom utilities
 
@@ -141,6 +143,12 @@ Exception: use `useRef` for class/object instantiation to prevent infinite loops
 ### WebGL cleanup
 
 Dispose materials, textures, geometries, and render targets on unmount. Remove event listeners. Gate debug UI with `process.env.NODE_ENV === 'development'`.
+
+`isWebGL` from `useDeviceDetection` is false on software renderers (SwiftShader, llvmpipe), not just on devices without WebGL2. PageSpeed Insights and other cloud Lighthouse runners have no GPU; a shader that runs there pegs the main thread for the whole audit and the report comes back as "page stopped responding". Anything that mounts a WebGL surface must go through that gate or the DOM fallback never gets exercised where it matters.
+
+### Fonts
+
+`next/font` preloads every family it loads. Preloads compete with the render-blocking stylesheet on a slow link, so a family used only below the fold should pass `preload: false` (measured on shield.fi, 2026-08-28: dropping one below-fold preload moved Slow 3G first paint from 3.8 s to 3.0 s). For licensed self-hosted fonts, subset to the characters the site renders: a preloaded base file (Basic Latin plus the punctuation in use) and an `-Ext` file (rest of Latin-1, General Punctuation) declared with a `unicode-range` so it downloads only when one of those characters renders.
 
 ### Git
 

@@ -4,6 +4,10 @@ import { Oswald, Spline_Sans_Mono } from 'next/font/google'
 // Spline Sans Mono 300–700), so one file per family covers every weight the
 // styles use. Pinning explicit weights would download a separate static file
 // each and snap in-between weights (500, 600) to the nearest loaded one.
+// Both families are used above the fold, so the default preload is right.
+// A family used only below the fold should set `preload: false` (see
+// AGENTS.md § Fonts): its preload competes with the render-blocking
+// stylesheet on slow links.
 const display = Oswald({
   subsets: ['latin'],
   display: 'swap',

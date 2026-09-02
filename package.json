@@ -56,7 +56,7 @@
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
     "@sanity/asset-utils": "^2.3.0",
-    "@sanity/client": "^7.26.2",
+    "@sanity/client": "^8.4.0",
     "@sanity/image-url": "^2.1.1",
     "@theatre/core": "^0.7.2",
     "@vercel/analytics": "^2.0.1",

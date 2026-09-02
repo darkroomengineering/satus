@@ -24,7 +24,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Changed
 
-- Dependency pass from the 2026-09-02 audit (`docs/audits/dependency-audit-2026-09-02.md`): `@sanity/client` moves to v8 now that `next-sanity` 13.3.4 accepts it (the August hold is closed), `next` to 16.3.4 with its analyzer and playwright companions, `zod` to 4.5.4. `babel-plugin-react-compiler` is removed — Next 16.3's native Rust React Compiler runs under Turbopack and never used it. The `lodash`/`lodash-es` overrides are gone: nothing first-party imports either, and Sanity's own ranges already resolve both to 4.18.1. CI gains an advisory `bun audit` step alongside deslop.
+- Dependency pass from the 2026-09-02 audit (`docs/audits/dependency-audit-2026-09-02.md`): `next` to 16.3.4 with its analyzer and playwright companions, `zod` to 4.5.4, `next-sanity` to 13.3.4. `@sanity/client` stays on v7: `next-sanity` 13.3.4 widened its peer range to allow v8 but still declares `@sanity/client ^7.26.2` as a direct dependency, so a v8 app-level client gets a nested v7 copy underneath next-sanity and the TypeGen `SanityQueries` augmentation no longer reaches the copy `ClientReturn` reads — every typed query collapses to `{}` (22 type errors, caught by CI). The hold lifts when next-sanity's own dependency moves to v8. `babel-plugin-react-compiler` is removed — Next 16.3's native Rust React Compiler runs under Turbopack and never used it. The `lodash`/`lodash-es` overrides are gone: nothing first-party imports either, and Sanity's own ranges already resolve both to 4.18.1. CI gains an advisory `bun audit` step alongside deslop.
 
 ### Fixed
 

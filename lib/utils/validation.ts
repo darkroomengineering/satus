@@ -228,16 +228,17 @@ export function parseFormData<T>(
   const result = schema.safeParse(raw)
 
   if (!result.success) {
+    // `z.flattenError` already splits root-path issues into `formErrors`
+    // (surfaced under `_form`) and per-field issues into `fieldErrors`
+    // (one message array per key) — first-error-wins is just index 0.
+    const flat = z.flattenError(result.error)
     const fieldErrors: Record<string, string> = {}
-    for (const issue of result.error.issues) {
-      // A schema-level `.refine()` produces an empty path — surface it under
-      // `_form` instead of dropping it, so cross-field validation errors
-      // (e.g. password confirmation) reach the caller.
-      const key = issue.path.join('.') || '_form'
-      if (!fieldErrors[key]) {
-        fieldErrors[key] = issue.message
-      }
+    for (const key in flat.fieldErrors) {
+      const message = flat.fieldErrors[key]?.[0]
+      if (message) fieldErrors[key] = message
     }
+    if (flat.formErrors[0]) fieldErrors._form = flat.formErrors[0]
+
     return {
       status: 400,
       message: 'Validation failed',
@@ -292,13 +293,39 @@ export function zodToValidator(schema: z.ZodType): (value: string) => boolean {
  * const body = parseApiResponse(shopifyEnvelopeSchema, json, 'Shopify Storefront')
  * ```
  */
+// Every `parseApiResponse` call site is a stable, module-scoped exported
+// schema (Shopify/HubSpot/Mailchimp envelope and data schemas) reused across
+// requests, so a per-schema-object cache compiles each one exactly once, on
+// its first call, and every later call reuses the compiled version — never
+// per request. `z.compile` never throws (an unsupported schema node falls
+// back to the interpreted runtime automatically), so this is safe to apply
+// unconditionally. It generates code via `new Function`, which the Edge
+// runtime and a strict CSP forbid — safe today because every current caller
+// (`lib/integrations/shopify/client.ts`, `lib/integrations/mailchimp/mailchimp-client.ts`,
+// `lib/utils/fetch.ts#fetchJSON`) runs on the Node runtime; an Edge caller
+// would need an interpreted path instead of this cache.
+const compiledSchemaCache = new WeakMap<z.ZodType, z.ZodType>()
+
+function getCompiledSchema<T>(schema: z.ZodType<T>): z.ZodType<T> {
+  const cached = compiledSchemaCache.get(schema)
+  if (cached) {
+    // SAFETY: the cache is only ever populated below by compiling this exact
+    // `schema` reference, so a hit's value type always matches `T` — the
+    // `WeakMap<z.ZodType, z.ZodType>` key type can't express that per-entry link.
+    return cached as z.ZodType<T>
+  }
+  const compiled = z.compile(schema)
+  compiledSchemaCache.set(schema, compiled)
+  return compiled
+}
+
 export function parseApiResponse<T>(
   schema: z.ZodType<T>,
   // oxlint-disable-next-line anti-slop/no-unknown-parameters -- this function is itself the I/O-boundary parser; `lib/integrations/**` callers deliberately type `res.json()` as `unknown` and rely on this call to validate it
   data: unknown,
   context?: string
 ): T {
-  const result = schema.safeParse(data)
+  const result = getCompiledSchema(schema).safeParse(data)
   if (!result.success) {
     const detail = result.error.issues
       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`)

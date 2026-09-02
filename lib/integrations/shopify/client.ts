@@ -35,6 +35,54 @@ const shopifyEnvelopeSchema = z.object({
   errors: z.array(z.object({ message: z.string() })).optional(),
 })
 
+// Shared across all attempts of a single shopifyFetch call: fetchWithTimeout
+// applies its `timeout` per attempt, so retries would otherwise multiply the
+// wall-clock time a Server Action waits past the original 10s budget. Each
+// attempt gets the remaining slice of this fixed budget instead of a fresh
+// 10s, keeping the total in line with what a caller already tolerates today.
+const REQUEST_BUDGET_MS = 10000
+const MAX_RETRIES = 2 // up to 3 attempts total
+const RETRYABLE_STATUSES = new Set([429, 503])
+
+/** Parses a `Retry-After` header (seconds or HTTP-date) into ms, capped at 5s. */
+function parseRetryAfterMs(header: string | null): number | null {
+  if (!header) return null
+  const seconds = Number(header)
+  if (!Number.isNaN(seconds)) return Math.max(0, Math.min(seconds * 1000, 5000))
+  const dateMs = Date.parse(header)
+  if (Number.isNaN(dateMs)) return null
+  return Math.max(0, Math.min(dateMs - Date.now(), 5000))
+}
+
+/** Exponential backoff (250ms, 500ms) with +/-20% jitter for the given attempt index. */
+function backoffMs(attempt: number): number {
+  const base = attempt === 0 ? 250 : 500
+  const jitter = base * 0.2 * (Math.random() * 2 - 1)
+  return base + jitter
+}
+
+// Waits `ms`, but bails immediately (rejecting with the abort reason) if
+// `signal` is already aborted or fires mid-wait, so a retry can never outlive
+// an aborted cacheSignal/timeout.
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  if (signal?.aborted) {
+    return Promise.reject(
+      signal.reason ?? new DOMException('Aborted', 'AbortError')
+    )
+  }
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(resolve, ms)
+    signal?.addEventListener(
+      'abort',
+      () => {
+        clearTimeout(timeoutId)
+        reject(signal.reason ?? new DOMException('Aborted', 'AbortError'))
+      },
+      { once: true }
+    )
+  })
+}
+
 // cache-exempt: shared low-level wrapper used by both cached callers (which
 // wrap it in 'use cache', e.g. products.ts) and uncached per-user/mutation
 // callers (which pass cache: 'no-store', e.g. cart-operations.ts) — caching
@@ -57,29 +105,52 @@ export async function shopifyFetch<T = unknown>({
 
   try {
     // Use cacheSignal for automatic request cleanup on cache expiry
-    const signal = cacheSignal()
+    // SAFETY: cacheSignal() is typed to return the opaque, memberless
+    // `CacheSignal` marker interface, but React always hands back a real
+    // AbortSignal (or null) at runtime — the empty interface just hides
+    // the DOM shape from the public type.
+    const signal = cacheSignal() as AbortSignal | null
 
-    const result = await fetchWithTimeout(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': key,
-        ...customHeaders,
-      },
-      body: JSON.stringify({
-        ...(query && { query }),
-        ...(variables && { variables }),
-      }),
-      cache,
-      timeout: 10000, // 10 second timeout for Shopify API
-      // Only pass signal if cacheSignal returns a non-null value.
-      // SAFETY: cacheSignal() is typed to return the opaque, memberless
-      // `CacheSignal` marker interface, but React always hands back a real
-      // AbortSignal (or null) at runtime — the empty interface just hides
-      // the DOM shape from the public type.
-      ...(signal && { signal: signal as AbortSignal }),
-      ...(tags && { next: { tags } }),
-    })
+    const deadline = Date.now() + REQUEST_BUDGET_MS
+
+    let attempt = 0
+    let result: Response
+    for (;;) {
+      result = await fetchWithTimeout(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Storefront-Access-Token': key,
+          ...customHeaders,
+        },
+        body: JSON.stringify({
+          ...(query && { query }),
+          ...(variables && { variables }),
+        }),
+        cache,
+        timeout: Math.max(deadline - Date.now(), 0),
+        ...(signal && { signal }),
+        ...(tags && { next: { tags } }),
+      })
+
+      const isRetryable =
+        !result.ok &&
+        RETRYABLE_STATUSES.has(result.status) &&
+        attempt < MAX_RETRIES
+
+      if (!isRetryable) break
+
+      const delay =
+        parseRetryAfterMs(result.headers.get('Retry-After')) ??
+        backoffMs(attempt)
+
+      // Bail without sleeping once the shared budget can't absorb another
+      // round trip — a shorter, doomed final attempt isn't worth making.
+      if (deadline - Date.now() - delay <= 0) break
+
+      await sleep(delay, signal ?? undefined)
+      attempt++
+    }
 
     if (!result.ok) {
       if (result.status === 401 || result.status === 403) {

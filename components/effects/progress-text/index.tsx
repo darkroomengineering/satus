@@ -33,7 +33,18 @@ type ProgressTextProps = {
   start?: string
   /** ScrollTrigger `end` position, e.g. `'bottom bottom'`. */
   end?: string
-  /** Opacity of words the scroll position hasn't reached yet. */
+  /**
+   * Opacity of words the scroll position hasn't reached yet. Default is
+   * 0.8, not a low "barely there" dim: this text is real visible content
+   * (not decorative), so its dimmest resting state still has to clear
+   * WCAG AA 4.5:1 against the page background. `.outro`
+   * (`app/(site)/page.module.css`) already renders this text at
+   * `opacity: 0.6`, and CSS opacity nests multiplicatively, so the two
+   * combine to 0.6 x 0.8 = 0.48 effective alpha (~4.9:1 for white-on-black,
+   * measured with colorjs.io's WCAG21 contrast — the 4.5:1 floor needs
+   * >= ~0.76 here). Lowering this without raising the container opacity
+   * re-fails color-contrast.
+   */
   dimOpacity?: number
   className?: string
   style?: CSSProperties
@@ -52,7 +63,7 @@ export function ProgressText({
   children,
   start = 'top top',
   end = 'bottom bottom',
-  dimOpacity = 0.33,
+  dimOpacity = 0.8,
   className,
   style,
 }: ProgressTextProps) {
@@ -65,10 +76,12 @@ export function ProgressText({
 
       const split = SplitText.create(container, {
         type: 'words',
-        // Full text stays in the a11y tree via aria-label on the container;
-        // the generated per-word spans get aria-hidden so screen readers
-        // read continuous text, never word-by-word.
-        aria: 'auto',
+        // 'hidden' (not the default 'auto') puts aria-hidden on the split
+        // container itself instead of aria-label — aria-label on a `<span>`
+        // with no ARIA role is prohibited by the ARIA-in-HTML spec (axe:
+        // aria-prohibited-attr). The real accessible text lives in the
+        // sr-only span rendered below instead.
+        aria: 'hidden',
         tag: 'span',
         // `noUncheckedIndexedAccess` types the CSS module's index signature
         // as `string | undefined`; the class always exists at build time.
@@ -135,12 +148,21 @@ export function ProgressText({
   )
 
   return (
-    <span
-      ref={containerRef}
-      className={cn(s.progressText, className)}
-      style={style}
-    >
-      {children}
-    </span>
+    <>
+      {/* Real accessible text: a plain element (not the SplitText
+          container) so aria-label/aria-hidden placement never depends on
+          GSAP having mounted yet — the sentence is readable to assistive
+          tech from first paint, not just after the reveal animation wires
+          up. */}
+      <span className="sr-only">{children}</span>
+      <span
+        ref={containerRef}
+        aria-hidden="true"
+        className={cn(s.progressText, className)}
+        style={style}
+      >
+        {children}
+      </span>
+    </>
   )
 }

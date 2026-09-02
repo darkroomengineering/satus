@@ -93,6 +93,53 @@ describe('removeCallArgument', () => {
 // removeIfStatement
 // ---------------------------------------------------------------------------
 
+describe('replaceFunctionBody / replaceJsDoc — indentation-insensitive skip', () => {
+  it('applies when the body differs only inside a template literal interior', () => {
+    // Per-line trim comparison would judge these bodies equal (every line's
+    // trimmed text matches) and skip the replacement; only the literal's
+    // interior indentation differs, and that whitespace is content.
+    const fixture = `function greet() {
+  return \`hello
+      world\`
+}
+`
+    const op: AstOperation = {
+      kind: 'replaceFunctionBody',
+      functionName: 'greet',
+      replacement: '{\n  return `hello\n  world`\n}',
+    }
+    const result = applyOpsToText(fixture, [op])
+    expect(result).toContain('  world`')
+    expect(result).not.toContain('      world`')
+    // Re-applying the now-satisfied op is a byte-identical no-op.
+    expect(applyOpsToText(result, [op])).toBe(result)
+  })
+
+  it('applies when the JSDoc differs only in trailing whitespace', () => {
+    const fixture = `/** greets */
+function greet() {
+  return 1
+}
+`
+    const op: AstOperation = {
+      kind: 'replaceJsDoc',
+      functionName: 'greet',
+      replacement: '/** greets loudly */',
+    }
+    const trailing: AstOperation = {
+      kind: 'replaceJsDoc',
+      functionName: 'greet',
+      replacement: '/** greets  loudly */',
+    }
+    const once = applyOpsToText(fixture, [op])
+    expect(once).toContain('/** greets loudly */')
+    // Interior double space is content, not indentation — must still apply.
+    const twice = applyOpsToText(once, [trailing])
+    expect(twice).toContain('/** greets  loudly */')
+    expect(applyOpsToText(twice, [trailing])).toBe(twice)
+  })
+})
+
 describe('removeIfStatement', () => {
   const op: AstOperation = {
     kind: 'removeIfStatement',
@@ -234,6 +281,67 @@ export async function POST(request: NextRequest) {
 
     // Idempotent — re-applying to the already-stripped result changes nothing.
     expect(applyOpsToText(result, shopifyOps)).toBe(result)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// removeJsxElement — the JSX comment that documents a removed element goes
+// with it, whichever element form it documents (L4: only the self-closing
+// branch cleaned up, so removing `<Studio>…</Studio>` orphaned its comment).
+// ---------------------------------------------------------------------------
+
+describe('removeJsxElement — adjacent comment cleanup', () => {
+  const fixture = (element: string) => `export function App() {
+  return (
+    <div>
+      {/* documents the target */}
+      ${element}
+      <span>keep</span>
+    </div>
+  )
+}
+`
+
+  const cases: { label: string; element: string; tagName: string }[] = [
+    { label: 'self-closing', element: '<Canvas root />', tagName: 'Canvas' },
+    {
+      label: 'self-closing in an expression container',
+      element: '{studio && <Canvas root />}',
+      tagName: 'Canvas',
+    },
+    {
+      label: 'open/close pair',
+      element: '<Studio>child</Studio>',
+      tagName: 'Studio',
+    },
+    {
+      label: 'open/close pair in an expression container',
+      element: '{studio && <Studio>child</Studio>}',
+      tagName: 'Studio',
+    },
+  ]
+
+  for (const { label, element, tagName } of cases) {
+    it(`removes the element and its comment (${label})`, () => {
+      const result = applyOpsToText(fixture(element), [
+        { kind: 'removeJsxElement', tagName },
+      ])
+
+      expect(result).not.toContain(tagName)
+      expect(result).not.toContain('documents the target')
+      // Neighbouring content is untouched.
+      expect(result).toContain('<span>keep</span>')
+    })
+  }
+
+  it('keeps the comment when the element is only unwrapped', () => {
+    const result = applyOpsToText(fixture('<Studio>child</Studio>'), [
+      { kind: 'removeJsxElement', tagName: 'Studio', unwrap: true },
+    ])
+
+    expect(result).not.toContain('<Studio>')
+    expect(result).toContain('child')
+    expect(result).toContain('documents the target')
   })
 })
 

@@ -313,7 +313,7 @@ bun lint             # oxlint
 bun lint:fix         # oxlint with auto-fix
 bun run lint:types   # oxlint type-aware rules (no-floating-promises, no-misused-promises)
 bun run format       # oxfmt (writes in place; sorts imports + Tailwind classes)
-bun run ensure:typegen  # generates next-env.d.ts via `next typegen` if missing (skipped if it already exists)
+bun run ensure:typegen  # runs `next typegen` unless next-env.d.ts and both .next/types files it imports are already there
 bun run typecheck    # ensure:typegen + tsc --noEmit (TypeScript 7 native)
 bun run typecheck:watch  # ensure:typegen + tsc --noEmit --watch (native fast watcher; live feedback)
 bun test             # Unit tests (bun's built-in runner; ignores *.e2e.ts)
@@ -324,7 +324,7 @@ bun run doctor       # Diagnose setup issues
 
 Pre-commit hook (lefthook) runs on staged files: oxfmt + oxlint --fix (sequential, one command), in parallel with tsc typecheck. Type-aware linting is excluded from the hook to keep commits fast.
 
-`next-env.d.ts` (gitignored) is what makes tsc resolve the ambient `.svg`/`.css` module declarations in `lib/utils/types.d.ts` — it's listed first in `tsconfig.json`'s `include`, and tsc needs that entry to exist for the rest of `include` to take effect. A byte-fresh clone has no `next-env.d.ts` (`next dev`/`next build` normally generate it), so `ensure:typegen` backfills it with `next typegen` — a route-type generation step, not a full build — before `typecheck`/`check` run. It's a no-op once the file exists, so `bun run check` is order-independent: run it before or after `bun run build`, doesn't matter.
+`next-env.d.ts` (gitignored) is what makes tsc resolve the ambient `.svg`/`.css` module declarations in `lib/utils/types.d.ts` — it's listed first in `tsconfig.json`'s `include`, and tsc needs that entry to exist for the rest of `include` to take effect. A byte-fresh clone has no `next-env.d.ts` (`next dev`/`next build` normally generate it), so `ensure:typegen` backfills it with `next typegen` — a route-type generation step, not a full build — before `typecheck`/`check` run. `next-env.d.ts` also imports `.next/types/routes.d.ts` and `.next/types/root-params.d.ts`, and the post-checkout hook deletes `.next/types` on every branch switch, so `ensure:typegen` checks all three files and regenerates when any is missing. It's a no-op once they exist, so `bun run check` is order-independent: run it before or after `bun run build`, doesn't matter.
 
 Route smoke coverage is automatic: `e2e/route-sweep.e2e.ts` discovers every `app/**/page.tsx` at test-collection time and runs the five-assertion smoke against it with only static segments; dynamic routes (`[slug]`, `[...slug]`) need a bespoke `*.e2e.ts` with fixtures — creating the page is the only step for a static route. Write a bespoke `*.e2e.ts` only for behavior beyond the smoke (see `e2e/not-found.e2e.ts` for the soft-404 example).
 

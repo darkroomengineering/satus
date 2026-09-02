@@ -10,6 +10,8 @@
 
 import * as p from '@clack/prompts'
 
+import { isIntegrationKept } from '@/integrations/csp'
+
 import {
   formatGeneratedFiles,
   guardedPrompt,
@@ -17,8 +19,7 @@ import {
   toPascalCase,
   withSpinner,
 } from './generate-shared'
-import { getIntegrationEntries } from './integration-bundles'
-import { createDir } from './utils'
+import { createDir, pathExists, resolvePath } from './utils'
 
 interface PageOptions {
   webgl?: boolean
@@ -31,6 +32,66 @@ interface PageOptions {
 export interface PageConfig {
   name: string
   options: PageOptions
+}
+
+/** An integration `generatePageContent` can actually emit page wiring for. */
+export type PageCapabilityId = 'webgl' | 'sanity' | 'shopify'
+
+export interface PageCapability {
+  value: PageCapabilityId
+  label: string
+  hint: string
+}
+
+/**
+ * The page-template capabilities this generator supports, listed here rather
+ * than derived from the bundle manifest (M2): the manifest holds every
+ * removable integration, but `generatePageContent` understands only these
+ * three, so the prompt must offer exactly these — an option it can't act on
+ * would silently produce an identical page.
+ */
+export const PAGE_CAPABILITIES: readonly PageCapability[] = [
+  {
+    value: 'webgl',
+    label: 'WebGL / 3D',
+    hint: 'Adds the webgl prop to the page wrapper',
+  },
+  {
+    value: 'sanity',
+    label: 'Sanity CMS',
+    hint: 'Fetches the page document and its metadata from the CMS',
+  },
+  {
+    value: 'shopify',
+    label: 'Shopify',
+    hint: 'Wraps the page content in the cart provider',
+  },
+]
+
+/**
+ * Narrow `PAGE_CAPABILITIES` to what this project still has. Pure, so tests
+ * can drive it without touching the filesystem; `detectPageCapabilities`
+ * supplies the real presence check.
+ */
+export const availablePageCapabilities = (
+  isPresent: (id: PageCapabilityId) => boolean
+): PageCapability[] => PAGE_CAPABILITIES.filter((c) => isPresent(c.value))
+
+/**
+ * Which capabilities survive in this checkout. Sanity and Shopify reuse
+ * `isIntegrationKept`, the same folder-presence rule the CSP composer uses to
+ * decide which origins to allow. WebGL is a dev-only removable with no
+ * registry entry (see `devOnlyRemovables` in `@/lib/integrations/registry`),
+ * so its own bundle folder is checked directly.
+ */
+export const detectPageCapabilities = async (): Promise<
+  Set<PageCapabilityId>
+> => {
+  const present = new Set<PageCapabilityId>()
+  if (isIntegrationKept('sanity')) present.add('sanity')
+  if (isIntegrationKept('shopify')) present.add('shopify')
+  if (await pathExists(resolvePath('lib/webgl'))) present.add('webgl')
+  return present
 }
 
 /**
@@ -71,19 +132,26 @@ export async function promptPageConfig(): Promise<PageConfig> {
     'Page generation cancelled'
   )
 
-  const integrations = await guardedPrompt(
-    () =>
-      p.multiselect({
-        message: 'Which integrations should this page use?',
-        options: getIntegrationEntries().map(([key, bundle]) => ({
-          value: key,
-          label: bundle.name,
-          hint: bundle.description,
-        })),
-        required: false,
-      }),
-    'Page generation cancelled'
-  )
+  const present = await detectPageCapabilities()
+  const capabilities = availablePageCapabilities((id) => present.has(id))
+
+  // A project that kept none of the three has nothing to ask about — the
+  // prompt would render an empty list.
+  const integrations: PageCapabilityId[] = capabilities.length
+    ? await guardedPrompt(
+        () =>
+          p.multiselect({
+            message: 'Which integrations should this page use?',
+            options: capabilities.map((capability) => ({
+              value: capability.value,
+              label: capability.label,
+              hint: capability.hint,
+            })),
+            required: false,
+          }),
+        'Page generation cancelled'
+      )
+    : []
 
   const includeCss = await guardedPrompt(
     () =>

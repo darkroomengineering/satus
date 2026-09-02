@@ -214,8 +214,33 @@ export function applyRemoveUseCacheDirective(
 }
 
 /**
+ * Splice `replacement` verbatim over the node's exact source range, bypassing
+ * ts-morph's manipulation printer. `replaceWithText` re-indents inserted
+ * lines relative to the replaced node's original shape, so the first
+ * application and a re-application of the same replacement produce different
+ * whitespace — breaking the idempotent re-run contract `applyOpsToText`
+ * depends on (see `RequiredMatchOp` in `ast-operation-types.ts`). A verbatim
+ * splice makes re-applying an already-applied replacement byte-identical,
+ * which the runner's change detection (`text === before`) counts as the
+ * required-op miss it is. No text-similarity heuristic is involved, so
+ * whitespace that is content (a multiline template literal's interior, a
+ * JSDoc's spacing) can never make a needed replacement look already applied.
+ * The trade-off: `replacement` must be authored pre-indented for its target
+ * (both current targets are top-level, authored flush).
+ */
+const spliceNodeText = (
+  sourceText: string,
+  node: { getStart: () => number; getEnd: () => number },
+  replacement: string
+): string =>
+  sourceText.slice(0, node.getStart()) +
+  replacement +
+  sourceText.slice(node.getEnd())
+
+/**
  * Replace a named function's entire body with `replacement` (source text
- * including the surrounding braces). No-op when the function isn't found.
+ * including the surrounding braces). No-op when the function isn't found, or
+ * when its body already says what `replacement` says.
  */
 export function applyReplaceFunctionBody(
   project: Project,
@@ -228,9 +253,7 @@ export function applyReplaceFunctionBody(
 
     const body = fn.getBody()
     if (!body) return sourceText
-
-    body.replaceWithText(op.replacement)
-    return undefined // proceed with sf.getFullText()
+    return spliceNodeText(sourceText, body, op.replacement)
   })
 }
 
@@ -258,16 +281,51 @@ export function applyRemoveCallArgument(
 }
 
 /**
+ * Find the JSX comment expression that documents `target`, if any: the nearest
+ * preceding sibling in the JSX child list, skipping the whitespace-only
+ * JsxText between them. Returns the comment node so the caller can remove it
+ * AFTER removing `target` — the comment sits earlier in the source, so its
+ * position survives the target's removal, while the reverse order would
+ * invalidate the target node.
+ */
+function findPrecedingJsxComment(target: Node): Node | undefined {
+  const siblings =
+    target.getParentSyntaxList()?.getChildren() ??
+    target.getParent()?.getChildren() ??
+    []
+
+  for (let index = siblings.indexOf(target) - 1; index >= 0; index--) {
+    const sibling = siblings[index]
+    if (!sibling) return undefined
+    if (
+      sibling.getKind() === SyntaxKind.JsxText &&
+      sibling.getText().trim() === ''
+    ) {
+      continue
+    }
+    return sibling.getKind() === SyntaxKind.JsxExpression &&
+      sibling.getText().trim().startsWith('{/*')
+      ? sibling
+      : undefined
+  }
+  return undefined
+}
+
+/**
  * Walk all JSX elements in the source file and find those matching the op.
  *
  * Self-closing elements: remove the whole element (plus any immediately
  * preceding JSX comment expression on the prior sibling position).
  *
  * Open/close elements with `unwrap: true`: replace the element with its
- * children, preserving indentation.
+ * children, preserving indentation. The comment cleanup is skipped here —
+ * the children stay, so whatever the comment documents is still rendered.
  *
  * Open/close elements without `unwrap`: remove entirely, including any
- * wrapping JsxExpression container (handles `{studio && <Studio />}`).
+ * wrapping JsxExpression container (handles `{studio && <Studio />}`) and the
+ * same preceding comment the self-closing branch removes (L4 — both branches
+ * must share the cleanup, or a removed `<Studio>…</Studio>` leaves its
+ * documenting comment orphaned).
  */
 export function applyRemoveJsxElement(
   project: Project,
@@ -316,27 +374,10 @@ export function applyRemoveJsxElement(
           cursor = cursor.getParent()
         }
 
-        if (enclosingJsxExpr) {
-          // Also remove any immediately preceding JSX comment sibling.
-          const container = enclosingJsxExpr.getParent()
-          if (container) {
-            const siblings = container.getChildren()
-            const idx = siblings.indexOf(enclosingJsxExpr)
-            if (idx > 0) {
-              const prev = siblings[idx - 1]
-              if (
-                prev &&
-                prev.getKind() === SyntaxKind.JsxExpression &&
-                prev.getText().trim().startsWith('{/*')
-              ) {
-                prev.replaceWithText('')
-              }
-            }
-          }
-          enclosingJsxExpr.replaceWithText('')
-        } else {
-          node.replaceWithText('')
-        }
+        const removed = enclosingJsxExpr ?? node
+        const comment = findPrecedingJsxComment(removed)
+        removed.replaceWithText('')
+        comment?.replaceWithText('')
       } else {
         // JsxElement (open+close pair)
         const node = match.node
@@ -366,11 +407,10 @@ export function applyRemoveJsxElement(
             }
             cur = cur.getParent()
           }
-          if (enclosingExpr) {
-            enclosingExpr.replaceWithText('')
-          } else {
-            node.replaceWithText('')
-          }
+          const removed = enclosingExpr ?? node
+          const comment = findPrecedingJsxComment(removed)
+          removed.replaceWithText('')
+          comment?.replaceWithText('')
         }
       }
     }
@@ -530,14 +570,12 @@ export function applyReplaceJsDoc(
     const docs = fn.getJsDocs()
     if (docs.length === 0) return sourceText
 
-    // Replace the first (and typically only) JSDoc block.
-    // We pass the full /** … */ text directly to replaceWithText; ts-morph
-    // treats JSDoc nodes as replaceable text ranges.
+    // Replace the first (and typically only) JSDoc block — verbatim splice
+    // over the /** … */ range; see `spliceNodeText` for why not
+    // `replaceWithText`.
     const firstDoc = docs[0]
     if (!firstDoc) return sourceText
-
-    firstDoc.replaceWithText(op.replacement)
-    return undefined // proceed with sf.getFullText()
+    return spliceNodeText(sourceText, firstDoc, op.replacement)
   })
 }
 

@@ -3,14 +3,7 @@
 import cn from 'clsx'
 import { useRouter } from 'next/navigation'
 import type { KeyboardEvent, ReactNode } from 'react'
-import {
-  createContext,
-  use,
-  useEffect,
-  useRef,
-  useState,
-  useTransition,
-} from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 
 import { Image } from '@/components/ui/image'
 import { Link } from '@/components/ui/link'
@@ -23,47 +16,17 @@ import { quantityAction } from '../optimistic-utils'
 
 import s from './modal.module.css'
 
-interface ModalContextType {
+interface CartModalProps {
+  children: ReactNode
   isOpen: boolean
-  openCart: () => void
   closeCart: () => void
 }
 
-const ModalContext = createContext<ModalContextType | null>(null)
-
-/**
- * Throws outside `CartModal`, matching the sibling `useCartContext` pattern
- * (cart-store-context.ts) — a working-but-inert default (`isOpen: false`,
- * no-op openCart/closeCart) would silently no-op instead of surfacing the
- * missing provider.
- */
-export function useCartModal(): ModalContextType {
-  const context = use(ModalContext)
-  if (!context) {
-    throw new Error('useCartModal must be used within a CartModal')
-  }
-  return context
-}
-
-interface CartModalProps {
-  children: ReactNode
-}
-
-export function CartModal({ children }: CartModalProps) {
-  const [isOpen, setIsOpen] = useState(false)
+export function CartModal({ children, isOpen, closeCart }: CartModalProps) {
   const { state } = useCartContext()
   const { cart } = state
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
-
-  const openCart = () => {
-    previousFocusRef.current =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null
-    setIsOpen(true)
-  }
-  const closeCart = () => setIsOpen(false)
 
   // Move focus into the drawer on open, and back to whatever triggered it on
   // close — a hand-rolled dialog has no native focus management, so without
@@ -71,6 +34,10 @@ export function CartModal({ children }: CartModalProps) {
   // order, never announced as the new focus target.
   useEffect(() => {
     if (isOpen) {
+      previousFocusRef.current =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null
       closeButtonRef.current?.focus()
     } else {
       previousFocusRef.current?.focus()
@@ -87,10 +54,10 @@ export function CartModal({ children }: CartModalProps) {
 
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [isOpen])
+  }, [isOpen, closeCart])
 
   return (
-    <ModalContext.Provider value={{ isOpen, openCart, closeCart }}>
+    <>
       {children}
       {/* `inert` removes the whole closed drawer from tab order and the a11y
           tree in one property — closed-state controls must be unreachable,
@@ -120,7 +87,7 @@ export function CartModal({ children }: CartModalProps) {
           {!cart || cart.lines.length === 0 ? <EmptyCart /> : <InnerCart />}
         </div>
       </div>
-    </ModalContext.Provider>
+    </>
   )
 }
 

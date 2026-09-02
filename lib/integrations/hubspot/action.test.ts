@@ -32,6 +32,23 @@ function isFormIdAllowed(
   return allowList.includes(formId)
 }
 
+/**
+ * Replicates the fail-closed-in-production branch added to
+ * `HubspotNewsletterAction` for when `HUBSPOT_ALLOWED_FORM_IDS` is unset —
+ * mirrors `validateTurnstile`'s production/development split in
+ * `lib/integrations/turnstile/index.ts`.
+ */
+function checkAllowlistConfiguration(
+  allowedFormIds: string | undefined,
+  nodeEnv: string | undefined
+): { status: number; message: string } | null {
+  if (allowedFormIds) return null
+  if (nodeEnv === 'production') {
+    return { status: 500, message: 'security_configuration_error_' }
+  }
+  return null
+}
+
 describe('HubSpot newsletter schema', () => {
   test('valid input passes', () => {
     const result = hubspotNewsletterSchema.safeParse({
@@ -140,5 +157,34 @@ describe('HubSpot form ID allowlist (HUBSPOT_ALLOWED_FORM_IDS)', () => {
 
   test('single-entry allowlist rejects any other formId', () => {
     expect(isFormIdAllowed('form-b', 'form-a')).toBe(false)
+  })
+})
+
+describe('HubSpot allowlist configuration gate (fail closed in production)', () => {
+  test('unset allowlist in production is rejected with a configuration error', () => {
+    expect(checkAllowlistConfiguration(undefined, 'production')).toEqual({
+      status: 500,
+      message: 'security_configuration_error_',
+    })
+  })
+
+  test('empty-string allowlist in production is rejected with a configuration error', () => {
+    expect(checkAllowlistConfiguration('', 'production')).toEqual({
+      status: 500,
+      message: 'security_configuration_error_',
+    })
+  })
+
+  test('unset allowlist in development passes through (allow any formId)', () => {
+    expect(checkAllowlistConfiguration(undefined, 'development')).toBeNull()
+  })
+
+  test('unset allowlist with no NODE_ENV set passes through (allow any formId)', () => {
+    expect(checkAllowlistConfiguration(undefined, undefined)).toBeNull()
+  })
+
+  test('configured allowlist never triggers the gate, regardless of NODE_ENV', () => {
+    expect(checkAllowlistConfiguration('form-a', 'production')).toBeNull()
+    expect(checkAllowlistConfiguration('form-a', 'development')).toBeNull()
   })
 })

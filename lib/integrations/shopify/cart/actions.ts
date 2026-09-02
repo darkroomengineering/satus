@@ -51,12 +51,14 @@ async function runCartAction(
 ): Promise<CartActionResult> {
   const headersList = await headers()
   const ip = getIPFromHeaders(headersList)
-  const rateLimitResult = rateLimit(
-    `${rateLimitPrefix}:${ip}`,
-    rateLimiters.standard
-  )
-  if (!rateLimitResult.success) {
-    return { ok: false, error: 'Too many requests. Please try again later.' }
+  if (ip) {
+    const rateLimitResult = rateLimit(
+      `${rateLimitPrefix}:${ip}`,
+      rateLimiters.standard
+    )
+    if (!rateLimitResult.success) {
+      return { ok: false, error: 'Too many requests. Please try again later.' }
+    }
   }
   return run()
 }

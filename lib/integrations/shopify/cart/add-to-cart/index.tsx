@@ -9,9 +9,8 @@ import { formatMoney } from '@/integrations/shopify/money'
 import type { Product, ProductVariant } from '@/integrations/shopify/types'
 
 import { addItem } from '../actions'
-import { useCartContext } from '../cart-context'
+import { useCartContext, useCartModal } from '../cart-context'
 import { ensureCart } from '../ensure-cart'
-import { useCartModal } from '../modal'
 
 import s from './add-to-cart.module.css'
 

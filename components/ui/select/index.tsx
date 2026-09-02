@@ -86,8 +86,8 @@ type SelectProps<T = string> = {
   value?: T
   /** Default value (uncontrolled) */
   defaultValue?: T
-  /** Callback when value changes */
-  onValueChange?: (value: T) => void
+  /** Callback when value changes, including a cleared selection (`null`) */
+  onValueChange?: (value: T | null) => void
   /** Whether the select is disabled */
   disabled?: boolean
   /** Name attribute for form submission */
@@ -114,9 +114,7 @@ function Select<T extends string = string>({
       value={value}
       defaultValue={defaultValue}
       onValueChange={(val, _details) => {
-        if (val !== null && onValueChange) {
-          onValueChange(val)
-        }
+        onValueChange?.(val)
       }}
       {...(disabled !== undefined && { disabled })}
       {...(name && { name })}

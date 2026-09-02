@@ -66,6 +66,12 @@ interface GetProductsOptions {
   sortKey?: string
 }
 
+// Shopify's search DSL has no built-in length limit, so an unbounded query
+// string is the one user-input boundary in this codebase without a cap
+// (Sanity slugs and cart quantities are both bounded elsewhere). Truncate
+// rather than reject — a too-long query still runs, just clipped.
+const MAX_QUERY_LENGTH = 200
+
 export async function getProducts({
   query,
   reverse,
@@ -79,7 +85,7 @@ export async function getProducts({
     query: getProductsQuery,
     cache: 'no-store',
     variables: {
-      query,
+      query: query?.trim().slice(0, MAX_QUERY_LENGTH),
       reverse,
       sortKey,
     },

@@ -24,7 +24,7 @@ Run `bun dev` and open [localhost:3000](http://localhost:3000) — the landing p
 
 ## Quick Start
 
-Requires Node.js >= 24.20 and Bun >= 1.3.5.
+Requires Node.js >= 24.20 and Bun >= 1.4.0.
 
 ```bash
 bun install

@@ -18,6 +18,8 @@ import { Theme } from '@/components/layout/theme'
 import type { ThemeName } from '@/styles/config'
 import { Canvas } from '@/webgl/components/canvas'
 
+import s from './wrapper.module.css'
+
 function isLenisOptions(value: boolean | LenisOptions): value is LenisOptions {
   return typeof value === 'object'
 }
@@ -57,7 +59,7 @@ interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
  * @param props.lenis - Whether to enable smooth scrolling with Lenis
  * @param props.webgl - Whether to mount the WebGL canvas for this page
  * @param props.children - Page content
- * @param props.className - Additional CSS classes
+ * @param props.className - Additional CSS classes for the main element. Tailwind utilities and CSS Module classes passed here override the base layout (see wrapper.module.css).
  *
  * @example
  * ```tsx
@@ -111,11 +113,7 @@ export function Wrapper({
       {/* Header is rendered here - do NOT add another in layout.tsx */}
       <Header />
       <Canvas root={webgl}>
-        <main
-          id="main-content"
-          className={cn('relative flex grow flex-col', className)}
-          {...props}
-        >
+        <main id="main-content" className={cn(s.main, className)} {...props}>
           {children}
         </main>
       </Canvas>

@@ -127,6 +127,14 @@ const nextConfig: NextConfig = {
     // instant-navigation cluster that is still opt-in (varyParams and
     // optimisticRouting are default-on).
     cachedNavigations: true,
+    // Not setting `inlineCss: true`. Measured 2026-09-02 (Lighthouse mobile,
+    // 3 runs each, localhost build): FCP 905 -> 810 ms, LCP 3.40 -> 3.40 s,
+    // TBT and CLS unchanged. It removed 4 stylesheets (14 KB transfer) but
+    // grew the document from 10 to 33 KB transfer (45 -> 176 KB raw), and
+    // that CSS also rides in every RSC payload. A 100 ms first-paint gain
+    // for +9 KB on the wire and no LCP movement is not worth it here; the
+    // starter's LCP is the throttled shell floor, not CSS delivery. A client
+    // project with more render-blocking CSS should re-measure.
     // Native Rust port of the React Compiler, run inside Turbopack. Pairs
     // with the top-level `reactCompiler: true`.
     turbopackRustReactCompiler: true,

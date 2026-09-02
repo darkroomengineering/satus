@@ -59,6 +59,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 
 | Hook | Import | Signature |
 |------|--------|-----------|
+| useAfterLoad | `@/hooks/use-after-load` | `() => boolean` |
 | useDeviceDetection | `@/hooks/use-device-detection` | `()` |
 | usePrefetch | `@/hooks/use-prefetch` | `(href: Route | null | undefined, options?: IntersectionObserverInit)` |
 | useReveal | `@/hooks/use-reveal` | `({ threshold = 0, rootMargin = '0px 0px -25% 0px', once = true, }: UseRevealOptions = {})` |

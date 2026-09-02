@@ -2,7 +2,7 @@ import { existsSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 
 import AxeBuilder from '@axe-core/playwright'
-import { expect, test } from '@playwright/test'
+import { expect, type Page, type Request, test } from '@playwright/test'
 
 /**
  * Route sweep — auto-discovered smoke coverage for every static page.
@@ -98,6 +98,60 @@ function discoverRoutes(): string[] {
   return [...new Set(routes)].sort()
 }
 
+/**
+ * Wait for a route's `next/dynamic({ ssr: false })` chunks (e.g.
+ * `OptionalFeatures`' opt-in GSAP runtime) to finish loading, plus web
+ * fonts, before an a11y scan runs. Without this, axe races the dynamic
+ * import: on a fast run it scans pre-mount markup, on a slow one it scans
+ * the fully-mounted component — same route, two different DOM shapes,
+ * nondeterministic pass/fail. `networkidle` never settles on this app (the
+ * WebGL canvas, Lenis, and the dev HMR socket keep the connection busy — see
+ * the comment at the `goto` call below), so this tracks `_next/static/chunks`
+ * requests specifically instead of whole-page network activity, and doesn't
+ * need to know which optional features a given route mounts.
+ */
+async function waitForDynamicChunksIdle(
+  page: Page,
+  { quietMs = 300, timeoutMs = 10_000 } = {}
+) {
+  const isChunkRequest = (request: Request) =>
+    request.url().includes('/_next/static/chunks/')
+
+  let pending = 0
+  let lastActivityAt = Date.now()
+
+  const onRequest = (request: Request) => {
+    if (!isChunkRequest(request)) return
+    pending++
+    lastActivityAt = Date.now()
+  }
+  const onRequestSettled = (request: Request) => {
+    if (!isChunkRequest(request)) return
+    pending = Math.max(0, pending - 1)
+    lastActivityAt = Date.now()
+  }
+
+  page.on('request', onRequest)
+  page.on('requestfinished', onRequestSettled)
+  page.on('requestfailed', onRequestSettled)
+
+  try {
+    const deadline = Date.now() + timeoutMs
+    while (Date.now() < deadline) {
+      if (pending === 0 && Date.now() - lastActivityAt >= quietMs) break
+      await page.waitForTimeout(50)
+    }
+  } finally {
+    page.off('request', onRequest)
+    page.off('requestfinished', onRequestSettled)
+    page.off('requestfailed', onRequestSettled)
+  }
+
+  // Fonts affect layout (and therefore what's on-screen for axe's
+  // color-contrast checks), and can still be loading after chunks settle.
+  await page.evaluate(() => document.fonts.ready.then(() => undefined))
+}
+
 const discoveredRoutes = discoverRoutes()
 
 test.describe('route sweep', () => {
@@ -140,6 +194,12 @@ test.describe('route sweep', () => {
       // No console errors or uncaught exceptions during load
       expect(consoleErrors).toEqual([])
       expect(pageErrors).toEqual([])
+
+      // Let dynamically-loaded features (next/dynamic({ ssr: false })
+      // chunks, e.g. the opt-in GSAP runtime) and web fonts settle before
+      // scanning — otherwise axe races the dynamic import and the scan is
+      // nondeterministic. See `waitForDynamicChunksIdle` above.
+      await waitForDynamicChunksIdle(page)
 
       // Basic a11y: scoped to critical + serious violations only.
       // Minor/moderate issues in third-party assets are excluded to keep

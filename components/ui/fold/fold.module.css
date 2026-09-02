@@ -1,63 +1,65 @@
-.fold {
-  &:not(.isDisabled) {
-    position: relative;
+@layer components {
+  .fold {
+    &:not(.isDisabled) {
+      position: relative;
 
-    &.isOverlay {
-      .overlay {
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-        background-color: var(--color-primary);
-        opacity: var(--progress, 0);
+      &.isOverlay {
+        .overlay {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background-color: var(--color-primary);
+          opacity: var(--progress, 0);
+        }
       }
-    }
 
-    .sticky {
-      min-height: 100svh;
-      position: sticky;
-    }
+      .sticky {
+        min-height: 100svh;
+        position: sticky;
+      }
 
-    &.isParallax {
+      &.isParallax {
+        &.isBottom {
+          .sticky {
+            transform: translate3d(0, calc(-5svh * var(--progress, 0)), 0);
+          }
+        }
+
+        &.isTop {
+          .sticky {
+            transform: translate3d(0, calc(5svh * var(--progress, 0)), 0);
+          }
+        }
+      }
+
       &.isBottom {
+        margin-bottom: -100svh;
+
+        &::before {
+          content: '';
+          display: block;
+          min-height: 100svh;
+          visibility: hidden;
+        }
+
         .sticky {
-          transform: translate3d(0, calc(-5svh * var(--progress, 0)), 0);
+          bottom: 0;
         }
       }
 
       &.isTop {
-        .sticky {
-          transform: translate3d(0, calc(5svh * var(--progress, 0)), 0);
+        margin-top: -100svh;
+
+        &::after {
+          content: '';
+          display: block;
+          min-height: 100svh;
+          visibility: hidden;
         }
-      }
-    }
 
-    &.isBottom {
-      margin-bottom: -100svh;
-
-      &::before {
-        content: '';
-        display: block;
-        min-height: 100svh;
-        visibility: hidden;
-      }
-
-      .sticky {
-        bottom: 0;
-      }
-    }
-
-    &.isTop {
-      margin-top: -100svh;
-
-      &::after {
-        content: '';
-        display: block;
-        min-height: 100svh;
-        visibility: hidden;
-      }
-
-      .sticky {
-        top: 0;
+        .sticky {
+          top: 0;
+        }
       }
     }
   }

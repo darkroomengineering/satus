@@ -22,6 +22,10 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ## [Unreleased]
 
+### Changed
+
+- Dependency pass from the 2026-09-02 audit (`docs/audits/dependency-audit-2026-09-02.md`): `@sanity/client` moves to v8 now that `next-sanity` 13.3.4 accepts it (the August hold is closed), `next` to 16.3.4 with its analyzer and playwright companions, `zod` to 4.5.4. `babel-plugin-react-compiler` is removed — Next 16.3's native Rust React Compiler runs under Turbopack and never used it. The `lodash`/`lodash-es` overrides are gone: nothing first-party imports either, and Sanity's own ranges already resolve both to 4.18.1. CI gains an advisory `bun audit` step alongside deslop.
+
 ### Fixed
 
 - `setup:project` output now typechecks on every keep-combination. The sanity strip used to leave the shared revalidate route referencing a removed import and `lib/seo/routes.ts` referencing six stripped symbols, so blank and shopify-only scaffolds failed their first `bun run check` with 7 type errors. Sanity's webhook handler moved into its own module (`lib/integrations/sanity/revalidate.ts`) with a guard + dispatch pair in the route matching shopify's, the routes strip stubs every function that read a stripped symbol, and a lean-variant validity test now applies all four keep-combinations in-memory on every test run. Verified by running the real script end to end: all four variants pass typecheck, lint, and tests at 0 errors.

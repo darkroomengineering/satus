@@ -62,6 +62,13 @@ jobs:
         continue-on-error: true
         run: bun run deslop
 
+      # Advisory — every advisory today is transitive through dev tooling or
+      # Sanity's runtime stack and cannot be fixed from this manifest, so this
+      # surfaces regressions for humans rather than gating merges.
+      - name: bun audit (advisory)
+        continue-on-error: true
+        run: bun audit
+
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 30

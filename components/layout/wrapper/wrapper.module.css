@@ -1,12 +1,5 @@
-/**
- * Base layout for the main element. Declared in `@layer utilities` with
- * zero specificity (`:where`) so a Tailwind utility passed through
- * `className` (same layer, real specificity) overrides it, and a consumer
- * CSS Module rule (unlayered) overrides both. Kept out of the `cn()` call so
- * an override never depends on stylesheet order between two utilities.
- */
-@layer utilities {
-  :where(.main) {
+@layer components {
+  .main {
     position: relative;
     display: flex;
     flex-direction: column;

@@ -102,6 +102,7 @@ export function MyComponent({
 - Tailwind (~80%): spacing, colors, typography
 - CSS Modules (~20%): complex animations, custom layouts, CSS specificity
 - Combine with `cn()` from `clsx`
+- A component that exposes `className` wraps its CSS module in `@layer components { ... }`. Tailwind v4 orders that layer below `utilities`, and unlayered CSS always beats layered CSS, so precedence becomes: consumer CSS module, then consumer Tailwind utility, then the component's own module. Without the layer an unlayered module rule beats every utility a consumer passes, whatever `cn()` outputs, and no class-merging library changes that. `image.module.css` layers into `utilities` on purpose so Tailwind `object-*` classes win by specificity; that is the one exception. This is why the starter does not carry `tailwind-merge`: the conflicts here are module versus utility, which layers decide, not utility versus utility.
 - Use `h-dvh` not `h-screen`
 - Animate only `transform`, `opacity` (compositor properties)
 - A below-fold CSS `background-image` downloads at page load on any rendered element, even at `opacity: 0` or inside a collapsed section; only `display: none` on the element itself, or a missing rule, prevents the fetch. Gate the class that carries the `url()` behind an IntersectionObserver (`rootMargin: '100% 0px'` starts the fetch one viewport early), or use `<img loading="lazy">`. Measured on shield.fi (2026-08-28): three hidden stills, 302 KB, cost 5.4 s of Slow 3G load before anyone scrolled.

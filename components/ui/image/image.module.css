@@ -1,7 +1,9 @@
-.block {
-  width: auto;
-  height: auto;
-  display: block;
+@layer components {
+  .block {
+    width: auto;
+    height: auto;
+    display: block;
+  }
 }
 
 /*

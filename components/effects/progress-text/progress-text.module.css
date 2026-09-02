@@ -1,10 +1,12 @@
-.progressText {
-  display: inline-block;
-
-  .word {
-    /* Opacity is set directly by the GSAP tween (scrubbed to scroll
-       progress), not a CSS transition — a transition would fight the
-       scrub by always trailing the scroll-driven value. */
+@layer components {
+  .progressText {
     display: inline-block;
+
+    .word {
+      /* Opacity is set directly by the GSAP tween (scrubbed to scroll
+         progress), not a CSS transition — a transition would fight the
+         scrub by always trailing the scroll-driven value. */
+      display: inline-block;
+    }
   }
 }

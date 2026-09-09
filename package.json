@@ -86,7 +86,7 @@
     "@sanity/vision": "^6.11.0",
     "@storybook/addon-mcp": "^0.7.0",
     "@storybook/nextjs-vite": "^10.5.10",
-    "@storybook/react": "^10.5.10",
+    "@storybook/react": "^10.6.0",
     "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@tailwindcss/vite": "^4.3.3",

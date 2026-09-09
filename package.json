@@ -109,7 +109,7 @@
     "postcss-preset-env": "^11.5.1",
     "react-scan": "^0.5.7",
     "sanity": "^6.12.0",
-    "storybook": "^10.5.10",
+    "storybook": "^10.6.0",
     "tailwindcss": "^4.3.3",
     "ts-morph": "^28.0.0",
     "typescript": "^7.0.2"

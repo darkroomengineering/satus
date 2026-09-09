@@ -50,7 +50,7 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@base-ui/react": "^1.7.0",
+    "@base-ui/react": "^1.8.0",
     "@gsap/react": "^2.1.2",
     "@portabletext/react": "^8.0.1",
     "@react-three/drei": "^10.7.8",

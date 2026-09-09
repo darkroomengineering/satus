@@ -100,7 +100,7 @@
     "@types/three": "^0.185.4",
     "colorjs.io": "^0.7.1",
     "deslop-cli": "^0.9.12",
-    "happy-dom": "^20.11.6",
+    "happy-dom": "^20.14.0",
     "lefthook": "^2.1.10",
     "oxfmt": "^0.65.0",
     "oxlint": "^1.81.0",

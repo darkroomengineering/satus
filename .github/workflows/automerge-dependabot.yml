@@ -1,11 +1,7 @@
 name: Auto-merge Dependabot
 
-# Auto-merge Dependabot PRs once the CI workflow passes.
-# Patch/minor bumps only — major bumps require human review.
-#
-# Triggers on workflow_run (after CI completes) instead of pull_request,
-# so we can read CI's conclusion before merging and squash-merge through
-# `gh pr merge` — status checks stay enforced.
+# Auto-merge stable patch/minor Dependabot bumps once the CI workflow passes.
+# Major, 0.x, prerelease and unrecognized updates require human review.
 
 on:
   workflow_run:
@@ -13,21 +9,18 @@ on:
     types: [completed]
 
 permissions:
-  pull-requests: write
+  actions: read
   contents: write
+  pull-requests: write
 
 jobs:
   auto-merge:
     runs-on: ubuntu-latest
-    # Only act when the triggering CI run succeeded for a pull_request.
-    # The Dependabot check happens on the PR *author* below, NOT on
-    # workflow_run.actor: once the lockfile-sync workflow pushes a bun.lock
-    # commit to a Dependabot branch, the subsequent CI run's actor is the
-    # PAT identity — gating on actor would permanently skip exactly the
-    # PRs this automation exists for.
+    # Check the PR author below; a maintainer can rerun Dependabot's CI.
     if: >
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'pull_request'
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
     steps:
       - name: Resolve Dependabot PR from head SHA
         id: pr
@@ -36,21 +29,28 @@ jobs:
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           REPO: ${{ github.repository }}
         run: |
-          pr_json=$(gh pr list --repo "$REPO" --state open \
-            --search "sha:$HEAD_SHA" \
-            --json number,author --jq '.[0] // empty')
-          if [ -z "$pr_json" ]; then
-            echo "No open PR for sha $HEAD_SHA — nothing to do."
+          set -o pipefail
+          matches=$(gh api --paginate --slurp \
+            "/repos/$REPO/commits/$HEAD_SHA/pulls?per_page=100" | \
+            jq --arg sha "$HEAD_SHA" \
+              '[.[][] | select(.state == "open" and .head.sha == $sha)]')
+          count=$(echo "$matches" | jq 'length')
+          if [ "$count" -ne 1 ]; then
+            echo "Expected exactly one open PR for sha $HEAD_SHA; found $count."
+            echo "Not auto-merging."
             exit 0
           fi
-          author=$(echo "$pr_json" | jq -r '.author.login')
-          if [ "$author" != "app/dependabot" ] && [ "$author" != "dependabot" ]; then
-            echo "PR author is $author, not Dependabot — nothing to do."
-            exit 0
-          fi
-          echo "number=$(echo "$pr_json" | jq -r '.number')" >> "$GITHUB_OUTPUT"
 
-      - name: Detect major bump from PR title
+          if ! echo "$matches" | jq -e --arg repo "$REPO" \
+            '.[0] | .user.login == "dependabot[bot]" and
+              .head.repo.full_name == $repo and .base.repo.full_name == $repo and
+              .base.ref == "main" and .draft == false' > /dev/null; then
+            echo "PR must be a ready Dependabot PR from this repository to main."
+            exit 0
+          fi
+          echo "number=$(echo "$matches" | jq -r '.[0].number')" >> "$GITHUB_OUTPUT"
+
+      - name: Detect stable patch or minor bump from PR title
         id: update_type
         if: steps.pr.outputs.number != ''
         env:
@@ -58,38 +58,56 @@ jobs:
           REPO: ${{ github.repository }}
           PR: ${{ steps.pr.outputs.number }}
         run: |
-          # Dependabot encodes the version transition in the title:
-          #   "chore(deps): bump X from 1.2.3 to 1.3.0"
-          #   "ci: bump actions/x from 8 to 9"
-          # If we can't parse a single "from A to B" pair (grouped multi-pkg
-          # bumps, etc.), bail safe — major detection is the gate.
           title=$(gh pr view "$PR" --repo "$REPO" --json title --jq '.title')
-          versions=$(echo "$title" | grep -oE 'from [0-9][0-9.]* to [0-9][0-9.]*' | head -1)
-          if [ -z "$versions" ]; then
-            echo "Cannot parse single version transition from title: $title"
-            echo "Not auto-merging (likely a grouped bump — needs human review)."
+          # Match a complete single-package title and full stable versions.
+          # Unknown titles, grouped bumps, prereleases and 0.x stay manual.
+          version='[1-9][0-9]*\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)'
+          transition=$(printf '%s\n' "$title" | grep -E \
+            "^(chore\\(deps(-dev)?\\)|ci): [Bb]ump [@a-zA-Z0-9_./-]+ from $version to $version$" || true)
+          if [ -z "$transition" ]; then
+            echo "Title does not prove a stable single-package update; not auto-merging."
             echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          from=$(echo "$versions" | awk '{print $2}')
-          to=$(echo "$versions" | awk '{print $4}')
-          from_major=$(echo "$from" | cut -d. -f1)
-          to_major=$(echo "$to" | cut -d. -f1)
-          if [ "$from_major" != "$to_major" ]; then
-            echo "Major bump: $from -> $to. Skipping (requires human review)."
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "Patch/minor bump: $from -> $to. Eligible for auto-merge."
+
+          from=$(echo "$transition" | awk '{print $(NF-2)}')
+          to=$(echo "$transition" | awk '{print $NF}')
+          if jq -en --arg from "$from" --arg to "$to" \
+            '($from | split(".") | map(tonumber)) as $a |
+              ($to | split(".") | map(tonumber)) as $b |
+              $a[0] == $b[0] and $b > $a' > /dev/null; then
+            echo "Stable patch/minor bump: $from -> $to. Eligible for auto-merge."
             echo "skip=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Major, unchanged or downgraded version: $from -> $to. Not auto-merging."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Squash merge
+      - name: Verify latest CI run and squash merge
         if: >
           steps.pr.outputs.number != '' &&
           steps.update_type.outputs.skip == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          WORKFLOW_ID: ${{ github.event.workflow_run.workflow_id }}
           REPO: ${{ github.repository }}
           PR: ${{ steps.pr.outputs.number }}
         run: |
-          gh pr merge "$PR" --repo "$REPO" --squash --delete-branch
+          set -o pipefail
+          if ! gh api --paginate --slurp \
+            "/repos/$REPO/actions/workflows/$WORKFLOW_ID/runs?event=pull_request&head_sha=$HEAD_SHA&per_page=100" | \
+            jq -e --arg sha "$HEAD_SHA" --argjson attempt "$RUN_ATTEMPT" \
+              --argjson run "$RUN_ID" --argjson workflow "$WORKFLOW_ID" \
+              '[.[].workflow_runs[] | select(.workflow_id == $workflow and
+                .event == "pull_request" and .head_sha == $sha)] |
+                max_by([.created_at, .id]) |
+                .id == $run and .run_attempt == $attempt and
+                .status == "completed" and .conclusion == "success"' > /dev/null; then
+            echo "CI was superseded, rerun or is not successful; not auto-merging."
+            exit 0
+          fi
+          gh pr merge "$PR" --repo "$REPO" --squash --delete-branch \
+            --match-head-commit "$HEAD_SHA"

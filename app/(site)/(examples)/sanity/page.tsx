@@ -1,5 +1,6 @@
 import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
+import { Suspense, ViewTransition } from 'react'
 
 import { Wrapper } from '@/components/layout/wrapper'
 import { NotConfigured } from '@/components/ui/not-configured'
@@ -33,7 +34,7 @@ async function fetchPageForRequest() {
   return isDraftMode ? fetchPage('drafts', true) : fetchPage('published', false)
 }
 
-export default async function SanityPage() {
+export default function SanityPage() {
   // Show setup instructions if Sanity is not configured
   if (!isConfigured('sanity')) {
     return (
@@ -43,16 +44,35 @@ export default async function SanityPage() {
     )
   }
 
+  return (
+    <Wrapper theme="light" className="font-mono uppercase">
+      <ViewTransition default="none" update="content-reveal">
+        <Suspense
+          fallback={
+            <output
+              aria-busy="true"
+              className="flex grow items-center justify-center dr-p-16"
+            >
+              Loading content…
+            </output>
+          }
+        >
+          <SanityContent />
+        </Suspense>
+      </ViewTransition>
+    </Wrapper>
+  )
+}
+
+async function SanityContent() {
   const { data } = await fetchPageForRequest()
 
   if (!data) return notFound()
 
   return (
-    <Wrapper theme="light" className="font-mono uppercase">
-      <div className="flex grow items-center justify-center max-dt:dr-px-16">
-        <SanityTutorial data={data} />
-      </div>
-    </Wrapper>
+    <div className="flex grow items-center justify-center max-dt:dr-px-16">
+      <SanityTutorial data={data} />
+    </div>
   )
 }
 

@@ -24,6 +24,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Changed
 
+- React and React DOM move to 19.3.0 with matching types. Page main content uses stable View Transitions for a 150ms navigation crossfade, with a per-page opt-out and reduced-motion support. The Sanity example animates its async content's Suspense reveal inside the page. Optional features use `use(browser())`, lazy imports and independent Suspense boundaries while retaining the canvas load/capability gates. `Tabs.Panel preserveState` retains drafts and pauses hidden Effects after Base UI's exit; cart initial focus uses a Fragment ref and restores the trigger on close/unmount, including Strict Mode replay. Existing stateful providers, caching, optimistic actions and scroll animation APIs stay in place.
 - Dependency pass from the 2026-09-02 audit (`docs/audits/dependency-audit-2026-09-02.md`): `next` to 16.3.4 with its analyzer and playwright companions, `zod` to 4.5.4, `next-sanity` to 13.3.4. `@sanity/client` stays on v7: `next-sanity` 13.3.4 widened its peer range to allow v8 but still declares `@sanity/client ^7.26.2` as a direct dependency, so a v8 app-level client gets a nested v7 copy underneath next-sanity and the TypeGen `SanityQueries` augmentation no longer reaches the copy `ClientReturn` reads — every typed query collapses to `{}` (22 type errors, caught by CI). The hold lifts when next-sanity's own dependency moves to v8. `babel-plugin-react-compiler` is removed — Next 16.3's native Rust React Compiler runs under Turbopack and never used it. The `lodash`/`lodash-es` overrides are gone: nothing first-party imports either, and Sanity's own ranges already resolve both to 4.18.1. CI gains an advisory `bun audit` step alongside deslop.
 - The Shopify client retries 429 and 503 responses: up to two retries honoring `Retry-After` (seconds or HTTP-date, capped at 5 s) or 250/500 ms jittered backoff, inside the existing 10 s request budget and never past an aborted cache signal. A throttled storefront no longer surfaces every throttle as a failed request. Auth failures still throw immediately.
 - API response validation compiles each envelope schema once with zod 4.5's `z.compile` (measured 6.95× faster per parse on a 20-product Shopify envelope, 26.6 µs → 3.8 µs median), and form validation uses `z.flattenError` in place of a hand-rolled reduction; per-item errors in array fields now report under the array field's key.
@@ -31,6 +32,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Fixed
 
+- Mailchimp email-only subscriptions preserve existing names instead of clearing them. Contact submissions report note-storage failures, and tag HTTP failures are logged while remaining optional.
 - The progress-text outro now passes axe: its accessible sentence lives in a visually-hidden span, the animated words are hidden from assistive tech from first paint (SplitText's `aria: 'auto'` had placed `aria-label` on a generic span), and unrevealed words default to 0.8 opacity so the dim state clears 4.5:1 through the outro container's own 0.6. The e2e route sweep waits for dynamic chunks and fonts before scanning, which removes the race that made this a flake.
 
 ### Fixed
@@ -94,7 +96,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 - Integrations: Shopify customer actions run through `runFormAction`; Turnstile validation extracted to `lib/integrations/turnstile` (shared across integrations); the cart reconciler uses a discriminated union and every cart action returns one `CartActionResult` shape; optimistic add wraps in `startTransition`; the Mailchimp error path validates with Zod.
 - Integrations reframed as opt-in plugins isolated under `lib/integrations` with `// USAGE` notes. (#210)
 - Shopify cart types: named the post-reshape line item (`CartLineItem`), made `Cart.id` required, and removed 11 `as` casts; `removeItem`/`updateItemQuantity` now take the client-held `lineId`, dropping a `getCart` round-trip per mutation. (#198)
-- Mailchimp integration returns typed `MailchimpErrorCode` values instead of sniffing error strings; tag/note writes are best-effort. (#198)
+- Mailchimp integration returns typed `MailchimpErrorCode` values instead of sniffing error strings; tag writes remain best-effort. Note writes originally followed the same policy; the Unreleased fix now requires successful note storage. (#198)
 - Shopify cart actions (`removeItem`/`addItem`/`updateItemQuantity`) share a
   `runCartAction` helper for the IP + standard rate-limit prelude instead of
   inlining it three times; behavior is unchanged.

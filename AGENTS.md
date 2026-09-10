@@ -11,7 +11,7 @@ This file changes only by deliberate review. `next dev` appends a managed block 
 | Layer              | Technology                                            |
 | ------------------ | ----------------------------------------------------- |
 | Framework          | Next.js 16 (App Router, Cache Components, `proxy.ts`) |
-| UI                 | React 19.2 (React Compiler ON, no manual memoization) |
+| UI                 | React 19.3 (React Compiler ON, no manual memoization) |
 | Language           | TypeScript 7, `strict: true`                          |
 | Styling            | Tailwind v4 (CSS-first) + CSS Modules                 |
 | Runtime            | Bun                                                   |
@@ -174,7 +174,30 @@ Worked patterns (compound components, context, server/client split, integration 
 
 ## Stack-Specific Notes
 
-### React 19.2
+### React 19.3
+
+**`<ViewTransition>`** — Stable in 19.3. `Wrapper` crossfades page main content;
+the Sanity example scopes a Suspense reveal inside the page. Next.js 16.3 navigation starts
+transitions without a config flag. Use `startTransition` for local non-urgent
+state changes. Shared names must be unique among visible participants. Keep
+reduced-motion rules for `::view-transition-*` in `global.css`; React does not
+disable them automatically. Scroll entrances stay on `useReveal`, orchestration
+on GSAP. See `components/layout/README.md` for the contract and opt-out.
+
+**Fragment refs** — Use `<Fragment ref={ref}>` for focus or observation across
+sibling DOM nodes without adding a wrapper. A `FragmentInstance` is not an
+HTMLElement or a GSAP scope. The cart uses one for initial focus and restores
+the previous focus in Effect cleanup, including Strict Mode replay.
+
+**`use(browser())`** — Call in a Client Component beneath Suspense when it
+cannot render meaningful server HTML. `lib/features` combines this with lazy
+imports and independent boundaries. It does not replace code splitting or
+`useAfterLoad`'s window-load scheduling for GPU boot.
+
+**Context from Server Components** — A Server Component may render a Context
+imported from a client module with a serializable value. Remove a provider
+wrapper only when it merely forwards data; Theme, Cart and GPU providers still
+own client state/effects and stay client components.
 
 **`<Activity />`** - Manage off-screen visibility; defer updates for performance.
 
@@ -186,7 +209,10 @@ import { Activity } from 'react'
 </Activity>
 ```
 
-Good for: tabs, carousels, accordions, off-screen WebGL scenes. The component pre-renders without performance impact and automatically cleans up effects when hidden.
+Good for: tabs, carousels and accordions. Hidden content retains state and DOM,
+renders at lower priority and cleans up Effects; pre-rendering still costs work
+and memory. `Tabs.Panel preserveState` opts into this after Base UI's exit
+completes. Retain explicit WebGL capability and load gates.
 
 **`useEffectEvent`** - Separate event logic from effect dependencies.
 

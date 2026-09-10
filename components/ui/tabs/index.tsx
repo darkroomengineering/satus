@@ -1,7 +1,9 @@
 'use client'
 
 import { Tabs as BaseTabs } from '@base-ui/react/tabs'
+import { useRender } from '@base-ui/react/use-render'
 import cn from 'clsx'
+import { Activity } from 'react'
 import type { ComponentProps, ReactNode } from 'react'
 
 import s from './tabs.module.css'
@@ -73,13 +75,62 @@ function Indicator({ className, ...props }: IndicatorProps) {
 type PanelProps = ComponentProps<typeof BaseTabs.Panel> & {
   className?: string
   children?: ReactNode
+  /** Retain panel state while hidden and pause its Effects after exit. */
+  preserveState?: boolean
 }
 
-function Panel({ className, children, ...props }: PanelProps) {
+function Panel({
+  className,
+  children,
+  preserveState = false,
+  keepMounted,
+  render,
+  ...props
+}: PanelProps) {
   return (
-    <BaseTabs.Panel className={cn(s.panel, className)} {...props}>
+    <BaseTabs.Panel
+      className={cn(s.panel, className)}
+      keepMounted={preserveState || keepMounted}
+      render={
+        preserveState
+          ? (elementProps, state) => (
+              <PreservedPanel
+                elementProps={elementProps}
+                state={state}
+                render={render}
+              />
+            )
+          : render
+      }
+      {...props}
+    >
       {children}
     </BaseTabs.Panel>
+  )
+}
+
+interface PreservedPanelProps {
+  elementProps: ComponentProps<'div'>
+  state: BaseTabs.Panel.State
+  render: BaseTabs.Panel.Props['render']
+}
+
+function PreservedPanel({ elementProps, state, render }: PreservedPanelProps) {
+  const element = useRender({
+    render,
+    props: { ...elementProps },
+    state: { ...state },
+    // BaseTabs.Panel has already mapped its state to DOM attributes.
+    stateAttributesMapping: {
+      hidden: () => null,
+      orientation: () => null,
+      tabActivationDirection: () => null,
+      transitionStatus: () => null,
+    },
+  })
+
+  return (
+    <Activity mode={state.hidden ? 'hidden' : 'visible'}>{element}</Activity>
   )
 }
 

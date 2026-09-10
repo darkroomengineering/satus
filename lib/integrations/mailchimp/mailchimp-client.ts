@@ -116,7 +116,7 @@ async function applyMemberTags(
   const body = {
     tags: tags.map((name) => ({ name, status: 'active' })),
   }
-  await makeMailchimpRequest(
+  const response = await makeMailchimpRequest(
     `/lists/${audienceId}/members/${hash}/tags`,
     {
       method: 'POST',
@@ -124,6 +124,9 @@ async function applyMemberTags(
     },
     config
   )
+  if (!response.ok) {
+    throw new Error(`Failed to apply member tags: HTTP ${response.status}`)
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -134,14 +137,14 @@ interface SubscriberPayload {
   email_address: string
   status_if_new: MailchimpMemberStatus
   status?: MailchimpMemberStatus
-  merge_fields: { FNAME: string; LNAME: string }
+  merge_fields: { FNAME?: string; LNAME?: string }
 }
 
 interface UpsertMemberOptions {
   audienceId: string
   email: string
-  firstName: string
-  lastName: string
+  firstName: string | undefined
+  lastName: string | undefined
   status: MailchimpMemberStatus
   /**
    * Also apply `status` to an address that is already in the audience.
@@ -175,11 +178,10 @@ async function upsertMember(
   const subscriberData: SubscriberPayload = {
     email_address: email,
     status_if_new: status,
-    merge_fields: {
-      FNAME: firstName,
-      LNAME: lastName,
-    },
+    merge_fields: {},
   }
+  if (firstName !== undefined) subscriberData.merge_fields.FNAME = firstName
+  if (lastName !== undefined) subscriberData.merge_fields.LNAME = lastName
   if (opts.forceStatus) {
     subscriberData.status = status
   }
@@ -267,7 +269,7 @@ export async function addContactToMailchimp(
       return upsert.result
     }
 
-    // --- best-effort: tag and note failures do NOT fail the overall op ---
+    // Tags are optional segmentation; a supplied note must be stored for success.
 
     try {
       await applyMemberTags(
@@ -281,17 +283,20 @@ export async function addContactToMailchimp(
     }
 
     if (contactData.note) {
-      try {
-        await makeMailchimpRequest(
-          `/lists/${audienceId}/members/${upsert.memberId}/notes`,
-          {
-            method: 'POST',
-            body: JSON.stringify({ note: contactData.note }),
-          },
-          config
-        )
-      } catch (err) {
-        console.error('Mailchimp contact note error (non-fatal):', err)
+      const response = await makeMailchimpRequest(
+        `/lists/${audienceId}/members/${upsert.memberId}/notes`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ note: contactData.note }),
+        },
+        config
+      )
+      if (!response.ok) {
+        return {
+          success: false,
+          errorCode: 'api_error',
+          error: 'Failed to store contact note',
+        }
       }
     }
 
@@ -331,8 +336,8 @@ export async function addSubscriberToMailchimp(
     const upsert = await upsertMember({
       audienceId,
       email: subscriptionData.email,
-      firstName: subscriptionData.firstName ?? '',
-      lastName: subscriptionData.lastName ?? '',
+      firstName: subscriptionData.firstName,
+      lastName: subscriptionData.lastName,
       // Defaults to 'pending' so new subscribers go through Mailchimp's
       // double opt-in confirmation email, matching the README. Pass
       // status: 'subscribed' explicitly to skip it for single opt-in.

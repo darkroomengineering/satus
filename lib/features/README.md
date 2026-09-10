@@ -4,7 +4,7 @@ Conditionally loaded features for the app layout.
 
 ## Overview
 
-`OptionalFeatures` is mounted in `app/(site)/layout.tsx` and conditionally loads heavy dependencies based on usage. This prevents unused features from bloating the client bundle.
+`OptionalFeatures` is mounted in `app/(site)/layout.tsx` and conditionally loads heavy dependencies based on usage. React `lazy()` preserves code splitting, while `use(browser())` keeps their rendering in the browser. This replaces the previous `next/dynamic` browser-only rendering contract; it does not imply a reduction in bundle size.
 
 ## Features
 
@@ -14,7 +14,7 @@ Conditionally loaded features for the app layout.
 | WebGL Canvas | Always mounted (shared strategy)             | Persistent Three.js canvas (no-op on non-WebGL devices) |
 | Dev Tools    | Development mode                             | Orchestra debug panel                                   |
 
-`OptionalFeatures({ gsap = false, webgl, ... })` keeps the GSAP runtime off by default, saving the ~43 KB it adds to the client bundle on sites that never animate with GSAP. `app/(site)/layout.tsx` passes `<OptionalFeatures gsap />`, which turns it on for every page under that layout. Drop the `gsap` prop only if no page under that layout uses `useGSAP` or ScrollTrigger — otherwise scrubbed animations end up a frame behind Tempus. This file is the single source of truth for that default; other docs should link here instead of restating it.
+`OptionalFeatures({ gsap = false })` keeps the GSAP runtime off by default. `app/(site)/layout.tsx` passes `<OptionalFeatures gsap />`, which turns it on for every page under that layout. Drop the `gsap` prop only if no page under that layout uses `useGSAP` or ScrollTrigger — otherwise scrubbed animations end up a frame behind Tempus. This file is the single source of truth for that default; other docs should link here instead of restating it.
 
 ## WebGL
 
@@ -38,10 +38,11 @@ This is the shared strategy. The per-page alternative is `<Wrapper webgl>`,
 which mounts the canvas on that page instead — pick one (see
 `lib/webgl/README.md`). Either way:
 
-1. The canvas mounts only on WebGL-capable devices (zero overhead otherwise)
+1. The canvas mounts only on WebGL-capable devices; the capability probe and the canvas module still load
 2. GPU capability is detected via a WebGL 2 context probe on a desktop
    viewport (`useDeviceDetection().isWebGL`)
 3. With the shared strategy, the context persists across navigation
+4. GPU boot still waits for `window.load` through `useAfterLoad`; `browser()` does not replace that scheduling gate
 
 ### Dev Tools
 
@@ -56,24 +57,27 @@ Automatically enabled in development. Access with `Cmd/Ctrl + O`.
 
 The component:
 
-1. Waits for client-side hydration
-2. Dynamically imports features with code splitting
-3. Renders with `ssr: false` to avoid hydration issues
-4. The WebGL canvas mounts only on WebGL-capable devices
+1. Renders a null Suspense fallback on the server because `BrowserFeatures` calls `use(browser())`
+2. Renders `BrowserFeatures` in the browser, where `browser()` does not suspend
+3. Loads each enabled feature through `lazy()` inside its own null Suspense boundary, so one pending chunk does not hold up the other features
+4. Preserves the WebGL device and load gates inside the canvas component
 
 ## Adding Custom Features
 
 ```tsx
 // lib/features/index.tsx
 
-const MyFeature = dynamic(
-  () => import('@/components/my-feature').then((mod) => mod.MyFeature),
-  { ssr: false }
+const MyFeature = lazy(() =>
+  import('@/components/my-feature').then((mod) => ({ default: mod.MyFeature }))
 )
 
-// Conditionally render based on env var or other condition
+// Render inside BrowserFeatures when the feature is enabled.
 {
-  process.env.NEXT_PUBLIC_MY_FEATURE === 'true' && <MyFeature />
+  enabled && (
+    <Suspense fallback={null}>
+      <MyFeature />
+    </Suspense>
+  )
 }
 ```
 

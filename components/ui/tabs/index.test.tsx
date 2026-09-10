@@ -37,13 +37,13 @@ test('ordinary panels discard their contents when the user leaves the tab', asyn
 })
 
 test('preserved drafts survive tab changes while hidden Effects stop and resume in Strict Mode', async () => {
-  let subscriptions = 0
+  const subscriptions = { active: 0 }
   function Draft() {
     const [text, setText] = useState('')
     useEffect(() => {
-      subscriptions++
+      subscriptions.active++
       return () => {
-        subscriptions--
+        subscriptions.active--
       }
     }, [])
     return (
@@ -64,17 +64,17 @@ test('preserved drafts survive tab changes while hidden Effects stop and resume 
   fireEvent.change(view.getByRole('textbox'), {
     target: { value: 'keep my draft' },
   })
-  expect(subscriptions).toBe(1)
+  expect(subscriptions.active).toBe(1)
   fireEvent.click(view.getByRole('tab', { name: 'Other' }))
-  await waitFor(() => expect(subscriptions).toBe(0))
+  await waitFor(() => expect(subscriptions.active).toBe(0))
   expect(view.queryByRole('textbox')).toBeNull()
   fireEvent.click(view.getByRole('tab', { name: 'Draft' }))
-  await waitFor(() => expect(subscriptions).toBe(1))
+  await waitFor(() => expect(subscriptions.active).toBe(1))
   const input = view.getByRole('textbox')
   if (!(input instanceof HTMLInputElement)) throw new Error('Expected input')
   expect(input.value).toBe('keep my draft')
   view.unmount()
-  expect(subscriptions).toBe(0)
+  expect(subscriptions.active).toBe(0)
 })
 
 for (const renderMode of ['element', 'function'] as const) {

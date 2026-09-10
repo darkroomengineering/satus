@@ -24,7 +24,9 @@ import { mailchimpSubscriptionAction } from '@/integrations/mailchimp'
 </Form>
 ```
 
-`mailchimpContactAction` (also exported from `@/integrations/mailchimp`) handles a contact form instead of a newsletter signup. Its schema requires `name`, `email`, `subject`, and `message`; on submit it posts the message as a note on a new Mailchimp contact. It returns the same `FormState` shape as `mailchimpSubscriptionAction`.
+`mailchimpContactAction` (also exported from `@/integrations/mailchimp`) handles a contact form instead of a newsletter signup. Its schema requires `name`, `email`, `subject`, and `message`; on submit it adds or updates the Mailchimp contact and posts the message as a note. Success requires storing the note; HTTP and network failures return an error even if the contact was saved. It returns the same `FormState` shape as `mailchimpSubscriptionAction`.
+
+Tagging is optional: failures are logged without rejecting a saved contact or subscription. Email-only subscriptions preserve existing first and last names; supplied name fields update only those fields, and explicit empty strings clear them.
 
 ```tsx
 import { Form, Input, SubmitButton } from '@/components/ui/form'

@@ -10,6 +10,7 @@
 
 import cn from 'clsx'
 import type { LenisOptions } from 'lenis'
+import { ViewTransition } from 'react'
 
 import { Footer } from '@/components/layout/footer'
 import { Header } from '@/components/layout/header'
@@ -41,6 +42,8 @@ interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
    * both mounts two canvases.
    */
   webgl?: boolean
+  /** Crossfade this page's main content during navigation. Defaults to true. */
+  viewTransition?: boolean
 }
 
 /**
@@ -106,6 +109,7 @@ export function Wrapper({
   className,
   lenis = true,
   webgl = false,
+  viewTransition = true,
   ...props
 }: WrapperProps) {
   return (
@@ -113,9 +117,15 @@ export function Wrapper({
       {/* Header is rendered here - do NOT add another in layout.tsx */}
       <Header />
       <Canvas root={webgl}>
-        <main id="main-content" className={cn(s.main, className)} {...props}>
-          {children}
-        </main>
+        <ViewTransition
+          name={viewTransition ? 'page-content' : undefined}
+          default="none"
+          share={viewTransition ? 'page-transition' : 'none'}
+        >
+          <main id="main-content" className={cn(s.main, className)} {...props}>
+            {children}
+          </main>
+        </ViewTransition>
       </Canvas>
       {/* Footer is rendered here - do NOT add another in layout.tsx */}
       <Footer />

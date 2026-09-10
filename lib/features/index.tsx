@@ -6,35 +6,31 @@
 
 'use client'
 
-import dynamic from 'next/dynamic'
+import { lazy, Suspense, use } from 'react'
+import { browser } from 'react-dom'
 
 const isDevelopment = process.env.NODE_ENV === 'development'
 
 // Lazy imports to avoid loading unused features
-const OrchestraTools = dynamic(
-  () => import('@/dev').then((mod) => ({ default: mod.OrchestraTools })),
-  { ssr: false }
+const OrchestraTools = lazy(() =>
+  import('@/dev').then((mod) => ({ default: mod.OrchestraTools }))
 )
 
-const GSAPRuntime = dynamic(
-  () =>
-    import('@/components/effects/gsap').then((mod) => ({
-      default: mod.GSAPRuntime,
-    })),
-  { ssr: false }
+const GSAPRuntime = lazy(() =>
+  import('@/components/effects/gsap').then((mod) => ({
+    default: mod.GSAPRuntime,
+  }))
 )
 
 // Root WebGL canvas. Mounted once here (in the shared layout) so the context
 // persists across route navigation; pages portal content in via <WebGLTunnel>.
-const LazyWebGLCanvas = dynamic(
-  () =>
-    import('@/webgl/components/canvas').then((mod) => ({
-      default: mod.Canvas,
-    })),
-  { ssr: false }
+const LazyWebGLCanvas = lazy(() =>
+  import('@/webgl/components/canvas').then((mod) => ({
+    default: mod.Canvas,
+  }))
 )
 
-type OptionalFeaturesProps = {
+interface OptionalFeaturesProps {
   /**
    * Mount the GSAP runtime, which hands GSAP's clock to Tempus so tweens share
    * one frame loop with Lenis and WebGL.
@@ -62,13 +58,33 @@ type OptionalFeaturesProps = {
  */
 export function OptionalFeatures({ gsap = false }: OptionalFeaturesProps) {
   return (
+    <Suspense fallback={null}>
+      <BrowserFeatures gsap={gsap} />
+    </Suspense>
+  )
+}
+
+function BrowserFeatures({ gsap }: OptionalFeaturesProps) {
+  use(browser())
+
+  return (
     <>
       {/* GSAP runtime — opt-in, see the `gsap` prop */}
-      {gsap && <GSAPRuntime />}
+      {gsap && (
+        <Suspense fallback={null}>
+          <GSAPRuntime />
+        </Suspense>
+      )}
       {/* Persistent root WebGL canvas (no-op on non-WebGL devices) */}
-      <LazyWebGLCanvas root />
+      <Suspense key="webgl" fallback={null}>
+        <LazyWebGLCanvas root />
+      </Suspense>
       {/* Development tools - only in development */}
-      {isDevelopment && <OrchestraTools />}
+      {isDevelopment && (
+        <Suspense fallback={null}>
+          <OrchestraTools />
+        </Suspense>
+      )}
     </>
   )
 }

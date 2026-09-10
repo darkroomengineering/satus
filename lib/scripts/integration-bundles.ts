@@ -731,10 +731,13 @@ export const INTEGRATION_BUNDLES = defineBundles({
       {
         file: 'lib/features/index.tsx',
         ops: [
-          // Remove `const LazyWebGLCanvas = dynamic(…)` (the root canvas mount)
+          // Remove the lazy root canvas import and its complete loading boundary.
           { kind: 'removeVariableStatement', name: 'LazyWebGLCanvas' },
-          // Remove `<LazyWebGLCanvas root />` (and its preceding JSX comment)
-          { kind: 'removeJsxElement', tagName: 'LazyWebGLCanvas' },
+          {
+            kind: 'removeJsxElement',
+            tagName: 'Suspense',
+            attribute: { name: 'key', value: 'webgl' },
+          },
         ],
       },
       {
@@ -894,25 +897,23 @@ export const INTEGRATION_BUNDLES = defineBundles({
       {
         file: 'lib/features/index.tsx',
         ops: [
-          // Ensure the dynamic() helper import is present
-          { kind: 'addImport', text: "import dynamic from 'next/dynamic'" },
-          // Re-add `const LazyWebGLCanvas = dynamic(…)` (the root canvas mount)
+          { kind: 'addImport', text: "import { lazy, Suspense } from 'react'" },
+          // Re-add the lazy root canvas import.
           {
             kind: 'addVariableStatement',
             name: 'LazyWebGLCanvas',
-            text: `const LazyWebGLCanvas = dynamic(
-  () =>
-    import('@/webgl/components/canvas').then((mod) => ({
-      default: mod.Canvas,
-    })),
-  { ssr: false }
+            text: `const LazyWebGLCanvas = lazy(() =>
+  import('@/webgl/components/canvas').then((mod) => ({
+    default: mod.Canvas,
+  }))
 )`,
           },
-          // Re-add `<LazyWebGLCanvas root />` inside the OptionalFeatures fragment
+          // Re-add its independent boundary inside BrowserFeatures.
           {
             kind: 'addJsxChild',
             parentTagName: 'Fragment',
-            childText: '<LazyWebGLCanvas root />',
+            childText:
+              '<Suspense key="webgl" fallback={null}><LazyWebGLCanvas root /></Suspense>',
             childTagName: 'LazyWebGLCanvas',
           },
         ],

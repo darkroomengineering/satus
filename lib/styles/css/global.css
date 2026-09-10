@@ -138,12 +138,63 @@ html.screenshot {
   transform: none;
 }
 
+/* React owns the snapshots; keep global chrome outside the page crossfade.
+ * No group geometry animation: navigation only animates opacity, for 150ms.
+ */
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+::view-transition-group(.page-transition),
+::view-transition-group(.content-reveal) {
+  animation: none;
+}
+
+::view-transition-old(.page-transition),
+::view-transition-old(.content-reveal) {
+  animation: page-fade-out 150ms ease-out both;
+}
+
+::view-transition-new(.page-transition),
+::view-transition-new(.content-reveal) {
+  animation: page-fade-in 150ms ease-out both;
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes page-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 /*
  * Respect reduced-motion: neutralize CSS animations/transitions globally.
  * GSAP and WebGL animations gate themselves via usePreferredReducedMotion();
  * the reveal primitive's hook short-circuits to the visible state.
  */
 @media (--reduced-motion) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+
   *,
   *::before,
   *::after {

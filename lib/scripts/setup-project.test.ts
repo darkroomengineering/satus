@@ -960,7 +960,10 @@ describe('Additive Transforms (remove → add round trips)', () => {
     if (!result) return
 
     expect(result.lean).not.toContain('LazyWebGLCanvas')
-    expect(result.restored).toContain('const LazyWebGLCanvas = dynamic(')
+    expect(result.lean).not.toContain('key="webgl"')
+    expect(result.restored).toContain('const LazyWebGLCanvas = lazy(')
+    expect(result.restored).toContain('<Suspense key="webgl" fallback={null}>')
+    expect(result.restored).not.toContain('next/dynamic')
     expect(result.restored).toContain('@/webgl/components/canvas')
     expect(result.restored).toContain('<LazyWebGLCanvas root />')
     // Untouched features survive

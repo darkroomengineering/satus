@@ -13,6 +13,8 @@
   }
 
   .tab {
+    min-width: 44px;
+    min-height: 44px;
     padding: mobile-vw(8px) mobile-vw(16px);
     background: transparent;
     border: none;
@@ -20,10 +22,7 @@
     cursor: pointer;
     font-size: inherit;
     font-family: inherit;
-    opacity: 0.6;
-    transition:
-      opacity 150ms ease,
-      color 150ms ease;
+    transition: opacity 150ms ease;
     position: relative;
 
     @media (--desktop) {
@@ -57,9 +56,6 @@
     bottom: 0;
     height: 2px;
     background-color: var(--color-contrast);
-    transition:
-      left 200ms ease-out,
-      width 200ms ease-out;
   }
 
   .panel {

@@ -69,3 +69,30 @@ export const TwoTabs: Story = {
     </div>
   ),
 }
+
+export const PreservedState: Story = {
+  render: () => (
+    <div style={{ width: 400 }}>
+      <Tabs.Root defaultValue="draft">
+        <Tabs.List>
+          <Tabs.Tab value="draft">Draft</Tabs.Tab>
+          <Tabs.Tab value="preview">Preview</Tabs.Tab>
+          <Tabs.Indicator />
+        </Tabs.List>
+        <Tabs.Panel value="draft" preserveState>
+          <label>
+            Draft message
+            <input
+              name="draft"
+              placeholder="Write something, then switch tabs"
+              className="min-h-[44px] w-full"
+            />
+          </label>
+        </Tabs.Panel>
+        <Tabs.Panel value="preview" preserveState>
+          <p>Switch back to Draft. Your message stays where you left it.</p>
+        </Tabs.Panel>
+      </Tabs.Root>
+    </div>
+  ),
+}

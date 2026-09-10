@@ -2,8 +2,8 @@
 
 import cn from 'clsx'
 import { useRouter } from 'next/navigation'
-import type { KeyboardEvent, ReactNode } from 'react'
-import { useEffect, useRef, useState, useTransition } from 'react'
+import type { FragmentInstance, KeyboardEvent, ReactNode } from 'react'
+import { Fragment, useEffect, useRef, useState, useTransition } from 'react'
 
 import { Image } from '@/components/ui/image'
 import { Link } from '@/components/ui/link'
@@ -25,7 +25,7 @@ interface CartModalProps {
 export function CartModal({ children, isOpen, closeCart }: CartModalProps) {
   const { state } = useCartContext()
   const { cart } = state
-  const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const contentsRef = useRef<FragmentInstance>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
 
   // Move focus into the drawer on open, and back to whatever triggered it on
@@ -33,14 +33,17 @@ export function CartModal({ children, isOpen, closeCart }: CartModalProps) {
   // this the close button/steppers/checkout link are only reachable by tab
   // order, never announced as the new focus target.
   useEffect(() => {
-    if (isOpen) {
-      previousFocusRef.current =
-        document.activeElement instanceof HTMLElement
-          ? document.activeElement
-          : null
-      closeButtonRef.current?.focus()
-    } else {
+    if (!isOpen) return
+
+    previousFocusRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null
+    contentsRef.current?.focus()
+
+    return () => {
       previousFocusRef.current?.focus()
+      previousFocusRef.current = null
     }
   }, [isOpen])
 
@@ -76,15 +79,16 @@ export function CartModal({ children, isOpen, closeCart }: CartModalProps) {
           <span className="sr-only">Close cart</span>
         </button>
         <div className={s.inner}>
-          <button
-            ref={closeButtonRef}
-            type="button"
-            className={cn('link', s.close)}
-            onClick={closeCart}
-          >
-            close
-          </button>
-          {!cart || cart.lines.length === 0 ? <EmptyCart /> : <InnerCart />}
+          <Fragment ref={contentsRef}>
+            <button
+              type="button"
+              className={cn('link', s.close)}
+              onClick={closeCart}
+            >
+              close
+            </button>
+            {!cart || cart.lines.length === 0 ? <EmptyCart /> : <InnerCart />}
+          </Fragment>
         </div>
       </div>
     </>

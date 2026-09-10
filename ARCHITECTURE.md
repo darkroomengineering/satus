@@ -119,8 +119,14 @@ Env and form schemas live in `lib/utils/validation.ts`; integration-local respon
 
 ## Deployment Checklist
 
-- [ ] Environment variables configured
-- [ ] Build passes (`bun run build`)
+- [ ] Repository belongs to `darkroomengineering`, has a responsible team, and uses the intended default branch (normally `main`).
+- [ ] Vercel project belongs to the `darkroom-engineering` team, connects to that repository, and uses the intended production branch. Configure Preview and Production environment variables, including `NEXT_PUBLIC_BASE_URL`.
+- [ ] Use the exact Bun `packageManager` pin and Node `.node-version`; pass `bun install --frozen-lockfile`, `bun run build`, and `bun run check`.
+- [ ] Explicitly adopt the [shared CI and merge workflow](https://github.com/darkroomengineering/.github/blob/a75b42e03f56b5ca5b2808ac4f1b06c81998fbc6/README.md#shared-ci-components), pinned to that reviewed commit. Keep browser checks and advisories in the project; organization workflows are not inherited.
+- [ ] Choose a merge policy: `actions-only` keeps application updates manual; `stable-dependencies` permits verified stable patch/minor dependency updates. Major, 0.x and prerelease updates stay manual.
+- [ ] Assign security-alert review: native Bun Dependabot supports scheduled version updates, not security updates. Verify advisories and update the manifest and lockfile together for security fixes.
+- [ ] Verify normal and Dependabot PR checks before requiring their observed names and app identities. Account for release and direct-push automation before enforcing branch rules.
+- [ ] Make Vercel TypeCheck blocking only after it passes on a production deployment. Trigger a new deployment after changing the setting and verify its checks and promotion.
 - [ ] Webhooks configured (Sanity, Shopify)
 - [ ] Cache invalidation tested
 - [ ] Performance score > 90

@@ -20,40 +20,14 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version-file: package.json
-
       # test:oxlint-plugin (run via `bun run check`) invokes `node` directly on
       # each ruletest file, so the runner's node must meet the engines floor
       # (>=24.20.0, the current LTS; native type-stripping of .ts files is unflagged).
-      - uses: actions/setup-node@v7
+      - name: Build and check
+        uses: darkroomengineering/.github/actions/bun-web-ci@a75b42e03f56b5ca5b2808ac4f1b06c81998fbc6
         with:
           node-version-file: .node-version
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Cache Next.js build
-        uses: actions/cache@v6
-        with:
-          path: .next/cache
-          key: nextjs-${{ runner.os }}-${{ hashFiles('bun.lock') }}-${{ hashFiles('**/*.ts', '**/*.tsx') }}
-          restore-keys: |
-            nextjs-${{ runner.os }}-${{ hashFiles('bun.lock') }}-
-
-      # Build first: generates next-env.d.ts + .next/types (gitignored) that
-      # tsc needs, and catches RSC/prerender regressions before deploy.
-      - name: Build
-        run: bun run build
-
-      # Separate from `check` purely for the --format=github annotations, which
-      # surface findings inline on the PR diff. `check` re-runs oxlint anyway.
-      - name: Lint
-        run: bun oxlint --format=github --max-warnings=0
-
-      - name: Run checks
-        run: bun run check
+          oxlint-annotations: 'true'
 
       # Advisory — a starter intentionally exports things nothing imports (see
       # doctor.config.ts's deadCode note), so findings here are signal for

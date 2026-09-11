@@ -115,7 +115,7 @@
     "typescript": "^7.0.2"
   },
   "overrides": {
-    "playwright-core": "1.62.1"
+    "playwright-core": "1.63.0"
   },
   "engines": {
     "node": ">=24.20.0"

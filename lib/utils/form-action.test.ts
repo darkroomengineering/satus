@@ -17,8 +17,12 @@ import { describe, expect, mock, test } from 'bun:test'
 
 let turnstileCalls = 0
 
+// `mock.module` replaces next/headers for every later test file in the same
+// process, so it must export everything the code under test anywhere imports.
+// Shopify cart actions import `cookies`; a missing export fails at import time.
 void mock.module('next/headers', () => ({
   headers: async () => new Headers({ 'x-forwarded-for': '203.0.113.7' }),
+  cookies: async () => new Map<string, { value: string }>(),
 }))
 
 void mock.module('@/lib/integrations/turnstile', () => ({

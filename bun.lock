@@ -35,7 +35,7 @@
         "@csstools/postcss-global-data": "^4.0.0",
         "@happy-dom/global-registrator": "^20.14.0",
         "@next/bundle-analyzer": "16.3.5",
-        "@next/playwright": "16.3.4",
+        "@next/playwright": "16.3.5",
         "@oxlint/plugins": "1.81.0",
         "@playwright/test": "1.63.0",
         "@sanity/vision": "^6.13.2",
@@ -739,7 +739,7 @@
 
     "@next/env": ["@next/env@16.3.5", "", {}, "sha512-NWEXVDMqoEo0ktmU6u0sE2Vg0LOcsD7NnOTJNo3/fEaTfsg+F1bMIxuDmQbda4e3yTIQwVdUREF2yIuMOusKtg=="],
 
-    "@next/playwright": ["@next/playwright@16.3.4", "", { "peerDependencies": { "@playwright/test": ">=1.0.0" }, "optionalPeers": ["@playwright/test"] }, "sha512-3kY/r//YJutrG1JTV7bAe1RNraRmwDjI19lzPrNPmq0mdYvEVTASXPyAqhRW6auQiyWS8FG75TyMHXUkn78tVw=="],
+    "@next/playwright": ["@next/playwright@16.3.5", "", { "peerDependencies": { "@playwright/test": ">=1.0.0" }, "optionalPeers": ["@playwright/test"] }, "sha512-R0gpYbyuTSBSid17ElLMiXCKLYEu3zcGEqkPZ5ne2lJyNB8NlWt3/5XIX7r5Wex1A5jwKhwe80d8Wsh6dPz+fg=="],
 
     "@next/swc-darwin-arm64": ["@next/swc-darwin-arm64@16.3.5", "", { "os": "darwin", "cpu": "arm64" }, "sha512-pMmGgETfKvElucLHtVaeiMRbp2zUbvKx7b1yGko0liBz3cw1mKSggWN/Rp/wPz8z+E1O82u3r4L1Co+ZS5hokQ=="],
 

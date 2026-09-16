@@ -80,7 +80,7 @@
     "@csstools/postcss-global-data": "^4.0.0",
     "@happy-dom/global-registrator": "^20.14.0",
     "@next/bundle-analyzer": "16.3.5",
-    "@next/playwright": "16.3.4",
+    "@next/playwright": "16.3.5",
     "@oxlint/plugins": "1.81.0",
     "@playwright/test": "1.63.0",
     "@sanity/vision": "^6.13.2",

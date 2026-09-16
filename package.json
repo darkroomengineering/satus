@@ -71,7 +71,7 @@
     "react-dom": "19.3.0",
     "tempus": "^1.0.0",
     "three": "^0.186.0",
-    "zod": "^4.6.2",
+    "zod": "^4.6.4",
     "zustand": "^5.0.15"
   },
   "devDependencies": {

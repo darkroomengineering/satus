@@ -106,7 +106,7 @@
     "oxlint": "^1.82.0",
     "oxlint-tsgolint": "^7.0.2001",
     "postcss-functions": "^4.0.2",
-    "postcss-preset-env": "^11.5.2",
+    "postcss-preset-env": "^11.5.3",
     "react-scan": "^0.5.7",
     "sanity": "^6.15.0",
     "storybook": "^10.6.0",

@@ -148,9 +148,9 @@ const checks: Check[] = [
     fix: 'Create AGENTS.md in project root (canonical engineering standards)',
   },
   {
-    name: 'CLAUDE.md exists',
-    check: () => existsSync(join(ROOT, 'CLAUDE.md')),
-    fix: 'Create CLAUDE.md in project root',
+    name: 'No CLAUDE.md shadowing AGENTS.md',
+    check: () => !existsSync(join(ROOT, 'CLAUDE.md')),
+    fix: 'Delete CLAUDE.md or merge it into AGENTS.md: while it exists, Claude Code skips loading AGENTS.md',
   },
   {
     name: 'COMPONENTS.md exists',

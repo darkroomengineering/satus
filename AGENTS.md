@@ -1,6 +1,6 @@
 # AGENTS.md - Satus Engineering Standards
 
-This is the **single source of truth** for engineering standards in this repo. Claude Code, Cursor, and all other AI tools read this file. The other docs (`CLAUDE.md`, `.cursor/rules/`) are thin pointers back here.
+This is the **single source of truth** for engineering standards in this repo. Claude Code, Codex, Cursor, and other AI tools read this file. `.cursor/rules/` is a thin pointer back here. Do not add a `CLAUDE.md`: while one exists, Claude Code skips loading this file.
 
 This file changes only by deliberate review. `next dev` appends a managed block here (an HTML comment fencing `nextjs-agent-rules`) when it detects an AI coding agent; there is no config opt-out. Revert that block on sight, never commit it. This sentence must never contain the block's literal opening marker: Next locates the block by searching for that exact string, and a prose match makes the next `next dev` run truncate everything below it.
 
@@ -164,7 +164,7 @@ Four positions that repeated audits arrived at independently. Each exists becaus
 
 **"Is X configured" has one answer per integration.** `lib/env.ts`, the per-integration `env.ts` files, and the schemas in `lib/utils/validation.ts` each parse environment differently. They may not disagree. Where they cannot be merged — `lib/integrations/sanity/env.ts` is dual-compiled into the client bundle and must not import server-only code — a test asserts they stay in sync instead. Note that "reads the same module" is not sufficient on its own: a dual-compiled module answers differently per side when its fallbacks are not statically inlinable, which is how an alias-only Sanity config broke the front end and the Studio at once.
 
-**Anything a scaffold step did not expect blocks self-prune.** `setup:project` has three failure modes — thrown, collected, and skipped — and only a thrown one used to stop the run. A required transform whose target file had been renamed was skipped in silence, and self-prune deleted the script even after transforms failed, so the documented advice to fix the cause and re-run had nothing left to run. New failure paths join the collected set; they do not get a fourth behaviour.
+**Anything a scaffold step did not expect blocks self-prune.** `setup:project` has three failure modes — thrown, collected, and skipped — and only thrown and collected failures stop self-prune. A required transform whose target is missing therefore reports as collected, not skipped: a silent skip lets self-prune delete the script, leaving nothing to re-run once the cause is fixed. New failure paths join the collected set; they do not get a fourth behaviour.
 
 **Ship the claim with the fix.** Changelog, README, JSDoc, audit ledger: whatever states the old behaviour changes in the same diff. This is the rule with the worst track record — the changelog and a process-audit report both credited a PR with an EOF fix that only ever covered one of the three scripts it named, which made the gap invisible to anyone checking the record instead of the code.
 
@@ -214,49 +214,11 @@ renders at lower priority and cleans up Effects; pre-rendering still costs work
 and memory. `Tabs.Panel preserveState` opts into this after Base UI's exit
 completes. Retain explicit WebGL capability and load gates.
 
-**`useEffectEvent`** - Separate event logic from effect dependencies.
+**`useEffectEvent`** keeps event logic out of effect dependencies.
 
-```tsx
-import { useEffect, useEffectEvent } from 'react'
+**`cacheSignal()`** — The Shopify client passes it so in-flight requests are cancelled when the cache entry is dropped (`lib/integrations/shopify/client.ts`); `sanityFetch` relies on `cacheTag` alone.
 
-function Component({ url, theme }) {
-  const onConnected = useEffectEvent(() => {
-    showNotification('Connected!', theme) // theme changes won't trigger reconnect
-  })
-
-  useEffect(() => {
-    const connection = createConnection(url)
-    connection.on('connected', onConnected)
-    connection.connect()
-    return () => connection.disconnect()
-  }, [url]) // Only reconnects when url changes
-}
-```
-
-**`cacheSignal`** (Server Components only) - Auto-aborts fetch on cache scope expiry.
-
-```tsx
-import { cacheSignal } from 'react'
-
-async function fetchUserData(id: string) {
-  const signal = cacheSignal()
-  const response = await fetch(`/api/users/${id}`, { signal })
-  return response.json()
-}
-```
-
-The Shopify client passes `cacheSignal()` so in-flight requests are cancelled when the cache entry is dropped (`lib/integrations/shopify/client.ts`); `sanityFetch` relies on `cacheTag` alone.
-
-**React 19 ref as prop** - No `forwardRef` needed.
-
-```tsx
-function Button({
-  ref,
-  ...props
-}: ButtonProps & { ref?: React.Ref<HTMLButtonElement> }) {
-  return <button ref={ref} {...props} />
-}
-```
+**Ref as prop** — No `forwardRef` (the lint rule above blocks the import).
 
 ### Next.js 16 Cache Components
 
@@ -310,7 +272,7 @@ Tailwind v4 conventions:
 
 ### Colors: always oklch (oklab for interpolation)
 
-ALL color values are authored in `oklch()` — palette entries in `lib/styles/colors.ts`, CSS module values, inline style strings, SVG fills. No hex, `rgb()`, or `hsl()` literals. Alpha uses slash syntax: `oklch(0 0 0 / 0.5)`, never `rgba()`.
+All color values are authored in `oklch()` — palette entries in `lib/styles/colors.ts`, CSS module values, inline style strings, SVG fills. No hex, `rgb()`, or `hsl()` literals. Alpha uses slash syntax: `oklch(0 0 0 / 0.5)`, never `rgba()`.
 
 - Palette source of truth is `lib/styles/colors.ts`; the theme CSS is generated from it by `bun run setup:styles`. Never hand-edit `lib/styles/css/tailwind.css` / `root.css`.
 - All color mixing happens in `oklab`: `color-mix(in oklab, ...)` always (never `in srgb`), and gradients that blend across hues take an interpolation hint (`linear-gradient(to top in oklab, ...)`). Hard-stop gradients (adjacent stops at the same position) don't need one. Any future JS color-mixing utility must mix in OKLab/OKLCH and return oklch strings.
@@ -363,7 +325,7 @@ Pre-commit hook (lefthook) runs on staged files: oxfmt + oxlint --fix (sequentia
 
 Route smoke coverage is automatic: `e2e/route-sweep.e2e.ts` discovers every `app/**/page.tsx` at test-collection time and runs the five-assertion smoke against it with only static segments; dynamic routes (`[slug]`, `[...slug]`) need a bespoke `*.e2e.ts` with fixtures — creating the page is the only step for a static route. Write a bespoke `*.e2e.ts` only for behavior beyond the smoke (see `e2e/not-found.e2e.ts` for the soft-404 example).
 
-When verifying behavior that depends on env vars being _absent_ (e.g. an integration's unconfigured fallback), wipe `.next` before building: `NEXT_PUBLIC_*` values are inlined at build time, so hiding `.env.local` against a stale build still renders the configured page and your verification silently measures the wrong variant. This burned a real review round — three contrast fixes "passed" env-hidden e2e against a build that had the env baked in.
+When verifying behavior that depends on env vars being _absent_ (e.g. an integration's unconfigured fallback), wipe `.next` before building: `NEXT_PUBLIC_*` values are inlined at build time, so hiding `.env.local` against a stale build still renders the configured page and your verification silently measures the wrong variant.
 
 ---
 

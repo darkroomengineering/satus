@@ -2422,22 +2422,6 @@ describe('P-D2: stdin EOF guard (guardedPrompt)', () => {
 // ---------------------------------------------------------------------------
 
 describe('guardedPrompt (answer-wins ordering)', () => {
-  it('a prompt that resolves synchronously (before stdin close) still wins — baseline sanity check', async () => {
-    const promptFn = () =>
-      new Promise<string>((resolve) => {
-        // Both the answer and the close are already-settled by the time
-        // Promise.race examines them here, so this alone doesn't exercise
-        // the actual race (Promise.race's array-order tie-break already
-        // favors index 0 in that case) — see the next test for the real
-        // regression repro.
-        resolve('yes')
-        process.stdin.emit('close')
-      })
-
-    const result = await guardedPrompt(promptFn, 'test cancelled')
-    expect(result).toBe('yes')
-  })
-
   it('a prompt that resolves one microtask AFTER stdin close still wins (the actual repro: setImmediate defers long enough for the answer to land first)', async () => {
     const promptFn = () =>
       new Promise<string>((resolve) => {

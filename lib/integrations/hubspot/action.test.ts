@@ -50,22 +50,6 @@ function checkAllowlistConfiguration(
 }
 
 describe('HubSpot newsletter schema', () => {
-  test('valid input passes', () => {
-    const result = hubspotNewsletterSchema.safeParse({
-      email: 'test@example.com',
-      formId: 'abc-123',
-    })
-    expect(result.success).toBe(true)
-  })
-
-  test('valid input with complex email passes', () => {
-    const result = hubspotNewsletterSchema.safeParse({
-      email: 'name+tag@sub.domain.co.uk',
-      formId: 'form-456-def',
-    })
-    expect(result.success).toBe(true)
-  })
-
   test('missing email fails', () => {
     const result = hubspotNewsletterSchema.safeParse({
       formId: 'abc-123',

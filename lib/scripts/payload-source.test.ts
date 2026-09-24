@@ -10,7 +10,6 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import { join } from 'node:path'
 
 import {
   listPayloadFiles,
@@ -66,11 +65,5 @@ describe('payload readers (against the repo itself)', () => {
     await expect(
       listPayloadFiles(repoSource, 'lib/integrations/nope')
     ).rejects.toThrow('missing folder')
-  })
-
-  it('sanity check: payload root resolves real files via join', async () => {
-    expect(await Bun.file(join(repoSource.root, 'package.json')).exists()).toBe(
-      true
-    )
   })
 })

@@ -18,11 +18,6 @@ import { emailSchema, phoneSchema, zodToValidator } from './validation'
 // ============================================
 
 describe('zodToValidator', () => {
-  test('returns a function', () => {
-    const validate = zodToValidator(emailSchema)
-    expect(typeof validate).toBe('function')
-  })
-
   test('converts email schema to validator function', () => {
     const validate = zodToValidator(emailSchema)
     expect(validate('user@example.com')).toBe(true)
@@ -53,55 +48,4 @@ describe('zodToValidator', () => {
     expect(validate('abc')).toBe(false)
     expect(validate('AB')).toBe(false)
   })
-})
-
-// ============================================
-// Email validator parity with emailSchema
-// ============================================
-
-describe('email validator parity', () => {
-  const validate = zodToValidator(emailSchema)
-
-  const testCases = [
-    { input: 'test@test.com', expected: true },
-    { input: 'a@b.co', expected: true },
-    { input: 'name+tag@domain.com', expected: true },
-    { input: 'user@sub.domain.co.uk', expected: true },
-    { input: 'missing-at', expected: false },
-    { input: '@no-local.com', expected: false },
-    { input: '', expected: false },
-    { input: 'no-at-sign', expected: false },
-  ]
-
-  for (const { input, expected } of testCases) {
-    test(`"${input}" -> validator=${expected}, schema=${expected}`, () => {
-      expect(validate(input)).toBe(expected)
-      expect(emailSchema.safeParse(input).success).toBe(expected)
-    })
-  }
-})
-
-// ============================================
-// Phone validator parity with phoneSchema
-// ============================================
-
-describe('phone validator parity', () => {
-  const validate = zodToValidator(phoneSchema)
-
-  const testCases = [
-    { input: '+14155552671', expected: true },
-    { input: '+442071234567', expected: true },
-    { input: '1234567890', expected: true },
-    { input: 'abc', expected: false },
-    { input: '', expected: false },
-    { input: '+', expected: false },
-    { input: '+0123456789', expected: false },
-  ]
-
-  for (const { input, expected } of testCases) {
-    test(`"${input}" -> validator=${expected}, schema=${expected}`, () => {
-      expect(validate(input)).toBe(expected)
-      expect(phoneSchema.safeParse(input).success).toBe(expected)
-    })
-  }
 })

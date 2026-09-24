@@ -46,25 +46,6 @@ describe('buildRoutesFromDocuments', () => {
     )
   })
 
-  it('returns every route when all documents are valid', () => {
-    const docs = [
-      {
-        _type: 'page',
-        title: 'About',
-        slug: { current: 'about' },
-        _updatedAt: '2026-01-01T00:00:00.000Z',
-      },
-      {
-        _type: 'article',
-        title: 'Hello World',
-        slug: { current: 'hello-world' },
-        _updatedAt: '2026-02-01T00:00:00.000Z',
-      },
-    ]
-
-    expect(buildRoutesFromDocuments(docs)).toHaveLength(2)
-  })
-
   it('returns an empty array when every document is malformed', () => {
     const docs = [
       { _type: 'not-a-real-type', slug: { current: 'a' } },

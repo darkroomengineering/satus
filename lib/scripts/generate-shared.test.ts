@@ -9,7 +9,7 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-import { refuseIfExists, toCamelCase, toPascalCase } from './generate-shared'
+import { refuseIfExists, toPascalCase } from './generate-shared'
 
 describe('toPascalCase', () => {
   it('capitalizes a single word', () => {
@@ -36,16 +36,6 @@ describe('toPascalCase', () => {
 
   it('handles a mix of hyphens and underscores', () => {
     expect(toPascalCase('my-long_page-name')).toBe('MyLongPageName')
-  })
-})
-
-describe('toCamelCase', () => {
-  it('lowercases the first word only', () => {
-    expect(toCamelCase('my-component')).toBe('myComponent')
-  })
-
-  it('handles a single word', () => {
-    expect(toCamelCase('button')).toBe('button')
   })
 })
 

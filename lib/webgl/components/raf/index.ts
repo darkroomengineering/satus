@@ -19,6 +19,8 @@ export function RAF({ render = true }) {
       }
     },
     {
+      // After Lenis (-1) so the canvas draws this frame's scroll, not the
+      // last one's. Order table: components/layout/lenis/index.tsx.
       order: 1,
     }
   )

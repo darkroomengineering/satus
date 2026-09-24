@@ -54,7 +54,7 @@ export function Marquee({
 
   const lenis = useLenis()
 
-  // order: 6 — Lenis writes scroll state at order 5 (see
+  // order: 6 — Lenis writes scroll state at order -1 (see the order table in
   // components/layout/lenis/index.tsx); without an explicit order here,
   // Tempus defaults this callback to order 0 and sequencing becomes
   // mount-order luck, reading `lenis.velocity` one frame stale.

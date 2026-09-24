@@ -29,17 +29,26 @@ export function Lenis({
 }: LenisProps) {
   const lenisRef = useRef<LenisRef>(null)
 
-  // order: 5 — Lenis writes scroll state; GSAP's updateRoot (order: 10, see
-  // components/effects/gsap.tsx) reads it for scrubbed ScrollTriggers. Without
-  // an explicit order the sequencing is mount-order luck, and a scrub tween
-  // would render one frame behind the scroll.
+  // Tempus runs callbacks in ascending order inside one rAF. Lenis advances
+  // the lerp and moves the document here, so anything that reads
+  // `lenis.scroll` to draw must run after it, or it paints a frame behind the
+  // DOM (a gap equal to the scroll velocity). Every explicit order, in one
+  // place; a new `useTempus` callback picks one relative to these:
+  //
+  //   -Infinity  Stats.begin            lib/dev/stats
+  //   -1         Lenis.raf              here
+  //    1         WebGL RAF (advance)    lib/webgl/components/raf
+  //    6         Marquee                components/ui/marquee
+  //   10         GSAP updateRoot        components/effects/gsap.tsx
+  //   1000       DOM write queue        lib/utils/raf.ts
+  //   +Infinity  Stats.end              lib/dev/stats
   useTempus(
     ({ time }) => {
       if (lenisRef.current?.lenis) {
         lenisRef.current.lenis.raf(time)
       }
     },
-    { order: 5 }
+    { order: -1 }
   )
 
   return (

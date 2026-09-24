@@ -98,7 +98,8 @@ export function GSAPRuntime() {
     }
   }, [])
 
-  // order: 10 — after Lenis (order: 5) has written scroll state, so scrubbed
+  // order: 10 — after Lenis (order: -1, see the order table in
+  // components/layout/lenis/index.tsx) has written scroll state, so scrubbed
   // ScrollTrigger tweens render this frame's scroll position, not last frame's.
   useTempus(
     ({ time }) => {

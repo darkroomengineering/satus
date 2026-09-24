@@ -32,6 +32,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Fixed
 
+- The WebGL canvas drew a frame behind the scroll: Tempus advanced the R3F frame (order 1) before Lenis moved the document (order 5), so every wheel flick painted the DOM at this frame's scroll and the canvas at the last one's, a gap equal to the scroll velocity. Lenis now runs at order -1, first of all, and `components/layout/lenis/index.tsx` carries the single table of Tempus orders that any new `useTempus` callback picks from. Anything that reads the scroll in order to draw runs after Lenis.
 - Mailchimp email-only subscriptions preserve existing names instead of clearing them. Contact submissions report note-storage failures, and tag HTTP failures are logged while remaining optional.
 - The progress-text outro now passes axe: its accessible sentence lives in a visually-hidden span, the animated words are hidden from assistive tech from first paint (SplitText's `aria: 'auto'` had placed `aria-label` on a generic span), and unrevealed words default to 0.8 opacity so the dim state clears 4.5:1 through the outro container's own 0.6. The e2e route sweep waits for dynamic chunks and fonts before scanning, which removes the race that made this a flake.
 

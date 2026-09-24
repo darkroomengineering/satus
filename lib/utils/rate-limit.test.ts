@@ -1,20 +1,14 @@
 /**
  * Unit tests for rate limiting utilities
  *
- * Tests the in-memory rate limiter, IP extraction from request headers,
- * and pre-configured rate limiter presets.
+ * Tests the in-memory rate limiter and IP extraction from request headers.
  *
  * Run with: bun test lib/utils/rate-limit.test.ts
  */
 
 import { describe, expect, it } from 'bun:test'
 
-import {
-  getClientIP,
-  getIPFromHeaders,
-  rateLimit,
-  rateLimiters,
-} from './rate-limit'
+import { getClientIP, getIPFromHeaders, rateLimit } from './rate-limit'
 
 /**
  * Helper to generate a unique identifier per test to avoid cross-test pollution
@@ -143,29 +137,6 @@ describe('rateLimit', () => {
     expect(r3.remaining).toBe(0)
     expect(r4.remaining).toBe(0)
   })
-
-  it('counts against a single per-process store (serverless multi-instance limitation)', () => {
-    // The limiter's state lives in one module-level Map, so every call in THIS
-    // process shares a counter. That is exactly why it does not hold across
-    // Vercel/serverless instances: each isolate has its own Map and its own
-    // counter, so the same identifier is limited independently per instance
-    // (and resets on cold start). This test pins the per-process-shared-state
-    // contract so the limitation is explicit, not incidental.
-    const id = uniqueId()
-    const config = { limit: 3, windowSeconds: 60 }
-
-    // Simulate two "callers" (e.g. two requests) routed to the SAME instance:
-    // they share the counter and are limited together.
-    expect(rateLimit(id, config).remaining).toBe(2)
-    expect(rateLimit(id, config).remaining).toBe(1)
-    expect(rateLimit(id, config).remaining).toBe(0)
-    expect(rateLimit(id, config).success).toBe(false)
-
-    // A DIFFERENT identifier (the closest thing a unit test can do to "another
-    // instance") keeps a fully independent budget — mirroring how a second
-    // serverless isolate would not see the first isolate's count.
-    expect(rateLimit(uniqueId(), config).success).toBe(true)
-  })
 })
 
 describe('getClientIP', () => {
@@ -256,54 +227,5 @@ describe('getIPFromHeaders', () => {
   it('should extract IP from x-forwarded-for', () => {
     const headers = new Headers({ 'x-forwarded-for': '192.168.1.1' })
     expect(getIPFromHeaders(headers)).toBe('192.168.1.1')
-  })
-})
-
-describe('rate-limit callers skip limiting when the IP is unresolvable', () => {
-  it('a null IP means callers must not build a shared "<prefix>:null" bucket', () => {
-    // Mirrors the pattern every caller (form-action.ts, proxy.ts,
-    // app/api/revalidate/route.ts, shopify cart actions.ts) now follows:
-    // `if (ip) { rateLimit(...) }` — a headerless request skips the call
-    // entirely instead of falling into a bucket every other headerless
-    // visitor also lands in.
-    const request = new Request('http://localhost')
-    const ip = getClientIP(request)
-    expect(ip).toBeNull()
-
-    let rateLimitCalled = false
-    if (ip) {
-      rateLimitCalled = true
-      rateLimit(`prefix:${ip}`, rateLimiters.standard)
-    }
-    expect(rateLimitCalled).toBe(false)
-  })
-})
-
-describe('rateLimiters presets', () => {
-  it('strict should have limit of 5 per 60 seconds', () => {
-    expect(rateLimiters.strict.limit).toBe(5)
-    expect(rateLimiters.strict.windowSeconds).toBe(60)
-  })
-
-  it('standard should have limit of 20 per 60 seconds', () => {
-    expect(rateLimiters.standard.limit).toBe(20)
-    expect(rateLimiters.standard.windowSeconds).toBe(60)
-  })
-
-  it('relaxed should have limit of 60 per 60 seconds', () => {
-    expect(rateLimiters.relaxed.limit).toBe(60)
-    expect(rateLimiters.relaxed.windowSeconds).toBe(60)
-  })
-
-  it('strict should be the most restrictive', () => {
-    expect(rateLimiters.strict.limit).toBeLessThan(rateLimiters.standard.limit)
-    expect(rateLimiters.standard.limit).toBeLessThan(rateLimiters.relaxed.limit)
-  })
-
-  it('presets should work with rateLimit function', () => {
-    const id = uniqueId('preset')
-    const result = rateLimit(id, rateLimiters.standard)
-    expect(result.success).toBe(true)
-    expect(result.limit).toBe(20)
   })
 })

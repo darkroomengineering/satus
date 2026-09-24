@@ -53,18 +53,5 @@ describe.skipIf(!manifestExists)(
           "dynamic read; find what changed and either wrap it in 'use cache' or gate it behind a Suspense boundary."
       ).toBe('PARTIALLY_STATIC')
     })
-
-    // Deliberately ≥ 1, not a higher bar: forks strip routes, and the real
-    // assertion above already fails if `/` is missing. This only proves the
-    // manifest parsed into a non-empty shape at all.
-    it('manifest parsed at least one route (sanity check)', async () => {
-      const manifest: PrerenderManifest = await manifestFile.json()
-      const routeCount = Object.keys(manifest.routes).length
-
-      expect(
-        routeCount,
-        'The prerender manifest parsed to zero routes — the file format likely changed.'
-      ).toBeGreaterThanOrEqual(1)
-    })
   }
 )

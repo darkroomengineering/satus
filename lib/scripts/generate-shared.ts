@@ -57,10 +57,10 @@ export function toCamelCase(str: string): string {
  * next time.
  *
  * Returns the unwrapped value when not cancelled (the TypeScript overload
- * ensures the caller receives the plain type, not `symbol | T`).
+ * ensures the caller receives the plain type, not `typeof p.CANCEL_SYMBOL | T`).
  */
 export function cancelGuard<T>(
-  value: T | symbol,
+  value: T | typeof p.CANCEL_SYMBOL,
   message: string,
   nonInteractiveHint?: string
 ): T {
@@ -114,7 +114,7 @@ const EOF_SENTINEL: unique symbol = Symbol('clack:stdin-eof')
  * prompt — nothing pending to drain — reaches the EOF branch.
  */
 export async function guardedPrompt<T>(
-  promptFn: () => Promise<T | symbol>,
+  promptFn: () => Promise<T | typeof p.CANCEL_SYMBOL>,
   message: string,
   nonInteractiveHint?: string
 ): Promise<T> {

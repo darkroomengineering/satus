@@ -21,10 +21,4 @@ describe('mobile-vh()', () => {
     expect(result).not.toContain('clamp')
     expect(result).not.toContain('svh')
   })
-
-  it('scales proportionally to the mobile screen height', () => {
-    const result = functions['mobile-vh']('100')
-    expect(result).toBe(functions['mobile-vh']('100'))
-    expect(result.endsWith('dvh')).toBe(true)
-  })
 })

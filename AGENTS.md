@@ -151,6 +151,12 @@ Dispose materials, textures, geometries, and render targets on unmount. Remove e
 
 `next/font` preloads every family it loads. Preloads compete with the render-blocking stylesheet on a slow link, so a family used only below the fold should pass `preload: false` (measured on shield.fi, 2026-08-28: dropping one below-fold preload moved Slow 3G first paint from 3.8 s to 3.0 s). For licensed self-hosted fonts, subset to the characters the site renders: a preloaded base file (Basic Latin plus the punctuation in use) and an `-Ext` file (rest of Latin-1, General Punctuation) declared with a `unicode-range` so it downloads only when one of those characters renders.
 
+### Testing
+
+- **Highly prefer E2E tests as the sole testing mechanism.** Use them (Playwright, `e2e/*.e2e.ts`) to verify that complex features work. At the end of an E2E test, produce a verifiable and repeatable artifact: a screenshot or recorded output attached with `testInfo.attach()`, or a report that a rerun reproduces.
+- **Never write unit tests after you write code.** A unit test written to fit finished code asserts what the code does, not what it must do, so it rarely catches a real bug.
+- **If you must test a system in isolation, first write down all the ways it could fail, then write the code.** The isolated tests assert against that list. The unit tests that remain in this repo cover what E2E cannot reach: CLI scripts (`setup:project`, generators), configured-integration paths (E2E runs without credentials), and cross-module invariants.
+
 ### Git
 
 - Conventional commits: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`

@@ -1,19 +1,19 @@
 import { useTexture } from '@react-three/drei'
-import { type Ref, useEffect, useState } from 'react'
+import type { Rect } from 'hamo'
+import { useEffect, useRef, useState } from 'react'
 import { LinearFilter, type Mesh, MeshBasicMaterial } from 'three'
+
+import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
 
 type WebGLImageProps = {
   src: string | undefined
-  /**
-   * Attached to the plane so the DOM side's `useWebGLRect` callback can place
-   * it. The plane starts invisible and stays so until placed.
-   */
-  meshRef: Ref<Mesh>
+  /** The DOM image's rect, measured in `./index.tsx` with hamo's `useRect`. */
+  rect: Rect
 }
 
 type WebGLImageMeshProps = {
   src: string
-  meshRef: Ref<Mesh>
+  rect: Rect
 }
 
 /**
@@ -25,13 +25,14 @@ type WebGLImageMeshProps = {
  * would resolve `''` to the document's own URL and three's `ImageLoader`
  * would attempt to decode the page's HTML as an image.
  */
-export function WebGLImage({ src, meshRef }: WebGLImageProps) {
+export function WebGLImage({ src, rect }: WebGLImageProps) {
   if (!src) return null
 
-  return <WebGLImageMesh src={src} meshRef={meshRef} />
+  return <WebGLImageMesh src={src} rect={rect} />
 }
 
-function WebGLImageMesh({ src, meshRef }: WebGLImageMeshProps) {
+function WebGLImageMesh({ src, rect }: WebGLImageMeshProps) {
+  const meshRef = useRef<Mesh>(null)
   const [material] = useState(() => new MeshBasicMaterial())
 
   // Mount effect owns the material it creates — dispose it on unmount.
@@ -72,7 +73,18 @@ function WebGLImageMesh({ src, meshRef }: WebGLImageMeshProps) {
     material.needsUpdate = true
   })
 
-  // Placed (position, scale, visibility, matrix) by the DOM side.
+  // Placed on the DOM image's rect: position, scale, visibility and matrix.
+  // The plane starts invisible; the hook's render effect places it right
+  // after this mounts.
+  useWebGLRect(rect, ({ position, scale, isVisible }) => {
+    const mesh = meshRef.current
+    if (!mesh) return
+    mesh.position.copy(position)
+    mesh.scale.copy(scale)
+    mesh.visible = isVisible
+    mesh.updateMatrix()
+  })
+
   return (
     <mesh ref={meshRef} matrixAutoUpdate={false} visible={false}>
       <planeGeometry />

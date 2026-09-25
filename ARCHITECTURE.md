@@ -293,38 +293,37 @@ Page -> <WebGLTunnel> (portals 3D content up into the root canvas)
 ```
 
 ```tsx
-// DOM side
+// DOM side: measure the element with hamo, pass the rect through the tunnel.
 'use client'
-import { useRef } from 'react'
-import type { Mesh } from 'three'
-import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
+import { useRect } from 'hamo'
 import { WebGLTunnel } from '@/webgl/components/tunnel'
 
 function MyWebGLComponent({ className }: { className?: string }) {
-  const meshRef = useRef<Mesh>(null)
-  // Measured once per resize; placed on scroll, transform and re-measure
-  // events. Options are hamo's useRect options. `update` places a mesh that
-  // mounts later than the element, from its ref callback.
-  const [setRectRef, rect, update] = useWebGLRect(
-    ({ position, scale, isVisible }) => {
-      const mesh = meshRef.current
-      if (!mesh) return
-      mesh.position.copy(position)
-      mesh.scale.copy(scale)
-      mesh.visible = isVisible
-    }
-  )
+  const [setRectRef, rect] = useRect()
   return (
     <div ref={setRectRef} className={className}>
       <WebGLTunnel>
-        <MyMesh
-          meshRef={(mesh) => {
-            meshRef.current = mesh
-            if (mesh) update()
-          }}
-        />
+        <MyMesh rect={rect} />
       </WebGLTunnel>
     </div>
+  )
+}
+
+// Canvas side: place the mesh on the rect. Runs on scroll, transform and
+// re-measure events, and once after mount.
+function MyMesh({ rect }: { rect: Rect }) {
+  const meshRef = useRef<Mesh>(null)
+  useWebGLRect(rect, ({ position, scale, isVisible }) => {
+    const mesh = meshRef.current
+    if (!mesh) return
+    mesh.position.copy(position)
+    mesh.scale.copy(scale)
+    mesh.visible = isVisible
+  })
+  return (
+    <mesh ref={meshRef} visible={false}>
+      …
+    </mesh>
   )
 }
 ```

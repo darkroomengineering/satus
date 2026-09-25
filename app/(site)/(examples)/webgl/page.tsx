@@ -72,22 +72,20 @@ export default function WebGLExamplePage() {
             scroll.
           </li>
           <li>
-            Each box is a div handed to <code>useWebGLRect</code>: hamo&apos;s{' '}
-            <code>useRect</code> measures it once per resize, ignoring
-            transforms. Its mesh is portalled into the canvas with{' '}
-            <code>&lt;WebGLTunnel&gt;</code>, which also bridges the DOM
-            contexts (transform, Theatre sheet) into the fiber&apos;s separate
-            reconciler, and a ref to the mesh stays on the DOM side, placing it
-            the moment it mounts.
+            Each box is a div measured by hamo&apos;s <code>useRect</code>, once
+            per resize, ignoring transforms. The rect and the mesh go into the
+            canvas through <code>&lt;WebGLTunnel&gt;</code>, which also bridges
+            the DOM contexts (transform, Theatre sheet) into the fiber&apos;s
+            separate reconciler.
           </li>
           <li>
-            On each Lenis scroll event, provider transform change or re-measure,
-            the hook turns rect + <code>lenis.scroll</code> + the
-            provider&apos;s translate into a position in camera units, one unit
-            per CSS pixel, origin mid-screen, and its callback copies that onto
-            the mesh. Lenis emits inside its raf, before the canvas draws.
-            Nothing reads layout while scrolling, and nothing runs while nothing
-            moves.
+            In the canvas, <code>useWebGLRect</code> takes that rect and, on
+            each Lenis scroll event, provider transform change or re-measure,
+            turns it + <code>lenis.scroll</code> + the provider&apos;s translate
+            into a position in camera units, one unit per CSS pixel, origin
+            mid-screen, and its callback copies that onto the mesh. Lenis emits
+            inside its raf, before the canvas draws. Nothing reads layout while
+            scrolling, and nothing runs while nothing moves.
           </li>
           <li>
             Parallax: <code>useScrollTrigger</code> maps the wrapper&apos;s

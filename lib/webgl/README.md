@@ -98,38 +98,52 @@ render loop.
 ## Hooks
 
 ```tsx
+import { useRect } from 'hamo'
 import { useDeviceDetection } from '@/hooks/use-device-detection'
 import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
 
-// Follow a DOM element: measured once per resize (hamo `useRect`), placed on
-// Lenis scroll events, provider transform changes and re-measures.
-const [setRectRef, rect, update] = useWebGLRect(onUpdate, {
-  ignoreTransform: true,
-})
+// DOM side: measure the element once per resize (hamo), pass the rect down.
+const [setRectRef, rect] = useRect({ ignoreTransform: true })
+
+// Canvas side: place a mesh on it, on Lenis scroll events, provider
+// transform changes and re-measures.
+useWebGLRect(rect, onUpdate)
 
 // Gate rendering on capability
 const { isWebGL } = useDeviceDetection()
 ```
 
 `onUpdate` receives `{ position, scale, isVisible }` in the camera's units
-(one unit per CSS pixel, origin mid-screen). The options are hamo's `useRect`
-options; `ignoreTransform` is for an element that moves under a
-`TransformProvider`, whose translate the hook adds itself. `update` re-runs
-the callback on demand: call it from the mesh's ref callback, because a mesh
-that mounts after its element (the root canvas waits for `window.load`) gets
-no event of its own.
+(one unit per CSS pixel, origin mid-screen). Pass `ignoreTransform` to
+`useRect` for an element that moves under a `TransformProvider`, whose
+translate the hook adds itself. The hook works on either side of the tunnel:
+in the mesh component its render effect places the mesh as soon as it
+mounts; on the DOM side, where the mesh can mount later, the returned
+`update` goes in the mesh's ref callback.
 
 ## DOM-Synced Component
 
 ```tsx
+import { type Rect, useRect } from 'hamo'
 import { useRef } from 'react'
 import type { Mesh } from 'three'
 import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
 import { WebGLTunnel } from '@/webgl/components/tunnel'
 
 function WebGLBox({ className }) {
+  const [setRectRef, rect] = useRect()
+  return (
+    <div ref={setRectRef} className={className}>
+      <WebGLTunnel>
+        <BoxMesh rect={rect} />
+      </WebGLTunnel>
+    </div>
+  )
+}
+
+function BoxMesh({ rect }: { rect: Rect }) {
   const meshRef = useRef<Mesh>(null)
-  const [setRectRef, , update] = useWebGLRect(({ position, scale, isVisible }) => {
+  useWebGLRect(rect, ({ position, scale, isVisible }) => {
     const mesh = meshRef.current
     if (!mesh) return
     mesh.position.copy(position)
@@ -137,20 +151,10 @@ function WebGLBox({ className }) {
     mesh.visible = isVisible
   })
   return (
-    <div ref={setRectRef} className={className}>
-      <WebGLTunnel>
-        <mesh
-          ref={(mesh) => {
-            meshRef.current = mesh
-            if (mesh) update() // placed the moment it mounts
-          }}
-          visible={false}
-        >
-          <planeGeometry />
-          <meshBasicMaterial />
-        </mesh>
-      </WebGLTunnel>
-    </div>
+    <mesh ref={meshRef} visible={false}>
+      <planeGeometry />
+      <meshBasicMaterial />
+    </mesh>
   )
 }
 ```

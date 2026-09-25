@@ -1,6 +1,6 @@
 'use client'
 
-import { type Rect, useRect, useTransform, useWindowSize } from 'hamo'
+import { type Rect, useTransform, useWindowSize } from 'hamo'
 import { useLenis } from 'lenis/react'
 import { useEffect, useEffectEvent, useRef } from 'react'
 import { Euler, Vector3 } from 'three'
@@ -21,83 +21,68 @@ export interface WebGLTransform {
 }
 
 /**
- * hamo's `useRect` options, minus `lazy`: the rect is returned eagerly so it
- * can be passed down as a prop.
- */
-type UseWebGLRectOptions = Omit<
-  NonNullable<Parameters<typeof useRect>[0]>,
-  'lazy'
->
-
-/**
- * Follow a DOM element with WebGL content.
+ * Place WebGL content on a DOM element's rect.
  *
- * Measures the element with hamo's `useRect` (once per resize, never on
- * scroll) and turns that rect, the scroll and any `TransformProvider`
- * translate above the element into a {@link WebGLTransform} handed to
- * `onUpdate`. Event-driven, not per frame: the callback runs on Lenis scroll
- * events (emitted inside Lenis's raf, before the canvas draws), on provider
- * transform changes, and after any render of the calling component, which
- * covers the first measurement and every re-measure. Without Lenis it
- * listens to the window's scroll event instead. Nothing runs while nothing
- * moves.
+ * Takes a rect from hamo's `useRect` (measure the element yourself, with
+ * whatever options it needs, and pass the rect down) and turns it, the
+ * scroll and any `TransformProvider` translate above the element into a
+ * {@link WebGLTransform} handed to `onUpdate`. Event-driven, not per frame:
+ * the callback runs on Lenis scroll events (emitted inside Lenis's raf,
+ * before the canvas draws), on provider transform changes, and after any
+ * render of the calling component, which covers the first measurement and
+ * every re-measure. Without Lenis it listens to the window's scroll event
+ * instead. Nothing runs while nothing moves.
  *
- * Runs on the DOM side, so the callback usually copies the transform onto a
- * mesh held in a ref that the tunnelled scene attaches. That mesh can mount
- * after the element — the root canvas waits for `window.load`, and tunnel
- * content mounts in the fiber's own commit — and no event fires for it. The
- * third return value, `update`, is for the mesh's ref callback: call it when
- * the mesh attaches and it is placed at once.
+ * Works on either side of the tunnel. Called in the mesh component, inside
+ * the canvas, the render effect runs after the mesh mounts, so the mesh is
+ * placed at once and nothing else is needed. Called on the DOM side, the
+ * mesh can mount later than the element (the root canvas waits for
+ * `window.load`) with no event of its own; the returned `update` is for the
+ * mesh's ref callback in that case.
  *
  * The size comes from hamo's `useWindowSize`, the layout viewport without the
  * scrollbar, which is the size the fixed root canvas has.
  *
  * @example
  * ```tsx
+ * // DOM side: measure the element and pass the rect through the tunnel.
  * function Box({ className }: { className?: string }) {
- *   const meshRef = useRef<Mesh>(null)
- *   const [setRectRef, , update] = useWebGLRect(
- *     ({ position, scale, isVisible }) => {
- *       const mesh = meshRef.current
- *       if (!mesh) return
- *       mesh.position.copy(position)
- *       mesh.scale.copy(scale)
- *       mesh.visible = isVisible
- *     }
- *   )
- *
+ *   const [setRectRef, rect] = useRect({ ignoreTransform: true })
  *   return (
  *     <div ref={setRectRef} className={className}>
  *       <WebGLTunnel>
- *         <mesh
- *           ref={(mesh) => {
- *             meshRef.current = mesh
- *             if (mesh) update()
- *           }}
- *           visible={false}
- *         >
- *           …
- *         </mesh>
+ *         <BoxMesh rect={rect} />
  *       </WebGLTunnel>
  *     </div>
  *   )
  * }
+ *
+ * // Canvas side: place the mesh on it.
+ * function BoxMesh({ rect }: { rect: Rect }) {
+ *   const meshRef = useRef<Mesh>(null)
+ *   useWebGLRect(rect, ({ position, scale, isVisible }) => {
+ *     const mesh = meshRef.current
+ *     if (!mesh) return
+ *     mesh.position.copy(position)
+ *     mesh.scale.copy(scale)
+ *     mesh.visible = isVisible
+ *   })
+ *   return <mesh ref={meshRef} visible={false}>…</mesh>
+ * }
  * ```
  *
+ * @param rect - The element's rect from hamo's `useRect`. Pass
+ *   `ignoreTransform: true` to `useRect` for an element that moves under a
+ *   `TransformProvider`, so its transform counts once, here, and never in
+ *   the measurement.
  * @param onUpdate - Called with the latest transform on every update. The
  *   object is reused between calls: copy out of it, don't keep it.
- * @param options - hamo `useRect` options. Pass `ignoreTransform: true` for
- *   an element that moves under a `TransformProvider`, so its transform
- *   counts once, here, and never in the measurement.
- * @returns `[setRectRef, rect, update]`: the ref callback for the element,
- *   its document-space rect (fields undefined until measured), and a stable
- *   function that re-runs `onUpdate` on demand.
+ * @returns A function that re-runs `onUpdate` on demand.
  */
 export function useWebGLRect(
-  onUpdate?: (transform: WebGLTransform) => void,
-  options: UseWebGLRectOptions = {}
-): [(element: HTMLElement | null) => void, Rect, () => void] {
-  const [setRectRef, rect] = useRect(options)
+  rect: Rect,
+  onUpdate?: (transform: WebGLTransform) => void
+): () => void {
   const { width, height } = useWindowSize()
   const lenis = useLenis()
   const getTransform = useTransform()
@@ -109,14 +94,14 @@ export function useWebGLRect(
     isVisible: false,
   })
 
-  // hamo's `useEffectEvent`, not React's, on purpose (the one exception to
-  // lib/hooks/README.md): it is a ref-backed wrapper with a stable identity
-  // and no call-site rules, so it can be handed to `useTransform` and
-  // `useLenis` and returned for a consumer's ref callback, both of which
-  // React's forbids. The cost: hamo writes the ref during render, and the
-  // rules-of-hooks lint cannot tell the shim from React's, hence the three
-  // disables below. If hamo's shim ever adopts React's restrictions, this
-  // hook is where it breaks.
+  // React's `useEffectEvent` is called here from outside its documented
+  // contract (only from Effects; never passed to hooks or returned): the
+  // Lenis and provider subscriptions, the window listener and a consumer's
+  // ref callback. At runtime it only refuses calls during render, and none
+  // of these are, so it works; the rules-of-hooks lint enforces the contract
+  // by name, hence the three disables. The cost: its identity changes every
+  // render, so `useLenis` re-subscribes and calls it once per render of the
+  // caller. Those renders are rare (a rect, a size, a src).
   const update = useEffectEvent(() => {
     if (width === undefined || height === undefined) return
     if (
@@ -161,13 +146,14 @@ export function useWebGLRect(
   // scrolls.
   useEffect(update)
 
-  // oxlint-disable-next-line react-hooks/rules-of-hooks -- hamo's shim, see above
+  // oxlint-disable-next-line react-hooks/rules-of-hooks -- effect event outside an Effect, see above
   useTransform(update, [])
-  // oxlint-disable-next-line react-hooks/rules-of-hooks -- hamo's shim, see above
+  // oxlint-disable-next-line react-hooks/rules-of-hooks -- effect event outside an Effect, see above
   useLenis(update, [])
 
-  // Fallback for a page without Lenis. `update` is stable, so it is not a
-  // dependency.
+  // Fallback for a page without Lenis. Every closure `update` returns reads
+  // the same implementation slot, so the one captured here stays fresh and
+  // is not a dependency.
   useEffect(() => {
     if (lenis) return
 
@@ -178,6 +164,6 @@ export function useWebGLRect(
     }
   }, [lenis])
 
-  // oxlint-disable-next-line react-hooks/rules-of-hooks -- hamo's shim, see above
-  return [setRectRef, rect, update]
+  // oxlint-disable-next-line react-hooks/rules-of-hooks -- effect event outside an Effect, see above
+  return update
 }

@@ -1,8 +1,8 @@
 'use client'
 
+import { useRect } from 'hamo'
 import dynamic from 'next/dynamic'
-import { useRef, useState } from 'react'
-import type { Mesh } from 'three'
+import { useState } from 'react'
 
 import {
   Image as DRImage,
@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/image'
 import { useDeviceDetection } from '@/hooks/use-device-detection'
 import { useRootCanvasMounted } from '@/webgl/components/canvas'
-import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
 
 import { WebGLTunnel } from '../tunnel'
 
@@ -24,9 +23,10 @@ const WebGLImage = dynamic(
 /**
  * WebGL-enhanced Image component.
  *
- * The DOM image is the measured element: `useWebGLRect` places the plane in
- * `./webgl` on it through `meshRef`, on scroll, transform and re-measure.
- * Falls back to the standard image on non-WebGL devices.
+ * The DOM image is the measured element: hamo's `useRect` measures it once
+ * per resize, and `useWebGLRect` in `./webgl` places the plane on that rect
+ * on scroll, transform and re-measure. Falls back to the standard image on
+ * non-WebGL devices.
  */
 export function Image({
   className,
@@ -40,17 +40,7 @@ export function Image({
   ...props
 }: DRImageProps) {
   const [src, setSrc] = useState<string>()
-  const meshRef = useRef<Mesh>(null)
-  const [setRectRef, , update] = useWebGLRect(
-    ({ position, scale, isVisible }) => {
-      const mesh = meshRef.current
-      if (!mesh) return
-      mesh.position.copy(position)
-      mesh.scale.copy(scale)
-      mesh.visible = isVisible
-      mesh.updateMatrix()
-    }
-  )
+  const [setRectRef, rect] = useRect()
   const { isWebGL, isReducedMotion } = useDeviceDetection()
 
   // Hide the DOM image only when a WebGL canvas will actually render its
@@ -76,15 +66,7 @@ export function Image({
       ref={setRectRef}
     >
       <WebGLTunnel>
-        {/* The plane mounts after the image loads and the canvas is up, with
-            no scroll event to place it: place it as it attaches. */}
-        <WebGLImage
-          meshRef={(mesh) => {
-            meshRef.current = mesh
-            if (mesh) update()
-          }}
-          src={src}
-        />
+        <WebGLImage rect={rect} src={src} />
       </WebGLTunnel>
       <DRImage
         {...props}

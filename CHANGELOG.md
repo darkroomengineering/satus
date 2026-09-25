@@ -24,7 +24,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Added
 
-- A WebGL example route at `app/(site)/(examples)/webgl` (`/webgl`), ported from harbor-website's debug page: cubes drawn in the shared canvas take their size and place from plain boxes CSS lays out, sized two ways and placed by flow, and hold them through scroll and resize. One box also drifts with the scroll through a CSS transform published to the canvas with hamo's `TransformProvider`. Same contract as `/sanity`: noindex, reserved out of the sitemap and `/ai`, deleted by `setup:project`, swept by the route e2e.
+- A WebGL example route at `app/(site)/(examples)/webgl` (`/webgl`): cubes drawn in the shared canvas take their size and place from plain boxes CSS lays out, sized two ways and placed by flow, and hold them through scroll and resize. One box also drifts with the scroll through a CSS transform published to the canvas with hamo's `TransformProvider`. Same contract as `/sanity`: noindex, reserved out of the sitemap and `/ai`, deleted by `setup:project`, swept by the route e2e.
 
 ### Changed
 

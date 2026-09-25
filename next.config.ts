@@ -19,23 +19,6 @@ const CONTENT_SECURITY_POLICY = composeCsp({
 })
 // -----------------------------------------------------------------------------
 
-// --- Storybook proxy ---------------------------------------------------------
-// Serves the standalone Storybook deployment at /storybook on this domain.
-// Active ONLY when NEXT_PUBLIC_STORYBOOK_URL is set (e.g. on Preview) AND the
-// environment is explicitly non-production (Vercel preview, `vercel dev`, or
-// local dev) — it fails CLOSED everywhere else, including self-hosted
-// production where VERCEL_ENV is undefined, so a fork never exposes a
-// /storybook route by accident.
-// To drop it entirely: unset the env var, or delete this block + the
-// redirects/rewrites entries below.
-const STORYBOOK_URL = process.env.NEXT_PUBLIC_STORYBOOK_URL?.replace(/\/+$/, '')
-const STORYBOOK_PROXY_ENABLED =
-  Boolean(STORYBOOK_URL) &&
-  (process.env.VERCEL_ENV === 'preview' ||
-    process.env.VERCEL_ENV === 'development' ||
-    process.env.NODE_ENV === 'development')
-// -----------------------------------------------------------------------------
-
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   reactCompiler: true,
@@ -213,26 +196,6 @@ const nextConfig: NextConfig = {
       ],
     },
   ],
-  rewrites: async () =>
-    STORYBOOK_PROXY_ENABLED
-      ? [
-          { source: '/storybook/', destination: `${STORYBOOK_URL}/` },
-          {
-            source: '/storybook/:path*',
-            destination: `${STORYBOOK_URL}/:path*`,
-          },
-        ]
-      : [],
-}
-
-// Storybook's static build uses relative asset paths, so the entry must be
-// /storybook/ (trailing slash) for them to resolve — the header links there.
-// Skip Next's automatic trailing-slash redirect (preview/dev only) so
-// /storybook/ is served as-is instead of being stripped to /storybook (which
-// would break the relative asset URLs). No redirect rule: with skip enabled,
-// a /storybook -> /storybook/ redirect matches /storybook/ too and self-loops.
-if (STORYBOOK_PROXY_ENABLED) {
-  nextConfig.skipTrailingSlashRedirect = true
 }
 
 const bundleAnalyzerPlugin = bundleAnalyzer({

@@ -26,7 +26,7 @@ Next.js 16, React 19, TypeScript, Tailwind CSS v4, Bun
 
 ```
 app/                    # Next.js routes; llms.txt/, agent-content/, sitemap.ts, robots.ts, and manifest.ts (AEO surfaces) live at the app/ root
-components/             # UI components (Storybook for the interactive ones)
+components/             # UI components
 lib/                    # Everything non-UI
   ├── hooks/           # Custom React hooks
   ├── integrations/    # Third-party services (Sanity, Shopify, HubSpot)

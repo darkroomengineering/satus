@@ -79,7 +79,6 @@ export default defineConfig({
     'public/**',
     '.vercel/**',
     '.github/**',
-    'storybook-static/**',
     'playwright-report/**',
     'test-results/**',
     'coverage/**',
@@ -285,15 +284,6 @@ export default defineConfig({
 
   overrides: [
     {
-      // Storybook CSF `render`/`decorator` functions are anonymous arrow
-      // functions that legitimately call hooks. rules-of-hooks cannot see them
-      // as components because they are neither PascalCase nor `use`-prefixed.
-      files: ['**/*.stories.tsx', '.storybook/**'],
-      rules: {
-        'react/rules-of-hooks': 'off',
-      },
-    },
-    {
       // The `components` prop of @portabletext/react is a map of serializer
       // functions -- defining them inline is the library's documented API, not
       // an accidental component-in-render.
@@ -337,13 +327,7 @@ export default defineConfig({
       },
     },
     {
-      files: [
-        'e2e/**',
-        '**/*.test.ts',
-        '**/*.test.tsx',
-        'lib/scripts/**',
-        '.storybook/**',
-      ],
+      files: ['e2e/**', '**/*.test.ts', '**/*.test.tsx', 'lib/scripts/**'],
       rules: {
         'eslint/no-restricted-imports': 'off',
         'unicorn/filename-case': 'off',
@@ -351,9 +335,9 @@ export default defineConfig({
       },
     },
     {
-      // Test and storybook casts are fixture plumbing; a SAFETY: justification
-      // per cast would be noise, and typeof probing is routine in assertions.
-      files: ['e2e/**', '**/*.test.ts', '**/*.test.tsx', '.storybook/**'],
+      // Test casts are fixture plumbing; a SAFETY: justification per cast
+      // would be noise, and typeof probing is routine in assertions.
+      files: ['e2e/**', '**/*.test.ts', '**/*.test.tsx'],
       rules: {
         'anti-slop/require-safety-comment-for-type-assertion': 'off',
         'anti-slop/no-runtime-typeof': 'off',

@@ -126,6 +126,20 @@ describe('buildRoutesFromDocuments', () => {
     expect(routes.some((route) => route.path === '/sanity')).toBe(false)
   })
 
+  it('drops a document slugged `webgl` — the WebGL example owns that path', () => {
+    const docs = [
+      {
+        _type: 'page',
+        title: 'WebGL',
+        slug: { current: 'webgl' },
+        _updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ]
+
+    const routes = buildRoutesFromDocuments(docs)
+    expect(routes.some((route) => route.path === '/webgl')).toBe(false)
+  })
+
   it('lists a `home` page at /home — `/` stays developer-owned', () => {
     const docs = [
       {

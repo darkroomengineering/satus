@@ -7,32 +7,17 @@ import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
 
 type WebGLImageProps = {
   src: string | undefined
+  /** The DOM image's rect, measured in `./index.tsx` with hamo's `useRect`. */
   rect: Rect
-  /** Whether the element is visible in the viewport */
-  visible?: boolean
 }
 
 type WebGLImageMeshProps = {
   src: string
   rect: Rect
-  /** Whether the element is visible in the viewport */
-  visible?: boolean
 }
 
 /**
- * Check if rect has valid measurements (not initial empty state)
- */
-function isRectValid(rect: Rect): boolean {
-  return (
-    rect.width !== undefined &&
-    rect.height !== undefined &&
-    rect.top !== undefined &&
-    rect.left !== undefined
-  )
-}
-
-/**
- * WebGL image mesh with visibility-aware optimizations.
+ * WebGL image plane.
  *
  * Hooks can't be conditional, so the `useTexture` call (and the real decode
  * it triggers) only happens once a real `src` exists — see
@@ -40,14 +25,14 @@ function isRectValid(rect: Rect): boolean {
  * would resolve `''` to the document's own URL and three's `ImageLoader`
  * would attempt to decode the page's HTML as an image.
  */
-export function WebGLImage({ src, rect, visible = true }: WebGLImageProps) {
+export function WebGLImage({ src, rect }: WebGLImageProps) {
   if (!src) return null
 
-  return <WebGLImageMesh src={src} rect={rect} visible={visible} />
+  return <WebGLImageMesh src={src} rect={rect} />
 }
 
-function WebGLImageMesh({ src, rect, visible = true }: WebGLImageMeshProps) {
-  const meshRef = useRef<Mesh>(null!)
+function WebGLImageMesh({ src, rect }: WebGLImageMeshProps) {
+  const meshRef = useRef<Mesh>(null)
   const [material] = useState(() => new MeshBasicMaterial())
 
   // Mount effect owns the material it creates — dispose it on unmount.
@@ -88,31 +73,20 @@ function WebGLImageMesh({ src, rect, visible = true }: WebGLImageMeshProps) {
     material.needsUpdate = true
   })
 
-  // Check if rect is valid (has been measured)
-  const rectIsValid = isRectValid(rect)
-
-  // Pass visibility to skip computations when off-screen
-  useWebGLRect(
-    rect,
-    ({
-      position,
-      scale,
-    }: {
-      position: { x: number; y: number; z: number }
-      scale: { x: number; y: number; z: number }
-    }) => {
-      meshRef.current.position.set(position.x, position.y, position.z)
-      meshRef.current.scale.set(scale.x, scale.y, scale.z)
-      meshRef.current.updateMatrix()
-    },
-    { visible: visible && rectIsValid }
-  )
-
-  // Don't render until rect is measured
-  if (!rectIsValid) return null
+  // Placed on the DOM image's rect: position, scale, visibility and matrix.
+  // The plane starts invisible; the hook's render effect places it right
+  // after this mounts.
+  useWebGLRect(rect, ({ position, scale, isVisible }) => {
+    const mesh = meshRef.current
+    if (!mesh) return
+    mesh.position.copy(position)
+    mesh.scale.copy(scale)
+    mesh.visible = isVisible
+    mesh.updateMatrix()
+  })
 
   return (
-    <mesh ref={meshRef} matrixAutoUpdate={false}>
+    <mesh ref={meshRef} matrixAutoUpdate={false} visible={false}>
       <planeGeometry />
       <primitive object={material} />
     </mesh>

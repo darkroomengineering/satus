@@ -293,19 +293,37 @@ Page -> <WebGLTunnel> (portals 3D content up into the root canvas)
 ```
 
 ```tsx
-// DOM side
+// DOM side: measure the element with hamo, pass the rect through the tunnel.
 'use client'
-import { useWebGLElement } from '@/webgl/hooks/use-webgl-element'
+import { useRect } from 'hamo'
 import { WebGLTunnel } from '@/webgl/components/tunnel'
 
 function MyWebGLComponent({ className }: { className?: string }) {
-  const { setRef, rect, isVisible } = useWebGLElement()
+  const [setRectRef, rect] = useRect()
   return (
-    <div ref={setRef} className={className}>
+    <div ref={setRectRef} className={className}>
       <WebGLTunnel>
-        <MyMesh rect={rect} visible={isVisible} />
+        <MyMesh rect={rect} />
       </WebGLTunnel>
     </div>
+  )
+}
+
+// Canvas side: place the mesh on the rect. Runs on scroll, transform and
+// re-measure events, and once after mount.
+function MyMesh({ rect }: { rect: Rect }) {
+  const meshRef = useRef<Mesh>(null)
+  useWebGLRect(rect, ({ position, scale, isVisible }) => {
+    const mesh = meshRef.current
+    if (!mesh) return
+    mesh.position.copy(position)
+    mesh.scale.copy(scale)
+    mesh.visible = isVisible
+  })
+  return (
+    <mesh ref={meshRef} visible={false}>
+      …
+    </mesh>
   )
 }
 ```

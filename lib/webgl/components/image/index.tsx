@@ -1,5 +1,6 @@
 'use client'
 
+import { useRect } from 'hamo'
 import dynamic from 'next/dynamic'
 import { useState } from 'react'
 
@@ -9,7 +10,6 @@ import {
 } from '@/components/ui/image'
 import { useDeviceDetection } from '@/hooks/use-device-detection'
 import { useRootCanvasMounted } from '@/webgl/components/canvas'
-import { useWebGLElement } from '@/webgl/hooks/use-webgl-element'
 
 import { WebGLTunnel } from '../tunnel'
 
@@ -21,10 +21,12 @@ const WebGLImage = dynamic(
 )
 
 /**
- * WebGL-enhanced Image component with visibility optimizations.
+ * WebGL-enhanced Image component.
  *
- * Uses useWebGLElement for unified rect + visibility tracking.
- * Falls back to standard image on non-WebGL devices.
+ * The DOM image is the measured element: hamo's `useRect` measures it once
+ * per resize, and `useWebGLRect` in `./webgl` places the plane on that rect
+ * on scroll, transform and re-measure. Falls back to the standard image on
+ * non-WebGL devices.
  */
 export function Image({
   className,
@@ -38,7 +40,7 @@ export function Image({
   ...props
 }: DRImageProps) {
   const [src, setSrc] = useState<string>()
-  const { setRef, rect, isVisible } = useWebGLElement<HTMLDivElement>()
+  const [setRectRef, rect] = useRect()
   const { isWebGL, isReducedMotion } = useDeviceDetection()
 
   // Hide the DOM image only when a WebGL canvas will actually render its
@@ -61,10 +63,10 @@ export function Image({
         opacity: src && webglActive ? 0 : 1,
         position: 'relative',
       }}
-      ref={setRef}
+      ref={setRectRef}
     >
       <WebGLTunnel>
-        <WebGLImage rect={rect} src={src} visible={isVisible} />
+        <WebGLImage rect={rect} src={src} />
       </WebGLTunnel>
       <DRImage
         {...props}

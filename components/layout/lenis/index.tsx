@@ -61,6 +61,8 @@ export function Lenis({
         autoRaf: false,
         anchors: true,
         autoToggle: true,
+        stopInertiaOnNavigate: true,
+        allowNestedScroll: true,
         prevent: (node: Element | null) =>
           node?.nodeName === 'VERCEL-LIVE-FEEDBACK' ||
           node?.id === 'theatrejs-studio-root' ||

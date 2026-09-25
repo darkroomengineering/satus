@@ -24,8 +24,9 @@ app/
 │   ├── ai/                # /ai route
 │   ├── articles/[slug]/   # Sanity article pages
 │   ├── [...slug]/         # Catch-all: renders one-segment Sanity pages by slug, 404 otherwise
-│   └── (examples)/
-│       └── sanity/       # Manual's Sanity tutorial route (kept on purpose)
+│   └── (examples)/       # Worked examples for contributors; setup:project deletes the group
+│       ├── sanity/       # Sanity wiring tutorial
+│       └── webgl/        # WebGL follows CSS: cubes on CSS-laid-out boxes, scroll + parallax
 ├── api/
 │   ├── cart/ensure/      # Shopify: idempotently ensures a cart cookie exists
 │   ├── draft-mode/       # Sanity draft mode (enable/disable)

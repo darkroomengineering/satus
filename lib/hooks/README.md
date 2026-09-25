@@ -231,10 +231,9 @@ function Component() {
 
 See [webgl/hooks/](../webgl/hooks/):
 
-| Hook              | Purpose                    |
-| ----------------- | -------------------------- |
-| `useWebGLElement` | Rect + visibility tracking |
-| `useWebGLRect`    | DOM-to-WebGL position sync |
+| Hook           | Purpose                                                                     |
+| -------------- | --------------------------------------------------------------------------- |
+| `useWebGLRect` | Place WebGL content on a hamo rect: scroll, transform and re-measure events |
 
 ## Viewport
 

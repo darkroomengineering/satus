@@ -199,7 +199,10 @@ Types: `Rect`, `Transform`, `TransformRef`, `UseScrollTriggerOptions`.
 > predates it, and keeping two sources for one primitive is how a codebase ends
 > up with both. See `lib/webgl/hooks/use-pointer-input.ts` for the pattern:
 > wrap a callback so an effect can call the latest version without listing it as
-> a dependency and re-subscribing.
+> a dependency and re-subscribing. One exception: `lib/webgl/hooks/use-webgl-rect.ts`
+> uses hamo's, because its function is handed to `useLenis`/`useTransform` and
+> returned for a ref callback, which React's version forbids; the file says so
+> and carries the lint disables.
 
 ## useDeviceDetection
 
@@ -231,10 +234,9 @@ function Component() {
 
 See [webgl/hooks/](../webgl/hooks/):
 
-| Hook              | Purpose                    |
-| ----------------- | -------------------------- |
-| `useWebGLElement` | Rect + visibility tracking |
-| `useWebGLRect`    | DOM-to-WebGL position sync |
+| Hook           | Purpose                                                      |
+| -------------- | ------------------------------------------------------------ |
+| `useWebGLRect` | Follow a DOM element: rect once per resize, placed per frame |
 
 ## Viewport
 

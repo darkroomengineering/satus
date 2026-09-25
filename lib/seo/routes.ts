@@ -33,12 +33,13 @@ export interface ContentRoute {
  * `sitemap.xml`/`llms.txt`. See `RESERVED_PATHS` below for routes that must
  * be excluded from CMS dedup without being advertised themselves.
  *
- * The `(examples)` route group (`/sanity`) is a Sanity wiring tutorial for
- * developers, not real site content — excluded here so it never appears in
- * the sitemap or the `/ai` machine view. Indexability is enforced on the
- * page itself: `app/(site)/(examples)/sanity/page.tsx` sets `robots: {
- * index: false, follow: false }`. A `robots.txt` disallow would defeat that
- * — it blocks the crawl a noindex directive needs in order to be read.
+ * The `(examples)` route group (`/sanity`, `/webgl`) holds worked examples
+ * for developers, not real site content — excluded here so they never appear
+ * in the sitemap or the `/ai` machine view. Indexability is enforced on each
+ * page itself: each example's `page.tsx` under `app/(site)/(examples)/`
+ * sets `robots: { index: false, follow: false }`. A `robots.txt` disallow
+ * would defeat that — it blocks the crawl a noindex directive needs in
+ * order to be read.
  */
 const staticPaths = new Set(STATIC_ROUTES.map((route) => route.path))
 
@@ -51,6 +52,8 @@ const staticPaths = new Set(STATIC_ROUTES.map((route) => route.path))
  * - `/studio` — `app/studio/[[...tool]]/page.tsx`, Sanity Studio.
  * - `/sanity` — `app/(site)/(examples)/sanity/page.tsx`, a Sanity wiring
  *   tutorial for developers, not real site content.
+ * - `/webgl` — `app/(site)/(examples)/webgl/page.tsx`, the WebGL-follows-CSS
+ *   example, same status.
  * - `/agent-content` — the internal Markdown negotiation handler proxy.ts
  *   rewrites to (`app/agent-content/route.ts`); a CMS doc slugged
  *   `agent-content` would otherwise be advertised in the sitemap/`/ai` while
@@ -62,7 +65,12 @@ const staticPaths = new Set(STATIC_ROUTES.map((route) => route.path))
  * else entirely. (`/api` needs no entry: there's no page/route at that root
  * segment, so it already falls through to the catch-all untouched.)
  */
-const RESERVED_PATHS = new Set(['/studio', '/sanity', MARKDOWN_HANDLER_PATH])
+const RESERVED_PATHS = new Set([
+  '/studio',
+  '/sanity',
+  '/webgl',
+  MARKDOWN_HANDLER_PATH,
+])
 
 /**
  * Every document type with a `slug` — kept permissive (`nullable()` fields)

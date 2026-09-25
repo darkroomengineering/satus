@@ -163,9 +163,9 @@ const replaceManualLandingPage = async (dryRun: boolean): Promise<void> => {
  * Delete `app/(site)/(examples)` unconditionally, regardless of which
  * integrations are kept.
  *
- * The `/sanity` route inside it is a Sanity wiring tutorial for this repo's
- * own contributors, not real site content — it must never ship to a
- * scaffolded project. Before this, the folder only disappeared when Sanity
+ * The routes inside it (`/sanity`, a Sanity wiring tutorial; `/webgl`, the
+ * WebGL-follows-CSS example) are for this repo's own contributors, not real
+ * site content — they must never ship to a scaffolded project. Before this, the folder only disappeared when Sanity
  * was dropped (it lived in the sanity bundle's `folders`), which left it in
  * every project that kept Sanity — the common case.
  */

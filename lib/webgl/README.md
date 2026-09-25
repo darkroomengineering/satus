@@ -22,16 +22,23 @@ export default function Page() {
 }
 ```
 
+A worked example lives at `app/(site)/(examples)/webgl` (`/webgl` in dev):
+cubes that take their size and place from boxes CSS lays out, hold them
+through scroll and resize, and follow a parallax transform published through
+hamo's `TransformProvider`. Contributor-facing, noindex, and deleted by
+`setup:project` with the rest of the examples group.
+
 The canvas is mounted with `<Canvas root>`, either once in the shared layout
-(`lib/features`, via `<OptionalFeatures webgl />`) so it persists across route
-navigation, or per page by passing `webgl` to the Wrapper (`<Wrapper webgl>`).
+(`lib/features`: `<OptionalFeatures />` mounts it unconditionally) so it
+persists across route navigation, or per page by passing `webgl` to the
+Wrapper (`<Wrapper webgl>`) after removing it from the layout.
 Pick exactly one — the store enforces a single root canvas at runtime, so if
 both are mounted the first one wins and the second is a no-op (with a dev
 warning), not a second canvas eating GPU.
 
 ```mermaid
 flowchart TD
-    A{Scene shared across routes?} -->|yes| B["Layout: &lt;OptionalFeatures webgl /&gt; → &lt;Canvas root&gt;"]
+    A{Scene shared across routes?} -->|yes| B["Layout: &lt;OptionalFeatures /&gt; → &lt;Canvas root&gt;"]
     A -->|no, per page| C["Page: &lt;Wrapper webgl&gt; → &lt;Canvas root&gt;"]
     B --> S[registerRootCanvasMount: first wins]
     C --> S
@@ -92,31 +99,56 @@ render loop.
 
 ```tsx
 import { useDeviceDetection } from '@/hooks/use-device-detection'
-import { useWebGLElement } from '@/webgl/hooks/use-webgl-element'
+import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
 
-// Sync a DOM element's rect into the scene (+ on-screen visibility)
-const { setRef, rect, isVisible } = useWebGLElement()
+// Follow a DOM element: measured once per resize (hamo `useRect`), placed on
+// Lenis scroll events, provider transform changes and re-measures.
+const [setRectRef, rect, update] = useWebGLRect(onUpdate, {
+  ignoreTransform: true,
+})
 
 // Gate rendering on capability
 const { isWebGL } = useDeviceDetection()
 ```
 
-`useWebGLRect` is the lower-level primitive (`useWebGLElement` is built on it):
-it returns a stable getter for an element's current transform, for reading
-inside a `useFrame` loop.
+`onUpdate` receives `{ position, scale, isVisible }` in the camera's units
+(one unit per CSS pixel, origin mid-screen). The options are hamo's `useRect`
+options; `ignoreTransform` is for an element that moves under a
+`TransformProvider`, whose translate the hook adds itself. `update` re-runs
+the callback on demand: call it from the mesh's ref callback, because a mesh
+that mounts after its element (the root canvas waits for `window.load`) gets
+no event of its own.
 
 ## DOM-Synced Component
 
 ```tsx
-import { useWebGLElement } from '@/webgl/hooks/use-webgl-element'
+import { useRef } from 'react'
+import type { Mesh } from 'three'
+import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
 import { WebGLTunnel } from '@/webgl/components/tunnel'
 
 function WebGLBox({ className }) {
-  const { setRef, rect, isVisible } = useWebGLElement()
+  const meshRef = useRef<Mesh>(null)
+  const [setRectRef, , update] = useWebGLRect(({ position, scale, isVisible }) => {
+    const mesh = meshRef.current
+    if (!mesh) return
+    mesh.position.copy(position)
+    mesh.scale.copy(scale)
+    mesh.visible = isVisible
+  })
   return (
-    <div ref={setRef} className={className}>
+    <div ref={setRectRef} className={className}>
       <WebGLTunnel>
-        <MyMesh rect={rect} visible={isVisible} />
+        <mesh
+          ref={(mesh) => {
+            meshRef.current = mesh
+            if (mesh) update() // placed the moment it mounts
+          }}
+          visible={false}
+        >
+          <planeGeometry />
+          <meshBasicMaterial />
+        </mesh>
       </WebGLTunnel>
     </div>
   )

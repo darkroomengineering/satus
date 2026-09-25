@@ -18,7 +18,6 @@ Run `bun dev` and open [localhost:3000](http://localhost:3000) — the landing p
 
 - **Next.js 16 + React 19** — App Router with `cacheComponents` and instant navigations on, React Compiler, strict TypeScript
 - **Tailwind v4 + CSS Modules** — side by side under one cascade contract, so utility and module styles can't silently fight
-- **Storybook** — UI primitives catalogued in Storybook (`bun storybook`), with controls and docs
 - **Opt-in integrations** — Sanity, Shopify, HubSpot, and Mailchimp stay isolated under `lib/integrations`; WebGL lives under `lib/webgl` behind `lib/features`; `bun run setup:project` strips the rest
 - **Bun + oxc toolchain** — Bun as runtime and test runner; `oxlint` and `oxfmt` cover TS, CSS, Markdown, YAML and TOML, and sort imports and Tailwind classes at format time
 
@@ -38,7 +37,7 @@ Trim what you don't need: `bun run setup:project` strips unused integrations (co
 
 ```
 app/                    # Next.js routes ((site)/page.tsx is the manual; the root layout is a bare shell shared with /studio); llms.txt/, agent-content/, sitemap.ts, robots.ts, and manifest.ts (AEO surfaces) live at the app/ root
-components/             # UI components (Storybook for the interactive ones)
+components/             # UI components
 lib/                    # Everything non-UI
   ├── hooks/           # Custom React hooks
   ├── integrations/    # Opt-in plugins (Sanity, Shopify, HubSpot…)
@@ -60,7 +59,6 @@ lib/                    # Everything non-UI
 | Engineering Standards | [AGENTS.md](AGENTS.md) - Canonical rules for all AI tools and contributors             |
 | Architecture          | [ARCHITECTURE.md](ARCHITECTURE.md) - Key decisions, patterns, customization            |
 | Security              | [SECURITY.md](SECURITY.md) - Security policy, CSP composition, vulnerability reporting |
-| Component Catalogue   | Storybook (`bun storybook`) - Isolated UI primitives with docs                         |
 | Component Inventory   | [COMPONENTS.md](COMPONENTS.md) - Auto-generated component/hook/utility manifest        |
 | Changelog             | [CHANGELOG.md](CHANGELOG.md) - Release history and versioning policy                   |
 | App Router            | [app/README.md](app/README.md) - Pages, layouts, routing                               |
@@ -75,7 +73,6 @@ lib/                    # Everything non-UI
 ```bash
 bun dev              # Development server
 bun run build        # Production build
-bun storybook        # Component catalogue
 bun run check        # lint + format check + type-aware lint + typegen + tsc + unit tests + oxlint-plugin tests + manifest + asset budget (run before pushing)
 bun run setup:project  # Strip integrations you don't need
 bun run handoff      # Client delivery: strips branding, swaps in PROD-README, generates inventory (--dry-run, --force)
@@ -97,7 +94,7 @@ or invalid) and `VERCEL_AUTOMATION_BYPASS_SECRET` (needed when previews are
 Deployment Protection-guarded — the audit step skips loudly without it
 instead of scoring the SSO login page).
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the deployment checklist, cache strategies, and hosting Storybook at `/storybook`.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the deployment checklist and cache strategies.
 
 ## How it compares
 
@@ -122,7 +119,7 @@ Satus is built for one job: content-driven marketing and creative sites with rea
 | Pick your pieces                                | ✓ strip after clone                  | ✗                 | ✗              | ✓ choose at init         | ✗                 |
 | Unit tests                                      | ✓ `bun test`                         | ✗                 | ✓ Vitest       | ✗                        | ✓ Vitest          |
 | E2E tests (Playwright)                          | ✓ with a11y + instant-nav asserts    | ✗                 | ✗              | ✗                        | ✓                 |
-| Storybook                                       | ✓                                    | ✗                 | ✓              | ✗                        | ✓                 |
+| Storybook                                       | ✗                                    | ✗                 | ✓              | ✗                        | ✓                 |
 | CI quality gates                                | ✓                                    | ✗                 | ✗ release only | ✗                        | ✓                 |
 | Performance budgets in CI                       | ✓ asset weight (Lighthouse advisory) | ✗                 | ✗              | ✗                        | ✓ bundle size     |
 | Security headers + rate limiting                | ✓ enforced CSP, composed             | ✗                 | ✓ Arcjet       | ✗                        | ✗                 |

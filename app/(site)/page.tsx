@@ -5,9 +5,8 @@
  * component for your homepage and delete `page.module.css`. Nothing else in the
  * repo is wired into it, so there is nothing else to clean up.
  *
- * It walks from a fresh clone to a shippable site. Component demos live in
- * Storybook (`bun storybook`); integrations are opt-in plugins under
- * `lib/integrations/*`.
+ * It walks from a fresh clone to a shippable site. Integrations are opt-in
+ * plugins under `lib/integrations/*`.
  */
 import cn from 'clsx'
 
@@ -90,14 +89,11 @@ const STEPS: Step[] = [
     body: (
       <>
         <p className={s.text}>
-          Every component lives in Storybook, on its own, with controls and
-          docs. The source sits in{' '}
-          <code className={s.inline}>components/ui</code>. When you add a
-          component, add a story beside it.
+          UI primitives live in <code className={s.inline}>components/ui</code>,
+          one folder each with its styles beside it. The full inventory of
+          components, hooks, and utilities is in{' '}
+          <code className={s.inline}>COMPONENTS.md</code>.
         </p>
-        <pre className={s.code}>
-          <code>bun storybook</code>
-        </pre>
       </>
     ),
   },

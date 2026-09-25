@@ -23,7 +23,7 @@
     "ensure:typegen": "test -f next-env.d.ts && test -f .next/types/routes.d.ts && test -f .next/types/root-params.d.ts || next typegen",
     "typecheck": "bun run ensure:typegen && bun node_modules/typescript/bin/tsc --noEmit",
     "typecheck:watch": "bun run ensure:typegen && bun node_modules/typescript/bin/tsc --noEmit --watch",
-    "deslop": "deslop --ignore 'storybook-static/**'",
+    "deslop": "deslop",
     "analyze": "ANALYZE=true bun run build",
     "analyze:experimental": "next experimental-analyze",
     "dev:inspect": "bun ./lib/scripts/dev.ts --inspect",
@@ -45,9 +45,7 @@
     "handoff": "bun ./lib/scripts/prepare-handoff.ts",
     "sanity:extract": "cd lib/integrations/sanity && bun --env-file ../../../.env.local sanity schema extract",
     "sanity:typegen": "cd lib/integrations/sanity && bun --env-file ../../../.env.local sanity typegen generate",
-    "sanity:mcp": "bun ./lib/scripts/copy-sanity-mcp.ts",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "sanity:mcp": "bun ./lib/scripts/copy-sanity-mcp.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -84,12 +82,8 @@
     "@oxlint/plugins": "1.81.0",
     "@playwright/test": "1.63.0",
     "@sanity/vision": "^6.15.0",
-    "@storybook/addon-mcp": "^10.6.0",
-    "@storybook/nextjs-vite": "^10.6.0",
-    "@storybook/react": "^10.6.0",
     "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4.3.3",
-    "@tailwindcss/vite": "^4.3.3",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",
     "@theatre/studio": "^0.7.2",
@@ -109,7 +103,6 @@
     "postcss-preset-env": "^11.5.3",
     "react-scan": "^0.5.7",
     "sanity": "^6.15.0",
-    "storybook": "^10.6.0",
     "tailwindcss": "^4.3.3",
     "ts-morph": "^28.0.0",
     "typescript": "^7.0.2"

@@ -22,8 +22,7 @@ type CustomLinkProps = Omit<
      * Force new-tab behavior (target="_blank" + rel="noopener noreferrer")
      * even for a relative/internal href. `isExternalHref` already covers
      * absolute http(s) URLs automatically — this is only for the rare case
-     * of an internal route that should still open in a new tab (e.g. a
-     * proxied Storybook route).
+     * of an internal route that should still open in a new tab.
      */
     newTab?: boolean | undefined
   }

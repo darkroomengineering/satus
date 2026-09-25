@@ -30,6 +30,10 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 - API response validation compiles each envelope schema once with zod 4.5's `z.compile` (measured 6.95× faster per parse on a 20-product Shopify envelope, 26.6 µs → 3.8 µs median), and form validation uses `z.flattenError` in place of a hand-rolled reduction; per-item errors in array fields now report under the array field's key.
 - `bun test` runs with `--parallel` in the `test` script, the `check` chain, and the pre-push hook (measured 22.8 s → 19.4 s median locally, identical results). `oxlint --type-check` was trialed as a replacement for the standalone tsc step and rejected: not faster, and it reports module-resolution false positives tsc does not.
 
+### Removed
+
+- Storybook. Nobody was opening it, and it cost four dependencies on their own dependabot cycle. Gone with it: `.storybook/`, the `*.stories.tsx` files, the `bun storybook` and `build-storybook` scripts, `@tailwindcss/vite` (only Storybook used it), the `/storybook` preview proxy in `next.config.ts`, the header's storybook link, and `NEXT_PUBLIC_STORYBOOK_URL`. Forks that still deploy a Storybook should keep their copy of that config. The UI primitives in `components/ui` stay.
+
 ### Fixed
 
 - The WebGL canvas drew a frame behind the scroll: Tempus advanced the R3F frame (order 1) before Lenis moved the document (order 5), so every wheel flick painted the DOM at this frame's scroll and the canvas at the last one's, a gap equal to the scroll velocity. Lenis now runs at order -1, first of all, and `components/layout/lenis/index.tsx` carries the single table of Tempus orders that any new `useTempus` callback picks from. Anything that reads the scroll in order to draw runs after Lenis.

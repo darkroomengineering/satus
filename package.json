@@ -54,7 +54,7 @@
     "@gsap/react": "^2.1.2",
     "@portabletext/react": "^8.0.1",
     "@react-three/drei": "^10.7.8",
-    "@react-three/fiber": "^9.7.0",
+    "@react-three/fiber": "^9.8.1",
     "@sanity/asset-utils": "^2.3.0",
     "@sanity/client": "^7.27.0",
     "@sanity/image-url": "^2.1.1",

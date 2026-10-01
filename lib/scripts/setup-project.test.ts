@@ -53,6 +53,40 @@ import {
   removeFile,
 } from './utils'
 
+/**
+ * Copies the repo to `tmpRoot` for tests that run the real scripts, leaving
+ * out `node_modules`, `.next` and `.git` (no `.git` makes prepare.ts's
+ * lefthook step a no-op), then links the nearest real `node_modules` so the
+ * copy resolves packages offline. The walk goes up from `projectRoot`
+ * because a git worktree has no `node_modules` of its own. Throws when none
+ * exists: without the link, Bun falls back to auto-install, which needs the
+ * network and fails outright on some Bun versions.
+ */
+async function copyRepo(tmpRoot: string): Promise<void> {
+  const rsync = Bun.spawnSync([
+    'rsync',
+    '-a',
+    '--exclude',
+    'node_modules',
+    '--exclude',
+    '.next',
+    '--exclude',
+    '.git',
+    `${projectRoot}/`,
+    `${tmpRoot}/`,
+  ])
+  expect(rsync.exitCode).toBe(0)
+
+  for (let dir = projectRoot; dir !== dirname(dir); dir = dirname(dir)) {
+    const candidate = join(dir, 'node_modules')
+    if (await pathExists(candidate)) {
+      await symlink(candidate, join(tmpRoot, 'node_modules'))
+      return
+    }
+  }
+  throw new Error(`copyRepo: no node_modules found above ${projectRoot}`)
+}
+
 // ---------------------------------------------------------------------------
 // Source file fixtures — loaded once, never written to disk
 // ---------------------------------------------------------------------------
@@ -1996,38 +2030,7 @@ describe("P-C3 regression: kept bundle deps survive selfPrune's package.json wri
   it('--keep sanity pins sanity deps to disk through a full (non-dry) run', async () => {
     const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-fullrun-'))
     try {
-      const rsync = Bun.spawnSync([
-        'rsync',
-        '-a',
-        '--exclude',
-        'node_modules',
-        '--exclude',
-        '.next',
-        '--exclude',
-        '.git',
-        `${projectRoot}/`,
-        `${tmpRoot}/`,
-      ])
-      expect(rsync.exitCode).toBe(0)
-
-      // Symlink the nearest real node_modules so the copy can run bun
-      // scripts, mirroring the manual acceptance procedure. Walk up from
-      // projectRoot: a git-worktree checkout (as used by this harness) has
-      // no node_modules of its own and resolves via the main checkout's —
-      // Bun also falls back to its global install cache when no
-      // node_modules is found at all, so this is a best-effort speed-up,
-      // not a hard requirement.
-      let nodeModulesSource: string | undefined
-      for (let dir = projectRoot; dir !== dirname(dir); dir = dirname(dir)) {
-        const candidate = join(dir, 'node_modules')
-        if (await pathExists(candidate)) {
-          nodeModulesSource = candidate
-          break
-        }
-      }
-      if (nodeModulesSource) {
-        await symlink(nodeModulesSource, join(tmpRoot, 'node_modules'))
-      }
+      await copyRepo(tmpRoot)
 
       const proc = Bun.spawnSync(
         [
@@ -2114,31 +2117,7 @@ describe('issue #382: selfPrune is gated on collected transform failures', () =>
       const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-collected-failure-'))
       const targetFile = join(tmpRoot, 'app/llms.txt/route.ts')
       try {
-        const rsync = Bun.spawnSync([
-          'rsync',
-          '-a',
-          '--exclude',
-          'node_modules',
-          '--exclude',
-          '.next',
-          '--exclude',
-          '.git',
-          `${projectRoot}/`,
-          `${tmpRoot}/`,
-        ])
-        expect(rsync.exitCode).toBe(0)
-
-        let nodeModulesSource: string | undefined
-        for (let dir = projectRoot; dir !== dirname(dir); dir = dirname(dir)) {
-          const candidate = join(dir, 'node_modules')
-          if (await pathExists(candidate)) {
-            nodeModulesSource = candidate
-            break
-          }
-        }
-        if (nodeModulesSource) {
-          await symlink(nodeModulesSource, join(tmpRoot, 'node_modules'))
-        }
+        await copyRepo(tmpRoot)
 
         // `--keep ''` (lean/blank) makes `setupCacheComponentsOptOut` run
         // unconditionally (no CMS/storefront kept). Stripping read
@@ -2324,31 +2303,7 @@ describe('Issue #392: app/(site)/(examples) is pruned unconditionally', () => {
   it('--keep sanity still deletes app/(site)/(examples)', async () => {
     const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-prune-examples-'))
     try {
-      const rsync = Bun.spawnSync([
-        'rsync',
-        '-a',
-        '--exclude',
-        'node_modules',
-        '--exclude',
-        '.next',
-        '--exclude',
-        '.git',
-        `${projectRoot}/`,
-        `${tmpRoot}/`,
-      ])
-      expect(rsync.exitCode).toBe(0)
-
-      let nodeModulesSource: string | undefined
-      for (let dir = projectRoot; dir !== dirname(dir); dir = dirname(dir)) {
-        const candidate = join(dir, 'node_modules')
-        if (await pathExists(candidate)) {
-          nodeModulesSource = candidate
-          break
-        }
-      }
-      if (nodeModulesSource) {
-        await symlink(nodeModulesSource, join(tmpRoot, 'node_modules'))
-      }
+      await copyRepo(tmpRoot)
 
       expect(
         await pathExists(join(tmpRoot, 'app/(site)/(examples)')),
@@ -2489,19 +2444,7 @@ describe('P-B3: concurrent setup:project runs', () => {
   it('one run succeeds, the other fails immediately naming the lock', async () => {
     const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-lock-'))
     try {
-      const rsync = Bun.spawnSync([
-        'rsync',
-        '-a',
-        '--exclude',
-        'node_modules',
-        '--exclude',
-        '.next',
-        '--exclude',
-        '.git',
-        `${projectRoot}/`,
-        `${tmpRoot}/`,
-      ])
-      expect(rsync.exitCode).toBe(0)
+      await copyRepo(tmpRoot)
 
       const spawnRun = () =>
         Bun.spawn(
@@ -2563,26 +2506,10 @@ describe('P-B3: concurrent setup:project runs', () => {
 // ---------------------------------------------------------------------------
 
 describe('P-B3 follow-up: lock survives SIGTERM / stale-lock detection', () => {
-  const rsyncCopy = async (tmpRoot: string): Promise<void> => {
-    const rsync = Bun.spawnSync([
-      'rsync',
-      '-a',
-      '--exclude',
-      'node_modules',
-      '--exclude',
-      '.next',
-      '--exclude',
-      '.git',
-      `${projectRoot}/`,
-      `${tmpRoot}/`,
-    ])
-    expect(rsync.exitCode).toBe(0)
-  }
-
   it('kill -TERM on a mid-run process releases the lock instead of leaking it', async () => {
     const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-sigterm-'))
     try {
-      await rsyncCopy(tmpRoot)
+      await copyRepo(tmpRoot)
 
       // No flags → fully interactive → hangs at the first prompt once
       // guardProjectRoot()/acquireLock() have already run, giving us a
@@ -2615,7 +2542,7 @@ describe('P-B3 follow-up: lock survives SIGTERM / stale-lock detection', () => {
   it('a lock left by a dead PID is treated as stale — removed, and the run proceeds', async () => {
     const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-stale-'))
     try {
-      await rsyncCopy(tmpRoot)
+      await copyRepo(tmpRoot)
 
       // A PID guaranteed to be dead: spawn a trivial process and wait for
       // it to exit, then reuse its (now-dead) pid.
@@ -2657,7 +2584,7 @@ describe('P-B3 follow-up: lock survives SIGTERM / stale-lock detection', () => {
   it('a lock left by a LIVE PID is NOT treated as stale — still a genuine collision', async () => {
     const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-live-'))
     try {
-      await rsyncCopy(tmpRoot)
+      await copyRepo(tmpRoot)
 
       // Our own test-runner process is unambiguously alive for the
       // duration of this test.
@@ -2705,30 +2632,7 @@ describe('P-B3 follow-up: lock survives SIGTERM / stale-lock detection', () => {
 describe('prepare.ts pending-format marker (defensive handling)', () => {
   const setupCopy = async (): Promise<string> => {
     const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-prepare-'))
-    const rsync = Bun.spawnSync([
-      'rsync',
-      '-a',
-      '--exclude',
-      'node_modules',
-      '--exclude',
-      '.next',
-      '--exclude',
-      '.git', // no .git → prepare.ts's lefthook step always no-ops cleanly
-      `${projectRoot}/`,
-      `${tmpRoot}/`,
-    ])
-    expect(rsync.exitCode).toBe(0)
-
-    // Symlink the nearest real node_modules so `bun run format` (oxfmt) can
-    // actually run — same rationale as the P-C3 test above.
-    for (let dir = projectRoot; dir !== dirname(dir); dir = dirname(dir)) {
-      const candidate = join(dir, 'node_modules')
-      if (await pathExists(candidate)) {
-        await symlink(candidate, join(tmpRoot, 'node_modules'))
-        break
-      }
-    }
-
+    await copyRepo(tmpRoot)
     return tmpRoot
   }
 

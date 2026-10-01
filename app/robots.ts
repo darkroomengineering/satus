@@ -7,10 +7,10 @@ const DISALLOW = ['/api/draft-mode/']
 /**
  * One `*` group covers every crawler, AI answer engines included: a bot with
  * no group of its own follows `*` (RFC 9309). Add a named group only to treat
- * a bot differently, e.g. to opt out of AI training while staying in AI
- * search: `{ userAgent: ['GPTBot', 'Google-Extended'], disallow: '/' }`.
- * `Google-Extended` covers Gemini training only; `Googlebot` still controls
- * search indexing.
+ * a bot differently, e.g. to opt out of OpenAI training while staying in
+ * ChatGPT search: `{ userAgent: 'GPTBot', disallow: '/' }`. Blocking
+ * `Google-Extended` also keeps content out of Gemini Apps and Vertex AI
+ * grounding; `Googlebot` still controls search indexing.
  */
 export default function robots(): MetadataRoute.Robots {
   return {

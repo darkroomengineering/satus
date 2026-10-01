@@ -200,7 +200,10 @@ const nextConfig: NextConfig = {
         },
         {
           key: 'Strict-Transport-Security',
-          value: 'max-age=63072000; includeSubDomains; preload',
+          // No `includeSubDomains; preload`: preload can lock every subdomain
+          // of a client's domain to HTTPS, and leaving the list takes months.
+          // Add them only once the client owns that decision.
+          value: 'max-age=63072000',
         },
         {
           key: 'Permissions-Policy',

@@ -266,7 +266,7 @@ test.describe('machine-readable discovery files', () => {
     const robotsBody = await robots.text()
     expect(robots.status()).toBe(200)
     expect(robots.headers()['content-type']).toContain('text/plain')
-    expect(robotsBody).toContain('User-Agent: GPTBot')
+    expect(robotsBody).toContain('User-Agent: *')
     expect(robotsBody).toContain('Sitemap:')
   })
 })

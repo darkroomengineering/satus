@@ -37,3 +37,15 @@ declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean | undefined
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
+
+// Base UI waits for an exiting element's animations to finish before it
+// unmounts or hides it, polling through animation frames. happy-dom runs no
+// CSS animations, so that wait only adds latency: about 700 ms per tab switch,
+// enough to push the Tabs tests past bun's 5 s timeout on a loaded CI runner.
+// This switch makes exits complete immediately. Cost: unit tests never
+// exercise Base UI's wait-for-animations path; only a real browser (e2e)
+// covers that timing.
+declare global {
+  var BASE_UI_ANIMATIONS_DISABLED: boolean
+}
+globalThis.BASE_UI_ANIMATIONS_DISABLED = true

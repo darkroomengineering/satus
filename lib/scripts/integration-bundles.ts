@@ -142,6 +142,9 @@ export const INTEGRATION_BUNDLES = defineBundles({
       // lib/integrations/sanity/env.ts as text; that file goes with the
       // folder above, so the test fails on a scaffold that dropped Sanity.
       'lib/utils/sanity-env-alias.test.ts',
+      // Watches for next-sanity moving to @sanity/client v8. Without Sanity
+      // it only no-ops weekly, but it has nothing to watch.
+      '.github/workflows/sanity-client-v8.yml',
     ],
     envVars: [
       'NEXT_PUBLIC_SANITY_PROJECT_ID',

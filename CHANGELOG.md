@@ -28,6 +28,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Added
 
+- The `@sanity/client` v8 upgrade waits for `next-sanity`. Dependabot ignores `@sanity/client` majors, and a weekly workflow (`.github/workflows/sanity-client-v8.yml`) opens the v8 PR, with the hold removed, once `next-sanity`'s own dependency moves to v8. Before then a v8 app client splits the TypeGen query types from next-sanity's v7 copy. CI gains a `workflow_dispatch` trigger so that bot-opened PR gets checked. `setup:project` deletes the workflow with Sanity.
 - A WebGL example route at `app/(site)/(examples)/webgl` (`/webgl`): cubes drawn in the shared canvas take their size and place from plain boxes CSS lays out, sized two ways and placed by flow, and hold them through scroll and resize. One box also drifts with the scroll through a CSS transform published to the canvas with hamo's `TransformProvider`. Same contract as `/sanity`: noindex, reserved out of the sitemap and `/ai`, deleted by `setup:project`, swept by the route e2e.
 
 ### Changed

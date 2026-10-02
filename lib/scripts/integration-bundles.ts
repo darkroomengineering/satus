@@ -109,6 +109,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
     dependencies: [
       '@portabletext/react',
       '@sanity/asset-utils',
+      '@sanity/client',
       '@sanity/image-url',
       'next-sanity',
     ],

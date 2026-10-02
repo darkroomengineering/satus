@@ -2062,6 +2062,7 @@ describe("P-C3 regression: kept bundle deps survive selfPrune's package.json wri
       for (const dep of [
         '@portabletext/react',
         '@sanity/asset-utils',
+        '@sanity/client',
         '@sanity/image-url',
         'next-sanity',
       ]) {

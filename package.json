@@ -99,6 +99,7 @@
     "oxfmt": "^0.70.0",
     "oxlint": "^1.85.0",
     "oxlint-tsgolint": "^7.0.2001",
+    "postcss": "^8.5.28",
     "postcss-functions": "^4.0.2",
     "postcss-preset-env": "^11.5.4",
     "react-scan": "^0.5.7",

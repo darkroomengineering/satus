@@ -26,3 +26,13 @@ updates:
     commit-message:
       prefix: 'chore(deps)'
     open-pull-requests-limit: 10
+    # sanity-client-v8-hold:start
+    # @sanity/client majors wait for next-sanity. An app-level v8 client next
+    # to next-sanity's own v7 copy splits the TypeGen query types and every
+    # typed query collapses to {}. .github/workflows/sanity-client-v8.yml opens
+    # the v8 PR once next-sanity itself depends on v8, and that PR deletes
+    # everything between these markers.
+    ignore:
+      - dependency-name: '@sanity/client'
+        update-types: ['version-update:semver-major']
+    # sanity-client-v8-hold:end

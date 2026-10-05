@@ -5,7 +5,7 @@ import type { NextConfig } from 'next'
 // `@/utils/validation` import for why: Next's next.config.ts loader
 // mis-resolves `@/*` aliases for transitively-required files, so both this
 // import and everything it pulls in must use relative paths.
-import { composeCsp } from './lib/integrations/csp'
+import { composeCsp, isIntegrationKept } from './lib/integrations/csp'
 
 // --- Content-Security-Policy --------------------------------------------------
 // Composed at config-eval time from the integration registry (see
@@ -13,9 +13,16 @@ import { composeCsp } from './lib/integrations/csp'
 // build`/`next dev` re-derives the policy from whatever integrations are
 // actually kept in this checkout, so stripping one via `setup:project` drops
 // its origins automatically, with nothing to keep in sync by hand.
-const CONTENT_SECURITY_POLICY = composeCsp({
+const CSP_OPTIONS = {
   isDev: process.env.NODE_ENV === 'development',
   isVercelPreview: process.env.VERCEL_ENV === 'preview',
+}
+const CONTENT_SECURITY_POLICY = composeCsp(CSP_OPTIONS)
+// The embedded Sanity Studio loads its bridge script, fonts and avatars from
+// Sanity's hosts. Its own policy keeps those origins off every site route.
+const STUDIO_CONTENT_SECURITY_POLICY = composeCsp({
+  ...CSP_OPTIONS,
+  isStudio: true,
 })
 // -----------------------------------------------------------------------------
 
@@ -198,6 +205,21 @@ const nextConfig: NextConfig = {
         },
       ],
     },
+    // Last, so it overrides the site-wide CSP: when two rules set the same
+    // header on a path, Next sends the later one.
+    ...(isIntegrationKept('sanity')
+      ? [
+          {
+            source: '/studio/:path*',
+            headers: [
+              {
+                key: 'Content-Security-Policy',
+                value: STUDIO_CONTENT_SECURITY_POLICY,
+              },
+            ],
+          },
+        ]
+      : []),
   ],
 }
 

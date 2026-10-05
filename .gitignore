@@ -13,6 +13,11 @@
 /playwright/.cache/
 /blob-report/
 
+# Sanity CLI output (`sanity dev` / `sanity build` in the Studio folder)
+lib/integrations/sanity/.sanity/
+lib/integrations/sanity/node_modules/
+lib/integrations/sanity/dist/
+
 # next.js
 /.next/
 /out/

@@ -62,6 +62,26 @@ No configuration changes needed — just install from the Marketplace and deploy
 Deploy the Studio to Sanity's hosted domain (`https://<project>.sanity.studio`)
 with `cd lib/integrations/sanity && bunx sanity deploy`.
 
+The CLI reads `package.json` from this folder, not the root, and won't start
+unless it declares `sanity` and `styled-components`. The folder's
+`package.json` restates both; the root one installs them.
+`studio-manifest.test.ts` fails if the root stops declaring either or a major
+bump leaves the installed version outside the folder's range; bump the folder
+range in the same commit.
+
+### Studio structure
+
+`sanity.config.ts` sets the sidebar by hand: collections first, then
+singletons. A singleton is a type with exactly one document, listed in
+`SINGLETONS` and registered as `document.singletons`. Sanity keeps it out of
+"create new" and drops Duplicate; the config also drops Delete and
+Unpublish, because the site reads it by id. To add one, define the document
+type, add its name to `SINGLETONS`, and give it an icon from `@sanity/icons`.
+
+The embedded Studio runs under its own CSP on `/studio/*` (`isStudio` in
+`lib/integrations/csp.ts`); a plugin that loads from a new host adds it to
+`STUDIO_SOURCES` there.
+
 ## Usage
 
 ### Fetching Data

@@ -1,3 +1,4 @@
+import { BlockContentIcon } from '@sanity/icons/BlockContent'
 import { defineType } from 'sanity'
 
 import { linkField } from './link'
@@ -5,6 +6,7 @@ import { linkField } from './link'
 export const richText = defineType({
   name: 'richText',
   title: 'Rich Text',
+  icon: BlockContentIcon,
   type: 'array',
   of: [
     {

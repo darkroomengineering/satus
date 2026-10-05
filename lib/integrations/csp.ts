@@ -2,7 +2,8 @@
  * Content-Security-Policy composer
  *
  * `next.config.ts` calls `composeCsp()` at config-eval time to build the
- * single enforced `Content-Security-Policy` header value. This is
+ * enforced `Content-Security-Policy` header value: once for the site, and once
+ * with `isStudio` for the embedded Sanity Studio on `/studio/*`. This is
  * deliberately config-eval composition — a pure function next.config.ts
  * imports and calls — rather than `setup:project` writing a literal policy
  * string into `next.config.ts` via an AST transform (the pattern it already
@@ -156,6 +157,30 @@ function mergeSources(...sources: CspSources[]): CspSources {
  * here (rather than staying a second header entry) because Next's `headers`
  * config can only emit one value per header key per route.
  */
+/**
+ * Origins the embedded Sanity Studio loads beyond the site policy. Served
+ * only on `/studio/*` (see the second CSP rule in `next.config.ts`), so the
+ * site's own policy stays as narrow as its integrations need.
+ */
+const STUDIO_SOURCES: CspSources = {
+  // Presentation's comlink bridge, injected by the Studio.
+  'script-src': ['https://core.sanity-cdn.com'],
+  // The Studio's Inter font.
+  'font-src': ['https://design-system-static.sanity.io'],
+  // User avatars come from whichever login provider each editor used
+  // (Google, GitHub, SAML), so no host list covers them. Cost: any HTTPS
+  // image host loads on Studio routes; site routes keep their narrow list.
+  'img-src': ['https:'],
+  // Project API and the realtime socket for presence and listeners. The bare
+  // `sanity-cdn.com` is the Studio's check for a newer `sanity` version.
+  'connect-src': [
+    'https://*.sanity.io',
+    'wss://*.api.sanity.io',
+    'https://core.sanity-cdn.com',
+    'https://sanity-cdn.com',
+  ],
+}
+
 const FRAME_ANCESTORS = ["'self'", 'https://*.sanity.studio']
 
 /**
@@ -194,6 +219,11 @@ interface ComposeCspOptions {
   isDev: boolean
   /** `process.env.VERCEL_ENV === 'preview'` at the call site. */
   isVercelPreview: boolean
+  /**
+   * Compose the policy for the embedded Sanity Studio (`/studio/*`) instead
+   * of the site. Adds `STUDIO_SOURCES` while Sanity is kept.
+   */
+  isStudio?: boolean
 }
 
 /**
@@ -204,6 +234,7 @@ interface ComposeCspOptions {
 export function composeCsp({
   isDev,
   isVercelPreview,
+  isStudio = false,
 }: ComposeCspOptions): string {
   // Base policy. `'unsafe-inline'` on script-src/style-src is the documented
   // trade-off from this module's header comment (no nonce pipeline in this
@@ -226,6 +257,11 @@ export function composeCsp({
     // — no external font-src host is ever needed.
     'font-src': ["'self'", 'data:'],
     'connect-src': ["'self'", ...(isDev ? ['ws:', 'wss:'] : [])],
+    // The Studio's Presentation tool frames the site. Declared even though
+    // `default-src 'self'` covers it: any other `frame-src` source (the
+    // preview toolbar below, a Turnstile widget) replaces that fallback, and
+    // without `'self'` here the Presentation iframe is blocked.
+    'frame-src': ["'self'"],
     // data: — lib/hooks/use-device-detection.ts's autoplay probe (see
     // DIRECTIVE_ORDER's comment). Without this, `media-src` falls back to
     // `default-src 'self'`, which has no `data:` scheme, and every route
@@ -288,11 +324,15 @@ export function composeCsp({
       )
   )
 
+  const studio: CspSources =
+    isStudio && isIntegrationKept('sanity') ? STUDIO_SOURCES : {}
+
   const merged = mergeSources(
     base,
     keptIntegrationSources,
     devVercelAnalytics,
     previewToolbar,
+    studio,
     PROJECT_CSP_EXTRA_SOURCES
   )
 

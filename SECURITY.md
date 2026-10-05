@@ -57,7 +57,9 @@ rate-limited, and external input is validated with Zod schemas. The
 Content-Security-Policy ships enforced, composed per-integration: each kept
 integration declares the origins its browser-visible code needs in
 `lib/integrations/registry.ts`'s `cspSources`, and `lib/integrations/csp.ts`
-unions them into the single header set in `next.config.ts`. Forks that need
+unions them into the header set in `next.config.ts`. The embedded Sanity
+Studio gets its own policy on `/studio/*`, the site policy plus the Studio's
+script, font, avatar and API origins, so site routes never allow them. Forks that need
 project-specific origins the registry can't know about extend
 `PROJECT_CSP_EXTRA_SOURCES` in `lib/integrations/csp.ts`. The Shopify webhook
 secret on `/api/revalidate` is compared in constant time (`timingSafeEqual`):

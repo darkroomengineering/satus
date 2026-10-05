@@ -1,8 +1,10 @@
+import { SearchIcon } from '@sanity/icons/Search'
 import { defineField, defineType } from 'sanity'
 
 export const metadata = defineType({
   name: 'metadata',
   title: 'SEO & Metadata',
+  icon: SearchIcon,
   type: 'object',
   options: {
     collapsible: true,

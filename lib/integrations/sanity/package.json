@@ -1,0 +1,9 @@
+{
+  "name": "studio",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "sanity": "^6.16.0",
+    "styled-components": "^6.5.3"
+  }
+}

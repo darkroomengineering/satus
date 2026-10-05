@@ -77,6 +77,9 @@ export function renderDeploymentChecklist({
     lines.push('- [ ] Webhook configured for revalidation')
     lines.push('  - URL: `https://your-domain.com/api/revalidate`')
     lines.push('- [ ] API tokens rotated for production')
+    lines.push(
+      "- [ ] Studio branded: `title`, `icon` and `theme` (`buildLegacyTheme`) set in `lib/integrations/sanity/sanity.config.ts` to the client's name, favicon and brand color"
+    )
     lines.push('')
   }
 

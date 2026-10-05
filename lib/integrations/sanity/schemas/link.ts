@@ -1,9 +1,11 @@
+import { LinkIcon } from '@sanity/icons/Link'
 import { defineField, defineType } from 'sanity'
 
 // Native Sanity link object type
 export const link = defineType({
   name: 'link',
   title: 'Link',
+  icon: LinkIcon,
   type: 'object',
   fields: [
     defineField({

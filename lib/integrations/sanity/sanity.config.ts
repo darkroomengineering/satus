@@ -15,6 +15,12 @@ import { structureTool } from 'sanity/structure'
 import { dataset, previewURL, projectId } from './env'
 import { schema } from './schemas'
 
+// One document each, at a fixed id. Sanity hides them from "create new" and
+// drops Duplicate; `document.actions` below also drops Delete and Unpublish,
+// since the site reads them by id and has no fallback when they vanish.
+const SINGLETONS = ['navigation']
+const SINGLETON_BLOCKED_ACTIONS = new Set(['delete', 'unpublish'])
+
 // Helper function for URL resolution — kept in sync with
 // `resolveDocumentUrl` in `./utils/link.ts` (this file can't import that
 // module: it's dual-compiled into the client bundle for the Studio route).
@@ -52,9 +58,29 @@ export default projectId && dataset
       projectId,
       dataset,
       schema,
+      document: {
+        singletons: SINGLETONS,
+        actions: (actions, { singleton }) =>
+          singleton
+            ? actions.filter(
+                ({ action }) =>
+                  !action || !SINGLETON_BLOCKED_ACTIONS.has(action)
+              )
+            : actions,
+      },
       plugins: [
         // First, so the Studio opens on the content list.
-        structureTool(),
+        structureTool({
+          structure: (S) =>
+            S.list()
+              .title('Content')
+              .items([
+                S.documentTypeListItem('page').title('Pages'),
+                S.documentTypeListItem('article').title('Articles'),
+                S.divider(),
+                ...SINGLETONS.map((id) => S.listItem().singleton(id)),
+              ]),
+        }),
         // Presentation tool for visual editing
         presentationTool({
           resolve: {

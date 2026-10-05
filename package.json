@@ -81,7 +81,6 @@
     "@next/playwright": "16.3.8",
     "@oxlint/plugins": "1.85.0",
     "@playwright/test": "1.63.0",
-    "@sanity/vision": "^6.15.0",
     "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/dom": "^10.4.2",

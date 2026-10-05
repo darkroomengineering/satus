@@ -198,9 +198,9 @@ See [ARCHITECTURE.md](../../../ARCHITECTURE.md) for cache gotchas.
 
 ## Deploying the Studio
 
-`sanity` and `@sanity/vision` sit in `devDependencies` even though `/studio` is part of the shipped app. That works on any host: Next compiles the Studio into the server chunk during `next build`, so nothing resolves `sanity` from `node_modules` at request time. Pruning dev dependencies on the server after a successful build is safe, and no `serverExternalPackages` entry is needed.
+`sanity` sits in `devDependencies` even though `/studio` is part of the shipped app. That works on any host: Next compiles the Studio into the server chunk during `next build`, so nothing resolves `sanity` from `node_modules` at request time. Pruning dev dependencies on the server after a successful build is safe, and no `serverExternalPackages` entry is needed.
 
-The one thing that matters is that both packages are installed when `next build` runs. A pipeline that installs production-only dependencies _before_ building will fail the build, the same way it would for Tailwind or TypeScript.
+The one thing that matters is that it is installed when `next build` runs. A pipeline that installs production-only dependencies _before_ building will fail the build, the same way it would for Tailwind or TypeScript.
 
 ## Troubleshooting
 

@@ -88,6 +88,10 @@ export default defineConfig({
     // the same reason.
     'lib/integrations/sanity/sanity.types.ts',
     'tools/oxlint/anti-slop/**',
+    // Written by `sanity dev` / `sanity build` run from the Studio folder.
+    'lib/integrations/sanity/.sanity/**',
+    'lib/integrations/sanity/node_modules/**',
+    'lib/integrations/sanity/dist/**',
   ],
 
   rules: {

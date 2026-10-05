@@ -113,7 +113,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
       '@sanity/image-url',
       'next-sanity',
     ],
-    devDependencies: ['@sanity/icons', 'sanity'],
+    devDependencies: ['@sanity/icons', 'sanity', 'styled-components'],
     // These app/ route folders import from lib/integrations/sanity — they
     // must live and die with the bundle, or a fork that drops Sanity keeps
     // routes whose imports no longer exist and fails to build.

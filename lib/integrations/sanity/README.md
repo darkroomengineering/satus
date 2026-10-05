@@ -62,6 +62,13 @@ No configuration changes needed — just install from the Marketplace and deploy
 Deploy the Studio to Sanity's hosted domain (`https://<project>.sanity.studio`)
 with `cd lib/integrations/sanity && bunx sanity deploy`.
 
+The CLI reads `package.json` from this folder, not the root, and won't start
+unless it declares `sanity` and `styled-components`. The folder's
+`package.json` restates both; the root one installs them.
+`studio-manifest.test.ts` fails if the root stops declaring either or a major
+bump leaves the installed version outside the folder's range; bump the folder
+range in the same commit.
+
 ### Studio structure
 
 `sanity.config.ts` sets the sidebar by hand: collections first, then

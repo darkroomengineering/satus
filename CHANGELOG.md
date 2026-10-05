@@ -58,6 +58,8 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Fixed
 
+- Every `/studio` load logged Next's "uncached data during prerendering" error: the page awaits `connection()` so the Studio renders at request time, and the instant-navigation check reported that as a blocking route. `app/studio/layout.tsx` sets `export const instant = false`, since the Studio is entered by full page load.
+- `bunx sanity dev` and `bunx sanity deploy`, run from `lib/integrations/sanity` as the README says, failed on startup: the Sanity CLI reads that folder's `package.json` and requires `styled-components` declared in it. The folder now has a private `package.json` declaring `sanity` and `styled-components`, the root declares `styled-components` as a dev dependency (it was installed only as a peer), and `studio-manifest.test.ts` keeps the two manifests compatible.
 - The embedded Studio at `/studio` ran under the site's CSP, which blocked Presentation's bridge script (`core.sanity-cdn.com`) and the Studio's Inter font. `/studio/*` now gets its own policy: the site policy plus the Studio's origins (`isStudio` in `composeCsp`, a second header rule in `next.config.ts` while Sanity is kept). Site routes keep their narrow policy.
 - Presentation couldn't frame the site on Vercel Preview deploys: the preview toolbar adds `frame-src https://vercel.live`, which drops the `default-src 'self'` fallback for frames. The base policy declares `frame-src 'self'`.
 - `setup:project` left `@sanity/client` in `package.json` when a project dropped Sanity, because the Sanity bundle didn't list it. It's now removed with the rest of the Sanity packages, and kept and pinned when Sanity stays.

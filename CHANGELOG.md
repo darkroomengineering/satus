@@ -33,7 +33,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Changed
 
-- The Studio sidebar lists Pages and Articles, then Navigation, each with an icon. Navigation is a real singleton (`document.singletons` in `sanity.config.ts`): one document at a fixed id that editors can't create twice, duplicate, delete or unpublish. Before, it sat in the default list like a collection. `@sanity/icons` is a dev dependency and leaves with Sanity in `setup:project`.
+- The Studio sidebar lists Pages and Articles, then Navigation, each with an icon. Navigation is a real singleton (`document.singletons` in `sanity.config.ts`): one document at a fixed id that editors can't create twice, duplicate, delete or unpublish. Before, it sat in the default list like a collection. A fork that already created a Navigation document has it under a generated id, so the singleton opens empty: either point the singleton at that id (`{ documentId: '<existing id>', schemaType: 'navigation' }` in `SINGLETONS`) or copy the document to the id `navigation`. `@sanity/icons` is a dev dependency and leaves with Sanity in `setup:project`.
 - The handoff deployment checklist asks for the Studio to carry the client's name, favicon and brand color (`title`, `icon`, `theme` in `sanity.config.ts`).
 - The Studio opens on Structure, the content list, with Presentation as the second tab. Editors land on their documents instead of a preview that waits for draft mode.
 - `Strict-Transport-Security` drops `includeSubDomains; preload` and sends `max-age=63072000` only. Preload could lock every subdomain of a fork's client domain to HTTPS, and leaving the preload list takes months. A fork that wants it adds it back once the client owns that decision.

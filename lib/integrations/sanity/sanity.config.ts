@@ -4,7 +4,6 @@
  * to host it at https://<project>.sanity.studio.
  */
 
-import { visionTool } from '@sanity/vision'
 import { defineConfig } from 'sanity'
 import {
   defineDocuments,
@@ -13,7 +12,7 @@ import {
 } from 'sanity/presentation'
 import { structureTool } from 'sanity/structure'
 
-import { apiVersion, dataset, previewURL, projectId } from './env'
+import { dataset, previewURL, projectId } from './env'
 import { schema } from './schemas'
 
 // Helper function for URL resolution — kept in sync with
@@ -54,6 +53,8 @@ export default projectId && dataset
       dataset,
       schema,
       plugins: [
+        // First, so the Studio opens on the content list.
+        structureTool(),
         // Presentation tool for visual editing
         presentationTool({
           resolve: {
@@ -114,10 +115,6 @@ export default projectId && dataset
             },
           },
         }),
-        structureTool(),
-        // Vision is for querying with GROQ from inside the Studio
-        // https://www.sanity.io/docs/the-vision-plugin
-        visionTool({ defaultApiVersion: apiVersion }),
       ],
     })
   : null

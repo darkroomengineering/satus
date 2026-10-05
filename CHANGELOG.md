@@ -33,6 +33,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Changed
 
+- The Studio opens on Structure, the content list, with Presentation as the second tab. Editors land on their documents instead of a preview that waits for draft mode.
 - `Strict-Transport-Security` drops `includeSubDomains; preload` and sends `max-age=63072000` only. Preload could lock every subdomain of a fork's client domain to HTTPS, and leaving the preload list takes months. A fork that wants it adds it back once the client owns that decision.
 - `robots.txt` is a single `*` group. The named AI-crawler groups gave each bot the same rules as `*`, which every crawler already follows when it has no group of its own. The comment in `app/robots.ts` shows how to add a named group to opt specific bots out.
 - `useWebGLRect(rect, onUpdate)` is now the one DOM-to-WebGL hook: it takes a rect from hamo's `useRect` (measure the element yourself; pass `ignoreTransform` for an element under a `TransformProvider`, whose translate the hook adds itself, horizontally too) and calls `onUpdate` on Lenis scroll events, provider transform changes and re-measures, with the element's position, scale and visibility in camera units. It works on either side of the tunnel: in the mesh component its render effect places the mesh on mount; on the DOM side it returns `update` for the mesh's ref callback. Visibility covers both axes and the provider's scale and comes from the scroll math; `useWebGLElement` and its IntersectionObserver are removed, and the WebGL `Image` mesh no longer takes `visible`.
@@ -50,6 +51,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Removed
 
+- The Vision tool and `@sanity/vision`. It's a GROQ console editors never need; a fork that wants it adds `visionTool()` back to `sanity.config.ts`.
 - Storybook. Nobody was opening it, and it cost four dependencies on their own dependabot cycle. Gone with it: `.storybook/`, the `*.stories.tsx` files, the `bun storybook` and `build-storybook` scripts, `@tailwindcss/vite` (only Storybook used it), the `/storybook` preview proxy in `next.config.ts`, the header's storybook link, and `NEXT_PUBLIC_STORYBOOK_URL`. Forks that still deploy a Storybook should keep their copy of that config. The UI primitives in `components/ui` stay.
 
 ### Fixed

@@ -2070,7 +2070,7 @@ describe("P-C3 regression: kept bundle deps survive selfPrune's package.json wri
           `missing dependency "${dep}"`
         ).toBeTruthy()
       }
-      for (const devDep of ['@sanity/vision', 'sanity']) {
+      for (const devDep of ['sanity']) {
         expect(
           pkg.devDependencies?.[devDep],
           `missing devDependency "${devDep}"`

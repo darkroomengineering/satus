@@ -56,6 +56,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Fixed
 
+- `setup:project` left `@sanity/client` in `package.json` when a project dropped Sanity, because the Sanity bundle didn't list it. It's now removed with the rest of the Sanity packages, and kept and pinned when Sanity stays.
 - The Tabs unit tests timed out at random in CI. Base UI waits for exit animations through animation frames, and happy-dom runs none, so each tab switch idled about 700 ms and a loaded runner crossed bun's 5 s limit. The test preload (`lib/scripts/test-setup.ts`) sets `BASE_UI_ANIMATIONS_DISABLED`, and the Tabs file runs in about 0.2 s instead of 4.5 s.
 - The WebGL canvas drew a frame behind the scroll: Tempus advanced the R3F frame (order 1) before Lenis moved the document (order 5), so every wheel flick painted the DOM at this frame's scroll and the canvas at the last one's, a gap equal to the scroll velocity. Lenis now runs at order -1, first of all, and `components/layout/lenis/index.tsx` carries the single table of Tempus orders that any new `useTempus` callback picks from. Anything that reads the scroll in order to draw runs after Lenis.
 - Mailchimp email-only subscriptions preserve existing names instead of clearing them. Contact submissions report note-storage failures, and tag HTTP failures are logged while remaining optional.

@@ -101,7 +101,7 @@
     "oxlint-tsgolint": "^7.0.2003",
     "postcss": "^8.5.28",
     "postcss-functions": "^4.0.2",
-    "postcss-preset-env": "^11.5.4",
+    "postcss-preset-env": "^11.6.0",
     "react-scan": "^0.5.7",
     "sanity": "^6.16.0",
     "styled-components": "^6.5.3",

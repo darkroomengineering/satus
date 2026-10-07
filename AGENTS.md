@@ -48,7 +48,7 @@ These are non-negotiable. Each is enforced by oxlint or TypeScript; `bun run che
 | `typescript/no-floating-promises`    | Un-awaited promises                                                                                                                                                                                                                                                              | oxlint `typescript`, type-aware    |
 | `typescript/no-misused-promises`     | Async function passed where void expected                                                                                                                                                                                                                                        | oxlint `typescript`, type-aware    |
 
-A lint error is fixed in code, never disabled to get green. `bun run check:disables` (part of `bun run check`) counts every `oxlint-disable`/`eslint-disable` directive per rule and fails when a count differs from `lint-disables.json`. A new disable means raising that rule's number in `lint-disables.json` by hand, so the bump shows in the diff and the reviewer approves it; removing one means lowering it. An agent does not add a disable or raise a number on its own: it reports the error and the fix it could not find.
+A lint error is fixed in code, never disabled to get green. `bun run check:disables` (part of `bun run check`) counts every `oxlint-disable`/`eslint-disable` directive per rule, plus `@ts-ignore`, `@ts-expect-error` and `@ts-nocheck` under their own names, and fails when a count differs from `lint-disables.json`. A new disable means raising that rule's number in `lint-disables.json` by hand, so the bump shows in the diff and the reviewer approves it; removing one means lowering it. An agent does not add a disable or raise a number on its own: it reports the error and the fix it could not find.
 
 The `hamo` plugin (`tools/oxlint/hamo/`) sends layout reads and observers through hamo, which measures once per resize on a shared observer. A raw read forces layout, and inside a scroll or frame loop it does so every frame. Tests, e2e specs and `lib/scripts/**` are exempt.
 
@@ -318,7 +318,7 @@ All integrations are optional and self-contained in `lib/integrations/{name}/`. 
 bun dev              # Dev server (Turbopack)
 bun run build        # Production build (runs setup:styles first)
 bun run check        # oxlint + oxfmt --check + lint:types + ensure:typegen + tsc --noEmit + bun test + test:oxlint-plugin + manifest:check + check:assets + check:disables (must pass before pushing)
-bun run check:disables  # lint-disable directives per rule must match lint-disables.json
+bun run check:disables  # lint-disable and @ts-ignore-style directives per rule must match lint-disables.json
 bun lint             # oxlint
 bun lint:fix         # oxlint with auto-fix
 bun run lint:types   # oxlint type-aware rules (no-floating-promises, no-misused-promises)

@@ -7,6 +7,10 @@
          progress), not a CSS transition — a transition would fight the
          scrub by always trailing the scroll-driven value. */
       display: inline-block;
+      /* The one sanctioned permanent will-change: the text is scroll-scrubbed
+         for its whole life, and without its own layer each opacity change
+         repaints whatever sits beneath the words on every scrolled frame. */
+      will-change: opacity;
     }
   }
 }

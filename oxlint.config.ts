@@ -125,9 +125,6 @@ export default defineConfig({
     'anti-slop/require-safety-comment-for-type-assertion': 'error',
 
     // --- hamo (tools/oxlint/hamo) ---------------------------------------------
-    // Measure through hamo (once per resize, shared observer). A raw layout read
-    // forces layout, and in a scroll or frame loop it does so every frame. A
-    // disable needs a bump in `lint-disables.json`.
     'hamo/no-raw-layout-read': 'error',
     'hamo/no-raw-observer': 'error',
 
@@ -361,14 +358,11 @@ export default defineConfig({
         'eslint/no-restricted-imports': 'off',
         'unicorn/filename-case': 'off',
         'react/forbid-elements': 'off',
-        // Tests, benches and Playwright specs measure on purpose; there is no
-        // render loop for a forced layout to sit in.
         'hamo/no-raw-layout-read': 'off',
         'hamo/no-raw-observer': 'off',
       },
     },
     {
-      // The plugin's own rule tests contain the patterns they reject.
       files: ['tools/oxlint/**'],
       rules: {
         'hamo/no-raw-layout-read': 'off',

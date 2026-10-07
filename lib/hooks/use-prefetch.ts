@@ -32,15 +32,13 @@ export function usePrefetch(
 ) {
   const router = useRouter()
   const prefetchedRef = useRef(false)
-  // hamo's observer keeps the callback it was created with, so the callback
-  // reads `href` through a ref. Next's router object is stable across renders.
+  // hamo keeps the first callback, so read `href` through a ref.
   const hrefRef = useRef(href)
 
   useEffect(() => {
     hrefRef.current = href
   })
 
-  // `lazy` keeps the entry in a ref, so an intersection costs no render.
   const [setElement] = useIntersectionObserver({
     rootMargin: '50px',
     ...options,

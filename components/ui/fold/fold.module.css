@@ -9,12 +9,10 @@
           inset: 0;
           pointer-events: none;
           background-color: var(--color-primary);
-          /* Written inline on scroll by the component. */
           opacity: 0;
         }
       }
 
-      /* With parallax, the component writes `transform` inline on scroll. */
       .sticky {
         min-height: 100svh;
         position: sticky;

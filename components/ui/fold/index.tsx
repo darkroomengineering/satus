@@ -43,16 +43,13 @@ export function Fold({
   const overlayRef = useRef<HTMLDivElement>(null!)
   const stickyRef = useRef<HTMLDivElement>(null!)
 
-  // Written on the two nodes that move, not as a custom property on
-  // `.sticky`: a variable there inherits, so every descendant of the section
-  // would restyle on each scrolled frame.
+  // Direct writes, not a custom property: a variable restyles every descendant.
   function apply(amount: number) {
     if (overlayRef.current) {
       overlayRef.current.style.opacity = String(amount)
     }
 
     if (parallax && stickyRef.current) {
-      // The section drifts away from the edge it is pinned to.
       const offset = (type === 'top' ? 5 : -5) * amount
       stickyRef.current.style.transform = `translate3d(0, ${offset}svh, 0)`
     }
@@ -72,8 +69,6 @@ export function Fold({
     onProgress: ({ progress }) => apply(progress),
   })
 
-  // An inline transform outlives the stylesheet rule that used to gate it,
-  // so clear it when the section is disabled or loses parallax.
   useEffect(() => {
     if (!disabled && parallax) return
     stickyRef.current.style.transform = ''

@@ -1,10 +1,6 @@
 /**
- * Fails when a lint rule is disabled, or TypeScript suppressed with
- * `@ts-ignore` / `@ts-expect-error` / `@ts-nocheck`, more often than
- * `lint-disables.json` allows. A new disable means raising that rule's number by hand, so the bump
- * shows up in review; removing one means lowering it, so the freed slot cannot
- * be reused unseen. Comments come from the parser, not a text search, so a
- * directive quoted in a string or JSX text does not count.
+ * Fails when lint disables or `@ts-*` suppressions per rule differ from
+ * `lint-disables.json`, so every change to the count shows up in review.
  */
 
 import { parseSync } from 'oxc-parser'
@@ -16,9 +12,7 @@ const DIRECTIVE_PATTERN =
   /^(?:oxlint|eslint)-disable(?:-next-line|-line)?(?=\s|$)(.*)$/s
 // A directive naming no rule turns off every rule.
 const ALL_RULES = '*'
-// TypeScript's own suppressions skip the typechecker the same way a disable
-// skips a lint rule, so they count under their own names. TS honors them in
-// line and block comments, after any leading `*`.
+// Counted under their own names, e.g. `@ts-ignore`.
 const TS_DIRECTIVE_PATTERN = /^\**\s*(@ts-(?:ignore|expect-error|nocheck))\b/
 
 interface Site {
@@ -45,8 +39,7 @@ function directiveRules(comment: string): string[] | undefined {
 }
 
 function sourceFiles(): string[] {
-  // Untracked files count too, so a new file cannot hide a disable until it
-  // is added.
+  // Includes untracked files.
   const result = Bun.spawnSync([
     'git',
     'ls-files',

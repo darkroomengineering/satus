@@ -21,8 +21,7 @@ function isOverlay(target: EventTarget) {
     target instanceof Element &&
     (target.nodeName === 'VERCEL-LIVE-FEEDBACK' ||
       target.id === 'theatrejs-studio-root' ||
-      // react-scan renders its panel into a shadow root on this host;
-      // composedPath() pierces the shadow boundary so the id is matchable.
+      // Shadow host; composedPath() reaches it.
       target.id === 'react-scan-root')
   )
 }
@@ -68,13 +67,11 @@ export function Lenis({
       root={root}
       options={{
         ...options,
-        // One lerp for wheel and for scrollTo/anchors, as v1's top-level `lerp`.
         wheel: { lerp: 0.125, ...options?.wheel },
         programmatic: { lerp: 0.125, ...options?.programmatic },
-        // v2 defaults to its own rAF; Tempus drives it above instead.
+        // Tempus drives raf above.
         autoRaf: false,
-        // Gestures over these overlays scroll them natively. Returning false
-        // exits before Lenis calls preventDefault.
+        // Let overlays scroll natively.
         onGesture: ({ event }) =>
           event.composedPath().some(isOverlay) ? false : undefined,
       }}

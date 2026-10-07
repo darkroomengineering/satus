@@ -41,9 +41,7 @@ export function RealViewport({ children }: { children?: ReactNode }) {
     document.body.appendChild(outer)
     const inner = document.createElement('div')
     outer.appendChild(inner)
-    // The probe exists to be measured: one read of a throwaway element, once
-    // per resize, is the measurement.
-    // oxlint-disable-next-line hamo/no-raw-layout-read -- scrollbar probe; see above
+    // oxlint-disable-next-line hamo/no-raw-layout-read -- throwaway probe, read once per resize
     const scrollbarWidth = outer.offsetWidth - inner.offsetWidth
     outer.remove()
     document.documentElement.style.setProperty(

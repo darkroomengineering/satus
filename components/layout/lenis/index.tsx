@@ -16,6 +16,17 @@ const LenisScrollTriggerSync = dynamic(
   }
 )
 
+function isOverlay(target: EventTarget) {
+  return (
+    target instanceof Element &&
+    (target.nodeName === 'VERCEL-LIVE-FEEDBACK' ||
+      target.id === 'theatrejs-studio-root' ||
+      // react-scan renders its panel into a shadow root on this host;
+      // composedPath() pierces the shadow boundary so the id is matchable.
+      target.id === 'react-scan-root')
+  )
+}
+
 interface LenisProps extends Omit<ReactLenisProps, 'ref'> {
   root: boolean
   options: LenisOptions
@@ -57,18 +68,15 @@ export function Lenis({
       root={root}
       options={{
         ...options,
-        lerp: options?.lerp ?? 0.125,
+        // One lerp for wheel and for scrollTo/anchors, as v1's top-level `lerp`.
+        wheel: { lerp: 0.125, ...options?.wheel },
+        programmatic: { lerp: 0.125, ...options?.programmatic },
+        // v2 defaults to its own rAF; Tempus drives it above instead.
         autoRaf: false,
-        anchors: true,
-        autoToggle: true,
-        stopInertiaOnNavigate: true,
-        allowNestedScroll: true,
-        prevent: (node: Element | null) =>
-          node?.nodeName === 'VERCEL-LIVE-FEEDBACK' ||
-          node?.id === 'theatrejs-studio-root' ||
-          // react-scan renders its panel into a shadow root on this host;
-          // composedPath() pierces the shadow boundary so the id is matchable.
-          node?.id === 'react-scan-root',
+        // Gestures over these overlays scroll them natively. Returning false
+        // exits before Lenis calls preventDefault.
+        onGesture: ({ event }) =>
+          event.composedPath().some(isOverlay) ? false : undefined,
       }}
     >
       {syncScrollTrigger && root && <LenisScrollTriggerSync />}

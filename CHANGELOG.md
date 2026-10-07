@@ -33,6 +33,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Changed
 
+- Lenis moves to `2.0.0-dev.5`, a prerelease. A fork's `<Wrapper lenis={…}>` options change shape: top-level `lerp` is now `wheel.lerp` and `programmatic.lerp` (the provider defaults both to 0.125), `prevent` is `onGesture`, and `lenis.limit` is `lenis.maxScroll`. `scrollTo` returns a promise. Lenis now honors `prefers-reduced-motion` by itself: wheel smoothing turns off and programmatic scrolls jump. v2 no longer sets `lenis-stopped`, so the unused `--scrollbar-gutter` variable is gone.
 - The Studio sidebar lists Pages and Articles, then Navigation, each with an icon. Navigation is a real singleton (`document.singletons` in `sanity.config.ts`): one document at a fixed id that editors can't create twice, duplicate, delete or unpublish. Before, it sat in the default list like a collection. A fork that already created a Navigation document has it under a generated id, so the singleton opens empty: either point the singleton at that id (`{ documentId: '<existing id>', schemaType: 'navigation' }` in `SINGLETONS`) or copy the document to the id `navigation`. `@sanity/icons` is a dev dependency and leaves with Sanity in `setup:project`.
 - The handoff deployment checklist asks for the Studio to carry the client's name, favicon and brand color (`title`, `icon`, `theme` in `sanity.config.ts`).
 - The Studio opens on Structure, the content list, with Presentation as the second tab. Editors land on their documents instead of a preview that waits for draft mode.

@@ -28,23 +28,29 @@ These are non-negotiable. Each is enforced by oxlint or TypeScript; `bun run che
 
 ### oxlint rules
 
-| Rule                                 | What it catches                                                                                   | Enforcer                           |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| `typescript/no-explicit-any`         | `any` types                                                                                       | oxlint `typescript`                |
-| `typescript/consistent-type-imports` | Missing `import type` for type-only imports                                                       | oxlint `typescript` (`.ts`/`.tsx`) |
-| `typescript/consistent-type-exports` | Missing `export type` for type-only re-exports                                                    | oxlint `typescript`, type-aware    |
-| `nextjs/no-img-element`              | Raw `<img>` tags (use `@/components/ui/image`)                                                    | oxlint `nextjs`                    |
-| `react/forbid-elements`              | Raw `<a>` tags (use `@/components/ui/link`)                                                       | oxlint `react`                     |
-| `eslint/no-restricted-imports`       | `../../` deep relative imports (use `@/` aliases) and `forwardRef` imports (React 19 ref-as-prop) | oxlint `eslint`                    |
-| `eslint/no-unused-vars`              | Unused imports, variables and parameters                                                          | oxlint `eslint`                    |
-| `react/jsx-key`                      | Missing `key` in list renders                                                                     | oxlint `react` (`.tsx`/`.jsx`)     |
-| `jsx-a11y/alt-text`                  | Missing `alt` on images (incl. next/image)                                                        | oxlint `jsx-a11y`                  |
-| `react/button-has-type`              | `<button>` missing `type` attribute                                                               | oxlint `react`                     |
-| `react/no-danger-with-children`      | XSS risk                                                                                          | oxlint `react`                     |
-| `import/first`                       | Imports not at top of file                                                                        | oxlint `import`                    |
-| `react/rules-of-hooks`               | Hooks called conditionally / outside components                                                   | oxlint `react`                     |
-| `typescript/no-floating-promises`    | Un-awaited promises                                                                               | oxlint `typescript`, type-aware    |
-| `typescript/no-misused-promises`     | Async function passed where void expected                                                         | oxlint `typescript`, type-aware    |
+| Rule                                 | What it catches                                                                                                                                                                                                                                                                  | Enforcer                           |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| `typescript/no-explicit-any`         | `any` types                                                                                                                                                                                                                                                                      | oxlint `typescript`                |
+| `typescript/consistent-type-imports` | Missing `import type` for type-only imports                                                                                                                                                                                                                                      | oxlint `typescript` (`.ts`/`.tsx`) |
+| `typescript/consistent-type-exports` | Missing `export type` for type-only re-exports                                                                                                                                                                                                                                   | oxlint `typescript`, type-aware    |
+| `nextjs/no-img-element`              | Raw `<img>` tags (use `@/components/ui/image`)                                                                                                                                                                                                                                   | oxlint `nextjs`                    |
+| `react/forbid-elements`              | Raw `<a>` tags (use `@/components/ui/link`)                                                                                                                                                                                                                                      | oxlint `react`                     |
+| `eslint/no-restricted-imports`       | `../../` deep relative imports (use `@/` aliases), `forwardRef` (React 19 ref-as-prop), `useMemo`/`useCallback`/`memo` (React Compiler), hamo `useMediaQuery` (use `useDeviceDetection`, or `desktop-only`/`mobile-only` for markup), `next/image` (use `@/components/ui/image`) | oxlint `eslint`                    |
+| `hamo/no-raw-layout-read`            | `getBoundingClientRect`, `offset*`/`client*`/`scroll*` sizes, `window.scrollY`, `getComputedStyle` and other forced-layout reads (use hamo `useRect`, `useWindowSize`, `useResizeObserver`, or `lenis.scroll`)                                                                   | `tools/oxlint/hamo`                |
+| `hamo/no-raw-observer`               | `new ResizeObserver`/`IntersectionObserver`, `matchMedia`, window `resize`/`scroll` listeners (use the hamo hook, `useDeviceDetection`, or Lenis)                                                                                                                                | `tools/oxlint/hamo`                |
+| `eslint/no-unused-vars`              | Unused imports, variables and parameters                                                                                                                                                                                                                                         | oxlint `eslint`                    |
+| `react/jsx-key`                      | Missing `key` in list renders                                                                                                                                                                                                                                                    | oxlint `react` (`.tsx`/`.jsx`)     |
+| `jsx-a11y/alt-text`                  | Missing `alt` on images (incl. next/image)                                                                                                                                                                                                                                       | oxlint `jsx-a11y`                  |
+| `react/button-has-type`              | `<button>` missing `type` attribute                                                                                                                                                                                                                                              | oxlint `react`                     |
+| `react/no-danger-with-children`      | XSS risk                                                                                                                                                                                                                                                                         | oxlint `react`                     |
+| `import/first`                       | Imports not at top of file                                                                                                                                                                                                                                                       | oxlint `import`                    |
+| `react/rules-of-hooks`               | Hooks called conditionally / outside components                                                                                                                                                                                                                                  | oxlint `react`                     |
+| `typescript/no-floating-promises`    | Un-awaited promises                                                                                                                                                                                                                                                              | oxlint `typescript`, type-aware    |
+| `typescript/no-misused-promises`     | Async function passed where void expected                                                                                                                                                                                                                                        | oxlint `typescript`, type-aware    |
+
+A lint error is fixed in code, never disabled to get green. `bun run check:disables` (part of `bun run check`) counts every `oxlint-disable`/`eslint-disable` directive per rule and fails when a count differs from `lint-disables.json`. A new disable means raising that rule's number in `lint-disables.json` by hand, so the bump shows in the diff and the reviewer approves it; removing one means lowering it. An agent does not add a disable or raise a number on its own: it reports the error and the fix it could not find.
+
+The `hamo` plugin (`tools/oxlint/hamo/`) sends layout reads and observers through hamo, which measures once per resize on a shared observer. A raw read forces layout, and inside a scroll or frame loop it does so every frame. Tests, e2e specs and `lib/scripts/**` are exempt.
 
 A vendored plugin (`tools/oxlint/anti-slop/`, from [dmmulroy/anti-slop](https://github.com/dmmulroy/anti-slop)) adds rules against low-evidence TypeScript patterns: no `Reflect.get`/`Reflect.apply`, no `object`-typed parameters, no type aliases that merely rename `unknown`, no widen-then-assert flows, no module mocking in tests. All fifteen anti-slop rules run at `error`. Two unrelated rules (`eslint/prefer-named-capture-group`, `typescript/prefer-nullish-coalescing`) are off with their pre-existing finding counts documented in `oxlint.config.ts`; re-enable them one at a time as the findings are fixed. The plugin's own rule tests run under Node via `bun run test:oxlint-plugin`, not `bun test` — they're named `*.ruletest.ts` so bun's test discovery never collects them, because oxlint's RuleTester refuses the Bun runtime.
 
@@ -137,7 +143,7 @@ Only add `'use client'` when you need hooks, event handlers, or browser APIs. Ke
 
 ### No manual memoization
 
-React Compiler handles all optimization. Never use `useMemo`, `useCallback`, or `React.memo`.
+React Compiler handles all optimization. Never use `useMemo`, `useCallback`, or `React.memo`; importing them is a lint error.
 
 Exception: use `useRef` for class/object instantiation to prevent infinite loops (see ARCHITECTURE.md § Code Patterns).
 
@@ -311,7 +317,8 @@ All integrations are optional and self-contained in `lib/integrations/{name}/`. 
 ```bash
 bun dev              # Dev server (Turbopack)
 bun run build        # Production build (runs setup:styles first)
-bun run check        # oxlint + oxfmt --check + lint:types + ensure:typegen + tsc --noEmit + bun test + test:oxlint-plugin + manifest:check + check:assets (must pass before pushing)
+bun run check        # oxlint + oxfmt --check + lint:types + ensure:typegen + tsc --noEmit + bun test + test:oxlint-plugin + manifest:check + check:assets + check:disables (must pass before pushing)
+bun run check:disables  # lint-disable directives per rule must match lint-disables.json
 bun lint             # oxlint
 bun lint:fix         # oxlint with auto-fix
 bun run lint:types   # oxlint type-aware rules (no-floating-promises, no-misused-promises)

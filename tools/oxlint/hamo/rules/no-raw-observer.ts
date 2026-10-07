@@ -55,7 +55,7 @@ export const noRawObserverRule = defineRule({
       rawObserver:
         '`new {{name}}` duplicates hamo. Use `{{hook}}` so the site keeps one shared observer.',
       rawMatchMedia:
-        '`matchMedia` outside hamo. Use `useMediaQuery` (or usePreferredReducedMotion for the reduced-motion query).',
+        '`matchMedia` outside hamo. Read the query from useDeviceDetection, adding it there if it is new (or usePreferredReducedMotion for the reduced-motion query).',
       rawListener:
         "A raw `{{event}}` listener runs outside the site's rAF loop. Use {{hook}}.",
     },

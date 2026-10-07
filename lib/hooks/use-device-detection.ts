@@ -1,3 +1,4 @@
+// oxlint-disable-next-line eslint/no-restricted-imports -- the one place media queries are written
 import { useMediaQuery, useWindowSize } from 'hamo'
 import { useEffect, useState, useSyncExternalStore } from 'react'
 

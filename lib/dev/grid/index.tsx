@@ -13,6 +13,7 @@ export function GridDebugger({
   // useWindowSize triggers re-render on resize; columns is re-read from CSS each render
   useWindowSize()
   const columns = Number.parseInt(
+    // oxlint-disable-next-line hamo/no-raw-layout-read -- dev-only, once per resize
     getComputedStyle(document.documentElement).getPropertyValue('--columns'),
     10
   )

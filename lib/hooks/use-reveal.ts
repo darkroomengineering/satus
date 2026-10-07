@@ -105,6 +105,10 @@ export function useReveal<T extends HTMLElement = HTMLElement>({
     // already read (see HYDRATED_LATE): reveal immediately, never observe.
     if (
       HYDRATED_LATE ||
+      // usePreferredReducedMotion returns its server snapshot (false) during
+      // hydration, which would hide content for a reduced-motion visitor; the
+      // live query is the only value this layout effect can trust.
+      // oxlint-disable-next-line hamo/no-raw-observer -- hook returns the server snapshot during hydration
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
     ) {
       element.dataset.reveal = 'visible'
@@ -113,6 +117,10 @@ export function useReveal<T extends HTMLElement = HTMLElement>({
 
     element.dataset.reveal = 'hidden'
 
+    // hamo's useIntersectionObserver reports through state, a render after
+    // mount; the attribute must flip inside this layout effect so an element
+    // already in view never paints hidden.
+    // oxlint-disable-next-line hamo/no-raw-observer -- state-based hook would add a hidden-then-visible flash
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {

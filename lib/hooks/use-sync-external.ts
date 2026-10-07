@@ -1,5 +1,7 @@
 'use client'
 
+/* oxlint-disable hamo/no-raw-observer -- subscribe and snapshot halves of useSyncExternalStore; hamo's useMediaQuery is a hook over the same call */
+
 import { useSyncExternalStore } from 'react'
 
 /**

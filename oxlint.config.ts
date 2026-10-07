@@ -227,6 +227,23 @@ export default defineConfig({
             message:
               'forwardRef is unnecessary in React 19 with the compiler - accept `ref` as a regular prop.',
           },
+          {
+            name: 'react',
+            importNames: ['useMemo', 'useCallback', 'memo'],
+            message:
+              'The React Compiler memoises components and values. Write plain functions and values; build objects once with a useState initialiser or useRef.',
+          },
+          {
+            name: 'hamo',
+            importNames: ['useMediaQuery'],
+            message:
+              'Read isMobile, isDesktop, isTouchOnly or isReducedMotion from useDeviceDetection (@/hooks/use-device-detection), so each media query is written once. To show markup on one breakpoint, use the desktop-only and mobile-only classes.',
+          },
+          {
+            name: 'next/image',
+            message:
+              'Use the Image component (@/components/ui/image) instead of next/image. It requires a responsive sizes value and reserves the layout box up front.',
+          },
         ],
         patterns: [
           {

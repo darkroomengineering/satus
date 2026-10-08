@@ -7,6 +7,7 @@
 @custom-media --mobile (width <= 799.98px);
 @custom-media --desktop (width >= 800px);
 @custom-media --reduced-motion (prefers-reduced-motion: reduce);
+@custom-media --motion-ok (prefers-reduced-motion: no-preference);
 
 :root {
 	--device-width: 375;

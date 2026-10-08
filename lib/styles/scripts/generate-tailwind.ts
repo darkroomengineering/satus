@@ -1,5 +1,5 @@
 import type { Config } from '../config'
-import { formatObject, scalingCalc } from './utils'
+import { formatObject, textCalc } from './utils'
 
 export function generateTailwind({
   breakpoints,
@@ -73,8 +73,8 @@ ${Object.entries(typography)
           // value for font-size as { mobile: number; desktop: number }.
           const v = value as { mobile: number; desktop: number }
           return [
-            `font-size: ${scalingCalc(v.mobile)};`,
-            `@variant dt { font-size: ${scalingCalc(v.desktop)}; }`,
+            `font-size: ${textCalc(v.mobile)};`,
+            `@variant dt { font-size: ${textCalc(v.desktop)}; }`,
           ].join('\n\t')
         }
 

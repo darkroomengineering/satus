@@ -28,9 +28,13 @@
     position: relative;
 
     /* Base UI animation states */
-    transition:
-      transform 200ms ease-out,
-      opacity 200ms ease-out;
+    transition: opacity 200ms ease-out;
+
+    @media (--motion-ok) {
+      transition:
+        transform 200ms ease-out,
+        opacity 200ms ease-out;
+    }
     opacity: 1;
     transform: translateX(0);
 

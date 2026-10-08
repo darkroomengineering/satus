@@ -324,7 +324,9 @@
                 border-radius: 100%;
                 background-color: var(--color-gray);
                 width: mobile-vw(24px);
-                transition: 500ms transform var(--ease-gleasing);
+                @media (--motion-ok) {
+                  transition: 500ms transform var(--ease-gleasing);
+                }
 
                 @media (--desktop) {
                   width: desktop-vw(36px);

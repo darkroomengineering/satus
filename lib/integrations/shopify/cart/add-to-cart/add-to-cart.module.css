@@ -1,6 +1,16 @@
 .cta {
   cursor: pointer;
   transition: 300ms opacity var(--ease-gleasing);
+
+  @media (--motion-ok) {
+    transition:
+      300ms opacity var(--ease-gleasing),
+      160ms transform var(--ease-out-quart);
+
+    &:active {
+      transform: scale(0.97);
+    }
+  }
 }
 
 .disable {

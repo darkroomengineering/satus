@@ -31,9 +31,13 @@
     box-shadow: 0 8px 32px oklch(0 0 0 / 0.2);
 
     /* Base UI animation states */
-    transition:
-      transform 150ms ease-out,
-      opacity 150ms ease-out;
+    transition: opacity 150ms ease-out;
+
+    @media (--motion-ok) {
+      transition:
+        transform 150ms ease-out,
+        opacity 150ms ease-out;
+    }
     opacity: 1;
 
     &[data-starting-style],
@@ -91,6 +95,17 @@
     transition:
       background-color 150ms ease,
       color 150ms ease;
+
+    @media (--motion-ok) {
+      transition:
+        background-color 150ms ease,
+        color 150ms ease,
+        transform 160ms var(--ease-out-quart);
+
+      &:active {
+        transform: scale(0.97);
+      }
+    }
 
     @media (--desktop) {
       padding: desktop-vw(8px) desktop-vw(16px);

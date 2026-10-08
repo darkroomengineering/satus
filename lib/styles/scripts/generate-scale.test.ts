@@ -16,7 +16,18 @@
 
 import { describe, expect, it } from 'bun:test'
 
+import {
+  breakpoints,
+  colors,
+  customSizes,
+  fonts,
+  themes,
+  typography,
+} from '../config'
+import { screens, textRemShare } from '../layout.mjs'
 import { generateScale } from './generate-scale'
+import { generateTailwind } from './generate-tailwind'
+import { textCalc } from './utils'
 
 function getUtilityBody(css: string, utilityHeader: string): string {
   const marker = `@utility ${utilityHeader} {`
@@ -85,9 +96,11 @@ function evalArithmetic(expr: string): number {
   function parseTerm(): number {
     let value = parseFactor()
     skipSpace()
-    while (peek() === '*') {
+    while (peek() === '*' || peek() === '/') {
+      const op = peek()
       i++
-      value *= parseFactor()
+      const rhs = parseFactor()
+      value = op === '*' ? value * rhs : value / rhs
       skipSpace()
     }
     return value
@@ -154,5 +167,134 @@ describe('generateScale column utilities', () => {
     expect(css).not.toContain('col-value')
     expect(css).not.toContain('(value *')
     expect(css).not.toContain('(-value *')
+  })
+})
+
+// Evaluates a generated font-size expression in CSS pixels for a viewport that
+// is `viewportWidth` CSS px wide, a root font size of `rootPx`, and a frame of
+// `deviceWidth`. Units resolve as rem = rootPx, 1vw = viewportWidth / 100.
+function evalFontSize(
+  expr: string,
+  {
+    value,
+    deviceWidth,
+    viewportWidth,
+    rootPx = 16,
+  }: {
+    value?: number
+    deviceWidth: number
+    viewportWidth: number
+    rootPx?: number
+  }
+): number {
+  let arithmetic = expr
+    .replaceAll('var(--device-width)', String(deviceWidth))
+    .replaceAll('calc(', '(')
+    .replace(/(-?[0-9.]+)rem/g, (_, n: string) => `(${n} * ${rootPx})`)
+    .replace(
+      /(-?[0-9.]+)vw/g,
+      (_, n: string) => `(${n} * ${viewportWidth / 100})`
+    )
+  if (value !== undefined) {
+    arithmetic = arithmetic.replaceAll('--value(integer)', String(value))
+  }
+  return evalArithmetic(arithmetic)
+}
+
+describe('text sizing is rem plus vw', () => {
+  const frames = [
+    { name: 'mobile', width: screens.mobile.width },
+    { name: 'desktop', width: screens.desktop.width },
+  ]
+
+  it('uses a rem share strictly between 0 and 1', () => {
+    expect(textRemShare).toBeGreaterThan(0)
+    expect(textRemShare).toBeLessThan(1)
+  })
+
+  for (const { name, width } of frames) {
+    it(`resolves to exactly X px at the ${name} frame width with a 16px root`, () => {
+      for (const x of [12, 14, 16, 32, 48, 72, 120]) {
+        const px = evalFontSize(textCalc(x), {
+          deviceWidth: width,
+          viewportWidth: width,
+        })
+        expect(px).toBeCloseTo(x, 9)
+      }
+    })
+
+    it(`emits dr-text-* that resolves to exactly X px at the ${name} frame width`, () => {
+      const body = getUtilityBody(generateScale(), 'dr-text-*')
+      const expr = getDeclarationValue(body, 'font-size')
+      for (const x of [1, 12, 24, 100]) {
+        const px = evalFontSize(expr, {
+          value: x,
+          deviceWidth: width,
+          viewportWidth: width,
+        })
+        expect(px).toBeCloseTo(x, 9)
+      }
+    })
+
+    it(`emits dr-text-px as 1px at the ${name} frame width`, () => {
+      const body = getUtilityBody(generateScale(), 'dr-text-px')
+      const expr = getDeclarationValue(body, 'font-size')
+      const px = evalFontSize(expr, {
+        deviceWidth: width,
+        viewportWidth: width,
+      })
+      expect(px).toBeCloseTo(1, 9)
+    })
+  }
+
+  it('emits -dr-text-* as the exact negation of dr-text-*', () => {
+    const css = generateScale()
+    const pos = getDeclarationValue(
+      getUtilityBody(css, 'dr-text-*'),
+      'font-size'
+    )
+    const neg = getDeclarationValue(
+      getUtilityBody(css, '-dr-text-*'),
+      'font-size'
+    )
+    const ctx = { value: 24, deviceWidth: 1440, viewportWidth: 1000 }
+    expect(evalFontSize(neg, ctx)).toBeCloseTo(-evalFontSize(pos, ctx), 9)
+  })
+
+  it('grows with the root font size, so text follows the user setting', () => {
+    const expr = textCalc(16)
+    const ctx = { deviceWidth: 1440, viewportWidth: 1440 }
+    const at16 = evalFontSize(expr, { ...ctx, rootPx: 16 })
+    const at24 = evalFontSize(expr, { ...ctx, rootPx: 24 })
+    expect(at24).toBeGreaterThan(at16)
+  })
+
+  it('keeps the rem term out of layout utilities', () => {
+    const css = generateScale()
+    for (const name of ['dr-w-*', 'dr-p-*', 'dr-gap-*', 'dr-tracking-*']) {
+      expect(getUtilityBody(css, name)).not.toContain('rem')
+    }
+  })
+
+  it('applies the two-band typography as rem plus vw per band', () => {
+    const css = generateTailwind({
+      breakpoints,
+      colors,
+      customSizes,
+      fonts,
+      themes,
+      typography,
+    })
+    const h1 = css.slice(css.indexOf('@utility h1 {'))
+    const body = h1.slice(0, h1.indexOf('\n}'))
+    const [mobile, desktop] = [
+      ...body.matchAll(/font-size: (calc\(.*?\));/g),
+    ].map((m) => m[1] ?? '')
+    expect(
+      evalFontSize(mobile ?? '', { deviceWidth: 375, viewportWidth: 375 })
+    ).toBeCloseTo(72, 9)
+    expect(
+      evalFontSize(desktop ?? '', { deviceWidth: 1440, viewportWidth: 1440 })
+    ).toBeCloseTo(120, 9)
   })
 })

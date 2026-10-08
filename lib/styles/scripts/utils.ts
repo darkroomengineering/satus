@@ -1,5 +1,19 @@
+import { textRemShare } from '../layout.mjs'
+
 export function scalingCalc(value: number) {
   return `calc(((${value} * 100) / var(--device-width)) * 1vw)`
+}
+
+/**
+ * Font size in the hybrid unit: `textRemShare` of the size in rem, the rest in
+ * vw relative to the active frame (`--device-width`). With a 16px root and a
+ * viewport equal to the frame, the result is exactly `value` px. `value` is a
+ * number or a CSS expression such as `--value(integer)`.
+ */
+export function textCalc(value: number | string) {
+  const rem = textRemShare / 16
+  const vw = (1 - textRemShare) * 100
+  return `calc((${value} * ${rem}rem) + (((${value} * ${vw}) / var(--device-width)) * 1vw))`
 }
 
 /**

@@ -51,7 +51,9 @@
         color: var(--color-white);
 
         &::before {
-          transition: 1000ms clip-path var(--ease-gleasing);
+          @media (--motion-ok) {
+            transition: 1000ms clip-path var(--ease-gleasing);
+          }
           clip-path: circle(100%);
         }
       }

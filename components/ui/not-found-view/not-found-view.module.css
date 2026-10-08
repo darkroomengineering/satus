@@ -112,6 +112,17 @@
     color: var(--color-contrast);
   }
 
+  @media (--motion-ok) {
+    transition:
+      background var(--duration-fast) ease,
+      color var(--duration-fast) ease,
+      transform 160ms var(--ease-out-quart);
+
+    &:active {
+      transform: scale(0.97);
+    }
+  }
+
   @media (--desktop) {
     padding: calc(13 / 1440 * 100vw) calc(28 / 1440 * 100vw);
     font-size: calc(12 / 1440 * 100vw);

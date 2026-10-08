@@ -103,7 +103,7 @@ export function MyComponent({
 - CSS Modules (~20%): complex animations, custom layouts, CSS specificity
 - Combine with `cn()` from `clsx`
 - A component that exposes `className` wraps its CSS module in `@layer components { ... }`. Tailwind v4 orders that layer below `utilities`, and unlayered CSS always beats layered CSS, so precedence becomes: consumer CSS module, then consumer Tailwind utility, then the component's own module. Without the layer an unlayered module rule beats every utility a consumer passes, whatever `cn()` outputs, and no class-merging library changes that. `image.module.css` layers into `utilities` on purpose so Tailwind `object-*` classes win by specificity; that is the one exception. This is why the starter does not carry `tailwind-merge`: the conflicts here are module versus utility, which layers decide, not utility versus utility.
-- Use `h-dvh` not `h-screen`
+- Use `h-svh` for documents and heroes, `h-dvh` only for app shells that track the browser toolbar; never `h-screen`
 - Animate only `transform`, `opacity` (compositor properties)
 - A below-fold CSS `background-image` downloads at page load on any rendered element, even at `opacity: 0` or inside a collapsed section; only `display: none` on the element itself, or a missing rule, prevents the fetch. Gate the class that carries the `url()` behind an IntersectionObserver (`rootMargin: '100% 0px'` starts the fetch one viewport early), or use `<img loading="lazy">`. Measured on shield.fi (2026-08-28): three hidden stills, 302 KB, cost 5.4 s of Slow 3G load before anyone scrolled.
 
@@ -113,14 +113,15 @@ export function MyComponent({
 - **Orchestration / scrubbing / pinning** → GSAP (timelines, ScrollTrigger via the Lenis bridge in `components/layout/lenis/`). GSAP's ticker is synced to Tempus (`components/effects/gsap.tsx`), so there's a single RAF loop. Don't reach for GSAP for simple reveals — that's main-thread work CSS does better off-thread. Write component animations with `useGSAP` from `@gsap/react`, passing `{ scope: ref }` — it scopes selector strings to that ref and reverts everything created inside it on unmount. Use its `contextSafe` wrapper for animations kicked off from event handlers, which otherwise run outside the scope. A bare `useEffect` + `gsap.to()` leaks tweens and ScrollTriggers across navigations.
 - **Micro-interactions** (hover, toggle, ≤200ms) → CSS transitions.
 - **Smooth scroll** → Lenis; **RAF scheduling** → Tempus.
-- Honor reduced-motion: the global neutralizer in `global.css` zeroes CSS animation; JS/WebGL gates via `usePreferredReducedMotion`.
+- Honor reduced-motion: movement is off, fades stay. Declare transform, height, and clip-path transitions inside `@media (--motion-ok)` (`prefers-reduced-motion: no-preference`); opacity and color transitions stay unconditional. Press feedback on buttons (`:active` scale) goes in `--motion-ok` too. JS/WebGL gates via `usePreferredReducedMotion`.
 - **Deferrable heavy boot** (WebGL contexts, shader compiles, third-party runtimes) → `useAfterLoad` / `<AfterLoad>` (`lib/hooks/use-after-load.ts`). Work done during hydration is billed as blocking time for pixels the DOM is already painting. The root `<Canvas>` already waits for `window.load`; `force` opts out.
 
 ### Design tokens and custom utilities
 
 - Design tokens: `lib/styles/css/root.css`
 - `dr-*` utility classes for responsive scaling (see `lib/styles/README.md`)
-- Custom viewport functions: `mobile-vw()`, `mobile-vh()`, `desktop-vw()`, `desktop-vh()`
+- Custom viewport functions: `mobile-vw()`, `mobile-vh()`, `desktop-vw()`, `desktop-vh()` scale layout (spacing, sizes, radii) and stay pure vw
+- Type sizes (`h1`, `p`, `dr-text-*`, typography utilities) are rem plus vw: `textRemShare` (`lib/styles/layout.mjs`) of each size is rem, the rest scales with the frame, so text follows browser zoom and the user's font size. Do not use `mobile-vw()`/`desktop-vw()` for `font-size`; use a typography utility or `dr-text-*`
 - Column function: `columns(n)` for grid-based sizing
 - Desktop breakpoint: **800px** (defined in `lib/styles/config.ts`)
 

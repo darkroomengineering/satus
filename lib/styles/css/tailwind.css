@@ -54,8 +54,8 @@
 	font-weight: 700;
 	line-height: 80%;
 	letter-spacing: -0.05em;
-	font-size: calc(((72 * 100) / var(--device-width)) * 1vw);
-	@variant dt { font-size: calc(((120 * 100) / var(--device-width)) * 1vw); }
+	font-size: calc((72 * 0.03125rem) + (((72 * 50) / var(--device-width)) * 1vw));
+	@variant dt { font-size: calc((120 * 0.03125rem) + (((120 * 50) / var(--device-width)) * 1vw)); }
 }
 @utility h2 {
   font-family: var(--next-font-display);
@@ -63,8 +63,8 @@
 	font-weight: 700;
 	line-height: 80%;
 	letter-spacing: -0.03em;
-	font-size: calc(((32 * 100) / var(--device-width)) * 1vw);
-	@variant dt { font-size: calc(((48 * 100) / var(--device-width)) * 1vw); }
+	font-size: calc((32 * 0.03125rem) + (((32 * 50) / var(--device-width)) * 1vw));
+	@variant dt { font-size: calc((48 * 0.03125rem) + (((48 * 50) / var(--device-width)) * 1vw)); }
 }
 @utility p-big {
   font-family: var(--next-font-mono);
@@ -72,8 +72,8 @@
 	font-weight: 400;
 	line-height: 125%;
 	letter-spacing: -0.02em;
-	font-size: calc(((16 * 100) / var(--device-width)) * 1vw);
-	@variant dt { font-size: calc(((20 * 100) / var(--device-width)) * 1vw); }
+	font-size: calc((16 * 0.03125rem) + (((16 * 50) / var(--device-width)) * 1vw));
+	@variant dt { font-size: calc((20 * 0.03125rem) + (((20 * 50) / var(--device-width)) * 1vw)); }
 }
 @utility p {
   font-family: var(--next-font-mono);
@@ -82,8 +82,8 @@
 	line-height: 125%;
 	@variant dt { line-height: 120%; }
 	letter-spacing: -0.01em;
-	font-size: calc(((12 * 100) / var(--device-width)) * 1vw);
-	@variant dt { font-size: calc(((14 * 100) / var(--device-width)) * 1vw); }
+	font-size: calc((12 * 0.03125rem) + (((12 * 50) / var(--device-width)) * 1vw));
+	@variant dt { font-size: calc((14 * 0.03125rem) + (((14 * 50) / var(--device-width)) * 1vw)); }
 }
 @utility caption {
   font-family: var(--next-font-mono);
@@ -92,8 +92,8 @@
 	line-height: 125%;
 	@variant dt { line-height: 120%; }
 	letter-spacing: -0.01em;
-	font-size: calc(((8 * 100) / var(--device-width)) * 1vw);
-	@variant dt { font-size: calc(((10 * 100) / var(--device-width)) * 1vw); }
+	font-size: calc((8 * 0.03125rem) + (((8 * 50) / var(--device-width)) * 1vw));
+	@variant dt { font-size: calc((10 * 0.03125rem) + (((10 * 50) / var(--device-width)) * 1vw)); }
 }
 @utility cta {
   font-family: var(--next-font-mono);
@@ -101,8 +101,8 @@
 	font-weight: 400;
 	line-height: 100%;
 	letter-spacing: -0.01em;
-	font-size: calc(((12 * 100) / var(--device-width)) * 1vw);
-	@variant dt { font-size: calc(((14 * 100) / var(--device-width)) * 1vw); }
+	font-size: calc((12 * 0.03125rem) + (((12 * 50) / var(--device-width)) * 1vw));
+	@variant dt { font-size: calc((14 * 0.03125rem) + (((14 * 50) / var(--device-width)) * 1vw)); }
 }
 @utility link {
   font-family: var(--next-font-mono);
@@ -111,8 +111,8 @@
 	line-height: 125%;
 	@variant dt { line-height: 120%; }
 	letter-spacing: -0.01em;
-	font-size: calc(((12 * 100) / var(--device-width)) * 1vw);
-	@variant dt { font-size: calc(((14 * 100) / var(--device-width)) * 1vw); }
+	font-size: calc((12 * 0.03125rem) + (((12 * 50) / var(--device-width)) * 1vw));
+	@variant dt { font-size: calc((14 * 0.03125rem) + (((14 * 50) / var(--device-width)) * 1vw)); }
 }
 
 @utility desktop-only {
@@ -158,16 +158,16 @@
 
 /** Custom function utilities **/
 @utility dr-text-* {
-	font-size: calc((--value(integer) * 100) / var(--device-width) * 1vw);
+	font-size: calc((--value(integer) * 0.03125rem) + (((--value(integer) * 50) / var(--device-width)) * 1vw));
 }
 @utility dr-text-px {
-	font-size: calc(100 / var(--device-width) * 1vw);
+	font-size: calc((1 * 0.03125rem) + (((1 * 50) / var(--device-width)) * 1vw));
 }
 @utility -dr-text-* {
-	font-size: calc((--value(integer) * -100) / var(--device-width) * 1vw);
+	font-size: calc((--value(integer) * -1 * 0.03125rem) + (((--value(integer) * -1 * 50) / var(--device-width)) * 1vw));
 }
 @utility -dr-text-px {
-	font-size: calc(-100 / var(--device-width) * 1vw);
+	font-size: calc((-1 * 0.03125rem) + (((-1 * 50) / var(--device-width)) * 1vw));
 }
 
 @utility dr-tracking-* {

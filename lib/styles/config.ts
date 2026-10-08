@@ -1,5 +1,11 @@
 import { colors, themeNames, themes } from './colors'
-import { breakpoints, customSizes, layout, screens } from './layout.mjs'
+import {
+  breakpoints,
+  customSizes,
+  layout,
+  screens,
+  textRemShare,
+} from './layout.mjs'
 import { fonts, typography } from './typography'
 
 const config = {
@@ -21,6 +27,7 @@ export {
   fonts,
   layout,
   screens,
+  textRemShare,
   themeNames,
   themes,
   typography,

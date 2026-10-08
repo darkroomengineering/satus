@@ -1,3 +1,5 @@
+import { textCalc } from './utils'
+
 const scaleUtilityMap = {
   // Text
   text: 'font-size',
@@ -59,7 +61,21 @@ const columnUtilityMap = {
   'inset-y': 'inset-block',
 }
 
+// Font sizes use the hybrid rem + vw unit so text follows zoom and the user's
+// font size; every other property stays pure vw.
+function textUtility(name: string) {
+  const declare = (value: string) => `font-size: ${value};`
+  return [
+    `@utility dr-${name}-* {\n\t${declare(textCalc('--value(integer)'))}\n}`,
+    `@utility dr-${name}-px {\n\t${declare(textCalc(1))}\n}`,
+    `@utility -dr-${name}-* {\n\t${declare(textCalc('--value(integer) * -1'))}\n}`,
+    `@utility -dr-${name}-px {\n\t${declare(textCalc(-1))}\n}`,
+  ].join('\n')
+}
+
 function scaleUtility(name: string, properties: string | string[]) {
+  if (properties === 'font-size') return textUtility(name)
+
   const propertiesArray = Array.isArray(properties) ? properties : [properties]
   const utility = `@utility dr-${name}-* {
 	${propertiesArray

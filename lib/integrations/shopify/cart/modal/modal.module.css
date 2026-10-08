@@ -39,7 +39,9 @@
   display: flex;
   flex-direction: column;
   text-transform: uppercase;
-  transition: 800ms transform var(--ease-gleasing);
+  @media (--motion-ok) {
+    transition: 800ms transform var(--ease-gleasing);
+  }
 
   @media (--desktop) {
     width: 50%;
@@ -281,7 +283,9 @@
         color: var(--color-black);
 
         &::before {
-          transition: 1000ms clip-path var(--ease-gleasing);
+          @media (--motion-ok) {
+            transition: 1000ms clip-path var(--ease-gleasing);
+          }
           clip-path: circle(100%);
         }
       }

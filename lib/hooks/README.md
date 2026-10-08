@@ -4,7 +4,6 @@ Custom React hooks for common patterns.
 
 ```tsx
 import { useDeviceDetection } from '@/hooks/use-device-detection'
-import { useMediaQuery } from 'hamo'
 ```
 
 ## Available Hooks
@@ -73,20 +72,14 @@ import { AfterLoad } from '@/hooks/use-after-load'
 
 These hooks use `useSyncExternalStore` for concurrent-rendering safety and optimal performance.
 
-### useMediaQuery
+### Media queries
 
-Subscribe to CSS media queries with automatic updates:
-
-```tsx
-import { useMediaQuery } from 'hamo'
-
-function ResponsiveComponent() {
-  const isDesktop = useMediaQuery('(min-width: 800px)')
-  const prefersDark = useMediaQuery('(prefers-color-scheme: dark)')
-
-  return isDesktop ? <DesktopView /> : <MobileView />
-}
-```
+There is no general media-query hook. To show markup on one breakpoint, use
+the `desktop-only` and `mobile-only` classes: they need no JavaScript and match
+the server render. For behavior that differs by device, read `isMobile`,
+`isDesktop`, `isTouchOnly` or `isReducedMotion` from `useDeviceDetection`, and
+add a new query there rather than in a component. Importing hamo's
+`useMediaQuery` anywhere else is a lint error.
 
 ### useOnlineStatus
 
@@ -179,7 +172,7 @@ deprecated; they are simply available if you need them.
 | --------------------------------------------------------- | --------- | ---------------------------------------------------------------------------- |
 | `useRect`                                                 | yes       | Element bounding rect, kept in sync on resize and scroll                     |
 | `useWindowSize`                                           | yes       | Viewport size, debounced (`useWindowSize(delay?)`)                           |
-| `useMediaQuery`                                           | yes       | Match a media query; `undefined` until measured, so it is SSR-safe           |
+| `useMediaQuery`                                           | yes       | Only inside `useDeviceDetection`; importing it elsewhere is a lint error     |
 | `useResizeObserver`                                       | yes       | ResizeObserver as a hook                                                     |
 | `useIntersectionObserver`                                 | yes       | IntersectionObserver as a hook                                               |
 | `useScrollTrigger`                                        | yes       | Scroll-linked progress callbacks                                             |
@@ -223,7 +216,27 @@ function Component() {
     isAutoplaySupported,
   } = useDeviceDetection()
 
-  return isMobile ? <MobileNav /> : <DesktopNav />
+  return isWebGL ? <WebGLHero /> : <StillHero />
+}
+```
+
+Use these for behavior. To show or hide markup per breakpoint, use the
+`desktop-only` and `mobile-only` classes instead of `isMobile`/`isDesktop`:
+they need no JavaScript and match the server render, while the hook has no
+value until mount.
+
+## usePrefetch
+
+Prefetch a route when an element scrolls into view, through hamo's
+`useIntersectionObserver`. Skipped on 2G and Save-Data connections. Returns a
+ref callback, not a ref object.
+
+```tsx
+import { usePrefetch } from '@/hooks/use-prefetch'
+
+function Teaser() {
+  const prefetchRef = usePrefetch('/about', { rootMargin: '200px' })
+  return <div ref={prefetchRef}>…</div>
 }
 ```
 

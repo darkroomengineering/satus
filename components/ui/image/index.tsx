@@ -11,6 +11,7 @@
  */
 
 import cn from 'clsx'
+// oxlint-disable-next-line eslint/no-restricted-imports -- this is the wrapper the rule points everyone else at
 import NextImage, { type ImageProps as NextImageProps } from 'next/image'
 import type { CSSProperties, Ref } from 'react'
 

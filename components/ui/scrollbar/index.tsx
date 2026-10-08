@@ -33,8 +33,8 @@ export function Scrollbar({ controlsId }: ScrollbarProps = {}) {
   const [thumbMeasureRef, { height: thumbHeight = 0 }] = useRect()
 
   useLenis(
-    ({ scroll, limit }) => {
-      const progress = limit > 0 ? scroll / limit : 0
+    ({ scroll, maxScroll }) => {
+      const progress = maxScroll > 0 ? scroll / maxScroll : 0
 
       thumbRef.current.style.transform = `translate3d(0,${
         progress * (innerHeight - thumbHeight)
@@ -64,10 +64,10 @@ export function Scrollbar({ controlsId }: ScrollbarProps = {}) {
         innerHeight - thumbHeight,
         e.clientY - start,
         0,
-        lenis.limit
+        lenis.maxScroll
       )
 
-      lenis?.scrollTo(scroll, { lerp: 0.2 })
+      void lenis.scrollTo(scroll, { lerp: 0.2 })
     }
 
     function onPointerDown(e: PointerEvent) {
@@ -97,7 +97,7 @@ export function Scrollbar({ controlsId }: ScrollbarProps = {}) {
         e.key === 'ArrowDown'
           ? ARROW_KEY_SCROLL_AMOUNT
           : -ARROW_KEY_SCROLL_AMOUNT
-      lenis.scrollTo(lenis.scroll + delta, { lerp: 0.2 })
+      void lenis.scrollTo(lenis.scroll + delta, { lerp: 0.2 })
     }
 
     const element = thumbRef.current

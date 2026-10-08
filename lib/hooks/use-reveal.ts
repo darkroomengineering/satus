@@ -105,6 +105,7 @@ export function useReveal<T extends HTMLElement = HTMLElement>({
     // already read (see HYDRATED_LATE): reveal immediately, never observe.
     if (
       HYDRATED_LATE ||
+      // oxlint-disable-next-line hamo/no-raw-observer -- hook returns the server snapshot during hydration
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
     ) {
       element.dataset.reveal = 'visible'
@@ -113,6 +114,7 @@ export function useReveal<T extends HTMLElement = HTMLElement>({
 
     element.dataset.reveal = 'hidden'
 
+    // oxlint-disable-next-line hamo/no-raw-observer -- state-based hook would add a hidden-then-visible flash
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {

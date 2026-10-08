@@ -1,5 +1,7 @@
 'use client'
 
+/* oxlint-disable hamo/no-raw-observer -- useSyncExternalStore subscribe/snapshot; no hamo equivalent */
+
 import { useSyncExternalStore } from 'react'
 
 /**

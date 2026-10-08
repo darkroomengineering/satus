@@ -115,6 +115,7 @@ export function useWebGLRect(
     }
 
     const { translate, scale } = getTransform()
+    // oxlint-disable-next-line hamo/no-raw-layout-read -- fallback for a page without Lenis
     const scroll = lenis ? Math.round(lenis.scroll) : window.scrollY
     const transform = transformRef.current
 
@@ -157,6 +158,7 @@ export function useWebGLRect(
   useEffect(() => {
     if (lenis) return
 
+    // oxlint-disable-next-line hamo/no-raw-observer -- fallback for a page without Lenis
     window.addEventListener('scroll', update, false)
 
     return () => {

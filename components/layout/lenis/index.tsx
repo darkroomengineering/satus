@@ -16,6 +16,16 @@ const LenisScrollTriggerSync = dynamic(
   }
 )
 
+function isOverlay(target: EventTarget) {
+  return (
+    target instanceof Element &&
+    (target.nodeName === 'VERCEL-LIVE-FEEDBACK' ||
+      target.id === 'theatrejs-studio-root' ||
+      // Shadow host; composedPath() reaches it.
+      target.id === 'react-scan-root')
+  )
+}
+
 interface LenisProps extends Omit<ReactLenisProps, 'ref'> {
   root: boolean
   options: LenisOptions
@@ -57,18 +67,13 @@ export function Lenis({
       root={root}
       options={{
         ...options,
-        lerp: options?.lerp ?? 0.125,
+        wheel: { lerp: 0.125, ...options?.wheel },
+        programmatic: { lerp: 0.125, ...options?.programmatic },
+        // Tempus drives raf above.
         autoRaf: false,
-        anchors: true,
-        autoToggle: true,
-        stopInertiaOnNavigate: true,
-        allowNestedScroll: true,
-        prevent: (node: Element | null) =>
-          node?.nodeName === 'VERCEL-LIVE-FEEDBACK' ||
-          node?.id === 'theatrejs-studio-root' ||
-          // react-scan renders its panel into a shadow root on this host;
-          // composedPath() pierces the shadow boundary so the id is matchable.
-          node?.id === 'react-scan-root',
+        // Let overlays scroll natively.
+        onGesture: ({ event }) =>
+          event.composedPath().some(isOverlay) ? false : undefined,
       }}
     >
       {syncScrollTrigger && root && <LenisScrollTriggerSync />}

@@ -1,0 +1,19 @@
+{
+  "anti-slop/no-runtime-typeof": 9,
+  "anti-slop/no-unknown-parameters": 2,
+  "eslint/no-empty-function": 1,
+  "eslint/no-restricted-imports": 2,
+  "hamo/no-raw-layout-read": 3,
+  "hamo/no-raw-observer": 4,
+  "jsx-a11y/no-noninteractive-element-interactions": 1,
+  "nextjs/no-html-link-for-pages": 9,
+  "react-hooks/rules-of-hooks": 3,
+  "react/exhaustive-deps": 5,
+  "react/forbid-elements": 13,
+  "react/immutability": 2,
+  "react/no-array-index-key": 2,
+  "react/no-danger": 1,
+  "react/refs": 1,
+  "react/static-components": 1,
+  "typescript/consistent-type-imports": 1
+}

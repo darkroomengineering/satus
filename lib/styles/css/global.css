@@ -39,7 +39,7 @@ html.overflow-hidden {
 }
 
 body {
-  min-height: 100vh;
+  min-height: 100svh;
   overscroll-behavior: none;
   background-color: var(--color-primary);
   color: var(--color-secondary);

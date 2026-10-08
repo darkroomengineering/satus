@@ -134,6 +134,9 @@ html.screenshot {
     transition:
       opacity var(--reveal-duration, 700ms) var(--ease-out-expo),
       transform var(--reveal-duration, 700ms) var(--ease-out-expo);
+    transition-delay: calc(
+      var(--reveal-index, 0) * var(--reveal-stagger, 60ms)
+    );
   }
 }
 

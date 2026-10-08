@@ -269,6 +269,24 @@ describe('text sizing is rem plus vw', () => {
     expect(at24).toBeGreaterThan(at16)
   })
 
+  it('scales dr-leading-* with dr-text-* so zoomed lines never overlap', () => {
+    const css = generateScale()
+    const size = getDeclarationValue(
+      getUtilityBody(css, 'dr-text-*'),
+      'font-size'
+    )
+    const leading = getDeclarationValue(
+      getUtilityBody(css, 'dr-leading-*'),
+      'line-height'
+    )
+    // 150% browser zoom on a 1440 window: 960 CSS px wide, 16px root.
+    const zoomed = { value: 16, deviceWidth: 1440, viewportWidth: 960 }
+    expect(evalFontSize(leading, zoomed)).toBeCloseTo(
+      evalFontSize(size, zoomed),
+      9
+    )
+  })
+
   it('keeps the rem term out of layout utilities', () => {
     const css = generateScale()
     for (const name of ['dr-w-*', 'dr-p-*', 'dr-gap-*', 'dr-tracking-*']) {

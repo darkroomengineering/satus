@@ -61,10 +61,12 @@ const columnUtilityMap = {
   'inset-y': 'inset-block',
 }
 
-// Font sizes use the hybrid rem + vw unit so text follows zoom and the user's
-// font size; every other property stays pure vw.
-function textUtility(name: string) {
-  const declare = (value: string) => `font-size: ${value};`
+// Font sizes and line heights use the hybrid rem + vw unit so text follows zoom
+// and the user's font size; every other property stays pure vw. A pure-vw
+// `dr-leading-*` next to a hybrid `dr-text-*` would stay put while the glyphs
+// grow, so zoomed lines would overlap.
+function textUtility(name: string, property: string) {
+  const declare = (value: string) => `${property}: ${value};`
   return [
     `@utility dr-${name}-* {\n\t${declare(textCalc('--value(integer)'))}\n}`,
     `@utility dr-${name}-px {\n\t${declare(textCalc(1))}\n}`,
@@ -74,7 +76,9 @@ function textUtility(name: string) {
 }
 
 function scaleUtility(name: string, properties: string | string[]) {
-  if (properties === 'font-size') return textUtility(name)
+  if (properties === 'font-size' || properties === 'line-height') {
+    return textUtility(name, properties)
+  }
 
   const propertiesArray = Array.isArray(properties) ? properties : [properties]
   const utility = `@utility dr-${name}-* {

@@ -40,7 +40,7 @@
 
   .label {
     font-family: var(--font-mono);
-    font-size: calc(9 / 375 * 100vw);
+    font-size: mobile-text(9px);
     font-weight: 400;
     letter-spacing: 0.15em;
     text-transform: uppercase;
@@ -51,14 +51,14 @@
     margin-bottom: calc(10 / 375 * 100vw);
 
     @media (--desktop) {
-      font-size: calc(11 / 1440 * 100vw);
+      font-size: desktop-text(11px);
       margin-bottom: calc(12 / 1440 * 100vw);
     }
   }
 
   .title {
     font-family: var(--font-mono);
-    font-size: calc(22 / 375 * 100vw);
+    font-size: mobile-text(22px);
     font-weight: 400;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -67,7 +67,7 @@
     margin-bottom: calc(10 / 375 * 100vw);
 
     @media (--desktop) {
-      font-size: calc(32 / 1440 * 100vw);
+      font-size: desktop-text(32px);
       margin-bottom: calc(12 / 1440 * 100vw);
     }
   }
@@ -78,13 +78,13 @@
 
   .description {
     font-family: var(--font-mono);
-    font-size: calc(11 / 375 * 100vw);
+    font-size: mobile-text(11px);
     line-height: 1.6;
     /* Same fix as .label above: 0.45 was 3.29:1 on --surface, 0.56 is 4.83:1. */
     opacity: 0.56;
 
     @media (--desktop) {
-      font-size: calc(12 / 1440 * 100vw);
+      font-size: desktop-text(12px);
     }
   }
 
@@ -111,7 +111,7 @@
 
   .instructionsLabel {
     font-family: var(--font-mono);
-    font-size: calc(9 / 375 * 100vw);
+    font-size: mobile-text(9px);
     font-weight: 400;
     letter-spacing: 0.15em;
     text-transform: uppercase;
@@ -119,7 +119,7 @@
     margin-bottom: calc(14 / 375 * 100vw);
 
     @media (--desktop) {
-      font-size: calc(10 / 1440 * 100vw);
+      font-size: desktop-text(10px);
       margin-bottom: calc(16 / 1440 * 100vw);
     }
   }
@@ -130,13 +130,13 @@
     padding-left: calc(18 / 375 * 100vw);
     margin: 0;
     font-family: var(--font-mono);
-    font-size: calc(11 / 375 * 100vw);
+    font-size: mobile-text(11px);
     line-height: 1.6;
     opacity: 0.7;
 
     @media (--desktop) {
       padding-left: calc(20 / 1440 * 100vw);
-      font-size: calc(12 / 1440 * 100vw);
+      font-size: desktop-text(12px);
     }
   }
 
@@ -178,14 +178,14 @@
 
   .envVar {
     font-family: var(--font-mono);
-    font-size: calc(10 / 375 * 100vw);
+    font-size: mobile-text(10px);
     /* See --accent-readable comment on .instructions above: var(--color-contrast)
        is 3.59:1 on this element's envBlock (--surface-2, #e4e4e4) — under
        WCAG AA. --accent-readable is 4.78:1 on #e4e4e4. */
     color: var(--accent-readable);
 
     @media (--desktop) {
-      font-size: calc(12 / 1440 * 100vw);
+      font-size: desktop-text(12px);
     }
   }
 
@@ -215,7 +215,7 @@
 
   .hint {
     font-family: var(--font-mono);
-    font-size: calc(10 / 375 * 100vw);
+    font-size: mobile-text(10px);
     /* Sits on .footer's --surface-2 (#e4e4e4), darker than the --surface
        (#f2f2f2) .label/.description are tuned against above — 0.45 rendered
        #7d7d7d here, 3.23:1, under WCAG AA (e2e axe pass; this also darkens
@@ -227,7 +227,7 @@
     line-height: 1.5;
 
     @media (--desktop) {
-      font-size: calc(11 / 1440 * 100vw);
+      font-size: desktop-text(11px);
     }
   }
 
@@ -237,7 +237,7 @@
     align-items: center;
     gap: calc(5 / 375 * 100vw);
     font-family: var(--font-mono);
-    font-size: calc(10 / 375 * 100vw);
+    font-size: mobile-text(10px);
     font-weight: 400;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -252,7 +252,7 @@
 
     @media (--desktop) {
       gap: calc(6 / 1440 * 100vw);
-      font-size: calc(11 / 1440 * 100vw);
+      font-size: desktop-text(11px);
     }
   }
 }

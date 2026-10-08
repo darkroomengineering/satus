@@ -184,16 +184,16 @@
 }
 
 @utility dr-leading-* {
-	line-height: calc((--value(integer) * 100) / var(--device-width) * 1vw);
+	line-height: calc((--value(integer) * 0.03125rem) + (((--value(integer) * 50) / var(--device-width)) * 1vw));
 }
 @utility dr-leading-px {
-	line-height: calc(100 / var(--device-width) * 1vw);
+	line-height: calc((1 * 0.03125rem) + (((1 * 50) / var(--device-width)) * 1vw));
 }
 @utility -dr-leading-* {
-	line-height: calc((--value(integer) * -100) / var(--device-width) * 1vw);
+	line-height: calc((--value(integer) * -1 * 0.03125rem) + (((--value(integer) * -1 * 50) / var(--device-width)) * 1vw));
 }
 @utility -dr-leading-px {
-	line-height: calc(-100 / var(--device-width) * 1vw);
+	line-height: calc((-1 * 0.03125rem) + (((-1 * 50) / var(--device-width)) * 1vw));
 }
 
 @utility dr-border-* {

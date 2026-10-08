@@ -75,7 +75,7 @@ export function Card({ featured = false, className, ...props }: CardProps) {
 }
 ```
 
-Available: `mobile-vw()`, `mobile-vh()`, `desktop-vw()`, `desktop-vh()`, `columns(n)`.
+Available: `mobile-vw()`, `mobile-vh()`, `desktop-vw()`, `desktop-vh()`, `columns(n)`, and for `font-size` only `mobile-text()` / `desktop-text()`. The text functions emit rem plus vw (`calc(Arem + Bvw)`, split by `textRemShare` in `layout.mjs`) so type follows browser zoom and the user's font size; they still equal the design size at the frame width.
 
 ## Custom `dr-*` utilities
 

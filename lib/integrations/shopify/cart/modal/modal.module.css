@@ -142,15 +142,15 @@
         flex-direction: column;
 
         @media (--mobile) {
-          font-size: mobile-vw(10px);
+          font-size: mobile-text(10px);
         }
 
         .title {
           margin-bottom: desktop-vw(8px);
-          font-size: mobile-vw(18px);
+          font-size: mobile-text(18px);
 
           @media (--desktop) {
-            font-size: desktop-vw(24px);
+            font-size: desktop-text(24px);
           }
         }
       }
@@ -180,7 +180,7 @@
       padding: mobile-vw(8px) mobile-vw(16px);
 
       @media (--mobile) {
-        font-size: mobile-vw(12px);
+        font-size: mobile-text(12px);
         align-self: center;
       }
 

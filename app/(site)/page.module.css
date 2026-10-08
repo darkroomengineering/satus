@@ -11,21 +11,21 @@
 
 .kicker {
   font-family: var(--font-mono);
-  font-size: calc(11 / 375 * 100vw);
+  font-size: mobile-text(11px);
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--color-secondary);
   margin-bottom: calc(16 / 375 * 100vw);
 
   @media (--desktop) {
-    font-size: calc(12 / 1440 * 100vw);
+    font-size: desktop-text(12px);
     margin-bottom: calc(20 / 1440 * 100vw);
   }
 }
 
 .title {
   font-family: var(--font-display);
-  font-size: calc(48 / 375 * 100vw);
+  font-size: mobile-text(48px);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: -0.04em;
@@ -33,13 +33,13 @@
   color: var(--color-secondary);
 
   @media (--desktop) {
-    font-size: calc(100 / 1440 * 100vw);
+    font-size: desktop-text(100px);
   }
 }
 
 .lede {
   font-family: var(--font-mono);
-  font-size: calc(13 / 375 * 100vw);
+  font-size: mobile-text(13px);
   line-height: 1.6;
   text-wrap: pretty;
   opacity: 0.55;
@@ -47,7 +47,7 @@
   max-width: 60ch;
 
   @media (--desktop) {
-    font-size: calc(15 / 1440 * 100vw);
+    font-size: desktop-text(15px);
     margin-top: calc(28 / 1440 * 100vw);
   }
 }
@@ -88,7 +88,7 @@
 
 .index {
   font-family: var(--font-mono);
-  font-size: calc(20 / 375 * 100vw);
+  font-size: mobile-text(20px);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.05em;
   line-height: 1.1;
@@ -96,7 +96,7 @@
   opacity: 0.5;
 
   @media (--desktop) {
-    font-size: calc(28 / 1440 * 100vw);
+    font-size: desktop-text(28px);
   }
 }
 
@@ -106,7 +106,7 @@
 
 .stepTitle {
   font-family: var(--font-display);
-  font-size: calc(15 / 375 * 100vw);
+  font-size: mobile-text(15px);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: -0.01em;
@@ -115,20 +115,20 @@
   margin-bottom: calc(10 / 375 * 100vw);
 
   @media (--desktop) {
-    font-size: calc(18 / 1440 * 100vw);
+    font-size: desktop-text(18px);
     margin-bottom: calc(12 / 1440 * 100vw);
   }
 }
 
 .text {
   font-family: var(--font-mono);
-  font-size: calc(12 / 375 * 100vw);
+  font-size: mobile-text(12px);
   line-height: 1.65;
   text-wrap: pretty;
   opacity: 0.55;
 
   @media (--desktop) {
-    font-size: calc(13.5 / 1440 * 100vw);
+    font-size: desktop-text(13.5px);
   }
 }
 
@@ -170,19 +170,19 @@
 
 .code code {
   font-family: var(--font-mono);
-  font-size: calc(12 / 375 * 100vw);
+  font-size: mobile-text(12px);
   line-height: 1.7;
   white-space: pre;
   color: var(--color-secondary);
 
   @media (--desktop) {
-    font-size: calc(13 / 1440 * 100vw);
+    font-size: desktop-text(13px);
   }
 }
 
 .outro {
   font-family: var(--font-mono);
-  font-size: calc(11 / 375 * 100vw);
+  font-size: mobile-text(11px);
   line-height: 1.6;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -192,7 +192,7 @@
   text-align: center;
 
   @media (--desktop) {
-    font-size: calc(12 / 1440 * 100vw);
+    font-size: desktop-text(12px);
     margin-top: calc(48 / 1440 * 100vw);
   }
 }

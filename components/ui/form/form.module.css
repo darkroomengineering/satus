@@ -63,11 +63,11 @@
   .messages {
     display: flex;
     flex-direction: column;
-    font-size: mobile-vw(8px);
+    font-size: mobile-text(8px);
     padding-right: mobile-vw(16px);
 
     @media (--desktop) {
-      font-size: desktop-vw(14px);
+      font-size: desktop-text(14px);
       padding-right: desktop-vw(16px);
     }
 

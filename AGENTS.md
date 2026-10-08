@@ -121,7 +121,7 @@ export function MyComponent({
 - Design tokens: `lib/styles/css/root.css`
 - `dr-*` utility classes for responsive scaling (see `lib/styles/README.md`)
 - Custom viewport functions: `mobile-vw()`, `mobile-vh()`, `desktop-vw()`, `desktop-vh()` scale layout (spacing, sizes, radii) and stay pure vw
-- Type sizes (`h1`, `p`, `dr-text-*`, typography utilities) are rem plus vw: `textRemShare` (`lib/styles/layout.mjs`) of each size is rem, the rest scales with the frame, so text follows browser zoom and the user's font size. Do not use `mobile-vw()`/`desktop-vw()` for `font-size`; use a typography utility or `dr-text-*`
+- Type sizes (`h1`, `p`, `dr-text-*`, `dr-leading-*`, typography utilities, `mobile-text()`/`desktop-text()`) are rem plus vw: `textRemShare` (`lib/styles/layout.mjs`) of each size is rem, the rest scales with the frame, so text follows browser zoom and the user's font size. Do not use `mobile-vw()`/`desktop-vw()` for `font-size`; use a typography utility, `dr-text-*`, or `mobile-text()`/`desktop-text()` in CSS modules
 - Column function: `columns(n)` for grid-based sizing
 - Desktop breakpoint: **800px** (defined in `lib/styles/config.ts`)
 

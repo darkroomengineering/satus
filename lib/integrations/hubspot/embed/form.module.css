@@ -10,10 +10,10 @@
     > div:first-child {
       font-family: var(--font-mono);
       text-align: center;
-      font-size: mobile-vw(25px);
+      font-size: mobile-text(25px);
 
       @media (--desktop) {
-        font-size: desktop-vw(25px);
+        font-size: desktop-text(25px);
       }
     }
 
@@ -31,7 +31,7 @@
         border-radius: mobile-vw(8px);
 
         @media (--desktop) {
-          font-size: desktop-vw(14px);
+          font-size: desktop-text(14px);
           padding: desktop-vw(10px) desktop-vw(16px);
           border-radius: desktop-vw(8px);
         }
@@ -120,10 +120,10 @@
             align-items: center;
             position: relative;
             line-height: normal;
-            font-size: mobile-vw(14px);
+            font-size: mobile-text(14px);
 
             @media (--desktop) {
-              font-size: desktop-vw(14px);
+              font-size: desktop-text(14px);
             }
 
             span {
@@ -158,10 +158,10 @@
                 left: 12%;
                 width: 100%;
                 height: 100%;
-                font-size: mobile-vw(20px);
+                font-size: mobile-text(20px);
 
                 @media (--desktop) {
-                  font-size: desktop-vw(20px);
+                  font-size: desktop-text(20px);
                   top: -5%;
                   left: 12%;
                 }
@@ -209,10 +209,10 @@
             align-items: center;
             position: relative;
             line-height: normal;
-            font-size: mobile-vw(14px);
+            font-size: mobile-text(14px);
 
             @media (--desktop) {
-              font-size: desktop-vw(14px);
+              font-size: desktop-text(14px);
             }
 
             span {
@@ -286,10 +286,10 @@
             align-items: center;
             position: relative;
             line-height: normal;
-            font-size: mobile-vw(14px);
+            font-size: mobile-text(14px);
 
             @media (--desktop) {
-              font-size: desktop-vw(14px);
+              font-size: desktop-text(14px);
             }
 
             span {
@@ -357,7 +357,7 @@
 
       @media (--desktop) {
         text-align: center;
-        font-size: desktop-vw(16px);
+        font-size: desktop-text(16px);
       }
     }
 
@@ -379,7 +379,7 @@
         top: mobile-vw(-5px);
 
         @media (--desktop) {
-          font-size: desktop-vw(14px);
+          font-size: desktop-text(14px);
           top: desktop-vw(-5px);
         }
       }
@@ -412,10 +412,10 @@
 
           label {
             position: relative;
-            font-size: mobile-vw(10px) !important;
+            font-size: mobile-text(10px) !important;
 
             @media (--desktop) {
-              font-size: desktop-vw(10px) !important;
+              font-size: desktop-text(10px) !important;
             }
           }
         }
@@ -449,7 +449,7 @@
       width: desktop-vw(233px);
       padding: desktop-vw(26px) desktop-vw(36px);
       border-radius: desktop-vw(10px);
-      font-size: desktop-vw(16px);
+      font-size: desktop-text(16px);
     }
   }
 }

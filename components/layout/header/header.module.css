@@ -4,24 +4,24 @@
   left: var(--safe);
   z-index: 20;
   font-family: var(--next-font-mono);
-  font-size: calc((10 * 100) / var(--device-width) * 1vw);
+  font-size: mobile-text(10px);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 
   @media (--desktop) {
-    font-size: calc((11 * 100) / var(--device-width) * 1vw);
+    font-size: desktop-text(11px);
   }
 }
 
 .brand {
-  font-size: calc((12 * 100) / var(--device-width) * 1vw);
+  font-size: mobile-text(12px);
   margin-bottom: calc((6 * 100) / var(--device-width) * 1vw);
   display: flex;
   align-items: baseline;
   gap: 0.15em;
 
   @media (--desktop) {
-    font-size: calc((13 * 100) / var(--device-width) * 1vw);
+    font-size: desktop-text(13px);
   }
 }
 

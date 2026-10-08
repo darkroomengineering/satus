@@ -165,7 +165,8 @@ are **generated** by `bun setup:styles`. Hand-edits are overwritten on the next 
   directly. There is no JS twin — this file is the only source of truth for
   easing values.
 - `css/global.css` — the `[data-reveal]` reveal-animation contract (used by
-  `useReveal`) and the global `prefers-reduced-motion` neutralizer.
+  `useReveal`) and the reduced-motion policy: movement transitions live in
+  `@media (--motion-ok)`, fades stay.
 
 ## Troubleshooting
 

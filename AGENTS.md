@@ -119,7 +119,7 @@ export function MyComponent({
 - **Orchestration / scrubbing / pinning** → GSAP (timelines, ScrollTrigger via the Lenis bridge in `components/layout/lenis/`). GSAP's ticker is synced to Tempus (`components/effects/gsap.tsx`), so there's a single RAF loop. Don't reach for GSAP for simple reveals — that's main-thread work CSS does better off-thread. Write component animations with `useGSAP` from `@gsap/react`, passing `{ scope: ref }` — it scopes selector strings to that ref and reverts everything created inside it on unmount. Use its `contextSafe` wrapper for animations kicked off from event handlers, which otherwise run outside the scope. A bare `useEffect` + `gsap.to()` leaks tweens and ScrollTriggers across navigations.
 - **Micro-interactions** (hover, toggle, ≤200ms) → CSS transitions.
 - **Smooth scroll** → Lenis; **RAF scheduling** → Tempus.
-- Honor reduced-motion: the global neutralizer in `global.css` zeroes CSS animation; JS/WebGL gates via `usePreferredReducedMotion`.
+- Honor reduced-motion: movement is off, fades stay. Declare transform, height, and clip-path transitions inside `@media (--motion-ok)` (`prefers-reduced-motion: no-preference`); opacity and color transitions stay unconditional. Press feedback on buttons (`:active` scale) goes in `--motion-ok` too. JS/WebGL gates via `usePreferredReducedMotion`.
 - **Deferrable heavy boot** (WebGL contexts, shader compiles, third-party runtimes) → `useAfterLoad` / `<AfterLoad>` (`lib/hooks/use-after-load.ts`). Work done during hydration is billed as blocking time for pixels the DOM is already painting. The root `<Canvas>` already waits for `window.load`; `force` opts out.
 
 ### Design tokens and custom utilities
@@ -191,9 +191,10 @@ Worked patterns (compound components, context, server/client split, integration 
 **`<ViewTransition>`** — Stable in 19.3. `Wrapper` crossfades page main content;
 the Sanity example scopes a Suspense reveal inside the page. Next.js 16.3 navigation starts
 transitions without a config flag. Use `startTransition` for local non-urgent
-state changes. Shared names must be unique among visible participants. Keep
-reduced-motion rules for `::view-transition-*` in `global.css`; React does not
-disable them automatically. Scroll entrances stay on `useReveal`, orchestration
+state changes. Shared names must be unique among visible participants. The page
+crossfade in `global.css` is opacity-only, so it keeps running under reduced
+motion; any `::view-transition-*` rule that moves or resizes goes inside
+`@media (--motion-ok)`, since React does not disable it. Scroll entrances stay on `useReveal`, orchestration
 on GSAP. See `components/layout/README.md` for the contract and opt-out.
 
 **Fragment refs** — Use `<Fragment ref={ref}>` for focus or observation across

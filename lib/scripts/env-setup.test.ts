@@ -15,14 +15,16 @@ import { dirname, join } from 'node:path'
  * Written from this failure list before the script:
  * 1. the private key appears in the script's output (an agent running it would see it)
  * 2. the key is passed as a command argument instead of on stdin
- * 3. a destination fails or is skipped and the script still exits 0
- * 4. .env is missing or not encrypted and the script carries on
+ * 3. Vercel is missing, unlinked or rejects the key and the script still exits 0
+ * 4. .env is missing, or has any plain value, and the script carries on
  * 5. the key is not on this machine and something (e.g. "null") gets pushed
  * 6. .env.production exists but only DOTENV_PRIVATE_KEY is pushed
- * 7. Vercel gets production but not preview, or GitHub misses Dependabot
+ * 7. Vercel gets production but not preview
  * 8. an existing Vercel variable is not overwritten (rotating the key fails)
+ * 9. the run doesn't say which Vercel project it writes to
+ * 10. --copy misses a key, prints one, or pushes to Vercel
  *
- * `gh` and `vercel` are fakes that log their arguments and stdin.
+ * `vercel` and the clipboard commands are fakes that log what they receive.
  */
 
 const script = join(import.meta.dir, 'env-setup.ts')
@@ -44,14 +46,19 @@ interface ProjectOptions {
   files?: Record<string, string>
   encrypt?: boolean
   linkVercel?: boolean
-  ghExitCode?: number
+  vercelExitCode?: number
+}
+
+function fake(path: string, body: string) {
+  writeFileSync(path, `#!/bin/sh\n${body}\n`)
+  chmodSync(path, 0o755)
 }
 
 function makeProject({
   files = { '.env': 'SECRET="s3cret"\n' },
   encrypt = true,
   linkVercel = true,
-  ghExitCode = 0,
+  vercelExitCode = 0,
 }: ProjectOptions = {}) {
   const root = mkdtempSync(join(tmpdir(), 'env-setup-'))
   dirs.push(root)
@@ -66,25 +73,26 @@ function makeProject({
   }
   if (linkVercel) {
     mkdirSync(join(root, '.vercel'))
-    writeFileSync(join(root, '.vercel', 'project.json'), '{}')
+    writeFileSync(
+      join(root, '.vercel', 'project.json'),
+      '{"projectId":"prj_1","projectName":"my-site"}'
+    )
   }
 
   const bin = join(root, 'fake-bin')
   mkdirSync(bin)
   const log = join(root, 'calls.log')
-  for (const [name, exitCode] of [
-    ['gh', ghExitCode],
-    ['vercel', 0],
-  ] as const) {
-    const path = join(bin, name)
-    writeFileSync(
-      path,
-      // A failing fake echoes the key back, the way a CLI error message might.
-      `#!/bin/sh\nin="$(cat)"\nprintf '%s args=%s stdin=%s\\n' "${name}" "$*" "$in" >> "${log}"\n[ ${exitCode} -ne 0 ] && echo "rejected $in" >&2\nexit ${exitCode}\n`
-    )
-    chmodSync(path, 0o755)
+  const clipboard = join(root, 'clipboard.txt')
+  // A failing fake echoes the key back, the way a CLI error message might.
+  fake(
+    join(bin, 'vercel'),
+    `in="$(cat)"\nprintf 'args=%s stdin=%s\\n' "$*" "$in" >> "${log}"\n` +
+      `[ ${vercelExitCode} -ne 0 ] && echo "rejected $in" >&2\nexit ${vercelExitCode}`
+  )
+  for (const name of ['pbcopy', 'xclip', 'xsel', 'clip']) {
+    fake(join(bin, name), `cat > "${clipboard}"`)
   }
-  return { root, bin, log }
+  return { root, bin, log, clipboard }
 }
 
 function run(project: ReturnType<typeof makeProject>, args: string[] = []) {
@@ -122,7 +130,7 @@ function keyOf(root: string, name: string) {
 }
 
 describe('env:setup', () => {
-  it('pipes the key to every destination on stdin and never prints it', () => {
+  it('pipes the key to Vercel production and preview on stdin, never printing it', () => {
     const project = makeProject()
     const key = keyOf(project.root, 'DOTENV_PRIVATE_KEY')
     const { exitCode, output, calls } = run(project)
@@ -130,16 +138,23 @@ describe('env:setup', () => {
     expect(key).toMatch(/^[0-9a-f]{64}$/)
     expect(exitCode).toBe(0)
     expect(output).not.toContain(key)
-    expect(calls).toHaveLength(4)
+    expect(output).toContain('my-site')
+    expect(calls).toHaveLength(2)
+    expect(calls[0]).toContain('args=env add DOTENV_PRIVATE_KEY production')
+    expect(calls[1]).toContain('args=env add DOTENV_PRIVATE_KEY preview')
     for (const call of calls) {
       expect(call.split(' stdin=')[0]).not.toContain(key)
       expect(call).toEndWith(`stdin=${key}`)
+      expect(call).toContain('--force')
     }
-    expect(calls[0]).toContain('args=secret set DOTENV_PRIVATE_KEY')
-    expect(calls[1]).toContain('--app dependabot')
-    expect(calls[2]).toContain('env add DOTENV_PRIVATE_KEY production')
-    expect(calls[3]).toContain('env add DOTENV_PRIVATE_KEY preview')
-    for (const call of calls.slice(2)) expect(call).toContain('--force')
+  })
+
+  it('names the Vercel project in a dry run and pushes nothing', () => {
+    const { exitCode, output, calls } = run(makeProject(), ['--dry-run'])
+
+    expect(exitCode).toBe(0)
+    expect(output).toContain('my-site')
+    expect(calls).toEqual([])
   })
 
   it('also pushes the .env.production key when that file exists', () => {
@@ -149,18 +164,26 @@ describe('env:setup', () => {
     const { exitCode, calls } = run(project)
 
     expect(exitCode).toBe(0)
-    expect(calls).toHaveLength(8)
+    expect(calls).toHaveLength(4)
     expect(
       calls.filter((call) => call.includes('DOTENV_PRIVATE_KEY_PRODUCTION'))
-    ).toHaveLength(4)
+    ).toHaveLength(2)
   })
 
-  it('fails, and pushes nothing, without an encrypted .env', () => {
+  it('fails, and pushes nothing, without a fully encrypted .env', () => {
     expect(run(makeProject({ files: {} })).exitCode).toBe(1)
 
     const plain = run(makeProject({ encrypt: false }))
     expect(plain.exitCode).toBe(1)
     expect(plain.calls).toEqual([])
+
+    const partial = makeProject()
+    const envPath = join(partial.root, '.env')
+    writeFileSync(envPath, `${readFileSync(envPath, 'utf8')}LATER="plain"\n`)
+    const partialRun = run(partial)
+    expect(partialRun.exitCode).toBe(1)
+    expect(partialRun.output).toContain('LATER')
+    expect(partialRun.calls).toEqual([])
   })
 
   it('fails, and pushes nothing, when the private key is not on this machine', () => {
@@ -172,19 +195,33 @@ describe('env:setup', () => {
     expect(calls).toEqual([])
   })
 
-  it('exits 1 when a destination is skipped or fails, with the key redacted', () => {
+  it('exits 1 when Vercel is unlinked or rejects the key, with the key redacted', () => {
     const unlinked = run(makeProject({ linkVercel: false }))
     expect(unlinked.exitCode).toBe(1)
     expect(unlinked.output).toContain('vercel link')
 
-    const project = makeProject({ ghExitCode: 1 })
+    const project = makeProject({ vercelExitCode: 1 })
     const key = keyOf(project.root, 'DOTENV_PRIVATE_KEY')
     const failing = run(project)
     expect(failing.exitCode).toBe(1)
     expect(failing.output).not.toContain(key)
+  })
 
-    expect(
-      run(makeProject({ linkVercel: false }), ['--skip-vercel']).exitCode
-    ).toBe(0)
+  it('--copy puts every key line on the clipboard, prints none, pushes nothing', () => {
+    const project = makeProject({
+      files: { '.env': 'A="1"\n', '.env.production': 'A="2"\n' },
+      linkVercel: false,
+    })
+    const key = keyOf(project.root, 'DOTENV_PRIVATE_KEY')
+    const productionKey = keyOf(project.root, 'DOTENV_PRIVATE_KEY_PRODUCTION')
+    const { exitCode, output, calls } = run(project, ['--copy'])
+
+    expect(exitCode).toBe(0)
+    expect(output).not.toContain(key)
+    expect(output).not.toContain(productionKey)
+    expect(calls).toEqual([])
+    expect(readFileSync(project.clipboard, 'utf8')).toBe(
+      `DOTENV_PRIVATE_KEY="${key}"\nDOTENV_PRIVATE_KEY_PRODUCTION="${productionKey}"\n`
+    )
   })
 })

@@ -22,6 +22,13 @@ const envSchema = z.object({
   // Core
   NODE_ENV: z.enum(['development', 'production', 'test']).optional(),
   NEXT_PUBLIC_BASE_URL: z.url().optional(),
+  // Set by Vercel on every deployment, hosts without protocol. The base URL
+  // falls back to them: the production domain on production, the branch URL
+  // (or the deployment URL, for deploys without git) everywhere else.
+  VERCEL_ENV: z.string().optional(),
+  VERCEL_PROJECT_PRODUCTION_URL: z.string().optional(),
+  VERCEL_BRANCH_URL: z.string().optional(),
+  VERCEL_URL: z.string().optional(),
 
   // Sanity (supports both Satus and Vercel Marketplace conventions)
   NEXT_PUBLIC_SANITY_PROJECT_ID: z.string().optional(),
@@ -91,6 +98,28 @@ type Env = z.infer<typeof envSchema>
  */
 assertServerEnvironment('@/lib/env')
 
+/**
+ * dotenvx leaves a value it cannot decrypt (no private key on this machine)
+ * as its `encrypted:` ciphertext rather than unsetting it, and only logs.
+ * Every committed value is encrypted, so that means the whole config is
+ * missing: an integration would call its API with ciphertext and a
+ * NEXT_PUBLIC_* value would be inlined into the browser bundle as ciphertext.
+ * Cost: nothing runs without the key, CI included (it reads the key from
+ * repository secrets).
+ */
+const undecrypted = Object.entries(process.env)
+  .filter(([, value]) => value?.startsWith('encrypted:'))
+  .map(([key]) => key)
+
+if (undecrypted.length > 0) {
+  throw new Error(
+    `[env] Could not decrypt ${undecrypted.join(', ')}: no dotenvx private key ` +
+      'for this environment (DOTENV_PRIVATE_KEY for .env, plus ' +
+      'DOTENV_PRIVATE_KEY_<ENVIRONMENT> for an override file). Locally, add it to ' +
+      '.env.keys; on Vercel and CI, set it as a secret. See README § Environment variables.'
+  )
+}
+
 const parsedEnv = envSchema.safeParse(process.env)
 
 if (!parsedEnv.success) {
@@ -105,20 +134,32 @@ export const env: Env = parsedEnv.data
 /**
  * Canonical base URL for the application.
  *
- * Falls back to `https://localhost:3000` for local development (the dev server
- * supports --https mode). In production, NEXT_PUBLIC_BASE_URL must be set —
- * omitting it causes all canonical URLs, sitemaps, and OG images to resolve
- * to localhost, breaking SEO entirely.
+ * NEXT_PUBLIC_BASE_URL wins when set. On Vercel it is usually left unset:
+ * production uses the production domain (VERCEL_PROJECT_PRODUCTION_URL), and a
+ * preview uses its own branch URL, so its canonical URLs, sitemap and OG images
+ * point at the preview rather than at production. Previews still stay out of
+ * search results through the `x-robots-tag: noindex` Vercel sends on them.
+ * Locally it falls back to `https://localhost:3000` (the dev server supports
+ * --https mode). A production build with none of these resolves canonical
+ * URLs, sitemaps, and OG images to localhost, breaking SEO entirely.
  */
-export const APP_BASE_URL = env.NEXT_PUBLIC_BASE_URL ?? 'https://localhost:3000'
+const vercelHost =
+  env.VERCEL_ENV === 'production'
+    ? env.VERCEL_PROJECT_PRODUCTION_URL
+    : (env.VERCEL_BRANCH_URL ?? env.VERCEL_URL)
+
+export const APP_BASE_URL =
+  env.NEXT_PUBLIC_BASE_URL ??
+  (vercelHost ? `https://${vercelHost}` : 'https://localhost:3000')
 
 if (
   process.env.NODE_ENV === 'production' &&
-  !process.env.NEXT_PUBLIC_BASE_URL
+  !env.NEXT_PUBLIC_BASE_URL &&
+  !vercelHost
 ) {
   console.warn(
-    '[env] NEXT_PUBLIC_BASE_URL is not set in production. ' +
-      'Canonical URLs, sitemaps, and OG image paths will resolve to localhost, ' +
-      'which harms SEO. Set NEXT_PUBLIC_BASE_URL to your production domain.'
+    '[env] No base URL in production: NEXT_PUBLIC_BASE_URL is unset and this ' +
+      'is not a Vercel deployment. Canonical URLs, sitemaps, and OG image ' +
+      'paths will resolve to localhost, which harms SEO.'
   )
 }

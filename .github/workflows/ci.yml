@@ -19,6 +19,11 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Decrypts the committed .env, and .env.production when it exists, for the
+    # build (README § Environment variables).
+    env:
+      DOTENV_PRIVATE_KEY: ${{ secrets.DOTENV_PRIVATE_KEY }}
+      DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.DOTENV_PRIVATE_KEY_PRODUCTION }}
 
     steps:
       - uses: actions/checkout@v7
@@ -49,6 +54,11 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Decrypts the committed .env, and .env.production when it exists, for the
+    # build (README § Environment variables).
+    env:
+      DOTENV_PRIVATE_KEY: ${{ secrets.DOTENV_PRIVATE_KEY }}
+      DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.DOTENV_PRIVATE_KEY_PRODUCTION }}
 
     steps:
       - uses: actions/checkout@v7

@@ -36,6 +36,7 @@
     "test:oxlint-plugin": "for f in tools/oxlint/anti-slop/rules/*.ruletest.ts; do node $f || exit 1; done",
     "test:setup": "bun test lib/scripts/setup-project.test.ts",
     "doctor": "bun ./lib/scripts/doctor.ts",
+    "env:setup": "bun ./lib/scripts/env-setup.ts",
     "contrast:accept": "bun ./lib/styles/scripts/contrast-accept.ts",
     "setup:styles": "bun ./lib/styles/scripts/setup-styles.ts",
     "generate": "bun ./lib/scripts/generate.ts",
@@ -44,12 +45,14 @@
     "check:assets": "bun ./lib/scripts/check-assets.ts",
     "check:disables": "bun ./lib/scripts/check-lint-disables.ts",
     "handoff": "bun ./lib/scripts/prepare-handoff.ts",
-    "sanity:extract": "cd lib/integrations/sanity && bun --env-file ../../../.env.local sanity schema extract",
-    "sanity:typegen": "cd lib/integrations/sanity && bun --env-file ../../../.env.local sanity typegen generate",
+    "sanity:extract": "cd lib/integrations/sanity && dotenvx run -f ../../../.env.local -f ../../../.env.development -f ../../../.env --ignore=MISSING_ENV_FILE --strict -- sanity schema extract",
+    "sanity:typegen": "cd lib/integrations/sanity && dotenvx run -f ../../../.env.local -f ../../../.env.development -f ../../../.env --ignore=MISSING_ENV_FILE --strict -- sanity typegen generate",
     "sanity:mcp": "bun ./lib/scripts/copy-sanity-mcp.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
+    "@dotenvx/dotenvx": "^2.34.1",
+    "@dotenvx/next-env": "^2.4.5",
     "@gsap/react": "^2.1.2",
     "@portabletext/react": "^8.0.1",
     "@react-three/drei": "^10.7.9",
@@ -112,6 +115,7 @@
     "typescript": "^7.0.2"
   },
   "overrides": {
+    "@next/env": "npm:@dotenvx/next-env@2.4.5",
     "playwright-core": "1.63.0"
   },
   "engines": {

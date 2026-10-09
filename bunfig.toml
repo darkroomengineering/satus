@@ -1,2 +1,7 @@
+# Next loads env files itself, through @dotenvx/next-env, which decrypts them.
+# Bun's own loader would set the still-encrypted values first, and Next never
+# overwrites a variable that is already set.
+env = false
+
 [test]
 preload = ["./lib/scripts/test-setup.ts"]

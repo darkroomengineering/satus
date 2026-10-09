@@ -23,6 +23,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # CI holds no dotenvx key, so it builds without the encrypted env files,
+      # with every integration off. Keeping the key out of Actions keeps it
+      # away from dependency code in Dependabot and fork PRs. Cost: CI never
+      # builds with real config; the Vercel preview build is that check.
+      # lib/env-files.test.ts reads the committed files from git, so it still
+      # runs on them.
+      - name: Drop encrypted env files
+        run: rm -f .env .env.development .env.production
+
       # test:oxlint-plugin (run via `bun run check`) invokes `node` directly on
       # each ruletest file, so the runner's node must meet the engines floor
       # (>=24.20.0, the current LTS; native type-stripping of .ts files is unflagged).
@@ -55,6 +64,15 @@ jobs:
         with:
           # Full history so the gate below can diff against the PR base branch.
           fetch-depth: 0
+
+      # CI holds no dotenvx key, so it builds without the encrypted env files,
+      # with every integration off. Keeping the key out of Actions keeps it
+      # away from dependency code in Dependabot and fork PRs. Cost: CI never
+      # builds with real config; the Vercel preview build is that check.
+      # lib/env-files.test.ts reads the committed files from git, so it still
+      # runs on them.
+      - name: Drop encrypted env files
+        run: rm -f .env .env.development .env.production
 
       # `e2e` is a REQUIRED branch-protection check, so this job must always
       # report a conclusion — it may skip its expensive body, it must never be

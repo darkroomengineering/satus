@@ -8,9 +8,24 @@
 import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
+import { config } from '@dotenvx/dotenvx'
+
 import { coreEnvSchema } from '../utils/validation'
 
 const ROOT = process.cwd()
+
+// bunfig.toml turns off Bun's .env loading, so load the files the way
+// `next dev` does: .env.local, then the optional .env.development overrides,
+// then the committed .env. The first file to set a key wins.
+config({
+  path: [
+    join(ROOT, '.env.local'),
+    join(ROOT, '.env.development'),
+    join(ROOT, '.env'),
+  ],
+  ignore: ['MISSING_ENV_FILE'],
+  quiet: true,
+})
 
 // The single source of the runtime floor is package.json's engines field —
 // deriving it here keeps the doctor's check and fix hint from drifting when
@@ -98,7 +113,15 @@ const checks: Check[] = [
     name: 'Environment file exists',
     check: () =>
       existsSync(join(ROOT, '.env.local')) || existsSync(join(ROOT, '.env')),
-    fix: 'Copy .env.example to .env.local and fill in values',
+    fix: 'Commit an encrypted .env (see README § Environment variables)',
+  },
+  {
+    name: 'Environment files decrypted',
+    check: () =>
+      !Object.values(process.env).some((value) =>
+        value?.startsWith('encrypted:')
+      ),
+    fix: 'Get DOTENV_PRIVATE_KEY from the team and save it in .env.keys (see README § Environment variables)',
   },
   {
     name: 'Environment variables valid',
@@ -112,7 +135,7 @@ const checks: Check[] = [
       }
       return result.success
     },
-    fix: 'Check .env.local for invalid values (e.g., NEXT_PUBLIC_BASE_URL must be a valid URL)',
+    fix: 'Check .env and .env.local for invalid values (e.g., NEXT_PUBLIC_BASE_URL must be a valid URL)',
   },
   {
     name: 'TypeScript config exists',

@@ -46,10 +46,10 @@ const STEPS: Step[] = [
     body: (
       <>
         <p className={s.text}>
-          Point the site at your domain: copy{' '}
-          <code className={s.inline}>.env.example</code> to{' '}
-          <code className={s.inline}>.env.local</code> and set{' '}
-          <code className={s.inline}>NEXT_PUBLIC_BASE_URL</code>.
+          Env vars live in the repo, encrypted: add one with{' '}
+          <code className={s.inline}>bun dotenvx set</code>, then{' '}
+          <code className={s.inline}>bun run env:setup</code> hands the key to
+          Vercel. On Vercel the site's domain is picked up automatically.
         </p>
         <p className={s.text}>
           The site title and SEO live in{' '}
@@ -62,7 +62,7 @@ const STEPS: Step[] = [
           <code className={s.inline}>app/opengraph-image.jpg</code>.
         </p>
         <pre className={s.code}>
-          <code>cp .env.example .env.local</code>
+          <code>bun dotenvx set KEY "value"</code>
         </pre>
       </>
     ),

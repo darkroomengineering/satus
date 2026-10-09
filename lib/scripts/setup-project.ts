@@ -2128,7 +2128,7 @@ const main = async (): Promise<void> => {
     'Next steps:\n' +
       '  1. Review the changes\n' +
       '  2. Update README.md with your project info\n' +
-      '  3. Copy .env.example to .env.local\n' +
+      '  3. Add env vars with bun dotenvx set KEY "value" (README § Environment variables)\n' +
       '  4. Run: bun dev',
     'Setup complete!'
   )

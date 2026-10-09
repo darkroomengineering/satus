@@ -23,6 +23,13 @@ pre-commit:
       # warm cache is ~4x faster.
       run: bun node_modules/typescript/bin/tsc --noEmit
       stage_fixed: false
+    # A plain value in a committed env file must never reach git, not even in a
+    # commit that is fixed before pushing. The test reads the staged version.
+    env-files:
+      glob:
+        - '.env*'
+        - '**/.env*'
+      run: bun test lib/env-files.test.ts
 
 # Build stays CI-only (too slow for a local pre-push gate). Tests (~4s) and
 # the manifest check (~1s) are cheap enough to run here, so a push can't land

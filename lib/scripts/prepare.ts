@@ -152,7 +152,8 @@ if (git.exitCode !== 0) {
 
 const [gitDir, commonDir] = git.stdout.toString().trim().split('\n')
 
-if (gitDir && commonDir && gitDir !== resolve(commonDir)) {
+// Resolve both sides: on Windows git prints `C:/…` and resolve() gives `C:\…`.
+if (gitDir && commonDir && resolve(gitDir) !== resolve(commonDir)) {
   console.log(
     'prepare: linked worktree, hooks are shared with the main checkout — skipping lefthook install'
   )

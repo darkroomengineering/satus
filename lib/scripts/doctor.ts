@@ -65,7 +65,9 @@ const detectGitLayout = (): 'main' | 'worktree' | 'no-git' => {
   ])
   if (git.exitCode !== 0) return 'no-git'
   const [gitDir, commonDir] = git.stdout.toString().trim().split('\n')
-  if (gitDir && commonDir && gitDir !== resolve(commonDir)) return 'worktree'
+  // Resolve both sides: on Windows git prints `C:/…` and resolve() gives `C:\…`.
+  if (gitDir && commonDir && resolve(gitDir) !== resolve(commonDir))
+    return 'worktree'
   return 'main'
 }
 
@@ -80,7 +82,14 @@ const checks: Check[] = [
   {
     name: `Node.js version >= ${requiredNodeVersion}`,
     check: () => {
-      const [major = 0, minor = 0] = process.versions.node
+      // Ask the installed binary: under Bun, process.versions.node is the
+      // Node version Bun emulates, not the Node on PATH.
+      const node = Bun.spawnSync(['node', '-v'])
+      if (node.exitCode !== 0) return false
+      const [major = 0, minor = 0] = node.stdout
+        .toString()
+        .trim()
+        .replace(/^v/, '')
         .split('.')
         .map((part) => Number.parseInt(part, 10))
       const [requiredMajor = 0, requiredMinor = 0] = requiredNodeVersion

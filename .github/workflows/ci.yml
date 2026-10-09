@@ -19,14 +19,18 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    # Decrypts the committed .env, and .env.production when it exists, for the
-    # build (README § Environment variables).
-    env:
-      DOTENV_PRIVATE_KEY: ${{ secrets.DOTENV_PRIVATE_KEY }}
-      DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.DOTENV_PRIVATE_KEY_PRODUCTION }}
 
     steps:
       - uses: actions/checkout@v7
+
+      # CI holds no dotenvx key, so it builds without the encrypted env files,
+      # with every integration off. Keeping the key out of Actions keeps it
+      # away from dependency code in Dependabot and fork PRs. Cost: CI never
+      # builds with real config; the Vercel preview build is that check.
+      # lib/env-files.test.ts reads the committed files from git, so it still
+      # runs on them.
+      - name: Drop encrypted env files
+        run: rm -f .env .env.development .env.production
 
       # test:oxlint-plugin (run via `bun run check`) invokes `node` directly on
       # each ruletest file, so the runner's node must meet the engines floor
@@ -54,17 +58,21 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # Decrypts the committed .env, and .env.production when it exists, for the
-    # build (README § Environment variables).
-    env:
-      DOTENV_PRIVATE_KEY: ${{ secrets.DOTENV_PRIVATE_KEY }}
-      DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.DOTENV_PRIVATE_KEY_PRODUCTION }}
 
     steps:
       - uses: actions/checkout@v7
         with:
           # Full history so the gate below can diff against the PR base branch.
           fetch-depth: 0
+
+      # CI holds no dotenvx key, so it builds without the encrypted env files,
+      # with every integration off. Keeping the key out of Actions keeps it
+      # away from dependency code in Dependabot and fork PRs. Cost: CI never
+      # builds with real config; the Vercel preview build is that check.
+      # lib/env-files.test.ts reads the committed files from git, so it still
+      # runs on them.
+      - name: Drop encrypted env files
+        run: rm -f .env .env.development .env.production
 
       # `e2e` is a REQUIRED branch-protection check, so this job must always
       # report a conclusion — it may skip its expensive body, it must never be

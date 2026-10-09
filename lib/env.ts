@@ -104,8 +104,8 @@ assertServerEnvironment('@/lib/env')
  * Every committed value is encrypted, so that means the whole config is
  * missing: an integration would call its API with ciphertext and a
  * NEXT_PUBLIC_* value would be inlined into the browser bundle as ciphertext.
- * Cost: nothing runs without the key, CI included (it reads the key from
- * repository secrets).
+ * Cost: nothing runs without the key. CI is not an exception in code: it
+ * holds no key and deletes the encrypted files before building (ci.yml).
  */
 const undecrypted = Object.entries(process.env)
   .filter(([, value]) => value?.startsWith('encrypted:'))
@@ -116,7 +116,7 @@ if (undecrypted.length > 0) {
     `[env] Could not decrypt ${undecrypted.join(', ')}: no dotenvx private key ` +
       'for this environment (DOTENV_PRIVATE_KEY for .env, plus ' +
       'DOTENV_PRIVATE_KEY_<ENVIRONMENT> for an override file). Locally, add it to ' +
-      '.env.keys; on Vercel and CI, set it as a secret. See README § Environment variables.'
+      '.env.keys; on Vercel, run `bun run env:setup`. See README § Environment variables.'
   )
 }
 
@@ -135,10 +135,17 @@ export const env: Env = parsedEnv.data
  * Canonical base URL for the application.
  *
  * NEXT_PUBLIC_BASE_URL wins when set. On Vercel it is usually left unset:
- * production uses the production domain (VERCEL_PROJECT_PRODUCTION_URL), and a
- * preview uses its own branch URL, so its canonical URLs, sitemap and OG images
- * point at the preview rather than at production. Previews still stay out of
- * search results through the `x-robots-tag: noindex` Vercel sends on them.
+ * production uses VERCEL_PROJECT_PRODUCTION_URL, and a preview its own branch
+ * URL, so a preview's canonical URLs, sitemap and OG images point at the
+ * preview. Previews stay out of search results through the
+ * `x-robots-tag: noindex` Vercel sends on them.
+ *
+ * Costs: Vercel picks the *shortest* production custom domain, so a site served
+ * on `www.example.com` with the apex redirecting to it would get the apex; set
+ * NEXT_PUBLIC_BASE_URL to the primary domain there. And with Vercel deployment
+ * protection on for previews, link unfurlers (Slack, X) get its login page
+ * instead of a preview's OG image.
+ *
  * Locally it falls back to `https://localhost:3000` (the dev server supports
  * --https mode). A production build with none of these resolves canonical
  * URLs, sitemaps, and OG images to localhost, breaking SEO entirely.

@@ -39,7 +39,7 @@ html.overflow-hidden {
 }
 
 body {
-  min-height: 100vh;
+  min-height: 100svh;
   overscroll-behavior: none;
   background-color: var(--color-primary);
   color: var(--color-secondary);
@@ -122,10 +122,17 @@ html.screenshot {
 [data-reveal] [data-reveal-item] {
   opacity: 0;
   transform: var(--reveal-transform, translateY(16px));
-  transition:
-    opacity var(--reveal-duration, 700ms) var(--ease-out-expo),
-    transform var(--reveal-duration, 700ms) var(--ease-out-expo);
+  transition: opacity var(--reveal-duration, 700ms) var(--ease-out-expo);
   transition-delay: calc(var(--reveal-index, 0) * var(--reveal-stagger, 60ms));
+
+  @media (--motion-ok) {
+    transition:
+      opacity var(--reveal-duration, 700ms) var(--ease-out-expo),
+      transform var(--reveal-duration, 700ms) var(--ease-out-expo);
+    transition-delay: calc(
+      var(--reveal-index, 0) * var(--reveal-stagger, 60ms)
+    );
+  }
 }
 
 [data-reveal='visible'] [data-reveal-item] {
@@ -179,29 +186,14 @@ html.screenshot {
 }
 
 /*
- * Respect reduced-motion: neutralize CSS animations/transitions globally.
- * GSAP and WebGL animations gate themselves via usePreferredReducedMotion();
- * the reveal primitive's hook short-circuits to the visible state.
+ * Respect reduced-motion: movement is off, fades stay. Components declare their
+ * transform, height and clip-path transitions inside `@media (--motion-ok)`, so
+ * only opacity and color transitions remain under `reduce`. The view
+ * transition crossfade and the reveal fade are opacity-only and keep running.
+ * GSAP and WebGL animations gate themselves via usePreferredReducedMotion().
  */
 @media (--reduced-motion) {
-  ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*) {
-    animation: none !important;
-  }
-
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms;
-    animation-iteration-count: 1;
-    transition-duration: 0.01ms;
+  * {
     scroll-behavior: auto;
-  }
-
-  /* Higher specificity than the [data-reveal] base rule above, so reveal
-     items never animate even though that rule sets a `transition` shorthand. */
-  [data-reveal] [data-reveal-item] {
-    transition-duration: 0.01ms;
   }
 }

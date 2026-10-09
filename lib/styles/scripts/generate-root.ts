@@ -11,6 +11,7 @@ export function generateRoot({
 @custom-media --mobile (width <= ${breakpoints.dt - 0.02}px);
 @custom-media --desktop (width >= ${breakpoints.dt}px);
 @custom-media --reduced-motion (prefers-reduced-motion: reduce);
+@custom-media --motion-ok (prefers-reduced-motion: no-preference);
 
 :root {
 	--device-width: ${screens.mobile.width};

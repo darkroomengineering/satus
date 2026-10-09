@@ -36,7 +36,7 @@ test.beforeEach(async ({ page }) => {
 })
 
 for (const reducedMotion of ['no-preference', 'reduce'] as const) {
-  test(`header navigation settles and honors ${reducedMotion} motion preference`, async ({
+  test(`header navigation settles with ${reducedMotion} motion preference`, async ({
     page,
   }) => {
     const runtimeErrors: string[] = []
@@ -63,13 +63,9 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
     const animations = await page.evaluate(() =>
       window.transitionRecords.flatMap((record) => record.animations)
     )
-    if (reducedMotion === 'reduce') {
-      expect(animations).not.toContain('page-fade-in')
-      expect(animations).not.toContain('page-fade-out')
-    } else {
-      expect(animations).toContain('page-fade-in')
-      expect(animations).toContain('page-fade-out')
-    }
+    // The crossfade is opacity-only, so it runs under both preferences.
+    expect(animations).toContain('page-fade-in')
+    expect(animations).toContain('page-fade-out')
     await page.goBack()
     await expect(
       page.getByRole('heading', { name: '404', exact: true })

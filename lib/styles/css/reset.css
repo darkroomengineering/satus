@@ -36,6 +36,23 @@
   box-sizing: border-box;
 }
 
+/* Let flex and grid children shrink below their content width instead of overflowing */
+*,
+*::before,
+*::after {
+  min-width: 0;
+}
+
+/* Balance heading line breaks */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  text-wrap: balance;
+}
+
 /* Reapply the pointer cursor for anchor tags */
 a,
 button {

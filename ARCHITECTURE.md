@@ -97,7 +97,7 @@ strategy remounts it per route. Rendered only on WebGL-capable devices. See
 
 ## Animation
 
-Use `useReveal` (CSS-driven, compositor thread) for reveal-on-scroll and entrance animations. Reserve GSAP for orchestration, scrubbing, and pinning. Always honor `prefers-reduced-motion` — `useReveal` short-circuits automatically; CSS global neutralizer is in `global.css`. See AGENTS.md § Animation.
+Use `useReveal` (CSS-driven, compositor thread) for reveal-on-scroll and entrance animations. Reserve GSAP for orchestration, scrubbing, and pinning. Always honor `prefers-reduced-motion` — `useReveal` short-circuits automatically; CSS movement (transform, height, clip-path) goes inside `@media (--motion-ok)` while fades stay. See AGENTS.md § Animation.
 
 Directory layout: see `README.md` § Project Structure.
 

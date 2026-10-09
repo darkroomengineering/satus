@@ -48,9 +48,13 @@
 
     /* Base UI animation states */
     transform-origin: var(--transform-origin);
-    transition:
-      transform 150ms ease-out,
-      opacity 150ms ease-out;
+    transition: opacity 150ms ease-out;
+
+    @media (--motion-ok) {
+      transition:
+        transform 150ms ease-out,
+        opacity 150ms ease-out;
+    }
     opacity: 1;
     transform: scale(1);
 

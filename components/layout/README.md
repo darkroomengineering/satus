@@ -79,9 +79,9 @@ content so they never capture the header or footer.
 
 Next.js 16.3 App Router starts navigation transitions automatically; no
 experimental flag or manual `document.startViewTransition()` is needed.
-Unsupported browsers navigate normally. Global CSS disables the transition
-pseudo-element animations for reduced motion and lets pointer events through
-the overlay. Named snapshot participants remain unavailable to hit-testing
+Unsupported browsers navigate normally. Global CSS keeps the transition to a
+150ms opacity crossfade, which also runs under reduced motion because nothing
+moves, and lets pointer events through the overlay. Named snapshot participants remain unavailable to hit-testing
 during the short animation, so avoid using them for rapidly repeated controls.
 
 For a shared product image, wrap the existing `Image` component in a named

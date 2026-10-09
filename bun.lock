@@ -79,7 +79,7 @@
     "lefthook",
   ],
   "overrides": {
-    "@next/env": "npm:@dotenvx/next-env@2.4.5",
+    "@next/env": "npm:@dotenvx/next-env",
     "playwright-core": "1.63.0",
   },
   "packages": {

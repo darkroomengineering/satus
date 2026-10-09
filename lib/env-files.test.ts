@@ -2,16 +2,26 @@ import { describe, expect, it } from 'bun:test'
 
 /**
  * Committed env files are encrypted with dotenvx. What has to hold:
- * - every value is encrypted, so nothing is readable without the key
- * - private keys (.env.keys) and .env*.local files never get committed
+ * - every value in what git will commit is encrypted, so nothing is readable
+ *   without the key. Read from the index, not the working tree: encrypting a
+ *   file after staging its plain version must still fail
+ * - only the root .env and its .env.development / .env.production overrides
+ *   are committed, never .env.keys, .env*.local or a nested .env
+ * - the @next/env that Next loads is the same dotenvx release as
+ *   @dotenvx/next-env, so the override can't drift from the dependency
+ *
+ * The pre-commit hook runs this file whenever an env file is staged.
  */
 
-const tracked = Bun.spawnSync(['git', 'ls-files', '.env*'])
-  .stdout.toString()
-  .split('\n')
-  .filter(Boolean)
+const COMMITTABLE = new Set(['.env', '.env.development', '.env.production'])
 
-const committedEnvFiles = tracked.filter((file) => file !== '.env.example')
+function git(...args: string[]) {
+  return Bun.spawnSync(['git', ...args]).stdout.toString()
+}
+
+const tracked = git('ls-files', '--', ':(glob)**/.env*')
+  .split('\n')
+  .filter((file) => file && !file.endsWith('.env.example'))
 
 function parse(source: string) {
   return source
@@ -25,22 +35,27 @@ function parse(source: string) {
     })
 }
 
+interface PackageManifest {
+  name: string
+  version: string
+}
+
+async function versionOf(manifest: string) {
+  const { name, version }: PackageManifest = await Bun.file(manifest).json()
+  return `${name}@${version}`
+}
+
 describe('committed env files', () => {
-  it('include no private keys or plain local files', () => {
-    expect(
-      committedEnvFiles.filter(
-        (file) =>
-          !['.env', '.env.development', '.env.production'].includes(file)
-      )
-    ).toEqual([])
+  it('are only the root .env and its overrides', () => {
+    expect(tracked.filter((file) => !COMMITTABLE.has(file))).toEqual([])
   })
 
-  for (const file of committedEnvFiles) {
-    it(`${file} encrypts every value`, async () => {
-      const entries = parse(await Bun.file(file).text())
+  for (const file of tracked.filter((entry) => COMMITTABLE.has(entry))) {
+    it(`${file} encrypts every value`, () => {
+      const staged = git('show', `:${file}`)
 
       expect(
-        entries
+        parse(staged)
           .filter(
             ({ key, value }) =>
               !key.startsWith('DOTENV_PUBLIC_KEY') &&
@@ -50,4 +65,12 @@ describe('committed env files', () => {
       ).toEqual([])
     })
   }
+})
+
+describe('dotenvx wiring', () => {
+  it('loads @next/env from the installed @dotenvx/next-env release', async () => {
+    expect(await versionOf('node_modules/@next/env/package.json')).toBe(
+      await versionOf('node_modules/@dotenvx/next-env/package.json')
+    )
+  })
 })

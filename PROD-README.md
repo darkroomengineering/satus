@@ -4,9 +4,18 @@
 
 ```bash
 bun install
-vercel link && vercel env pull
 bun dev
 ```
+
+Before `bun dev`, put the line `DOTENV_PRIVATE_KEY="..."` (handed over with the project) in a file called `.env.keys` at the repo root. `bun run doctor` checks it worked.
+
+## Environment variables
+
+Env vars live in the repo as one encrypted `.env` file. The private key above decrypts it; keep it out of git and out of chat tools.
+
+- Change or add a value: `bun dotenvx set KEY "value"`, then commit `.env`.
+- Read a value: `bun dotenvx get KEY`.
+- Vercel needs only `DOTENV_PRIVATE_KEY`, set as a Secret for Production and Preview. Don't add other variables in the Vercel dashboard: they override the file.
 
 ## Scripts
 
@@ -51,11 +60,11 @@ Vercel deploys automatically on every push to `main`. If the project isn't linke
 
 ## Troubleshooting
 
-| Issue               | Solution                       |
-| ------------------- | ------------------------------ |
-| Build fails         | `bun install` + check env vars |
-| Styles not updating | `bun setup:styles` + restart   |
-| CMS not connecting  | Check Sanity env vars + CORS   |
+| Issue               | Solution                                           |
+| ------------------- | -------------------------------------------------- |
+| Build fails         | `bun install` + `bun run doctor` (is the key set?) |
+| Styles not updating | `bun setup:styles` + restart                       |
+| CMS not connecting  | Check Sanity env vars + CORS                       |
 
 ---
 

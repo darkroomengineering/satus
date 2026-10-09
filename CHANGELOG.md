@@ -28,6 +28,9 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Added
 
+- Env vars can be committed: a project's `.env` is encrypted with dotenvx, and Next decrypts it on load through `@dotenvx/next-env` (an `overrides` entry replaces `@next/env`). Teammates get the whole set by cloning and putting one key in `.env.keys`; Vercel and CI hold only `DOTENV_PRIVATE_KEY`. This works around Vercel Secrets, which can't be read back. Satus ships no `.env` of its own; a fork's first `bun dotenvx set` creates one with the fork's own key. See README § Environment variables.
+- `bun run env:setup` sends the dotenvx key to GitHub (Actions and Dependabot secrets) and Vercel (production and preview) through stdin, and never prints it, so an agent running the script never sees the key.
+- `lib/env-files.test.ts` fails when a committed env file holds a plain value or `.env.keys` is committed. `lib/env.ts` throws on any value dotenvx could not decrypt, since dotenvx only logs and leaves the ciphertext in place; `bun run doctor` reports the same.
 - The `@sanity/client` v8 upgrade waits for `next-sanity`. Dependabot ignores `@sanity/client` majors, and a weekly workflow (`.github/workflows/sanity-client-v8.yml`) opens the v8 PR, with the hold removed, once `next-sanity`'s own dependency moves to v8. Before then a v8 app client splits the TypeGen query types from next-sanity's v7 copy. CI gains a `workflow_dispatch` trigger so that bot-opened PR gets checked. `setup:project` deletes the workflow with Sanity.
 - A WebGL example route at `app/(site)/(examples)/webgl` (`/webgl`): cubes drawn in the shared canvas take their size and place from plain boxes CSS lays out, sized two ways and placed by flow, and hold them through scroll and resize. One box also drifts with the scroll through a CSS transform published to the canvas with hamo's `TransformProvider`. Same contract as `/sanity`: noindex, reserved out of the sitemap and `/ai`, deleted by `setup:project`, swept by the route e2e.
 
@@ -35,6 +38,8 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Changed
 
+- The base URL no longer needs setting by hand. Without `NEXT_PUBLIC_BASE_URL`, production uses Vercel's `VERCEL_PROJECT_PRODUCTION_URL` and a preview its own `VERCEL_BRANCH_URL`, so a preview's canonical URLs, sitemap and share cards point at the preview. A fork that sets `NEXT_PUBLIC_BASE_URL` keeps today's behaviour.
+- `bunfig.toml` sets `env = false`: Bun no longer loads `.env` files into `bun run` scripts, because it would set encrypted values before Next could decrypt them. A fork script that read env vars through Bun's loading now loads them itself, as `lib/scripts/doctor.ts` does with dotenvx's `config()`. The Sanity CLI scripts run through `dotenvx run`.
 - `usePrefetch` runs on hamo's `useIntersectionObserver` and returns a ref callback instead of a ref object. Its options are `{ root?: HTMLElement | null, rootMargin?, threshold?: number }`; an array `threshold` or a `Document` root is no longer accepted.
 - `@/hooks` no longer re-exports hamo's `useMediaQuery`. Read `isMobile`, `isDesktop`, `isTouchOnly` or `isReducedMotion` from `useDeviceDetection`, and show markup per breakpoint with the `desktop-only` and `mobile-only` classes.
 - `RealViewport` re-measures `--scrollbar-width` on hamo's `useWindowSize` instead of its own `resize` listener.

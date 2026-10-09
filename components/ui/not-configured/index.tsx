@@ -119,10 +119,12 @@ export function NotConfigured({
           <div className={s.instructionsLabel}>Setup</div>
           <ol className={s.steps}>
             <li>
-              Copy <code className={s.code}>.env.example</code> to{' '}
-              <code className={s.code}>.env.local</code>
+              Add each variable below with{' '}
+              <code className={s.code}>bun dotenvx set KEY "value"</code>
             </li>
-            <li>Add the required environment variables:</li>
+            <li>
+              Commit the encrypted <code className={s.code}>.env</code>
+            </li>
           </ol>
 
           {finalEnvVars.length > 0 && (

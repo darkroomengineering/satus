@@ -120,7 +120,7 @@ Env and form schemas live in `lib/utils/validation.ts`; integration-local respon
 ## Deployment Checklist
 
 - [ ] Repository belongs to `darkroomengineering`, has a responsible team, and uses the intended default branch (normally `main`).
-- [ ] Vercel project belongs to the `darkroom-engineering` team, connects to that repository, and uses the intended production branch. Configure Preview and Production environment variables, including `NEXT_PUBLIC_BASE_URL`.
+- [ ] Vercel project belongs to the `darkroom-engineering` team, connects to that repository, and uses the intended production branch. Run `bun run env:setup` to give it the dotenvx key (README § Environment variables); that is the only variable it needs, and the base URL comes from Vercel.
 - [ ] Use the exact Bun `packageManager` pin and Node `.node-version`; pass `bun install --frozen-lockfile`, `bun run build`, and `bun run check`.
 - [ ] Explicitly adopt the [shared CI and merge workflow](https://github.com/darkroomengineering/.github/blob/a75b42e03f56b5ca5b2808ac4f1b06c81998fbc6/README.md#shared-ci-components), pinned to that reviewed commit. Keep browser checks and advisories in the project; organization workflows are not inherited.
 - [ ] Choose a merge policy: `actions-only` keeps application updates manual; `stable-dependencies` permits verified stable patch/minor dependency updates. Major, 0.x and prerelease updates stay manual.

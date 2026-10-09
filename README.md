@@ -38,21 +38,22 @@ Trim what you don't need: `bun run setup:project` strips unused integrations (co
 
 A project's env vars are committed as one `.env` file, encrypted with [dotenvx](https://dotenvx.com). Satus itself ships none: a fork's first `bun dotenvx set` creates its `.env` and its own key (a shared `.env` would make every fork encrypt to satus's key). Next loads the file everywhere: `bun dev`, builds, Vercel production and preview, CI. Every value is encrypted, public ones included, and `lib/env-files.test.ts` fails on a plain one. Without the key nothing runs: `lib/env.ts` throws on any value it could not decrypt. Next decrypts the file on load through `@dotenvx/next-env`, which replaces `@next/env` via `overrides` in `package.json`. `bunfig.toml` turns off Bun's own `.env` loading, which would otherwise set the still-encrypted values first.
 
-The base URL is not in the file. On Vercel, production uses `VERCEL_PROJECT_PRODUCTION_URL` and previews use their own `VERCEL_BRANCH_URL`, so share cards and absolute links on a preview point at that preview. Locally it falls back to localhost. Vercel's "Enable access to System Environment Variables" must stay on.
+The base URL is not in the file. On Vercel, production uses `VERCEL_PROJECT_PRODUCTION_URL` and previews use their own `VERCEL_BRANCH_URL`, so share cards and absolute links on a preview point at that preview. Locally it falls back to localhost. Vercel's "Enable access to System Environment Variables" must stay on. Vercel picks the _shortest_ production custom domain: if the site lives on `www.example.com` and the apex redirects there, set `NEXT_PUBLIC_BASE_URL` to the `www` address.
 
 **Overrides:** when a key needs a different value locally or in builds, put only that key in an encrypted `.env.development` (for `bun dev`) or `.env.production` (for builds) with `bun dotenvx set KEY "value" -f .env.production`. Everything else still comes from `.env`. Each file has its own key, so add one only when a value really differs.
 
 Private keys never go in git (`.env.keys` is ignored).
 
-- **Starting a project:** `bun dotenvx set KEY "value"` for each variable (`.env.example` lists them). The first call creates `.env` and its key. Commit `.env`, then run `bun run env:setup`: it sends the key to GitHub (Actions and Dependabot secrets) and Vercel (production and preview) without printing it. It needs `gh` logged in and the folder linked with `vercel link`.
+- **Starting a project:** `bun dotenvx set KEY "value"` for each variable (`.env.example` lists them). The first call creates `.env` and its key. Commit `.env`, then run `bun run env:setup`: it sends the key to the linked Vercel project (production and preview) without printing it. It needs the folder linked with `vercel link`.
 - **Joining a project:** get the line `DOTENV_PRIVATE_KEY="..."` from whoever set it up and put it in `.env.keys` at the repo root.
 - **Adding or changing a variable:** `bun dotenvx set KEY "value"`, then commit `.env`. This needs only the public key in the file's header, not the private key. A new variable also goes in `lib/env.ts` and `.env.example`.
 - **Reading a value:** `bun dotenvx get KEY`. **Removing one:** `bun dotenvx del KEY`.
 - **Personal overrides:** `.env.local` is still loaded first and stays out of git.
 - **Vercel:** `DOTENV_PRIVATE_KEY` is the only variable it needs. Values set in the Vercel dashboard override the file and can't be read back, so keep them out.
+- **CI:** holds no key. `ci.yml` deletes the encrypted files before building, so CI builds with every integration off, like a fresh fork; the Vercel preview build is the check with real config. This keeps the key away from dependency code in Dependabot and fork PRs.
 - **Client handoff:** the repo plus the private key. There is no vendor account to transfer.
 
-To share the key: `bun dotenvx keypair DOTENV_PRIVATE_KEY` prints it.
+To share the key: `bun run env:setup --copy` puts the lines for a teammate's `.env.keys` on your clipboard without showing them.
 
 ## Project Structure
 

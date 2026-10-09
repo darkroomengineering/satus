@@ -49,8 +49,7 @@ const STEPS: Step[] = [
           Env vars live in the repo, encrypted: add one with{' '}
           <code className={s.inline}>bun dotenvx set</code>, then{' '}
           <code className={s.inline}>bun run env:setup</code> hands the key to
-          GitHub and Vercel. On Vercel the site's domain is picked up
-          automatically.
+          Vercel. On Vercel the site's domain is picked up automatically.
         </p>
         <p className={s.text}>
           The site title and SEO live in{' '}

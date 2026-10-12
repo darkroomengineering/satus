@@ -64,14 +64,14 @@ Clears draft mode cookies and redirects to homepage.
 
 A single endpoint receives both Sanity and Shopify webhooks and dispatches to the matching
 provider's revalidation logic. Each provider owns its handler in its own integration folder
-(`lib/integrations/<provider>/revalidate.ts`); the route only rate-limits, matches the request
-to a provider, and answers 404 when nothing matches.
+(`lib/integrations/<provider>/revalidate.ts`); the route only matches the request to a provider
+and answers 404 when nothing matches.
 
 ```
 POST /api/revalidate
 ```
 
-The route rate-limits by IP, then dispatches on the request's origin:
+The route dispatches on the request's origin:
 
 ```mermaid
 sequenceDiagram
@@ -79,7 +79,6 @@ sequenceDiagram
     participant R as POST /api/revalidate
     participant T as next/cache
     W->>R: request
-    R->>R: rateLimit(ip, standard)
     alt has x-shopify-topic header or ?secret=
         R->>R: timingSafeEqual(secret, SHOPIFY_REVALIDATION_SECRET)
         R-->>W: 401 if missing or wrong
@@ -129,7 +128,12 @@ returns 401, otherwise 200 so Shopify does not retry.
 
 - Webhooks require a secret token for authentication (`SANITY_REVALIDATE_SECRET`,
   `SHOPIFY_REVALIDATION_SECRET`)
-- Rate limiting is applied to prevent abuse (429 on excess requests)
+- Not rate limited, in the route or in `proxy.ts`, so a bulk publish is never turned away and
+  the site never stays stale. A request with neither provider's signal gets a 404 without its
+  body being read, and a Shopify secret is compared in constant time before any body read. A
+  request with a Sanity signature header has its whole body read (up to the platform's request
+  body cap) and HMACed before a wrong signature is rejected, with no wait. The cost: anyone can
+  make the route read and hash a body that size as often as they like
 - Invalid Sanity signature returns 401; malformed body returns 400; unset secret returns 503
 - Invalid or missing Shopify secret returns 401 (constant-time compare)
 - Every JSON response is `{ data, error }`: `error` is null on success, a

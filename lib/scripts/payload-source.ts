@@ -22,10 +22,11 @@ export interface PayloadSource {
   cleanup(): Promise<void>
 }
 
-/** Shape of the payload package.json fields the CLI reads versions from. */
+/** Shape of the payload package.json fields the CLI reads versions and scripts from. */
 export interface PayloadPackageJson {
   dependencies?: Record<string, string>
   devDependencies?: Record<string, string>
+  scripts?: Record<string, string>
 }
 
 /** True when `relPath` exists in the payload source (file or directory). */

@@ -185,6 +185,49 @@ export const addDependencies = async (
 }
 
 /**
+ * Copy the bundle's package.json scripts from the payload's package.json.
+ * Throws when the payload lacks a declared script: a kept integration that
+ * silently lost a script would look installed while its workflow is broken,
+ * and the throw is collected by the caller so setup:project does not
+ * self-prune. A script already present locally keeps its local command.
+ */
+export const addScripts = async (
+  bundle: IntegrationBundle,
+  payloadPkg: PayloadPackageJson,
+  options: { dryRun: boolean }
+): Promise<string[]> => {
+  const names = bundle.scripts ?? []
+  if (names.length === 0) return []
+
+  const missing = names.filter((name) => !payloadPkg.scripts?.[name])
+  if (missing.length > 0) {
+    throw new Error(
+      `Payload package.json has no ${missing.join(', ')} script for ${bundle.name}`
+    )
+  }
+
+  const pkgPath = resolvePath('package.json')
+  // Only `scripts` is typed; every other field round-trips untouched.
+  const pkg: { scripts?: Record<string, string> } =
+    await Bun.file(pkgPath).json()
+  const scripts = pkg.scripts ?? {}
+  pkg.scripts = scripts
+
+  const added: string[] = []
+  for (const name of names) {
+    const command = payloadPkg.scripts?.[name]
+    if (command === undefined || name in scripts) continue
+    scripts[name] = command
+    added.push(name)
+  }
+
+  if (added.length > 0 && !options.dryRun) {
+    await Bun.write(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
+  }
+  return added
+}
+
+/**
  * Restore the bundle's barrel export lines: read each pattern's line from the
  * SOURCE repo's barrel file and insert it into the local barrel when absent
  * (created when missing). Warns when the payload has no matching barrel/line.
@@ -263,7 +306,7 @@ export const appendEnvStubs = async (
 
 /**
  * Run the shared per-bundle install sequence: copy files, restore overwrite
- * files, add dependencies, restore barrel exports, append env stubs, apply
+ * files, add dependencies and scripts, restore barrel exports, append env stubs, apply
  * additive code transforms.
  *
  * Returns a `details` string array (one entry per action taken) that callers
@@ -297,6 +340,11 @@ export const installBundle = async (
   const deps = await addDependencies(bundle, payloadPkg, options)
   if (deps.added.length > 0) {
     details.push(`${deps.added.length} dependencies pinned`)
+  }
+
+  const scriptsAdded = await addScripts(bundle, payloadPkg, options)
+  if (scriptsAdded.length > 0) {
+    details.push(`${scriptsAdded.length} package.json scripts restored`)
   }
 
   const barrelChanges = await restoreBarrelExports(source, bundle, options)

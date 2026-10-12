@@ -16,6 +16,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 
 import { applyOpsToText, RequiredOpMatchError } from './ast-transforms'
+import { addScripts } from './bundle-installer'
 import {
   getIntegrationEntries,
   getIntegrationNames,
@@ -129,6 +130,33 @@ describe('Integration Bundle Configuration', () => {
       expect(Array.isArray(bundle.envVars)).toBe(true)
       expect(Array.isArray(bundle.barrelExports)).toBe(true)
       expect(Array.isArray(bundle.codeTransforms)).toBe(true)
+    }
+  })
+
+  // Failure modes this guards: a stripped bundle leaves a package.json script
+  // that runs a deleted path, and a bundle declares a script name that
+  // package.json does not have (a typo, or a rename on one side only).
+  it('every package.json script that runs a bundle path is owned by that bundle', async () => {
+    const pkg = (await Bun.file('package.json').json()) as {
+      scripts: Record<string, string>
+    }
+    for (const [id, bundle] of getIntegrationEntries()) {
+      for (const name of bundle.scripts ?? []) {
+        expect(
+          pkg.scripts[name],
+          `${id} declares missing script ${name}`
+        ).toBeDefined()
+      }
+      for (const [name, command] of Object.entries(pkg.scripts)) {
+        const owned = [...bundle.folders, ...bundle.files].some((path) =>
+          command.includes(path)
+        )
+        if (!owned) continue
+        expect(
+          bundle.scripts ?? [],
+          `script ${name} runs a ${id} path but ${id} does not list it in scripts`
+        ).toContain(name)
+      }
     }
   })
 
@@ -2082,10 +2110,76 @@ describe("P-C3 regression: kept bundle deps survive selfPrune's package.json wri
       expect(
         await pathExists(join(tmpRoot, 'lib/scripts/setup-project.ts'))
       ).toBe(false)
+
+      // The strip pass removes the sanity:* scripts; the re-add must put
+      // them back, with the file sanity:mcp runs.
+      const sourcePkg = (await Bun.file('package.json').json()) as {
+        scripts: Record<string, string>
+      }
+      for (const name of INTEGRATION_BUNDLES.sanity.scripts ?? []) {
+        expect(pkg.scripts?.[name], `missing script "${name}"`).toBe(
+          sourcePkg.scripts[name]
+        )
+      }
+      expect(
+        await pathExists(join(tmpRoot, 'lib/scripts/copy-sanity-mcp.ts'))
+      ).toBe(true)
     } finally {
       await rm(tmpRoot, { recursive: true, force: true })
     }
   }, 60000)
+
+  it('--keep shopify drops the sanity:* scripts with the Sanity files', async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-strip-scripts-'))
+    try {
+      await copyRepo(tmpRoot)
+
+      const proc = Bun.spawnSync(
+        [
+          'bun',
+          'run',
+          'lib/scripts/setup-project.ts',
+          '--keep',
+          'shopify',
+          '--yes',
+          '--skip-install',
+        ],
+        { cwd: tmpRoot, stdout: 'pipe', stderr: 'pipe' }
+      )
+      if (proc.exitCode !== 0) {
+        console.error(proc.stdout.toString())
+        console.error(proc.stderr.toString())
+      }
+      expect(proc.exitCode).toBe(0)
+
+      const pkg = (await Bun.file(join(tmpRoot, 'package.json')).json()) as {
+        scripts?: Record<string, string>
+      }
+      const leftovers = Object.keys(pkg.scripts ?? {}).filter((name) =>
+        name.startsWith('sanity:')
+      )
+      expect(leftovers).toEqual([])
+      expect(
+        await pathExists(join(tmpRoot, 'lib/scripts/copy-sanity-mcp.ts'))
+      ).toBe(false)
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true })
+    }
+  }, 60000)
+})
+
+describe('addScripts', () => {
+  // A kept bundle whose payload lacks a declared script must fail loudly
+  // (collected by setupAddIntegrations, which blocks self-prune) instead of
+  // reporting the bundle as re-added without it.
+  it('throws when the payload package.json lacks a declared script', async () => {
+    const promise = addScripts(
+      INTEGRATION_BUNDLES.sanity,
+      { scripts: { 'sanity:extract': 'x' } },
+      { dryRun: true }
+    )
+    await expect(promise).rejects.toThrow('sanity:typegen, sanity:mcp')
+  })
 })
 
 // ---------------------------------------------------------------------------

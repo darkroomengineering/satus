@@ -65,6 +65,12 @@ export interface IntegrationBundle {
   files: string[]
   /** Environment variables this integration uses */
   envVars: string[]
+  /**
+   * package.json script names this integration owns. Removed when the
+   * integration is stripped (they would point at deleted files), and copied
+   * back from the payload's package.json when it is re-added.
+   */
+  scripts?: string[]
   /** Barrel exports to update when this integration is removed */
   barrelExports: BarrelExport[]
   /** Code transformations to apply when this integration is removed */
@@ -143,6 +149,8 @@ export const INTEGRATION_BUNDLES = defineBundles({
       // lib/integrations/sanity/env.ts as text; that file goes with the
       // folder above, so the test fails on a scaffold that dropped Sanity.
       'lib/utils/sanity-env-alias.test.ts',
+      // Run by the `sanity:mcp` script below; prints the Sanity MCP deeplink.
+      'lib/scripts/copy-sanity-mcp.ts',
       // Watches for next-sanity moving to @sanity/client v8. Without Sanity
       // it only no-ops weekly, but it has nothing to watch.
       '.github/workflows/sanity-client-v8.yml',
@@ -158,6 +166,10 @@ export const INTEGRATION_BUNDLES = defineBundles({
       'SANITY_STUDIO_PROJECT_ID',
       'SANITY_REVALIDATE_SECRET',
     ],
+    // sanity:extract and sanity:typegen cd into lib/integrations/sanity;
+    // sanity:mcp runs lib/scripts/copy-sanity-mcp.ts. All three break once
+    // the bundle is stripped.
+    scripts: ['sanity:extract', 'sanity:typegen', 'sanity:mcp'],
     // components/ui has no barrel file — components/ui/sanity-image is
     // imported directly (see lib/integrations/sanity/components/rich-text.tsx),
     // so there is no export line to restore on `satus add sanity`.

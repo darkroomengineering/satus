@@ -9,18 +9,15 @@ import { revalidate as shopifyRevalidate } from '@/integrations/shopify/revalida
 // provider by removing its import, guard, and dispatch — never by rewriting the
 // handler body. The fallback below belongs to no provider and always survives.
 //
-// Not rate limited, here or in `proxy.ts`. A request carrying neither
-// provider's signal gets the 404 below without its body being read. A Shopify
-// request is a query-param secret compared in constant time before its body
-// is read. A Sanity request with a signature header has its whole body read
-// (up to the platform's request body cap) and HMACed by `parseBody` before a
-// wrong signature is rejected; a wrong one gets no wait and no revalidation.
-// A per-IP limit would mostly turn away the providers themselves during a
-// bulk publish, leaving the site stale. Cost: anyone can make this route read
-// and hash a body that size as often as they like.
+// Not rate limited, here or in `proxy.ts`: a per-IP limit would mostly turn
+// away the providers themselves during a bulk publish, leaving the site stale.
+// A request carrying no provider's signal gets the 404 below without its body
+// being read. What a provider's request can cost before it is rejected is
+// noted at its guard.
 export async function POST(request: NextRequest) {
   // Shopify webhooks identify themselves with an `x-shopify-topic` header and
-  // always carry a `secret` query param.
+  // always carry a `secret` query param. The handler compares the secret in
+  // constant time before it reads the body.
   const isShopifyWebhook =
     request.headers.has('x-shopify-topic') ||
     request.nextUrl.searchParams.has('secret')
@@ -31,7 +28,10 @@ export async function POST(request: NextRequest) {
 
   // Sanity signs its webhook body and sends the signature in this header
   // (`sanity-webhook-signature`, the name `next-sanity/webhook`'s parseBody
-  // reads); the handler validates it.
+  // reads); the handler validates it. It reads the whole body (up to the
+  // platform's request body cap) and HMACs it before a wrong signature is
+  // rejected, with no wait and no revalidation. Cost: anyone can make this
+  // route read and hash a body that size as often as they like.
   const isSanityWebhook = request.headers.has('sanity-webhook-signature')
 
   if (isSanityWebhook) {

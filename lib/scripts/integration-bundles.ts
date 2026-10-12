@@ -527,7 +527,10 @@ export const INTEGRATION_BUNDLES = defineBundles({
             required: true,
             text: `  // Sanity signs its webhook body and sends the signature in this header
   // (\`sanity-webhook-signature\`, the name \`next-sanity/webhook\`'s parseBody
-  // reads); the handler validates it.
+  // reads); the handler validates it. It reads the whole body (up to the
+  // platform's request body cap) and HMACs it before a wrong signature is
+  // rejected, with no wait and no revalidation. Cost: anyone can make this
+  // route read and hash a body that size as often as they like.
   const isSanityWebhook = request.headers.has('sanity-webhook-signature')
 
   if (isSanityWebhook) {
@@ -634,7 +637,8 @@ export const INTEGRATION_BUNDLES = defineBundles({
             ],
             required: true,
             text: `  // Shopify webhooks identify themselves with an \`x-shopify-topic\` header and
-  // always carry a \`secret\` query param.
+  // always carry a \`secret\` query param. The handler compares the secret in
+  // constant time before it reads the body.
   const isShopifyWebhook =
     request.headers.has('x-shopify-topic') ||
     request.nextUrl.searchParams.has('secret')

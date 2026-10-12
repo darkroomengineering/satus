@@ -1236,6 +1236,9 @@ describe('Lean-variant validity: app/api/revalidate/route.ts (H1)', () => {
           if (kept.includes(id)) continue
           expect(variant).not.toContain(`@/integrations/${id}/revalidate`)
           expect(variant).not.toContain(`${id}Revalidate`)
+          // Comments too: a blank or single-provider route must not describe
+          // a provider it no longer has.
+          expect(variant.toLowerCase()).not.toContain(id)
         }
       })
     })

@@ -163,7 +163,7 @@ describe('password gate', () => {
     `Basic ${Buffer.from(credentials).toString('base64')}`
 
   it('accepts the password under any username', () => {
-    expect(isSiteUnlocked(basic('charge:s3cret'), 's3cret')).toBe(true)
+    expect(isSiteUnlocked(basic('user:s3cret'), 's3cret')).toBe(true)
     expect(isSiteUnlocked(basic(':s3cret'), 's3cret')).toBe(true)
   })
 

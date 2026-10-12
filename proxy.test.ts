@@ -4,8 +4,8 @@
  * `proxy.ts` is how Next.js rate-limits API routes. Deleting it, or editing
  * it down to drop the `rate-limit` import, silently turns rate limiting off
  * — no build error, no runtime error, just an unprotected `/api/*`. This
- * test is deliberately dumb and grep-like: it doesn't exercise request
- * behavior, it just asserts the wiring is still there.
+ * first block is deliberately dumb and grep-like: it asserts the wiring is
+ * still there. The limiter-scope block below exercises request behaviour.
  *
  * Run with: bun test proxy.test.ts
  */
@@ -14,7 +14,16 @@ import { describe, expect, it } from 'bun:test'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 
-import { config as proxyConfig, FILE_EXTENSION, MACHINE_PATHS } from './proxy'
+import { NextRequest } from 'next/server'
+
+import { rateLimiters } from '@/lib/utils/rate-limit'
+
+import {
+  config as proxyConfig,
+  FILE_EXTENSION,
+  MACHINE_PATHS,
+  proxy,
+} from './proxy'
 import vercelConfig from './vercel.json'
 
 const ROOT = import.meta.dir
@@ -41,6 +50,40 @@ describe('proxy.ts rate-limit wiring', () => {
 
   it('proxy.ts actually calls rateLimit(), not just imports it unused', async () => {
     expect(await readProxy()).toMatch(/\brateLimit\s*\(/)
+  })
+})
+
+// Behaviour, not wiring: the revalidation webhook is exempt from the `/api/*`
+// limiter (a bulk publish sends many webhooks from one provider IP), and the
+// exemption is exactly that path. Each case uses its own IP because the
+// limiter's store is module state shared across the whole test file.
+describe('proxy.ts /api limiter scope', () => {
+  const overLimit = rateLimiters.relaxed.limit + 1
+
+  const statuses = (path: string, ip: string) =>
+    Array.from({ length: overLimit }, () =>
+      proxy(
+        new NextRequest(`https://example.test${path}`, {
+          method: 'POST',
+          headers: { 'x-forwarded-for': ip },
+        })
+      )
+    ).map((response) => response.status)
+
+  it('never answers 429 on /api/revalidate', () => {
+    expect(statuses('/api/revalidate', '203.0.113.1')).not.toContain(429)
+  })
+
+  it('still limits every other /api path, including look-alikes', () => {
+    for (const [index, path] of [
+      '/api/cart/ensure',
+      '/api/revalidate-other',
+      '/api/revalidate/extra',
+    ].entries()) {
+      const result = statuses(path, `203.0.113.${index + 10}`)
+      expect(result.at(-1)).toBe(429)
+      expect(result.slice(0, -1)).not.toContain(429)
+    }
   })
 })
 

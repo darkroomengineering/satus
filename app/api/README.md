@@ -129,10 +129,11 @@ returns 401, otherwise 200 so Shopify does not retry.
 - Webhooks require a secret token for authentication (`SANITY_REVALIDATE_SECRET`,
   `SHOPIFY_REVALIDATION_SECRET`)
 - Not rate limited, in the route or in `proxy.ts`, so a bulk publish is never turned away and
-  the site never stays stale. Each provider checks its secret before doing any work: a request
-  with neither provider's signal gets a 404 without its body being read, a wrong Sanity signature
-  costs one HMAC with no wait, and a wrong Shopify secret one constant-time compare. Anyone can
-  still make the route run those checks
+  the site never stays stale. A request with neither provider's signal gets a 404 without its
+  body being read, and a Shopify secret is compared in constant time before any body read. A
+  request with a Sanity signature header has its whole body read (up to the platform's request
+  body cap) and HMACed before a wrong signature is rejected, with no wait. The cost: anyone can
+  make the route read and hash a body that size as often as they like
 - Invalid Sanity signature returns 401; malformed body returns 400; unset secret returns 503
 - Invalid or missing Shopify secret returns 401 (constant-time compare)
 - Every JSON response is `{ data, error }`: `error` is null on success, a

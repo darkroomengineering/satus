@@ -28,6 +28,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Added
 
+- Every Sanity image field takes editor-written alt text through one shared `altField` (`lib/integrations/sanity/schemas/fields.ts`). The navigation's social logos gain it; the article image, SEO image and rich text image already had their own copy and now use the shared one. It stays optional, and an empty value renders `alt=""`, marking the image as decorative; rich text images still require it.
 - Env vars can be committed: a project's `.env` is encrypted with dotenvx, and Next decrypts it on load through `@dotenvx/next-env` (an `overrides` entry replaces `@next/env`). Teammates get the whole set by cloning and putting one key in `.env.keys`; Vercel holds only `DOTENV_PRIVATE_KEY`. CI holds no key: it deletes the encrypted files before building, so dependency code in Dependabot and fork PRs never runs next to it. This works around Vercel Secrets, which can't be read back. Satus ships no `.env` of its own; a fork's first `bun dotenvx set` creates one with the fork's own key. See README § Environment variables.
 - `bun run env:setup` sends the dotenvx key to the linked Vercel project (production and preview) through stdin, names the project, and never prints the key, so an agent running it never sees it. `bun run env:setup --copy` puts the `.env.keys` lines for a teammate on the clipboard, also unprinted.
 - A pre-commit hook runs `lib/env-files.test.ts` whenever an env file is staged. It reads the staged version, so a plain value can't be committed even if the file on disk is encrypted afterwards.
@@ -73,6 +74,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Fixed
 
+- In draft mode, `SanityImage` put Presentation's hidden edit markers into the `alt` attribute, so screen readers in the Studio preview read them out with the description. It now runs alt text through `stegaClean`.
 - Every `/studio` load logged Next's "uncached data during prerendering" error: the page awaits `connection()` so the Studio renders at request time, and the instant-navigation check reported that as a blocking route. `app/studio/layout.tsx` sets `export const instant = false`, since the Studio is entered by full page load.
 - `bunx sanity dev` and `bunx sanity deploy`, run from `lib/integrations/sanity` as the README says, failed on startup: the Sanity CLI reads that folder's `package.json` and requires `styled-components` declared in it. The folder now has a private `package.json` declaring `sanity` and `styled-components`, the root declares `styled-components` as a dev dependency (it was installed only as a peer), and `studio-manifest.test.ts` keeps the two manifests compatible.
 - The embedded Studio at `/studio` ran under the site's CSP, which blocked Presentation's bridge script (`core.sanity-cdn.com`) and the Studio's Inter font. `/studio/*` now gets its own policy: the site policy plus the Studio's origins (`isStudio` in `composeCsp`, a second header rule in `next.config.ts` while Sanity is kept). Site routes keep their narrow policy.

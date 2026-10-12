@@ -1,6 +1,8 @@
 import { DocumentTextIcon } from '@sanity/icons/DocumentText'
 import { defineField, defineType } from 'sanity'
 
+import { altField } from './fields'
+
 const articleFields = [
   defineField({
     name: 'title',
@@ -25,14 +27,7 @@ const articleFields = [
     options: {
       hotspot: true,
     },
-    fields: [
-      {
-        name: 'alt',
-        title: 'Alt Text',
-        type: 'string',
-        description: 'Alternative text for screen readers',
-      },
-    ],
+    fields: [altField],
   }),
   defineField({
     name: 'content',

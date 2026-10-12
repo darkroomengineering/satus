@@ -153,12 +153,10 @@ export function buildRoutesFromDocuments(data: unknown): ContentRoute[] {
 export interface CmsRoutesResult {
   routes: ContentRoute[]
   /**
-   * True when the last fetch attempt failed (Sanity unreachable) rather
-   * than the CMS genuinely having zero published `page`/`article`
-   * documents. `getCmsRoutes` collapses both cases to `[]` on purpose —
-   * sitemap/llms.txt/`/ai` must always respond, degraded or not — but the
-   * Markdown handler needs to tell them apart to avoid 404ing a route that
-   * would exist once the outage clears.
+   * True when the fetch failed (Sanity unreachable) rather than the CMS
+   * genuinely having zero published `page`/`article` documents. Only the
+   * Markdown handler sees this: it renders per request, so it can answer a
+   * 503 instead of 404ing a route that would exist once the outage clears.
    */
   degraded: boolean
 }
@@ -173,6 +171,11 @@ export interface CmsRoutesResult {
  * fresh clone's default state): no fetch runs, and callers degrade to
  * `STATIC_ROUTES` only.
  *
+ * A schema-valid env (`isConfigured`) doesn't guarantee the project/dataset
+ * it points to exists or is reachable, so the fetch can throw (wrong project
+ * ID, deleted dataset, network failure). It is left to throw here; each
+ * accessor below decides what an outage means for its caller.
+ *
  * Reads through `sanityFetchPublished`, which is cached under the `sanity`
  * tag until the publish webhook: crawlers never see draft content, so there's
  * no draft mode to branch on here, unlike a rendered page.
@@ -180,15 +183,34 @@ export interface CmsRoutesResult {
 async function fetchCmsRoutesResult(): Promise<CmsRoutesResult> {
   if (!isConfigured('sanity')) return { routes: [], degraded: false }
 
-  // A schema-valid env (`isConfigured`) doesn't guarantee the project/dataset
-  // it points to actually exists or is reachable — the fetch throws on a
-  // Sanity API error (wrong project ID, deleted dataset, network failure).
-  // Crawlers depend on `sitemap.xml`/`llms.txt` always responding, even for
-  // the static routes, so a broken CMS connection degrades to no CMS routes
-  // instead of taking the whole response down.
-  let data: unknown
+  const data = await sanityFetchPublished({ query: routableContentQuery })
+  return { routes: buildRoutesFromDocuments(data), degraded: false }
+}
+
+/**
+ * Routes for sitemap.xml, llms.txt and `/ai`. Throws when Sanity is
+ * configured but the fetch fails.
+ *
+ * Those three are static, cached under the `sanity` tag with a 30-day
+ * revalidate. Swallowing the error would store a copy without CMS routes for
+ * up to 30 days; throwing makes Next keep the last good copy and retry on a
+ * later request. Cost: a build whose Sanity is configured but unreachable
+ * fails instead of shipping a sitemap without CMS routes, and the one request
+ * that runs a blocking regeneration (the first after a publish webhook)
+ * gets an error while later ones get the previous copy.
+ */
+export async function getCmsRoutes(): Promise<ContentRoute[]> {
+  return (await fetchCmsRoutesResult()).routes
+}
+
+/**
+ * Outage-aware accessor for the per-request Markdown handler
+ * (markdown-document.ts): a failed fetch returns `degraded: true` instead of
+ * throwing. See `CmsRoutesResult.degraded`.
+ */
+export async function getCmsRoutesResult(): Promise<CmsRoutesResult> {
   try {
-    data = await sanityFetchPublished({ query: routableContentQuery })
+    return await fetchCmsRoutesResult()
   } catch (error) {
     console.error(
       '[seo/routes] Sanity fetch failed, omitting CMS routes:',
@@ -196,16 +218,4 @@ async function fetchCmsRoutesResult(): Promise<CmsRoutesResult> {
     )
     return { routes: [], degraded: true }
   }
-
-  return { routes: buildRoutesFromDocuments(data), degraded: false }
-}
-
-/** Graceful-empty-on-failure accessor for sitemap.xml, llms.txt, and /ai. */
-export async function getCmsRoutes(): Promise<ContentRoute[]> {
-  return (await fetchCmsRoutesResult()).routes
-}
-
-/** Outage-aware accessor — see `CmsRoutesResult.degraded`. Used by markdown-document.ts. */
-export async function getCmsRoutesResult(): Promise<CmsRoutesResult> {
-  return fetchCmsRoutesResult()
 }

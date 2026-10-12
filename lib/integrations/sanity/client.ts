@@ -16,16 +16,16 @@
 // 4. Add `<SanityLive />` to your root layout for real-time preview mode.
 //
 // 5. To re-add the Sanity Studio route (/studio), create:
-//    app/studio/layout.tsx  — noindex passthrough only (robots metadata);
-//      it does NOT disable draft mode. The "Disable Draft Mode" affordance is
-//      the DisableDraftMode component (lib/integrations/sanity/components/
-//      disable-draft-mode.tsx), wired into a page layout outside /studio
-//      (see app/(site)/(examples)/sanity/layout.tsx for the pattern).
-//    app/studio/[[...tool]]/page.tsx:
-//      'use client'
+//    app/studio/[[...tool]]/page.tsx — a server page that exports noindex
+//      `metadata` and next-sanity's `viewport`, prerenders through
+//      `generateStaticParams`, and renders a `'use client'` wrapper:
 //      import { NextStudio } from 'next-sanity/studio'
 //      import config from '@/integrations/sanity/sanity.config'
-//      export default function StudioPage() { return <NextStudio config={config} /> }
+//      export function Studio() { return <NextStudio config={config} /> }
+//    It does NOT disable draft mode. The "Disable Draft Mode" affordance is
+//    the DisableDraftMode component (lib/integrations/sanity/components/
+//    disable-draft-mode.tsx), wired into a page layout outside /studio
+//    (see app/(site)/(examples)/sanity/layout.tsx for the pattern).
 //
 // Full walkthrough: see the manual (app/(site)/page.tsx) step 5 "Add a plugin".
 

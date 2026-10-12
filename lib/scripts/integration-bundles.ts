@@ -190,13 +190,6 @@ export const INTEGRATION_BUNDLES = defineBundles({
       {
         file: 'next.config.ts',
         ops: [
-          // Remove cdn.sanity.io from images.remotePatterns
-          {
-            kind: 'removeArrayObjectElement',
-            variableName: 'nextConfig',
-            propertyPath: 'images.remotePatterns',
-            matchProperty: { name: 'hostname', value: 'cdn.sanity.io' },
-          },
           // Remove @sanity/* packages from experimental.optimizePackageImports
           {
             kind: 'removeArrayStringElement',
@@ -478,14 +471,6 @@ export const INTEGRATION_BUNDLES = defineBundles({
       {
         file: 'next.config.ts',
         ops: [
-          // Re-add cdn.sanity.io to images.remotePatterns
-          {
-            kind: 'addArrayObjectElement',
-            variableName: 'nextConfig',
-            propertyPath: 'images.remotePatterns',
-            objectText: "{ protocol: 'https', hostname: 'cdn.sanity.io' }",
-            matchProperty: { name: 'hostname', value: 'cdn.sanity.io' },
-          },
           // Re-add @sanity/* packages to experimental.optimizePackageImports
           {
             kind: 'addArrayStringElement',

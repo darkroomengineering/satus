@@ -138,3 +138,36 @@ describe('getLinkAttributes', () => {
     })
   })
 })
+
+describe('stega markers', () => {
+  // A run of the zero-width characters Presentation's stega encoding appends
+  // in draft mode; `stegaClean` strips any run of four or more.
+  const markers = '​‌‍﻿'.repeat(4)
+
+  test('never reach an external href', () => {
+    expect(
+      urlForReference({
+        linkType: 'external',
+        externalUrl: `#pricing${markers}`,
+      })
+    ).toBe('#pricing')
+  })
+
+  test('never reach an internal href', () => {
+    expect(
+      urlForReference({
+        linkType: 'internal',
+        internalLink: { _type: 'page', slug: { current: `about${markers}` } },
+      })
+    ).toBe('/about')
+  })
+
+  test('are cleaned by getLinkAttributes too', () => {
+    expect(
+      getLinkAttributes({
+        linkType: 'external',
+        externalUrl: `?ref=nav${markers}`,
+      }).href
+    ).toBe('?ref=nav')
+  })
+})

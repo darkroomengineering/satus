@@ -18,7 +18,6 @@ app/
 ├── (site)/               # Site routes with app providers; /studio, /api and the machine-readable routes live outside
 │   ├── layout.tsx        # App providers, metadata, analytics
 │   ├── page.tsx          # Manual / in-app documentation landing page
-│   ├── loading.tsx       # App loading fallback
 │   ├── error.tsx         # Error boundary (thin wrapper over components/ui/error-view)
 │   ├── not-found.tsx     # 404 page
 │   ├── ai/                # /ai route
@@ -33,6 +32,16 @@ app/
 │   └── revalidate/       # Webhook endpoint
 └── studio/               # Sanity Studio — inherits only the bare root shell
 ```
+
+There is no `loading.tsx` in `(site)/`, on purpose. A loading file wraps
+every page below it in a Suspense boundary, so the response starts streaming
+with a 200 status before the page runs, and a `notFound()` in that page can
+only add a noindex tag, not the 404 status. Every dynamic page here can call
+`notFound()` (`[...slug]` for any unmatched URL, `articles/[slug]` for a slug
+with no document), so each would soft-404 with one. Cost: clicking a link to a
+dynamic route shows nothing new until the server has rendered it. For a
+skeleton, put `<Suspense>` inside the page after its `notFound()` checks, as
+the Sanity example does. `e2e/not-found.e2e.ts` fails if the status regresses.
 
 The root layout stays a bare shell on purpose: anything added to it is a
 deliberate decision to ship it to `/studio` too. App-flavored concerns

@@ -264,6 +264,8 @@ Route-segment errors are handled by the file convention: `app/(site)/error.tsx` 
 
 For **component-level** isolation (one widget failing without blanking the page — the starter has no such boundary today), the tool is `catchError` from `next/error` (stable since Next 16.3), not a hand-rolled React error boundary: it doesn't swallow `notFound()`/`redirect()` from the wrapped subtree, and its fallback receives `retry()`, which re-renders failed Server Components in place — something `reset()` cannot do. One constraint carries over from `global-error.tsx`: a fallback must not depend on `Wrapper` (Lenis/WebGL/theme are liable to be the thing that crashed).
 
+No `loading.tsx` above a page that can call `notFound()`. The loading file's Suspense boundary starts the response with a 200 before the page runs, so an unknown URL comes back 200 with a noindex tag instead of a 404. That covers all of `app/(site)/`: `[...slug]` catches every unmatched URL. For a skeleton, wrap the slow part in `<Suspense>` inside the page, after its `notFound()` checks. `e2e/not-found.e2e.ts` asserts the 404 status.
+
 ### Tailwind v4
 
 Configuration is CSS-first - no `tailwind.config.js`. Use `@theme` directive in CSS:
@@ -341,7 +343,7 @@ Pre-commit hook (lefthook) runs on staged files: oxfmt + oxlint --fix (sequentia
 
 `next-env.d.ts` (gitignored) is what makes tsc resolve the ambient `.svg`/`.css` module declarations in `lib/utils/types.d.ts` — it's listed first in `tsconfig.json`'s `include`, and tsc needs that entry to exist for the rest of `include` to take effect. A byte-fresh clone has no `next-env.d.ts` (`next dev`/`next build` normally generate it), so `ensure:typegen` backfills it with `next typegen` — a route-type generation step, not a full build — before `typecheck`/`check` run. `next-env.d.ts` also imports `.next/types/routes.d.ts` and `.next/types/root-params.d.ts`, and the post-checkout hook deletes `.next/types` on every branch switch, so `ensure:typegen` checks all three files and regenerates when any is missing. It's a no-op once they exist, so `bun run check` is order-independent: run it before or after `bun run build`, doesn't matter.
 
-Route smoke coverage is automatic: `e2e/route-sweep.e2e.ts` discovers every `app/**/page.tsx` at test-collection time and runs the five-assertion smoke against it with only static segments; dynamic routes (`[slug]`, `[...slug]`) need a bespoke `*.e2e.ts` with fixtures — creating the page is the only step for a static route. Write a bespoke `*.e2e.ts` only for behavior beyond the smoke (see `e2e/not-found.e2e.ts` for the soft-404 example).
+Route smoke coverage is automatic: `e2e/route-sweep.e2e.ts` discovers every `app/**/page.tsx` at test-collection time and runs the five-assertion smoke against it with only static segments; dynamic routes (`[slug]`, `[...slug]`) need a bespoke `*.e2e.ts` with fixtures — creating the page is the only step for a static route. Write a bespoke `*.e2e.ts` only for behavior beyond the smoke (see `e2e/not-found.e2e.ts` for the 404 status example).
 
 When verifying behavior that depends on env vars being _absent_ (e.g. an integration's unconfigured fallback), wipe `.next` before building: `NEXT_PUBLIC_*` values are inlined at build time, so hiding `.env.local` against a stale build still renders the configured page and your verification silently measures the wrong variant.
 

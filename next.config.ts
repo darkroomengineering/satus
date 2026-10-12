@@ -109,6 +109,9 @@ const nextConfig: NextConfig = {
   // Off because it needs `cacheComponents: true`. Cost: links prefetch the
   // classic way (the nearest `loading.tsx` for dynamic routes, the full
   // payload for static ones) instead of one shared loading shell per route.
+  // `app/(site)/` has no `loading.tsx` (it would turn 404s into 200s, see
+  // app/README.md), so a link to a dynamic route there prefetches only the
+  // shared layout and the click waits for the server render.
   partialPrefetching: false,
   compress: true,
   logging: {

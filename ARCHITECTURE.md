@@ -74,7 +74,7 @@ flowchart LR
     P[page.tsx] -->|sanityFetch| F{draft mode?}
     F -->|no| U[sanityFetchPublished]
     U -->|"next: { tags: [sanity], revalidate: 30d }"| Cache[(Data Cache)]
-    Cache -->|miss| API[(Sanity API CDN)]
+    Cache -->|miss, useCdn false| API[(Sanity API)]
     F -->|yes: drafts or a release, stega, no-store| Draft[(Sanity API)]
     Hook[Sanity publish webhook] --> R[POST /api/revalidate]
     Shop[Shopify webhook] --> R

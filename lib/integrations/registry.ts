@@ -89,8 +89,10 @@ export const integrations = {
       // (`components/ui/image`'s Sanity loader, not Next's optimizer).
       'img-src': ['https://cdn.sanity.io'],
       // API: Visual Editing in draft mode (`app/(site)/layout.tsx`) and the
-      // embedded Studio talk to the project's API, and `client.ts` reads
-      // published content with `useCdn: true`. Both hosts are project-id
+      // embedded Studio talk to the project's API from the browser. The API
+      // CDN host covers browser code that reads with `useCdn: true`;
+      // `client.ts` reads on the server with `useCdn: false`, which the CSP
+      // doesn't govern. Both hosts are project-id
       // subdomains — confirmed in `@sanity/client`'s
       // `dist/_chunks-cjs/config.cjs` (`defaultConfig.apiHost =
       // "https://api.sanity.io"`, `defaultCdnHost = "apicdn.sanity.io"`,

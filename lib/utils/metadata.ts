@@ -164,8 +164,9 @@ export function generatePageMetadata(
  *
  * export async function generateMetadata({ params }) {
  *   const { slug } = await params
- *   // Cached under the `sanity` tag; drafts in draft mode. Calling it again
- *   // from the page reuses the same cache entry.
+ *   // Cached under the `sanity` tag; drafts in draft mode. Outside draft
+ *   // mode, calling it again from the page reuses the same cache entry; in
+ *   // draft mode each call reads Sanity again, uncached.
  *   const data = await sanityFetch({ query: pageQuery, params: { slug } })
  *   if (!data) return
  *

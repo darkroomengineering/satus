@@ -108,7 +108,7 @@ export default async function Page({ params }) {
 ```
 
 - `sanityFetch` returns the query result, or `null` when Sanity isn't configured.
-- Outside draft mode it calls `sanityFetchPublished` (`published.ts`): a fetch tagged `sanity` in Next's Data Cache, with a 30-day `revalidate` backstop, reading published content through the API CDN. The page and `generateMetadata` share its cache entry.
+- Outside draft mode it calls `sanityFetchPublished` (`published.ts`): a fetch tagged `sanity` in Next's Data Cache, with a 30-day `revalidate` backstop, reading published content from the live API, not the API CDN (a stale CDN answer right after a publish would be cached until the next one). Outside draft mode the page and `generateMetadata` share its cache entry.
 - In draft mode, with `SANITY_API_READ_TOKEN` set, it reads the perspective Presentation picks (drafts by default, or the content release an editor selects), with stega markers, `useCdn: false` and no cache. Presentation stores the pick in the `sanity-preview-perspective` cookie, and `resolvePerspectiveFromCookies` from `next-sanity/live` reads it.
 - `sanityFetchPublished` reads published content only. Use it outside a page request, like the sitemap (`lib/seo/routes.ts`) or `generateStaticParams`, where draft mode can't be read:
 
@@ -162,7 +162,7 @@ A raw `<img>` is not an option here — oxlint's `nextjs/no-img-element` rule re
 
 ### SEO Metadata
 
-Call `sanityFetch` again; it reuses the page's cache entry:
+Call `sanityFetch` again. Outside draft mode it reuses the page's cache entry; in draft mode nothing is cached, so it reads Sanity a second time:
 
 ```tsx
 import { generateSanityMetadata } from '@/lib/utils/metadata'
@@ -201,7 +201,9 @@ export const landing = defineType({
 
 Create the webhook in [sanity.io/manage](https://sanity.io/manage) → your project → API → Webhooks: URL `https://your-domain.com/api/revalidate`, method POST, trigger on create, update and delete, and a secret. Set the same secret as `SANITY_REVALIDATE_SECRET`.
 
-`app/api/revalidate/route.ts` dispatches requests carrying a `sanity-webhook-signature` header to `revalidate()` in `revalidate.ts`, which verifies the signature with `parseBody` from `next-sanity/webhook` (waiting for Content Lake to serve the new version), then calls `revalidateTag('sanity', { expire: 0 })`. One tag covers every page, because a per-type tag would miss a page that shows a referenced document of another type. `expire: 0` means the next visit renders fresh content instead of one more stale page.
+`app/api/revalidate/route.ts` dispatches requests carrying a `sanity-webhook-signature` header to `revalidate()` in `revalidate.ts`, which verifies the signature with `parseBody` from `next-sanity/webhook`, then calls `revalidateTag('sanity', { expire: 0 })`. One tag covers every page, because a per-type tag would miss a page that shows a referenced document of another type. `expire: 0` means the next visit renders fresh content instead of one more stale page.
+
+`parseBody`'s third argument (`true`) only sleeps a fixed 3 seconds after a valid signature (next-sanity 13.3.4); it does not check that the new version is being served. The refetch sees it because published reads use `useCdn: false` (`client.ts`): the live API answers with the new version as soon as the publish lands, where the API CDN could still return the old one, and that answer would be cached until the next publish. The cost is that every cache miss reads from the live API, which the cache keeps rare.
 
 The webhook is the only thing that refreshes published content. Without it, a cache entry lives until its 30-day `revalidate` runs out. See [ARCHITECTURE.md](../../../ARCHITECTURE.md) for the diagram.
 

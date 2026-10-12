@@ -252,7 +252,7 @@ Critical rules:
 
 ### Next.js 16 Request Proxy
 
-`proxy.ts` at the project root handles cross-cutting request concerns — currently rate limiting for `/api/*` routes via `@/utils/rate-limit`. Security headers stay in `next.config.ts`, composed from the integration registry's `cspSources` by `lib/integrations/csp.ts`, plus project origins via `PROJECT_CSP_EXTRA_SOURCES` — details in `SECURITY.md`.
+`proxy.ts` at the project root handles cross-cutting request concerns — the password gate (HTTP Basic auth on production and preview deployments while `SITE_PASSWORD` is set; `/api/*` stays open) and rate limiting for `/api/*` routes via `@/utils/rate-limit`. Security headers stay in `next.config.ts`, composed from the integration registry's `cspSources` by `lib/integrations/csp.ts`, plus project origins via `PROJECT_CSP_EXTRA_SOURCES` — details in `SECURITY.md`.
 
 ### Error boundaries
 

@@ -14,7 +14,12 @@ import { describe, expect, it } from 'bun:test'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 
-import { config as proxyConfig, FILE_EXTENSION, MACHINE_PATHS } from './proxy'
+import {
+  config as proxyConfig,
+  FILE_EXTENSION,
+  isSiteUnlocked,
+  MACHINE_PATHS,
+} from './proxy'
 import vercelConfig from './vercel.json'
 
 const ROOT = import.meta.dir
@@ -150,5 +155,29 @@ describe('machine-path parity between proxy.ts and vercel.json', () => {
         `${path} in MACHINE_PATHS is redundant — already excluded elsewhere`
       ).toBe(false)
     }
+  })
+})
+
+describe('password gate', () => {
+  const basic = (credentials: string) =>
+    `Basic ${Buffer.from(credentials).toString('base64')}`
+
+  it('accepts the password under any username', () => {
+    expect(isSiteUnlocked(basic('user:s3cret'), 's3cret')).toBe(true)
+    expect(isSiteUnlocked(basic(':s3cret'), 's3cret')).toBe(true)
+  })
+
+  it('compares everything after the first colon', () => {
+    expect(isSiteUnlocked(basic('u:a:b'), 'a:b')).toBe(true)
+    expect(isSiteUnlocked(basic('a:b'), 'a:b')).toBe(false)
+  })
+
+  it('rejects a missing, wrong, or malformed header without throwing', () => {
+    expect(isSiteUnlocked(null, 's3cret')).toBe(false)
+    expect(isSiteUnlocked(basic('u:wrong!'), 's3cret')).toBe(false)
+    expect(isSiteUnlocked(basic('u:s3cret-longer'), 's3cret')).toBe(false)
+    expect(isSiteUnlocked(basic('u:'), 's3cret')).toBe(false)
+    expect(isSiteUnlocked('Bearer s3cret', 's3cret')).toBe(false)
+    expect(isSiteUnlocked('Basic %%%not-base64', 's3cret')).toBe(false)
   })
 })

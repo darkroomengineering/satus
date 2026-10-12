@@ -3,6 +3,8 @@
  *
  * Handles cross-cutting concerns for incoming requests, before route matching.
  *
+ * - Password gate: `passwordGate`, on while SITE_PASSWORD is set
+ *
  * Customize:
  * - Rate limiting: Adjust rateLimiters config per route pattern
  * - Auth: Add token/session validation before route matching
@@ -12,9 +14,12 @@
  * Note: Security headers are configured in next.config.ts (static, no need for proxy)
  */
 
+import { timingSafeEqual } from 'node:crypto'
+
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
+import { env } from '@/lib/env'
 import {
   type DocumentMediaType,
   HTML_FORMAT_OVERRIDE_PARAM,
@@ -113,7 +118,59 @@ function addAcceptVary(
   return response
 }
 
+/**
+ * Checks an `Authorization` header against the site password. Any username
+ * passes; only the part after the first `:` is compared, so a password may
+ * itself contain colons.
+ */
+export function isSiteUnlocked(
+  authorization: string | null,
+  password: string
+): boolean {
+  if (!authorization?.startsWith('Basic ')) return false
+  const credentials = Buffer.from(authorization.slice(6), 'base64').toString()
+  const given = Buffer.from(credentials.slice(credentials.indexOf(':') + 1))
+  const expected = Buffer.from(password)
+  return given.length === expected.length && timingSafeEqual(given, expected)
+}
+
+/**
+ * Pre-launch gate: with `SITE_PASSWORD` set, production and preview
+ * deployments answer 401 until the browser's Basic auth prompt gets it. Local
+ * dev and CI are never gated (`VERCEL_ENV` unset, or `development` after
+ * `vercel env pull`), so e2e runs need no credentials.
+ *
+ * Costs, accepted while a site is private: `/api/*` stays open because
+ * webhooks (Sanity, Shopify) cannot log in, and each route checks its own
+ * secret. Paths the `matcher` skips (public/ images and fonts, `/_next/image`,
+ * robots.txt, sitemap.xml) stay reachable by anyone who has the URL. Link
+ * unfurlers and the Lighthouse workflow get the 401. Failed attempts are not
+ * rate limited: a guessable password keeps out the casual visitor, not
+ * someone set on guessing it.
+ */
+function passwordGate(request: NextRequest): NextResponse | null {
+  if (env.VERCEL_ENV !== 'production' && env.VERCEL_ENV !== 'preview') {
+    return null
+  }
+  if (!env.SITE_PASSWORD) return null
+  if (request.nextUrl.pathname.startsWith('/api/')) return null
+  if (isSiteUnlocked(request.headers.get('authorization'), env.SITE_PASSWORD)) {
+    return null
+  }
+
+  return new NextResponse('Password required.\n', {
+    status: 401,
+    headers: {
+      'content-type': 'text/plain; charset=utf-8',
+      'www-authenticate': 'Basic realm="Private site", charset="UTF-8"',
+    },
+  })
+}
+
 export function proxy(request: NextRequest) {
+  const gate = passwordGate(request)
+  if (gate) return gate
+
   // Rate limit API routes
   if (request.nextUrl.pathname.startsWith('/api/')) {
     const ip = getClientIP(request)

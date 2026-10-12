@@ -28,6 +28,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Added
 
+- Password gate: set `SITE_PASSWORD` and `proxy.ts` puts production and preview deployments behind the browser's Basic auth prompt (any username, password compared in constant time). Unset, nothing changes. Local dev, CI and `/api/*` are never gated, so e2e runs and webhooks keep working. Ported from a Satus-based client site.
 - Env vars can be committed: a project's `.env` is encrypted with dotenvx, and Next decrypts it on load through `@dotenvx/next-env` (an `overrides` entry replaces `@next/env`). Teammates get the whole set by cloning and putting one key in `.env.keys`; Vercel holds only `DOTENV_PRIVATE_KEY`. CI holds no key: it deletes the encrypted files before building, so dependency code in Dependabot and fork PRs never runs next to it. This works around Vercel Secrets, which can't be read back. Satus ships no `.env` of its own; a fork's first `bun dotenvx set` creates one with the fork's own key. See README § Environment variables.
 - `bun run env:setup` sends the dotenvx key to the linked Vercel project (production and preview) through stdin, names the project, and never prints the key, so an agent running it never sees it. `bun run env:setup --copy` puts the `.env.keys` lines for a teammate on the clipboard, also unprinted.
 - A pre-commit hook runs `lib/env-files.test.ts` whenever an env file is staged. It reads the staged version, so a plain value can't be committed even if the file on disk is encrypted afterwards.

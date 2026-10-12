@@ -391,6 +391,60 @@ describe('addFunctionBodyStatement anchors', () => {
 })
 
 // ---------------------------------------------------------------------------
+// A required addFunctionBodyStatement whose marker is already in the body is
+// a success, not a miss, even when a sibling op changes the same file. The
+// bug: the runner recorded the no-op as a miss and, seeing the file changed
+// by the sibling, threw "matched nothing while others applied". Reproduced
+// with the webhook route missing only its Sanity import, then re-adding
+// Sanity: the import goes back, the guard is already there.
+// ---------------------------------------------------------------------------
+
+describe('required addFunctionBodyStatement beside a sibling change', () => {
+  const fixture = `export function POST() {
+  const added = 2
+
+  return 0
+}
+`
+
+  const ops: AstOperation[] = [
+    { kind: 'addImport', text: "import { x } from 'y'" },
+    {
+      kind: 'addFunctionBodyStatement',
+      functionName: 'POST',
+      marker: 'const added',
+      text: '  const added = 2',
+      beforeContains: 'return 0',
+      required: true,
+    },
+  ]
+
+  it('applies the sibling and leaves the present statement alone', () => {
+    const result = applyOpsToText(fixture, ops)
+    expect(result).toContain("import { x } from 'y'")
+    expect(count(result, 'const added')).toBe(1)
+  })
+
+  it('still reports an anchor miss beside the same sibling change', () => {
+    const withoutStatement = fixture.replace('  const added = 2\n\n', '')
+    const missing: AstOperation[] = [
+      { kind: 'addImport', text: "import { x } from 'y'" },
+      {
+        kind: 'addFunctionBodyStatement',
+        functionName: 'POST',
+        marker: 'const added',
+        text: '  const added = 2',
+        beforeContains: 'not in the body',
+        required: true,
+      },
+    ]
+    expect(() => applyOpsToText(withoutStatement, missing)).toThrow(
+      RequiredOpMatchError
+    )
+  })
+})
+
+// ---------------------------------------------------------------------------
 // removeJsxElement — the JSX comment that documents a removed element goes
 // with it, whichever element form it documents (L4: only the self-closing
 // branch cleaned up, so removing `<Studio>…</Studio>` orphaned its comment).

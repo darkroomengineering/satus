@@ -141,9 +141,9 @@ function describeOp(op: AstOperation): string {
  * Each probe mirrors the corresponding handler's lookup in remove-ops.ts /
  * set-ops.ts, so "container present" means the handler would have found it.
  *
- * `addFunctionBodyStatement` is the one additive kind probed, inverted: its
- * miss is benign only when its marker is already in the body, so anything
- * else (function gone, named anchor absent) returns true.
+ * `addFunctionBodyStatement` always returns true: its benign no-op is
+ * filtered out before it is recorded as a miss (`requiredOpAlreadySatisfied`),
+ * so any miss of it that reaches here is drift.
  *
  * Caveat this encodes: a container-anchored required op assumes no sibling
  * transform removes its container — if one did, the retry would read the
@@ -228,20 +228,11 @@ function missedRequiredOpAnchorAbsent(
                 el.getOpeningElement().getTagNameNode().getText() === op.tagName
             )
       )
-    // An additive op misses for exactly one benign reason: its marker is
-    // already in the body (a previous run, or a sibling bundle, added it).
-    // Any other miss (the function is gone, or a named anchor matched
-    // nothing) is drift, even on a byte-identical file.
+    // Already-satisfied no-ops never get recorded as misses (see
+    // `requiredOpAlreadySatisfied`); what is left is drift, even on a
+    // byte-identical file.
     case 'addFunctionBodyStatement':
-      return probe(
-        (sf) =>
-          sf
-            .getFunction(op.functionName)
-            ?.getBody()
-            ?.asKind(SyntaxKind.Block)
-            ?.getStatements()
-            .some((s) => s.getText().includes(op.marker)) ?? false
-      )
+      return true
     case 'removeArrayObjectElement':
     case 'removeArrayStringElement':
     case 'setObjectProperty':
@@ -249,6 +240,50 @@ function missedRequiredOpAnchorAbsent(
         (sf) =>
           resolvePropertyPath(sf, op.variableName, op.propertyPath) !==
           undefined
+      )
+    default:
+      return false
+  }
+}
+
+/**
+ * For a `required` op that left the text unchanged, decide whether the no-op
+ * is the op's own success state rather than a miss. Checked against the text
+ * at the moment the op ran, before it is recorded, so a sibling op changing
+ * the same file cannot turn it into a "matched nothing while others applied"
+ * error.
+ *
+ * - `addFunctionBodyStatement`: its marker is already in the body (a
+ *   previous run, or a sibling bundle, added it). A function that is gone or
+ *   a named anchor that matched nothing is still a miss.
+ *
+ * Every other kind returns false: for those, an unchanged file is a miss,
+ * judged by the rules in `applyOpsToText`.
+ */
+function requiredOpAlreadySatisfied(
+  project: Project,
+  sourceText: string,
+  op: AstOperation
+): boolean {
+  let satisfied = false
+  const check = (fn: (sf: SourceFile) => boolean) => {
+    withSourceFile(project, sourceText, (sf) => {
+      satisfied = fn(sf)
+      return sourceText // never mutate — probe only
+    })
+    return satisfied
+  }
+
+  switch (op.kind) {
+    case 'addFunctionBodyStatement':
+      return check(
+        (sf) =>
+          sf
+            .getFunction(op.functionName)
+            ?.getBody()
+            ?.asKind(SyntaxKind.Block)
+            ?.getStatements()
+            .some((s) => s.getText().includes(op.marker)) ?? false
       )
     default:
       return false
@@ -271,8 +306,10 @@ function missedRequiredOpAnchorAbsent(
  *
  * Required-match contract: an op with `required: true` that leaves `text`
  * byte-for-byte unchanged (no match found) is a drift signal — but only when
- * some OTHER op in the same sequence DID change the file. Misses are
- * collected across the whole sequence and judged at the end:
+ * some OTHER op in the same sequence DID change the file. A no-op that is
+ * the op's own success state (an additive marker already present; see
+ * `requiredOpAlreadySatisfied`) is not a miss at all. Misses are collected
+ * across the whole sequence and judged at the end:
  *
  * - Misses + a changed file → `RequiredOpMatchError`. Partial application is
  *   the hazard the contract exists for (an import stripped while the code
@@ -400,7 +437,11 @@ export function applyOpsToText(
       // Exhaustiveness — TypeScript ensures all union members are handled above.
     }
 
-    if (op.required && text === before) {
+    if (
+      op.required &&
+      text === before &&
+      !requiredOpAlreadySatisfied(project, text, op)
+    ) {
       missedRequiredOps.push(op)
     }
   }

@@ -39,16 +39,21 @@ import { apiVersion, dataset, projectId, studioUrl } from './env'
  * Sanity client instance. `null` until Sanity is configured; read through
  * `sanityFetch` (`./fetch`), never directly.
  *
- * The base client has no token and reads published content through the API
- * CDN. Draft mode passes the Viewer token, `useCdn: false` and stega per
- * request in `fetch.ts`.
+ * The base client has no token and reads published content from the live
+ * API, not the API CDN. We cache content ourselves (`published.ts`) and refetch
+ * right after the publish webhook expires the `sanity` tag; a CDN response
+ * that is still stale at that moment would be cached again until the next
+ * publish. The CDN only pays off for reads we don't cache, like the browser's.
+ * Cost: every cache miss hits the live API, which the `'use cache'` entry
+ * keeps rare. Draft mode adds the Viewer token and stega per request in
+ * `fetch.ts`.
  */
 export const client: SanityClient | null = isConfigured('sanity')
   ? createClient({
       projectId,
       dataset,
       apiVersion,
-      useCdn: true,
+      useCdn: false,
       perspective: 'published',
       stega: {
         studioUrl,

@@ -43,10 +43,12 @@ import { apiVersion, dataset, projectId, studioUrl } from './env'
  * API, not the API CDN. We cache content ourselves (`published.ts`) and refetch
  * right after the publish webhook expires the `sanity` tag; a CDN response
  * that is still stale at that moment would be cached again until the next
- * publish. The CDN only pays off for reads we don't cache, like the browser's.
- * Cost: every cache miss hits the live API, which the `'use cache'` entry
- * keeps rare. Draft mode adds the Viewer token and stega per request in
- * `fetch.ts`.
+ * publish. Cost: every cache miss hits the live API. Sanity meters live API
+ * requests separately from API CDN requests, with a smaller included quota
+ * (check your plan's API vs API CDN request limits), and the Next cache is
+ * per region or instance depending on the host, so each publish triggers one
+ * miss per page per region or instance, not only on cold paths. Draft mode
+ * adds the Viewer token and stega per request in `fetch.ts`.
  */
 export const client: SanityClient | null = isConfigured('sanity')
   ? createClient({

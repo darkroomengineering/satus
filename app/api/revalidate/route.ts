@@ -2,35 +2,24 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 import { revalidate as sanityRevalidate } from '@/integrations/sanity/revalidate'
 import { revalidate as shopifyRevalidate } from '@/integrations/shopify/revalidate'
-import { getClientIP, rateLimit, rateLimiters } from '@/lib/utils/rate-limit'
 
 // Single documented webhook endpoint for every integration that revalidates
 // cached content. Each provider owns its handler in its own integration folder
 // and gets one guard + dispatch pair here, so `setup:project` strips a dropped
 // provider by removing its import, guard, and dispatch — never by rewriting the
-// handler body. The rate limit above and the fallback below belong to no
-// provider and always survive.
+// handler body. The fallback below belongs to no provider and always survives.
+// With every provider stripped, nothing reads `request`, so it becomes
+// `_request` to stay clear of the unused-parameter checks.
+//
+// Not rate limited, here or in `proxy.ts`: a per-IP limit would mostly turn
+// away the providers themselves during a bulk publish, leaving the site stale.
+// A request carrying no provider's signal gets the 404 below without its body
+// being read. What a provider's request can cost before it is rejected is
+// noted at its guard.
 export async function POST(request: NextRequest) {
-  // Rate limit to prevent cache flooding
-  const ip = getClientIP(request)
-  if (ip) {
-    const rateLimitResult = rateLimit(`revalidate:${ip}`, rateLimiters.standard)
-
-    if (!rateLimitResult.success) {
-      return NextResponse.json(
-        { data: null, error: 'Too many requests' },
-        {
-          status: 429,
-          headers: {
-            'Retry-After': String(rateLimitResult.resetIn),
-          },
-        }
-      )
-    }
-  }
-
   // Shopify webhooks identify themselves with an `x-shopify-topic` header and
-  // always carry a `secret` query param.
+  // always carry a `secret` query param. The handler compares the secret in
+  // constant time before it reads the body.
   const isShopifyWebhook =
     request.headers.has('x-shopify-topic') ||
     request.nextUrl.searchParams.has('secret')
@@ -41,7 +30,10 @@ export async function POST(request: NextRequest) {
 
   // Sanity signs its webhook body and sends the signature in this header
   // (`sanity-webhook-signature`, the name `next-sanity/webhook`'s parseBody
-  // reads); the handler validates it.
+  // reads); the handler validates it. It reads the whole body (up to the
+  // platform's request body cap) and HMACs it before a wrong signature is
+  // rejected, with no wait and no revalidation. Cost: anyone can make this
+  // route read and hash a body that size as often as they like.
   const isSanityWebhook = request.headers.has('sanity-webhook-signature')
 
   if (isSanityWebhook) {

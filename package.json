@@ -44,7 +44,7 @@
     "check:assets": "bun ./lib/scripts/check-assets.ts",
     "check:disables": "bun ./lib/scripts/check-lint-disables.ts",
     "handoff": "bun ./lib/scripts/prepare-handoff.ts",
-    "sanity:extract": "cd lib/integrations/sanity && dotenvx run -f ../../../.env.local -f ../../../.env.development -f ../../../.env --ignore=MISSING_ENV_FILE --strict -- sanity schema extract",
+    "sanity:extract": "cd lib/integrations/sanity && dotenvx run -f ../../../.env.local -f ../../../.env.development -f ../../../.env --ignore=MISSING_ENV_FILE --strict -e SANITY_STUDIO_PROJECT_ID=extract-only -- sanity schema extract --force",
     "sanity:typegen": "cd lib/integrations/sanity && dotenvx run -f ../../../.env.local -f ../../../.env.development -f ../../../.env --ignore=MISSING_ENV_FILE --strict -- sanity typegen generate",
     "sanity:mcp": "bun ./lib/scripts/copy-sanity-mcp.ts"
   },

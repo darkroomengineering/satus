@@ -264,7 +264,7 @@ Route-segment errors are handled by the file convention: `app/(site)/error.tsx` 
 
 For **component-level** isolation (one widget failing without blanking the page — the starter has no such boundary today), the tool is `catchError` from `next/error` (stable since Next 16.3), not a hand-rolled React error boundary: it doesn't swallow `notFound()`/`redirect()` from the wrapped subtree, and its fallback receives `retry()`, which re-renders failed Server Components in place — something `reset()` cannot do. One constraint carries over from `global-error.tsx`: a fallback must not depend on `Wrapper` (Lenis/WebGL/theme are liable to be the thing that crashed).
 
-No `loading.tsx` above a page that can call `notFound()`. The loading file's Suspense boundary starts the response with a 200 before the page runs, so an unknown URL comes back 200 with a noindex tag instead of a 404. That covers all of `app/(site)/`: `[...slug]` catches every unmatched URL. For a skeleton, wrap the slow part in `<Suspense>` inside the page, after its `notFound()` checks. `e2e/not-found.e2e.ts` asserts the 404 status.
+No Suspense boundary (a `loading.tsx` or an in-page `<Suspense>`) above a `notFound()` call. Streaming starts the response with a 200 before `notFound()` runs, so the URL comes back 200 with a noindex tag instead of a 404. A `loading.tsx` at `app/(site)/` would sit above `[...slug]`, which catches every unmatched URL, so none goes there. For a skeleton, run the `notFound()` checks first and open the `<Suspense>` after them. `e2e/not-found.e2e.ts` asserts the 404 status.
 
 ### Tailwind v4
 

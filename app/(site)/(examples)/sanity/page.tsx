@@ -5,7 +5,7 @@ import { Wrapper } from '@/components/layout/wrapper'
 import { NotConfigured } from '@/components/ui/not-configured'
 import { isConfigured } from '@/integrations/registry'
 import { sanityFetch } from '@/integrations/sanity/fetch'
-import { pageQuery } from '@/integrations/sanity/queries'
+import { pageExistsQuery, pageQuery } from '@/integrations/sanity/queries'
 import { generateSanityMetadata } from '@/utils/metadata'
 
 import { SanityTutorial } from './_components/tutorial'
@@ -18,7 +18,7 @@ function fetchPage() {
   return sanityFetch({ query: pageQuery, params: { slug: SLUG } })
 }
 
-export default function SanityPage() {
+export default async function SanityPage() {
   // Show setup instructions if Sanity is not configured
   if (!isConfigured('sanity')) {
     return (
@@ -27,6 +27,17 @@ export default function SanityPage() {
       </Wrapper>
     )
   }
+
+  // Check the document exists before the Suspense boundary below. Once a
+  // boundary renders its fallback the response has streamed with a 200, so a
+  // `notFound()` inside it only adds a noindex tag, never the 404 status.
+  // Cost: a second Sanity request (cached alongside the page query when
+  // published, uncached in draft mode) in exchange for the streamed reveal.
+  const exists = await sanityFetch({
+    query: pageExistsQuery,
+    params: { slug: SLUG },
+  })
+  if (!exists) notFound()
 
   return (
     <Wrapper theme="light" className="font-mono uppercase">
@@ -51,7 +62,9 @@ export default function SanityPage() {
 async function SanityContent() {
   const data = await fetchPage()
 
-  if (!data) return notFound()
+  // Unpublished between the existence check and this read: too late for a
+  // 404 status here, so render nothing rather than a broken tutorial.
+  if (!data) return null
 
   return (
     <div className="flex grow items-center justify-center max-dt:dr-px-16">

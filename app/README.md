@@ -39,9 +39,12 @@ with a 200 status before the page runs, and a `notFound()` in that page can
 only add a noindex tag, not the 404 status. Every dynamic page here can call
 `notFound()` (`[...slug]` for any unmatched URL, `articles/[slug]` for a slug
 with no document), so each would soft-404 with one. Cost: clicking a link to a
-dynamic route shows nothing new until the server has rendered it. For a
-skeleton, put `<Suspense>` inside the page after its `notFound()` checks, as
-the Sanity example does. `e2e/not-found.e2e.ts` fails if the status regresses.
+dynamic route shows nothing new until the server has rendered it. An in-page
+`<Suspense>` has the same effect on any `notFound()` beneath it, so a page that
+wants a skeleton runs its `notFound()` checks first and opens the boundary
+after them: the Sanity example awaits a cheap existence query, then streams the
+full document inside `<Suspense>`. `e2e/not-found.e2e.ts` fails if the status
+regresses.
 
 The root layout stays a bare shell on purpose: anything added to it is a
 deliberate decision to ship it to `/studio` too. App-flavored concerns

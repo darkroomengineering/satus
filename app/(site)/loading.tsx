@@ -1,6 +1,5 @@
-// No <Wrapper> here: with cacheComponents, this group-level loading fallback
-// must be statically renderable — Wrapper mounts <Theme>, which reads
-// uncached data and fails prerendering. Keep this fallback dependency-free.
+// No <Wrapper> here: this fallback shows while a route streams in, before the
+// theme and Lenis providers exist. Keep it dependency-free.
 export default function Loading() {
   return (
     // <output> carries an implicit role="status", so the role is redundant.

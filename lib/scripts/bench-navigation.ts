@@ -2,9 +2,8 @@
  * Client-side navigation benchmark.
  *
  * Lighthouse audits a single cold page load, which is the wrong instrument for
- * Next's instant-navigation work: `partialPrefetching` and `cachedNavigations`
- * change how fast an ALREADY-LOADED app swaps routes, and a load audit never
- * navigates. This measures that instead.
+ * Next's prefetching and router-cache settings: they change how fast an
+ * ALREADY-LOADED app swaps routes, and a load audit never navigates. This measures that instead.
  *
  * For each run it clicks a real <Link> and records:
  *
@@ -146,7 +145,7 @@ async function main() {
     await page.goto(`${BASE}${scenario.from}`, { waitUntil: 'load' })
     await heading(page, scenario.fromHeading).waitFor()
 
-    // Let prefetching settle. This is the whole point of the flags — the shell
+    // Let prefetching settle. This is the whole point of prefetching — the shell
     // should already be in the client cache before the click happens.
     await page.waitForTimeout(1000)
 

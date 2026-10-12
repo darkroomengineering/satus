@@ -175,8 +175,7 @@ export interface CmsRoutesResult {
  *
  * Reads through `sanityFetchPublished`, which is cached under the `sanity`
  * tag until the publish webhook: crawlers never see draft content, so there's
- * no draft mode to branch on here, unlike a rendered page. That entry is the
- * only cache layer this function needs, so it has no `'use cache'` of its own.
+ * no draft mode to branch on here, unlike a rendered page.
  */
 async function fetchCmsRoutesResult(): Promise<CmsRoutesResult> {
   if (!isConfigured('sanity')) return { routes: [], degraded: false }

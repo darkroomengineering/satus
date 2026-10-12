@@ -22,8 +22,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    // Dev server never exercises prod-only next.config.ts flags (e.g.
-    // cacheComponents), so CI runs against a real production build.
+    // Dev server never exercises prod-only behavior (static prerendering,
+    // the Data Cache), so CI runs against a real production build.
     command: process.env.CI ? 'bun run build && bun run start' : 'bun run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,

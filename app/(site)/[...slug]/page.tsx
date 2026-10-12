@@ -11,7 +11,7 @@ import { getLinkAttributes } from '@/integrations/sanity/utils/link'
 import { generateSanityMetadata } from '@/utils/metadata'
 
 /**
- * `sanityFetch` owns its cache boundary: published reads are cached under the
+ * `sanityFetch` sets its own caching: published reads are cached under the
  * `sanity` tag until the publish webhook, draft mode reads uncached.
  *
  * Declared as `const` (not `function`) so the sanity bundle's strip transform

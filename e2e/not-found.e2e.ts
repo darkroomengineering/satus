@@ -5,8 +5,8 @@ import { expect, test } from '@playwright/test'
  * The `/ai` route's generic smoke (render, console errors, a11y) is now
  * covered by `e2e/route-sweep.e2e.ts` — it's a static page like any other.
  * This file keeps only what the sweep can't generate: the 404 route's
- * bespoke soft-404 assertions below, which need real knowledge of Cache
- * Components' status-line behavior, not a copy-pastable smoke.
+ * bespoke soft-404 assertions below, which need real knowledge of how a
+ * streamed response sets its status line, not a copy-pastable smoke.
  */
 
 test.describe('branded 404', () => {
@@ -28,17 +28,16 @@ test.describe('branded 404', () => {
 
     const response = await page.goto('/this-route-does-not-exist-e2e')
 
-    // Empirically verified (both `next dev` and a `next build && next start`
-    // production run, via curl and Playwright): this route's top-level
-    // document response is HTTP 200, not 404. Cache Components (PPR, enabled
-    // globally — see AGENTS.md "Next.js 16 Cache Components") prerenders the
-    // route's static shell and flushes its 200 status before the dynamic
-    // hole resolves; `notFound()` runs inside that hole, so by the time it's
-    // known the response is a 404, the status line was already sent. This is
-    // a genuine soft-404 (curl shows a `NEXT_HTTP_ERROR_FALLBACK;404` marker
-    // and a `<meta name="robots" content="noindex">` tag in the same
-    // response), not a test bug — assert the real status plus the noindex
-    // signal, rather than the 404 status this route cannot produce.
+    // Verified on a `next build && next start` production run with curl:
+    // this route's document response is HTTP 200, not 404.
+    // `app/(site)/loading.tsx` wraps every page in the group in a Suspense
+    // boundary, so the response starts streaming the layout and the loading
+    // fallback with a 200 status before the `[...slug]` page runs;
+    // `notFound()` runs after the status line was already sent. Deleting
+    // that loading.tsx makes this route return a real 404 (checked the same
+    // way). This is a genuine soft-404 (the same response carries a
+    // `<meta name="robots" content="noindex">` tag), not a test bug: assert
+    // the real status plus the noindex signal.
     expect(response?.status()).toBe(200)
 
     // `networkidle` never settles here — the WebGL scene and the dev HMR
@@ -49,7 +48,7 @@ test.describe('branded 404', () => {
 
     // The noindex signal Next.js injects for a page resolved via notFound() —
     // the actual "this is a 404" marker crawlers see, since the HTTP status
-    // itself can't carry it (see comment above). Scoped to the noindex meta
+    // itself doesn't carry it (see comment above). Scoped to the noindex meta
     // rather than all robots metas: the layout's SEO defaults can emit their
     // own robots tag, and matching the pair trips Playwright's strict mode.
     await expect(

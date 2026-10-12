@@ -9,7 +9,8 @@ import { sanityFetchPublished } from './published'
 
 /**
  * The one way a page reads Sanity content. Call it straight from a Server
- * Component or `generateMetadata`; it owns its cache boundary.
+ * Component or `generateMetadata`; it sets its own caching, and the page and
+ * its metadata share one cached response.
  *
  * Published content is cached until the publish webhook (see
  * `sanityFetchPublished`). In draft mode, with `SANITY_API_READ_TOKEN` set, it

@@ -20,13 +20,13 @@ import { formatList, SITE } from '@/lib/seo/site'
  * `getCmsRoutes()` that feeds `app/sitemap.ts`, so both surfaces describe
  * the same set of pages.
  *
- * No `export const dynamic = 'force-static'` here — this project runs
- * Next's Cache Components (`cacheComponents: true`), which forbids the
- * classic route segment config. `'use cache'` on the body builder is the
- * Cache Components equivalent. It has to wrap the plain-string builder
- * rather than the handler itself: a `'use cache'` boundary serializes its
- * return value, and a `Response` instance is not a plain object.
+ * Prerendered at build time: GET handlers are dynamic unless they opt in.
+ * The Sanity read behind `getCmsRoutes()` carries the `sanity` tag, so the
+ * publish webhook regenerates this file too. Cost: `force-static` makes
+ * request APIs (`headers()`, `cookies()`) return empty here, so this handler
+ * can never vary by request.
  */
+export const dynamic = 'force-static'
 
 function buildAbout(): string {
   const clauses: string[] = []
@@ -48,7 +48,6 @@ function buildAbout(): string {
 }
 
 async function buildBody(): Promise<string> {
-  'use cache'
   const cmsRoutes = await getCmsRoutes()
 
   return `# ${SITE.name}

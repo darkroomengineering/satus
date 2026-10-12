@@ -204,19 +204,27 @@ async function fetchCmsRoutesResult(): Promise<CmsRoutesResult> {
  * mostly a first or cache-cleared build. Also the published route list the
  * CMS pages check before fetching (`isKnownCmsPath`), so those pages error
  * during an outage too.
+ *
+ * `load` exists for tests, which pass a failing loader instead of mocking
+ * the Sanity module; callers pass nothing.
  */
-export async function getCmsRoutes(): Promise<ContentRoute[]> {
-  return (await fetchCmsRoutesResult()).routes
+export async function getCmsRoutes(
+  load: () => Promise<CmsRoutesResult> = fetchCmsRoutesResult
+): Promise<ContentRoute[]> {
+  return (await load()).routes
 }
 
 /**
  * Outage-aware accessor for the per-request Markdown handler
  * (markdown-document.ts): a failed fetch returns `degraded: true` instead of
- * throwing. See `CmsRoutesResult.degraded`.
+ * throwing. See `CmsRoutesResult.degraded`. `load` is the same test seam as
+ * `getCmsRoutes`'s.
  */
-export async function getCmsRoutesResult(): Promise<CmsRoutesResult> {
+export async function getCmsRoutesResult(
+  load: () => Promise<CmsRoutesResult> = fetchCmsRoutesResult
+): Promise<CmsRoutesResult> {
   try {
-    return await fetchCmsRoutesResult()
+    return await load()
   } catch (error) {
     console.error(
       '[seo/routes] Sanity fetch failed, omitting CMS routes:',

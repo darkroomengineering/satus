@@ -9,9 +9,15 @@
  * Run with: bun test lib/seo/routes.test.ts
  */
 
-import { describe, expect, it } from 'bun:test'
+import { describe, expect, it, spyOn } from 'bun:test'
 
-import { buildRoutesFromDocuments, STATIC_ROUTES } from './routes'
+import {
+  buildRoutesFromDocuments,
+  type CmsRoutesResult,
+  getCmsRoutes,
+  getCmsRoutesResult,
+  STATIC_ROUTES,
+} from './routes'
 
 describe('buildRoutesFromDocuments', () => {
   it('skips a single malformed document without dropping the valid ones', () => {
@@ -210,5 +216,59 @@ describe('buildRoutesFromDocuments', () => {
     expect(routes.map((route) => route.path)).toEqual(
       safeSlugs.map((slug) => `/${slug}`)
     )
+  })
+})
+
+/**
+ * The two accessors split on purpose: the static surfaces (sitemap.xml,
+ * llms.txt, `/ai`) must throw so Next keeps the last good copy, and the
+ * per-request Markdown handler must not throw so it can answer 503. Ways
+ * that split could break, written before the loader seam existed:
+ *
+ * 1. `getCmsRoutes` swallows a failed fetch and returns `[]`, so a static
+ *    surface stores a copy without CMS routes for up to 30 days.
+ * 2. `getCmsRoutesResult` lets the failure escape, so the Markdown handler
+ *    500s instead of answering 503.
+ * 3. `getCmsRoutesResult` reports a failure as `degraded: false`, so the
+ *    Markdown handler 404s routes that exist once the outage clears.
+ * 4. Either accessor alters or drops the routes of a successful fetch.
+ * 5. A successful fetch is reported as degraded.
+ *
+ * The loader is injected (`load`), not mocked: a rejecting loader stands in
+ * for a configured Sanity whose fetch fails.
+ */
+describe('getCmsRoutes / getCmsRoutesResult outage split', () => {
+  const outage = () => Promise.reject(new Error('sanity unreachable'))
+  const route = {
+    path: '/about',
+    label: 'About',
+    lastModified: new Date('2026-01-01T00:00:00.000Z'),
+  }
+  const healthy = (): Promise<CmsRoutesResult> =>
+    Promise.resolve({ routes: [route], degraded: false })
+
+  it('getCmsRoutes throws when the fetch fails (1)', async () => {
+    await expect(getCmsRoutes(outage)).rejects.toThrow('sanity unreachable')
+  })
+
+  it('getCmsRoutesResult returns degraded instead of throwing (2, 3)', async () => {
+    const errorLog = spyOn(console, 'error').mockImplementation(() => undefined)
+    try {
+      expect(await getCmsRoutesResult(outage)).toEqual({
+        routes: [],
+        degraded: true,
+      })
+      expect(errorLog).toHaveBeenCalledTimes(1)
+    } finally {
+      errorLog.mockRestore()
+    }
+  })
+
+  it('both pass a successful fetch through untouched (4, 5)', async () => {
+    expect(await getCmsRoutes(healthy)).toEqual([route])
+    expect(await getCmsRoutesResult(healthy)).toEqual({
+      routes: [route],
+      degraded: false,
+    })
   })
 })

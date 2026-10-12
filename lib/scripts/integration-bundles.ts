@@ -318,7 +318,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
           {
             kind: 'replaceFunctionBody',
             functionName: 'getCmsRoutes',
-            replacement: '{\n  return []\n}',
+            replacement: '{\n  void load\n  return []\n}',
             required: true,
           },
           {
@@ -330,7 +330,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
           {
             kind: 'replaceFunctionBody',
             functionName: 'getCmsRoutesResult',
-            replacement: '{\n  return fetchCmsRoutesResult()\n}',
+            replacement: '{\n  return load()\n}',
             required: true,
           },
         ],

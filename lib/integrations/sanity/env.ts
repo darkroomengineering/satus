@@ -11,8 +11,8 @@
  *
  * Deliberately reads `process.env.NEXT_PUBLIC_SANITY_API_VERSION` directly
  * (not via `env` from `@/lib/env`) — this module is bundled client-side
- * through `sanity.config.ts` -> `app/studio/[[...tool]]/page.tsx` (a
- * `'use client'` file with no client-boundary component in between), and
+ * through `sanity.config.ts`, which `app/studio/[[...tool]]/studio.tsx` (the
+ * Studio's `'use client'` boundary) imports, and
  * `lib/env.ts` parses the whole `process.env` object rather than individual
  * literal `process.env.NEXT_PUBLIC_X` expressions, so it isn't safe to
  * import into code that reaches the client bundle. The value IS still

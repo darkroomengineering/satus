@@ -61,4 +61,4 @@ import { Image } from '@/components/ui/image'
 - `sizes` is mandatory too: pick `mobileSize`+`desktopSize`, or a raw `sizes` string — same reasoning, same enforcement
 - Use `preload` for LCP images
 - Never use `next/image` directly
-- Images on `cdn.sanity.io` skip Next's optimizer: `sanity-loader.ts` has Sanity's CDN resize each `srcset` width, as WebP. Everything else goes through the optimizer, also as WebP only
+- Images on `cdn.sanity.io` skip Next's optimizer: `sanity-loader.ts` has Sanity's CDN resize each `srcset` width, as WebP. A `cdn.sanity.io/files/` URL (an image uploaded to a `file` field) can't be resized there, so it renders unoptimized, at its original size. Everything else goes through the optimizer, also as WebP only

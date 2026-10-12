@@ -2,7 +2,7 @@
 
 import { useRect } from 'hamo'
 import dynamic from 'next/dynamic'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import {
   Image as DRImage,
@@ -39,7 +39,10 @@ export function Image({
   aspectRatio: _aspectRatio,
   ...props
 }: DRImageProps) {
-  const [src, setSrc] = useState<string>()
+  // The URL the DOM image actually loaded (`currentSrc`, after srcset).
+  const [loadedUrl, setLoadedUrl] = useState<string>()
+  // The cross-origin URL whose CORS probe last finished, and how it went.
+  const [probed, setProbed] = useState<{ url: string; ok: boolean }>()
   const [setRectRef, rect] = useRect()
   const { isWebGL, isReducedMotion } = useDeviceDetection()
 
@@ -56,11 +59,48 @@ export function Image({
   const rootCanvasMounted = useRootCanvasMounted()
   const webglActive = isWebGL && !isReducedMotion && rootCanvasMounted
 
+  // A texture is read with a CORS request (three's loader sets
+  // `crossOrigin = 'anonymous'`), which the DOM image never makes. A host
+  // that refuses this page's origin (Sanity's CDN 403s any origin missing
+  // from the project's CORS list) would leave a hidden DOM image and an
+  // empty plane. So a cross-origin URL gets the same request as a probe
+  // first, and the plane receives a src only once it succeeds; on failure
+  // the DOM image stays visible. Cost: a cross-origin image downloads twice
+  // when its host varies on `Origin`, as Sanity's CDN does (the DOM request
+  // sent none), and the plane appears only after the probe finishes. It
+  // runs only where the plane will render (`webglActive`), so reduced
+  // motion, no WebGL and software renderers never pay it, and same-origin
+  // URLs (`/_next/image`) skip it, as they can't fail CORS.
+  const crossOrigin = loadedUrl !== undefined && !isSameOrigin(loadedUrl)
+  useEffect(() => {
+    if (!(webglActive && loadedUrl && crossOrigin)) return
+    let stale = false
+    const probe = document.createElement('img')
+    probe.crossOrigin = 'anonymous'
+    probe.onload = () => {
+      if (!stale) setProbed({ url: loadedUrl, ok: true })
+    }
+    probe.onerror = () => {
+      if (!stale) setProbed({ url: loadedUrl, ok: false })
+    }
+    probe.src = loadedUrl
+    return () => {
+      // A newer currentSrc, a lost WebGL gate or unmount: drop this result.
+      stale = true
+      probe.onload = null
+      probe.onerror = null
+    }
+  }, [webglActive, loadedUrl, crossOrigin])
+
+  const corsOk =
+    !crossOrigin || (probed?.url === loadedUrl && probed.ok === true)
+  const src = webglActive && loadedUrl && corsOk ? loadedUrl : undefined
+
   return (
     <div
       className={className}
       style={{
-        opacity: src && webglActive ? 0 : 1,
+        opacity: src ? 0 : 1,
         position: 'relative',
       }}
       ref={setRectRef}
@@ -71,10 +111,14 @@ export function Image({
       <DRImage
         {...props}
         onLoad={(img: React.SyntheticEvent<HTMLImageElement>) => {
-          setSrc(img.currentTarget.currentSrc)
+          setLoadedUrl(img.currentTarget.currentSrc)
         }}
         fill
       />
     </div>
   )
+}
+
+function isSameOrigin(url: string) {
+  return new URL(url, window.location.href).origin === window.location.origin
 }

@@ -159,7 +159,7 @@ function MyComponent({ data }) {
 ### Image Handling
 
 ```tsx
-import { stegaClean } from '@sanity/client/stega'
+import { stegaClean } from 'next-sanity'
 import { urlForImage } from '@/integrations/sanity/utils/image'
 import { Image } from '@/components/ui/image'
 import { SanityImage } from '@/components/ui/sanity-image'
@@ -171,9 +171,11 @@ import { SanityImage } from '@/components/ui/sanity-image'
 <SanityImage image={image} maxWidth={800} />
 ```
 
-Every image field carries an editor-written `alt`, defined once as `altField` in `schemas/fields.ts`; add it to a new image field's `fields`. It's optional, and an empty one renders `alt=""`, which marks the image as decorative. Rich text images override it to required. Project `alt` in the query (a bare `image` or `...` projection already includes it). Run it through `stegaClean` before it reaches the DOM: in draft mode every Sanity string carries hidden edit markers. Import `stegaClean` from `@sanity/client/stega` in client components, since `next-sanity`'s root entry pulls the whole client into the bundle.
+Every image field carries an editor-written `alt`, defined once as `altField` in `schemas/fields.ts`; add it to a new image field's `fields`. It's optional, and an empty one renders `alt=""`, which marks the image as decorative. Rich text images override it to required. Project `alt` in the query (a bare `image` or `...` projection already includes it). Run it through `stegaClean` before it reaches the DOM: in draft mode every Sanity string carries hidden edit markers. Import it from `next-sanity`, as the rest of the repo does. Two of these alt fields reach no page yet: no query reads the navigation document, so `socials[].logo` never renders, and `metadata.image` isn't dereferenced into the Open Graph tags (see `generateSanityMetadata`). Wire them through `SanityImage` when a fork renders either.
 
 `Image` gives any `cdn.sanity.io` URL a loader (`components/ui/image/sanity-loader.ts`): Sanity's CDN resizes each `srcset` width itself, as WebP, and Next's optimizer never sees the image (`cdn.sanity.io` is not in `images.remotePatterns`). The loader sets `w` per candidate, so a width on the URL is overwritten; a `rect` crop is kept. `SanityImage` also takes the aspect ratio from the editor's crop and keeps their hotspot in view under `object-cover`.
+
+The WebGL `Image` (`@/webgl/components/image`) loads its texture from the same `cdn.sanity.io` URL with a CORS request, and Sanity's CDN answers an origin missing from the project's CORS list with a 403. Add every origin the site is served from to the project's CORS origins (manage.sanity.io > API > CORS origins), including a wildcard for preview deploys (`https://*.vercel.app`) and `http://localhost:3000`. No credentials are needed. A refused origin falls back to the plain DOM image, so the only symptom is a missing WebGL effect.
 
 A raw `<img>` is not an option here — oxlint's `nextjs/no-img-element` rule rejects it project-wide.
 
@@ -182,12 +184,18 @@ A raw `<img>` is not an option here — oxlint's `nextjs/no-img-element` rule re
 Reuse the same `'use cache'` loader so the document is fetched once per request:
 
 ```tsx
+import { stegaClean } from 'next-sanity'
 import { generateSanityMetadata } from '@/lib/utils/metadata'
 
 export async function generateMetadata({ params }) {
   const { slug } = await params
   const { data } = await fetchPageForRequest(slug) // the helper from above
-  return generateSanityMetadata({ document: data, url: `/page/${slug}` })
+  // Clean first: in draft mode every string carries hidden edit markers, and
+  // the helper doesn't clean for itself.
+  return generateSanityMetadata({
+    document: stegaClean(data),
+    url: `/page/${slug}`,
+  })
 }
 ```
 

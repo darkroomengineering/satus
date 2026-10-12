@@ -38,7 +38,6 @@ export type {
   RemoveJsxElementOp,
   RemoveNamedImportOp,
   RemoveTryStatementOp,
-  RemoveUseCacheDirectiveOp,
   RemoveVariableStatementOp,
   ReplaceFunctionBodyOp,
   ReplaceJsDocOp,

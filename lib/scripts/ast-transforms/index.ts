@@ -43,12 +43,10 @@ import {
   applyRemoveJsxElement,
   applyRemoveNamedImport,
   applyRemoveTryStatement,
-  applyRemoveUseCacheDirective,
   applyRemoveVariableStatement,
   applyReplaceFunctionBody,
   applyReplaceJsDoc,
 } from './remove-ops'
-import { applySetObjectProperty } from './set-ops'
 
 // ---------------------------------------------------------------------------
 // Required-match contract
@@ -94,16 +92,12 @@ function describeOp(op: AstOperation): string {
       return `removeIfStatement '${op.conditionContains}'`
     case 'removeTryStatement':
       return `removeTryStatement '${op.blockContains}'`
-    case 'removeUseCacheDirective':
-      return `removeUseCacheDirective on '${op.functionName}'`
     case 'replaceFunctionBody':
       return `replaceFunctionBody on '${op.functionName}'`
     case 'removeArrayObjectElement':
       return `removeArrayObjectElement '${op.matchProperty.name}=${op.matchProperty.value}' from '${op.variableName}.${op.propertyPath}'`
     case 'removeArrayStringElement':
       return `removeArrayStringElement '${op.value}' from '${op.variableName}.${op.propertyPath}'`
-    case 'setObjectProperty':
-      return `setObjectProperty '${op.variableName}.${op.propertyPath}'`
     case 'addImport':
       return `addImport '${op.text}'`
     case 'addArrayStringElement':
@@ -138,8 +132,7 @@ function describeOp(op: AstOperation): string {
  * Kinds whose target IS the whole construct (an import, a variable
  * statement, a JSX element) have no container to probe — absence is
  * genuinely ambiguous there, and the function returns false (tolerated).
- * Each probe mirrors the corresponding handler's lookup in remove-ops.ts /
- * set-ops.ts, so "container present" means the handler would have found it.
+ * Each probe mirrors the corresponding handler's lookup in remove-ops.ts, so "container present" means the handler would have found it.
  *
  * Caveat this encodes: a container-anchored required op assumes no sibling
  * transform removes its container — if one did, the retry would read the
@@ -162,26 +155,6 @@ function missedRequiredOpAnchorAbsent(
   }
 
   switch (op.kind) {
-    // Stricter than function-exists: this op only runs when Cache Components
-    // is being disabled, which requires EVERY `'use cache'` boundary in the
-    // file to be gone (see the op's docstring). A directive that merely MOVED
-    // to another function leaves the named function standing directive-less —
-    // indistinguishable from already-applied by the container probe alone —
-    // so any surviving directive anywhere in the file is also drift.
-    case 'removeUseCacheDirective':
-      return probe(
-        (sf) =>
-          sf.getFunction(op.functionName) !== undefined &&
-          !sf
-            .getDescendantsOfKind(SyntaxKind.ExpressionStatement)
-            .some(
-              (stmt) =>
-                stmt
-                  .getExpression()
-                  .asKind(SyntaxKind.StringLiteral)
-                  ?.getLiteralValue() === 'use cache'
-            )
-      )
     case 'replaceFunctionBody':
     case 'replaceJsDoc':
     case 'removeFunctionParameter':
@@ -226,7 +199,6 @@ function missedRequiredOpAnchorAbsent(
       )
     case 'removeArrayObjectElement':
     case 'removeArrayStringElement':
-    case 'setObjectProperty':
       return probe(
         (sf) =>
           resolvePropertyPath(sf, op.variableName, op.propertyPath) !==
@@ -267,12 +239,12 @@ function missedRequiredOpAnchorAbsent(
  *   `git checkout`.
  *
  * A byte-identical file gets one more check before passing: a missed
- * required op whose CONTAINER construct is gone (a `'use cache'` directive
- * whose named function no longer exists, an interface property whose
- * interface is missing) is provable drift — the already-applied case leaves
+ * required op whose CONTAINER construct is gone (a function body whose
+ * named function no longer exists, an interface property whose interface is
+ * missing) is provable drift — the already-applied case leaves
  * the container standing — and throws even with no other change. See
  * `missedRequiredOpAnchorAbsent`. This is what keeps a single-op required
- * transform (e.g. `CACHE_COMPONENTS_LLMS_TXT_TRANSFORM`) protected: it can
+ * transform protected: it can
  * never trip the partial-application signal, so the anchor probe is its
  * only drift detection.
  *
@@ -343,9 +315,6 @@ export function applyOpsToText(
       case 'removeTryStatement':
         text = applyRemoveTryStatement(project, text, op)
         break
-      case 'removeUseCacheDirective':
-        text = applyRemoveUseCacheDirective(project, text, op)
-        break
       case 'replaceFunctionBody':
         text = applyReplaceFunctionBody(project, text, op)
         break
@@ -354,9 +323,6 @@ export function applyOpsToText(
         break
       case 'removeArrayStringElement':
         text = applyRemoveArrayStringElement(project, text, op)
-        break
-      case 'setObjectProperty':
-        text = applySetObjectProperty(project, text, op)
         break
       case 'addImport':
         text = applyAddImport(project, text, op)

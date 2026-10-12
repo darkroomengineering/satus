@@ -86,22 +86,6 @@ export interface RemoveTryStatementOp extends RequiredMatchOp {
 }
 
 /**
- * Remove a `'use cache'` directive that sits as the first statement of a
- * named function's body. No-op when the function isn't found or its first
- * statement isn't a `'use cache'` directive.
- *
- * Used to keep a `'use cache'` boundary from becoming a hard Next.js compile
- * error once Cache Components is disabled (`cacheComponents: false` requires
- * every `'use cache'` boundary in the app to be gone too) — see
- * `setupCacheComponentsOptOut`.
- */
-export interface RemoveUseCacheDirectiveOp extends RequiredMatchOp {
-  kind: 'removeUseCacheDirective'
-  /** Name of the function whose leading directive to remove, e.g. 'buildBody' */
-  functionName: string
-}
-
-/**
  * Replace the entire body of a named function with `replacement` (source
  * text including the surrounding braces, e.g. `{ return [] }`). Used to gut a
  * function down to a lean stub when the codeTransform machinery can't express
@@ -293,41 +277,6 @@ export interface RemoveArrayStringElementOp extends RequiredMatchOp {
 }
 
 // ---------------------------------------------------------------------------
-// Mutating operations
-// Unlike the additive ops below, these never create a construct that doesn't
-// already exist — they overwrite an existing value in place.
-// ---------------------------------------------------------------------------
-
-/**
- * Set an existing property's value in an object literal at
- * `variableName`.`propertyPath` (dot-separated, walking nested object
- * properties, e.g. `'experimental.cachedNavigations'`). Overwrites the
- * property's current initializer with `valueText`, inserted verbatim as
- * source text — callers are responsible for quoting (e.g. `'false'` for a
- * boolean, `"'some string'"` for a string literal).
- *
- * Designed for flipping a `next.config.ts` flag conditionally, e.g. turning
- * `cacheComponents` off when no kept integration benefits from it.
- *
- * No-op (returns the source unchanged) when `variableName`/`propertyPath`
- * doesn't resolve to an existing property, or the property's current value
- * already equals `valueText` — see `applySetObjectProperty`'s doc for the
- * exact conditions.
- */
-export interface SetObjectPropertyOp extends RequiredMatchOp {
-  kind: 'setObjectProperty'
-  /** The variable name that holds the object, e.g. `'nextConfig'`. */
-  variableName: string
-  /**
-   * Dot-separated path from the variable declaration down to the property
-   * to set, e.g. `'cacheComponents'` or `'experimental.cachedNavigations'`.
-   */
-  propertyPath: string
-  /** Replacement value, as source text, e.g. `'false'`. */
-  valueText: string
-}
-
-// ---------------------------------------------------------------------------
 // Additive operations (inverse of the removals above)
 // Every additive op is IDEMPOTENT: when the construct it would add is already
 // present, the source text is returned byte-for-byte unchanged, so applying
@@ -505,11 +454,9 @@ export type AstOperation =
   | ReplaceJsDocOp
   | RemoveIfStatementOp
   | RemoveTryStatementOp
-  | RemoveUseCacheDirectiveOp
   | ReplaceFunctionBodyOp
   | RemoveArrayObjectElementOp
   | RemoveArrayStringElementOp
-  | SetObjectPropertyOp
   | AddImportOp
   | AddArrayStringElementOp
   | AddArrayObjectElementOp

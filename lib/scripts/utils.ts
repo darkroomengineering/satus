@@ -5,7 +5,7 @@
  * Works on Windows, macOS, and Linux.
  */
 
-import { access, mkdir, rm } from 'node:fs/promises'
+import { access, rm } from 'node:fs/promises'
 
 import { z } from 'zod'
 
@@ -153,14 +153,6 @@ export const removeFile = async (
     return false
   }
   return true
-}
-
-/**
- * Create a directory (and parent directories if needed)
- * @param path - Relative path from project root
- */
-export const createDir = async (path: string): Promise<void> => {
-  await mkdir(resolvePath(path), { recursive: true })
 }
 
 // ============================================================================

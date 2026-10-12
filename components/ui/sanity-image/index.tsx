@@ -1,7 +1,5 @@
 import { getImageDimensions } from '@sanity/asset-utils'
-// Not `next-sanity`: its root entry re-exports the whole client, and this
-// component can be rendered from a client component.
-import { stegaClean } from '@sanity/client/stega'
+import { stegaClean } from 'next-sanity'
 
 import { Image, type ImageProps } from '@/components/ui/image'
 import type {

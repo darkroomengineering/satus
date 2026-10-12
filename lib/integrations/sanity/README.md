@@ -159,7 +159,7 @@ function MyComponent({ data }) {
 ### Image Handling
 
 ```tsx
-import { stegaClean } from '@sanity/client/stega'
+import { stegaClean } from 'next-sanity'
 import { urlForImage } from '@/integrations/sanity/utils/image'
 import { Image } from '@/components/ui/image'
 import { SanityImage } from '@/components/ui/sanity-image'
@@ -171,7 +171,7 @@ import { SanityImage } from '@/components/ui/sanity-image'
 <SanityImage image={image} maxWidth={800} />
 ```
 
-Every image field carries an editor-written `alt`, defined once as `altField` in `schemas/fields.ts`; add it to a new image field's `fields`. It's optional, and an empty one renders `alt=""`, which marks the image as decorative. Rich text images override it to required. Project `alt` in the query (a bare `image` or `...` projection already includes it). Run it through `stegaClean` before it reaches the DOM: in draft mode every Sanity string carries hidden edit markers. Import `stegaClean` from `@sanity/client/stega` in client components, since `next-sanity`'s root entry pulls the whole client into the bundle.
+Every image field carries an editor-written `alt`, defined once as `altField` in `schemas/fields.ts`; add it to a new image field's `fields`. It's optional, and an empty one renders `alt=""`, which marks the image as decorative. Rich text images override it to required. Project `alt` in the query (a bare `image` or `...` projection already includes it). Run it through `stegaClean` before it reaches the DOM: in draft mode every Sanity string carries hidden edit markers. Import it from `next-sanity`, as the rest of the repo does.
 
 `Image` gives any `cdn.sanity.io` URL a loader (`components/ui/image/sanity-loader.ts`): Sanity's CDN resizes each `srcset` width itself, as WebP, and Next's optimizer never sees the image (`cdn.sanity.io` is not in `images.remotePatterns`). The loader sets `w` per candidate, so a width on the URL is overwritten; a `rect` crop is kept. `SanityImage` also takes the aspect ratio from the editor's crop and keeps their hotspot in view under `object-cover`.
 

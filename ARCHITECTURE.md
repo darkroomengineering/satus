@@ -63,7 +63,7 @@ Config lives in `oxlint.config.ts` and `oxfmt.config.ts` rather than JSON, so `b
 
 ## Caching
 
-`cacheComponents` is off. Pages without request-time reads are prerendered as static HTML, and data is cached per fetch in Next's Data Cache: a cached read passes `next: { tags }` with a `revalidate` backstop. A CMS or Shopify webhook hits `POST /api/revalidate`, which calls `revalidateTag()` to expire the tag, and with it every static page whose render read that tag. Each integration sets its caching in its own data layer (Shopify's catalog readers, Sanity's `sanityFetchPublished`), so pages call them directly.
+`cacheComponents` is off. Pages without request-time reads are prerendered as static HTML, and data is cached per fetch in Next's Data Cache: a cached read passes `next: { tags, revalidate }` (or `cache: 'force-cache'` with the tags); tags alone are not cached at request time. A CMS or Shopify webhook hits `POST /api/revalidate`, which calls `revalidateTag()` to expire the tag, and with it every static page whose render read that tag. Each integration sets its caching in its own data layer (Shopify's catalog readers, Sanity's `sanityFetchPublished`), so pages call them directly.
 
 The trade-off is Partial Prerendering. A route that reads `params` without `generateStaticParams`, cookies or headers renders fully per request instead of streaming into a prerendered shell. Its data still comes from the Data Cache, so it costs a render, not a CMS round trip.
 

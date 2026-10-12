@@ -132,7 +132,8 @@ function describeOp(op: AstOperation): string {
  * Kinds whose target IS the whole construct (an import, a variable
  * statement, a JSX element) have no container to probe — absence is
  * genuinely ambiguous there, and the function returns false (tolerated).
- * Each probe mirrors the corresponding handler's lookup in remove-ops.ts, so "container present" means the handler would have found it.
+ * Each probe mirrors the corresponding handler's lookup in remove-ops.ts,
+ * so "container present" means the handler would have found it.
  *
  * Caveat this encodes: a container-anchored required op assumes no sibling
  * transform removes its container — if one did, the retry would read the

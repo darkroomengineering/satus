@@ -310,9 +310,27 @@ export const INTEGRATION_BUNDLES = defineBundles({
             required: true,
           },
           {
+            kind: 'replaceJsDoc',
+            functionName: 'getCmsRoutes',
+            replacement: `/** Routes for sitemap.xml, llms.txt and \`/ai\`: none without a CMS. */`,
+            required: true,
+          },
+          {
             kind: 'replaceFunctionBody',
             functionName: 'getCmsRoutes',
             replacement: '{\n  return []\n}',
+            required: true,
+          },
+          {
+            kind: 'replaceJsDoc',
+            functionName: 'getCmsRoutesResult',
+            replacement: `/** Accessor for the Markdown handler; never degraded without a CMS. */`,
+            required: true,
+          },
+          {
+            kind: 'replaceFunctionBody',
+            functionName: 'getCmsRoutesResult',
+            replacement: '{\n  return fetchCmsRoutesResult()\n}',
             required: true,
           },
         ],

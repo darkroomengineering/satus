@@ -235,7 +235,7 @@ completes. Retain explicit WebGL capability and load gates.
 
 ### Caching
 
-`cacheComponents` is off in `next.config.ts`, and with it `partialPrefetching` and `cachedNavigations`, which need it. Pages without request-time reads are prerendered as static HTML; routes that read `params` without `generateStaticParams`, cookies or headers render per request. Data is cached per fetch: a cached read passes `next: { tags }` (plus `revalidate` as a backstop), and a webhook hits `POST /api/revalidate`, which calls `revalidateTag()` to expire the tag and every static page built from it. Draft mode bypasses the static pages and reads uncached. See ARCHITECTURE.md § Caching for the diagram.
+`cacheComponents` is off in `next.config.ts`, and with it `partialPrefetching` and `cachedNavigations`, which need it. Pages without request-time reads are prerendered as static HTML; routes that read `params` without `generateStaticParams`, cookies or headers render per request. Data is cached per fetch: a cached read passes `next: { tags, revalidate }` (or `cache: 'force-cache'` with the tags); tags alone are not cached at request time. A webhook hits `POST /api/revalidate`, which calls `revalidateTag()` to expire the tag and every static page built from it. Draft mode bypasses the static pages and reads uncached. See ARCHITECTURE.md § Caching for the diagram.
 
 Rules:
 

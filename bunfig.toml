@@ -5,3 +5,13 @@ env = false
 
 [test]
 preload = ["./lib/scripts/test-setup.ts"]
+
+[install]
+# Install only package versions published at least 3 days ago (259200 s).
+# A compromised release is usually pulled within hours, so this keeps one out
+# of the lockfile. Dependabot's `cooldown` in .github/dependabot.yml matches
+# it, so version-update PRs never ask for a version Bun would refuse.
+# Cost: Dependabot security updates ignore the cooldown, so a fix published
+# less than 3 days ago fails `bun install`; add that package to
+# `minimumReleaseAgeExcludes` until it ages past the window, then remove it.
+minimumReleaseAge = 259200

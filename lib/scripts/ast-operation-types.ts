@@ -474,13 +474,20 @@ export interface AddDestructuredBindingOp extends RequiredMatchOp {
  * statement containing `marker` already exists in the body (idempotency
  * check, mirrors `addVariableStatement`'s name-based check).
  *
- * Positioning: when `afterContains` is given and a statement containing that
- * substring exists, `text` is inserted immediately after it — a stable
- * anchor independent of what other additive ops have already inserted.
- * Otherwise, when `beforeContains` is given and matches, `text` is inserted
- * on its own lines immediately before that statement (the way to land ahead
- * of a terminal return). Otherwise `text` is appended as the body's last
- * statement.
+ * Positioning, first match wins:
+ *
+ * - `afterContains`: `text` goes immediately after the first statement
+ *   containing that substring.
+ * - `beforeContains`: `text` goes on its own lines immediately before the
+ *   first statement containing the substring, ahead of that statement's
+ *   leading comments (the way to land ahead of a terminal return). An array
+ *   is a list of candidates tried in order, so an op can prefer one anchor
+ *   and fall back to another.
+ * - Neither given: `text` is appended as the body's last statement.
+ *
+ * An anchor that is given but matches no statement is a miss: the source
+ * comes back unchanged, so a `required` op reports it instead of landing
+ * somewhere nobody chose (after a terminal return, as dead code).
  */
 export interface AddFunctionBodyStatementOp extends RequiredMatchOp {
   kind: 'addFunctionBodyStatement'
@@ -492,8 +499,11 @@ export interface AddFunctionBodyStatementOp extends RequiredMatchOp {
   marker: string
   /** Optional anchor: insert immediately after the statement containing this substring. */
   afterContains?: string
-  /** Optional anchor: insert immediately before the statement containing this substring. */
-  beforeContains?: string
+  /**
+   * Optional anchor: insert immediately before the statement containing this
+   * substring (or the first candidate of an array that matches).
+   */
+  beforeContains?: string | readonly string[]
 }
 
 export type AstOperation =

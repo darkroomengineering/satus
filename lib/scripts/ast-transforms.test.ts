@@ -226,20 +226,16 @@ function b() {
 // ---------------------------------------------------------------------------
 
 describe('Shopify webhook dispatch strip (composed ops)', () => {
-  const routeFixture = `import { revalidateTag } from 'next/cache'
-import { type NextRequest, NextResponse } from 'next/server'
-import { parseBody } from 'next-sanity/webhook'
+  // The current route shape (app/api/revalidate/route.ts): two provider
+  // guard + dispatch pairs and a provider-neutral 404 fallback, no rate limit.
+  const routeFixture = `import { type NextRequest, NextResponse } from 'next/server'
+
+import { revalidate as sanityRevalidate } from '@/integrations/sanity/revalidate'
 import { revalidate as shopifyRevalidate } from '@/integrations/shopify/revalidate'
-import { getClientIP, rateLimit, rateLimiters } from '@/lib/utils/rate-limit'
 
 export async function POST(request: NextRequest) {
-  const ip = getClientIP(request)
-  const rateLimitResult = rateLimit(\`revalidate:\${ip}\`, rateLimiters.standard)
-
-  if (!rateLimitResult.success) {
-    return new Response('Too many requests', { status: 429 })
-  }
-
+  // Shopify webhooks identify themselves with an \`x-shopify-topic\` header and
+  // always carry a \`secret\` query param.
   const isShopifyWebhook =
     request.headers.has('x-shopify-topic') ||
     request.nextUrl.searchParams.has('secret')
@@ -248,15 +244,17 @@ export async function POST(request: NextRequest) {
     return shopifyRevalidate(request)
   }
 
-  try {
-    const secret = process.env.SANITY_REVALIDATE_SECRET
-    if (!secret) {
-      return new Response('Webhook secret not configured', { status: 503 })
-    }
-    return NextResponse.json({ status: 200 })
-  } catch (error) {
-    return new Response('Internal Server Error', { status: 500 })
+  // Sanity signs its webhook body and sends the signature in this header.
+  const isSanityWebhook = request.headers.has('sanity-webhook-signature')
+
+  if (isSanityWebhook) {
+    return sanityRevalidate(request)
   }
+
+  return NextResponse.json(
+    { data: null, error: 'No webhook handler configured' },
+    { status: 404 }
+  )
 }
 `
 
@@ -274,13 +272,121 @@ export async function POST(request: NextRequest) {
     expect(result).not.toContain('shopifyRevalidate')
     expect(result).not.toContain('isShopifyWebhook')
 
-    // Untouched: rate limiting and the Sanity revalidation path.
-    expect(result).toContain('rateLimit(')
-    expect(result).toContain('SANITY_REVALIDATE_SECRET')
-    expect(result).toContain('export async function POST')
+    // Untouched: the Sanity guard + dispatch and the neutral 404 fallback.
+    expect(count(result, 'sanityRevalidate')).toBe(2) // import + dispatch
+    expect(result).toContain('const isSanityWebhook')
+    expect(result).toContain("error: 'No webhook handler configured'")
+    expect(result).toContain("from 'next/server'")
 
     // Idempotent — re-applying to the already-stripped result changes nothing.
     expect(applyOpsToText(result, shopifyOps)).toBe(result)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// addFunctionBodyStatement anchors. Written against these failure modes,
+// listed before the code they test:
+//
+// 1. `beforeContains` inserts between the anchor and its leading comment,
+//    so the comment ends up describing the inserted text instead.
+// 2. A named anchor that matches nothing falls back to appending after the
+//    last statement, landing after a terminal return as dead code.
+// 3. That miss leaves the file changed or unreported, so a `required` op
+//    passes and self-prune deletes the script that could re-run it.
+// 4. A candidate list takes a later candidate while an earlier one matches,
+//    or gives up when only a later one matches.
+// 5. Re-applying the op duplicates the statement.
+// 6. An anchor that is the block's first statement (its comment right after
+//    the opening brace) lands the text outside the body or mid-line.
+// ---------------------------------------------------------------------------
+
+describe('addFunctionBodyStatement anchors', () => {
+  const fixture = `export function POST() {
+  // explains the first guard
+  const first = 1
+
+  if (first) {
+    return first
+  }
+
+  // explains the fallback
+  return 0
+}
+`
+
+  const guard = (
+    beforeContains: string | readonly string[],
+    required = false
+  ): AstOperation => ({
+    kind: 'addFunctionBodyStatement',
+    functionName: 'POST',
+    marker: 'const added',
+    text: '  const added = 2',
+    beforeContains,
+    required,
+  })
+
+  it('inserts ahead of the anchor leading comment (modes 1, 6)', () => {
+    const fallback = applyOpsToText(fixture, [guard('return 0')])
+    expect(fallback).toContain(
+      '  const added = 2\n\n  // explains the fallback\n  return 0'
+    )
+
+    const first = applyOpsToText(fixture, [guard('const first')])
+    expect(first).toContain(
+      'export function POST() {\n  const added = 2\n\n  // explains the first guard\n  const first = 1'
+    )
+  })
+
+  it('leaves the text unchanged when no anchor matches (mode 2)', () => {
+    expect(applyOpsToText(fixture, [guard('not in the body')])).toBe(fixture)
+    const afterMiss: AstOperation = {
+      kind: 'addFunctionBodyStatement',
+      functionName: 'POST',
+      marker: 'const added',
+      text: '  const added = 2',
+      afterContains: 'not in the body',
+    }
+    expect(applyOpsToText(fixture, [afterMiss])).toBe(fixture)
+  })
+
+  it('reports a required anchor miss, alone or beside a sibling change (mode 3)', () => {
+    expect(() =>
+      applyOpsToText(fixture, [guard('not in the body', true)])
+    ).toThrow(RequiredOpMatchError)
+
+    const sibling: AstOperation = {
+      kind: 'addImport',
+      text: "import { x } from 'y'",
+    }
+    expect(() =>
+      applyOpsToText(fixture, [sibling, guard('not in the body', true)])
+    ).toThrow(RequiredOpMatchError)
+  })
+
+  it('takes the first candidate that matches (mode 4)', () => {
+    const preferFirst = applyOpsToText(fixture, [
+      guard(['const first', 'return 0']),
+    ])
+    expect(preferFirst.indexOf('const added')).toBeLessThan(
+      preferFirst.indexOf('const first')
+    )
+
+    const fallBack = applyOpsToText(fixture, [
+      guard(['not in the body', 'return 0']),
+    ])
+    expect(fallBack.indexOf('const added')).toBeGreaterThan(
+      fallBack.indexOf('return first')
+    )
+    expect(fallBack.indexOf('const added')).toBeLessThan(
+      fallBack.indexOf('return 0')
+    )
+  })
+
+  it('is a no-op once the marker is present, even when required (mode 5)', () => {
+    const once = applyOpsToText(fixture, [guard('return 0', true)])
+    expect(applyOpsToText(once, [guard('return 0', true)])).toBe(once)
+    expect(count(once, 'const added')).toBe(1)
   })
 })
 

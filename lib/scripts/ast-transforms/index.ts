@@ -141,6 +141,10 @@ function describeOp(op: AstOperation): string {
  * Each probe mirrors the corresponding handler's lookup in remove-ops.ts /
  * set-ops.ts, so "container present" means the handler would have found it.
  *
+ * `addFunctionBodyStatement` is the one additive kind probed, inverted: its
+ * miss is benign only when its marker is already in the body, so anything
+ * else (function gone, named anchor absent) returns true.
+ *
  * Caveat this encodes: a container-anchored required op assumes no sibling
  * transform removes its container — if one did, the retry would read the
  * missing container as drift and fail. No current bundle does this (there
@@ -223,6 +227,20 @@ function missedRequiredOpAnchorAbsent(
               (el) =>
                 el.getOpeningElement().getTagNameNode().getText() === op.tagName
             )
+      )
+    // An additive op misses for exactly one benign reason: its marker is
+    // already in the body (a previous run, or a sibling bundle, added it).
+    // Any other miss (the function is gone, or a named anchor matched
+    // nothing) is drift, even on a byte-identical file.
+    case 'addFunctionBodyStatement':
+      return probe(
+        (sf) =>
+          sf
+            .getFunction(op.functionName)
+            ?.getBody()
+            ?.asKind(SyntaxKind.Block)
+            ?.getStatements()
+            .some((s) => s.getText().includes(op.marker)) ?? false
       )
     case 'removeArrayObjectElement':
     case 'removeArrayStringElement':

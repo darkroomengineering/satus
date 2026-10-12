@@ -327,6 +327,31 @@ export interface SetObjectPropertyOp extends RequiredMatchOp {
   valueText: string
 }
 
+/**
+ * Keep a function parameter's `_` prefix in step with whether the body still
+ * reads it: `request` becomes `_request` once no identifier in the body
+ * refers to `request`, and `_request` becomes `request` again once one does.
+ * Only the declaration is renamed; body references are never touched.
+ *
+ * For a handler whose every use of a parameter belongs to strippable
+ * integrations: with all of them stripped, the bare name fails
+ * `noUnusedParameters` and oxlint's `no-unused-vars`, and both ignore a `_`
+ * prefix. Put it last in each owner's strip ops and each owner's re-add ops,
+ * so whichever runs last leaves the name matching the body.
+ *
+ * No-op when the name already matches the body, when the body refers to the
+ * prefixed name itself (an author's choice, left alone), or when neither
+ * name is a parameter of the function. Only the last case is a `required`
+ * miss.
+ */
+export interface SyncUnusedParameterPrefixOp extends RequiredMatchOp {
+  kind: 'syncUnusedParameterPrefix'
+  /** Top-level function declaration name, e.g. `'POST'`. */
+  functionName: string
+  /** The unprefixed parameter name, e.g. `'request'`. */
+  parameterName: string
+}
+
 // ---------------------------------------------------------------------------
 // Additive operations (inverse of the removals above)
 // Every additive op is IDEMPOTENT: when the construct it would add is already
@@ -525,6 +550,7 @@ export type AstOperation =
   | RemoveArrayObjectElementOp
   | RemoveArrayStringElementOp
   | SetObjectPropertyOp
+  | SyncUnusedParameterPrefixOp
   | AddImportOp
   | AddArrayStringElementOp
   | AddArrayObjectElementOp

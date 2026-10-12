@@ -8,6 +8,8 @@ import { revalidate as shopifyRevalidate } from '@/integrations/shopify/revalida
 // and gets one guard + dispatch pair here, so `setup:project` strips a dropped
 // provider by removing its import, guard, and dispatch — never by rewriting the
 // handler body. The fallback below belongs to no provider and always survives.
+// With every provider stripped, nothing reads `request`, so it becomes
+// `_request` to stay clear of the unused-parameter checks.
 //
 // Not rate limited, here or in `proxy.ts`: a per-IP limit would mostly turn
 // away the providers themselves during a bulk publish, leaving the site stale.

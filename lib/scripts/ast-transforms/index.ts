@@ -48,7 +48,10 @@ import {
   applyReplaceFunctionBody,
   applyReplaceJsDoc,
 } from './remove-ops'
-import { applySetObjectProperty } from './set-ops'
+import {
+  applySetObjectProperty,
+  applySyncUnusedParameterPrefix,
+} from './set-ops'
 
 // ---------------------------------------------------------------------------
 // Required-match contract
@@ -104,6 +107,8 @@ function describeOp(op: AstOperation): string {
       return `removeArrayStringElement '${op.value}' from '${op.variableName}.${op.propertyPath}'`
     case 'setObjectProperty':
       return `setObjectProperty '${op.variableName}.${op.propertyPath}'`
+    case 'syncUnusedParameterPrefix':
+      return `syncUnusedParameterPrefix '${op.parameterName}' on '${op.functionName}'`
     case 'addImport':
       return `addImport '${op.text}'`
     case 'addArrayStringElement':
@@ -141,9 +146,10 @@ function describeOp(op: AstOperation): string {
  * Each probe mirrors the corresponding handler's lookup in remove-ops.ts /
  * set-ops.ts, so "container present" means the handler would have found it.
  *
- * `addFunctionBodyStatement` always returns true: its benign no-op is
- * filtered out before it is recorded as a miss (`requiredOpAlreadySatisfied`),
- * so any miss of it that reaches here is drift.
+ * `addFunctionBodyStatement` and `syncUnusedParameterPrefix` always return
+ * true: their benign no-op is filtered out before it is recorded as a miss
+ * (`requiredOpAlreadySatisfied`), so any miss of theirs that reaches here is
+ * drift.
  *
  * Caveat this encodes: a container-anchored required op assumes no sibling
  * transform removes its container — if one did, the retry would read the
@@ -232,6 +238,7 @@ function missedRequiredOpAnchorAbsent(
     // `requiredOpAlreadySatisfied`); what is left is drift, even on a
     // byte-identical file.
     case 'addFunctionBodyStatement':
+    case 'syncUnusedParameterPrefix':
       return true
     case 'removeArrayObjectElement':
     case 'removeArrayStringElement':
@@ -256,6 +263,8 @@ function missedRequiredOpAnchorAbsent(
  * - `addFunctionBodyStatement`: its marker is already in the body (a
  *   previous run, or a sibling bundle, added it). A function that is gone or
  *   a named anchor that matched nothing is still a miss.
+ * - `syncUnusedParameterPrefix`: the function has the parameter under either
+ *   name, so an unchanged file means the name already matches the body.
  *
  * Every other kind returns false: for those, an unchanged file is a miss,
  * judged by the rules in `applyOpsToText`.
@@ -285,6 +294,16 @@ function requiredOpAlreadySatisfied(
             ?.getStatements()
             .some((s) => s.getText().includes(op.marker)) ?? false
       )
+    case 'syncUnusedParameterPrefix':
+      return check(
+        (sf) =>
+          sf
+            .getFunction(op.functionName)
+            ?.getParameters()
+            .some((p) =>
+              [op.parameterName, `_${op.parameterName}`].includes(p.getName())
+            ) ?? false
+      )
     default:
       return false
   }
@@ -307,9 +326,10 @@ function requiredOpAlreadySatisfied(
  * Required-match contract: an op with `required: true` that leaves `text`
  * byte-for-byte unchanged (no match found) is a drift signal — but only when
  * some OTHER op in the same sequence DID change the file. A no-op that is
- * the op's own success state (an additive marker already present; see
- * `requiredOpAlreadySatisfied`) is not a miss at all. Misses are collected
- * across the whole sequence and judged at the end:
+ * the op's own success state (an additive marker already present, a
+ * parameter name already in sync; see `requiredOpAlreadySatisfied`) is not a
+ * miss at all. Misses are collected across the whole sequence and judged at
+ * the end:
  *
  * - Misses + a changed file → `RequiredOpMatchError`. Partial application is
  *   the hazard the contract exists for (an import stripped while the code
@@ -412,6 +432,9 @@ export function applyOpsToText(
         break
       case 'setObjectProperty':
         text = applySetObjectProperty(project, text, op)
+        break
+      case 'syncUnusedParameterPrefix':
+        text = applySyncUnusedParameterPrefix(project, text, op)
         break
       case 'addImport':
         text = applyAddImport(project, text, op)

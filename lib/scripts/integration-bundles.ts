@@ -335,14 +335,15 @@ export const INTEGRATION_BUNDLES = defineBundles({
       // codeTransforms on this same file). Sanity's webhook LOGIC lives in
       // lib/integrations/sanity/revalidate.ts, which the `folders` list above
       // deletes wholesale, so all this has to strip is the import, the guard
-      // variable, and the dispatch — the same three ops Shopify uses. The
+      // variable, and the dispatch, the same three ops Shopify uses, plus
+      // the parameter rename once no guard reads `request`. The
       // route's terminal 404 fallback belongs to no integration and is never
       // touched, which is what keeps a
       // sanity-less scaffold compiling: `NextResponse` and its import both
       // survive, and the handler still ends in a return (P-B7, H1).
       {
         file: 'app/api/revalidate/route.ts',
-        // required: true on all three — this is sanity's half of a two-owner
+        // required: true on all four — this is sanity's half of a two-owner
         // file, applied exactly once per run against the pristine file by
         // setupLean's union pass. stripAbsentIntegrationWiring (which CAN
         // legitimately reapply this same array a second time, against an
@@ -366,6 +367,15 @@ export const INTEGRATION_BUNDLES = defineBundles({
           {
             kind: 'removeIfStatement',
             conditionContains: 'isSanityWebhook',
+            required: true,
+          },
+          // With Shopify's guard gone too, nothing reads `request`: rename it
+          // `_request` so a blank scaffold passes `noUnusedParameters` and
+          // oxlint's no-unused-vars. A no-op while Shopify's guard survives.
+          {
+            kind: 'syncUnusedParameterPrefix',
+            functionName: 'POST',
+            parameterName: 'request',
             required: true,
           },
         ],
@@ -537,6 +547,13 @@ export const INTEGRATION_BUNDLES = defineBundles({
     return sanityRevalidate(request)
   }`,
           },
+          // The guard reads `request` again: undo the strip's `_request`.
+          {
+            kind: 'syncUnusedParameterPrefix',
+            functionName: 'POST',
+            parameterName: 'request',
+            required: true,
+          },
         ],
       },
     ],
@@ -595,6 +612,13 @@ export const INTEGRATION_BUNDLES = defineBundles({
             kind: 'removeIfStatement',
             conditionContains: 'isShopifyWebhook',
           },
+          // `request` becomes `_request` once neither guard reads it (see
+          // the same op in the sanity bundle).
+          {
+            kind: 'syncUnusedParameterPrefix',
+            functionName: 'POST',
+            parameterName: 'request',
+          },
         ],
       },
     ],
@@ -646,6 +670,13 @@ export const INTEGRATION_BUNDLES = defineBundles({
   if (isShopifyWebhook) {
     return shopifyRevalidate(request)
   }`,
+          },
+          // The guard reads `request` again: undo the strip's `_request`.
+          {
+            kind: 'syncUnusedParameterPrefix',
+            functionName: 'POST',
+            parameterName: 'request',
+            required: true,
           },
         ],
       },

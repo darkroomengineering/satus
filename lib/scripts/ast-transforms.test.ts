@@ -445,6 +445,91 @@ describe('required addFunctionBodyStatement beside a sibling change', () => {
 })
 
 // ---------------------------------------------------------------------------
+// syncUnusedParameterPrefix. Written against these failure modes, listed
+// before the code they test:
+//
+// 1. A parameter the body still reads gets prefixed, leaving the body's
+//    references dangling.
+// 2. A parameter nothing reads keeps its bare name, so `noUnusedParameters`
+//    and oxlint's no-unused-vars fail the scaffold.
+// 3. The rename reaches body references, not just the declaration.
+// 4. A property name (`x.request`, `{ request: 1 }`) counts as a read and
+//    keeps an unused parameter bare.
+// 5. Once code reading the parameter is re-added, the prefix stays.
+// 6. Re-applying changes the file again, or an in-sync no-op counts as a
+//    required miss when a sibling op changed the file.
+// 7. A required op whose function or parameter is gone passes silently.
+// 8. A body that reads the prefixed name itself gets renamed out from under
+//    the author.
+// ---------------------------------------------------------------------------
+
+describe('syncUnusedParameterPrefix', () => {
+  const sync = (required = false): AstOperation => ({
+    kind: 'syncUnusedParameterPrefix',
+    functionName: 'POST',
+    parameterName: 'request',
+    required,
+  })
+
+  const used = `export function POST(request: Request) {
+  return request.headers.has('x')
+}
+`
+  const unused = `export function POST(request: Request) {
+  const meta = { request: 1 }
+  return meta.request
+}
+`
+
+  it('keeps a read parameter bare (mode 1)', () => {
+    expect(applyOpsToText(used, [sync()])).toBe(used)
+  })
+
+  it('prefixes an unread parameter, declaration only (modes 2, 3, 4)', () => {
+    const result = applyOpsToText(unused, [sync()])
+    expect(result).toContain('export function POST(_request: Request)')
+    expect(result).toContain('const meta = { request: 1 }')
+    expect(result).toContain('return meta.request')
+  })
+
+  it('drops the prefix once the body reads the parameter again (mode 5)', () => {
+    const prefixed = used.replace('(request:', '(_request:')
+    expect(applyOpsToText(prefixed, [sync()])).toBe(used)
+  })
+
+  it('is idempotent and not a miss beside a sibling change (mode 6)', () => {
+    const once = applyOpsToText(unused, [sync(true)])
+    expect(applyOpsToText(once, [sync(true)])).toBe(once)
+
+    const sibling: AstOperation = {
+      kind: 'addImport',
+      text: "import { x } from 'y'",
+    }
+    const result = applyOpsToText(used, [sibling, sync(true)])
+    expect(result).toContain("import { x } from 'y'")
+    expect(result).toContain('POST(request: Request)')
+  })
+
+  it('reports a required op whose parameter or function is gone (mode 7)', () => {
+    const renamed = used.replaceAll('request', 'req')
+    expect(() => applyOpsToText(renamed, [sync(true)])).toThrow(
+      RequiredOpMatchError
+    )
+    expect(() =>
+      applyOpsToText(used.replace('POST', 'GET'), [sync(true)])
+    ).toThrow(RequiredOpMatchError)
+  })
+
+  it('leaves a body that reads the prefixed name alone (mode 8)', () => {
+    const author = `export function POST(_request: Request) {
+  return _request.headers.has('x')
+}
+`
+    expect(applyOpsToText(author, [sync()])).toBe(author)
+  })
+})
+
+// ---------------------------------------------------------------------------
 // removeJsxElement — the JSX comment that documents a removed element goes
 // with it, whichever element form it documents (L4: only the self-closing
 // branch cleaned up, so removing `<Studio>…</Studio>` orphaned its comment).

@@ -7,6 +7,7 @@ import {
   use,
   useEffect,
   useId,
+  useLayoutEffect,
   useSyncExternalStore,
 } from 'react'
 
@@ -14,6 +15,7 @@ import Orchestra from '@/lib/dev/orchestra'
 import { useAfterLoad } from '@/lib/hooks/use-after-load'
 import { useDeviceDetection } from '@/lib/hooks/use-device-detection'
 import {
+  announcePrimaryClaim,
   claimPrimary,
   getDOMTunnel,
   getPrimaryClaimId,
@@ -189,6 +191,11 @@ export function Canvas({
   const canMount = contextValue.active && shouldRender
   const isPrimary = canMount && claimPrimary(id)
   const isMounting = isPrimary
+
+  // The claim above is silent; announce it once committed, before paint.
+  useLayoutEffect(() => {
+    if (isPrimary) announcePrimaryClaim()
+  }, [isPrimary])
 
   useEffect(() => {
     if (!canMount) return

@@ -270,6 +270,16 @@ export function applyAddFunctionBodyStatement(
       return undefined // proceed with sf.getFullText()
     }
 
+    const beforeContains = op.beforeContains
+    const beforeAnchor = beforeContains
+      ? statements.find((s) => s.getText().includes(beforeContains))
+      : undefined
+
+    if (beforeAnchor) {
+      sf.insertText(beforeAnchor.getStartLinePos(), `${op.text}\n\n`)
+      return undefined // proceed with sf.getFullText()
+    }
+
     const last = statements[statements.length - 1]
     if (last) {
       sf.insertText(last.getEnd(), `\n${op.text}`)

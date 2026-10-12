@@ -1210,15 +1210,6 @@ describe('Lean-variant validity: app/api/revalidate/route.ts (H1)', () => {
       })
     })
   }
-
-  it('keeps the rate-limit block in every combination', () => {
-    for (const { kept } of combinations) {
-      const variant = variantFor(kept)
-      if (variant === undefined) return
-      expect(variant).toContain("error: 'Too many requests'")
-      expect(variant).toContain('rateLimiters.standard')
-    }
-  })
 })
 
 // ---------------------------------------------------------------------------

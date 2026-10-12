@@ -477,7 +477,10 @@ export interface AddDestructuredBindingOp extends RequiredMatchOp {
  * Positioning: when `afterContains` is given and a statement containing that
  * substring exists, `text` is inserted immediately after it — a stable
  * anchor independent of what other additive ops have already inserted.
- * Otherwise `text` is appended as the body's last statement.
+ * Otherwise, when `beforeContains` is given and matches, `text` is inserted
+ * on its own lines immediately before that statement (the way to land ahead
+ * of a terminal return). Otherwise `text` is appended as the body's last
+ * statement.
  */
 export interface AddFunctionBodyStatementOp extends RequiredMatchOp {
   kind: 'addFunctionBodyStatement'
@@ -489,6 +492,8 @@ export interface AddFunctionBodyStatementOp extends RequiredMatchOp {
   marker: string
   /** Optional anchor: insert immediately after the statement containing this substring. */
   afterContains?: string
+  /** Optional anchor: insert immediately before the statement containing this substring. */
+  beforeContains?: string
 }
 
 export type AstOperation =

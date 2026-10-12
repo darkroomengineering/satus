@@ -114,8 +114,13 @@ function addAcceptVary(
 }
 
 export function proxy(request: NextRequest) {
-  // Rate limit API routes
-  if (request.nextUrl.pathname.startsWith('/api/')) {
+  // Rate limit API routes. Not the revalidation webhook: its secret check is
+  // its gate (see `app/api/revalidate/route.ts`), and a bulk publish from one
+  // provider IP would trip this limit and leave the site stale.
+  if (
+    request.nextUrl.pathname.startsWith('/api/') &&
+    request.nextUrl.pathname !== '/api/revalidate'
+  ) {
     const ip = getClientIP(request)
     if (ip) {
       const result = rateLimit(`api:${ip}`, rateLimiters.relaxed)

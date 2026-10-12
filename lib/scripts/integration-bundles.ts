@@ -343,8 +343,8 @@ export const INTEGRATION_BUNDLES = defineBundles({
       // lib/integrations/sanity/revalidate.ts, which the `folders` list above
       // deletes wholesale, so all this has to strip is the import, the guard
       // variable, and the dispatch — the same three ops Shopify uses. The
-      // route's rate-limit block and its terminal 404 fallback belong to no
-      // integration and are never touched, which is what keeps a
+      // route's terminal 404 fallback belongs to no integration and is never
+      // touched, which is what keeps a
       // sanity-less scaffold compiling: `NextResponse` and its import both
       // survive, and the handler still ends in a return (P-B7, H1).
       {
@@ -521,9 +521,9 @@ export const INTEGRATION_BUNDLES = defineBundles({
       // The re-added text is the pristine route's own guard/dispatch lines
       // verbatim, and it is short enough to keep verbatim (M3: the previous
       // version re-added a 40-line try block that had drifted from the
-      // committed file's `{ data, error }` response contract). Anchored to
-      // the neutral rate-limit block rather than Shopify's guard, since a
-      // sanity-only scaffold has no Shopify guard to anchor to.
+      // committed file's `{ data, error }` response contract). Anchored just
+      // before the neutral 404 fallback rather than after Shopify's guard,
+      // since a sanity-only scaffold has no Shopify guard to anchor to.
       {
         file: 'app/api/revalidate/route.ts',
         ops: [
@@ -535,7 +535,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
             kind: 'addFunctionBodyStatement',
             functionName: 'POST',
             marker: 'isSanityWebhook',
-            afterContains: 'Too many requests',
+            beforeContains: 'No webhook handler configured',
             text: `  // Sanity signs its webhook body and sends the signature in this header
   // (\`sanity-webhook-signature\`, the name \`next-sanity/webhook\`'s parseBody
   // reads); the handler validates it.
@@ -621,10 +621,10 @@ export const INTEGRATION_BUNDLES = defineBundles({
         ],
       },
       // app/api/revalidate/route.ts is shared with Sanity (see that bundle's
-      // addTransforms on the same file). Both guards anchor to the neutral
-      // rate-limit early-return, so whichever bundle installs last sits
-      // closest to it; the two guards test different signals and never
-      // compete, so their relative order carries no meaning.
+      // addTransforms on the same file). Both guards anchor just before the
+      // neutral 404 fallback, so whichever bundle installs last sits closest
+      // to it; the two guards test different signals and never compete, so
+      // their relative order carries no meaning.
       {
         file: 'app/api/revalidate/route.ts',
         ops: [
@@ -636,7 +636,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
             kind: 'addFunctionBodyStatement',
             functionName: 'POST',
             marker: 'isShopifyWebhook',
-            afterContains: 'Too many requests',
+            beforeContains: 'No webhook handler configured',
             text: `  const isShopifyWebhook =
     request.headers.has('x-shopify-topic') ||
     request.nextUrl.searchParams.has('secret')

@@ -184,12 +184,18 @@ A raw `<img>` is not an option here — oxlint's `nextjs/no-img-element` rule re
 Reuse the same `'use cache'` loader so the document is fetched once per request:
 
 ```tsx
+import { stegaClean } from 'next-sanity'
 import { generateSanityMetadata } from '@/lib/utils/metadata'
 
 export async function generateMetadata({ params }) {
   const { slug } = await params
   const { data } = await fetchPageForRequest(slug) // the helper from above
-  return generateSanityMetadata({ document: data, url: `/page/${slug}` })
+  // Clean first: in draft mode every string carries hidden edit markers, and
+  // the helper doesn't clean for itself.
+  return generateSanityMetadata({
+    document: stegaClean(data),
+    url: `/page/${slug}`,
+  })
 }
 ```
 

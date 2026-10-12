@@ -11,8 +11,9 @@ import { expect, test } from '@playwright/test'
 
 // One URL per way a page reaches `notFound()`: nothing matches, so the
 // `[...slug]` catch-all runs, and a dynamic route whose slug has no document.
-// Without Sanity credentials (CI) the article route 404s before fetching;
-// with them, the fetch finds nothing. Both paths must end in a real 404.
+// Either way the article route 404s before fetching: without Sanity
+// credentials (CI) it has nothing to read, and with them the slug is missing
+// from the published route list. Both paths must end in a real 404.
 const UNKNOWN_URLS = [
   '/this-route-does-not-exist-e2e',
   '/articles/this-article-does-not-exist-e2e',

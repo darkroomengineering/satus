@@ -39,7 +39,6 @@ export async function sanityFetch<const QueryString extends string>({
       perspective,
       token,
       stega: true,
-      useCdn: false,
       cache: 'no-store',
     })
   }

@@ -88,24 +88,20 @@ export const integrations = {
       // `cdn.sanity.io`, which the browser loads directly
       // (`components/ui/image`'s Sanity loader, not Next's optimizer).
       'img-src': ['https://cdn.sanity.io'],
-      // API: Visual Editing in draft mode (`app/(site)/layout.tsx`) and the
-      // embedded Studio talk to the project's API from the browser. The API
-      // CDN host covers browser code that reads with `useCdn: true`;
-      // `client.ts` reads on the server with `useCdn: false`, which the CSP
-      // doesn't govern. Both hosts are project-id
-      // subdomains — confirmed in `@sanity/client`'s
-      // `dist/_chunks-cjs/config.cjs` (`defaultConfig.apiHost =
-      // "https://api.sanity.io"`, `defaultCdnHost = "apicdn.sanity.io"`,
-      // both prefixed with `<projectId>.`) — so the source must be a
-      // wildcard subdomain, not a literal host.
+      // API: the embedded Studio talks to the project's API from the
+      // browser. `client.ts` reads on the server, which the CSP doesn't
+      // govern. The API host is a project-id subdomain (`@sanity/client`'s
+      // `defaultConfig.apiHost = "https://api.sanity.io"`, prefixed with
+      // `<projectId>.`), so the source must be a wildcard subdomain, not a
+      // literal host. No API CDN host (`*.apicdn.sanity.io`): nothing on site
+      // routes reads with `useCdn: true` (Visual Editing reaches the Studio
+      // over postMessage, not HTTP), and `/studio/*` gets it through
+      // `STUDIO_SOURCES`' `https://*.sanity.io` in `./csp.ts`. A fork that
+      // adds a browser-side `useCdn: true` read adds the host back here.
       // The bare host (no project subdomain) is what the embedded Studio at
-      // /studio uses for tracing and feedback calls; the wildcards don't
+      // /studio uses for tracing and feedback calls; the wildcard doesn't
       // match a bare apex, so it needs its own entry.
-      'connect-src': [
-        'https://*.api.sanity.io',
-        'https://*.apicdn.sanity.io',
-        'https://api.sanity.io',
-      ],
+      'connect-src': ['https://*.api.sanity.io', 'https://api.sanity.io'],
     },
   },
   shopify: {

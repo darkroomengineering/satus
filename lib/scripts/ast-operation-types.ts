@@ -327,6 +327,31 @@ export interface SetObjectPropertyOp extends RequiredMatchOp {
   valueText: string
 }
 
+/**
+ * Keep a function parameter's `_` prefix in step with whether the body still
+ * reads it: `request` becomes `_request` once no identifier in the body
+ * refers to `request`, and `_request` becomes `request` again once one does.
+ * Only the declaration is renamed; body references are never touched.
+ *
+ * For a handler whose every use of a parameter belongs to strippable
+ * integrations: with all of them stripped, the bare name fails
+ * `noUnusedParameters` and oxlint's `no-unused-vars`, and both ignore a `_`
+ * prefix. Put it last in each owner's strip ops and each owner's re-add ops,
+ * so whichever runs last leaves the name matching the body.
+ *
+ * No-op when the name already matches the body, when the body refers to the
+ * prefixed name itself (an author's choice, left alone), or when neither
+ * name is a parameter of the function. Only the last case is a `required`
+ * miss.
+ */
+export interface SyncUnusedParameterPrefixOp extends RequiredMatchOp {
+  kind: 'syncUnusedParameterPrefix'
+  /** Top-level function declaration name, e.g. `'POST'`. */
+  functionName: string
+  /** The unprefixed parameter name, e.g. `'request'`. */
+  parameterName: string
+}
+
 // ---------------------------------------------------------------------------
 // Additive operations (inverse of the removals above)
 // Every additive op is IDEMPOTENT: when the construct it would add is already
@@ -474,10 +499,20 @@ export interface AddDestructuredBindingOp extends RequiredMatchOp {
  * statement containing `marker` already exists in the body (idempotency
  * check, mirrors `addVariableStatement`'s name-based check).
  *
- * Positioning: when `afterContains` is given and a statement containing that
- * substring exists, `text` is inserted immediately after it — a stable
- * anchor independent of what other additive ops have already inserted.
- * Otherwise `text` is appended as the body's last statement.
+ * Positioning, first match wins:
+ *
+ * - `afterContains`: `text` goes immediately after the first statement
+ *   containing that substring.
+ * - `beforeContains`: `text` goes on its own lines immediately before the
+ *   first statement containing the substring, ahead of that statement's
+ *   leading comments (the way to land ahead of a terminal return). An array
+ *   is a list of candidates tried in order, so an op can prefer one anchor
+ *   and fall back to another.
+ * - Neither given: `text` is appended as the body's last statement.
+ *
+ * An anchor that is given but matches no statement is a miss: the source
+ * comes back unchanged, so a `required` op reports it instead of landing
+ * somewhere nobody chose (after a terminal return, as dead code).
  */
 export interface AddFunctionBodyStatementOp extends RequiredMatchOp {
   kind: 'addFunctionBodyStatement'
@@ -489,6 +524,11 @@ export interface AddFunctionBodyStatementOp extends RequiredMatchOp {
   marker: string
   /** Optional anchor: insert immediately after the statement containing this substring. */
   afterContains?: string
+  /**
+   * Optional anchor: insert immediately before the statement containing this
+   * substring (or the first candidate of an array that matches).
+   */
+  beforeContains?: string | readonly string[]
 }
 
 export type AstOperation =
@@ -510,6 +550,7 @@ export type AstOperation =
   | RemoveArrayObjectElementOp
   | RemoveArrayStringElementOp
   | SetObjectPropertyOp
+  | SyncUnusedParameterPrefixOp
   | AddImportOp
   | AddArrayStringElementOp
   | AddArrayObjectElementOp

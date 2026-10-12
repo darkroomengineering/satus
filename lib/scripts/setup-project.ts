@@ -223,6 +223,25 @@ const removeDepsFromPackageJson = (
 }
 
 /**
+ * Remove integration-owned script entries from the in-memory package.json
+ * object. Returns the removed names. Does NOT read or write the file.
+ */
+const removeScriptsFromPackageJson = (
+  pkg: PackageJson,
+  scriptsToRemove: string[],
+  dryRun: boolean
+): string[] => {
+  const removed: string[] = []
+  for (const name of scriptsToRemove) {
+    if (pkg.scripts && name in pkg.scripts) {
+      if (!dryRun) delete pkg.scripts[name]
+      removed.push(name)
+    }
+  }
+  return removed
+}
+
+/**
  * Clean up .env.example
  */
 const updateEnvExample = async (
@@ -644,6 +663,7 @@ const setupLean = async (
   // Collect all deps / env vars / barrel exports across ALL bundles
   const allDeps: string[] = []
   const allDevDeps: string[] = []
+  const allScripts: string[] = []
   const allEnvVars: string[] = []
   const allBarrelExports: { file: string; pattern: string }[] = []
 
@@ -652,6 +672,7 @@ const setupLean = async (
     const bundle = INTEGRATION_BUNDLES[name]
     allDeps.push(...bundle.dependencies)
     allDevDeps.push(...bundle.devDependencies)
+    allScripts.push(...(bundle.scripts ?? []))
     allEnvVars.push(...bundle.envVars)
     allBarrelExports.push(...bundle.barrelExports)
   }
@@ -674,6 +695,13 @@ const setupLean = async (
       total > 0
         ? `Removed ${total} dependencies from package.json`
         : 'No dependencies to remove'
+    )
+  }
+
+  const removedScripts = removeScriptsFromPackageJson(pkg, allScripts, dryRun)
+  if (removedScripts.length > 0) {
+    p.log.step(
+      `${dryRun ? 'Would remove' : 'Removed'} ${removedScripts.length} integration scripts from package.json (${removedScripts.join(', ')})`
     )
   }
 
@@ -706,7 +734,7 @@ const setupLean = async (
 /**
  * For each kept integration, run the shared re-add steps via `installBundle`,
  * which centralizes: copyBundleFiles, applyOverwriteFiles, addDependencies
- * (from snapshot package.json), restoreBarrelExports, appendEnvStubs,
+ * and addScripts (from snapshot package.json), restoreBarrelExports, appendEnvStubs,
  * addTransforms.
  *
  * Also strips absent-integration wiring from freshly copied files (e.g.

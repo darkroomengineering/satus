@@ -185,6 +185,54 @@ export const addDependencies = async (
 }
 
 /**
+ * Copy the bundle's package.json scripts from the payload's package.json.
+ * A script already present locally keeps its local command.
+ *
+ * A declared script the payload lacks is warned about and skipped, not
+ * thrown. setup:project's payload is the project's own pre-strip
+ * package.json, so a missing script is one the fork removed: there is
+ * nothing to restore, and a throw here would land after setupLean already
+ * stripped the bundle, leaving it half re-added on every re-run. The cost:
+ * a kept integration can finish setup without a script it declares, and
+ * only the warning says so.
+ */
+export const addScripts = async (
+  bundle: IntegrationBundle,
+  payloadPkg: PayloadPackageJson,
+  options: { dryRun: boolean }
+): Promise<string[]> => {
+  const names = bundle.scripts ?? []
+  if (names.length === 0) return []
+
+  const missing = names.filter((name) => !payloadPkg.scripts?.[name])
+  if (missing.length > 0) {
+    p.log.warn(
+      `Payload package.json has no ${missing.join(', ')} script for ${bundle.name}: nothing to restore, skipping`
+    )
+  }
+
+  const pkgPath = resolvePath('package.json')
+  // Only `scripts` is typed; every other field round-trips untouched.
+  const pkg: { scripts?: Record<string, string> } =
+    await Bun.file(pkgPath).json()
+  const scripts = pkg.scripts ?? {}
+  pkg.scripts = scripts
+
+  const added: string[] = []
+  for (const name of names) {
+    const command = payloadPkg.scripts?.[name]
+    if (command === undefined || name in scripts) continue
+    scripts[name] = command
+    added.push(name)
+  }
+
+  if (added.length > 0 && !options.dryRun) {
+    await Bun.write(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
+  }
+  return added
+}
+
+/**
  * Restore the bundle's barrel export lines: read each pattern's line from the
  * SOURCE repo's barrel file and insert it into the local barrel when absent
  * (created when missing). Warns when the payload has no matching barrel/line.
@@ -263,7 +311,7 @@ export const appendEnvStubs = async (
 
 /**
  * Run the shared per-bundle install sequence: copy files, restore overwrite
- * files, add dependencies, restore barrel exports, append env stubs, apply
+ * files, add dependencies and scripts, restore barrel exports, append env stubs, apply
  * additive code transforms.
  *
  * Returns a `details` string array (one entry per action taken) that callers
@@ -297,6 +345,11 @@ export const installBundle = async (
   const deps = await addDependencies(bundle, payloadPkg, options)
   if (deps.added.length > 0) {
     details.push(`${deps.added.length} dependencies pinned`)
+  }
+
+  const scriptsAdded = await addScripts(bundle, payloadPkg, options)
+  if (scriptsAdded.length > 0) {
+    details.push(`${scriptsAdded.length} package.json scripts restored`)
   }
 
   const barrelChanges = await restoreBarrelExports(source, bundle, options)

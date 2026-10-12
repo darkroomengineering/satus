@@ -158,8 +158,16 @@ export function generatePageMetadata(
 /**
  * Generate metadata specifically for Sanity CMS pages
  *
+ * Pass a stega-cleaned document (`stegaClean(data)` from `next-sanity`). In
+ * draft mode every Sanity string carries Presentation's hidden edit markers,
+ * and this helper copies them into `<title>`, the description and the Open
+ * Graph tags as is. It doesn't clean them itself because `setup:project`
+ * keeps this file when it strips Sanity and removes `next-sanity` with it.
+ * Cost: each caller has to remember the call; the three in `app/(site)` do.
+ *
  * @example
  * ```ts
+ * import { stegaClean } from 'next-sanity'
  * import { sanityFetch } from '@/integrations/sanity/fetch'
  *
  * export async function generateMetadata({ params }) {
@@ -171,7 +179,7 @@ export function generatePageMetadata(
  *   if (!data) return
  *
  *   return generateSanityMetadata({
- *     document: data,
+ *     document: stegaClean(data),
  *     url: `/sanity/${slug}`,
  *   })
  * }

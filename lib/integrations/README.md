@@ -70,5 +70,5 @@ Turnstile is not part of this automated flow — it has no bundle for `setup:pro
 1. Create a Zod env schema in `lib/utils/validation.ts`
 2. Add an entry to `lib/integrations/registry.ts` (env schema, capabilities, `cspSources`). `lib/integrations/csp.ts` composes the enforced CSP from `cspSources` — a missing declaration means the integration's remote scripts, images, or requests get blocked in production.
 3. Create `lib/integrations/<name>/` and add its env vars to `lib/env.ts` (and `.env.example` if they are required to boot)
-4. Add an `INTEGRATION_BUNDLES` entry in `lib/scripts/integration-bundles.ts` (files, deps, transforms, env stubs) so `setup:project` can strip it
+4. Add an `INTEGRATION_BUNDLES` entry in `lib/scripts/integration-bundles.ts` (files, deps, package.json scripts, transforms, env stubs) so `setup:project` can strip it
 5. Create `lib/integrations/<name>/README.md` and add a row to AGENTS.md § Documentation Map

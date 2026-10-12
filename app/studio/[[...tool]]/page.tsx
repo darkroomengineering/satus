@@ -16,8 +16,9 @@ export const metadata: Metadata = {
 export { viewport } from 'next-sanity/studio'
 
 // Prerender `/studio` at build time, as next-sanity recommends. Deeper Studio
-// paths (`/studio/structure/...`) serve the same shell: nothing below reads
-// params or the request. Cost: the configured check below runs once per
+// paths (`/studio/structure/...`) would each render and cache their own copy
+// on first request; the `/studio/:path+` rewrite in next.config.ts sends them
+// all to this one page instead. Cost: the configured check below runs once per
 // build, not per request, so turning Sanity on or off takes a rebuild. It
 // always did for the browser side, since `sanity.config.ts` sees only the
 // NEXT_PUBLIC_* values inlined at build time.

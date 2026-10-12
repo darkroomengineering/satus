@@ -1,3 +1,4 @@
+import { stegaClean } from 'next-sanity'
 import { notFound } from 'next/navigation'
 import { Suspense, ViewTransition } from 'react'
 
@@ -66,7 +67,7 @@ export async function generateMetadata() {
 
   const baseMetadata = data
     ? generateSanityMetadata({
-        document: data,
+        document: stegaClean(data),
         url: '/sanity',
         type: 'website',
       })

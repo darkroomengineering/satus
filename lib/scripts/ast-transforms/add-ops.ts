@@ -234,9 +234,17 @@ export function applyAddDestructuredBinding(
 
 /**
  * Insert `text` into a named function's body. No-op when a statement
- * containing `marker` already exists. When `afterContains` matches an
- * existing statement, `text` is inserted right after it; otherwise `text` is
- * appended as the last statement.
+ * containing `marker` already exists.
+ *
+ * Positioning, first match wins: after the statement containing
+ * `afterContains`; before the statement containing `beforeContains` (or the
+ * first of its candidates that matches), ahead of that statement's leading
+ * comments; with neither anchor given, appended as the last statement.
+ *
+ * A given anchor that matches nothing returns `sourceText` unchanged rather
+ * than falling back to an append: an append lands after a terminal return
+ * as dead code, and an unchanged file is what lets a `required` op report
+ * the miss (`applyOpsToText`) so self-prune never runs over it.
  */
 export function applyAddFunctionBodyStatement(
   project: Project,
@@ -255,19 +263,43 @@ export function applyAddFunctionBodyStatement(
     const exists = statements.some((s) => s.getText().includes(op.marker))
     if (exists) return sourceText
 
+    const containing = (needle: string) =>
+      statements.find((s) => s.getText().includes(needle))
+
     // Raw text insertion (rather than `block.insertStatements(index, …)`)
     // deliberately: ts-morph's numeric-index insertion mis-positions by one
     // when a leading comment precedes the block's first statement (the index
     // returned by `getStatements()` and the index `insertStatements` expects
     // stop agreeing once trivia is involved).
-    const afterContains = op.afterContains
-    const anchor = afterContains
-      ? statements.find((s) => s.getText().includes(afterContains))
-      : undefined
+    if (op.afterContains !== undefined) {
+      const anchor = containing(op.afterContains)
+      if (anchor) {
+        sf.insertText(anchor.getEnd(), `\n${op.text}`)
+        return undefined // proceed with sf.getFullText()
+      }
+    }
 
-    if (anchor) {
-      sf.insertText(anchor.getEnd(), `\n${op.text}`)
-      return undefined // proceed with sf.getFullText()
+    if (op.beforeContains !== undefined) {
+      const candidates =
+        typeof op.beforeContains === 'string'
+          ? [op.beforeContains]
+          : op.beforeContains
+      for (const candidate of candidates) {
+        const anchor = containing(candidate)
+        if (!anchor) continue
+        // Start of the line holding the anchor's first leading comment (or
+        // the anchor itself), so the comment stays attached to its statement.
+        const commentStart = anchor.getLeadingCommentRanges()[0]?.getPos()
+        const start = commentStart ?? anchor.getStart()
+        const lineStart = sf.getFullText().lastIndexOf('\n', start - 1) + 1
+        sf.insertText(lineStart, `${op.text}\n\n`)
+        return undefined // proceed with sf.getFullText()
+      }
+    }
+
+    // An anchor was named and none matched: a miss, not an append.
+    if (op.afterContains !== undefined || op.beforeContains !== undefined) {
+      return sourceText
     }
 
     const last = statements[statements.length - 1]

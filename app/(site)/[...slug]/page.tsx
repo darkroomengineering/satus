@@ -1,4 +1,4 @@
-import type { PortableTextBlock } from 'next-sanity'
+import { type PortableTextBlock, stegaClean } from 'next-sanity'
 import { notFound } from 'next/navigation'
 
 import { Wrapper } from '@/components/layout/wrapper'
@@ -116,7 +116,7 @@ export async function generateMetadata({ params }: CmsPageProps) {
   if (!data) return
 
   return generateSanityMetadata({
-    document: data,
+    document: stegaClean(data),
     url: `/${slugSegment}`,
     type: 'website',
   })

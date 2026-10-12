@@ -2,7 +2,7 @@
 
 This is the **single source of truth** for engineering standards in this repo. Claude Code, Codex, Cursor, and other AI tools read this file. `.cursor/rules/` is a thin pointer back here. Do not add a `CLAUDE.md`: while one exists, Claude Code skips loading this file.
 
-This file changes only by deliberate review. `next dev` appends a managed block here (an HTML comment fencing `nextjs-agent-rules`) when it detects an AI coding agent; there is no config opt-out. Revert that block on sight, never commit it. This sentence must never contain the block's literal opening marker: Next locates the block by searching for that exact string, and a prose match makes the next `next dev` run truncate everything below it.
+This file changes only by deliberate review. When `next dev` detects an AI coding agent it appends a managed block here (an HTML comment fencing `nextjs-agent-rules`); `agentRules: false` in `next.config.ts` stops that. Keep it off. If the block ever shows up anyway, revert it, never commit it. This sentence must never contain the block's literal opening marker: Next locates the block by searching for that exact string, and a prose match makes the next `next dev` run truncate everything below it.
 
 ---
 
@@ -256,7 +256,7 @@ Critical rules:
 
 ### Next.js 16 Request Proxy
 
-`proxy.ts` at the project root handles cross-cutting request concerns — currently rate limiting for `/api/*` routes via `@/utils/rate-limit`. Security headers stay in `next.config.ts`, composed from the integration registry's `cspSources` by `lib/integrations/csp.ts`, plus project origins via `PROJECT_CSP_EXTRA_SOURCES` — details in `SECURITY.md`.
+`proxy.ts` at the project root handles cross-cutting request concerns — currently rate limiting for `/api/*` routes via `@/utils/rate-limit`, except the signed revalidation webhook (`/api/revalidate`), which its secret check gates instead. Security headers stay in `next.config.ts`, composed from the integration registry's `cspSources` by `lib/integrations/csp.ts`, plus project origins via `PROJECT_CSP_EXTRA_SOURCES` — details in `SECURITY.md`.
 
 ### Error boundaries
 

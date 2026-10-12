@@ -36,7 +36,7 @@ export function useAfterLoad(): boolean {
  * @example
  * ```tsx
  * <AfterLoad>
- *   <SanityLive />
+ *   <ShaderGround />
  * </AfterLoad>
  * ```
  */

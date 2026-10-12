@@ -1,19 +1,19 @@
 // USAGE — Sanity CMS
-// 1. Set env vars: NEXT_PUBLIC_SANITY_PROJECT_ID, NEXT_PUBLIC_SANITY_DATASET,
-//    NEXT_PUBLIC_SANITY_API_READ_TOKEN, SANITY_API_READ_TOKEN
+// 1. Set env vars: NEXT_PUBLIC_SANITY_PROJECT_ID, NEXT_PUBLIC_SANITY_DATASET.
+//    For draft mode and the publish webhook, also SANITY_API_READ_TOKEN (a
+//    Viewer token, server only) and SANITY_REVALIDATE_SECRET.
 // 2. Define schemas in lib/integrations/sanity/schemas/ and register them in schemas/index.ts
 // 3. Fetch data in a Server Component page:
 //
-//   import { sanityFetch } from '@/integrations/sanity/live'
+//   import { sanityFetch } from '@/integrations/sanity/fetch'
 //   import { pageQuery } from '@/integrations/sanity/queries'
 //
 //   export default async function Page() {
-//     'use cache'
-//     const { data } = await sanityFetch({ query: pageQuery, params: { slug: 'home' } })
+//     const data = await sanityFetch({ query: pageQuery, params: { slug: 'home' } })
 //     return <MyContent data={data} />
 //   }
 //
-// 4. Add `<SanityLive />` to your root layout for real-time preview mode.
+// 4. Point a Sanity webhook at /api/revalidate (see README.md § Revalidation).
 //
 // 5. To re-add the Sanity Studio route (/studio), create:
 //    app/studio/[[...tool]]/page.tsx — a server page that exports noindex
@@ -36,24 +36,26 @@ import { isConfigured } from '@/integrations/registry'
 import { apiVersion, dataset, projectId, studioUrl } from './env'
 
 /**
- * Sanity client instance
+ * Sanity client instance. `null` until Sanity is configured; read through
+ * `sanityFetch` (`./fetch`), never directly.
  *
- * Returns null if Sanity is not configured (missing env vars).
- * Always check with isSanityConfigured() before using.
- *
- * Note: next-sanity uses fetch internally with Next.js caching.
- * Deduplication is automatic - no need for React.cache() wrapper.
- *
- * The base client has no token — it uses the public CDN for published content.
- * Token is applied where needed via client.withConfig({ token }) for
- * draft mode, revalidation, or server-side mutations.
+ * The base client has no token and reads published content from the live
+ * API, not the API CDN. We cache content ourselves (`published.ts`) and refetch
+ * right after the publish webhook expires the `sanity` tag; a CDN response
+ * that is still stale at that moment would be cached again until the next
+ * publish. Cost: every cache miss hits the live API. Sanity meters live API
+ * requests separately from API CDN requests, with a smaller included quota
+ * (check your plan's API vs API CDN request limits), and the Next cache is
+ * per region or instance depending on the host, so each publish triggers one
+ * miss per page per region or instance, not only on cold paths. Draft mode
+ * adds the Viewer token and stega per request in `fetch.ts`.
  */
 export const client: SanityClient | null = isConfigured('sanity')
   ? createClient({
       projectId,
       dataset,
       apiVersion,
-      useCdn: true,
+      useCdn: false,
       perspective: 'published',
       stega: {
         studioUrl,

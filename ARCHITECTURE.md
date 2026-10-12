@@ -63,20 +63,23 @@ Config lives in `oxlint.config.ts` and `oxfmt.config.ts` rather than JSON, so `b
 
 ## Cache Components (Next.js 16)
 
-Data is fetched inside `'use cache'` functions that call `cacheTag()` and `cacheLife()`. A CMS or Shopify webhook hits `POST /api/revalidate`, which calls `revalidateTag()` to drop the matching cache entries. `draftMode` bypasses the cache entirely so editors always see live content. `cacheTag()` is only legal inside a `'use cache'` function — wrap the fetch in a small helper, not the page that calls it.
+Data is fetched inside `'use cache'` functions that call `cacheTag()` and `cacheLife()`. A CMS or Shopify webhook hits `POST /api/revalidate`, which calls `revalidateTag()` to drop the matching cache entries. `cacheTag()` is only legal inside a `'use cache'` function, so each integration keeps that boundary in its own data layer: Shopify's catalog readers, and Sanity's `sanityFetchPublished`. Pages call them directly.
+
+Sanity has no Live connection. Every published read carries the one tag `sanity` with `cacheLife('max')`; the signed publish webhook calls `revalidateTag('sanity', { expire: 0 })`. In draft mode `sanityFetch` skips the cache and reads the perspective Presentation picked with the server-only Viewer token and stega markers, and Visual Editing refreshes the page with `router.refresh()` when an editor changes a field.
 
 ```mermaid
 flowchart LR
-    P[page.tsx] -->|calls| U["'use cache' fn(args)"]
-    U -->|sanityFetch / shopify query| C[cacheTag + cacheLife]
-    C --> Cache[(Next data cache)]
-    Cache -->|hit| P
-    Hook[CMS / Shopify webhook] --> API[POST /api/revalidate]
-    API -->|revalidateTag| Cache
-    D[draftMode] -->|bypass, drafts perspective| U
+    P[page.tsx] -->|sanityFetch| F{draft mode?}
+    F -->|no| U["sanityFetchPublished ('use cache')"]
+    U -->|cacheTag sanity, cacheLife max| Cache[(Next cache)]
+    Cache -->|miss, useCdn false| API[(Sanity API)]
+    F -->|yes: drafts or a release, stega, no-store| Draft[(Sanity API)]
+    Hook[Sanity publish webhook] --> R[POST /api/revalidate]
+    Shop[Shopify webhook] --> R
+    R -->|revalidateTag| Cache
 ```
 
-See AGENTS.md § Next.js 16 Cache Components for the critical rules and an example.
+See AGENTS.md § Next.js 16 Cache Components and § Sanity content and caching for the critical rules.
 
 ## WebGL Architecture
 

@@ -2,7 +2,7 @@ import { defineQuery } from 'next-sanity'
 import { z } from 'zod'
 
 import { isConfigured } from '@/integrations/registry'
-import { sanityFetch } from '@/integrations/sanity/live'
+import { sanityFetchPublished } from '@/integrations/sanity/published'
 import { urlForReference } from '@/integrations/sanity/utils/link'
 import { MARKDOWN_HANDLER_PATH } from '@/lib/seo/markdown-path'
 import { STATIC_ROUTES } from '@/lib/seo/route-catalog'
@@ -173,32 +173,23 @@ export interface CmsRoutesResult {
  * fresh clone's default state): no fetch runs, and callers degrade to
  * `STATIC_ROUTES` only.
  *
- * `'use cache'` is required: `sanityFetch` calls `cacheTag()` internally,
- * which Cache Components (`cacheComponents: true`) only allows inside a
- * `'use cache'` boundary — see `app/(site)/(examples)/sanity/page.tsx` for
- * the same constraint applied to a page-level fetch. `perspective`/`stega`
- * are hardcoded to the published, non-stega variant: crawlers never see
- * draft content, so there's no request-level (draft mode) state to branch
- * on here, unlike a rendered page.
+ * Reads through `sanityFetchPublished`, which is cached under the `sanity`
+ * tag until the publish webhook: crawlers never see draft content, so there's
+ * no draft mode to branch on here, unlike a rendered page. That entry is the
+ * only cache layer this function needs, so it has no `'use cache'` of its own.
  */
 async function fetchCmsRoutesResult(): Promise<CmsRoutesResult> {
-  'use cache'
-
   if (!isConfigured('sanity')) return { routes: [], degraded: false }
 
   // A schema-valid env (`isConfigured`) doesn't guarantee the project/dataset
-  // it points to actually exists or is reachable — `sanityFetch` throws on a
+  // it points to actually exists or is reachable — the fetch throws on a
   // Sanity API error (wrong project ID, deleted dataset, network failure).
   // Crawlers depend on `sitemap.xml`/`llms.txt` always responding, even for
   // the static routes, so a broken CMS connection degrades to no CMS routes
   // instead of taking the whole response down.
   let data: unknown
   try {
-    ;({ data } = await sanityFetch({
-      query: routableContentQuery,
-      perspective: 'published',
-      stega: false,
-    }))
+    data = await sanityFetchPublished({ query: routableContentQuery })
   } catch (error) {
     console.error(
       '[seo/routes] Sanity fetch failed, omitting CMS routes:',

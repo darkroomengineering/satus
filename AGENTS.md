@@ -229,7 +229,7 @@ completes. Retain explicit WebGL capability and load gates.
 
 **`useEffectEvent`** keeps event logic out of effect dependencies.
 
-**`cacheSignal()`** — The Shopify client passes it so in-flight requests are cancelled when the cache entry is dropped (`lib/integrations/shopify/client.ts`); `sanityFetch` relies on `cacheTag` alone.
+**`cacheSignal()`** — The Shopify client passes it so in-flight requests are cancelled when the cache entry is dropped (`lib/integrations/shopify/client.ts`); `sanityFetchPublished` relies on `cacheTag` alone.
 
 **Ref as prop** — No `forwardRef` (the lint rule above blocks the import).
 
@@ -237,14 +237,18 @@ completes. Retain explicit WebGL capability and load gates.
 
 Cache Components are enabled globally (`cacheComponents: true` in `next.config.ts`). Data is fetched inside `'use cache'` functions that call `cacheTag()` and `cacheLife()`; a webhook hits `POST /api/revalidate`, which calls `revalidateTag()` to drop the matching cache entries; `draftMode` bypasses the cache entirely. Every fetch goes through this tag-based model — this codebase has no other opt-out-of-caching mechanism. See ARCHITECTURE.md § Cache Components (Next.js 16) for the diagram.
 
+### Sanity content and caching
+
+There is no Sanity Live. Pages read through `sanityFetch` (`lib/integrations/sanity/fetch.ts`), which owns its cache boundary: published reads go through `sanityFetchPublished` (`published.ts`), a `'use cache'` function tagged `sanity` with `cacheLife('max')`. A signed publish webhook hits `POST /api/revalidate`, which calls `revalidateTag('sanity', { expire: 0 })`, so the next visit gets fresh content. Draft mode (the Studio's Presentation tool) reads with the server-only Viewer token `SANITY_API_READ_TOKEN` in the perspective Presentation picks (drafts, or a content release, from the `sanity-preview-perspective` cookie), with stega markers, uncached; `SanityVisualEditing` refreshes the preview through `router.refresh()`.
+
 Critical rules:
 
-- Any fetch that calls `cacheTag()` (e.g. `sanityFetch`) MUST run inside a
-  `'use cache'` function. Calling it in a bare Server Component throws
-  `cacheTag() can only be called inside a "use cache" function`. Wrap the fetch
-  in a small helper — `async function load() { 'use cache'; return sanityFetch(...) }` —
-  and reuse it across the page body and `generateMetadata` (this also dedupes the
-  request). See `lib/integrations/sanity/README.md`.
+- Read content only through `sanityFetch` (pages, `generateMetadata`) or `sanityFetchPublished` (sitemap, `llms.txt`, anything outside a page request). Never fetch with the client directly. Neither needs a `'use cache'` wrapper at the call site.
+- Never give the token a `NEXT_PUBLIC_` name: that inlines it into the browser bundle.
+- Run `bun run sanity:extract` and `bun run sanity:typegen` after schema or query changes. Typegen is configured in `sanity.cli.ts`.
+
+Cache Components rules:
+
 - Wrap cached components in `<Suspense>` boundaries with loading fallbacks
 - Use `revalidateTag()` in webhook handlers (`POST /api/revalidate`)
 - Test with hard refresh (bypasses router cache) AND normal navigation

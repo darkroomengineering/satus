@@ -37,9 +37,9 @@ const domain = env.SHOPIFY_STORE_DOMAIN // string | undefined with IntelliSense
 
 ```tsx
 // Sanity
-import { sanityFetch } from '@/integrations/sanity/live'
+import { sanityFetch } from '@/integrations/sanity/fetch'
 import { RichText } from '@/integrations/sanity/components/rich-text'
-const { data } = await sanityFetch({ query: pageQuery })
+const data = await sanityFetch({ query: pageQuery })
 
 // Shopify
 import { Cart } from '@/integrations/shopify/cart'

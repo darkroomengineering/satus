@@ -16,13 +16,13 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 
 import { applyOpsToText, RequiredOpMatchError } from './ast-transforms'
-import { guardedPrompt } from './generate-shared'
 import {
   getIntegrationEntries,
   getIntegrationNames,
   INTEGRATION_BUNDLES,
 } from './integration-bundles'
 import type { PayloadSource } from './payload-source'
+import { guardedPrompt } from './prompts'
 import {
   CACHE_COMPONENTS_DISABLE_TRANSFORM,
   CACHE_COMPONENTS_LLMS_TXT_TRANSFORM,
@@ -1748,16 +1748,12 @@ describe('collectSelfPruneTestFiles (L10 — glob-derived, not hardcoded)', () =
   })
 
   // M1: the glob used to delete tests for commands the scaffold keeps
-  // running — `generate`, `handoff`, the AST engine, and the env-parity
-  // guarantee. Each entry here names a command that ships.
+  // running — `handoff`, the AST engine, and the env-parity guarantee. Each
+  // entry here names a command that ships.
   it('keeps the tests for commands that ship', async () => {
     const files = await collectSelfPruneTestFiles()
 
     for (const kept of [
-      'lib/scripts/generate.test.ts',
-      'lib/scripts/generate-component.test.ts',
-      'lib/scripts/generate-page.test.ts',
-      'lib/scripts/generate-shared.test.ts',
       'lib/scripts/prepare-handoff.test.ts',
       'lib/scripts/env-drift.test.ts',
       'lib/scripts/ast-transforms.test.ts',

@@ -1,18 +1,32 @@
+import type { Metadata } from 'next'
+import { metadata as studioMetadata } from 'next-sanity/studio'
 import { notFound } from 'next/navigation'
-import { connection } from 'next/server'
 
 import { dataset, projectId } from '@/integrations/sanity/env'
 
 import { Studio } from './studio'
 
-export default async function StudioPage() {
-  // Defer Studio to request time: /studio sits outside the (site) group, so its
-  // tree no longer reads any dynamic API — without this, Cache Components would
-  // try to fully prerender NextStudio at build time, which crashes. The classic
-  // `export const dynamic = ...` segment config is forbidden under Cache
-  // Components; awaiting `connection()` is its replacement.
-  await connection()
+// next-sanity's defaults (a same-origin referrer, `viewport-fit=cover`).
+// `robots` is spelled out because `app/robots.ts` allows `/` to every bot.
+export const metadata: Metadata = {
+  ...studioMetadata,
+  title: 'Sanity Studio',
+  robots: { index: false, follow: false },
+}
+export { viewport } from 'next-sanity/studio'
 
+// Prerender `/studio` at build time. Under Cache Components this is the
+// replacement for `export const dynamic = 'force-static'`, which is a build
+// error here. Deeper Studio paths (`/studio/structure/...`) serve the same
+// prerendered shell: nothing below reads params or the request. Cost: the
+// configured check below runs once per build, not per request, so turning
+// Sanity on or off takes a rebuild. It always did for the browser side, since
+// `sanity.config.ts` sees only the NEXT_PUBLIC_* values inlined at build time.
+export function generateStaticParams() {
+  return [{ tool: [] }]
+}
+
+export default function StudioPage() {
   // 404 here rather than inside <Studio />: this decides on the server, before
   // the client reference is emitted, so an unconfigured project never mounts
   // the Studio at all. Deliberately the same `projectId && dataset` condition

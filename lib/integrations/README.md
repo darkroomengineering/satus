@@ -59,7 +59,7 @@ import { mailchimpSubscriptionAction } from '@/integrations/mailchimp'
 
 ## Removing Integrations
 
-Run `bun run setup:project` for interactive removal. It is also drivable non-interactively (CI): `--preset <key>` or `--keep <id,id,...>` selects the integration set, `--yes` confirms it, `--clean-homepage` swaps in a blank starter homepage, and `--skip-install` skips the lockfile update. Keeping an integration also keeps whatever it requires (e.g. keeping `theatre` keeps `webgl`). When setup completes it removes its own machinery from the project (the setup script and its test suite) — `generate`, `doctor`, `dev`, and `handoff` stay; `generate`, `doctor`, and `prepare-handoff` keep using the shared bundle machinery.
+Run `bun run setup:project` for interactive removal. It is also drivable non-interactively (CI): `--preset <key>` or `--keep <id,id,...>` selects the integration set, `--yes` confirms it, `--clean-homepage` swaps in a blank starter homepage, and `--skip-install` skips the lockfile update. Keeping an integration also keeps whatever it requires (e.g. keeping `theatre` keeps `webgl`). When setup completes it removes its own machinery from the project (the setup script and its test suite) — `doctor`, `dev`, and `handoff` stay; `doctor` and `prepare-handoff` keep using the shared bundle machinery.
 
 Turnstile is not part of this automated flow — it has no bundle for `setup:project` to remove, so it ships regardless of preset or `--keep` selection.
 

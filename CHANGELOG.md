@@ -68,6 +68,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Removed
 
+- `bun run generate`, the page and component scaffolders (`lib/scripts/generate*.ts` and their tests). The page template hardcoded the Sanity setup (Live `sanityFetch`, the generic `page` schema), so it broke in any fork that changed it, and nothing checked it against the fork. `generate:manifest` stays. The helpers other scripts used move next to their callers: `toPascalCase` into `generate-manifest.ts`, the prompt guards into `lib/scripts/prompts.ts` for `setup:project` and `handoff`.
 - The Vision tool and `@sanity/vision`. It's a GROQ console editors never need; a fork that wants it adds `visionTool()` back to `sanity.config.ts`.
 - Storybook. Nobody was opening it, and it cost four dependencies on their own dependabot cycle. Gone with it: `.storybook/`, the `*.stories.tsx` files, the `bun storybook` and `build-storybook` scripts, `@tailwindcss/vite` (only Storybook used it), the `/storybook` preview proxy in `next.config.ts`, the header's storybook link, and `NEXT_PUBLIC_STORYBOOK_URL`. Forks that still deploy a Storybook should keep their copy of that config. The UI primitives in `components/ui` stay.
 

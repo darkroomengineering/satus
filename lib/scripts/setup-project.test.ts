@@ -1051,12 +1051,14 @@ describe('Additive Transforms (remove → add round trips)', () => {
     expect(count(result.restored, 'id="webgl"')).toBe(1)
   })
 
-  it('sanity: next.config.ts regains remotePattern and package imports exactly once', () => {
+  it('sanity: next.config.ts regains package imports exactly once', () => {
     const result = roundTrip('sanity', 'next.config.ts')
     if (!result) return
 
-    expect(result.lean).not.toContain('cdn.sanity.io')
-    expect(count(result.restored, 'cdn.sanity.io')).toBe(1)
+    // The optimizer never allows cdn.sanity.io, with or without Sanity: its
+    // images reach the browser through components/ui/image's loader.
+    expect(result.lean).not.toContain("hostname: 'cdn.sanity.io'")
+    expect(result.restored).not.toContain("hostname: 'cdn.sanity.io'")
     expect(count(result.restored, "'@sanity/client'")).toBe(1)
     expect(count(result.restored, "'@sanity/image-url'")).toBe(1)
     expect(count(result.restored, "'@sanity/asset-utils'")).toBe(1)
@@ -1071,7 +1073,6 @@ describe('Additive Transforms (remove → add round trips)', () => {
 
     expect(result.lean).not.toContain('cdn.shopify.com')
     expect(count(result.restored, 'cdn.shopify.com')).toBe(1)
-    expect(count(result.restored, 'cdn.sanity.io')).toBe(1)
   })
 
   it('webgl overwrite: the lean wrapper matches the expected lean state', () => {

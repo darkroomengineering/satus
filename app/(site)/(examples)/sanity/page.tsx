@@ -31,8 +31,14 @@ export default async function SanityPage() {
   // Check the document exists before the Suspense boundary below. Once a
   // boundary renders its fallback the response has streamed with a 200, so a
   // `notFound()` inside it only adds a noindex tag, never the 404 status.
-  // Cost: a second Sanity request (cached alongside the page query when
-  // published, uncached in draft mode) in exchange for the streamed reveal.
+  //
+  // `/sanity` reads no request data outside draft mode, so it is prerendered:
+  // for published content the boundary resolves at build or revalidation
+  // time, and visitors never see the fallback or the reveal. Only draft mode
+  // renders per request and streams the reveal. Cost: a second Sanity request
+  // (cached alongside the page query when published, uncached in draft mode),
+  // kept so this example still shows the Suspense and View Transition
+  // pattern where it actually streams.
   const exists = await sanityFetch({
     query: pageExistsQuery,
     params: { slug: SLUG },

@@ -22,8 +22,11 @@ export async function revalidate(request: NextRequest): Promise<NextResponse> {
       )
     }
 
-    // `true` waits for Content Lake to serve the published document before
-    // answering, so the revalidation below never refetches the old version.
+    // `true` makes parseBody sleep a fixed 3 s after a valid signature
+    // (next-sanity 13.3.4); it does not check that Content Lake serves the new
+    // version. What makes the refetch see it is that published reads skip the
+    // API CDN (`useCdn: false` in `./client.ts`). Cost: every webhook call
+    // holds the request open 3 s.
     const { isValidSignature } = await parseBody(request, secret, true)
 
     if (!isValidSignature) {

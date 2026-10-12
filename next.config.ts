@@ -173,6 +173,16 @@ const nextConfig: NextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 2560],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
+  // Every Studio deep link (`/studio/structure/...`) renders the one
+  // `/studio` page prerendered at build time. Without this, the optional
+  // catch-all renders and caches each distinct path on first request, so
+  // anyone could fill the route cache with year-long entries by requesting
+  // made-up Studio URLs. A rewrite keeps the browser URL, which is all the
+  // Studio's own router reads.
+  rewrites: async () =>
+    isIntegrationKept('sanity')
+      ? [{ source: '/studio/:path+', destination: '/studio' }]
+      : [],
   headers: async () => [
     {
       source: '/(.*)',

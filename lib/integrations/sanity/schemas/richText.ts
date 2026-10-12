@@ -1,6 +1,7 @@
 import { BlockContentIcon } from '@sanity/icons/BlockContent'
 import { defineType } from 'sanity'
 
+import { altField } from './fields'
 import { linkField } from './link'
 
 export const richText = defineType({
@@ -43,11 +44,10 @@ export const richText = defineType({
         hotspot: true,
       },
       fields: [
+        // Required here: an image placed in body copy is content, not decoration.
         {
-          name: 'alt',
-          title: 'Alt Text',
-          type: 'string',
-          description: 'Alternative text for screen readers',
+          ...altField,
+          description: 'Describes the image for screen readers.',
           validation: (Rule) => Rule.required(),
         },
         {

@@ -1,6 +1,8 @@
 import { SearchIcon } from '@sanity/icons/Search'
 import { defineField, defineType } from 'sanity'
 
+import { altField } from './fields'
+
 export const metadata = defineType({
   name: 'metadata',
   title: 'SEO & Metadata',
@@ -50,14 +52,7 @@ export const metadata = defineType({
       options: {
         hotspot: true,
       },
-      fields: [
-        {
-          name: 'alt',
-          title: 'Alt Text',
-          type: 'string',
-          description: 'Alternative text for screen readers',
-        },
-      ],
+      fields: [altField],
     }),
     defineField({
       name: 'noIndex',

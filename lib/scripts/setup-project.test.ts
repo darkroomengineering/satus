@@ -17,13 +17,13 @@ import { dirname, join } from 'node:path'
 
 import type { AstOperation } from './ast-operation-types'
 import { applyOpsToText, RequiredOpMatchError } from './ast-transforms'
-import { guardedPrompt } from './generate-shared'
 import {
   getIntegrationEntries,
   getIntegrationNames,
   INTEGRATION_BUNDLES,
 } from './integration-bundles'
 import type { PayloadSource } from './payload-source'
+import { guardedPrompt } from './prompts'
 import {
   codeTransformTargetPaths,
   collectSelfPruneTestFiles,
@@ -1032,12 +1032,14 @@ describe('Additive Transforms (remove → add round trips)', () => {
     expect(count(result.restored, 'id="webgl"')).toBe(1)
   })
 
-  it('sanity: next.config.ts regains remotePattern and package imports exactly once', () => {
+  it('sanity: next.config.ts regains package imports exactly once', () => {
     const result = roundTrip('sanity', 'next.config.ts')
     if (!result) return
 
-    expect(result.lean).not.toContain('cdn.sanity.io')
-    expect(count(result.restored, 'cdn.sanity.io')).toBe(1)
+    // The optimizer never allows cdn.sanity.io, with or without Sanity: its
+    // images reach the browser through components/ui/image's loader.
+    expect(result.lean).not.toContain("hostname: 'cdn.sanity.io'")
+    expect(result.restored).not.toContain("hostname: 'cdn.sanity.io'")
     expect(count(result.restored, "'@sanity/client'")).toBe(1)
     expect(count(result.restored, "'@sanity/image-url'")).toBe(1)
     expect(count(result.restored, "'@sanity/asset-utils'")).toBe(1)
@@ -1052,7 +1054,6 @@ describe('Additive Transforms (remove → add round trips)', () => {
 
     expect(result.lean).not.toContain('cdn.shopify.com')
     expect(count(result.restored, 'cdn.shopify.com')).toBe(1)
-    expect(count(result.restored, 'cdn.sanity.io')).toBe(1)
   })
 
   it('webgl overwrite: the lean wrapper matches the expected lean state', () => {
@@ -1704,16 +1705,12 @@ describe('collectSelfPruneTestFiles (L10 — glob-derived, not hardcoded)', () =
   })
 
   // M1: the glob used to delete tests for commands the scaffold keeps
-  // running — `generate`, `handoff`, the AST engine, and the env-parity
-  // guarantee. Each entry here names a command that ships.
+  // running — `handoff`, the AST engine, and the env-parity guarantee. Each
+  // entry here names a command that ships.
   it('keeps the tests for commands that ship', async () => {
     const files = await collectSelfPruneTestFiles()
 
     for (const kept of [
-      'lib/scripts/generate.test.ts',
-      'lib/scripts/generate-component.test.ts',
-      'lib/scripts/generate-page.test.ts',
-      'lib/scripts/generate-shared.test.ts',
       'lib/scripts/prepare-handoff.test.ts',
       'lib/scripts/env-drift.test.ts',
       'lib/scripts/ast-transforms.test.ts',

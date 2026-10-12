@@ -39,7 +39,6 @@
     "env:setup": "bun ./lib/scripts/env-setup.ts",
     "contrast:accept": "bun ./lib/styles/scripts/contrast-accept.ts",
     "setup:styles": "bun ./lib/styles/scripts/setup-styles.ts",
-    "generate": "bun ./lib/scripts/generate.ts",
     "generate:manifest": "bun ./lib/scripts/generate-manifest.ts",
     "manifest:check": "bun ./lib/scripts/generate-manifest.ts --check",
     "check:assets": "bun ./lib/scripts/check-assets.ts",

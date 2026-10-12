@@ -44,7 +44,6 @@ import {
 } from './ast-transforms/index'
 import { removeBarrelLines } from './barrel-file'
 import { installBundle, stripAbsentIntegrationWiring } from './bundle-installer'
-import { guardedPrompt } from './generate-shared'
 import {
   type CodeTransform,
   getBundle,
@@ -52,6 +51,7 @@ import {
   INTEGRATION_BUNDLES,
 } from './integration-bundles'
 import type { PayloadPackageJson, PayloadSource } from './payload-source'
+import { guardedPrompt } from './prompts'
 import {
   getFlagValue,
   parseCliFlags,
@@ -872,10 +872,10 @@ export const codeTransformTargetPaths = (
  *   - lib/scripts/test-setup.ts (bunfig.toml preloads it for ALL bun tests;
  *     not matched by the `*.test.ts` glob below, so it's inherently safe)
  *
- * KEPT (shared production machinery — used by `generate`, `doctor`, and
- * `prepare-handoff`, which all ship with every project, not just by setup):
+ * KEPT (shared production machinery — used by `doctor` and
+ * `prepare-handoff`, which ship with every project, not just by setup):
  *   - lib/scripts/integration-bundles.ts, bundle-installer.ts,
- *     ast-transforms/, barrel-file.ts, payload-source.ts, generate-shared.ts
+ *     ast-transforms/, barrel-file.ts, payload-source.ts, prompts.ts
  *
  * The setup-machinery test files to delete are discovered via a glob over
  * `lib/scripts/**\/*.test.ts` (L10 — not a hardcoded list, which drifted out
@@ -905,11 +905,6 @@ export const SELF_PRUNE_KEEP_TEST_FILES: ReadonlySet<string> = new Set([
   // deleted coverage for machinery the scaffold keeps running). A test only
   // belongs here when everything it touches survives self-prune — no import
   // of setup-project.ts, no assertion about a file an unkept bundle owns.
-  // The `generate` CLI and its three generators.
-  'lib/scripts/generate.test.ts',
-  'lib/scripts/generate-component.test.ts',
-  'lib/scripts/generate-page.test.ts',
-  'lib/scripts/generate-shared.test.ts',
   // The `handoff` CLI.
   'lib/scripts/prepare-handoff.test.ts',
   // The lib/env.ts <-> integration-bundles.ts env-var parity guarantee; both

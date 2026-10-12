@@ -91,7 +91,7 @@ The embedded Studio runs under its own CSP on `/studio/*` (`isStudio` in
 
 ### Fetching Data
 
-Read content through `sanityFetch` straight from a Server Component or `generateMetadata`. It owns its cache boundary, so the call site needs no `'use cache'`:
+Read content through `sanityFetch` straight from a Server Component or `generateMetadata`. It sets its own caching, so the call site needs nothing else:
 
 ```tsx
 import { notFound } from 'next/navigation'
@@ -108,7 +108,7 @@ export default async function Page({ params }) {
 ```
 
 - `sanityFetch` returns the query result, or `null` when Sanity isn't configured.
-- Outside draft mode it calls `sanityFetchPublished` (`published.ts`): a `'use cache'` function tagged `sanity`, with `cacheLife('max')`, reading published content through the API CDN. The page and `generateMetadata` share its cache entry.
+- Outside draft mode it calls `sanityFetchPublished` (`published.ts`): a fetch tagged `sanity` in Next's Data Cache, with a 30-day `revalidate` backstop, reading published content through the API CDN. The page and `generateMetadata` share its cache entry.
 - In draft mode, with `SANITY_API_READ_TOKEN` set, it reads the perspective Presentation picks (drafts by default, or the content release an editor selects), with stega markers, `useCdn: false` and no cache. Presentation stores the pick in the `sanity-preview-perspective` cookie, and `resolvePerspectiveFromCookies` from `next-sanity/live` reads it.
 - `sanityFetchPublished` reads published content only. Use it outside a page request, like the sitemap (`lib/seo/routes.ts`) or `generateStaticParams`, where draft mode can't be read:
 
@@ -198,7 +198,7 @@ Create the webhook in [sanity.io/manage](https://sanity.io/manage) → your proj
 
 `app/api/revalidate/route.ts` dispatches requests carrying a `sanity-webhook-signature` header to `revalidate()` in `revalidate.ts`, which verifies the signature with `parseBody` from `next-sanity/webhook` (waiting for Content Lake to serve the new version), then calls `revalidateTag('sanity', { expire: 0 })`. One tag covers every page, because a per-type tag would miss a page that shows a referenced document of another type. `expire: 0` means the next visit renders fresh content instead of one more stale page.
 
-The webhook is the only thing that refreshes published content. Without it, a cache entry lives until `cacheLife('max')` revalidates it, 30 days later. See [ARCHITECTURE.md](../../../ARCHITECTURE.md) for the diagram.
+The webhook is the only thing that refreshes published content. Without it, a cache entry lives until its 30-day `revalidate` runs out. See [ARCHITECTURE.md](../../../ARCHITECTURE.md) for the diagram.
 
 ## Draft mode
 

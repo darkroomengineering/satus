@@ -61,17 +61,19 @@ bun run check        # oxlint + oxfmt --check + lint:types + ensure:typegen + ts
 
 Config lives in `oxlint.config.ts` and `oxfmt.config.ts` rather than JSON, so `bun run typecheck` covers it and each choice carries a comment. That catches invalid severities and duplicate rule keys, which a JSON config accepts silently; rule _names_ are still a permissive `Record`, so a typo'd rule name slips through either way. House style is pinned explicitly (80 columns, 2-space indent, single quotes, semicolons only where required) because oxfmt's own defaults differ. A vendored anti-slop plugin is loaded from `tools/oxlint/anti-slop` for custom rules. See AGENTS.md § Enforced Rules for the rule-by-rule list.
 
-## Cache Components (Next.js 16)
+## Caching
 
-Data is fetched inside `'use cache'` functions that call `cacheTag()` and `cacheLife()`. A CMS or Shopify webhook hits `POST /api/revalidate`, which calls `revalidateTag()` to drop the matching cache entries. `cacheTag()` is only legal inside a `'use cache'` function, so each integration keeps that boundary in its own data layer: Shopify's catalog readers, and Sanity's `sanityFetchPublished`. Pages call them directly.
+`cacheComponents` is off. Pages without request-time reads are prerendered as static HTML, and data is cached per fetch in Next's Data Cache: a cached read passes `next: { tags }` with a `revalidate` backstop. A CMS or Shopify webhook hits `POST /api/revalidate`, which calls `revalidateTag()` to expire the tag, and with it every static page whose render read that tag. Each integration sets its caching in its own data layer (Shopify's catalog readers, Sanity's `sanityFetchPublished`), so pages call them directly.
 
-Sanity has no Live connection. Every published read carries the one tag `sanity` with `cacheLife('max')`; the signed publish webhook calls `revalidateTag('sanity', { expire: 0 })`. In draft mode `sanityFetch` skips the cache and reads the perspective Presentation picked with the server-only Viewer token and stega markers, and Visual Editing refreshes the page with `router.refresh()` when an editor changes a field.
+The trade-off is Partial Prerendering. A route that reads `params` without `generateStaticParams`, cookies or headers renders fully per request instead of streaming into a prerendered shell. Its data still comes from the Data Cache, so it costs a render, not a CMS round trip.
+
+Sanity has no Live connection. Every published read carries the one tag `sanity` with a 30-day `revalidate`; the signed publish webhook calls `revalidateTag('sanity', { expire: 0 })`. In draft mode `sanityFetch` skips the cache and reads the perspective Presentation picked with the server-only Viewer token and stega markers, and Visual Editing refreshes the page with `router.refresh()` when an editor changes a field.
 
 ```mermaid
 flowchart LR
     P[page.tsx] -->|sanityFetch| F{draft mode?}
-    F -->|no| U["sanityFetchPublished ('use cache')"]
-    U -->|cacheTag sanity, cacheLife max| Cache[(Next cache)]
+    F -->|no| U[sanityFetchPublished]
+    U -->|"next: { tags: [sanity], revalidate: 30d }"| Cache[(Data Cache)]
     Cache -->|miss| API[(Sanity API CDN)]
     F -->|yes: drafts or a release, stega, no-store| Draft[(Sanity API)]
     Hook[Sanity publish webhook] --> R[POST /api/revalidate]
@@ -79,7 +81,7 @@ flowchart LR
     R -->|revalidateTag| Cache
 ```
 
-See AGENTS.md § Next.js 16 Cache Components and § Sanity content and caching for the critical rules.
+See AGENTS.md § Caching and § Sanity content and caching for the critical rules.
 
 ## WebGL Architecture
 

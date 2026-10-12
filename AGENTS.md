@@ -10,7 +10,7 @@ This file changes only by deliberate review. `next dev` appends a managed block 
 
 | Layer              | Technology                                            |
 | ------------------ | ----------------------------------------------------- |
-| Framework          | Next.js 16 (App Router, Cache Components, `proxy.ts`) |
+| Framework          | Next.js 16 (App Router, `proxy.ts`)                   |
 | UI                 | React 19.3 (React Compiler ON, no manual memoization) |
 | Language           | TypeScript 7, `strict: true`                          |
 | Styling            | Tailwind v4 (CSS-first) + CSS Modules                 |
@@ -229,30 +229,30 @@ completes. Retain explicit WebGL capability and load gates.
 
 **`useEffectEvent`** keeps event logic out of effect dependencies.
 
-**`cacheSignal()`** — The Shopify client passes it so in-flight requests are cancelled when the cache entry is dropped (`lib/integrations/shopify/client.ts`); `sanityFetchPublished` relies on `cacheTag` alone.
+**`cacheSignal()`** — The Shopify client passes it so an in-flight request is cancelled when the server render it belongs to ends or is aborted (`lib/integrations/shopify/client.ts`).
 
 **Ref as prop** — No `forwardRef` (the lint rule above blocks the import).
 
-### Next.js 16 Cache Components
+### Caching
 
-Cache Components are enabled globally (`cacheComponents: true` in `next.config.ts`). Data is fetched inside `'use cache'` functions that call `cacheTag()` and `cacheLife()`; a webhook hits `POST /api/revalidate`, which calls `revalidateTag()` to drop the matching cache entries; `draftMode` bypasses the cache entirely. Every fetch goes through this tag-based model — this codebase has no other opt-out-of-caching mechanism. See ARCHITECTURE.md § Cache Components (Next.js 16) for the diagram.
+`cacheComponents` is off in `next.config.ts`, and with it `partialPrefetching` and `cachedNavigations`, which need it. Pages without request-time reads are prerendered as static HTML; routes that read `params` without `generateStaticParams`, cookies or headers render per request. Data is cached per fetch: a cached read passes `next: { tags }` (plus `revalidate` as a backstop), and a webhook hits `POST /api/revalidate`, which calls `revalidateTag()` to expire the tag and every static page built from it. Draft mode bypasses the static pages and reads uncached. See ARCHITECTURE.md § Caching for the diagram.
+
+Rules:
+
+- No `'use cache'`, `cacheLife`, `cacheTag` or `export const instant`: they need `cacheComponents` (`'use cache'` and `instant` fail the build without it). Route segment config (`dynamic`, `revalidate`) works again.
+- A cached fetch sets its caching explicitly (`next: { revalidate, tags }` or `cache: 'force-cache'`). Next does not cache a fetch by default: with `next: { tags }` alone it is cached only during `next build`, and every render after that refetches.
+- A `GET` route handler is dynamic unless it exports `dynamic = 'force-static'` (see `app/llms.txt/route.ts`).
+- Test with a production build (`bun run build && bun run start`): dev renders every request and never shows the cached behavior.
 
 ### Sanity content and caching
 
-There is no Sanity Live. Pages read through `sanityFetch` (`lib/integrations/sanity/fetch.ts`), which owns its cache boundary: published reads go through `sanityFetchPublished` (`published.ts`), a `'use cache'` function tagged `sanity` with `cacheLife('max')`. A signed publish webhook hits `POST /api/revalidate`, which calls `revalidateTag('sanity', { expire: 0 })`, so the next visit gets fresh content. Draft mode (the Studio's Presentation tool) reads with the server-only Viewer token `SANITY_API_READ_TOKEN` in the perspective Presentation picks (drafts, or a content release, from the `sanity-preview-perspective` cookie), with stega markers, uncached; `SanityVisualEditing` refreshes the preview through `router.refresh()`.
+There is no Sanity Live. Pages read through `sanityFetch` (`lib/integrations/sanity/fetch.ts`), which sets its own caching: published reads go through `sanityFetchPublished` (`published.ts`), a fetch tagged `sanity` with a 30-day `revalidate` backstop. A signed publish webhook hits `POST /api/revalidate`, which calls `revalidateTag('sanity', { expire: 0 })`, so the next visit gets fresh content. Draft mode (the Studio's Presentation tool) reads with the server-only Viewer token `SANITY_API_READ_TOKEN` in the perspective Presentation picks (drafts, or a content release, from the `sanity-preview-perspective` cookie), with stega markers, uncached; `SanityVisualEditing` refreshes the preview through `router.refresh()`.
 
 Critical rules:
 
-- Read content only through `sanityFetch` (pages, `generateMetadata`) or `sanityFetchPublished` (sitemap, `llms.txt`, anything outside a page request). Never fetch with the client directly. Neither needs a `'use cache'` wrapper at the call site.
+- Read content only through `sanityFetch` (pages, `generateMetadata`) or `sanityFetchPublished` (sitemap, `llms.txt`, anything outside a page request). Never fetch with the client directly.
 - Never give the token a `NEXT_PUBLIC_` name: that inlines it into the browser bundle.
 - Run `bun run sanity:extract` and `bun run sanity:typegen` after schema or query changes. Typegen is configured in `sanity.cli.ts`.
-
-Cache Components rules:
-
-- Wrap cached components in `<Suspense>` boundaries with loading fallbacks
-- Use `revalidateTag()` in webhook handlers (`POST /api/revalidate`)
-- Test with hard refresh (bypasses router cache) AND normal navigation
-- Dev and prod behave differently - test both
 
 ### Next.js 16 Request Proxy
 

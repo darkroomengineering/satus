@@ -507,8 +507,11 @@ export const INTEGRATION_BUNDLES = defineBundles({
       // verbatim, and it is short enough to keep verbatim (M3: the previous
       // version re-added a 40-line try block that had drifted from the
       // committed file's `{ data, error }` response contract). Anchored just
-      // before the neutral 404 fallback rather than after Shopify's guard,
-      // since a sanity-only scaffold has no Shopify guard to anchor to.
+      // before the neutral 404 fallback, which every keep-combination has;
+      // Shopify's guard anchors ahead of this one (see that bundle), so the
+      // pristine order holds whichever bundle re-adds first. `required`
+      // because the guard has nowhere sensible to go without that anchor:
+      // a miss stops the run before self-prune instead of passing silently.
       {
         file: 'app/api/revalidate/route.ts',
         ops: [
@@ -521,6 +524,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
             functionName: 'POST',
             marker: 'isSanityWebhook',
             beforeContains: 'No webhook handler configured',
+            required: true,
             text: `  // Sanity signs its webhook body and sends the signature in this header
   // (\`sanity-webhook-signature\`, the name \`next-sanity/webhook\`'s parseBody
   // reads); the handler validates it.
@@ -606,10 +610,13 @@ export const INTEGRATION_BUNDLES = defineBundles({
         ],
       },
       // app/api/revalidate/route.ts is shared with Sanity (see that bundle's
-      // addTransforms on the same file). Both guards anchor just before the
-      // neutral 404 fallback, so whichever bundle installs last sits closest
-      // to it; the two guards test different signals and never compete, so
-      // their relative order carries no meaning.
+      // addTransforms on the same file). The pristine route checks Shopify
+      // first, and the order matters: a request with both a `?secret=` and a
+      // `sanity-webhook-signature` header goes to whichever guard comes
+      // first. So Shopify's guard anchors before Sanity's guard when it is
+      // there and before the 404 fallback otherwise, while Sanity's always
+      // anchors before the 404: every keep order lands Shopify, Sanity, 404.
+      // `required` for the same reason as Sanity's: an anchor miss is drift.
       {
         file: 'app/api/revalidate/route.ts',
         ops: [
@@ -621,8 +628,14 @@ export const INTEGRATION_BUNDLES = defineBundles({
             kind: 'addFunctionBodyStatement',
             functionName: 'POST',
             marker: 'isShopifyWebhook',
-            beforeContains: 'No webhook handler configured',
-            text: `  const isShopifyWebhook =
+            beforeContains: [
+              'isSanityWebhook',
+              'No webhook handler configured',
+            ],
+            required: true,
+            text: `  // Shopify webhooks identify themselves with an \`x-shopify-topic\` header and
+  // always carry a \`secret\` query param.
+  const isShopifyWebhook =
     request.headers.has('x-shopify-topic') ||
     request.nextUrl.searchParams.has('secret')
 

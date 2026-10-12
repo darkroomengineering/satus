@@ -1165,6 +1165,7 @@ describe('Lean-variant validity: app/api/revalidate/route.ts (H1)', () => {
     kept: ('sanity' | 'shopify')[]
   }[] = [
     { label: 'both kept', kept: ['sanity', 'shopify'] },
+    { label: 'both kept, shopify first', kept: ['shopify', 'sanity'] },
     { label: 'sanity only', kept: ['sanity'] },
     { label: 'shopify only', kept: ['shopify'] },
     { label: 'blank', kept: [] },
@@ -1197,6 +1198,34 @@ describe('Lean-variant validity: app/api/revalidate/route.ts (H1)', () => {
         const last = topLevelStatements.at(-1)
         expect(last).toBe('  return NextResponse.json(')
         expect(variant).toContain("error: 'No webhook handler configured'")
+      })
+
+      it('keeps the pristine guard order: Shopify, then Sanity, then the 404', () => {
+        const pristine = sourceFiles[FILE]
+        const variant = variantFor(kept)
+        if (pristine === undefined || variant === undefined) return
+
+        // The order is behaviour: a request carrying both a `?secret=` and a
+        // `sanity-webhook-signature` header goes to whichever guard is first.
+        const handler = (text: string) =>
+          text
+            .slice(text.indexOf('export async function POST'))
+            .split('\n')
+            .filter((line) => line.trim() !== '')
+        const got = handler(variant)
+        const positions = [
+          'const isShopifyWebhook',
+          'const isSanityWebhook',
+          "error: 'No webhook handler configured'",
+        ]
+          .map((marker) => got.findIndex((line) => line.includes(marker)))
+          .filter((index) => index !== -1)
+        expect(positions).toEqual([...positions].sort((a, b) => a - b))
+
+        // With both kept, the handler matches the pristine one line for line.
+        // Blank lines are dropped: the strip leaves one that `setup:project`'s
+        // format pass removes.
+        if (kept.length === 2) expect(got).toEqual(handler(pristine))
       })
 
       it('leaves no reference to a stripped integration', () => {

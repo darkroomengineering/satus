@@ -24,6 +24,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Security
 
+- `bun install` refuses npm package versions published less than 3 days ago (`minimumReleaseAge` in `bunfig.toml`), so a compromised release that gets pulled within hours never reaches the lockfile. Dependabot's version updates wait the same 3 days (`cooldown`). Its security updates don't wait, so a fix younger than 3 days needs its package in `minimumReleaseAgeExcludes` until it ages past the window.
 - `next` moves to 16.3.8 (with `@next/playwright` and `@next/bundle-analyzer`), past the critical `next/og` `ImageResponse` remote code execution advisory fixed in 16.3.6. Satus itself renders no `ImageResponse`, but a fork that adds an OG image route would have been exposed.
 
 ### Added
@@ -39,6 +40,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Changed
 
+- Bun moves to 1.4.3 (the `packageManager` pin CI installs from). CI fails when `bun.lock` holds a package at more versions than its ranges need (`bun dedupe --check`); the lockfile was deduped once, dropping 63 duplicate versions. A Dependabot PR that leaves a duplicate fails that step until someone runs `bun dedupe` on its branch, so it no longer auto-merges on its own.
 - The base URL no longer needs setting by hand. Without `NEXT_PUBLIC_BASE_URL`, production uses Vercel's `VERCEL_PROJECT_PRODUCTION_URL` and a preview its own `VERCEL_BRANCH_URL`, so a preview's canonical URLs, sitemap and share cards point at the preview. A fork that sets `NEXT_PUBLIC_BASE_URL` keeps today's behaviour. Vercel picks the shortest production custom domain, so a site served on `www.` with the apex redirecting still needs `NEXT_PUBLIC_BASE_URL`; and with deployment protection on for previews, link unfurlers get Vercel's login page instead of a preview's share card.
 - `bunfig.toml` sets `env = false`: Bun no longer loads `.env` files into `bun run` scripts, because it would set encrypted values before Next could decrypt them. A fork script that read env vars through Bun's loading now loads them itself, as `lib/scripts/doctor.ts` does with dotenvx's `config()`. The Sanity CLI scripts run through `dotenvx run`.
 - Reduced motion turns movement off and keeps fades. The global neutralizer in `global.css` is gone; transform, height and clip-path transitions now sit inside `@media (--motion-ok)`, and opacity and color transitions run unconditionally. Forks with their own transitions or `animate-*` utilities that move things must gate them the same way (`motion-safe:` in Tailwind). The body is sized to the small viewport and flex and grid children can shrink (`min-width: 0` in the reset).

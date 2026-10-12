@@ -112,8 +112,8 @@ which is how the route recognizes the request. `lib/integrations/sanity/revalida
 verifies it with `parseBody` from `next-sanity/webhook` and calls
 `revalidateTag('sanity', { expire: 0 })`. Every Sanity read carries that one tag, so any publish
 refreshes every page on its next visit. This webhook is the only thing that refreshes published
-Sanity content: there is no Sanity Live, and the cache entries live 30 days (`cacheLife('max')`)
-otherwise.
+Sanity content: there is no Sanity Live, and the cache entries live 30 days (a `revalidate`
+backstop on every published read) otherwise.
 
 ### Shopify Webhook Setup
 

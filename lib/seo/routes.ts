@@ -153,12 +153,10 @@ export function buildRoutesFromDocuments(data: unknown): ContentRoute[] {
 export interface CmsRoutesResult {
   routes: ContentRoute[]
   /**
-   * True when the last fetch attempt failed (Sanity unreachable) rather
-   * than the CMS genuinely having zero published `page`/`article`
-   * documents. `getCmsRoutes` collapses both cases to `[]` on purpose —
-   * sitemap/llms.txt/`/ai` must always respond, degraded or not — but the
-   * Markdown handler needs to tell them apart to avoid 404ing a route that
-   * would exist once the outage clears.
+   * True when the CMS fetch failed rather than the CMS genuinely having zero
+   * published `page`/`article` documents. Only the
+   * Markdown handler sees this: it renders per request, so it can answer a
+   * 503 instead of 404ing a route that would exist once the outage clears.
    */
   degraded: boolean
 }
@@ -173,23 +171,60 @@ export interface CmsRoutesResult {
  * fresh clone's default state): no fetch runs, and callers degrade to
  * `STATIC_ROUTES` only.
  *
+ * A schema-valid env (`isConfigured`) doesn't guarantee the project/dataset
+ * it points to exists or is reachable, so the fetch can throw (wrong project
+ * ID, deleted dataset, network failure). It is left to throw here; each
+ * accessor below decides what an outage means for its caller.
+ *
  * Reads through `sanityFetchPublished`, which is cached under the `sanity`
  * tag until the publish webhook: crawlers never see draft content, so there's
- * no draft mode to branch on here, unlike a rendered page. That entry is the
- * only cache layer this function needs, so it has no `'use cache'` of its own.
+ * no draft mode to branch on here, unlike a rendered page.
  */
 async function fetchCmsRoutesResult(): Promise<CmsRoutesResult> {
   if (!isConfigured('sanity')) return { routes: [], degraded: false }
 
-  // A schema-valid env (`isConfigured`) doesn't guarantee the project/dataset
-  // it points to actually exists or is reachable — the fetch throws on a
-  // Sanity API error (wrong project ID, deleted dataset, network failure).
-  // Crawlers depend on `sitemap.xml`/`llms.txt` always responding, even for
-  // the static routes, so a broken CMS connection degrades to no CMS routes
-  // instead of taking the whole response down.
-  let data: unknown
+  const data = await sanityFetchPublished({ query: routableContentQuery })
+  return { routes: buildRoutesFromDocuments(data), degraded: false }
+}
+
+/**
+ * Routes for sitemap.xml, llms.txt and `/ai`. Throws when Sanity is
+ * configured but the fetch fails.
+ *
+ * Those three are static, cached under the `sanity` tag with a 30-day
+ * revalidate. Swallowing the error would store a copy without CMS routes for
+ * up to 30 days. Throwing keeps the last good copy only for the 30-day
+ * background revalidation, which serves the stale copy while it retries.
+ *
+ * Cost: after a publish webhook (`revalidateTag('sanity', { expire: 0 })`)
+ * there is no copy left to serve, so during a Sanity outage every request to
+ * `/sitemap.xml`, `/llms.txt` and `/ai` answers 500 until Sanity answers
+ * again. A build with Sanity configured but unreachable fails, unless a warm
+ * `.next/cache` still holds the routes fetch, which the build reuses; so
+ * mostly a first or cache-cleared build. Also the published route list the
+ * CMS pages check before fetching (`isKnownCmsPath`), so those pages error
+ * during an outage too.
+ *
+ * `load` exists for tests, which pass a failing loader instead of mocking
+ * the Sanity module; callers pass nothing.
+ */
+export async function getCmsRoutes(
+  load: () => Promise<CmsRoutesResult> = fetchCmsRoutesResult
+): Promise<ContentRoute[]> {
+  return (await load()).routes
+}
+
+/**
+ * Outage-aware accessor for the per-request Markdown handler
+ * (markdown-document.ts): a failed fetch returns `degraded: true` instead of
+ * throwing. See `CmsRoutesResult.degraded`. `load` is the same test seam as
+ * `getCmsRoutes`'s.
+ */
+export async function getCmsRoutesResult(
+  load: () => Promise<CmsRoutesResult> = fetchCmsRoutesResult
+): Promise<CmsRoutesResult> {
   try {
-    data = await sanityFetchPublished({ query: routableContentQuery })
+    return await load()
   } catch (error) {
     console.error(
       '[seo/routes] Sanity fetch failed, omitting CMS routes:',
@@ -197,16 +232,4 @@ async function fetchCmsRoutesResult(): Promise<CmsRoutesResult> {
     )
     return { routes: [], degraded: true }
   }
-
-  return { routes: buildRoutesFromDocuments(data), degraded: false }
-}
-
-/** Graceful-empty-on-failure accessor for sitemap.xml, llms.txt, and /ai. */
-export async function getCmsRoutes(): Promise<ContentRoute[]> {
-  return (await fetchCmsRoutesResult()).routes
-}
-
-/** Outage-aware accessor — see `CmsRoutesResult.degraded`. Used by markdown-document.ts. */
-export async function getCmsRoutesResult(): Promise<CmsRoutesResult> {
-  return fetchCmsRoutesResult()
 }

@@ -38,7 +38,6 @@ export type {
   RemoveJsxElementOp,
   RemoveNamedImportOp,
   RemoveTryStatementOp,
-  RemoveUseCacheDirectiveOp,
   RemoveVariableStatementOp,
   ReplaceFunctionBodyOp,
   ReplaceJsDocOp,
@@ -324,9 +323,27 @@ export const INTEGRATION_BUNDLES = defineBundles({
             required: true,
           },
           {
+            kind: 'replaceJsDoc',
+            functionName: 'getCmsRoutes',
+            replacement: `/** Routes for sitemap.xml, llms.txt and \`/ai\`: none without a CMS. */`,
+            required: true,
+          },
+          {
             kind: 'replaceFunctionBody',
             functionName: 'getCmsRoutes',
-            replacement: '{\n  return []\n}',
+            replacement: '{\n  void load\n  return []\n}',
+            required: true,
+          },
+          {
+            kind: 'replaceJsDoc',
+            functionName: 'getCmsRoutesResult',
+            replacement: `/** Accessor for the Markdown handler; never degraded without a CMS. */`,
+            required: true,
+          },
+          {
+            kind: 'replaceFunctionBody',
+            functionName: 'getCmsRoutesResult',
+            replacement: '{\n  return load()\n}',
             required: true,
           },
         ],
@@ -419,6 +436,11 @@ export const INTEGRATION_BUNDLES = defineBundles({
           {
             kind: 'removeImport',
             specifier: '@/integrations/sanity/fetch',
+            required: true,
+          },
+          {
+            kind: 'removeImport',
+            specifier: '@/integrations/sanity/known-path',
             required: true,
           },
           {

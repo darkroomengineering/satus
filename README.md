@@ -16,7 +16,7 @@ Run `bun dev` and open [localhost:3000](http://localhost:3000) — the landing p
 
 ## Features
 
-- **Next.js 16 + React 19** — App Router with `cacheComponents` and instant navigations on, React Compiler, strict TypeScript
+- **Next.js 16 + React 19** — App Router with static pages and tag-based revalidation, React Compiler, strict TypeScript
 - **Tailwind v4 + CSS Modules** — side by side under one cascade contract, so utility and module styles can't silently fight
 - **Opt-in integrations** — Sanity, Shopify, HubSpot, and Mailchimp stay isolated under `lib/integrations`; WebGL lives under `lib/webgl` behind `lib/features`; `bun run setup:project` strips the rest
 - **Bun + oxc toolchain** — Bun as runtime and test runner; `oxlint` and `oxfmt` cover TS, CSS, Markdown, YAML and TOML, and sort imports and Tailwind classes at format time
@@ -126,7 +126,6 @@ Satus is built for one job: content-driven marketing and creative sites with rea
 | ----------------------------------------------- | ------------------------------------ | ----------------- | -------------- | ------------------------ | ----------------- |
 | Built for                                       | creative & marketing sites           | bare scaffold     | SaaS monorepo  | typesafe full-stack apps | enterprise apps   |
 | Next.js today                                   | 16.3                                 | 16.3              | 16.1           | 15.5                     | 15.5              |
-| Instant navigations on (`cacheComponents`)      | ✓                                    | ✗ opt-in          | ✗              | ✗                        | ✗                 |
 | Bun runtime + test runner                       | ✓                                    | ✗                 | ✗              | ✗                        | ✗                 |
 | oxc toolchain (`oxlint` + `oxfmt`)              | ✓                                    | ✗                 | ✗              | ✗                        | ✗                 |
 | Tailwind + CSS Modules under a cascade contract | ✓                                    | ✗                 | ✗              | ✗                        | ✗                 |
@@ -140,7 +139,7 @@ Satus is built for one job: content-driven marketing and creative sites with rea
 | Turborepo monorepo                              | ✗                                    | ✗                 | ✓              | ✗                        | ✗                 |
 | Pick your pieces                                | ✓ strip after clone                  | ✗                 | ✗              | ✓ choose at init         | ✗                 |
 | Unit tests                                      | ✓ `bun test`                         | ✗                 | ✓ Vitest       | ✗                        | ✓ Vitest          |
-| E2E tests (Playwright)                          | ✓ with a11y + instant-nav asserts    | ✗                 | ✗              | ✗                        | ✓                 |
+| E2E tests (Playwright)                          | ✓ with a11y asserts                  | ✗                 | ✗              | ✗                        | ✓                 |
 | Storybook                                       | ✗                                    | ✗                 | ✓              | ✗                        | ✓                 |
 | CI quality gates                                | ✓                                    | ✗                 | ✗ release only | ✗                        | ✓                 |
 | Performance budgets in CI                       | ✓ asset weight (Lighthouse advisory) | ✗                 | ✗              | ✗                        | ✓ bundle size     |

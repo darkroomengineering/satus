@@ -6,6 +6,7 @@ import { SanityImage } from '@/components/ui/sanity-image'
 import { isConfigured } from '@/integrations/registry'
 import { RichText } from '@/integrations/sanity/components/rich-text'
 import { sanityFetch } from '@/integrations/sanity/fetch'
+import { isKnownCmsPath } from '@/integrations/sanity/known-path'
 import { articleQuery } from '@/integrations/sanity/queries'
 import { JsonLd } from '@/lib/seo/json-ld'
 import {
@@ -33,7 +34,10 @@ interface ArticlePageProps {
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params
 
-  if (!isConfigured('sanity')) notFound()
+  // Before the fetch, so an unknown slug never writes a cache entry.
+  if (!isConfigured('sanity') || !(await isKnownCmsPath(`/articles/${slug}`))) {
+    notFound()
+  }
 
   const data = await fetchArticle(slug)
 
@@ -97,7 +101,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 export async function generateMetadata({ params }: ArticlePageProps) {
   const { slug } = await params
 
-  if (!isConfigured('sanity')) return
+  if (!isConfigured('sanity') || !(await isKnownCmsPath(`/articles/${slug}`))) {
+    return
+  }
 
   const data = await fetchArticle(slug)
 

@@ -43,7 +43,7 @@ describe('P-D2: stdin EOF guard (handoff)', () => {
 //
 // `cleanupEnvVars` resolves `.env.example` off `resolvePath` (which is keyed
 // to `process.cwd()` captured at module load, same constraint documented in
-// setup-project.test.ts's Cache Components section) — there's no fixture-tree
+// setup-project.test.ts) — there's no fixture-tree
 // mechanism to redirect that, so this test backs up the real `.env.example`,
 // writes a scratch fixture over it, runs the real function, and restores the
 // original content afterward regardless of outcome.

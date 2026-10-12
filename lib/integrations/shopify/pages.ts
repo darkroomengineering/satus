@@ -1,10 +1,8 @@
-import { cacheLife, cacheTag } from 'next/cache'
-
 import { env } from '@/lib/env'
 
 import { removeEdgesAndNodes } from './adapters'
 import { normalizeStoreDomain, shopifyFetch } from './client'
-import { TAGS } from './constants'
+import { CATALOG_REVALIDATE_SECONDS, TAGS } from './constants'
 import { getMenuQuery } from './queries/menu'
 import { getPageQuery, getPagesQuery } from './queries/page'
 import {
@@ -89,13 +87,10 @@ export function menuItemPath(url: string): string {
 }
 
 export async function getMenu(handle: string): Promise<MenuItem[]> {
-  'use cache'
-  cacheTag(TAGS.collections)
-  cacheLife('hours')
-
   const res = await shopifyFetch<GetMenuResponseData>({
     query: getMenuQuery,
-    cache: 'no-store',
+    tags: [TAGS.collections],
+    revalidate: CATALOG_REVALIDATE_SECONDS,
     variables: {
       handle,
     },
@@ -111,13 +106,10 @@ export async function getMenu(handle: string): Promise<MenuItem[]> {
 }
 
 export async function getPage(handle: string): Promise<Page | null> {
-  'use cache'
-  cacheTag(TAGS.pages)
-  cacheLife('hours')
-
   const res = await shopifyFetch<GetPageResponseData>({
     query: getPageQuery,
-    cache: 'no-store',
+    tags: [TAGS.pages],
+    revalidate: CATALOG_REVALIDATE_SECONDS,
     variables: { handle },
     dataSchema: getPageResponseSchema,
   })
@@ -126,13 +118,10 @@ export async function getPage(handle: string): Promise<Page | null> {
 }
 
 export async function getPages(): Promise<Page[]> {
-  'use cache'
-  cacheTag(TAGS.pages)
-  cacheLife('hours')
-
   const res = await shopifyFetch<GetPagesResponseData>({
     query: getPagesQuery,
-    cache: 'no-store',
+    tags: [TAGS.pages],
+    revalidate: CATALOG_REVALIDATE_SECONDS,
     dataSchema: getPagesResponseSchema,
   })
 

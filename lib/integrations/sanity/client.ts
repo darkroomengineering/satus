@@ -18,7 +18,8 @@
 // 5. To re-add the Sanity Studio route (/studio), create:
 //    app/studio/[[...tool]]/page.tsx — a server page that exports noindex
 //      `metadata` and next-sanity's `viewport`, prerenders through
-//      `generateStaticParams`, and renders a `'use client'` wrapper:
+//      `export const dynamic = 'force-static'`, and renders a `'use client'`
+//      wrapper:
 //      import { NextStudio } from 'next-sanity/studio'
 //      import config from '@/integrations/sanity/sanity.config'
 //      export function Studio() { return <NextStudio config={config} /> }

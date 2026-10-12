@@ -37,7 +37,6 @@
         "@csstools/postcss-global-data": "^4.0.0",
         "@happy-dom/global-registrator": "^20.14.5",
         "@next/bundle-analyzer": "16.3.8",
-        "@next/playwright": "16.3.8",
         "@oxlint/plugins": "1.86.0",
         "@playwright/test": "1.63.0",
         "@sanity/icons": "^5.2.2",
@@ -670,8 +669,6 @@
     "@next/bundle-analyzer": ["@next/bundle-analyzer@16.3.8", "", { "dependencies": { "webpack-bundle-analyzer": "4.10.1" } }, "sha512-8VBk5/pjANz7fxbQZrDwUMTAs598Vckb4PE7BSYrDIPthJskKCXEHOK+WEMgDD6X2xWlKjrXPo2r41N/G1azSw=="],
 
     "@next/env": ["@dotenvx/next-env@2.4.5", "", {}, "sha512-dq6kB+wcSAQ/drDqA+no+B458ayHRU8qcOgA3Ldrw1a82hMKYPIF8RCuPmeOQQMuvElF1XFS461STNficROp5A=="],
-
-    "@next/playwright": ["@next/playwright@16.3.8", "", { "peerDependencies": { "@playwright/test": ">=1.0.0" }, "optionalPeers": ["@playwright/test"] }, "sha512-w8pc0ANMHfZkLq6+cRHYLXtvXZXw/WerPvj56pA6ju55ZBYlyliM80zOYssc1YO40kVcF8ojBjp9nEkV+q1pMg=="],
 
     "@next/swc-darwin-arm64": ["@next/swc-darwin-arm64@16.3.8", "", { "os": "darwin", "cpu": "arm64" }, "sha512-2JPRMh2nmQG5CiL7cXGL9AGwnPWJQ//cTtAUCT+w511QHk79SYz3LGv/pc5X643B/WEO0rvu3Yww0hqwt3kgeA=="],
 

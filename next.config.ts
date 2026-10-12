@@ -105,10 +105,16 @@ const nextConfig: NextConfig = {
         ? { properties: ['^data-testid$'] }
         : false,
   },
-  cacheComponents: true,
-  // Shell-based prefetching: one reusable loading shell per route, cached
-  // client-side and shared by every link. Requires cacheComponents: true.
-  partialPrefetching: true,
+  // Off: pages are static or ISR, data is cached per fetch with tags, and
+  // `revalidateTag` from `/api/revalidate` refreshes it. Cost: no Partial
+  // Prerendering, so a route that reads cookies, headers or searchParams
+  // renders fully on the server per request instead of streaming into a
+  // prerendered shell.
+  cacheComponents: false,
+  // Off because it needs `cacheComponents: true`. Cost: links prefetch the
+  // classic way (the nearest `loading.tsx` for dynamic routes, the full
+  // payload for static ones) instead of one shared loading shell per route.
+  partialPrefetching: false,
   compress: true,
   logging: {
     fetches: {
@@ -118,10 +124,10 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     taint: true,
-    // Client-side cache for previously visited routes — the one piece of the
-    // instant-navigation cluster that is still opt-in (varyParams and
-    // optimisticRouting are default-on).
-    cachedNavigations: true,
+    // Off because it needs `cacheComponents: true`. Cost: going back to a
+    // visited route refetches its dynamic data instead of reusing a
+    // client-side copy.
+    cachedNavigations: false,
     // Not setting `inlineCss: true`. Measured 2026-09-02 (Lighthouse mobile,
     // 3 runs each, localhost build): FCP 905 -> 810 ms, LCP 3.40 -> 3.40 s,
     // TBT and CLS unchanged. It removed 4 stylesheets (14 KB transfer) but

@@ -91,7 +91,7 @@ The embedded Studio runs under its own CSP on `/studio/*` (`isStudio` in
 
 ### Fetching Data
 
-Read content through `sanityFetch` straight from a Server Component or `generateMetadata`. It owns its cache boundary, so the call site needs no `'use cache'`:
+Read content through `sanityFetch` straight from a Server Component or `generateMetadata`. It sets its own caching, so the call site needs nothing else:
 
 ```tsx
 import { notFound } from 'next/navigation'
@@ -108,8 +108,9 @@ export default async function Page({ params }) {
 ```
 
 - `sanityFetch` returns the query result, or `null` when Sanity isn't configured.
-- Outside draft mode it calls `sanityFetchPublished` (`published.ts`): a `'use cache'` function tagged `sanity`, with `cacheLife('max')`, reading published content from the live API, not the API CDN (a stale CDN answer right after a publish would be cached until the next one). Outside draft mode the page and `generateMetadata` share its cache entry.
+- Outside draft mode it calls `sanityFetchPublished` (`published.ts`): a fetch tagged `sanity` in Next's Data Cache, with a 30-day `revalidate` backstop, reading published content from the live API, not the API CDN (a stale CDN answer right after a publish would be cached until the next one). Outside draft mode the page and `generateMetadata` share its cache entry.
 - In draft mode, with `SANITY_API_READ_TOKEN` set, it reads the perspective Presentation picks (drafts by default, or the content release an editor selects), with stega markers and no cache (the base client already skips the API CDN). Presentation stores the pick in the `sanity-preview-perspective` cookie, and `resolvePerspectiveFromCookies` from `next-sanity/live` reads it.
+- A route that renders per request from a URL slug checks `isKnownCmsPath` (`known-path.ts`) before its `sanityFetch`, as `app/(site)/[...slug]` and `app/(site)/articles/[slug]` do. Each published read is cached, a `null` miss included, so without the check every random slug writes a Data Cache entry. It compares the path with the sitemap's published route list (one cached read) and skips the check in draft mode, where unpublished drafts must still preview.
 - `sanityFetchPublished` reads published content only. Use it outside a page request, like the sitemap (`lib/seo/routes.ts`) or `generateStaticParams`, where draft mode can't be read:
 
 ```tsx
@@ -228,7 +229,7 @@ Create the webhook in [sanity.io/manage](https://sanity.io/manage) → your proj
 
 `parseBody`'s third argument (`true`, named `waitForContentLakeEventualConsistency` in next-sanity) sleeps a fixed 3 seconds after a valid signature. Content Lake is eventually consistent, so a query sent the moment the webhook fires can still get the old version; the sleep is a hedge against that replication lag, not a check that it has passed. Published reads also use `useCdn: false` (`client.ts`), which removes the API CDN's own cache lag on top. Together they make it unlikely that the refetch after `revalidateTag` caches the old version until the next publish. The costs: every webhook call takes 3 seconds, a lag longer than that still caches stale content, and every cache miss reads the live API. Sanity meters live API requests separately from API CDN requests, with a smaller included quota, so check your plan's API vs API CDN request limits. The Next cache is per region or instance depending on the host, so each publish costs one live API read per page per region or instance, not just reads on cold paths.
 
-The webhook is the only thing that refreshes published content. Without it, a cache entry lives until `cacheLife('max')` revalidates it, 30 days later. See [ARCHITECTURE.md](../../../ARCHITECTURE.md) for the diagram.
+The webhook is the only thing that refreshes published content. Without it, a cache entry lives until its 30-day `revalidate` runs out. The webhook calls only the URL it names, so preview deployments never receive it: their cached Sanity content refreshes only on that 30-day `revalidate`. See [ARCHITECTURE.md](../../../ARCHITECTURE.md) for the diagram.
 
 ## Draft mode
 

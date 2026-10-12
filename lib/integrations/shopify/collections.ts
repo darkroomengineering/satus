@@ -1,8 +1,6 @@
-import { cacheLife, cacheTag } from 'next/cache'
-
 import { removeEdgesAndNodes, toProducts } from './adapters'
 import { shopifyFetch } from './client'
-import { TAGS } from './constants'
+import { CATALOG_REVALIDATE_SECONDS, TAGS } from './constants'
 import {
   getCollectionProductsQuery,
   getCollectionQuery,
@@ -42,13 +40,10 @@ const toCollections = (collections: (Collection | null)[]): Collection[] => {
 export async function getCollection(
   handle: string
 ): Promise<Collection | undefined> {
-  'use cache'
-  cacheTag(TAGS.collections)
-  cacheLife('hours')
-
   const res = await shopifyFetch<GetCollectionResponseData>({
     query: getCollectionQuery,
-    cache: 'no-store',
+    tags: [TAGS.collections],
+    revalidate: CATALOG_REVALIDATE_SECONDS,
     variables: {
       handle,
     },
@@ -69,13 +64,10 @@ export async function getCollectionProducts({
   reverse,
   sortKey,
 }: GetCollectionProductsOptions): Promise<Product[]> {
-  'use cache'
-  cacheTag(TAGS.collections, TAGS.products)
-  cacheLife('hours')
-
   const res = await shopifyFetch<GetCollectionProductsResponseData>({
     query: getCollectionProductsQuery,
-    cache: 'no-store',
+    tags: [TAGS.collections, TAGS.products],
+    revalidate: CATALOG_REVALIDATE_SECONDS,
     variables: {
       handle: collection,
       reverse,
@@ -93,13 +85,10 @@ export async function getCollectionProducts({
 }
 
 export async function getCollections(): Promise<Collection[]> {
-  'use cache'
-  cacheTag(TAGS.collections)
-  cacheLife('hours')
-
   const res = await shopifyFetch<GetCollectionsResponseData>({
     query: getCollectionsQuery,
-    cache: 'no-store',
+    tags: [TAGS.collections],
+    revalidate: CATALOG_REVALIDATE_SECONDS,
     dataSchema: getCollectionsResponseSchema,
   })
   const shopifyCollections = removeEdgesAndNodes(res.body.data.collections)

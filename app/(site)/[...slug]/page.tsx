@@ -6,13 +6,15 @@ import { Link } from '@/components/ui/link'
 import { isConfigured } from '@/integrations/registry'
 import { RichText } from '@/integrations/sanity/components/rich-text'
 import { sanityFetch } from '@/integrations/sanity/fetch'
+import { isKnownCmsPath } from '@/integrations/sanity/known-path'
 import { pageQuery } from '@/integrations/sanity/queries'
 import { getLinkAttributes } from '@/integrations/sanity/utils/link'
 import { generateSanityMetadata } from '@/utils/metadata'
 
 /**
- * `sanityFetch` owns its cache boundary: published reads are cached under the
- * `sanity` tag until the publish webhook, draft mode reads uncached.
+ * `sanityFetch` sets its own caching: published reads are cached under the
+ * `sanity` tag until the publish webhook, draft mode reads uncached. Callers
+ * check `isKnownCmsPath` first, so only published slugs get a cache entry.
  *
  * Declared as `const` (not `function`) so the sanity bundle's strip transform
  * in `lib/scripts/integration-bundles.ts` can remove it with the existing
@@ -48,7 +50,13 @@ export default async function CmsPage({ params }: CmsPageProps) {
   const { slug } = await params
   const [slugSegment] = slug
 
-  if (slug.length !== 1 || !slugSegment || !isConfigured('sanity')) {
+  if (
+    slug.length !== 1 ||
+    !slugSegment ||
+    !isConfigured('sanity') ||
+    // Before the fetch, so an unknown slug never writes a cache entry.
+    !(await isKnownCmsPath(`/${slugSegment}`))
+  ) {
     notFound()
   }
 
@@ -94,7 +102,14 @@ export async function generateMetadata({ params }: CmsPageProps) {
   const { slug } = await params
   const [slugSegment] = slug
 
-  if (slug.length !== 1 || !slugSegment || !isConfigured('sanity')) return
+  if (
+    slug.length !== 1 ||
+    !slugSegment ||
+    !isConfigured('sanity') ||
+    !(await isKnownCmsPath(`/${slugSegment}`))
+  ) {
+    return
+  }
 
   const data = await fetchPage(slugSegment)
 

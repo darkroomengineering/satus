@@ -21,6 +21,8 @@ export interface ShopifyFetchOptions<T = unknown> {
   headers?: HeadersInit
   query: string
   tags?: string[]
+  /** Seconds before the Data Cache refetches. Only for cached reads. */
+  revalidate?: number
   variables?: Record<string, GraphQLVariableValue>
   /**
    * Optional Zod schema for the GraphQL response payload (`data` field).

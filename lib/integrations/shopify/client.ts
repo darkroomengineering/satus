@@ -83,15 +83,16 @@ function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   })
 }
 
-// cache-exempt: shared low-level wrapper used by both cached callers (which
-// wrap it in 'use cache', e.g. products.ts) and uncached per-user/mutation
-// callers (which pass cache: 'no-store', e.g. cart-operations.ts) — caching
-// policy belongs to the caller, not this wrapper.
+// Shared low-level wrapper for cached catalog reads (which pass `tags` and
+// `revalidate`, e.g. products.ts) and uncached per-user/mutation calls (which
+// pass cache: 'no-store', e.g. cart-operations.ts). Caching policy belongs to
+// the caller, not this wrapper.
 export async function shopifyFetch<T = unknown>({
   cache = 'force-cache',
   headers: customHeaders,
   query,
   tags,
+  revalidate,
   variables,
   dataSchema,
 }: ShopifyFetchOptions<T>): Promise<ShopifyResponse<T>> {
@@ -104,7 +105,9 @@ export async function shopifyFetch<T = unknown>({
   }
 
   try {
-    // Use cacheSignal for automatic request cleanup on cache expiry
+    // cacheSignal aborts when the server render this read belongs to ends or
+    // is aborted, so an abandoned render stops waiting on Shopify. It is null
+    // outside a render (Server Actions, Route Handlers).
     // SAFETY: cacheSignal() is typed to return the opaque, memberless
     // `CacheSignal` marker interface, but React always hands back a real
     // AbortSignal (or null) at runtime — the empty interface just hides
@@ -130,7 +133,12 @@ export async function shopifyFetch<T = unknown>({
         cache,
         timeout: Math.max(deadline - Date.now(), 0),
         ...(signal && { signal }),
-        ...(tags && { next: { tags } }),
+        ...((tags || revalidate !== undefined) && {
+          next: {
+            ...(tags && { tags }),
+            ...(revalidate !== undefined && { revalidate }),
+          },
+        }),
       })
 
       const isRetryable =

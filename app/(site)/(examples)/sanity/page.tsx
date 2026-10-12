@@ -13,9 +13,8 @@ import { SanityTutorial } from './_components/tutorial'
 
 const SLUG = 'sanity'
 
-// `sanityFetch` owns its cache boundary: published reads are cached under the
-// `sanity` tag until the publish webhook, draft mode reads uncached. Call it
-// directly, no `'use cache'` wrapper needed.
+// `sanityFetch` sets its own caching: published reads are cached under the
+// `sanity` tag until the publish webhook, draft mode reads uncached.
 function fetchPage() {
   return sanityFetch({ query: pageQuery, params: { slug: SLUG } })
 }

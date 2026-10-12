@@ -29,9 +29,8 @@ import { expect, type Page, type Request, test } from '@playwright/test'
  *  - `OPT_OUT` (below) is an escape hatch for a static route that genuinely
  *    cannot be visited by this smoke (needs auth, needs a running external
  *    service, etc.) — not a knob for "this test is slow" or "this is
- *    flaky." Same spirit as the `// cache-exempt:` comments in
- *    `lib/integrations/cache-invariant.test.ts`: an opt-out requires a
- *    reason, and the reason is visible (here, in the test name).
+ *    flaky." An opt-out requires a reason, and the reason is visible (in
+ *    the test name).
  *
  * Scaling this past the starter's 3 routes: `fullyParallel` is already on in
  * `playwright.config.ts`, so this sweep is fine well into the dozens of
@@ -156,8 +155,7 @@ const discoveredRoutes = discoverRoutes()
 
 test.describe('route sweep', () => {
   // A broken glob (wrong base dir, renamed `page.tsx` convention, etc.) must
-  // fail loudly, not silently pass an empty suite — same paranoia as
-  // `cache-invariant.test.ts`'s "scans at least one source file" check.
+  // fail loudly, not silently pass an empty suite.
   test('discovers at least one route', () => {
     expect(discoveredRoutes.length).toBeGreaterThan(0)
   })

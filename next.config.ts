@@ -31,6 +31,10 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   poweredByHeader: false,
   typedRoutes: true,
+  // Stops `next dev` from appending its agent-rules block to AGENTS.md, or
+  // creating a CLAUDE.md (which would make Claude Code skip AGENTS.md), when
+  // it detects an AI coding agent. AGENTS.md changes only by review.
+  agentRules: false,
   typescript: {
     // Type checking is owned by `bun run check`.
     ignoreBuildErrors: true,

@@ -4,41 +4,57 @@ import { expect, test } from '@playwright/test'
 /**
  * The `/ai` route's generic smoke (render, console errors, a11y) is now
  * covered by `e2e/route-sweep.e2e.ts` — it's a static page like any other.
- * This file keeps only what the sweep can't generate: the 404 route's
- * bespoke soft-404 assertions below, which need real knowledge of how a
- * streamed response sets its status line, not a copy-pastable smoke.
+ * This file keeps only what the sweep can't generate: the 404 status and
+ * branded view for URLs nothing resolves, which depend on how a streamed
+ * response sets its status line, not a copy-pastable smoke.
  */
 
-test.describe('branded 404', () => {
-  test('renders, returns 404, has no console errors, passes a11y', async ({
+// One URL per way a page reaches `notFound()`: nothing matches, so the
+// `[...slug]` catch-all runs, and a dynamic route whose slug has no document.
+// Either way the article route 404s before fetching: without Sanity
+// credentials (CI) it has nothing to read, and with them the slug is missing
+// from the published route list. Both paths must end in a real 404.
+const UNKNOWN_URLS = [
+  '/this-route-does-not-exist-e2e',
+  '/articles/this-article-does-not-exist-e2e',
+]
+
+for (const url of UNKNOWN_URLS) {
+  test(`branded 404 for ${url}: real 404 status, no console errors, a11y`, async ({
     page,
   }) => {
     const consoleErrors: string[] = []
     const pageErrors: string[] = []
 
     page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        consoleErrors.push(msg.text())
+      if (msg.type() !== 'error') return
+      // Chromium logs "Failed to load resource: ... 404" for any non-2xx
+      // document. That line is the status this test asserts, not a bug, so
+      // drop it for the document URL only; the same message from any other
+      // resource still fails the test.
+      if (
+        msg.text().startsWith('Failed to load resource') &&
+        new URL(msg.location().url).pathname === url
+      ) {
+        return
       }
+      consoleErrors.push(msg.text())
     })
 
     page.on('pageerror', (error) => {
       pageErrors.push(error.message)
     })
 
-    const response = await page.goto('/this-route-does-not-exist-e2e')
+    const response = await page.goto(url)
 
-    // Verified on a `next build && next start` production run with curl:
-    // this route's document response is HTTP 200, not 404.
-    // `app/(site)/loading.tsx` wraps every page in the group in a Suspense
-    // boundary, so the response starts streaming the layout and the loading
-    // fallback with a 200 status before the `[...slug]` page runs;
-    // `notFound()` runs after the status line was already sent. Deleting
-    // that loading.tsx makes this route return a real 404 (checked the same
-    // way). This is a genuine soft-404 (the same response carries a
-    // `<meta name="robots" content="noindex">` tag), not a test bug: assert
-    // the real status plus the noindex signal.
-    expect(response?.status()).toBe(200)
+    // A real 404, not a 200 with noindex. This holds only while no
+    // `loading.tsx` sits above these pages: a loading file wraps the page in
+    // a Suspense boundary, the response starts streaming the fallback with a
+    // 200 status, and `notFound()` runs after the status line was sent. A
+    // `loading.tsx` in `app/(site)/`, `app/(site)/[...slug]/` or
+    // `app/(site)/articles/[slug]/` each turned the matching URL here back
+    // into a 200 (checked with curl against `next build && next start`).
+    expect(response?.status()).toBe(404)
 
     // `networkidle` never settles here — the WebGL scene and the dev HMR
     // socket keep the connection busy — so anchor on web assertions instead.
@@ -46,9 +62,8 @@ test.describe('branded 404', () => {
     await expect(page).toHaveTitle(/.+/)
     await expect(page.locator('body')).toBeVisible()
 
-    // The noindex signal Next.js injects for a page resolved via notFound() —
-    // the actual "this is a 404" marker crawlers see, since the HTTP status
-    // itself doesn't carry it (see comment above). Scoped to the noindex meta
+    // The noindex meta Next.js injects for a page resolved via notFound(),
+    // kept as a second signal next to the status. Scoped to the noindex meta
     // rather than all robots metas: the layout's SEO defaults can emit their
     // own robots tag, and matching the pair trips Playwright's strict mode.
     await expect(
@@ -73,10 +88,8 @@ test.describe('branded 404', () => {
       '/sitemap.xml'
     )
 
-    // Verified empirically: this 404 navigation logs zero console errors and
-    // zero pageerrors (Chromium's "Failed to load resource" console message
-    // only fires for a genuinely non-200 document response, and this route's
-    // document response is 200 — see comment above).
+    // Apart from the document's own 404 line filtered above, the 404 view
+    // logs nothing.
     expect(consoleErrors).toEqual([])
     expect(pageErrors).toEqual([])
 
@@ -90,4 +103,4 @@ test.describe('branded 404', () => {
     )
     expect(seriousViolations).toEqual([])
   })
-})
+}

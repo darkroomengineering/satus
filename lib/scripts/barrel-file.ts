@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
 // Canonical barrel-file (index.ts re-export) string transforms.
 // Pure functions — no I/O. Callers own their own read/write, dry-run, and
-// logging. See bundle-installer (restore), setup-project (remove), and
-// generate-component (insert/create) for the I/O wrappers.
+// logging. See bundle-installer (restore) and setup-project (remove) for the
+// I/O wrappers.
 // ---------------------------------------------------------------------------
 
 /**

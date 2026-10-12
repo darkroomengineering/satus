@@ -6,8 +6,9 @@
  * with `isStudio` for the embedded Sanity Studio on `/studio/*`. This is
  * deliberately config-eval composition — a pure function next.config.ts
  * imports and calls — rather than `setup:project` writing a literal policy
- * string into `next.config.ts` via an AST transform (the pattern it already
- * uses for `images.remotePatterns` / `experimental.optimizePackageImports`).
+ * string into `next.config.ts` via an AST transform (the pattern it uses for
+ * `experimental.optimizePackageImports`, and for Shopify's
+ * `images.remotePatterns` entry).
  * Config-eval composition can't drift: strip an integration's folder and its
  * origins vanish on the very next build, with no transform to keep in sync.
  * AST literal-writing was only the fallback if next.config.ts genuinely
@@ -111,10 +112,8 @@ const NEVER_STRIPPED: ReadonlySet<IntegrationId> = new Set([
  * credentials land. Composing from "kept" rather than "configured" means the
  * header only moves when the codebase changes, not when an env var does.
  *
- * Exported so tooling that must answer the same question — `generate-page`
- * offers a page template's Sanity/Shopify options only when that integration
- * is still in the project — shares this one detector instead of growing a
- * second copy of the rule.
+ * Exported for `next.config.ts`, and for any tooling that must answer the
+ * same question, so the rule has one copy.
  */
 export function isIntegrationKept(id: IntegrationId): boolean {
   if (NEVER_STRIPPED.has(id)) return true

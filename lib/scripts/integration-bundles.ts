@@ -417,6 +417,11 @@ export const INTEGRATION_BUNDLES = defineBundles({
           },
           {
             kind: 'removeImport',
+            specifier: '@/integrations/sanity/known-path',
+            required: true,
+          },
+          {
+            kind: 'removeImport',
             specifier: '@/integrations/sanity/queries',
             required: true,
           },

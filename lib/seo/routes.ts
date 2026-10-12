@@ -153,8 +153,8 @@ export function buildRoutesFromDocuments(data: unknown): ContentRoute[] {
 export interface CmsRoutesResult {
   routes: ContentRoute[]
   /**
-   * True when the fetch failed (Sanity unreachable) rather than the CMS
-   * genuinely having zero published `page`/`article` documents. Only the
+   * True when the CMS fetch failed rather than the CMS genuinely having zero
+   * published `page`/`article` documents. Only the
    * Markdown handler sees this: it renders per request, so it can answer a
    * 503 instead of 404ing a route that would exist once the outage clears.
    */
@@ -193,11 +193,17 @@ async function fetchCmsRoutesResult(): Promise<CmsRoutesResult> {
  *
  * Those three are static, cached under the `sanity` tag with a 30-day
  * revalidate. Swallowing the error would store a copy without CMS routes for
- * up to 30 days; throwing makes Next keep the last good copy and retry on a
- * later request. Cost: a build whose Sanity is configured but unreachable
- * fails instead of shipping a sitemap without CMS routes, and the one request
- * that runs a blocking regeneration (the first after a publish webhook)
- * gets an error while later ones get the previous copy.
+ * up to 30 days. Throwing keeps the last good copy only for the 30-day
+ * background revalidation, which serves the stale copy while it retries.
+ *
+ * Cost: after a publish webhook (`revalidateTag('sanity', { expire: 0 })`)
+ * there is no copy left to serve, so during a Sanity outage every request to
+ * `/sitemap.xml`, `/llms.txt` and `/ai` answers 500 until Sanity answers
+ * again. A build with Sanity configured but unreachable fails, unless a warm
+ * `.next/cache` still holds the routes fetch, which the build reuses; so
+ * mostly a first or cache-cleared build. Also the published route list the
+ * CMS pages check before fetching (`isKnownCmsPath`), so those pages error
+ * during an outage too.
  */
 export async function getCmsRoutes(): Promise<ContentRoute[]> {
   return (await fetchCmsRoutesResult()).routes

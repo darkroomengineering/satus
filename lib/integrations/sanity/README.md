@@ -215,11 +215,18 @@ export const landing = defineType({
 5. **Regenerate types**: `bun run sanity:extract && bun run sanity:typegen`
 
 `sanity:extract` overwrites `schema.json` and needs no Sanity project. The
-CLI only reads the schema, but it refuses a Studio config without a project
-ID, so the script passes the placeholder `SANITY_STUDIO_PROJECT_ID=extract-only`
+CLI only reads the schema, but `sanity.config.ts` exports `null` when no
+project ID is set, and the CLI rejects that as an invalid Studio config. So
+the script passes the placeholder `SANITY_STUDIO_PROJECT_ID=extract-only`
 after the env files. A project ID from your env or shell wins over it. The
 placeholder names no real project, so extraction cannot depend on one, and no
 other script sets it.
+
+An empty `NEXT_PUBLIC_SANITY_PROJECT_ID=` line in `.env.local` (or an empty
+shell value) also wins over the placeholder: `env.ts` falls back with `??`, so
+an empty string counts as set, the config exports `null` again, and extract
+fails with "Invalid studio config format". Delete or comment out the empty
+line instead of leaving it blank.
 
 ## Caching
 

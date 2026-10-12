@@ -1,4 +1,7 @@
 import { getImageDimensions } from '@sanity/asset-utils'
+// Not `next-sanity`: its root entry re-exports the whole client, and this
+// component can be rendered from a client component.
+import { stegaClean } from '@sanity/client/stega'
 
 import { Image, type ImageProps } from '@/components/ui/image'
 import type {
@@ -44,7 +47,11 @@ interface SanityImageProps extends Omit<
   }
   /** The widest the image renders, in CSS pixels. Sets `sizes`. */
   maxWidth?: number
-  /** Alt text override. Falls back to the CMS-provided `image.alt`, then `''`. */
+  /**
+   * Alt text override. Falls back to the CMS-provided `image.alt`, then `''`
+   * (decorative). Either way it is stega-cleaned, since draft mode adds hidden
+   * edit markers to every Sanity string.
+   */
   alt?: string
 }
 
@@ -84,7 +91,7 @@ export function SanityImage({
   return (
     <Image
       src={src}
-      alt={alt ?? image.alt ?? ''}
+      alt={stegaClean(alt ?? image.alt) ?? ''}
       aspectRatio={aspectRatio}
       sizes={`(max-width: ${maxWidth}px) 100vw, ${maxWidth}px`}
       quality={QUALITY}

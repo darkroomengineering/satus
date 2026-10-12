@@ -30,8 +30,8 @@ import {
 import type { AstOperation } from './ast-operation-types'
 import { applyOpsToText } from './ast-transforms'
 import { isInstalled } from './bundle-installer'
-import { guardedPrompt } from './generate-shared'
 import { getIntegrationEntries } from './integration-bundles'
+import { guardedPrompt } from './prompts'
 import {
   type IntegrationStatus,
   renderDeploymentChecklist,

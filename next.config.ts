@@ -149,19 +149,24 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   images: {
     dangerouslyAllowSVG: true,
+    // No `cdn.sanity.io`: Sanity's CDN resizes its own images through the
+    // loader in `components/ui/image`, so the optimizer never fetches them.
+    // Allowing the host would let anyone resize any Sanity project's images
+    // here, on this project's bill.
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'cdn.shopify.com',
       },
-      {
-        protocol: 'https',
-        hostname: 'cdn.sanity.io',
-      },
     ],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
-    qualities: [90],
-    formats: ['image/avif', 'image/webp'],
+    // 80: `SanityImage` (its loader still passes the check); 90: everything else.
+    qualities: [80, 90],
+    // WebP only, never AVIF: AVIF decodes slower, which costs most on phones
+    // and on image-heavy pages. Cost: AVIF files were smaller (40.5 KB
+    // against 56.4 KB for the same 1080px photos). Sanity images skip this
+    // optimizer: Sanity's CDN resizes them, also as WebP (`components/ui/image`).
+    formats: ['image/webp'],
     // Cap the largest generated variant at 2560px (Next's default tops out at
     // 3840): full-bleed art on 4K/high-DPR screens produces multi-MB
     // candidates that page-weight audits flag, with no visible gain over 2560.

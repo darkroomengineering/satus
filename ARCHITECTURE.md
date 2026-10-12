@@ -352,7 +352,7 @@ The compiler handles simple calculations and callbacks automatically - no manual
 
 ## Extending
 
-**New component**: `bun run generate` or add to `components/ui/`
+**New component**: add it to `components/ui/`
 
 **New integration**: Add Zod env schema in `@/utils/validation`, add entry in `lib/integrations/registry.ts`. `generate-manifest` and `setup:project` read the registry; `doctor` checks core env only. A removable integration also needs an `INTEGRATION_BUNDLES` entry in `lib/scripts/integration-bundles.ts` (files, deps, transforms, env stubs), or `setup:project` cannot strip it.
 

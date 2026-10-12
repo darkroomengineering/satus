@@ -1,3 +1,5 @@
+import { stegaClean } from 'next-sanity'
+
 /**
  * Structural link shape shared by the raw schema `Link` object and the
  * dereferenced link projection emitted by TypeGen (`internalLink->{...}`).
@@ -88,7 +90,14 @@ function isSafeExternalUrl(url: string): boolean {
   }
 }
 
-export const urlForReference = (link: LinkLike): string => {
+/**
+ * Resolves a Sanity link to an `href`. In draft mode Presentation's stega
+ * encoding can append invisible edit markers to link strings (a relative
+ * `#anchor` or `?query` external URL is not recognised as a URL and gets
+ * encoded), so the input is cleaned here rather than by each caller.
+ */
+export const urlForReference = (raw: LinkLike): string => {
+  const link = stegaClean(raw)
   if (!link) return '#'
 
   // External URL — reject any scheme outside the allowlist (see
@@ -127,7 +136,8 @@ function resolveDocumentUrl(documentType?: string, slug?: string): string {
 }
 
 // Helper to get link attributes
-export const getLinkAttributes = (link: LinkLike) => {
+export const getLinkAttributes = (raw: LinkLike) => {
+  const link = stegaClean(raw)
   if (!link) return { href: '#', target: undefined, rel: undefined }
 
   const href = urlForReference(link)

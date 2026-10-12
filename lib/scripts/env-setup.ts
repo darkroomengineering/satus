@@ -153,6 +153,9 @@ for (const { keyName, key } of keys) {
         'add',
         keyName,
         environment,
+        // Preview asks for a Git branch when the value comes on stdin; an
+        // empty one means every Preview branch.
+        ...(environment === 'preview' ? [''] : []),
         '--sensitive',
         '--force',
         '--yes',

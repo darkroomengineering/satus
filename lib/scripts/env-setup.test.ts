@@ -23,8 +23,11 @@ import { dirname, join } from 'node:path'
  * 8. an existing Vercel variable is not overwritten (rotating the key fails)
  * 9. the run doesn't say which Vercel project it writes to
  * 10. --copy misses a key, prints one, or pushes to Vercel
+ * 11. preview gets no Git branch argument, which the Vercel CLI rejects when
+ *     the value comes on stdin (an empty branch means every Preview branch)
  *
  * `vercel` and the clipboard commands are fakes that log what they receive.
+ * The `vercel` fake rejects a preview add without a branch, as the CLI does.
  */
 
 const script = join(import.meta.dir, 'env-setup.ts')
@@ -87,6 +90,7 @@ function makeProject({
   fake(
     join(bin, 'vercel'),
     `in="$(cat)"\nprintf 'args=%s stdin=%s\\n' "$*" "$in" >> "${log}"\n` +
+      `[ "$4" = preview ] && case "$5" in --*) echo git_branch_required >&2; exit 1;; esac\n` +
       `[ ${vercelExitCode} -ne 0 ] && echo "rejected $in" >&2\nexit ${vercelExitCode}`
   )
   for (const name of ['pbcopy', 'xclip', 'xsel', 'clip']) {

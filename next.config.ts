@@ -149,14 +149,14 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   images: {
     dangerouslyAllowSVG: true,
+    // No `cdn.sanity.io`: Sanity's CDN resizes its own images through the
+    // loader in `components/ui/image`, so the optimizer never fetches them.
+    // Allowing the host would let anyone resize any Sanity project's images
+    // here, on this project's bill.
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'cdn.shopify.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'cdn.sanity.io',
       },
     ],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days

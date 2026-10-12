@@ -6,8 +6,9 @@
  * with `isStudio` for the embedded Sanity Studio on `/studio/*`. This is
  * deliberately config-eval composition — a pure function next.config.ts
  * imports and calls — rather than `setup:project` writing a literal policy
- * string into `next.config.ts` via an AST transform (the pattern it already
- * uses for `images.remotePatterns` / `experimental.optimizePackageImports`).
+ * string into `next.config.ts` via an AST transform (the pattern it uses for
+ * `experimental.optimizePackageImports`, and for Shopify's
+ * `images.remotePatterns` entry).
  * Config-eval composition can't drift: strip an integration's folder and its
  * origins vanish on the very next build, with no transform to keep in sync.
  * AST literal-writing was only the fallback if next.config.ts genuinely

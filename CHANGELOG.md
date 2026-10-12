@@ -24,6 +24,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Security
 
+- Next's image optimizer no longer accepts `cdn.sanity.io` (`images.remotePatterns` keeps only Shopify's `cdn.shopify.com`). Sanity images reach the browser through Sanity's CDN, and the open pattern let anyone resize any Sanity project's images through `/_next/image` on the deployment's bill. The `setup:project` transforms that removed and re-added the pattern are gone with it.
 - `next` moves to 16.3.8 (with `@next/playwright` and `@next/bundle-analyzer`), past the critical `next/og` `ImageResponse` remote code execution advisory fixed in 16.3.6. Satus itself renders no `ImageResponse`, but a fork that adds an OG image route would have been exposed.
 
 ### Added

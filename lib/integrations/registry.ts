@@ -85,8 +85,8 @@ export const integrations = {
     cspSources: {
       // Images: `lib/integrations/sanity/client.ts` + `@sanity/image-url`'s
       // `urlForImage()` (used by `components/ui/sanity-image`) build URLs on
-      // `cdn.sanity.io` — the same host already trusted by
-      // `next.config.ts`'s `images.remotePatterns`.
+      // `cdn.sanity.io`, which the browser loads directly
+      // (`components/ui/image`'s Sanity loader, not Next's optimizer).
       'img-src': ['https://cdn.sanity.io'],
       // Live/API: `next-sanity`'s `defineLive`/`SanityLive`
       // (`lib/integrations/sanity/live/index.tsx`, rendered client-side from

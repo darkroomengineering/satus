@@ -17,6 +17,8 @@ import type { CSSProperties, Ref } from 'react'
 
 import { breakpoints } from '@/styles/config'
 
+import { isSanityImage, sanityLoader } from './sanity-loader'
+
 import s from './image.module.css'
 
 /**
@@ -341,6 +343,10 @@ export function Image({
       sizes={finalSizes}
       src={src}
       unoptimized={unoptimized || isSvg}
+      // Sanity's CDN resizes its own images; Next's optimizer would only
+      // re-encode them. Set here because a loader is a function, which a
+      // Server Component can't pass to this Client Component.
+      {...(isStringSrc(src) && isSanityImage(src) && { loader: sanityLoader })}
       draggable={false}
       onDragStart={(e) => e.preventDefault()}
       {...(finalPlaceholder && { placeholder: finalPlaceholder })}

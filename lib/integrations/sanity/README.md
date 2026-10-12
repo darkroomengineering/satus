@@ -164,11 +164,13 @@ import { Image } from '@/components/ui/image'
 import { SanityImage } from '@/components/ui/sanity-image'
 
 // Option 1: Using urlForImage with the generic Image component
-<Image src={urlForImage(image).width(800).url()} alt={image.alt} width={800} height={600} />
+<Image src={urlForImage(image).url()} alt={image.alt} width={800} height={600} />
 
 // Option 2: Using SanityImage component
 <SanityImage image={image} maxWidth={800} />
 ```
+
+`Image` gives any `cdn.sanity.io` URL a loader (`components/ui/image/sanity-loader.ts`): Sanity's CDN resizes each `srcset` width itself, as WebP, and Next's optimizer never sees the image (`cdn.sanity.io` is not in `images.remotePatterns`). The loader sets `w` per candidate, so a width on the URL is overwritten; a `rect` crop is kept. `SanityImage` also takes the aspect ratio from the editor's crop and keeps their hotspot in view under `object-cover`.
 
 A raw `<img>` is not an option here — oxlint's `nextjs/no-img-element` rule rejects it project-wide.
 

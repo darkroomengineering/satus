@@ -11,6 +11,13 @@ export default defineCliConfig({
   project: {
     basePath: '/studio',
   },
+  // `bun run sanity:typegen`. Replaces the separate `sanity-typegen.json`,
+  // which the Sanity CLI deprecated.
+  typegen: {
+    path: './**/*.{ts,tsx}',
+    schema: './schema.json',
+    generates: './sanity.types.ts',
+  },
   vite: {
     resolve: {
       alias: {

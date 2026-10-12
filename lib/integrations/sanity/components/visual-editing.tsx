@@ -11,6 +11,10 @@ import { useRouter } from 'next/navigation'
  * changes a field: next-sanity's default handler ignores those mutation
  * events. `router.refresh()` re-runs the Server Components, and `sanityFetch`
  * reads the new draft uncached.
+ *
+ * Cost: every mutation event re-renders the whole server tree, and every
+ * `sanityFetch` in it goes to Sanity uncached, so a page with many queries
+ * makes that many API requests per edit. Only editors in draft mode pay it.
  */
 export function SanityVisualEditing() {
   const router = useRouter()

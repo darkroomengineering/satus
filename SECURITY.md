@@ -63,5 +63,5 @@ script, font, avatar and API origins, so site routes never allow them. Forks tha
 project-specific origins the registry can't know about extend
 `PROJECT_CSP_EXTRA_SOURCES` in `lib/integrations/csp.ts`. The Shopify webhook
 secret on `/api/revalidate` is compared in constant time (`timingSafeEqual`):
-an unset secret returns 503, an invalid one 401. See
+an unset, missing or wrong secret returns 401. See
 [app/api/README.md](app/api/README.md) for the full revalidation flow.

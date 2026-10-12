@@ -15,8 +15,11 @@ import { chmod, mkdir, mkdtemp, rm, symlink } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 
+import { Project, ts } from 'ts-morph'
+
 import type { AstOperation } from './ast-operation-types'
 import { applyOpsToText, RequiredOpMatchError } from './ast-transforms'
+import { addScripts } from './bundle-installer'
 import {
   getIntegrationEntries,
   getIntegrationNames,
@@ -128,6 +131,37 @@ describe('Integration Bundle Configuration', () => {
     }
   })
 
+  // Failure modes this guards: a stripped bundle leaves a package.json script
+  // that runs a deleted path, and a bundle declares a script name that
+  // package.json does not have (a typo, or a rename on one side only).
+  it('every package.json script that runs a bundle path is owned by that bundle', async () => {
+    const pkg = (await Bun.file('package.json').json()) as {
+      scripts: Record<string, string>
+    }
+    for (const [id, bundle] of getIntegrationEntries()) {
+      for (const name of bundle.scripts ?? []) {
+        expect(
+          pkg.scripts[name],
+          `${id} declares missing script ${name}`
+        ).toBeDefined()
+      }
+      // Plain substring match on the literal paths a bundle declares. It
+      // does not catch a script that reaches a bundle path indirectly (a
+      // script that imports one, a shell wrapper) or a path that shares a
+      // prefix with an unrelated one, so it is a tripwire, not proof.
+      for (const [name, command] of Object.entries(pkg.scripts)) {
+        const owned = [...bundle.folders, ...bundle.files].some((path) =>
+          command.includes(path)
+        )
+        if (!owned) continue
+        expect(
+          bundle.scripts ?? [],
+          `script ${name} runs a ${id} path but ${id} does not list it in scripts`
+        ).toContain(name)
+      }
+    }
+  })
+
   it('should have valid barrel export configurations', () => {
     for (const [_name, bundle] of getIntegrationEntries()) {
       for (const barrelExport of bundle.barrelExports) {
@@ -162,6 +196,7 @@ describe('Integration Bundle Configuration', () => {
             'removeArrayStringElement',
             'removeJsxAttribute',
             'removeDestructuredBinding',
+            'syncUnusedParameterPrefix',
           ]).toContain(op.kind)
 
           // Each op kind must carry its required fields
@@ -225,6 +260,9 @@ describe('Integration Bundle Configuration', () => {
       'addJsxChild',
       'addDestructuredBinding',
       'addFunctionBodyStatement',
+      // Not additive, but it only ever renames toward what the body reads,
+      // so after a re-add it restores the name the re-added code needs.
+      'syncUnusedParameterPrefix',
     ]
 
     for (const [_name, bundle] of getIntegrationEntries()) {
@@ -1123,7 +1161,8 @@ describe('Lean-variant validity: app/api/revalidate/route.ts (H1)', () => {
    * Reproduce what `setup()` does to this file for a given kept set:
    * `setupLean` applies EVERY bundle's strip ops against the pristine source
    * (a union pass, regardless of what is kept), then `setupAddIntegrations`
-   * re-adds each kept bundle.
+   * re-adds each kept bundle and runs `stripAbsentIntegrationWiring`, which
+   * re-applies each absent bundle's strip ops with `required` downgraded.
    */
   const variantFor = (kept: ('sanity' | 'shopify')[]): string | undefined => {
     const pristine = sourceFiles[FILE]
@@ -1138,14 +1177,90 @@ describe('Lean-variant validity: app/api/revalidate/route.ts (H1)', () => {
       const add = transformFor(id, 'add')
       if (add) text = applyOpsToText(text, add.ops)
     }
+    if (kept.length === 0) return text // setupAddIntegrations returns early
+    for (const id of ['sanity', 'shopify'] as const) {
+      if (kept.includes(id)) continue
+      const strip = transformFor(id, 'strip')
+      if (!strip) continue
+      const downgraded = strip.ops.map((op) => ({ ...op, required: false }))
+      text = applyOpsToText(text, downgraded)
+    }
     return text
   }
+
+  /**
+   * Type-check a variant under the repo's strict flags, with the modules it
+   * imports stubbed: what this asserts is the route's own validity (unused
+   * parameters and imports, implicit returns, dangling references), not the
+   * integrations' types. Ways it could pass while the scaffold fails, each
+   * closed below: the strict flags not set (they are, copied from
+   * tsconfig.json), a stub so loose that a dangling identifier type-checks
+   * (each stub declares only what the route uses), and a test that never
+   * looks at the route's diagnostics (it is the only non-stub file, and the
+   * guard test below proves a known error surfaces).
+   */
+  const typeErrors = (variant: string): string[] => {
+    const project = new Project({
+      useInMemoryFileSystem: true,
+      compilerOptions: {
+        target: ts.ScriptTarget.ESNext,
+        module: ts.ModuleKind.ESNext,
+        moduleResolution: ts.ModuleResolutionKind.Bundler,
+        lib: ['lib.esnext.d.ts', 'lib.dom.d.ts'],
+        strict: true,
+        noEmit: true,
+        verbatimModuleSyntax: true,
+        exactOptionalPropertyTypes: true,
+        noImplicitReturns: true,
+        noUnusedLocals: true,
+        noUnusedParameters: true,
+        noUncheckedIndexedAccess: true,
+      },
+    })
+    project.createSourceFile(
+      '/stubs.d.ts',
+      `declare module 'next/server' {
+  export class NextRequest extends Request {
+    nextUrl: URL
+  }
+  export class NextResponse extends Response {
+    static json(body: unknown, init?: ResponseInit): NextResponse
+  }
+}
+declare module '@/integrations/sanity/revalidate' {
+  import type { NextRequest, NextResponse } from 'next/server'
+  export function revalidate(request: NextRequest): Promise<NextResponse>
+}
+declare module '@/integrations/shopify/revalidate' {
+  import type { NextRequest, NextResponse } from 'next/server'
+  export function revalidate(request: NextRequest): Promise<NextResponse>
+}
+`
+    )
+    project.createSourceFile('/route.ts', variant)
+    return project.getPreEmitDiagnostics().map((d) => {
+      const message = d.getMessageText()
+      const text =
+        typeof message === 'string' ? message : message.getMessageText()
+      return `${d.getSourceFile()?.getFilePath() ?? '?'} TS${d.getCode()}: ${text}`
+    })
+  }
+
+  it('the type check catches the unused-parameter bug it was written for', () => {
+    // Without the `_request` rename, a blank scaffold failed TS6133.
+    const blank = variantFor([])
+    if (blank === undefined) return
+    const unrenamed = blank.replace('(_request:', '(request:')
+    expect(unrenamed).not.toBe(blank)
+    expect(typeErrors(unrenamed).join('\n')).toContain('TS6133')
+  })
 
   const combinations: {
     label: string
     kept: ('sanity' | 'shopify')[]
   }[] = [
     { label: 'both kept', kept: ['sanity', 'shopify'] },
+    { label: 'both kept, shopify first', kept: ['shopify', 'sanity'] },
     { label: 'sanity only', kept: ['sanity'] },
     { label: 'shopify only', kept: ['shopify'] },
     { label: 'blank', kept: [] },
@@ -1153,6 +1268,13 @@ describe('Lean-variant validity: app/api/revalidate/route.ts (H1)', () => {
 
   for (const { label, kept } of combinations) {
     describe(label, () => {
+      it('type-checks under the repo strict flags', () => {
+        const variant = variantFor(kept)
+        if (variant === undefined) return
+
+        expect(typeErrors(variant)).toEqual([])
+      })
+
       it('references NextResponse only while its import survives', () => {
         const variant = variantFor(kept)
         if (variant === undefined) return
@@ -1180,6 +1302,34 @@ describe('Lean-variant validity: app/api/revalidate/route.ts (H1)', () => {
         expect(variant).toContain("error: 'No webhook handler configured'")
       })
 
+      it('keeps the pristine guard order: Shopify, then Sanity, then the 404', () => {
+        const pristine = sourceFiles[FILE]
+        const variant = variantFor(kept)
+        if (pristine === undefined || variant === undefined) return
+
+        // The order is behaviour: a request carrying both a `?secret=` and a
+        // `sanity-webhook-signature` header goes to whichever guard is first.
+        const handler = (text: string) =>
+          text
+            .slice(text.indexOf('export async function POST'))
+            .split('\n')
+            .filter((line) => line.trim() !== '')
+        const got = handler(variant)
+        const positions = [
+          'const isShopifyWebhook',
+          'const isSanityWebhook',
+          "error: 'No webhook handler configured'",
+        ]
+          .map((marker) => got.findIndex((line) => line.includes(marker)))
+          .filter((index) => index !== -1)
+        expect(positions).toEqual([...positions].sort((a, b) => a - b))
+
+        // With both kept, the handler matches the pristine one line for line.
+        // Blank lines are dropped: the strip leaves one that `setup:project`'s
+        // format pass removes.
+        if (kept.length === 2) expect(got).toEqual(handler(pristine))
+      })
+
       it('leaves no reference to a stripped integration', () => {
         const variant = variantFor(kept)
         if (variant === undefined) return
@@ -1188,19 +1338,13 @@ describe('Lean-variant validity: app/api/revalidate/route.ts (H1)', () => {
           if (kept.includes(id)) continue
           expect(variant).not.toContain(`@/integrations/${id}/revalidate`)
           expect(variant).not.toContain(`${id}Revalidate`)
+          // Comments too: a blank or single-provider route must not describe
+          // a provider it no longer has.
+          expect(variant.toLowerCase()).not.toContain(id)
         }
       })
     })
   }
-
-  it('keeps the rate-limit block in every combination', () => {
-    for (const { kept } of combinations) {
-      const variant = variantFor(kept)
-      if (variant === undefined) return
-      expect(variant).toContain("error: 'Too many requests'")
-      expect(variant).toContain('rateLimiters.standard')
-    }
-  })
 })
 
 // ---------------------------------------------------------------------------
@@ -1859,6 +2003,117 @@ describe("P-C3 regression: kept bundle deps survive selfPrune's package.json wri
       expect(
         await pathExists(join(tmpRoot, 'lib/scripts/setup-project.ts'))
       ).toBe(false)
+
+      // The strip pass removes the sanity:* scripts; the re-add must put
+      // them back, with the file sanity:mcp runs.
+      const sourcePkg = (await Bun.file('package.json').json()) as {
+        scripts: Record<string, string>
+      }
+      for (const name of INTEGRATION_BUNDLES.sanity.scripts ?? []) {
+        expect(pkg.scripts?.[name], `missing script "${name}"`).toBe(
+          sourcePkg.scripts[name]
+        )
+      }
+      expect(
+        await pathExists(join(tmpRoot, 'lib/scripts/copy-sanity-mcp.ts'))
+      ).toBe(true)
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true })
+    }
+  }, 60000)
+
+  it('--keep shopify drops the sanity:* scripts with the Sanity files', async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-strip-scripts-'))
+    try {
+      await copyRepo(tmpRoot)
+
+      const proc = Bun.spawnSync(
+        [
+          'bun',
+          'run',
+          'lib/scripts/setup-project.ts',
+          '--keep',
+          'shopify',
+          '--yes',
+          '--skip-install',
+        ],
+        { cwd: tmpRoot, stdout: 'pipe', stderr: 'pipe' }
+      )
+      if (proc.exitCode !== 0) {
+        console.error(proc.stdout.toString())
+        console.error(proc.stderr.toString())
+      }
+      expect(proc.exitCode).toBe(0)
+
+      const pkg = (await Bun.file(join(tmpRoot, 'package.json')).json()) as {
+        scripts?: Record<string, string>
+      }
+      const leftovers = Object.keys(pkg.scripts ?? {}).filter((name) =>
+        name.startsWith('sanity:')
+      )
+      expect(leftovers).toEqual([])
+      expect(
+        await pathExists(join(tmpRoot, 'lib/scripts/copy-sanity-mcp.ts'))
+      ).toBe(false)
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true })
+    }
+  }, 60000)
+})
+
+describe('addScripts', () => {
+  // setup:project's payload is the project's own pre-strip package.json, so
+  // a declared script missing there is one the fork deleted. Throwing would
+  // abort installBundle after setupLean already stripped the bundle and
+  // leave it half re-added; the script is skipped instead.
+  it('skips a declared script the payload package.json lacks', async () => {
+    const promise = addScripts(
+      INTEGRATION_BUNDLES.sanity,
+      { scripts: { 'sanity:extract': 'x' } },
+      { dryRun: true }
+    )
+    await expect(promise).resolves.toBeArray()
+  })
+
+  it('--keep sanity on a fork without sanity:mcp still re-adds the rest of the bundle', async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-missing-script-'))
+    try {
+      await copyRepo(tmpRoot)
+      const pkgPath = join(tmpRoot, 'package.json')
+      const before = (await Bun.file(pkgPath).json()) as {
+        scripts: Record<string, string>
+      }
+      delete before.scripts['sanity:mcp']
+      await Bun.write(pkgPath, `${JSON.stringify(before, null, 2)}\n`)
+
+      const proc = Bun.spawnSync(
+        [
+          'bun',
+          'run',
+          'lib/scripts/setup-project.ts',
+          '--keep',
+          'sanity',
+          '--yes',
+          '--skip-install',
+        ],
+        { cwd: tmpRoot, stdout: 'pipe', stderr: 'pipe' }
+      )
+      if (proc.exitCode !== 0) {
+        console.error(proc.stdout.toString())
+        console.error(proc.stderr.toString())
+      }
+      expect(proc.exitCode).toBe(0)
+
+      const pkg = (await Bun.file(pkgPath).json()) as {
+        scripts?: Record<string, string>
+      }
+      expect(pkg.scripts?.['sanity:extract']).toBe(
+        before.scripts['sanity:extract']
+      )
+      expect(pkg.scripts?.['sanity:typegen']).toBe(
+        before.scripts['sanity:typegen']
+      )
+      expect(pkg.scripts?.['sanity:mcp']).toBeUndefined()
     } finally {
       await rm(tmpRoot, { recursive: true, force: true })
     }

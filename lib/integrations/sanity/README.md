@@ -143,7 +143,7 @@ function MyComponent({ data }) {
 ### Image Handling
 
 ```tsx
-import { stegaClean } from '@sanity/client/stega'
+import { stegaClean } from 'next-sanity'
 import { urlForImage } from '@/integrations/sanity/utils/image'
 import { Image } from '@/components/ui/image'
 import { SanityImage } from '@/components/ui/sanity-image'
@@ -155,9 +155,11 @@ import { SanityImage } from '@/components/ui/sanity-image'
 <SanityImage image={image} maxWidth={800} />
 ```
 
-Every image field carries an editor-written `alt`, defined once as `altField` in `schemas/fields.ts`; add it to a new image field's `fields`. It's optional, and an empty one renders `alt=""`, which marks the image as decorative. Rich text images override it to required. Project `alt` in the query (a bare `image` or `...` projection already includes it). Run it through `stegaClean` before it reaches the DOM: in draft mode every Sanity string carries hidden edit markers. Import `stegaClean` from `@sanity/client/stega` in client components, since `next-sanity`'s root entry pulls the whole client into the bundle.
+Every image field carries an editor-written `alt`, defined once as `altField` in `schemas/fields.ts`; add it to a new image field's `fields`. It's optional, and an empty one renders `alt=""`, which marks the image as decorative. Rich text images override it to required. Project `alt` in the query (a bare `image` or `...` projection already includes it). Run it through `stegaClean` before it reaches the DOM: in draft mode every Sanity string carries hidden edit markers. Import it from `next-sanity`, as the rest of the repo does. Two of these alt fields reach no page yet: no query reads the navigation document, so `socials[].logo` never renders, and `metadata.image` isn't dereferenced into the Open Graph tags (see `generateSanityMetadata`). Wire them through `SanityImage` when a fork renders either.
 
 `Image` gives any `cdn.sanity.io` URL a loader (`components/ui/image/sanity-loader.ts`): Sanity's CDN resizes each `srcset` width itself, as WebP, and Next's optimizer never sees the image (`cdn.sanity.io` is not in `images.remotePatterns`). The loader sets `w` per candidate, so a width on the URL is overwritten; a `rect` crop is kept. `SanityImage` also takes the aspect ratio from the editor's crop and keeps their hotspot in view under `object-cover`.
+
+The WebGL `Image` (`@/webgl/components/image`) loads its texture from the same `cdn.sanity.io` URL with a CORS request, and Sanity's CDN answers an origin missing from the project's CORS list with a 403. Add every origin the site is served from to the project's CORS origins (manage.sanity.io > API > CORS origins), including a wildcard for preview deploys (`https://*.vercel.app`) and `http://localhost:3000`. No credentials are needed. A refused origin falls back to the plain DOM image, so the only symptom is a missing WebGL effect.
 
 A raw `<img>` is not an option here — oxlint's `nextjs/no-img-element` rule rejects it project-wide.
 
@@ -166,13 +168,19 @@ A raw `<img>` is not an option here — oxlint's `nextjs/no-img-element` rule re
 Call `sanityFetch` again. Outside draft mode it reuses the page's cache entry; in draft mode nothing is cached, so it reads Sanity a second time:
 
 ```tsx
+import { stegaClean } from 'next-sanity'
 import { generateSanityMetadata } from '@/lib/utils/metadata'
 
 export async function generateMetadata({ params }) {
   const { slug } = await params
   const data = await sanityFetch({ query: pageQuery, params: { slug } })
   if (!data) return
-  return generateSanityMetadata({ document: data, url: `/page/${slug}` })
+  // Clean first: in draft mode every string carries hidden edit markers, and
+  // the helper doesn't clean for itself.
+  return generateSanityMetadata({
+    document: stegaClean(data),
+    url: `/page/${slug}`,
+  })
 }
 ```
 
@@ -197,6 +205,21 @@ export const landing = defineType({
 2. **Add to schema index** in `schemas/index.ts`
 3. **Create query** in `queries.ts`
 4. **Create page** in `app/`
+5. **Regenerate types**: `bun run sanity:extract && bun run sanity:typegen`
+
+`sanity:extract` overwrites `schema.json` and needs no Sanity project. The
+CLI only reads the schema, but `sanity.config.ts` exports `null` when no
+project ID is set, and the CLI rejects that as an invalid Studio config. So
+the script passes the placeholder `SANITY_STUDIO_PROJECT_ID=extract-only`
+after the env files. A project ID from your env or shell wins over it. The
+placeholder names no real project, so extraction cannot depend on one, and no
+other script sets it.
+
+An empty `NEXT_PUBLIC_SANITY_PROJECT_ID=` line in `.env.local` (or an empty
+shell value) also wins over the placeholder: `env.ts` falls back with `??`, so
+an empty string counts as set, the config exports `null` again, and extract
+fails with "Invalid studio config format". Delete or comment out the empty
+line instead of leaving it blank.
 
 ## Revalidation
 

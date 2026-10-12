@@ -67,7 +67,7 @@ lib/                    # Everything non-UI
   ├── webgl/           # 3D graphics (opt-in, behind lib/features)
   ├── seo/             # Sitemap, robots, and metadata helpers
   ├── utils/           # Pure utilities
-  ├── scripts/         # CLI tools (setup:project, handoff, generate)
+  ├── scripts/         # CLI tools (setup:project, handoff)
   ├── styles/          # CSS & Tailwind
   └── dev/             # Debug tools (optional)
 ```

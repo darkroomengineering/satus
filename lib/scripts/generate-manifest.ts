@@ -11,7 +11,13 @@ import { join } from 'node:path'
 
 import { Project, SyntaxKind } from 'ts-morph'
 
-import { toPascalCase } from './generate-shared'
+/** kebab-case or snake_case to PascalCase: `my-component` → `MyComponent`. */
+function toPascalCase(str: string): string {
+  return str
+    .split(/[-_]/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('')
+}
 
 const ROOT = join(import.meta.dir, '..', '..')
 const OUT_FILE = join(ROOT, 'COMPONENTS.md')

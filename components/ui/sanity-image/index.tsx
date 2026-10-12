@@ -16,7 +16,7 @@ import { clamp } from '@/utils/math'
 const QUALITY = 80
 
 // Sizing is fully owned by this component (it always derives aspectRatio
-// from the Sanity asset and always sets `sizes` itself below), so
+// from the editor's crop and always sets `sizes` itself below), so
 // fill/width/height and mobileSize/desktopSize/sizes are all omitted —
 // Omit over ImageProps' discriminated unions collapses each union to a
 // single flattened object type, so leaving any of these in would let a

@@ -149,10 +149,10 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   images: {
     dangerouslyAllowSVG: true,
-    // No `cdn.sanity.io`: Sanity's CDN resizes its own images through the
-    // loader in `components/ui/image`, so the optimizer never fetches them.
-    // Allowing the host would let anyone resize any Sanity project's images
-    // here, on this project's bill.
+    // Only hosts whose images this optimizer resizes. A host whose own CDN
+    // resizes through a loader (`components/ui/image/sanity-loader.ts`)
+    // stays out: the optimizer never fetches from it, and allowing it would
+    // let anyone resize any image on that host here, on this project's bill.
     remotePatterns: [
       {
         protocol: 'https',
@@ -160,12 +160,15 @@ const nextConfig: NextConfig = {
       },
     ],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
-    // 80: `SanityImage` (its loader still passes the check); 90: everything else.
+    // 90: everything the optimizer encodes. 80: images resized by the CDN
+    // loader in `components/ui/image`, which sends `quality` to the CDN, not
+    // here. Next 16.3.8 only warns, in development, when a `quality` is
+    // missing from this list; listing 80 keeps that warning quiet.
     qualities: [80, 90],
     // WebP only, never AVIF: AVIF decodes slower, which costs most on phones
     // and on image-heavy pages. Cost: AVIF files were smaller (40.5 KB
-    // against 56.4 KB for the same 1080px photos). Sanity images skip this
-    // optimizer: Sanity's CDN resizes them, also as WebP (`components/ui/image`).
+    // against 56.4 KB for the same 1080px photos). Images on the CDN loader
+    // in `components/ui/image` skip this optimizer and come back as WebP too.
     formats: ['image/webp'],
     // Cap the largest generated variant at 2560px (Next's default tops out at
     // 3840): full-bleed art on 4K/high-DPR screens produces multi-MB

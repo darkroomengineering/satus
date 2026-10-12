@@ -175,6 +175,8 @@ Every image field carries an editor-written `alt`, defined once as `altField` in
 
 `Image` gives any `cdn.sanity.io` URL a loader (`components/ui/image/sanity-loader.ts`): Sanity's CDN resizes each `srcset` width itself, as WebP, and Next's optimizer never sees the image (`cdn.sanity.io` is not in `images.remotePatterns`). The loader sets `w` per candidate, so a width on the URL is overwritten; a `rect` crop is kept. `SanityImage` also takes the aspect ratio from the editor's crop and keeps their hotspot in view under `object-cover`.
 
+The WebGL `Image` (`@/webgl/components/image`) loads its texture from the same `cdn.sanity.io` URL with a CORS request, and Sanity's CDN answers an origin missing from the project's CORS list with a 403. Add every origin the site is served from to the project's CORS origins (manage.sanity.io > API > CORS origins), including a wildcard for preview deploys (`https://*.vercel.app`) and `http://localhost:3000`. No credentials are needed. A refused origin falls back to the plain DOM image, so the only symptom is a missing WebGL effect.
+
 A raw `<img>` is not an option here — oxlint's `nextjs/no-img-element` rule rejects it project-wide.
 
 ### SEO Metadata

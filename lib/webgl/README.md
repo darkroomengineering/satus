@@ -95,6 +95,15 @@ render loop.
 | `WebGLTunnel` | Portal 3D content into the canvas                         |
 | `DOMTunnel`   | Portal HTML overlays                                      |
 
+`Image` (`@/webgl/components/image`) draws a DOM image as a textured plane.
+A texture is read with a CORS request, so the image host has to allow the
+page's origin. When it doesn't, the plane never mounts and the DOM image
+stays visible. For Sanity images that means every origin the site is served
+from, production domains and a wildcard for preview deploys
+(`https://*.vercel.app`), must be in the Sanity project's CORS origins
+(manage.sanity.io > API > CORS origins); Sanity's CDN answers any other
+origin with a 403.
+
 ## Hooks
 
 ```tsx

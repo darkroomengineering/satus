@@ -71,7 +71,20 @@ export function Image({
       <DRImage
         {...props}
         onLoad={(img: React.SyntheticEvent<HTMLImageElement>) => {
-          setSrc(img.currentTarget.currentSrc)
+          // A texture is read with a CORS request (three's loader sets
+          // `crossOrigin = 'anonymous'`), which the DOM image never makes. A
+          // host that refuses this page's origin (Sanity's CDN 403s any origin
+          // missing from the project's CORS list) would leave a hidden DOM
+          // image and an empty plane. Probe the same request first and hand
+          // the plane a src only once it succeeds; on failure the DOM image
+          // stays visible. Cost: one extra CORS request per image before the
+          // plane appears; the texture loader can reuse its cached response.
+          const url = img.currentTarget.currentSrc
+          const probe = document.createElement('img')
+          probe.crossOrigin = 'anonymous'
+          probe.onload = () => setSrc(url)
+          probe.onerror = () => setSrc(undefined)
+          probe.src = url
         }}
         fill
       />

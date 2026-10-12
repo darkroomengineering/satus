@@ -207,6 +207,14 @@ export const landing = defineType({
 2. **Add to schema index** in `schemas/index.ts`
 3. **Create query** in `queries.ts`
 4. **Create page** in `app/`
+5. **Regenerate types**: `bun run sanity:extract && bun run sanity:typegen`
+
+`sanity:extract` overwrites `schema.json` and needs no Sanity project. The
+CLI only reads the schema, but it refuses a Studio config without a project
+ID, so the script passes the placeholder `SANITY_STUDIO_PROJECT_ID=extract-only`
+after the env files. A project ID from your env or shell wins over it. The
+placeholder names no real project, so extraction cannot depend on one, and no
+other script sets it.
 
 ## Caching
 

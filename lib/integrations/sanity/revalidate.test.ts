@@ -18,11 +18,11 @@
  * `revalidateTag` needs the request store Next sets up around a route handler.
  * The tests run the handler inside that store (Next's own
  * `workAsyncStorage`) and read the tags it queued, instead of mocking
- * `next/cache`. A signed request waits the 3 s `parseBody` sleeps, hence the
- * longer timeouts.
+ * `next/cache`. A validly signed request makes `parseBody` sleep 3 s; the
+ * tests run that sleep on bun's fake timers instead of waiting it out.
  */
 
-import { afterEach, describe, expect, test } from 'bun:test'
+import { afterEach, describe, expect, jest, test } from 'bun:test'
 
 import type { WorkStore } from 'next/dist/server/app-render/work-async-storage.external'
 import { workAsyncStorage } from 'next/dist/server/app-render/work-async-storage.external'
@@ -33,7 +33,6 @@ import { env } from '@/lib/env'
 import { revalidate } from './revalidate'
 
 const SECRET = 'test-webhook-secret'
-const SIGNED_TIMEOUT = 10_000
 const originalSecret = env.SANITY_REVALIDATE_SECRET
 
 afterEach(() => {
@@ -81,6 +80,24 @@ function webhookRequest(body: string, signature?: string): NextRequest {
   })
 }
 
+// Settles `promise` with timers faked, so `parseBody`'s 3 s sleep resolves
+// at once. Signature verification (WebCrypto) completes off the JS thread, so
+// each turn yields a real event-loop tick (`setImmediate` is not faked) before
+// firing whatever timers are pending by then.
+async function runOnFakeTimers<T>(promise: Promise<T>): Promise<T> {
+  jest.useFakeTimers()
+  let settled = false
+  const tracked = promise.finally(() => {
+    settled = true
+  })
+  for (let turn = 0; !settled && turn < 100; turn++) {
+    await new Promise<void>((resolve) => setImmediate(resolve))
+    jest.runOnlyPendingTimers()
+  }
+  jest.useRealTimers()
+  return tracked
+}
+
 async function handle(request: NextRequest) {
   // SAFETY: `revalidateTag` reads only `incrementalCache` (for truthiness),
   // `route`, `cacheLifeProfiles` and `pendingRevalidatedTags` from the store
@@ -91,7 +108,9 @@ async function handle(request: NextRequest) {
     incrementalCache: {},
     cacheLifeProfiles: {},
   } as WorkStore
-  const response = await workAsyncStorage.run(store, () => revalidate(request))
+  const response = await runOnFakeTimers(
+    workAsyncStorage.run(store, () => revalidate(request))
+  )
   const body: { data: { revalidated: boolean } | null; error: string | null } =
     await response.json()
   return {
@@ -154,38 +173,30 @@ describe('Sanity revalidate webhook', () => {
     expect(result.tags).toEqual([])
   })
 
-  test(
-    'valid signature: expires the sanity tag immediately',
-    async () => {
-      env.SANITY_REVALIDATE_SECRET = SECRET
-      const signature = await sign(publishBody, SECRET)
+  test('valid signature: expires the sanity tag immediately', async () => {
+    env.SANITY_REVALIDATE_SECRET = SECRET
+    const signature = await sign(publishBody, SECRET)
 
-      const result = await handle(webhookRequest(publishBody, signature))
+    const result = await handle(webhookRequest(publishBody, signature))
 
-      expect(result.status).toBe(200)
-      expect(result.body.error).toBeNull()
-      expect(result.body.data?.revalidated).toBe(true)
-      expect(result.tags).toHaveLength(1)
-      expect(result.tags[0]).toMatchObject({
-        tag: 'sanity',
-        profile: { expire: 0 },
-      })
-    },
-    SIGNED_TIMEOUT
-  )
+    expect(result.status).toBe(200)
+    expect(result.body.error).toBeNull()
+    expect(result.body.data?.revalidated).toBe(true)
+    expect(result.tags).toHaveLength(1)
+    expect(result.tags[0]).toMatchObject({
+      tag: 'sanity',
+      profile: { expire: 0 },
+    })
+  })
 
-  test(
-    'valid signature over a body that is not JSON: 400, nothing revalidated',
-    async () => {
-      env.SANITY_REVALIDATE_SECRET = SECRET
-      const body = '{not json'
-      const signature = await sign(body, SECRET)
+  test('valid signature over a body that is not JSON: 400, nothing revalidated', async () => {
+    env.SANITY_REVALIDATE_SECRET = SECRET
+    const body = '{not json'
+    const signature = await sign(body, SECRET)
 
-      const result = await handle(webhookRequest(body, signature))
+    const result = await handle(webhookRequest(body, signature))
 
-      expect(result.status).toBe(400)
-      expect(result.tags).toEqual([])
-    },
-    SIGNED_TIMEOUT
-  )
+    expect(result.status).toBe(400)
+    expect(result.tags).toEqual([])
+  })
 })

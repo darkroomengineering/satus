@@ -68,7 +68,8 @@ export interface IntegrationBundle {
   /**
    * package.json script names this integration owns. Removed when the
    * integration is stripped (they would point at deleted files), and copied
-   * back from the payload's package.json when it is re-added.
+   * back from the payload's package.json when it is re-added (skipped with a
+   * warning when the payload never had one).
    */
   scripts?: string[]
   /** Barrel exports to update when this integration is removed */

@@ -147,6 +147,10 @@ describe('Integration Bundle Configuration', () => {
           `${id} declares missing script ${name}`
         ).toBeDefined()
       }
+      // Plain substring match on the literal paths a bundle declares. It
+      // does not catch a script that reaches a bundle path indirectly (a
+      // script that imports one, a shell wrapper) or a path that shares a
+      // prefix with an unrelated one, so it is a tripwire, not proof.
       for (const [name, command] of Object.entries(pkg.scripts)) {
         const owned = [...bundle.folders, ...bundle.files].some((path) =>
           command.includes(path)
@@ -2169,17 +2173,62 @@ describe("P-C3 regression: kept bundle deps survive selfPrune's package.json wri
 })
 
 describe('addScripts', () => {
-  // A kept bundle whose payload lacks a declared script must fail loudly
-  // (collected by setupAddIntegrations, which blocks self-prune) instead of
-  // reporting the bundle as re-added without it.
-  it('throws when the payload package.json lacks a declared script', async () => {
+  // setup:project's payload is the project's own pre-strip package.json, so
+  // a declared script missing there is one the fork deleted. Throwing would
+  // abort installBundle after setupLean already stripped the bundle and
+  // leave it half re-added; the script is skipped instead.
+  it('skips a declared script the payload package.json lacks', async () => {
     const promise = addScripts(
       INTEGRATION_BUNDLES.sanity,
       { scripts: { 'sanity:extract': 'x' } },
       { dryRun: true }
     )
-    await expect(promise).rejects.toThrow('sanity:typegen, sanity:mcp')
+    await expect(promise).resolves.toBeArray()
   })
+
+  it('--keep sanity on a fork without sanity:mcp still re-adds the rest of the bundle', async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-missing-script-'))
+    try {
+      await copyRepo(tmpRoot)
+      const pkgPath = join(tmpRoot, 'package.json')
+      const before = (await Bun.file(pkgPath).json()) as {
+        scripts: Record<string, string>
+      }
+      delete before.scripts['sanity:mcp']
+      await Bun.write(pkgPath, `${JSON.stringify(before, null, 2)}\n`)
+
+      const proc = Bun.spawnSync(
+        [
+          'bun',
+          'run',
+          'lib/scripts/setup-project.ts',
+          '--keep',
+          'sanity',
+          '--yes',
+          '--skip-install',
+        ],
+        { cwd: tmpRoot, stdout: 'pipe', stderr: 'pipe' }
+      )
+      if (proc.exitCode !== 0) {
+        console.error(proc.stdout.toString())
+        console.error(proc.stderr.toString())
+      }
+      expect(proc.exitCode).toBe(0)
+
+      const pkg = (await Bun.file(pkgPath).json()) as {
+        scripts?: Record<string, string>
+      }
+      expect(pkg.scripts?.['sanity:extract']).toBe(
+        before.scripts['sanity:extract']
+      )
+      expect(pkg.scripts?.['sanity:typegen']).toBe(
+        before.scripts['sanity:typegen']
+      )
+      expect(pkg.scripts?.['sanity:mcp']).toBeUndefined()
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true })
+    }
+  }, 60000)
 })
 
 // ---------------------------------------------------------------------------

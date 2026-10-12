@@ -186,10 +186,15 @@ export const addDependencies = async (
 
 /**
  * Copy the bundle's package.json scripts from the payload's package.json.
- * Throws when the payload lacks a declared script: a kept integration that
- * silently lost a script would look installed while its workflow is broken,
- * and the throw is collected by the caller so setup:project does not
- * self-prune. A script already present locally keeps its local command.
+ * A script already present locally keeps its local command.
+ *
+ * A declared script the payload lacks is warned about and skipped, not
+ * thrown. setup:project's payload is the project's own pre-strip
+ * package.json, so a missing script is one the fork removed: there is
+ * nothing to restore, and a throw here would land after setupLean already
+ * stripped the bundle, leaving it half re-added on every re-run. The cost:
+ * a kept integration can finish setup without a script it declares, and
+ * only the warning says so.
  */
 export const addScripts = async (
   bundle: IntegrationBundle,
@@ -201,8 +206,8 @@ export const addScripts = async (
 
   const missing = names.filter((name) => !payloadPkg.scripts?.[name])
   if (missing.length > 0) {
-    throw new Error(
-      `Payload package.json has no ${missing.join(', ')} script for ${bundle.name}`
+    p.log.warn(
+      `Payload package.json has no ${missing.join(', ')} script for ${bundle.name}: nothing to restore, skipping`
     )
   }
 

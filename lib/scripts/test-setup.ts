@@ -11,13 +11,17 @@
  * registration and restored after.
  */
 
+import { AsyncLocalStorage } from 'node:async_hooks'
+
+import { GlobalRegistrator } from '@happy-dom/global-registrator'
+
 // Next's server puts AsyncLocalStorage on globalThis before it loads anything
 // else; without it, Next's request stores are stubs that throw on `run()`.
-// Doing the same here lets a route-handler test run inside a real request
-// store (lib/integrations/sanity/revalidate.test.ts). It must load before any
-// test file imports `next/*`, since each store is created on first import.
-import 'next/dist/server/node-environment-baseline'
-import { GlobalRegistrator } from '@happy-dom/global-registrator'
+// Doing the same here lets a route-handler test run its handler inside a real
+// request store. It has to happen in this preload, before any test file
+// imports `next/*`: each store is created on first import, so setting it from
+// one test file would only work when that file happens to load first.
+Object.assign(globalThis, { AsyncLocalStorage })
 
 const native = {
   fetch: globalThis.fetch,

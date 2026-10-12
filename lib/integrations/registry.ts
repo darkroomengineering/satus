@@ -88,10 +88,9 @@ export const integrations = {
       // `cdn.sanity.io` — the same host already trusted by
       // `next.config.ts`'s `images.remotePatterns`.
       'img-src': ['https://cdn.sanity.io'],
-      // Live/API: `next-sanity`'s `defineLive`/`SanityLive`
-      // (`lib/integrations/sanity/live/index.tsx`, rendered client-side from
-      // `app/(site)/layout.tsx`) opens a live-events connection, and
-      // `client.ts` reads with `useCdn: true`. Both hosts are project-id
+      // API: Visual Editing in draft mode (`app/(site)/layout.tsx`) and the
+      // embedded Studio talk to the project's API, and `client.ts` reads
+      // published content with `useCdn: true`. Both hosts are project-id
       // subdomains — confirmed in `@sanity/client`'s
       // `dist/_chunks-cjs/config.cjs` (`defaultConfig.apiHost =
       // "https://api.sanity.io"`, `defaultCdnHost = "apicdn.sanity.io"`,

@@ -1,12 +1,11 @@
 import type { PortableTextBlock } from 'next-sanity'
-import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
 
 import { Wrapper } from '@/components/layout/wrapper'
 import { SanityImage } from '@/components/ui/sanity-image'
 import { isConfigured } from '@/integrations/registry'
 import { RichText } from '@/integrations/sanity/components/rich-text'
-import { sanityFetch } from '@/integrations/sanity/live'
+import { sanityFetch } from '@/integrations/sanity/fetch'
 import { articleQuery } from '@/integrations/sanity/queries'
 import { JsonLd } from '@/lib/seo/json-ld'
 import {
@@ -23,28 +22,8 @@ import { generateSanityMetadata } from '@/utils/metadata'
  * slug resolved by the `[...slug]` catch-all.
  */
 
-// Same 'use cache' + draftMode pattern as `app/(site)/[...slug]/page.tsx` —
-// see that file's comment for why `sanityFetch` requires this shape under
-// Cache Components.
-async function fetchArticle(
-  slug: string,
-  perspective: 'published' | 'drafts',
-  stega: boolean
-) {
-  'use cache'
-  return sanityFetch({
-    query: articleQuery,
-    params: { slug },
-    perspective,
-    stega,
-  })
-}
-
-async function fetchArticleForRequest(slug: string) {
-  const { isEnabled: isDraftMode } = await draftMode()
-  return isDraftMode
-    ? fetchArticle(slug, 'drafts', true)
-    : fetchArticle(slug, 'published', false)
+function fetchArticle(slug: string) {
+  return sanityFetch({ query: articleQuery, params: { slug } })
 }
 
 interface ArticlePageProps {
@@ -56,7 +35,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   if (!isConfigured('sanity')) notFound()
 
-  const { data } = await fetchArticleForRequest(slug)
+  const data = await fetchArticle(slug)
 
   if (!data) notFound()
 
@@ -112,7 +91,7 @@ export async function generateMetadata({ params }: ArticlePageProps) {
 
   if (!isConfigured('sanity')) return
 
-  const { data } = await fetchArticleForRequest(slug)
+  const data = await fetchArticle(slug)
 
   if (!data) return
 

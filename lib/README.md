@@ -20,7 +20,7 @@ import { fetchWithTimeout } from '@/lib/utils/fetch'
 import { colors, themes, breakpoints } from '@/lib/styles/config'
 
 // Integrations
-import { sanityFetch } from 'next-sanity/live'
+import { sanityFetch } from '@/lib/integrations/sanity/fetch'
 import { Cart } from '@/lib/integrations/shopify/cart'
 
 // WebGL

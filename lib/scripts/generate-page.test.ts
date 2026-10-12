@@ -57,13 +57,15 @@ describe('generatePageContent — import grouping (P-C9)', () => {
     )
   })
 
-  it('keeps the external sanity import out of the internal group', () => {
+  it('puts the sanity fetch import in the internal group', () => {
     const content = generatePageContent('about', { sanity: true })
-    const importBlock = content.split('\n\n')[0]
-    // next-sanity/live is external; it must appear before the blank line
-    // that separates external imports from the @/-aliased internal group.
-    expect(importBlock).toContain(`from 'next-sanity/live'`)
-    expect(importBlock).not.toContain('@/')
+    const [externalBlock, internalBlock] = content.split('\n\n')
+    // `sanityFetch` is the project's own wrapper (`@/`-aliased), so it
+    // belongs after the blank line, never among the external imports.
+    expect(externalBlock).not.toContain('@/')
+    expect(internalBlock).toContain(
+      `import { sanityFetch } from '@/lib/integrations/sanity/fetch'`
+    )
   })
 
   it('keeps a single blank line between the external and internal groups regardless of options', () => {

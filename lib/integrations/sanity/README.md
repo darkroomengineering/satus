@@ -1,6 +1,25 @@
 # Sanity CMS Integration
 
-Headless CMS with visual editing.
+Headless CMS with visual editing. Published content is cached under one tag and refreshed by a signed publish webhook; drafts are read only in draft mode. There is no Sanity Live and no token in the browser.
+
+```
+ PUBLISHED SITE                              EDITOR IN PRESENTATION
+ ┌──────────┐  publish  ┌──────────────┐     ┌──────────┐  iframe   ┌────────────────────┐
+ │  Studio  │──────────▶│  Sanity API  │     │  Studio  │──────────▶│ /api/draft-mode/   │
+ └──────────┘           └──────┬───────┘     └────┬─────┘           │ enable             │
+                    signed POST│                  │ edit            └─────────┬──────────┘
+                               ▼                  ▼                           ▼
+                     ┌──────────────────┐   ┌──────────────┐  router   ┌────────────────┐
+                     │ /api/revalidate  │   │ VisualEditing│──refresh─▶│ sanityFetch    │
+                     │ revalidateTag    │   └──────────────┘           │ draft/release  │
+                     │ ('sanity')       │                              │ stega,no-store │
+                     └────────┬─────────┘                              └────────────────┘
+                              ▼
+                     ┌──────────────────┐
+                     │ next visit: fresh│
+                     │ page             │
+                     └──────────────────┘
+```
 
 ## Environment Variables
 
@@ -9,32 +28,17 @@ Headless CMS with visual editing.
 NEXT_PUBLIC_SANITY_PROJECT_ID="your-project-id"
 NEXT_PUBLIC_SANITY_DATASET="production"
 
-# Required for Visual Editing & Live Preview
-NEXT_PUBLIC_SANITY_API_READ_TOKEN="your-viewer-token"
-SANITY_PRIVATE_TOKEN="your-editor-token"
+# Draft mode (a Viewer token, server only) and the publish webhook
+SANITY_API_READ_TOKEN="your-viewer-token"
+SANITY_REVALIDATE_SECRET="your-webhook-secret"
 
 # Optional
-NEXT_PUBLIC_SANITY_API_VERSION="2024-03-15"
-
-# Optional, required for the revalidation webhook
-SANITY_REVALIDATE_SECRET="your-webhook-secret"
+NEXT_PUBLIC_SANITY_API_VERSION="2025-03-01"
 ```
 
-> **Note**: Create tokens in [Sanity Dashboard](https://sanity.io/manage) → Your Project → API → Tokens.
->
-> - **Viewer** token → `NEXT_PUBLIC_SANITY_API_READ_TOKEN`
-> - **Editor** token → `SANITY_PRIVATE_TOKEN`
->
-> With only `NEXT_PUBLIC_SANITY_PROJECT_ID` and `NEXT_PUBLIC_SANITY_DATASET`
-> set, published content still renders — `sanityFetch` falls back to a plain,
-> unauthenticated read. The two tokens above are only needed for Visual
-> Editing, live preview, and draft mode; without them, those features are
-> unavailable but the site keeps working.
->
-> `SANITY_REVALIDATE_SECRET` is only needed to receive Sanity's revalidation
-> webhook — set it on the webhook's signing secret in Sanity's dashboard.
-> Without it, `app/api/revalidate/route.ts` returns `503` for Sanity webhook
-> requests.
+- Create the token in [sanity.io/manage](https://sanity.io/manage) → your project → API → Tokens, with the **Viewer** role. It is read on the server only (`env.SANITY_API_READ_TOKEN`); never put it in a `NEXT_PUBLIC_*` variable, which would inline it into the browser bundle. No write token is needed: nothing in the starter writes to Sanity.
+- With only the project ID and dataset set, published content renders. Without the token, draft mode and Presentation are unavailable: `/api/draft-mode/enable` answers `503`.
+- Without `SANITY_REVALIDATE_SECRET`, `/api/revalidate` answers `503` to Sanity's webhook, and published content stays cached for up to 30 days (see [Revalidation](#revalidation)).
 
 Env vars are validated with Zod schemas. Use `isConfigured('sanity')` from the integration registry to check if Sanity is properly configured.
 
@@ -42,12 +46,13 @@ Env vars are validated with Zod schemas. Use `isConfigured('sanity')` from the i
 
 Satus supports the [Vercel Marketplace Sanity integration](https://vercel.com/marketplace) out of the box. The Marketplace auto-provisions env vars that Satus recognizes:
 
-| Marketplace Var                 | Satus Var                           | Status                    |
-| ------------------------------- | ----------------------------------- | ------------------------- |
-| `NEXT_PUBLIC_SANITY_PROJECT_ID` | Same                                | Exact match               |
-| `NEXT_PUBLIC_SANITY_DATASET`    | Same                                | Exact match               |
-| `SANITY_API_READ_TOKEN`         | `NEXT_PUBLIC_SANITY_API_READ_TOKEN` | Both supported (fallback) |
-| `SANITY_API_WRITE_TOKEN`        | `SANITY_PRIVATE_TOKEN`              | Both supported (fallback) |
+| Marketplace Var                 | Satus Var | Status      |
+| ------------------------------- | --------- | ----------- |
+| `NEXT_PUBLIC_SANITY_PROJECT_ID` | Same      | Exact match |
+| `NEXT_PUBLIC_SANITY_DATASET`    | Same      | Exact match |
+| `SANITY_API_READ_TOKEN`         | Same      | Exact match |
+
+The Marketplace may also provision `SANITY_API_WRITE_TOKEN`. Satus ignores it; delete it from the project if nothing else of yours uses it.
 
 No configuration changes needed — just install from the Marketplace and deploy.
 
@@ -86,56 +91,34 @@ The embedded Studio runs under its own CSP on `/studio/*` (`isStudio` in
 
 ### Fetching Data
 
-This project enables Next.js Cache Components (`cacheComponents: true`), and
-`sanityFetch` calls `cacheTag()` internally — which is only legal inside a
-`'use cache'` function. Wrap fetches in a `'use cache'` helper (this also
-dedupes the fetch across the page and `generateMetadata`):
+Read content through `sanityFetch` straight from a Server Component or `generateMetadata`. It owns its cache boundary, so the call site needs no `'use cache'`:
 
 ```tsx
-import { draftMode } from 'next/headers'
+import { notFound } from 'next/navigation'
 
-import { sanityFetch } from '@/integrations/sanity/live'
+import { sanityFetch } from '@/integrations/sanity/fetch'
 import { pageQuery } from '@/integrations/sanity/queries'
-
-async function fetchPage(
-  slug: string,
-  perspective: 'published' | 'drafts',
-  stega: boolean
-) {
-  'use cache'
-  return sanityFetch({ query: pageQuery, params: { slug }, perspective, stega })
-}
-
-async function fetchPageForRequest(slug: string) {
-  const { isEnabled: isDraftMode } = await draftMode()
-  return isDraftMode
-    ? fetchPage(slug, 'drafts', true)
-    : fetchPage(slug, 'published', false)
-}
 
 export default async function Page({ params }) {
   const { slug } = await params
-  const { data } = await fetchPageForRequest(slug)
+  const data = await sanityFetch({ query: pageQuery, params: { slug } })
+  if (!data) notFound()
   return <YourComponent data={data} />
 }
 ```
 
-> Calling `sanityFetch` directly in a component (outside `'use cache'`) throws
-> `cacheTag() can only be called inside a "use cache" function` while Cache
-> Components are enabled.
-
-### Build-time Data Fetching
-
-For `generateStaticParams` or other build-time functions, use the client directly:
+- `sanityFetch` returns the query result, or `null` when Sanity isn't configured.
+- Outside draft mode it calls `sanityFetchPublished` (`published.ts`): a `'use cache'` function tagged `sanity`, with `cacheLife('max')`, reading published content through the API CDN. The page and `generateMetadata` share its cache entry.
+- In draft mode, with `SANITY_API_READ_TOKEN` set, it reads the perspective Presentation picks (drafts by default, or the content release an editor selects), with stega markers, `useCdn: false` and no cache. Presentation stores the pick in the `sanity-preview-perspective` cookie, and `resolvePerspectiveFromCookies` from `next-sanity/live` reads it.
+- `sanityFetchPublished` reads published content only. Use it outside a page request, like the sitemap (`lib/seo/routes.ts`) or `generateStaticParams`, where draft mode can't be read:
 
 ```tsx
-import { client } from '@/integrations/sanity/client'
+import { sanityFetchPublished } from '@/integrations/sanity/published'
 import { allArticlesQuery } from '@/integrations/sanity/queries'
 
 export async function generateStaticParams() {
-  if (!client) return []
-  const data = await client.fetch(allArticlesQuery)
-  return data.map((item) => ({ slug: item.slug?.current ?? '' }))
+  const data = await sanityFetchPublished({ query: allArticlesQuery })
+  return (data ?? []).map((item) => ({ slug: item.slug?.current ?? '' }))
 }
 ```
 
@@ -174,14 +157,15 @@ A raw `<img>` is not an option here — oxlint's `nextjs/no-img-element` rule re
 
 ### SEO Metadata
 
-Reuse the same `'use cache'` loader so the document is fetched once per request:
+Call `sanityFetch` again; it reuses the page's cache entry:
 
 ```tsx
 import { generateSanityMetadata } from '@/lib/utils/metadata'
 
 export async function generateMetadata({ params }) {
   const { slug } = await params
-  const { data } = await fetchPageForRequest(slug) // the helper from above
+  const data = await sanityFetch({ query: pageQuery, params: { slug } })
+  if (!data) return
   return generateSanityMetadata({ document: data, url: `/page/${slug}` })
 }
 ```
@@ -208,13 +192,28 @@ export const landing = defineType({
 3. **Create query** in `queries.ts`
 4. **Create page** in `app/`
 
-## Caching
+## Revalidation
 
-- `sanityFetch` calls `cacheTag()` internally, so every call must run inside a `'use cache'` function (see [Fetching Data](#fetching-data) above)
-- Revalidation happens via the webhook route (`app/api/revalidate/route.ts`), which dispatches to `revalidate()` in `lib/integrations/sanity/revalidate.ts`; that handler validates the signature and calls `revalidateTag()`
-- Draft mode switches `sanityFetch` to the draft perspective instead of relying on a separate no-store fetch path
+Create the webhook in [sanity.io/manage](https://sanity.io/manage) → your project → API → Webhooks: URL `https://your-domain.com/api/revalidate`, method POST, trigger on create, update and delete, and a secret. Set the same secret as `SANITY_REVALIDATE_SECRET`.
 
-See [ARCHITECTURE.md](../../../ARCHITECTURE.md) for cache gotchas.
+`app/api/revalidate/route.ts` dispatches requests carrying a `sanity-webhook-signature` header to `revalidate()` in `revalidate.ts`, which verifies the signature with `parseBody` from `next-sanity/webhook` (waiting for Content Lake to serve the new version), then calls `revalidateTag('sanity', { expire: 0 })`. One tag covers every page, because a per-type tag would miss a page that shows a referenced document of another type. `expire: 0` means the next visit renders fresh content instead of one more stale page.
+
+The webhook is the only thing that refreshes published content. Without it, a cache entry lives until `cacheLife('max')` revalidates it, 30 days later. See [ARCHITECTURE.md](../../../ARCHITECTURE.md) for the diagram.
+
+## Draft mode
+
+Presentation enables draft mode through `/api/draft-mode/enable` (`defineEnableDraftMode`, using the Viewer token to validate its preview secret). `app/(site)/layout.tsx` then renders `SanityVisualEditing` (`components/visual-editing.tsx`), which draws the click-to-edit overlays and calls `router.refresh()` when an editor changes a field, so the preview follows typing without Sanity Live. `DisableDraftMode` (`components/disable-draft-mode.tsx`, wired into the `/sanity` example layout) shows a "Disable Draft Mode" link outside the Studio frame: a plain `<a>`, because prefetching `/api/draft-mode/disable` would turn draft mode off.
+
+## Types
+
+After changing a schema or a query:
+
+```bash
+bun run sanity:extract
+bun run sanity:typegen
+```
+
+Typegen reads the `typegen` key in `sanity.cli.ts` (the separate `sanity-typegen.json` is deprecated by the Sanity CLI).
 
 ## Deploying the Studio
 
@@ -231,7 +230,7 @@ The one thing that matters is that it is installed when `next build` runs. A pip
 
 **Content not updating:**
 
-- Hard refresh browser
-- Check revalidation webhook is configured
+- Check the webhook exists, points at `/api/revalidate`, and its secret matches `SANITY_REVALIDATE_SECRET` (the webhook's attempt log in sanity.io/manage shows a `401` for a wrong secret and a `503` for an unset one)
+- Draft mode not refreshing while typing: check `SANITY_API_READ_TOKEN` is set and the page renders inside `app/(site)/layout.tsx`
 
 **Related**: [Sanity Docs](https://www.sanity.io/docs) · [Parent README](../README.md)

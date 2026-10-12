@@ -160,31 +160,14 @@ export function generatePageMetadata(
  *
  * @example
  * ```ts
- * import { draftMode } from 'next/headers'
- * import { sanityFetch } from '@/integrations/sanity/live'
- *
- * // 'use cache' is required: sanityFetch calls cacheTag() internally, which
- * // Cache Components only allow inside a 'use cache' boundary — see
- * // app/(site)/articles/[slug]/page.tsx for the same pattern applied to a page.
- * async function fetchPage(
- *   slug: string,
- *   perspective: 'published' | 'drafts',
- *   stega: boolean
- * ) {
- *   'use cache'
- *   return sanityFetch({ query: pageQuery, params: { slug }, perspective, stega })
- * }
- *
- * async function fetchPageForRequest(slug: string) {
- *   const { isEnabled: isDraftMode } = await draftMode()
- *   return isDraftMode
- *     ? fetchPage(slug, 'drafts', true)
- *     : fetchPage(slug, 'published', false)
- * }
+ * import { sanityFetch } from '@/integrations/sanity/fetch'
  *
  * export async function generateMetadata({ params }) {
  *   const { slug } = await params
- *   const { data } = await fetchPageForRequest(slug)
+ *   // Cached under the `sanity` tag; drafts in draft mode. Calling it again
+ *   // from the page reuses the same cache entry.
+ *   const data = await sanityFetch({ query: pageQuery, params: { slug } })
+ *   if (!data) return
  *
  *   return generateSanityMetadata({
  *     document: data,

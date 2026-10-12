@@ -37,11 +37,7 @@ const INTEGRATION_INFO = {
   Sanity: {
     description: 'Headless CMS with visual editing and real-time collaboration',
     docsUrl: 'https://www.sanity.io/docs',
-    envVars: [
-      'NEXT_PUBLIC_SANITY_PROJECT_ID',
-      'NEXT_PUBLIC_SANITY_DATASET',
-      'NEXT_PUBLIC_SANITY_API_READ_TOKEN',
-    ],
+    envVars: ['NEXT_PUBLIC_SANITY_PROJECT_ID', 'NEXT_PUBLIC_SANITY_DATASET'],
   },
   Shopify: {
     description: 'E-commerce platform with cart and checkout functionality',

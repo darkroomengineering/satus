@@ -200,8 +200,8 @@ export function generatePageContent(
     )
   }
   if (sanity) {
-    externalImports.push(`import { sanityFetch } from 'next-sanity/live'`)
     internalImports.push(
+      `import { sanityFetch } from '@/lib/integrations/sanity/fetch'`,
       `import { pageQuery } from '@/lib/integrations/sanity/queries'`,
       `import type { Page } from '@/lib/integrations/sanity/sanity.types'`,
       `import { generateSanityMetadata } from '@/lib/utils/metadata'`
@@ -231,7 +231,7 @@ export function generatePageContent(
   if (sanity) preludeParts.push(guard('Sanity', 'sanity'))
   if (shopify) preludeParts.push(guard('Shopify', 'shopify'))
   if (sanity) {
-    preludeParts.push(`  const { data } = await sanityFetch({
+    preludeParts.push(`  const data = await sanityFetch({
     query: pageQuery,
     params: { slug: '${pageName}' },
   })`)
@@ -277,7 +277,7 @@ export async function generateMetadata(): Promise<Metadata> {
     }
   }
 
-  const { data } = await sanityFetch({
+  const data = await sanityFetch({
     query: pageQuery,
     params: { slug: '${pageName}' },
   })

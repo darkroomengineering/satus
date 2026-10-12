@@ -151,10 +151,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
       'NEXT_PUBLIC_SANITY_PROJECT_ID',
       'NEXT_PUBLIC_SANITY_DATASET',
       'NEXT_PUBLIC_SANITY_API_VERSION',
-      'NEXT_PUBLIC_SANITY_API_READ_TOKEN',
       'SANITY_API_READ_TOKEN',
-      'SANITY_PRIVATE_TOKEN',
-      'SANITY_API_WRITE_TOKEN',
       'SANITY_STUDIO_PROJECT_ID',
       'SANITY_REVALIDATE_SECRET',
     ],
@@ -166,21 +163,15 @@ export const INTEGRATION_BUNDLES = defineBundles({
       {
         file: 'app/(site)/layout.tsx',
         ops: [
-          // Remove `import { SanityLive } from '@/lib/integrations/sanity/live'`
-          { kind: 'removeImport', specifier: '@/lib/integrations/sanity/live' },
-          // Remove `{sanityConfigured && <SanityLive />}` JSX element
-          { kind: 'removeJsxElement', tagName: 'SanityLive' },
-          // Remove `{sanityConfigured && isDraftMode && (<Suspense>…<VisualEditing/></Suspense>)}`
-          // VisualEditing is from next-sanity, already handled by removing the import below,
-          // but we also remove the JSX element to avoid the dangling reference.
-          { kind: 'removeJsxElement', tagName: 'VisualEditing' },
-          // Remove `import { VisualEditing } from 'next-sanity/visual-editing'`
+          // Remove `{sanityConfigured && isDraftMode && (<Suspense>…<SanityVisualEditing/></Suspense>)}`
+          { kind: 'removeJsxElement', tagName: 'SanityVisualEditing' },
+          // Remove `import { SanityVisualEditing } from '@/lib/integrations/sanity/components/visual-editing'`
           {
             kind: 'removeImport',
-            specifier: 'next-sanity/visual-editing',
+            specifier: '@/lib/integrations/sanity/components/visual-editing',
           },
           // Remove `const sanityConfigured = isConfigured('sanity')` variable
-          // (no longer used after the two sanity JSX blocks are removed)
+          // (no longer used after the sanity JSX block is removed)
           { kind: 'removeVariableStatement', name: 'sanityConfigured' },
           // Remove `import { isConfigured } from '@/lib/integrations/registry'`
           // (only used for sanityConfigured in layout.tsx — now unused)
@@ -255,7 +246,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
           },
           {
             kind: 'removeImport',
-            specifier: '@/integrations/sanity/live',
+            specifier: '@/integrations/sanity/published',
             required: true,
           },
           {
@@ -311,9 +302,6 @@ export const INTEGRATION_BUNDLES = defineBundles({
             replacement: '{\n  void data\n  return []\n}',
             required: true,
           },
-          // Also drops this function's `'use cache'` directive with its body,
-          // which matters when the kept set disables Cache Components: every
-          // remaining directive would then be a hard compile error.
           {
             kind: 'replaceJsDoc',
             functionName: 'fetchCmsRoutesResult',
@@ -414,7 +402,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
           },
           {
             kind: 'removeImport',
-            specifier: '@/integrations/sanity/live',
+            specifier: '@/integrations/sanity/fetch',
             required: true,
           },
           {
@@ -432,15 +420,9 @@ export const INTEGRATION_BUNDLES = defineBundles({
             specifier: '@/utils/metadata',
             required: true,
           },
-          { kind: 'removeImport', specifier: 'next/headers', required: true },
           {
             kind: 'removeVariableStatement',
             name: 'fetchPage',
-            required: true,
-          },
-          {
-            kind: 'removeVariableStatement',
-            name: 'fetchPageForRequest',
             required: true,
           },
           {
@@ -458,7 +440,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
         ],
       },
     ],
-    // app/(site)/layout.tsx has complex Sanity wiring (SanityLive, VisualEditing,
+    // app/(site)/layout.tsx has complex Sanity wiring (SanityVisualEditing,
     // isConfigured call) that cannot be re-injected statement-by-statement
     // safely.  Restore wholesale from the payload on `satus add sanity`.
     // lib/seo/routes.ts's only owner is Sanity (no other bundle touches it),

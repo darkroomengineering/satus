@@ -64,7 +64,7 @@ client bundle:
 import { AfterLoad } from '@/hooks/use-after-load'
 
 ;<AfterLoad>
-  <SanityLive />
+  <ShaderGround />
 </AfterLoad>
 ```
 

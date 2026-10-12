@@ -50,7 +50,9 @@ Used by Sanity Visual Editing to preview unpublished content.
 Draft mode is enabled from Sanity Studio's Presentation tool, which generates
 a signed preview link to `/api/draft-mode/enable` and validates it
 server-side. A hand-built request (e.g. `?slug=/page-slug` without a valid
-signature) returns 401 "Invalid secret".
+signature) returns 401 "Invalid secret". Without `SANITY_API_READ_TOKEN` (a
+Viewer token, server only) the route answers 503: draft mode needs it to read
+drafts.
 
 ### Disable Draft Mode
 
@@ -87,7 +89,7 @@ sequenceDiagram
     else has sanity-webhook-signature header
         R->>R: parseBody(request, SANITY_REVALIDATE_SECRET) → isValidSignature
         R-->>W: 401 if invalid, 503 if secret unset
-        R->>T: revalidateTag(_type) + revalidateTag(_type:slug)
+        R->>T: revalidateTag('sanity', { expire: 0 })
     else neither
         R-->>W: 404 { data: null, error: 'No webhook handler configured' }
     end
@@ -97,8 +99,9 @@ sequenceDiagram
 ### Sanity Webhook Setup
 
 1. Go to Sanity project settings → API → Webhooks
-2. Create webhook with URL: `https://your-domain.com/api/revalidate`
-3. Set secret in environment:
+2. Create webhook with URL: `https://your-domain.com/api/revalidate`, method POST,
+   trigger on create, update and delete, and a secret
+3. Set the same secret in environment:
 
 ```bash
 # .env.local
@@ -107,7 +110,11 @@ SANITY_REVALIDATE_SECRET=your-secret-here
 
 Sanity signs the request body and sends the signature in the `sanity-webhook-signature` header,
 which is how the route recognizes the request. `lib/integrations/sanity/revalidate.ts` then
-verifies it with `parseBody` from `next-sanity/webhook`.
+verifies it with `parseBody` from `next-sanity/webhook` and calls
+`revalidateTag('sanity', { expire: 0 })`. Every Sanity read carries that one tag, so any publish
+refreshes every page on its next visit. This webhook is the only thing that refreshes published
+Sanity content: there is no Sanity Live, and the cache entries live 30 days (`cacheLife('max')`)
+otherwise.
 
 ### Shopify Webhook Setup
 

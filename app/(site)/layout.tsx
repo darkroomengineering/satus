@@ -1,7 +1,6 @@
 import { Analytics } from '@vercel/analytics/next'
 import { TransformProvider } from 'hamo'
 import type { Metadata, Viewport } from 'next'
-import { VisualEditing } from 'next-sanity/visual-editing'
 import { draftMode } from 'next/headers'
 import Script from 'next/script'
 import { type PropsWithChildren, Suspense } from 'react'
@@ -13,7 +12,7 @@ import { ToastProvider, ToastViewport } from '@/components/ui/toast'
 import { APP_BASE_URL, env } from '@/lib/env'
 import { OptionalFeatures } from '@/lib/features'
 import { isConfigured } from '@/lib/integrations/registry'
-import { SanityLive } from '@/lib/integrations/sanity/live'
+import { SanityVisualEditing } from '@/lib/integrations/sanity/components/visual-editing'
 import { routeAlternates } from '@/lib/seo/alternates'
 import { JsonLd } from '@/lib/seo/json-ld'
 import { organizationSchema, websiteSchema } from '@/lib/seo/schemas'
@@ -89,7 +88,7 @@ export const viewport: Viewport = {
 /**
  * App-wide providers, metadata and analytics for every route EXCEPT /studio,
  * which lives outside this route group so Sanity Studio doesn't drag in the
- * rAF loop, toasts, Sanity Live, JSON-LD, etc. The root layout owns the
+ * rAF loop, toasts, Visual Editing, JSON-LD, etc. The root layout owns the
  * html/body shell, global CSS and font variables.
  */
 export default async function AppLayout({ children }: PropsWithChildren) {
@@ -140,15 +139,11 @@ export default async function AppLayout({ children }: PropsWithChildren) {
       */}
       <OptionalFeatures gsap />
 
-      {/* Sanity Live - renders unconditionally when Sanity is configured for real-time updates.
-          includeDrafts subscribes the event stream to draft mutations so
-          Presentation-tool edits push to the preview without a manual refresh. */}
-      {sanityConfigured && <SanityLive includeDrafts={isDraftMode} />}
-
-      {/* Sanity Visual Editing - only when draft mode is enabled */}
+      {/* Sanity Visual Editing - only when draft mode is enabled. It
+          refreshes the page when an editor changes a field. */}
       {sanityConfigured && isDraftMode && (
         <Suspense fallback={null}>
-          <VisualEditing />
+          <SanityVisualEditing />
         </Suspense>
       )}
 

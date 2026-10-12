@@ -2,6 +2,10 @@ import { parseBody } from 'next-sanity/webhook'
 import { revalidateTag } from 'next/cache'
 import { type NextRequest, NextResponse } from 'next/server'
 
+import { env } from '@/lib/env'
+
+import { SANITY_CACHE_TAG } from './published'
+
 // This is called from `app/api/revalidate/route.ts` so providers can control
 // revalidation logic — the same split Shopify uses in `./../shopify/revalidate`.
 // Keeping the handler here (rather than inline in the route) means dropping
@@ -10,7 +14,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 // route two integrations share (P-B7).
 export async function revalidate(request: NextRequest): Promise<NextResponse> {
   try {
-    const secret = process.env.SANITY_REVALIDATE_SECRET
+    const secret = env.SANITY_REVALIDATE_SECRET
     if (!secret) {
       return NextResponse.json(
         { data: null, error: 'Webhook secret not configured' },
@@ -18,10 +22,9 @@ export async function revalidate(request: NextRequest): Promise<NextResponse> {
       )
     }
 
-    const { body, isValidSignature } = await parseBody<{
-      _type: string
-      slug?: { current: string }
-    }>(request, secret)
+    // `true` waits for Content Lake to serve the published document before
+    // answering, so the revalidation below never refetches the old version.
+    const { isValidSignature } = await parseBody(request, secret, true)
 
     if (!isValidSignature) {
       return NextResponse.json(
@@ -30,22 +33,10 @@ export async function revalidate(request: NextRequest): Promise<NextResponse> {
       )
     }
 
-    if (!body?._type) {
-      return NextResponse.json(
-        { data: null, error: 'Bad Request' },
-        { status: 400 }
-      )
-    }
-
-    // Revalidate the specific document type.
-    // Next 16 Cache Components requires the second (cache-profile) argument;
-    // an empty object selects the default revalidation behavior.
-    revalidateTag(body._type, {})
-
-    // If there's a slug, revalidate the specific page
-    if (body.slug?.current) {
-      revalidateTag(`${body._type}:${body.slug.current}`, {})
-    }
+    // Every Sanity read carries this one tag (see `./published.ts`), so a
+    // publish of any document refreshes every page. `expire: 0`, not `max`:
+    // the next visit gets fresh content, not one more stale page.
+    revalidateTag(SANITY_CACHE_TAG, { expire: 0 })
 
     return NextResponse.json({
       data: { revalidated: true, now: Date.now() },

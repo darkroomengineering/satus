@@ -163,6 +163,17 @@ The WebGL `Image` (`@/webgl/components/image`) loads its texture from the same `
 
 A raw `<img>` is not an option here — oxlint's `nextjs/no-img-element` rule rejects it project-wide.
 
+### Links
+
+Every link is the `link` type from [sanity-plugin-link-field](https://www.sanity.io/plugins/sanity-plugin-link-field), registered with `linkField()` in `sanity.config.ts`. Editors pick a page or article, a URL, an email address or a phone number, plus an optional "open in new window", URL parameters and anchor. There is no `link` schema in `schemas/`.
+
+- **Schema.** Add a link with `linkField(name, { title, description, required, enableText })` from `schemas/fields.ts`. `required` uses the plugin's `requiredLinkField`, because `Rule.required()` passes an empty link object. In rich text, the `link` annotation is the same type.
+- **Linkable types.** `linkableSchemaTypes` lists the document types an internal link can point to. A new routable type goes there and gets a case in `resolveDocumentUrl` (`utils/link.ts`), or links to it resolve to `#`. `enabledBuiltInLinkTypes` turns on internal, external, email and phone; each has a branch in `urlForReference`, and a type you enable later needs one too.
+- **Query.** Dereference the internal link wherever a query returns a link, `link{..., internalLink->{_type, slug}}`; in rich text, inside `markDefs` (see `queries.ts`). Without it the resolver has no slug and returns `#`.
+- **Render.** Spread `getLinkAttributes(link)` onto `Link` from `@/components/ui/link`, not the plugin's own `Link` from `sanity-plugin-link-field/component`. The resolver runs `stegaClean` itself, re-checks external URLs against an http, https, mailto and tel allowlist (the Studio's own check is advisory), and returns `#` for an empty link. New tab is tri-state: "open in new window" wins when an editor set it either way; left unset, absolute http(s) URLs open in a new tab and everything else stays in the tab.
+
+Satus used to ship a hand-rolled `link` type that saved `linkType`, `externalUrl` and `openInNewTab`. The plugin doesn't read those fields, so a link saved in that shape renders as `#`, with no error: re-pick it in the Studio.
+
 ### SEO Metadata
 
 Call `sanityFetch` again. Outside draft mode it reuses the page's cache entry; in draft mode nothing is cached, so it reads Sanity a second time:

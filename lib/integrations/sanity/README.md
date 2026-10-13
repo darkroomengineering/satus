@@ -163,6 +163,34 @@ The WebGL `Image` (`@/webgl/components/image`) loads its texture from the same `
 
 A raw `<img>` is not an option here — oxlint's `nextjs/no-img-element` rule rejects it project-wide.
 
+### Links
+
+Every link is the `link` type from [sanity-plugin-link-field](https://www.sanity.io/plugins/sanity-plugin-link-field), registered with `linkField()` in `sanity.config.ts`. Editors pick a page or article, a URL, an email address or a phone number, plus an optional "open in new window", URL parameters and anchor. There is no `link` schema in `schemas/`.
+
+- **Schema.** Add a link with `linkField(name, { title, description, required, enableText })` from `schemas/fields.ts`. `required` uses the plugin's `requiredLinkField`, because `Rule.required()` passes an empty link object. In rich text, the `link` annotation is the same type.
+- **Linkable types.** `linkableSchemaTypes` lists the document types an internal link can point to. A new routable type goes there and gets a case in `resolveDocumentUrl` (`utils/link.ts`), or links to it resolve to `#`. `enabledBuiltInLinkTypes` turns on internal, external, email and phone; each has a branch in `urlForReference`, and a type you enable later needs one too.
+- **Query.** Dereference the internal link wherever a query returns a link, `link{..., internalLink->{_type, slug}}`; in rich text, inside `markDefs` (see `queries.ts`). Without it the resolver has no slug and returns `#`.
+- **Render.** Spread `getLinkAttributes(link)` onto `Link` from `@/components/ui/link`, not the plugin's own `Link` from `sanity-plugin-link-field/component`. The resolver runs `stegaClean` itself, re-checks external URLs against an http, https, mailto and tel allowlist (the Studio's own check is advisory), and returns `#` for an empty link. New tab is tri-state: "open in new window" wins when an editor set it either way; left unset, absolute http(s) URLs open in a new tab and everything else stays in the tab.
+
+#### Migrating links saved before the plugin
+
+Satus used to ship a hand-rolled `link` type that saved `linkType`, `externalUrl` and `openInNewTab`. The plugin reads `type`, `url` (or `email` / `phone`) and `blank`, so a link saved in the old shape renders as `#`, with no error. Two migrations in `migrations/` move them over:
+
+1. `link-plugin-fields` copies each old link into the new fields and leaves the old ones in place, so a deployment still running the old code keeps working. A `mailto:` or `tel:` URL becomes an email or phone link, because the plugin's `url` field accepts only http(s) and relative URLs. Run it before deploying the code that reads the plugin's fields.
+2. `link-plugin-cleanup` unsets `linkType`, `externalUrl` and `openInNewTab` on every link that has a `type`. Run it once that code is live. A link with no `type` (one the first migration could not map) keeps its old fields.
+
+Neither touches a field that is already in the target shape, so a second run changes nothing. Ask editors not to change links between the first run and the deploy (and `bunx sanity deploy`, if the Studio is also hosted on sanity.studio): an edit in the old Studio changes only the old fields, which the new code ignores and the cleanup deletes. Run them from this folder, logged in with `bunx sanity login`. Each is a dry run that prints every patch and writes nothing until you pass `--no-dry-run`:
+
+```bash
+cd lib/integrations/sanity
+bunx dotenvx run -f ../../../.env.local -f ../../../.env --ignore=MISSING_ENV_FILE -- sanity migration run link-plugin-fields
+bunx dotenvx run -f ../../../.env.local -f ../../../.env --ignore=MISSING_ENV_FILE -- sanity migration run link-plugin-fields --no-dry-run
+# after the new code is deployed
+bunx dotenvx run -f ../../../.env.local -f ../../../.env --ignore=MISSING_ENV_FILE -- sanity migration run link-plugin-cleanup --no-dry-run
+```
+
+`--dataset <name> --project <id>` points a run at another dataset, so you can try it on a copy first (`bunx sanity dataset copy`). `--from-export <file.tar.gz>` dry-runs it against a `bunx sanity dataset export` file without reading the API.
+
 ### SEO Metadata
 
 Call `sanityFetch` again. Outside draft mode it reuses the page's cache entry; in draft mode nothing is cached, so it reads Sanity a second time:

@@ -5,6 +5,7 @@
  */
 
 import { defineConfig } from 'sanity'
+import { linkField } from 'sanity-plugin-link-field'
 import {
   defineDocuments,
   defineLocations,
@@ -140,6 +141,14 @@ export default projectId && dataset
               disable: '/api/draft-mode/disable',
             },
           },
+        }),
+        // Registers the `link` type every link field uses (`linkField` in
+        // `./schemas/fields.ts`). Each linkable type needs a case in
+        // `resolveDocumentUrl` (`./utils/link.ts`), and each enabled built-in
+        // type a branch in `urlForReference`; anything else resolves to `#`.
+        linkField({
+          linkableSchemaTypes: ['page', 'article'],
+          enabledBuiltInLinkTypes: ['internal', 'external', 'email', 'phone'],
         }),
       ],
     })

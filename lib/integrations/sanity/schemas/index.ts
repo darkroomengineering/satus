@@ -8,20 +8,19 @@ import type { SchemaTypeDefinition } from 'sanity'
 
 import { article } from './article'
 // Import all schema definitions
-import { link } from './link'
 import { metadata } from './metadata'
 import { navigation } from './navigation'
 import { page } from './page'
 import { richText } from './richText'
 
 // Re-export all schemas for convenience
-export { article, link, metadata, navigation, page, richText }
+export { article, metadata, navigation, page, richText }
 
 // Schema collection for Sanity configuration
 export const schema = {
   types: [
-    // Object types (reusable components)
-    link,
+    // Object types (reusable components). `link` comes from
+    // sanity-plugin-link-field, registered in `../sanity.config.ts`.
     metadata,
     richText,
 

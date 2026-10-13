@@ -240,8 +240,8 @@ describe('urlForReference: email, phone, parameters and anchors', () => {
 })
 
 describe('urlForReference: links in the old hand-rolled shape', () => {
-  // What a fork's unmigrated content looks like: it must stay inert rather
-  // than guess, and `migrations/link-plugin-fields` is the fix.
+  // A link saved before the plugin: it must stay inert rather than guess.
+  // An editor re-picks it in the Studio.
   test('resolve to an inert #', () => {
     // Passed through a variable so the old `linkType` field type-checks as
     // an extra property instead of an excess-property error.

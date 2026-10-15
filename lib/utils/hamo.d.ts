@@ -13,8 +13,6 @@
 //
 // Delete this file once hamo restores the `./scroll-trigger/debugger` export.
 declare module 'hamo/dist/scroll-trigger/debugger' {
-  // A top-level `import type` would turn this file into a module and break the
-  // ambient declaration, so the inline `import()` form is the only option.
-  // oxlint-disable-next-line typescript/consistent-type-imports
+  // oxlint-disable-next-line typescript/consistent-type-imports -- a top-level `import type` would make this file a module and break the ambient declaration
   export const Debugger: import('react').FC<{ theme?: 'light' | 'dark' }>
 }

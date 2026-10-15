@@ -53,5 +53,10 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "tools/oxlint/anti-slop", "tools/oxlint/hamo"]
+  "exclude": [
+    "node_modules",
+    "tools/oxlint/anti-slop",
+    "tools/oxlint/hamo",
+    "tools/oxlint/styling"
+  ]
 }

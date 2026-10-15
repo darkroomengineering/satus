@@ -1,6 +1,7 @@
 /**
  * Fails when lint disables or `@ts-*` suppressions per rule differ from
- * `lint-disables.json`, so every change to the count shows up in review.
+ * `lint-disables.json`, so every change to the count shows up in review, or
+ * when one has no `-- <reason>`.
  */
 
 import { parseSync } from 'oxc-parser'
@@ -13,7 +14,8 @@ const DIRECTIVE_PATTERN =
 // A directive naming no rule turns off every rule.
 const ALL_RULES = '*'
 // Counted under their own names, e.g. `@ts-ignore`.
-const TS_DIRECTIVE_PATTERN = /^\**\s*(@ts-(?:ignore|expect-error|nocheck))\b/
+const TS_DIRECTIVE_PATTERN =
+  /^\**\s*(@ts-(?:ignore|expect-error|nocheck))\b(.*)$/s
 
 interface Site {
   rule: string
@@ -28,14 +30,30 @@ function lineOf(source: string, offset: number): number {
   return line
 }
 
-function directiveRules(comment: string): string[] | undefined {
+interface Directive {
+  rules: string[]
+  reason: string
+}
+
+function reasonOf(rest: string): string {
+  const separator = rest.indexOf('--')
+  return separator === -1 ? '' : rest.slice(separator + 2).trim()
+}
+
+function parseDirective(comment: string): Directive | undefined {
   const tsMatch = TS_DIRECTIVE_PATTERN.exec(comment.trim())
-  if (tsMatch?.[1]) return [tsMatch[1]]
+  if (tsMatch?.[1]) {
+    return { rules: [tsMatch[1]], reason: reasonOf(tsMatch[2] ?? '') }
+  }
   const match = DIRECTIVE_PATTERN.exec(comment.trim())
   if (!match) return undefined
-  const [list = ''] = (match[1] ?? '').split('--')
+  const rest = match[1] ?? ''
+  const [list = ''] = rest.split('--')
   const rules = list.split(/[\s,]+/).filter(Boolean)
-  return rules.length > 0 ? rules : [ALL_RULES]
+  return {
+    rules: rules.length > 0 ? rules : [ALL_RULES],
+    reason: reasonOf(rest),
+  }
 }
 
 function sourceFiles(): string[] {
@@ -59,15 +77,17 @@ function sourceFiles(): string[] {
 
 async function main(): Promise<void> {
   const sites: Site[] = []
+  const unexplained: string[] = []
   for (const path of sourceFiles()) {
     const file = Bun.file(path)
     if (!(await file.exists())) continue
     const source = await file.text()
     for (const comment of parseSync(path, source).comments) {
-      const rules = directiveRules(comment.value)
-      if (!rules) continue
+      const directive = parseDirective(comment.value)
+      if (!directive) continue
       const location = `${path}:${lineOf(source, comment.start)}`
-      for (const rule of rules) sites.push({ rule, location })
+      for (const rule of directive.rules) sites.push({ rule, location })
+      if (!directive.reason) unexplained.push(`    ${location}`)
     }
   }
 
@@ -95,11 +115,17 @@ async function main(): Promise<void> {
     }
   }
 
+  if (unexplained.length > 0) {
+    offenses.push('  disables without a `-- <reason>`:', ...unexplained)
+  }
+
   if (offenses.length > 0) {
-    console.error(`check:disables: counts differ from ${BASELINE_PATH}\n`)
+    console.error(
+      `check:disables: disables do not match ${BASELINE_PATH} or lack a reason\n`
+    )
     for (const offense of offenses) console.error(offense)
     console.error(
-      `\nFix the code instead of disabling the rule. If a disable is truly needed, change its number in ${BASELINE_PATH}; the reviewer approves the bump.`
+      `\nFix the code instead of disabling the rule. If a disable is truly needed, end it with \`-- <why the rule is wrong here>\` and change its number in ${BASELINE_PATH}; the reviewer approves the bump.`
     )
     process.exit(1)
   }

@@ -130,9 +130,6 @@ export default defineConfig({
     'hamo/no-raw-observer': 'error',
 
     // --- styling (tools/oxlint/styling) --------------------------------------
-    // Classes live in className or a CSS module. A class list in a variable
-    // escapes oxfmt sorting and Tailwind IntelliSense, and gets exported or
-    // passed as a prop.
     'styling/no-class-string-variable': 'error',
 
     'eslint/no-unused-vars': [

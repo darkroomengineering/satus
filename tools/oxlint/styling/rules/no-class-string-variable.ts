@@ -92,6 +92,33 @@ function collectStrings(node: ESTree.Node, found: ESTree.Node[]): void {
   }
 }
 
+type FunctionNode = ESTree.ArrowFunctionExpression | ESTree.Function
+
+/** `className={(state) => ...}` keeps the classes inline, at the element. */
+function isClassNameCallback(fn: FunctionNode): boolean {
+  const container = fn.parent
+  if (container?.type !== 'JSXExpressionContainer') return false
+  const attribute = container.parent
+  return (
+    attribute?.type === 'JSXAttribute' &&
+    attribute.name.type === 'JSXIdentifier' &&
+    attribute.name.name === 'className'
+  )
+}
+
+function enclosingFunction(node: ESTree.Node): FunctionNode | undefined {
+  for (let current = node.parent; current; current = current.parent) {
+    if (
+      current.type === 'ArrowFunctionExpression' ||
+      current.type === 'FunctionExpression' ||
+      current.type === 'FunctionDeclaration'
+    ) {
+      return current
+    }
+  }
+  return undefined
+}
+
 /**
  * A class list held in a variable is outside the tools that check classes:
  * oxfmt sorts only `className` and `cn()`/`clsx()` arguments, Tailwind
@@ -103,22 +130,32 @@ export const noClassStringVariableRule = defineRule({
     type: 'suggestion',
     docs: {
       description:
-        'Disallow Tailwind class lists stored in variables; write them in className, extract a component, or use the CSS module.',
+        'Disallow Tailwind class lists stored in variables or returned from helpers; write them in className, extract a component, or use the CSS module.',
     },
     messages: {
       classStringVariable:
-        'Tailwind classes in a variable can be reused, exported or passed as a prop, and outside `cn()` they skip oxfmt sorting and IntelliSense. Write them in `className` (with `cn()` for conditions), extract a component for repeated markup, or move them to the CSS module.',
+        "Tailwind classes in a variable or a helper's return value can be reused, exported or passed as a prop, and outside `cn()` they skip oxfmt sorting and IntelliSense. Write them in `className` (with `cn()` for conditions), extract a component for repeated markup, or move them to the CSS module.",
     },
   },
   createOnce(context) {
+    function check(value: ESTree.Node): void {
+      const found: ESTree.Node[] = []
+      collectStrings(value, found)
+      for (const literal of found) {
+        context.report({ node: literal, messageId: 'classStringVariable' })
+      }
+    }
     return {
       VariableDeclarator(node) {
-        if (node.init === null) return
-        const found: ESTree.Node[] = []
-        collectStrings(node.init, found)
-        for (const literal of found) {
-          context.report({ node: literal, messageId: 'classStringVariable' })
-        }
+        if (node.init !== null) check(node.init)
+      },
+      ReturnStatement(node) {
+        if (node.argument === null) return
+        const fn = enclosingFunction(node)
+        if (fn && !isClassNameCallback(fn)) check(node.argument)
+      },
+      ArrowFunctionExpression(node) {
+        if (node.expression && !isClassNameCallback(node)) check(node.body)
       },
     }
   },

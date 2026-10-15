@@ -26,6 +26,10 @@ tester.run('styling/no-class-string-variable', noClassStringVariableRule, {
     'function A() { return <div className="flex items-center dr-gap-4" /> }',
     "function A({ a }) { return <div className={cn('flex items-center', a && 'opacity-50 uppercase')} /> }",
     "const result = format('flex items-center')",
+    "function label() { return 'Read more about the block' }",
+    "const label = () => 'Read more'",
+    'function A() { return <Tabs.Tab className={(state) => (state.active ? "bg-black text-white" : "opacity-50 uppercase")} /> }',
+    'function A() { return <Tabs.Tab className={function (state) { return state.active ? "bg-black text-white" : "opacity-50 uppercase" }} /> }',
   ],
   invalid: [
     {
@@ -98,6 +102,31 @@ tester.run('styling/no-class-string-variable', noClassStringVariableRule, {
       name: 'inside component',
       code: "function A() { const base = 'flex items-center'; return <div className={base} /> }",
       errors: [error],
+    },
+    {
+      name: 'returned from a function',
+      code: "function buttonClass(variant) { return variant === 'primary' ? 'bg-black text-white' : 'bg-white text-black' }",
+      errors: [error, error],
+    },
+    {
+      name: 'arrow body',
+      code: "const sizeClass = (size) => size === 'sm' ? 'dr-px-2 dr-py-1' : 'dr-px-4 dr-py-2'",
+      errors: [error, error],
+    },
+    {
+      name: 'returned cn result',
+      code: "function base(active) { return cn('flex items-center', active && 'opacity-50 pointer-events-none') }",
+      errors: [error, error],
+    },
+    {
+      name: 'helper passed to className',
+      code: "const tabClass = (state) => state.active ? 'bg-black text-white' : 'bg-white text-black'; function A() { return <Tabs.Tab className={tabClass} /> }",
+      errors: [error, error],
+    },
+    {
+      name: 'callback on another prop',
+      code: 'function A() { return <List render={(item) => item.active ? "bg-black text-white" : "bg-white text-black"} /> }',
+      errors: [error, error],
     },
   ],
 })

@@ -16,6 +16,7 @@ export default defineConfig({
   jsPlugins: [
     { name: 'anti-slop', specifier: './tools/oxlint/anti-slop/index.ts' },
     { name: 'hamo', specifier: './tools/oxlint/hamo/index.ts' },
+    { name: 'styling', specifier: './tools/oxlint/styling/index.ts' },
   ],
   plugins: [
     'eslint',
@@ -127,6 +128,12 @@ export default defineConfig({
     // --- hamo (tools/oxlint/hamo) ---------------------------------------------
     'hamo/no-raw-layout-read': 'error',
     'hamo/no-raw-observer': 'error',
+
+    // --- styling (tools/oxlint/styling) --------------------------------------
+    // Classes live in className or a CSS module. A class list in a variable
+    // escapes oxfmt sorting and Tailwind IntelliSense, and gets exported or
+    // passed as a prop.
+    'styling/no-class-string-variable': 'error',
 
     'eslint/no-unused-vars': [
       'error',
@@ -360,6 +367,8 @@ export default defineConfig({
         'react/forbid-elements': 'off',
         'hamo/no-raw-layout-read': 'off',
         'hamo/no-raw-observer': 'off',
+        // Tests assert on class names; scripts generate them.
+        'styling/no-class-string-variable': 'off',
       },
     },
     {

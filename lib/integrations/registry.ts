@@ -85,26 +85,23 @@ export const integrations = {
     cspSources: {
       // Images: `lib/integrations/sanity/client.ts` + `@sanity/image-url`'s
       // `urlForImage()` (used by `components/ui/sanity-image`) build URLs on
-      // `cdn.sanity.io` — the same host already trusted by
-      // `next.config.ts`'s `images.remotePatterns`.
+      // `cdn.sanity.io`, which the browser loads directly
+      // (`components/ui/image`'s Sanity loader, not Next's optimizer).
       'img-src': ['https://cdn.sanity.io'],
-      // Live/API: `next-sanity`'s `defineLive`/`SanityLive`
-      // (`lib/integrations/sanity/live/index.tsx`, rendered client-side from
-      // `app/(site)/layout.tsx`) opens a live-events connection, and
-      // `client.ts` reads with `useCdn: true`. Both hosts are project-id
-      // subdomains — confirmed in `@sanity/client`'s
-      // `dist/_chunks-cjs/config.cjs` (`defaultConfig.apiHost =
-      // "https://api.sanity.io"`, `defaultCdnHost = "apicdn.sanity.io"`,
-      // both prefixed with `<projectId>.`) — so the source must be a
-      // wildcard subdomain, not a literal host.
+      // API: the embedded Studio talks to the project's API from the
+      // browser. `client.ts` reads on the server, which the CSP doesn't
+      // govern. The API host is a project-id subdomain (`@sanity/client`'s
+      // `defaultConfig.apiHost = "https://api.sanity.io"`, prefixed with
+      // `<projectId>.`), so the source must be a wildcard subdomain, not a
+      // literal host. No API CDN host (`*.apicdn.sanity.io`): nothing on site
+      // routes reads with `useCdn: true` (Visual Editing reaches the Studio
+      // over postMessage, not HTTP), and `/studio/*` gets it through
+      // `STUDIO_SOURCES`' `https://*.sanity.io` in `./csp.ts`. A fork that
+      // adds a browser-side `useCdn: true` read adds the host back here.
       // The bare host (no project subdomain) is what the embedded Studio at
-      // /studio uses for tracing and feedback calls; the wildcards don't
+      // /studio uses for tracing and feedback calls; the wildcard doesn't
       // match a bare apex, so it needs its own entry.
-      'connect-src': [
-        'https://*.api.sanity.io',
-        'https://*.apicdn.sanity.io',
-        'https://api.sanity.io',
-      ],
+      'connect-src': ['https://*.api.sanity.io', 'https://api.sanity.io'],
     },
   },
   shopify: {

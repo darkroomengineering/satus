@@ -45,14 +45,9 @@ const envSchema = z.object({
       error: 'NEXT_PUBLIC_SANITY_API_VERSION must be in YYYY-MM-DD format',
     })
     .optional(),
-  // Public read token; NEXT_PUBLIC_ variant supports Vercel Marketplace installs
-  NEXT_PUBLIC_SANITY_API_READ_TOKEN: z.string().optional(),
-  // Server-side fallback read token (non-NEXT_PUBLIC_ variant for Vercel Marketplace)
+  // Viewer token for draft mode (Presentation), server only. Never give it a
+  // NEXT_PUBLIC_ name: that inlines it into the browser bundle.
   SANITY_API_READ_TOKEN: z.string().optional(),
-  // Private server-side token for mutations (Satus convention)
-  SANITY_PRIVATE_TOKEN: z.string().optional(),
-  // Alias for SANITY_PRIVATE_TOKEN used by Vercel Marketplace provisioning
-  SANITY_API_WRITE_TOKEN: z.string().optional(),
   // Sanity's own CLI/template convention for the project ID env var name —
   // recognized so a project provisioned by `sanity init` or the CLI
   // template validator isn't treated as unconfigured.

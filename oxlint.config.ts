@@ -69,8 +69,8 @@ export default defineConfig({
         // plugins.
         //
         // SanityImage: 'img' reports a false positive: the component resolves
-        // alt={alt ?? image.alt ?? ''} from CMS data, so call sites
-        // legitimately omit it.
+        // alt={stegaClean(alt ?? image.alt) ?? ''} from CMS data, so call
+        // sites legitimately omit it.
       },
     },
   },

@@ -1,12 +1,12 @@
-import type { PortableTextBlock } from 'next-sanity'
-import { draftMode } from 'next/headers'
+import { type PortableTextBlock, stegaClean } from 'next-sanity'
 import { notFound } from 'next/navigation'
 
 import { Wrapper } from '@/components/layout/wrapper'
 import { SanityImage } from '@/components/ui/sanity-image'
 import { isConfigured } from '@/integrations/registry'
 import { RichText } from '@/integrations/sanity/components/rich-text'
-import { sanityFetch } from '@/integrations/sanity/live'
+import { sanityFetch } from '@/integrations/sanity/fetch'
+import { isKnownCmsPath } from '@/integrations/sanity/known-path'
 import { articleQuery } from '@/integrations/sanity/queries'
 import { JsonLd } from '@/lib/seo/json-ld'
 import {
@@ -23,28 +23,8 @@ import { generateSanityMetadata } from '@/utils/metadata'
  * slug resolved by the `[...slug]` catch-all.
  */
 
-// Same 'use cache' + draftMode pattern as `app/(site)/[...slug]/page.tsx` —
-// see that file's comment for why `sanityFetch` requires this shape under
-// Cache Components.
-async function fetchArticle(
-  slug: string,
-  perspective: 'published' | 'drafts',
-  stega: boolean
-) {
-  'use cache'
-  return sanityFetch({
-    query: articleQuery,
-    params: { slug },
-    perspective,
-    stega,
-  })
-}
-
-async function fetchArticleForRequest(slug: string) {
-  const { isEnabled: isDraftMode } = await draftMode()
-  return isDraftMode
-    ? fetchArticle(slug, 'drafts', true)
-    : fetchArticle(slug, 'published', false)
+function fetchArticle(slug: string) {
+  return sanityFetch({ query: articleQuery, params: { slug } })
 }
 
 interface ArticlePageProps {
@@ -54,22 +34,33 @@ interface ArticlePageProps {
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params
 
-  if (!isConfigured('sanity')) notFound()
+  // Before the fetch, so an unknown slug never writes a cache entry.
+  if (!isConfigured('sanity') || !(await isKnownCmsPath(`/articles/${slug}`))) {
+    notFound()
+  }
 
-  const { data } = await fetchArticleForRequest(slug)
+  const data = await fetchArticle(slug)
 
   if (!data) notFound()
 
   const url = `${SITE.url}/articles/${slug}`
+  // The page renders `data` with its draft-mode edit markers, which is what
+  // lets Presentation map text back to fields. Structured data is read by
+  // machines, so it gets the cleaned copy.
+  const { title, excerpt, author } = stegaClean({
+    title: data.title,
+    excerpt: data.excerpt,
+    author: data.author,
+  })
 
   const articleInput: ArticleSchemaInput = {
-    headline: data.title ?? slug,
+    headline: title ?? slug,
     url,
   }
-  if (data.excerpt) articleInput.description = data.excerpt
+  if (excerpt) articleInput.description = excerpt
   if (data.publishedAt) articleInput.datePublished = data.publishedAt
   if (data._updatedAt) articleInput.dateModified = data._updatedAt
-  if (data.author) articleInput.authorName = data.author
+  if (author) articleInput.authorName = author
 
   // SAFETY: ArticleQueryResult's typegen'd `content` array is the same
   // portable-text block/span/markDefs shape as next-sanity's
@@ -84,7 +75,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       <JsonLd
         data={breadcrumbSchema([
           { name: SITE.name, url: SITE.url },
-          { name: data.title ?? slug, url },
+          { name: title ?? slug, url },
         ])}
       />
       <JsonLd data={articleSchema(articleInput)} />
@@ -110,14 +101,16 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 export async function generateMetadata({ params }: ArticlePageProps) {
   const { slug } = await params
 
-  if (!isConfigured('sanity')) return
+  if (!isConfigured('sanity') || !(await isKnownCmsPath(`/articles/${slug}`))) {
+    return
+  }
 
-  const { data } = await fetchArticleForRequest(slug)
+  const data = await fetchArticle(slug)
 
   if (!data) return
 
   return generateSanityMetadata({
-    document: data,
+    document: stegaClean(data),
     url: `/articles/${slug}`,
     type: 'article',
   })

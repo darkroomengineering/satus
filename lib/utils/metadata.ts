@@ -158,36 +158,28 @@ export function generatePageMetadata(
 /**
  * Generate metadata specifically for Sanity CMS pages
  *
+ * Pass a stega-cleaned document (`stegaClean(data)` from `next-sanity`). In
+ * draft mode every Sanity string carries Presentation's hidden edit markers,
+ * and this helper copies them into `<title>`, the description and the Open
+ * Graph tags as is. It doesn't clean them itself because `setup:project`
+ * keeps this file when it strips Sanity and removes `next-sanity` with it.
+ * Cost: each caller has to remember the call; the three in `app/(site)` do.
+ *
  * @example
  * ```ts
- * import { draftMode } from 'next/headers'
- * import { sanityFetch } from '@/integrations/sanity/live'
- *
- * // 'use cache' is required: sanityFetch calls cacheTag() internally, which
- * // Cache Components only allow inside a 'use cache' boundary — see
- * // app/(site)/articles/[slug]/page.tsx for the same pattern applied to a page.
- * async function fetchPage(
- *   slug: string,
- *   perspective: 'published' | 'drafts',
- *   stega: boolean
- * ) {
- *   'use cache'
- *   return sanityFetch({ query: pageQuery, params: { slug }, perspective, stega })
- * }
- *
- * async function fetchPageForRequest(slug: string) {
- *   const { isEnabled: isDraftMode } = await draftMode()
- *   return isDraftMode
- *     ? fetchPage(slug, 'drafts', true)
- *     : fetchPage(slug, 'published', false)
- * }
+ * import { stegaClean } from 'next-sanity'
+ * import { sanityFetch } from '@/integrations/sanity/fetch'
  *
  * export async function generateMetadata({ params }) {
  *   const { slug } = await params
- *   const { data } = await fetchPageForRequest(slug)
+ *   // Cached under the `sanity` tag; drafts in draft mode. Outside draft
+ *   // mode, calling it again from the page reuses the same cache entry; in
+ *   // draft mode each call reads Sanity again, uncached.
+ *   const data = await sanityFetch({ query: pageQuery, params: { slug } })
+ *   if (!data) return
  *
  *   return generateSanityMetadata({
- *     document: data,
+ *     document: stegaClean(data),
  *     url: `/sanity/${slug}`,
  *   })
  * }

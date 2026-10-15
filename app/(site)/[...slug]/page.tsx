@@ -1,53 +1,30 @@
-import type { PortableTextBlock } from 'next-sanity'
-import { draftMode } from 'next/headers'
+import { type PortableTextBlock, stegaClean } from 'next-sanity'
 import { notFound } from 'next/navigation'
 
 import { Wrapper } from '@/components/layout/wrapper'
 import { Link } from '@/components/ui/link'
 import { isConfigured } from '@/integrations/registry'
 import { RichText } from '@/integrations/sanity/components/rich-text'
-import { sanityFetch } from '@/integrations/sanity/live'
+import { sanityFetch } from '@/integrations/sanity/fetch'
+import { isKnownCmsPath } from '@/integrations/sanity/known-path'
 import { pageQuery } from '@/integrations/sanity/queries'
 import { getLinkAttributes } from '@/integrations/sanity/utils/link'
 import { generateSanityMetadata } from '@/utils/metadata'
 
 /**
- * `sanityFetch` calls `cacheTag()` internally, which under Cache Components
- * (`cacheComponents: true`) is only legal inside a `'use cache'` function —
- * including in draft mode. The official next-sanity pattern: always fetch
- * inside 'use cache', but pass `perspective`/`stega`/`slug` as arguments so
- * they are part of the cache key, and branch on `draftMode()` at the
- * request level. Live edits then land via SanityLive tag revalidation.
+ * `sanityFetch` sets its own caching: published reads are cached under the
+ * `sanity` tag until the publish webhook, draft mode reads uncached. Callers
+ * check `isKnownCmsPath` first, so only published slugs get a cache entry.
  *
- * Declared as `const` (not `async function`, unlike the otherwise-identical
- * pattern in `app/(site)/(examples)/sanity/page.tsx`) so the sanity
- * bundle's strip transform in `lib/scripts/integration-bundles.ts` can
- * remove both helpers with the existing `removeVariableStatement` op —
- * there is no remove-function-declaration op in
+ * Declared as `const` (not `function`) so the sanity bundle's strip transform
+ * in `lib/scripts/integration-bundles.ts` can remove it with the existing
+ * `removeVariableStatement` op: there is no remove-function-declaration op in
  * `lib/scripts/ast-operation-types.ts`, and this file (unlike the tutorial
- * page) must survive integration removal as the in-chrome 404 handler, so
- * it can't just be deleted wholesale.
+ * page) must survive integration removal as the in-chrome 404 handler, so it
+ * can't just be deleted wholesale.
  */
-const fetchPage = async (
-  slug: string,
-  perspective: 'published' | 'drafts',
-  stega: boolean
-) => {
-  'use cache'
-  return sanityFetch({
-    query: pageQuery,
-    params: { slug },
-    perspective,
-    stega,
-  })
-}
-
-const fetchPageForRequest = async (slug: string) => {
-  const { isEnabled: isDraftMode } = await draftMode()
-  return isDraftMode
-    ? fetchPage(slug, 'drafts', true)
-    : fetchPage(slug, 'published', false)
-}
+const fetchPage = (slug: string) =>
+  sanityFetch({ query: pageQuery, params: { slug } })
 
 interface CmsPageProps {
   params: Promise<{ slug: string[] }>
@@ -73,11 +50,17 @@ export default async function CmsPage({ params }: CmsPageProps) {
   const { slug } = await params
   const [slugSegment] = slug
 
-  if (slug.length !== 1 || !slugSegment || !isConfigured('sanity')) {
+  if (
+    slug.length !== 1 ||
+    !slugSegment ||
+    !isConfigured('sanity') ||
+    // Before the fetch, so an unknown slug never writes a cache entry.
+    !(await isKnownCmsPath(`/${slugSegment}`))
+  ) {
     notFound()
   }
 
-  const { data } = await fetchPageForRequest(slugSegment)
+  const data = await fetchPage(slugSegment)
 
   if (!data) notFound()
 
@@ -119,14 +102,21 @@ export async function generateMetadata({ params }: CmsPageProps) {
   const { slug } = await params
   const [slugSegment] = slug
 
-  if (slug.length !== 1 || !slugSegment || !isConfigured('sanity')) return
+  if (
+    slug.length !== 1 ||
+    !slugSegment ||
+    !isConfigured('sanity') ||
+    !(await isKnownCmsPath(`/${slugSegment}`))
+  ) {
+    return
+  }
 
-  const { data } = await fetchPageForRequest(slugSegment)
+  const data = await fetchPage(slugSegment)
 
   if (!data) return
 
   return generateSanityMetadata({
-    document: data,
+    document: stegaClean(data),
     url: `/${slugSegment}`,
     type: 'website',
   })

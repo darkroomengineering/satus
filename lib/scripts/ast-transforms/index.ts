@@ -43,12 +43,11 @@ import {
   applyRemoveJsxElement,
   applyRemoveNamedImport,
   applyRemoveTryStatement,
-  applyRemoveUseCacheDirective,
   applyRemoveVariableStatement,
   applyReplaceFunctionBody,
   applyReplaceJsDoc,
 } from './remove-ops'
-import { applySetObjectProperty } from './set-ops'
+import { applySyncUnusedParameterPrefix } from './set-ops'
 
 // ---------------------------------------------------------------------------
 // Required-match contract
@@ -94,16 +93,14 @@ function describeOp(op: AstOperation): string {
       return `removeIfStatement '${op.conditionContains}'`
     case 'removeTryStatement':
       return `removeTryStatement '${op.blockContains}'`
-    case 'removeUseCacheDirective':
-      return `removeUseCacheDirective on '${op.functionName}'`
     case 'replaceFunctionBody':
       return `replaceFunctionBody on '${op.functionName}'`
     case 'removeArrayObjectElement':
       return `removeArrayObjectElement '${op.matchProperty.name}=${op.matchProperty.value}' from '${op.variableName}.${op.propertyPath}'`
     case 'removeArrayStringElement':
       return `removeArrayStringElement '${op.value}' from '${op.variableName}.${op.propertyPath}'`
-    case 'setObjectProperty':
-      return `setObjectProperty '${op.variableName}.${op.propertyPath}'`
+    case 'syncUnusedParameterPrefix':
+      return `syncUnusedParameterPrefix '${op.parameterName}' on '${op.functionName}'`
     case 'addImport':
       return `addImport '${op.text}'`
     case 'addArrayStringElement':
@@ -138,8 +135,13 @@ function describeOp(op: AstOperation): string {
  * Kinds whose target IS the whole construct (an import, a variable
  * statement, a JSX element) have no container to probe — absence is
  * genuinely ambiguous there, and the function returns false (tolerated).
- * Each probe mirrors the corresponding handler's lookup in remove-ops.ts /
- * set-ops.ts, so "container present" means the handler would have found it.
+ * Each probe mirrors the corresponding handler's lookup in remove-ops.ts,
+ * so "container present" means the handler would have found it.
+ *
+ * `addFunctionBodyStatement` and `syncUnusedParameterPrefix` always return
+ * true: their benign no-op is filtered out before it is recorded as a miss
+ * (`requiredOpAlreadySatisfied`), so any miss of theirs that reaches here is
+ * drift.
  *
  * Caveat this encodes: a container-anchored required op assumes no sibling
  * transform removes its container — if one did, the retry would read the
@@ -162,26 +164,6 @@ function missedRequiredOpAnchorAbsent(
   }
 
   switch (op.kind) {
-    // Stricter than function-exists: this op only runs when Cache Components
-    // is being disabled, which requires EVERY `'use cache'` boundary in the
-    // file to be gone (see the op's docstring). A directive that merely MOVED
-    // to another function leaves the named function standing directive-less —
-    // indistinguishable from already-applied by the container probe alone —
-    // so any surviving directive anywhere in the file is also drift.
-    case 'removeUseCacheDirective':
-      return probe(
-        (sf) =>
-          sf.getFunction(op.functionName) !== undefined &&
-          !sf
-            .getDescendantsOfKind(SyntaxKind.ExpressionStatement)
-            .some(
-              (stmt) =>
-                stmt
-                  .getExpression()
-                  .asKind(SyntaxKind.StringLiteral)
-                  ?.getLiteralValue() === 'use cache'
-            )
-      )
     case 'replaceFunctionBody':
     case 'replaceJsDoc':
     case 'removeFunctionParameter':
@@ -224,13 +206,74 @@ function missedRequiredOpAnchorAbsent(
                 el.getOpeningElement().getTagNameNode().getText() === op.tagName
             )
       )
+    // Already-satisfied no-ops never get recorded as misses (see
+    // `requiredOpAlreadySatisfied`); what is left is drift, even on a
+    // byte-identical file.
+    case 'addFunctionBodyStatement':
+    case 'syncUnusedParameterPrefix':
+      return true
     case 'removeArrayObjectElement':
     case 'removeArrayStringElement':
-    case 'setObjectProperty':
       return probe(
         (sf) =>
           resolvePropertyPath(sf, op.variableName, op.propertyPath) !==
           undefined
+      )
+    default:
+      return false
+  }
+}
+
+/**
+ * For a `required` op that left the text unchanged, decide whether the no-op
+ * is the op's own success state rather than a miss. Checked against the text
+ * at the moment the op ran, before it is recorded, so a sibling op changing
+ * the same file cannot turn it into a "matched nothing while others applied"
+ * error.
+ *
+ * - `addFunctionBodyStatement`: its marker is already in the body (a
+ *   previous run, or a sibling bundle, added it). A function that is gone or
+ *   a named anchor that matched nothing is still a miss.
+ * - `syncUnusedParameterPrefix`: the function has the parameter under either
+ *   name, so an unchanged file means the name already matches the body.
+ *
+ * Every other kind returns false: for those, an unchanged file is a miss,
+ * judged by the rules in `applyOpsToText`.
+ */
+function requiredOpAlreadySatisfied(
+  project: Project,
+  sourceText: string,
+  op: AstOperation
+): boolean {
+  let satisfied = false
+  const check = (fn: (sf: SourceFile) => boolean) => {
+    withSourceFile(project, sourceText, (sf) => {
+      satisfied = fn(sf)
+      return sourceText // never mutate — probe only
+    })
+    return satisfied
+  }
+
+  switch (op.kind) {
+    case 'addFunctionBodyStatement':
+      return check(
+        (sf) =>
+          sf
+            .getFunction(op.functionName)
+            ?.getBody()
+            ?.asKind(SyntaxKind.Block)
+            ?.getStatements()
+            .some((s) => s.getText().includes(op.marker)) ?? false
+      )
+    case 'syncUnusedParameterPrefix':
+      return check(
+        (sf) =>
+          sf
+            .getFunction(op.functionName)
+            ?.getParameters()
+            .some((p) =>
+              [op.parameterName, `_${op.parameterName}`].includes(p.getName())
+            ) ?? false
       )
     default:
       return false
@@ -253,8 +296,11 @@ function missedRequiredOpAnchorAbsent(
  *
  * Required-match contract: an op with `required: true` that leaves `text`
  * byte-for-byte unchanged (no match found) is a drift signal — but only when
- * some OTHER op in the same sequence DID change the file. Misses are
- * collected across the whole sequence and judged at the end:
+ * some OTHER op in the same sequence DID change the file. A no-op that is
+ * the op's own success state (an additive marker already present, a
+ * parameter name already in sync; see `requiredOpAlreadySatisfied`) is not a
+ * miss at all. Misses are collected across the whole sequence and judged at
+ * the end:
  *
  * - Misses + a changed file → `RequiredOpMatchError`. Partial application is
  *   the hazard the contract exists for (an import stripped while the code
@@ -267,12 +313,12 @@ function missedRequiredOpAnchorAbsent(
  *   `git checkout`.
  *
  * A byte-identical file gets one more check before passing: a missed
- * required op whose CONTAINER construct is gone (a `'use cache'` directive
- * whose named function no longer exists, an interface property whose
- * interface is missing) is provable drift — the already-applied case leaves
+ * required op whose CONTAINER construct is gone (a function body whose
+ * named function no longer exists, an interface property whose interface is
+ * missing) is provable drift — the already-applied case leaves
  * the container standing — and throws even with no other change. See
  * `missedRequiredOpAnchorAbsent`. This is what keeps a single-op required
- * transform (e.g. `CACHE_COMPONENTS_LLMS_TXT_TRANSFORM`) protected: it can
+ * transform protected: it can
  * never trip the partial-application signal, so the anchor probe is its
  * only drift detection.
  *
@@ -343,9 +389,6 @@ export function applyOpsToText(
       case 'removeTryStatement':
         text = applyRemoveTryStatement(project, text, op)
         break
-      case 'removeUseCacheDirective':
-        text = applyRemoveUseCacheDirective(project, text, op)
-        break
       case 'replaceFunctionBody':
         text = applyReplaceFunctionBody(project, text, op)
         break
@@ -355,8 +398,8 @@ export function applyOpsToText(
       case 'removeArrayStringElement':
         text = applyRemoveArrayStringElement(project, text, op)
         break
-      case 'setObjectProperty':
-        text = applySetObjectProperty(project, text, op)
+      case 'syncUnusedParameterPrefix':
+        text = applySyncUnusedParameterPrefix(project, text, op)
         break
       case 'addImport':
         text = applyAddImport(project, text, op)
@@ -382,7 +425,11 @@ export function applyOpsToText(
       // Exhaustiveness — TypeScript ensures all union members are handled above.
     }
 
-    if (op.required && text === before) {
+    if (
+      op.required &&
+      text === before &&
+      !requiredOpAlreadySatisfied(project, text, op)
+    ) {
       missedRequiredOps.push(op)
     }
   }

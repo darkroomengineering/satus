@@ -20,7 +20,7 @@ import { fetchWithTimeout } from '@/lib/utils/fetch'
 import { colors, themes, breakpoints } from '@/lib/styles/config'
 
 // Integrations
-import { sanityFetch } from 'next-sanity/live'
+import { sanityFetch } from '@/lib/integrations/sanity/fetch'
 import { Cart } from '@/lib/integrations/shopify/cart'
 
 // WebGL
@@ -48,7 +48,6 @@ import { useOrchestra } from '@/lib/dev'
 
 ```bash
 bun dev              # Start dev server
-bun run generate     # Generate pages/components
 bun run setup:project  # Configure integrations
 bun setup:styles     # Regenerate CSS
 bun run check:assets   # Fail on videos over 2MB or rasters over 2400px/1MB; part of bun run check

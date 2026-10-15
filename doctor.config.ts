@@ -106,9 +106,8 @@ export default {
      * Fires on any file named `page.*`, including files that are not Next
      * routes: `lib/integrations/sanity/schemas/page.ts` is a Sanity document
      * schema and `lib/integrations/shopify/queries/page.ts` is a GROQ query.
-     * The one real route it flagged, `app/studio/[[...tool]]`, is
-     * `'use client'` — a client component cannot export `metadata` — and it is
-     * a CMS admin surface that should not be indexed anyway.
+     * Every real route either exports metadata or inherits it from
+     * `app/(site)/layout.tsx`, so the rule only adds noise.
      */
     'react-doctor/nextjs-missing-metadata': 'off',
 

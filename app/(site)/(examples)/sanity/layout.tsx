@@ -5,7 +5,7 @@ import { DisableDraftMode } from '@/integrations/sanity/components/disable-draft
 
 // `app/robots.ts` allows `/` to every bot, so omitting this route from the
 // sitemap isn't enough to keep it out of search results — it must be
-// hardcoded noindex, the same as `app/studio/layout.tsx`.
+// hardcoded noindex, the same as `app/studio/[[...tool]]/page.tsx`.
 export const metadata = {
   robots: { index: false, follow: false },
 }

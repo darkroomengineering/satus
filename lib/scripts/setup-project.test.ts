@@ -15,31 +15,30 @@ import { chmod, mkdir, mkdtemp, rm, symlink } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 
+import { Project, ts } from 'ts-morph'
+
+import type { AstOperation } from './ast-operation-types'
 import { applyOpsToText, RequiredOpMatchError } from './ast-transforms'
-import { guardedPrompt } from './generate-shared'
+import { addScripts } from './bundle-installer'
 import {
   getIntegrationEntries,
   getIntegrationNames,
   INTEGRATION_BUNDLES,
 } from './integration-bundles'
 import type { PayloadSource } from './payload-source'
+import { guardedPrompt } from './prompts'
 import {
-  CACHE_COMPONENTS_DISABLE_TRANSFORM,
-  CACHE_COMPONENTS_LLMS_TXT_TRANSFORM,
   codeTransformTargetPaths,
   collectSelfPruneTestFiles,
   declaredBundlePaths,
   findMissingPaths,
   findUnknownFlags,
-  isCacheComponentsDisabled,
   KNOWN_SETUP_FLAGS,
   PROJECT_PRESETS,
-  replaceAnchoredText,
   resolveTransitiveKeepSet,
   SELF_PRUNE_KEEP_TEST_FILES,
   SETUP_PROJECT_PRUNED_STUB,
   setupAddIntegrations,
-  shouldDisableCacheComponents,
   shouldSkipConfirm,
   updateBarrelExports,
 } from './setup-project'
@@ -132,6 +131,37 @@ describe('Integration Bundle Configuration', () => {
     }
   })
 
+  // Failure modes this guards: a stripped bundle leaves a package.json script
+  // that runs a deleted path, and a bundle declares a script name that
+  // package.json does not have (a typo, or a rename on one side only).
+  it('every package.json script that runs a bundle path is owned by that bundle', async () => {
+    const pkg = (await Bun.file('package.json').json()) as {
+      scripts: Record<string, string>
+    }
+    for (const [id, bundle] of getIntegrationEntries()) {
+      for (const name of bundle.scripts ?? []) {
+        expect(
+          pkg.scripts[name],
+          `${id} declares missing script ${name}`
+        ).toBeDefined()
+      }
+      // Plain substring match on the literal paths a bundle declares. It
+      // does not catch a script that reaches a bundle path indirectly (a
+      // script that imports one, a shell wrapper) or a path that shares a
+      // prefix with an unrelated one, so it is a tripwire, not proof.
+      for (const [name, command] of Object.entries(pkg.scripts)) {
+        const owned = [...bundle.folders, ...bundle.files].some((path) =>
+          command.includes(path)
+        )
+        if (!owned) continue
+        expect(
+          bundle.scripts ?? [],
+          `script ${name} runs a ${id} path but ${id} does not list it in scripts`
+        ).toContain(name)
+      }
+    }
+  })
+
   it('should have valid barrel export configurations', () => {
     for (const [_name, bundle] of getIntegrationEntries()) {
       for (const barrelExport of bundle.barrelExports) {
@@ -166,6 +196,7 @@ describe('Integration Bundle Configuration', () => {
             'removeArrayStringElement',
             'removeJsxAttribute',
             'removeDestructuredBinding',
+            'syncUnusedParameterPrefix',
           ]).toContain(op.kind)
 
           // Each op kind must carry its required fields
@@ -229,6 +260,9 @@ describe('Integration Bundle Configuration', () => {
       'addJsxChild',
       'addDestructuredBinding',
       'addFunctionBodyStatement',
+      // Not additive, but it only ever renames toward what the body reads,
+      // so after a re-add it restores the name the re-added code needs.
+      'syncUnusedParameterPrefix',
     ]
 
     for (const [_name, bundle] of getIntegrationEntries()) {
@@ -628,50 +662,35 @@ describe('RequiredOpMatchError (required-match contract)', () => {
   // A single-op required transform can never trip the partial-application
   // signal, so the anchor probe is its only drift detection: the miss is
   // tolerated only while the op's container construct still exists.
-  it('single required op: container present without the construct no-ops (already applied)', async () => {
-    const content = await Bun.file(
-      CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.file
-    ).text()
-    // First application strips the directive; buildBody itself survives.
-    const stripped = applyOpsToText(
-      content,
-      CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.ops
-    )
-    expect(stripped).not.toBe(content)
-    expect(
-      applyOpsToText(stripped, CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.ops)
-    ).toBe(stripped)
+  it('single required op: container present without the construct no-ops (already applied)', () => {
+    const src = 'export function buildBody() {\n  return 1\n}\n'
+    const ops: AstOperation[] = [
+      {
+        kind: 'replaceFunctionBody',
+        functionName: 'buildBody',
+        replacement: '{\n  return 2\n}',
+        required: true,
+      },
+    ]
+    // First application replaces the body; buildBody itself survives.
+    const applied = applyOpsToText(src, ops)
+    expect(applied).not.toBe(src)
+    expect(applyOpsToText(applied, ops)).toBe(applied)
   })
 
-  it('single required op: a missing container throws even on a byte-identical file', async () => {
-    const content = await Bun.file(
-      CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.file
-    ).text()
-    // The drift Codex's cross-model review called out: buildBody renamed →
-    // the directive op misses AND nothing else changes the file, but the
-    // op's premise is gone — Cache Components would be disabled while a
-    // 'use cache' directive stays behind.
-    const drifted = content.replaceAll('buildBody', 'composeBody')
+  it('single required op: a missing container throws even on a byte-identical file', () => {
+    // buildBody renamed: the op misses AND nothing else changes the file,
+    // but the op's premise is gone.
+    const drifted = 'export function composeBody() {\n  return 1\n}\n'
     expect(() =>
-      applyOpsToText(drifted, CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.ops)
-    ).toThrow(RequiredOpMatchError)
-  })
-
-  it('single required op: a directive that MOVED to another function throws', async () => {
-    // Cross-model review round 2: the function-exists probe alone reads a
-    // relocated 'use cache' as already-applied — buildBody stands
-    // directive-less — but disabling Cache Components requires every
-    // directive gone, so a survivor anywhere in the file is drift.
-    const content = await Bun.file(
-      CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.file
-    ).text()
-    const stripped = applyOpsToText(
-      content,
-      CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.ops
-    )
-    const moved = `${stripped}\n\nasync function elsewhere() {\n  'use cache'\n  return null\n}\n`
-    expect(() =>
-      applyOpsToText(moved, CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.ops)
+      applyOpsToText(drifted, [
+        {
+          kind: 'replaceFunctionBody',
+          functionName: 'buildBody',
+          replacement: '{\n  return 2\n}',
+          required: true,
+        },
+      ])
     ).toThrow(RequiredOpMatchError)
   })
 
@@ -1051,12 +1070,14 @@ describe('Additive Transforms (remove → add round trips)', () => {
     expect(count(result.restored, 'id="webgl"')).toBe(1)
   })
 
-  it('sanity: next.config.ts regains remotePattern and package imports exactly once', () => {
+  it('sanity: next.config.ts regains package imports exactly once', () => {
     const result = roundTrip('sanity', 'next.config.ts')
     if (!result) return
 
-    expect(result.lean).not.toContain('cdn.sanity.io')
-    expect(count(result.restored, 'cdn.sanity.io')).toBe(1)
+    // The optimizer never allows cdn.sanity.io, with or without Sanity: its
+    // images reach the browser through components/ui/image's loader.
+    expect(result.lean).not.toContain("hostname: 'cdn.sanity.io'")
+    expect(result.restored).not.toContain("hostname: 'cdn.sanity.io'")
     expect(count(result.restored, "'@sanity/client'")).toBe(1)
     expect(count(result.restored, "'@sanity/image-url'")).toBe(1)
     expect(count(result.restored, "'@sanity/asset-utils'")).toBe(1)
@@ -1071,7 +1092,6 @@ describe('Additive Transforms (remove → add round trips)', () => {
 
     expect(result.lean).not.toContain('cdn.shopify.com')
     expect(count(result.restored, 'cdn.shopify.com')).toBe(1)
-    expect(count(result.restored, 'cdn.sanity.io')).toBe(1)
   })
 
   it('webgl overwrite: the lean wrapper matches the expected lean state', () => {
@@ -1141,7 +1161,8 @@ describe('Lean-variant validity: app/api/revalidate/route.ts (H1)', () => {
    * Reproduce what `setup()` does to this file for a given kept set:
    * `setupLean` applies EVERY bundle's strip ops against the pristine source
    * (a union pass, regardless of what is kept), then `setupAddIntegrations`
-   * re-adds each kept bundle.
+   * re-adds each kept bundle and runs `stripAbsentIntegrationWiring`, which
+   * re-applies each absent bundle's strip ops with `required` downgraded.
    */
   const variantFor = (kept: ('sanity' | 'shopify')[]): string | undefined => {
     const pristine = sourceFiles[FILE]
@@ -1156,14 +1177,90 @@ describe('Lean-variant validity: app/api/revalidate/route.ts (H1)', () => {
       const add = transformFor(id, 'add')
       if (add) text = applyOpsToText(text, add.ops)
     }
+    if (kept.length === 0) return text // setupAddIntegrations returns early
+    for (const id of ['sanity', 'shopify'] as const) {
+      if (kept.includes(id)) continue
+      const strip = transformFor(id, 'strip')
+      if (!strip) continue
+      const downgraded = strip.ops.map((op) => ({ ...op, required: false }))
+      text = applyOpsToText(text, downgraded)
+    }
     return text
   }
+
+  /**
+   * Type-check a variant under the repo's strict flags, with the modules it
+   * imports stubbed: what this asserts is the route's own validity (unused
+   * parameters and imports, implicit returns, dangling references), not the
+   * integrations' types. Ways it could pass while the scaffold fails, each
+   * closed below: the strict flags not set (they are, copied from
+   * tsconfig.json), a stub so loose that a dangling identifier type-checks
+   * (each stub declares only what the route uses), and a test that never
+   * looks at the route's diagnostics (it is the only non-stub file, and the
+   * guard test below proves a known error surfaces).
+   */
+  const typeErrors = (variant: string): string[] => {
+    const project = new Project({
+      useInMemoryFileSystem: true,
+      compilerOptions: {
+        target: ts.ScriptTarget.ESNext,
+        module: ts.ModuleKind.ESNext,
+        moduleResolution: ts.ModuleResolutionKind.Bundler,
+        lib: ['lib.esnext.d.ts', 'lib.dom.d.ts'],
+        strict: true,
+        noEmit: true,
+        verbatimModuleSyntax: true,
+        exactOptionalPropertyTypes: true,
+        noImplicitReturns: true,
+        noUnusedLocals: true,
+        noUnusedParameters: true,
+        noUncheckedIndexedAccess: true,
+      },
+    })
+    project.createSourceFile(
+      '/stubs.d.ts',
+      `declare module 'next/server' {
+  export class NextRequest extends Request {
+    nextUrl: URL
+  }
+  export class NextResponse extends Response {
+    static json(body: unknown, init?: ResponseInit): NextResponse
+  }
+}
+declare module '@/integrations/sanity/revalidate' {
+  import type { NextRequest, NextResponse } from 'next/server'
+  export function revalidate(request: NextRequest): Promise<NextResponse>
+}
+declare module '@/integrations/shopify/revalidate' {
+  import type { NextRequest, NextResponse } from 'next/server'
+  export function revalidate(request: NextRequest): Promise<NextResponse>
+}
+`
+    )
+    project.createSourceFile('/route.ts', variant)
+    return project.getPreEmitDiagnostics().map((d) => {
+      const message = d.getMessageText()
+      const text =
+        typeof message === 'string' ? message : message.getMessageText()
+      return `${d.getSourceFile()?.getFilePath() ?? '?'} TS${d.getCode()}: ${text}`
+    })
+  }
+
+  it('the type check catches the unused-parameter bug it was written for', () => {
+    // Without the `_request` rename, a blank scaffold failed TS6133.
+    const blank = variantFor([])
+    if (blank === undefined) return
+    const unrenamed = blank.replace('(_request:', '(request:')
+    expect(unrenamed).not.toBe(blank)
+    expect(typeErrors(unrenamed).join('\n')).toContain('TS6133')
+  })
 
   const combinations: {
     label: string
     kept: ('sanity' | 'shopify')[]
   }[] = [
     { label: 'both kept', kept: ['sanity', 'shopify'] },
+    { label: 'both kept, shopify first', kept: ['shopify', 'sanity'] },
     { label: 'sanity only', kept: ['sanity'] },
     { label: 'shopify only', kept: ['shopify'] },
     { label: 'blank', kept: [] },
@@ -1171,6 +1268,13 @@ describe('Lean-variant validity: app/api/revalidate/route.ts (H1)', () => {
 
   for (const { label, kept } of combinations) {
     describe(label, () => {
+      it('type-checks under the repo strict flags', () => {
+        const variant = variantFor(kept)
+        if (variant === undefined) return
+
+        expect(typeErrors(variant)).toEqual([])
+      })
+
       it('references NextResponse only while its import survives', () => {
         const variant = variantFor(kept)
         if (variant === undefined) return
@@ -1198,6 +1302,34 @@ describe('Lean-variant validity: app/api/revalidate/route.ts (H1)', () => {
         expect(variant).toContain("error: 'No webhook handler configured'")
       })
 
+      it('keeps the pristine guard order: Shopify, then Sanity, then the 404', () => {
+        const pristine = sourceFiles[FILE]
+        const variant = variantFor(kept)
+        if (pristine === undefined || variant === undefined) return
+
+        // The order is behaviour: a request carrying both a `?secret=` and a
+        // `sanity-webhook-signature` header goes to whichever guard is first.
+        const handler = (text: string) =>
+          text
+            .slice(text.indexOf('export async function POST'))
+            .split('\n')
+            .filter((line) => line.trim() !== '')
+        const got = handler(variant)
+        const positions = [
+          'const isShopifyWebhook',
+          'const isSanityWebhook',
+          "error: 'No webhook handler configured'",
+        ]
+          .map((marker) => got.findIndex((line) => line.includes(marker)))
+          .filter((index) => index !== -1)
+        expect(positions).toEqual([...positions].sort((a, b) => a - b))
+
+        // With both kept, the handler matches the pristine one line for line.
+        // Blank lines are dropped: the strip leaves one that `setup:project`'s
+        // format pass removes.
+        if (kept.length === 2) expect(got).toEqual(handler(pristine))
+      })
+
       it('leaves no reference to a stripped integration', () => {
         const variant = variantFor(kept)
         if (variant === undefined) return
@@ -1206,19 +1338,13 @@ describe('Lean-variant validity: app/api/revalidate/route.ts (H1)', () => {
           if (kept.includes(id)) continue
           expect(variant).not.toContain(`@/integrations/${id}/revalidate`)
           expect(variant).not.toContain(`${id}Revalidate`)
+          // Comments too: a blank or single-provider route must not describe
+          // a provider it no longer has.
+          expect(variant.toLowerCase()).not.toContain(id)
         }
       })
     })
   }
-
-  it('keeps the rate-limit block in every combination', () => {
-    for (const { kept } of combinations) {
-      const variant = variantFor(kept)
-      if (variant === undefined) return
-      expect(variant).toContain("error: 'Too many requests'")
-      expect(variant).toContain('rateLimiters.standard')
-    }
-  })
 })
 
 // ---------------------------------------------------------------------------
@@ -1294,15 +1420,6 @@ describe('Lean-variant validity: lib/seo/routes.ts', () => {
       ]) {
         expect(variant).not.toContain(identifier)
       }
-    })
-
-    it(`leaves no 'use cache' boundary behind (${label})`, () => {
-      const variant = variantFor(kept)
-      if (variant === undefined || kept.includes('sanity')) return
-
-      // A kept set with no CMS/storefront turns Cache Components off, and a
-      // surviving directive is a hard compile error there.
-      expect(variant).not.toContain("'use cache'")
     })
   }
 
@@ -1438,16 +1555,12 @@ describe('declaredBundlePaths / findMissingPaths (H8 preflight)', () => {
 // ---------------------------------------------------------------------------
 
 describe('codeTransformTargetPaths (issue #389 preflight)', () => {
-  it('collects the target file of every bundle codeTransform plus both Cache Components transforms', () => {
-    // Empty keep-set: no CMS and no storefront, so the Cache Components
-    // opt-out pass will run and its targets are required.
+  it('collects the target file of every bundle codeTransform', () => {
     const paths = codeTransformTargetPaths([])
 
     // A cross-bundle shared file: not in any bundle's folders/files, so
     // declaredBundlePaths alone would never notice it going missing.
     expect(paths).toContain('app/api/revalidate/route.ts')
-    expect(paths).toContain(CACHE_COMPONENTS_DISABLE_TRANSFORM.file)
-    expect(paths).toContain(CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.file)
   })
 
   it('is deduplicated', () => {
@@ -1460,17 +1573,6 @@ describe('codeTransformTargetPaths (issue #389 preflight)', () => {
     // codeTransform's target file must be present.
     const missing = await findMissingPaths(codeTransformTargetPaths([]))
     expect(missing).toEqual([])
-  })
-
-  it('omits the Cache Components-only target when a CMS is kept, matching the run', () => {
-    // setupCacheComponentsOptOut returns early when a CMS/storefront
-    // survives, so requiring its targets would make the preflight stricter
-    // than the execution path. Only app/llms.txt/route.ts is unique to that
-    // pass — next.config.ts is a bundle codeTransform target too, so it is
-    // required either way.
-    const paths = codeTransformTargetPaths(['sanity'])
-    expect(paths).not.toContain(CACHE_COMPONENTS_LLMS_TXT_TRANSFORM.file)
-    expect(paths).toContain(CACHE_COMPONENTS_DISABLE_TRANSFORM.file)
   })
 
   it('a deleted transform-target file fails the preflight before any mutation', async () => {
@@ -1747,16 +1849,12 @@ describe('collectSelfPruneTestFiles (L10 — glob-derived, not hardcoded)', () =
   })
 
   // M1: the glob used to delete tests for commands the scaffold keeps
-  // running — `generate`, `handoff`, the AST engine, and the env-parity
-  // guarantee. Each entry here names a command that ships.
+  // running — `handoff`, the AST engine, and the env-parity guarantee. Each
+  // entry here names a command that ships.
   it('keeps the tests for commands that ship', async () => {
     const files = await collectSelfPruneTestFiles()
 
     for (const kept of [
-      'lib/scripts/generate.test.ts',
-      'lib/scripts/generate-component.test.ts',
-      'lib/scripts/generate-page.test.ts',
-      'lib/scripts/generate-shared.test.ts',
       'lib/scripts/prepare-handoff.test.ts',
       'lib/scripts/env-drift.test.ts',
       'lib/scripts/ast-transforms.test.ts',
@@ -1826,192 +1924,12 @@ describe('shouldSkipConfirm (H6 — --yes gating)', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Cache Components opt-out (no CMS/storefront kept)
-//
-// `setupCacheComponentsOptOut` itself does real disk I/O keyed off
-// `process.cwd()` (via `resolvePath`), and this repo's test harness has no
-// fixture-project-tree mechanism to redirect that safely — every other test
-// in this file exercises pure/exported helpers rather than spinning up a
-// fake project directory. These tests cover the same four keep-set cases
-// (a–d from the plan) at the level this harness actually supports: the pure
-// decision function, the exact production config transform (applied
-// in-memory via `applyOpsToText`, exactly as `applyCodeTransforms` would),
-// and the pure doc-anchor replacement against the REAL current doc sentences
-// (a regression check that the anchors haven't silently gone stale).
-// ---------------------------------------------------------------------------
-
-describe('shouldDisableCacheComponents', () => {
-  it('(a) is true for a lean keep set (no integrations)', () => {
-    expect(shouldDisableCacheComponents([])).toBe(true)
-  })
-
-  it('(b) is false when shopify is kept', () => {
-    expect(shouldDisableCacheComponents(['shopify'])).toBe(false)
-  })
-
-  it('(c) is false when sanity is kept', () => {
-    expect(shouldDisableCacheComponents(['sanity'])).toBe(false)
-  })
-
-  it('(d) is true when only hubspot (no CMS/storefront) is kept', () => {
-    expect(shouldDisableCacheComponents(['hubspot'])).toBe(true)
-  })
-
-  it('is false when sanity is kept alongside other non-CMS integrations', () => {
-    expect(
-      shouldDisableCacheComponents(['sanity', 'hubspot', 'mailchimp'])
-    ).toBe(false)
-  })
-
-  it('is true when every kept integration is neither sanity nor shopify', () => {
-    expect(
-      shouldDisableCacheComponents(['hubspot', 'mailchimp', 'turnstile'])
-    ).toBe(true)
-  })
-})
-
-describe('CACHE_COMPONENTS_DISABLE_TRANSFORM (production ops applied to a next.config-shaped fixture)', () => {
-  const nextConfigFixture = `const nextConfig: NextConfig = {
-  cacheComponents: true,
-  partialPrefetching: true,
-  experimental: {
-    taint: true,
-    cachedNavigations: true,
-    prefetchInlining: true,
-  },
-}
-
-export default nextConfig
-`
-
-  it('flips cacheComponents, partialPrefetching, and experimental.cachedNavigations to false, leaving other flags untouched', () => {
-    const result = applyOpsToText(
-      nextConfigFixture,
-      CACHE_COMPONENTS_DISABLE_TRANSFORM.ops
-    )
-
-    expect(result).toContain('cacheComponents: false')
-    expect(result).not.toContain('cacheComponents: true')
-    expect(result).toContain('partialPrefetching: false')
-    expect(result).not.toContain('partialPrefetching: true')
-    expect(result).toContain('cachedNavigations: false')
-    // Probed separately as not requiring cacheComponents — left untouched.
-    expect(result).toContain('prefetchInlining: true')
-    expect(result).toContain('taint: true')
-  })
-
-  it('is idempotent — applying twice yields the same result', () => {
-    const once = applyOpsToText(
-      nextConfigFixture,
-      CACHE_COMPONENTS_DISABLE_TRANSFORM.ops
-    )
-    const twice = applyOpsToText(once, CACHE_COMPONENTS_DISABLE_TRANSFORM.ops)
-    expect(twice).toBe(once)
-  })
-
-  it('targets next.config.ts', () => {
-    expect(CACHE_COMPONENTS_DISABLE_TRANSFORM.file).toBe('next.config.ts')
-  })
-})
-
-describe('isCacheComponentsDisabled (docs-vs-config consistency guard)', () => {
-  it('is true after the production transform runs', () => {
-    const nextConfigFixture = `const nextConfig: NextConfig = {
-  cacheComponents: true,
-  partialPrefetching: true,
-  experimental: { cachedNavigations: true },
-}
-`
-    const flipped = applyOpsToText(
-      nextConfigFixture,
-      CACHE_COMPONENTS_DISABLE_TRANSFORM.ops
-    )
-    expect(isCacheComponentsDisabled(flipped)).toBe(true)
-    expect(flipped).toContain('partialPrefetching: false')
-  })
-
-  it('is true for hand-edited spacing variants', () => {
-    expect(isCacheComponentsDisabled('cacheComponents:false,')).toBe(true)
-    expect(isCacheComponentsDisabled('cacheComponents : false,')).toBe(true)
-  })
-
-  it('is false when the flip silently no-opped (unrecognized config shape)', () => {
-    // A fork that renamed `nextConfig` — the op finds no variable and
-    // returns the text unchanged; docs must then NOT claim it is disabled.
-    const renamed = `const config: NextConfig = {
-  cacheComponents: true,
-}
-`
-    const result = applyOpsToText(
-      renamed,
-      CACHE_COMPONENTS_DISABLE_TRANSFORM.ops
-    )
-    expect(result).toBe(renamed)
-    expect(isCacheComponentsDisabled(result)).toBe(false)
-  })
-
-  it('is false for an empty/missing config', () => {
-    expect(isCacheComponentsDisabled('')).toBe(false)
-  })
-})
-
-describe('replaceAnchoredText (doc patching)', () => {
-  it('replaces the exact anchor substring and reports changed:true', () => {
-    const content = 'before\nCache Components are enabled globally.\nafter\n'
-    const { text, changed } = replaceAnchoredText(
-      content,
-      'Cache Components are enabled globally.',
-      'Cache Components is disabled in this project.'
-    )
-    expect(changed).toBe(true)
-    expect(text).toBe(
-      'before\nCache Components is disabled in this project.\nafter\n'
-    )
-  })
-
-  it('is an exact no-op (changed:false) when the anchor is absent', () => {
-    const content = 'no matching sentence here\n'
-    const result = replaceAnchoredText(content, 'not present', 'replacement')
-    expect(result.changed).toBe(false)
-    expect(result.text).toBe(content)
-  })
-
-  it("finds the current AGENTS.md sentence claiming Cache Components is enabled (anchor hasn't gone stale)", async () => {
-    const agentsMd = await Bun.file('AGENTS.md').text()
-    const anchor =
-      'Cache Components are enabled globally (`cacheComponents: true` in `next.config.ts`).'
-    const { text, changed } = replaceAnchoredText(
-      agentsMd,
-      anchor,
-      'Cache Components is disabled in this project (no CMS/storefront integration kept at setup). Re-enable `cacheComponents` in next.config.ts when adding one.'
-    )
-    expect(changed).toBe(true)
-    expect(text).not.toContain(anchor)
-    expect(text).toContain('Cache Components is disabled in this project')
-  })
-
-  it("finds the current ARCHITECTURE.md sentence claiming Cache Components is enabled (anchor hasn't gone stale)", async () => {
-    const architectureMd = await Bun.file('ARCHITECTURE.md').text()
-    const anchor =
-      "Data is fetched inside `'use cache'` functions that call `cacheTag()` and `cacheLife()`."
-    const { text, changed } = replaceAnchoredText(
-      architectureMd,
-      anchor,
-      'Cache Components is disabled in this project (no CMS/storefront integration kept at setup). Re-enable `cacheComponents` in next.config.ts when adding one.'
-    )
-    expect(changed).toBe(true)
-    expect(text).not.toContain(anchor)
-    expect(text).toContain('Cache Components is disabled in this project')
-  })
-})
-
-// ---------------------------------------------------------------------------
 // P-C3 regression — a kept bundle's dependency pins must survive selfPrune's
 // package.json write.
 //
 // `setupAddIntegrations` (step 8 of `setup()`) calls `addDependencies` per
 // kept bundle, which read-modify-writes package.json on disk to pin the
-// bundle's dependency versions. `selfPrune` (step 11) used to reuse the
+// bundle's dependency versions. `selfPrune` (step 10) used to reuse the
 // step-5 in-memory `pkg` object — read from disk BEFORE step 8 ran — and
 // write IT back to disk, silently reverting every pin `setupAddIntegrations`
 // had just written. `--keep sanity` would report "N dependencies pinned"
@@ -2085,6 +2003,117 @@ describe("P-C3 regression: kept bundle deps survive selfPrune's package.json wri
       expect(
         await pathExists(join(tmpRoot, 'lib/scripts/setup-project.ts'))
       ).toBe(false)
+
+      // The strip pass removes the sanity:* scripts; the re-add must put
+      // them back, with the file sanity:mcp runs.
+      const sourcePkg = (await Bun.file('package.json').json()) as {
+        scripts: Record<string, string>
+      }
+      for (const name of INTEGRATION_BUNDLES.sanity.scripts ?? []) {
+        expect(pkg.scripts?.[name], `missing script "${name}"`).toBe(
+          sourcePkg.scripts[name]
+        )
+      }
+      expect(
+        await pathExists(join(tmpRoot, 'lib/scripts/copy-sanity-mcp.ts'))
+      ).toBe(true)
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true })
+    }
+  }, 60000)
+
+  it('--keep shopify drops the sanity:* scripts with the Sanity files', async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-strip-scripts-'))
+    try {
+      await copyRepo(tmpRoot)
+
+      const proc = Bun.spawnSync(
+        [
+          'bun',
+          'run',
+          'lib/scripts/setup-project.ts',
+          '--keep',
+          'shopify',
+          '--yes',
+          '--skip-install',
+        ],
+        { cwd: tmpRoot, stdout: 'pipe', stderr: 'pipe' }
+      )
+      if (proc.exitCode !== 0) {
+        console.error(proc.stdout.toString())
+        console.error(proc.stderr.toString())
+      }
+      expect(proc.exitCode).toBe(0)
+
+      const pkg = (await Bun.file(join(tmpRoot, 'package.json')).json()) as {
+        scripts?: Record<string, string>
+      }
+      const leftovers = Object.keys(pkg.scripts ?? {}).filter((name) =>
+        name.startsWith('sanity:')
+      )
+      expect(leftovers).toEqual([])
+      expect(
+        await pathExists(join(tmpRoot, 'lib/scripts/copy-sanity-mcp.ts'))
+      ).toBe(false)
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true })
+    }
+  }, 60000)
+})
+
+describe('addScripts', () => {
+  // setup:project's payload is the project's own pre-strip package.json, so
+  // a declared script missing there is one the fork deleted. Throwing would
+  // abort installBundle after setupLean already stripped the bundle and
+  // leave it half re-added; the script is skipped instead.
+  it('skips a declared script the payload package.json lacks', async () => {
+    const promise = addScripts(
+      INTEGRATION_BUNDLES.sanity,
+      { scripts: { 'sanity:extract': 'x' } },
+      { dryRun: true }
+    )
+    await expect(promise).resolves.toBeArray()
+  })
+
+  it('--keep sanity on a fork without sanity:mcp still re-adds the rest of the bundle', async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-missing-script-'))
+    try {
+      await copyRepo(tmpRoot)
+      const pkgPath = join(tmpRoot, 'package.json')
+      const before = (await Bun.file(pkgPath).json()) as {
+        scripts: Record<string, string>
+      }
+      delete before.scripts['sanity:mcp']
+      await Bun.write(pkgPath, `${JSON.stringify(before, null, 2)}\n`)
+
+      const proc = Bun.spawnSync(
+        [
+          'bun',
+          'run',
+          'lib/scripts/setup-project.ts',
+          '--keep',
+          'sanity',
+          '--yes',
+          '--skip-install',
+        ],
+        { cwd: tmpRoot, stdout: 'pipe', stderr: 'pipe' }
+      )
+      if (proc.exitCode !== 0) {
+        console.error(proc.stdout.toString())
+        console.error(proc.stderr.toString())
+      }
+      expect(proc.exitCode).toBe(0)
+
+      const pkg = (await Bun.file(pkgPath).json()) as {
+        scripts?: Record<string, string>
+      }
+      expect(pkg.scripts?.['sanity:extract']).toBe(
+        before.scripts['sanity:extract']
+      )
+      expect(pkg.scripts?.['sanity:typegen']).toBe(
+        before.scripts['sanity:typegen']
+      )
+      expect(pkg.scripts?.['sanity:mcp']).toBeUndefined()
     } finally {
       await rm(tmpRoot, { recursive: true, force: true })
     }
@@ -2092,7 +2121,7 @@ describe("P-C3 regression: kept bundle deps survive selfPrune's package.json wri
 })
 
 // ---------------------------------------------------------------------------
-// issue #382 — selfPrune must not run when steps 8/10 collected (non-thrown)
+// issue #382 — selfPrune must not run when steps 6/8 collected (non-thrown)
 // transform failures. `applyCodeTransforms` never throws on a single file's
 // failure (see its docstring) — it collects into `failures` so the batch can
 // finish — but selfPrune used to run regardless, deleting this script (and
@@ -2100,8 +2129,8 @@ describe("P-C3 regression: kept bundle deps survive selfPrune's package.json wri
 // breaking the "just re-run it" recovery the setup() docstring promises.
 //
 // This exercises the REAL script end-to-end (matching the P-C3 pattern
-// above): a throwaway rsync copy of the repo, with one Cache Components
-// target file made unreadable (EACCES) to force a genuine, non-required-
+// above): a throwaway rsync copy of the repo, with one codeTransform target
+// file made unreadable (EACCES) to force a genuine, non-required-
 // match transform failure — a plain fs error caught and collected by
 // `applyCodeTransforms`, not a `RequiredOpMatchError`.
 // ---------------------------------------------------------------------------
@@ -2116,16 +2145,16 @@ describe('issue #382: selfPrune is gated on collected transform failures', () =>
     'a collected (non-thrown) transform failure keeps setup-project.ts and its package.json script entry intact',
     async () => {
       const tmpRoot = await mkdtemp(join(tmpdir(), 'satus-collected-failure-'))
-      const targetFile = join(tmpRoot, 'app/llms.txt/route.ts')
+      const targetFile = join(tmpRoot, 'app/api/revalidate/route.ts')
       try {
         await copyRepo(tmpRoot)
 
-        // `--keep ''` (lean/blank) makes `setupCacheComponentsOptOut` run
-        // unconditionally (no CMS/storefront kept). Stripping read
-        // permission from its llms.txt target makes `applyCodeTransforms`
-        // hit a genuine EACCES from `file.text()` — a plain Error, collected
-        // into `failures` regardless of whether the op it never got to
-        // apply was `required`.
+        // `--keep ''` (lean/blank) strips every integration, so the lean
+        // pass transforms the shared revalidate route. Stripping read
+        // permission from it makes `applyCodeTransforms` hit a genuine
+        // EACCES from `file.text()`: a plain Error, collected into
+        // `failures` regardless of whether the op it never got to apply
+        // was `required`.
         await chmod(targetFile, 0o000)
 
         const proc = Bun.spawnSync(

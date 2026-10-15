@@ -23,7 +23,6 @@ import type {
   RemoveJsxElementOp,
   RemoveNamedImportOp,
   RemoveTryStatementOp,
-  RemoveUseCacheDirectiveOp,
   RemoveVariableStatementOp,
   ReplaceFunctionBodyOp,
   ReplaceJsDocOp,
@@ -175,41 +174,6 @@ export function applyRemoveTryStatement(
 
       sf.removeText(stmt.getFullStart(), stmt.getEnd())
     }
-  })
-}
-
-/**
- * Remove a `'use cache'` directive sitting as the first statement of a named
- * function's body. No-op when the function isn't found, or its first
- * statement isn't a `'use cache'` string-literal expression statement.
- */
-export function applyRemoveUseCacheDirective(
-  project: Project,
-  sourceText: string,
-  op: RemoveUseCacheDirectiveOp
-): string {
-  return withSourceFile(project, sourceText, (sf) => {
-    const fn = sf.getFunction(op.functionName)
-    if (!fn) return sourceText
-
-    const body = fn.getBody()
-    if (!body || body.getKind() !== SyntaxKind.Block) return sourceText
-    const block = body.asKindOrThrow(SyntaxKind.Block)
-
-    const first = block.getStatements()[0]
-    if (!first) return sourceText
-
-    const expr = first.asKind(SyntaxKind.ExpressionStatement)?.getExpression()
-    if (!expr || expr.getKind() !== SyntaxKind.StringLiteral) return sourceText
-    if (
-      expr.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue() !==
-      'use cache'
-    ) {
-      return sourceText
-    }
-
-    sf.removeText(first.getFullStart(), first.getEnd())
-    return undefined // proceed with sf.getFullText()
   })
 }
 

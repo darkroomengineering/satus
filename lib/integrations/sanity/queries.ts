@@ -35,6 +35,12 @@ export const pageQuery = defineQuery(`
   }
 `)
 
+// Existence check only, so a page can call `notFound()` before it opens a
+// Suspense boundary (see the Sanity example page).
+export const pageExistsQuery = defineQuery(`
+  defined(*[_type == "page" && slug.current == $slug][0]._id)
+`)
+
 // Article queries
 export const articleQuery = defineQuery(`
   *[_type == "article" && slug.current == $slug][0] {

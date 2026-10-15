@@ -40,6 +40,12 @@ export const sorting: SortOption[] = [
   },
 ]
 
+// Catalog reads (products, collections, pages, menus) are cached under TAGS
+// and refreshed by the Shopify webhook (`revalidate.ts`); this is the
+// backstop when a webhook never arrives. Cost: an edit whose webhook is lost
+// shows up to an hour late.
+export const CATALOG_REVALIDATE_SECONDS = 60 * 60
+
 export const TAGS = {
   collections: 'collections',
   products: 'products',

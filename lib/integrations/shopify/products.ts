@@ -1,8 +1,6 @@
-import { cacheLife, cacheTag } from 'next/cache'
-
 import { removeEdgesAndNodes, toProduct, toProducts } from './adapters'
 import { shopifyFetch } from './client'
-import { TAGS } from './constants'
+import { CATALOG_REVALIDATE_SECONDS, TAGS } from './constants'
 import {
   getProductQuery,
   getProductRecommendationsQuery,
@@ -24,13 +22,10 @@ export async function getProduct({
 }: { handle: string; id?: string } | { id: string; handle?: string }): Promise<
   Product | undefined
 > {
-  'use cache'
-  cacheTag(TAGS.products)
-  cacheLife('hours')
-
   const res = await shopifyFetch<GetProductResponseData>({
     query: getProductQuery,
-    cache: 'no-store',
+    tags: [TAGS.products],
+    revalidate: CATALOG_REVALIDATE_SECONDS,
     variables: {
       handle,
       id,
@@ -44,13 +39,10 @@ export async function getProduct({
 export async function getProductRecommendations(
   productId: string
 ): Promise<Product[]> {
-  'use cache'
-  cacheTag(TAGS.products)
-  cacheLife('hours')
-
   const res = await shopifyFetch<GetProductRecommendationsResponseData>({
     query: getProductRecommendationsQuery,
-    cache: 'no-store',
+    tags: [TAGS.products],
+    revalidate: CATALOG_REVALIDATE_SECONDS,
     variables: {
       productId,
     },
@@ -77,13 +69,10 @@ export async function getProducts({
   reverse,
   sortKey,
 }: GetProductsOptions): Promise<Product[]> {
-  'use cache'
-  cacheTag(TAGS.products)
-  cacheLife('hours')
-
   const res = await shopifyFetch<GetProductsResponseData>({
     query: getProductsQuery,
-    cache: 'no-store',
+    tags: [TAGS.products],
+    revalidate: CATALOG_REVALIDATE_SECONDS,
     variables: {
       query: query?.trim().slice(0, MAX_QUERY_LENGTH),
       reverse,

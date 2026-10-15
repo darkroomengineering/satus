@@ -1,40 +1,25 @@
-import { draftMode } from 'next/headers'
+import { stegaClean } from 'next-sanity'
 import { notFound } from 'next/navigation'
 import { Suspense, ViewTransition } from 'react'
 
 import { Wrapper } from '@/components/layout/wrapper'
 import { NotConfigured } from '@/components/ui/not-configured'
 import { isConfigured } from '@/integrations/registry'
-import { sanityFetch } from '@/integrations/sanity/live'
-import { pageQuery } from '@/integrations/sanity/queries'
+import { sanityFetch } from '@/integrations/sanity/fetch'
+import { pageExistsQuery, pageQuery } from '@/integrations/sanity/queries'
 import { generateSanityMetadata } from '@/utils/metadata'
 
 import { SanityTutorial } from './_components/tutorial'
 
 const SLUG = 'sanity'
 
-// `sanityFetch` calls `cacheTag()` internally, which under Cache Components
-// (`cacheComponents: true`) is only legal inside a `'use cache'` function —
-// including in draft mode. The official next-sanity pattern: always fetch
-// inside 'use cache', but pass `perspective`/`stega` as arguments so they are
-// part of the cache key, and branch on `draftMode()` at the request level.
-// Live edits then land via SanityLive tag revalidation.
-async function fetchPage(perspective: 'published' | 'drafts', stega: boolean) {
-  'use cache'
-  return sanityFetch({
-    query: pageQuery,
-    params: { slug: SLUG },
-    perspective,
-    stega,
-  })
+// `sanityFetch` sets its own caching: published reads are cached under the
+// `sanity` tag until the publish webhook, draft mode reads uncached.
+function fetchPage() {
+  return sanityFetch({ query: pageQuery, params: { slug: SLUG } })
 }
 
-async function fetchPageForRequest() {
-  const { isEnabled: isDraftMode } = await draftMode()
-  return isDraftMode ? fetchPage('drafts', true) : fetchPage('published', false)
-}
-
-export default function SanityPage() {
+export default async function SanityPage() {
   // Show setup instructions if Sanity is not configured
   if (!isConfigured('sanity')) {
     return (
@@ -43,6 +28,23 @@ export default function SanityPage() {
       </Wrapper>
     )
   }
+
+  // Check the document exists before the Suspense boundary below. Once a
+  // boundary renders its fallback the response has streamed with a 200, so a
+  // `notFound()` inside it only adds a noindex tag, never the 404 status.
+  //
+  // `/sanity` reads no request data outside draft mode, so it is prerendered:
+  // for published content the boundary resolves at build or revalidation
+  // time, and visitors never see the fallback or the reveal. Only draft mode
+  // renders per request and streams the reveal. Cost: a second Sanity request
+  // (cached alongside the page query when published, uncached in draft mode),
+  // kept so this example still shows the Suspense and View Transition
+  // pattern where it actually streams.
+  const exists = await sanityFetch({
+    query: pageExistsQuery,
+    params: { slug: SLUG },
+  })
+  if (!exists) notFound()
 
   return (
     <Wrapper theme="light" className="font-mono uppercase">
@@ -65,9 +67,11 @@ export default function SanityPage() {
 }
 
 async function SanityContent() {
-  const { data } = await fetchPageForRequest()
+  const data = await fetchPage()
 
-  if (!data) return notFound()
+  // Unpublished between the existence check and this read: too late for a
+  // 404 status here, so render nothing rather than a broken tutorial.
+  if (!data) return null
 
   return (
     <div className="flex grow items-center justify-center max-dt:dr-px-16">
@@ -78,11 +82,11 @@ async function SanityContent() {
 
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata
 export async function generateMetadata() {
-  const { data } = await fetchPageForRequest()
+  const data = await fetchPage()
 
   const baseMetadata = data
     ? generateSanityMetadata({
-        document: data,
+        document: stegaClean(data),
         url: '/sanity',
         type: 'website',
       })

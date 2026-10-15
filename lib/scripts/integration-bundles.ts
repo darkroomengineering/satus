@@ -38,7 +38,6 @@ export type {
   RemoveJsxElementOp,
   RemoveNamedImportOp,
   RemoveTryStatementOp,
-  RemoveUseCacheDirectiveOp,
   RemoveVariableStatementOp,
   ReplaceFunctionBodyOp,
   ReplaceJsDocOp,
@@ -65,6 +64,13 @@ export interface IntegrationBundle {
   files: string[]
   /** Environment variables this integration uses */
   envVars: string[]
+  /**
+   * package.json script names this integration owns. Removed when the
+   * integration is stripped (they would point at deleted files), and copied
+   * back from the payload's package.json when it is re-added (skipped with a
+   * warning when the payload never had one).
+   */
+  scripts?: string[]
   /** Barrel exports to update when this integration is removed */
   barrelExports: BarrelExport[]
   /** Code transformations to apply when this integration is removed */
@@ -143,6 +149,8 @@ export const INTEGRATION_BUNDLES = defineBundles({
       // lib/integrations/sanity/env.ts as text; that file goes with the
       // folder above, so the test fails on a scaffold that dropped Sanity.
       'lib/utils/sanity-env-alias.test.ts',
+      // Run by the `sanity:mcp` script below; prints the Sanity MCP deeplink.
+      'lib/scripts/copy-sanity-mcp.ts',
       // Watches for next-sanity moving to @sanity/client v8. Without Sanity
       // it only no-ops weekly, but it has nothing to watch.
       '.github/workflows/sanity-client-v8.yml',
@@ -151,13 +159,14 @@ export const INTEGRATION_BUNDLES = defineBundles({
       'NEXT_PUBLIC_SANITY_PROJECT_ID',
       'NEXT_PUBLIC_SANITY_DATASET',
       'NEXT_PUBLIC_SANITY_API_VERSION',
-      'NEXT_PUBLIC_SANITY_API_READ_TOKEN',
       'SANITY_API_READ_TOKEN',
-      'SANITY_PRIVATE_TOKEN',
-      'SANITY_API_WRITE_TOKEN',
       'SANITY_STUDIO_PROJECT_ID',
       'SANITY_REVALIDATE_SECRET',
     ],
+    // sanity:extract and sanity:typegen cd into lib/integrations/sanity;
+    // sanity:mcp runs lib/scripts/copy-sanity-mcp.ts. All three break once
+    // the bundle is stripped.
+    scripts: ['sanity:extract', 'sanity:typegen', 'sanity:mcp'],
     // components/ui has no barrel file — components/ui/sanity-image is
     // imported directly (see lib/integrations/sanity/components/rich-text.tsx),
     // so there is no export line to restore on `satus add sanity`.
@@ -166,21 +175,15 @@ export const INTEGRATION_BUNDLES = defineBundles({
       {
         file: 'app/(site)/layout.tsx',
         ops: [
-          // Remove `import { SanityLive } from '@/lib/integrations/sanity/live'`
-          { kind: 'removeImport', specifier: '@/lib/integrations/sanity/live' },
-          // Remove `{sanityConfigured && <SanityLive />}` JSX element
-          { kind: 'removeJsxElement', tagName: 'SanityLive' },
-          // Remove `{sanityConfigured && isDraftMode && (<Suspense>…<VisualEditing/></Suspense>)}`
-          // VisualEditing is from next-sanity, already handled by removing the import below,
-          // but we also remove the JSX element to avoid the dangling reference.
-          { kind: 'removeJsxElement', tagName: 'VisualEditing' },
-          // Remove `import { VisualEditing } from 'next-sanity/visual-editing'`
+          // Remove `{sanityConfigured && isDraftMode && (<Suspense>…<SanityVisualEditing/></Suspense>)}`
+          { kind: 'removeJsxElement', tagName: 'SanityVisualEditing' },
+          // Remove `import { SanityVisualEditing } from '@/lib/integrations/sanity/components/visual-editing'`
           {
             kind: 'removeImport',
-            specifier: 'next-sanity/visual-editing',
+            specifier: '@/lib/integrations/sanity/components/visual-editing',
           },
           // Remove `const sanityConfigured = isConfigured('sanity')` variable
-          // (no longer used after the two sanity JSX blocks are removed)
+          // (no longer used after the sanity JSX block is removed)
           { kind: 'removeVariableStatement', name: 'sanityConfigured' },
           // Remove `import { isConfigured } from '@/lib/integrations/registry'`
           // (only used for sanityConfigured in layout.tsx — now unused)
@@ -190,13 +193,6 @@ export const INTEGRATION_BUNDLES = defineBundles({
       {
         file: 'next.config.ts',
         ops: [
-          // Remove cdn.sanity.io from images.remotePatterns
-          {
-            kind: 'removeArrayObjectElement',
-            variableName: 'nextConfig',
-            propertyPath: 'images.remotePatterns',
-            matchProperty: { name: 'hostname', value: 'cdn.sanity.io' },
-          },
           // Remove @sanity/* packages from experimental.optimizePackageImports
           {
             kind: 'removeArrayStringElement',
@@ -255,7 +251,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
           },
           {
             kind: 'removeImport',
-            specifier: '@/integrations/sanity/live',
+            specifier: '@/integrations/sanity/published',
             required: true,
           },
           {
@@ -311,9 +307,6 @@ export const INTEGRATION_BUNDLES = defineBundles({
             replacement: '{\n  void data\n  return []\n}',
             required: true,
           },
-          // Also drops this function's `'use cache'` directive with its body,
-          // which matters when the kept set disables Cache Components: every
-          // remaining directive would then be a hard compile error.
           {
             kind: 'replaceJsDoc',
             functionName: 'fetchCmsRoutesResult',
@@ -330,9 +323,27 @@ export const INTEGRATION_BUNDLES = defineBundles({
             required: true,
           },
           {
+            kind: 'replaceJsDoc',
+            functionName: 'getCmsRoutes',
+            replacement: `/** Routes for sitemap.xml, llms.txt and \`/ai\`: none without a CMS. */`,
+            required: true,
+          },
+          {
             kind: 'replaceFunctionBody',
             functionName: 'getCmsRoutes',
-            replacement: '{\n  return []\n}',
+            replacement: '{\n  void load\n  return []\n}',
+            required: true,
+          },
+          {
+            kind: 'replaceJsDoc',
+            functionName: 'getCmsRoutesResult',
+            replacement: `/** Accessor for the Markdown handler; never degraded without a CMS. */`,
+            required: true,
+          },
+          {
+            kind: 'replaceFunctionBody',
+            functionName: 'getCmsRoutesResult',
+            replacement: '{\n  return load()\n}',
             required: true,
           },
         ],
@@ -342,14 +353,15 @@ export const INTEGRATION_BUNDLES = defineBundles({
       // codeTransforms on this same file). Sanity's webhook LOGIC lives in
       // lib/integrations/sanity/revalidate.ts, which the `folders` list above
       // deletes wholesale, so all this has to strip is the import, the guard
-      // variable, and the dispatch — the same three ops Shopify uses. The
-      // route's rate-limit block and its terminal 404 fallback belong to no
-      // integration and are never touched, which is what keeps a
+      // variable, and the dispatch, the same three ops Shopify uses, plus
+      // the parameter rename once no guard reads `request`. The
+      // route's terminal 404 fallback belongs to no integration and is never
+      // touched, which is what keeps a
       // sanity-less scaffold compiling: `NextResponse` and its import both
       // survive, and the handler still ends in a return (P-B7, H1).
       {
         file: 'app/api/revalidate/route.ts',
-        // required: true on all three — this is sanity's half of a two-owner
+        // required: true on all four — this is sanity's half of a two-owner
         // file, applied exactly once per run against the pristine file by
         // setupLean's union pass. stripAbsentIntegrationWiring (which CAN
         // legitimately reapply this same array a second time, against an
@@ -373,6 +385,15 @@ export const INTEGRATION_BUNDLES = defineBundles({
           {
             kind: 'removeIfStatement',
             conditionContains: 'isSanityWebhook',
+            required: true,
+          },
+          // With Shopify's guard gone too, nothing reads `request`: rename it
+          // `_request` so a blank scaffold passes `noUnusedParameters` and
+          // oxlint's no-unused-vars. A no-op while Shopify's guard survives.
+          {
+            kind: 'syncUnusedParameterPrefix',
+            functionName: 'POST',
+            parameterName: 'request',
             required: true,
           },
         ],
@@ -414,7 +435,12 @@ export const INTEGRATION_BUNDLES = defineBundles({
           },
           {
             kind: 'removeImport',
-            specifier: '@/integrations/sanity/live',
+            specifier: '@/integrations/sanity/fetch',
+            required: true,
+          },
+          {
+            kind: 'removeImport',
+            specifier: '@/integrations/sanity/known-path',
             required: true,
           },
           {
@@ -432,15 +458,9 @@ export const INTEGRATION_BUNDLES = defineBundles({
             specifier: '@/utils/metadata',
             required: true,
           },
-          { kind: 'removeImport', specifier: 'next/headers', required: true },
           {
             kind: 'removeVariableStatement',
             name: 'fetchPage',
-            required: true,
-          },
-          {
-            kind: 'removeVariableStatement',
-            name: 'fetchPageForRequest',
             required: true,
           },
           {
@@ -458,7 +478,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
         ],
       },
     ],
-    // app/(site)/layout.tsx has complex Sanity wiring (SanityLive, VisualEditing,
+    // app/(site)/layout.tsx has complex Sanity wiring (SanityVisualEditing,
     // isConfigured call) that cannot be re-injected statement-by-statement
     // safely.  Restore wholesale from the payload on `satus add sanity`.
     // lib/seo/routes.ts's only owner is Sanity (no other bundle touches it),
@@ -478,14 +498,6 @@ export const INTEGRATION_BUNDLES = defineBundles({
       {
         file: 'next.config.ts',
         ops: [
-          // Re-add cdn.sanity.io to images.remotePatterns
-          {
-            kind: 'addArrayObjectElement',
-            variableName: 'nextConfig',
-            propertyPath: 'images.remotePatterns',
-            objectText: "{ protocol: 'https', hostname: 'cdn.sanity.io' }",
-            matchProperty: { name: 'hostname', value: 'cdn.sanity.io' },
-          },
           // Re-add @sanity/* packages to experimental.optimizePackageImports
           {
             kind: 'addArrayStringElement',
@@ -521,9 +533,12 @@ export const INTEGRATION_BUNDLES = defineBundles({
       // The re-added text is the pristine route's own guard/dispatch lines
       // verbatim, and it is short enough to keep verbatim (M3: the previous
       // version re-added a 40-line try block that had drifted from the
-      // committed file's `{ data, error }` response contract). Anchored to
-      // the neutral rate-limit block rather than Shopify's guard, since a
-      // sanity-only scaffold has no Shopify guard to anchor to.
+      // committed file's `{ data, error }` response contract). Anchored just
+      // before the neutral 404 fallback, which every keep-combination has;
+      // Shopify's guard anchors ahead of this one (see that bundle), so the
+      // pristine order holds whichever bundle re-adds first. `required`
+      // because the guard has nowhere sensible to go without that anchor:
+      // a miss stops the run before self-prune instead of passing silently.
       {
         file: 'app/api/revalidate/route.ts',
         ops: [
@@ -535,15 +550,26 @@ export const INTEGRATION_BUNDLES = defineBundles({
             kind: 'addFunctionBodyStatement',
             functionName: 'POST',
             marker: 'isSanityWebhook',
-            afterContains: 'Too many requests',
+            beforeContains: 'No webhook handler configured',
+            required: true,
             text: `  // Sanity signs its webhook body and sends the signature in this header
   // (\`sanity-webhook-signature\`, the name \`next-sanity/webhook\`'s parseBody
-  // reads); the handler validates it.
+  // reads); the handler validates it. It reads the whole body (up to the
+  // platform's request body cap) and HMACs it before a wrong signature is
+  // rejected, with no wait and no revalidation. Cost: anyone can make this
+  // route read and hash a body that size as often as they like.
   const isSanityWebhook = request.headers.has('sanity-webhook-signature')
 
   if (isSanityWebhook) {
     return sanityRevalidate(request)
   }`,
+          },
+          // The guard reads `request` again: undo the strip's `_request`.
+          {
+            kind: 'syncUnusedParameterPrefix',
+            functionName: 'POST',
+            parameterName: 'request',
+            required: true,
           },
         ],
       },
@@ -603,6 +629,13 @@ export const INTEGRATION_BUNDLES = defineBundles({
             kind: 'removeIfStatement',
             conditionContains: 'isShopifyWebhook',
           },
+          // `request` becomes `_request` once neither guard reads it (see
+          // the same op in the sanity bundle).
+          {
+            kind: 'syncUnusedParameterPrefix',
+            functionName: 'POST',
+            parameterName: 'request',
+          },
         ],
       },
     ],
@@ -621,10 +654,13 @@ export const INTEGRATION_BUNDLES = defineBundles({
         ],
       },
       // app/api/revalidate/route.ts is shared with Sanity (see that bundle's
-      // addTransforms on the same file). Both guards anchor to the neutral
-      // rate-limit early-return, so whichever bundle installs last sits
-      // closest to it; the two guards test different signals and never
-      // compete, so their relative order carries no meaning.
+      // addTransforms on the same file). The pristine route checks Shopify
+      // first, and the order matters: a request with both a `?secret=` and a
+      // `sanity-webhook-signature` header goes to whichever guard comes
+      // first. So Shopify's guard anchors before Sanity's guard when it is
+      // there and before the 404 fallback otherwise, while Sanity's always
+      // anchors before the 404: every keep order lands Shopify, Sanity, 404.
+      // `required` for the same reason as Sanity's: an anchor miss is drift.
       {
         file: 'app/api/revalidate/route.ts',
         ops: [
@@ -636,14 +672,28 @@ export const INTEGRATION_BUNDLES = defineBundles({
             kind: 'addFunctionBodyStatement',
             functionName: 'POST',
             marker: 'isShopifyWebhook',
-            afterContains: 'Too many requests',
-            text: `  const isShopifyWebhook =
+            beforeContains: [
+              'isSanityWebhook',
+              'No webhook handler configured',
+            ],
+            required: true,
+            text: `  // Shopify webhooks identify themselves with an \`x-shopify-topic\` header and
+  // always carry a \`secret\` query param. The handler compares the secret in
+  // constant time before it reads the body.
+  const isShopifyWebhook =
     request.headers.has('x-shopify-topic') ||
     request.nextUrl.searchParams.has('secret')
 
   if (isShopifyWebhook) {
     return shopifyRevalidate(request)
   }`,
+          },
+          // The guard reads `request` again: undo the strip's `_request`.
+          {
+            kind: 'syncUnusedParameterPrefix',
+            functionName: 'POST',
+            parameterName: 'request',
+            required: true,
           },
         ],
       },

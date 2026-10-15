@@ -70,7 +70,7 @@ The GraphQL _envelope_ (`data` / `errors` fields) is always validated at the bou
 ## Caching
 
 - **Cart data**: Never cached (user-specific) — every `cart-operations.ts` fetch passes `cache: 'no-store'`
-- **Products, collections, pages**: Every exported reader in `products.ts`, `collections.ts`, and `pages.ts` is wrapped in `'use cache'` with a one-hour `cacheLife`, required under Cache Components (`cacheComponents: true` in `next.config.ts`) so pages that call them can render statically instead of opting into fully dynamic rendering. The `'use cache'` entry is the only cache layer — the inner `shopifyFetch` call passes `cache: 'no-store'` so the Data Cache doesn't hold its own indefinitely-cached copy underneath it. Invalidated by tag via `revalidateTag('products')` / `revalidateTag('collections')` / `revalidateTag('pages')` — see Webhooks below.
+- **Products, collections, pages**: Every exported reader in `products.ts`, `collections.ts`, and `pages.ts` passes `tags` and `revalidate: CATALOG_REVALIDATE_SECONDS` (one hour, `constants.ts`) to `shopifyFetch`, which caches the response in Next's Data Cache, so a page that calls them can still render statically. Invalidated by tag via `revalidateTag('products')` / `revalidateTag('collections')` / `revalidateTag('pages')` — see Webhooks below. The one-hour `revalidate` is the backstop for a lost webhook.
 
 ## Webhooks
 

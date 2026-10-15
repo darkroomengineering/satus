@@ -50,7 +50,9 @@ Used by Sanity Visual Editing to preview unpublished content.
 Draft mode is enabled from Sanity Studio's Presentation tool, which generates
 a signed preview link to `/api/draft-mode/enable` and validates it
 server-side. A hand-built request (e.g. `?slug=/page-slug` without a valid
-signature) returns 401 "Invalid secret".
+signature) returns 401 "Invalid secret". Without `SANITY_API_READ_TOKEN` (a
+Viewer token, server only) the route answers 503: draft mode needs it to read
+drafts.
 
 ### Disable Draft Mode
 
@@ -64,14 +66,14 @@ Clears draft mode cookies and redirects to homepage.
 
 A single endpoint receives both Sanity and Shopify webhooks and dispatches to the matching
 provider's revalidation logic. Each provider owns its handler in its own integration folder
-(`lib/integrations/<provider>/revalidate.ts`); the route only rate-limits, matches the request
-to a provider, and answers 404 when nothing matches.
+(`lib/integrations/<provider>/revalidate.ts`); the route only matches the request to a provider
+and answers 404 when nothing matches.
 
 ```
 POST /api/revalidate
 ```
 
-The route rate-limits by IP, then dispatches on the request's origin:
+The route dispatches on the request's origin:
 
 ```mermaid
 sequenceDiagram
@@ -79,7 +81,6 @@ sequenceDiagram
     participant R as POST /api/revalidate
     participant T as next/cache
     W->>R: request
-    R->>R: rateLimit(ip, standard)
     alt has x-shopify-topic header or ?secret=
         R->>R: timingSafeEqual(secret, SHOPIFY_REVALIDATION_SECRET)
         R-->>W: 401 if missing or wrong
@@ -87,7 +88,7 @@ sequenceDiagram
     else has sanity-webhook-signature header
         R->>R: parseBody(request, SANITY_REVALIDATE_SECRET) → isValidSignature
         R-->>W: 401 if invalid, 503 if secret unset
-        R->>T: revalidateTag(_type) + revalidateTag(_type:slug)
+        R->>T: revalidateTag('sanity', { expire: 0 })
     else neither
         R-->>W: 404 { data: null, error: 'No webhook handler configured' }
     end
@@ -97,8 +98,9 @@ sequenceDiagram
 ### Sanity Webhook Setup
 
 1. Go to Sanity project settings → API → Webhooks
-2. Create webhook with URL: `https://your-domain.com/api/revalidate`
-3. Set secret in environment:
+2. Create webhook with URL: `https://your-domain.com/api/revalidate`, method POST,
+   trigger on create, update and delete, and a secret
+3. Set the same secret in environment:
 
 ```bash
 # .env.local
@@ -107,7 +109,11 @@ SANITY_REVALIDATE_SECRET=your-secret-here
 
 Sanity signs the request body and sends the signature in the `sanity-webhook-signature` header,
 which is how the route recognizes the request. `lib/integrations/sanity/revalidate.ts` then
-verifies it with `parseBody` from `next-sanity/webhook`.
+verifies it with `parseBody` from `next-sanity/webhook` and calls
+`revalidateTag('sanity', { expire: 0 })`. Every Sanity read carries that one tag, so any publish
+refreshes every page on its next visit. This webhook is the only thing that refreshes published
+Sanity content: there is no Sanity Live, and the cache entries live 30 days (a `revalidate`
+backstop on every published read) otherwise.
 
 ### Shopify Webhook Setup
 
@@ -129,7 +135,12 @@ returns 401, otherwise 200 so Shopify does not retry.
 
 - Webhooks require a secret token for authentication (`SANITY_REVALIDATE_SECRET`,
   `SHOPIFY_REVALIDATION_SECRET`)
-- Rate limiting is applied to prevent abuse (429 on excess requests)
+- Not rate limited, in the route or in `proxy.ts`, so a bulk publish is never turned away and
+  the site never stays stale. A request with neither provider's signal gets a 404 without its
+  body being read, and a Shopify secret is compared in constant time before any body read. A
+  request with a Sanity signature header has its whole body read (up to the platform's request
+  body cap) and HMACed before a wrong signature is rejected, with no wait. The cost: anyone can
+  make the route read and hash a body that size as often as they like
 - Invalid Sanity signature returns 401; malformed body returns 400; unset secret returns 503
 - Invalid or missing Shopify secret returns 401 (constant-time compare)
 - Every JSON response is `{ data, error }`: `error` is null on success, a

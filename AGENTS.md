@@ -2,7 +2,7 @@
 
 This is the **single source of truth** for engineering standards in this repo. Claude Code, Codex, Cursor, and other AI tools read this file. `.cursor/rules/` is a thin pointer back here. Do not add a `CLAUDE.md`: while one exists, Claude Code skips loading this file.
 
-This file changes only by deliberate review. `next dev` appends a managed block here (an HTML comment fencing `nextjs-agent-rules`) when it detects an AI coding agent; there is no config opt-out. Revert that block on sight, never commit it. This sentence must never contain the block's literal opening marker: Next locates the block by searching for that exact string, and a prose match makes the next `next dev` run truncate everything below it.
+This file changes only by deliberate review. When `next dev` detects an AI coding agent it appends a managed block here (an HTML comment fencing `nextjs-agent-rules`); `agentRules: false` in `next.config.ts` stops that. Keep it off. If the block ever shows up anyway, revert it, never commit it. This sentence must never contain the block's literal opening marker: Next locates the block by searching for that exact string, and a prose match makes the next `next dev` run truncate everything below it.
 
 ---
 
@@ -10,7 +10,7 @@ This file changes only by deliberate review. `next dev` appends a managed block 
 
 | Layer              | Technology                                            |
 | ------------------ | ----------------------------------------------------- |
-| Framework          | Next.js 16 (App Router, Cache Components, `proxy.ts`) |
+| Framework          | Next.js 16 (App Router, `proxy.ts`)                   |
 | UI                 | React 19.3 (React Compiler ON, no manual memoization) |
 | Language           | TypeScript 7, `strict: true`                          |
 | Styling            | Tailwind v4 (CSS-first) + CSS Modules                 |
@@ -163,7 +163,7 @@ Dispose materials, textures, geometries, and render targets on unmount. Remove e
 
 - **Highly prefer E2E tests as the sole testing mechanism.** Use them (Playwright, `e2e/*.e2e.ts`) to verify that complex features work. At the end of an E2E test, produce a verifiable and repeatable artifact: a screenshot or recorded output attached with `testInfo.attach()`, or a report that a rerun reproduces.
 - **Never write unit tests after you write code.** A unit test written to fit finished code asserts what the code does, not what it must do, so it rarely catches a real bug.
-- **If you must test a system in isolation, first write down all the ways it could fail, then write the code.** The isolated tests assert against that list. The unit tests that remain in this repo cover what E2E cannot reach: CLI scripts (`setup:project`, generators), configured-integration paths (E2E runs without credentials), and cross-module invariants.
+- **If you must test a system in isolation, first write down all the ways it could fail, then write the code.** The isolated tests assert against that list. The unit tests that remain in this repo cover what E2E cannot reach: CLI scripts (`setup:project`, `handoff`), configured-integration paths (E2E runs without credentials), and cross-module invariants.
 
 ### Git
 
@@ -231,36 +231,42 @@ completes. Retain explicit WebGL capability and load gates.
 
 **`useEffectEvent`** keeps event logic out of effect dependencies.
 
-**`cacheSignal()`** — The Shopify client passes it so in-flight requests are cancelled when the cache entry is dropped (`lib/integrations/shopify/client.ts`); `sanityFetch` relies on `cacheTag` alone.
+**`cacheSignal()`** — The Shopify client passes it so an in-flight request is cancelled when the server render it belongs to ends or is aborted (`lib/integrations/shopify/client.ts`).
 
 **Ref as prop** — No `forwardRef` (the lint rule above blocks the import).
 
-### Next.js 16 Cache Components
+### Caching
 
-Cache Components are enabled globally (`cacheComponents: true` in `next.config.ts`). Data is fetched inside `'use cache'` functions that call `cacheTag()` and `cacheLife()`; a webhook hits `POST /api/revalidate`, which calls `revalidateTag()` to drop the matching cache entries; `draftMode` bypasses the cache entirely. Every fetch goes through this tag-based model — this codebase has no other opt-out-of-caching mechanism. See ARCHITECTURE.md § Cache Components (Next.js 16) for the diagram.
+`cacheComponents` is off in `next.config.ts`, and with it `partialPrefetching` and `cachedNavigations`, which need it. Pages without request-time reads are prerendered as static HTML; routes that read `params` without `generateStaticParams`, cookies or headers render per request. Data is cached per fetch: a cached read passes `next: { tags, revalidate }` (or `cache: 'force-cache'` with the tags); tags alone are not cached at request time. A webhook hits `POST /api/revalidate`, which calls `revalidateTag()` to expire the tag and every static page built from it. Draft mode bypasses the static pages and reads uncached. See ARCHITECTURE.md § Caching for the diagram.
+
+Rules:
+
+- No `'use cache'`, `cacheLife`, `cacheTag` or `export const instant`: they need `cacheComponents` (`'use cache'` and `instant` fail the build without it). Route segment config (`dynamic`, `revalidate`) works again.
+- A cached fetch sets its caching explicitly (`next: { revalidate, tags }` or `cache: 'force-cache'`). Next does not cache a fetch by default: with `next: { tags }` alone it is cached only during `next build`, and every render after that refetches.
+- A `GET` route handler is dynamic unless it exports `dynamic = 'force-static'` (see `app/llms.txt/route.ts`).
+- Test with a production build (`bun run build && bun run start`): dev renders every request and never shows the cached behavior.
+
+### Sanity content and caching
+
+There is no Sanity Live. Pages read through `sanityFetch` (`lib/integrations/sanity/fetch.ts`), which sets its own caching: published reads go through `sanityFetchPublished` (`published.ts`), a fetch tagged `sanity` with a 30-day `revalidate` backstop. A signed publish webhook hits `POST /api/revalidate`, which calls `revalidateTag('sanity', { expire: 0 })`, so the next visit gets fresh content. Draft mode (the Studio's Presentation tool) reads with the server-only Viewer token `SANITY_API_READ_TOKEN` in the perspective Presentation picks (drafts, or a content release, from the `sanity-preview-perspective` cookie), with stega markers, uncached; `SanityVisualEditing` refreshes the preview through `router.refresh()`.
 
 Critical rules:
 
-- Any fetch that calls `cacheTag()` (e.g. `sanityFetch`) MUST run inside a
-  `'use cache'` function. Calling it in a bare Server Component throws
-  `cacheTag() can only be called inside a "use cache" function`. Wrap the fetch
-  in a small helper — `async function load() { 'use cache'; return sanityFetch(...) }` —
-  and reuse it across the page body and `generateMetadata` (this also dedupes the
-  request). See `lib/integrations/sanity/README.md`.
-- Wrap cached components in `<Suspense>` boundaries with loading fallbacks
-- Use `revalidateTag()` in webhook handlers (`POST /api/revalidate`)
-- Test with hard refresh (bypasses router cache) AND normal navigation
-- Dev and prod behave differently - test both
+- Read content only through `sanityFetch` (pages, `generateMetadata`) or `sanityFetchPublished` (sitemap, `llms.txt`, anything outside a page request). Never fetch with the client directly.
+- Never give the token a `NEXT_PUBLIC_` name: that inlines it into the browser bundle.
+- Run `bun run sanity:extract` and `bun run sanity:typegen` after schema or query changes. Typegen is configured in `sanity.cli.ts`.
 
 ### Next.js 16 Request Proxy
 
-`proxy.ts` at the project root handles cross-cutting request concerns — currently rate limiting for `/api/*` routes via `@/utils/rate-limit`. Security headers stay in `next.config.ts`, composed from the integration registry's `cspSources` by `lib/integrations/csp.ts`, plus project origins via `PROJECT_CSP_EXTRA_SOURCES` — details in `SECURITY.md`.
+`proxy.ts` at the project root handles cross-cutting request concerns — currently rate limiting for `/api/*` routes via `@/utils/rate-limit`, except the signed revalidation webhook (`/api/revalidate`), which its secret check gates instead. Security headers stay in `next.config.ts`, composed from the integration registry's `cspSources` by `lib/integrations/csp.ts`, plus project origins via `PROJECT_CSP_EXTRA_SOURCES` — details in `SECURITY.md`.
 
 ### Error boundaries
 
 Route-segment errors are handled by the file convention: `app/(site)/error.tsx` and `app/global-error.tsx` render the shared `ErrorView`. Keep it that way — do not wrap those default exports in anything; the convention already provides the boundary, and its `reset()` only clears client state.
 
 For **component-level** isolation (one widget failing without blanking the page — the starter has no such boundary today), the tool is `catchError` from `next/error` (stable since Next 16.3), not a hand-rolled React error boundary: it doesn't swallow `notFound()`/`redirect()` from the wrapped subtree, and its fallback receives `retry()`, which re-renders failed Server Components in place — something `reset()` cannot do. One constraint carries over from `global-error.tsx`: a fallback must not depend on `Wrapper` (Lenis/WebGL/theme are liable to be the thing that crashed).
+
+No Suspense boundary (a `loading.tsx` or an in-page `<Suspense>`) above a `notFound()` call. Streaming starts the response with a 200 before `notFound()` runs, so the URL comes back 200 with a noindex tag instead of a 404. A `loading.tsx` at `app/(site)/` would sit above `[...slug]`, which catches every unmatched URL, so none goes there. For a skeleton, run the `notFound()` checks first and open the `<Suspense>` after them. `e2e/not-found.e2e.ts` asserts the 404 status.
 
 ### Tailwind v4
 
@@ -339,7 +345,7 @@ Pre-commit hook (lefthook) runs on staged files: oxfmt + oxlint --fix (sequentia
 
 `next-env.d.ts` (gitignored) is what makes tsc resolve the ambient `.svg`/`.css` module declarations in `lib/utils/types.d.ts` — it's listed first in `tsconfig.json`'s `include`, and tsc needs that entry to exist for the rest of `include` to take effect. A byte-fresh clone has no `next-env.d.ts` (`next dev`/`next build` normally generate it), so `ensure:typegen` backfills it with `next typegen` — a route-type generation step, not a full build — before `typecheck`/`check` run. `next-env.d.ts` also imports `.next/types/routes.d.ts` and `.next/types/root-params.d.ts`, and the post-checkout hook deletes `.next/types` on every branch switch, so `ensure:typegen` checks all three files and regenerates when any is missing. It's a no-op once they exist, so `bun run check` is order-independent: run it before or after `bun run build`, doesn't matter.
 
-Route smoke coverage is automatic: `e2e/route-sweep.e2e.ts` discovers every `app/**/page.tsx` at test-collection time and runs the five-assertion smoke against it with only static segments; dynamic routes (`[slug]`, `[...slug]`) need a bespoke `*.e2e.ts` with fixtures — creating the page is the only step for a static route. Write a bespoke `*.e2e.ts` only for behavior beyond the smoke (see `e2e/not-found.e2e.ts` for the soft-404 example).
+Route smoke coverage is automatic: `e2e/route-sweep.e2e.ts` discovers every `app/**/page.tsx` at test-collection time and runs the five-assertion smoke against it with only static segments; dynamic routes (`[slug]`, `[...slug]`) need a bespoke `*.e2e.ts` with fixtures — creating the page is the only step for a static route. Write a bespoke `*.e2e.ts` only for behavior beyond the smoke (see `e2e/not-found.e2e.ts` for the 404 status example).
 
 When verifying behavior that depends on env vars being _absent_ (e.g. an integration's unconfigured fallback), wipe `.next` before building: `NEXT_PUBLIC_*` values are inlined at build time, so hiding `.env.local` against a stale build still renders the configured page and your verification silently measures the wrong variant.
 

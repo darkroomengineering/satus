@@ -99,20 +99,34 @@ function emitPrimaryClaimChange() {
  * render body — not an effect — so mounting the GL canvas can be decided in
  * the same render that renders it.
  *
+ * Never notifies subscribers: doing that from a render body makes React
+ * re-render every subscribed component in the middle of this one ("Cannot
+ * update a component while rendering a different component"). The claiming
+ * instance calls `announcePrimaryClaim` from a layout effect instead.
+ *
  * Idempotent per id: re-claiming with the id that already holds the slot
- * returns `true` again without side effects, so React Strict Mode's double
- * render (and a render that never commits) are safe. Claiming while a
- * *different* id holds the slot always returns `false` — only that id's
- * `releasePrimary` call can free the slot.
+ * returns `true` again, so React Strict Mode's double render (and a render
+ * that never commits) are safe. Claiming while a *different* id holds the
+ * slot always returns `false` — only that id's `releasePrimary` call can
+ * free the slot.
  *
  * @returns Whether `id` is (now, or already) the primary.
  */
 export function claimPrimary(id: string): boolean {
   if (primaryClaimId === undefined) {
     primaryClaimId = id
-    emitPrimaryClaimChange()
   }
   return primaryClaimId === id
+}
+
+/**
+ * Tell subscribers the claim changed. Call from the primary instance's layout
+ * effect, after the commit that claimed it and before the browser paints, so
+ * `useRootCanvasMounted` consumers update in the same frame. Cost: a consumer
+ * that already rendered in the claiming commit renders once more.
+ */
+export function announcePrimaryClaim(): void {
+  emitPrimaryClaimChange()
 }
 
 /**

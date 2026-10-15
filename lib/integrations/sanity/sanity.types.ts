@@ -35,6 +35,7 @@ export type Navigation = {
       media?: unknown
       hotspot?: SanityImageHotspot
       crop?: SanityImageCrop
+      alt?: string
       _type: 'image'
     }
     socialMedia?: Link
@@ -378,6 +379,11 @@ export type PageQueryResult = {
 } | null
 
 // Source: queries.ts
+// Variable: pageExistsQuery
+// Query: defined(*[_type == "page" && slug.current == $slug][0]._id)
+export type PageExistsQueryResult = false | true
+
+// Source: queries.ts
 // Variable: articleQuery
 // Query: *[_type == "article" && slug.current == $slug][0] {    _id,    title,    slug,    excerpt,    featuredImage,      content[]{    ...,    markDefs[]{      ...,      _type == "link" => {        ...,        internalLink->{_type, slug, title}      }    }  },    categories,    tags,    author,    publishedAt,    metadata,    _updatedAt  }
 export type ArticleQueryResult = {
@@ -481,6 +487,7 @@ import '@sanity/client'
 declare module '@sanity/client' {
   interface SanityQueries {
     '\n  *[_type == "page" && slug.current == $slug][0] {\n    _id,\n    title,\n    slug,\n    \n  content[]{\n    ...,\n    markDefs[]{\n      ...,\n      _type == "link" => {\n        ...,\n        internalLink->{_type, slug, title}\n      }\n    }\n  }\n,\n    \n  link {\n    ...,\n    internalLink->{_type, slug, title}\n  }\n,\n    metadata,\n    publishedAt,\n    _updatedAt\n  }\n': PageQueryResult
+    '\n  defined(*[_type == "page" && slug.current == $slug][0]._id)\n': PageExistsQueryResult
     '\n  *[_type == "article" && slug.current == $slug][0] {\n    _id,\n    title,\n    slug,\n    excerpt,\n    featuredImage,\n    \n  content[]{\n    ...,\n    markDefs[]{\n      ...,\n      _type == "link" => {\n        ...,\n        internalLink->{_type, slug, title}\n      }\n    }\n  }\n,\n    categories,\n    tags,\n    author,\n    publishedAt,\n    metadata,\n    _updatedAt\n  }\n': ArticleQueryResult
     '\n  *[_type == "article"] | order(publishedAt desc) {\n    _id,\n    title,\n    slug,\n    excerpt,\n    featuredImage,\n    categories,\n    publishedAt\n  }\n': AllArticlesQueryResult
   }

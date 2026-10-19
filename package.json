@@ -99,7 +99,7 @@
     "happy-dom": "^20.14.6",
     "lefthook": "^2.2.1",
     "oxc-parser": "0.153.0",
-    "oxfmt": "^0.72.0",
+    "oxfmt": "^0.73.0",
     "oxlint": "^1.86.0",
     "oxlint-tsgolint": "^7.0.2003",
     "postcss": "^8.5.28",

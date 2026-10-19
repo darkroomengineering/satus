@@ -128,7 +128,7 @@ export function buildRoutesFromDocuments(data: unknown): ContentRoute[] {
     if (Number.isNaN(lastModified.getTime())) continue
 
     const path = urlForReference({
-      linkType: 'internal',
+      type: 'internal',
       internalLink: { _type: doc._type, slug: doc.slug },
     })
 

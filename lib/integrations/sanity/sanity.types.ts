@@ -58,13 +58,33 @@ export type ArticleReference = {
   [internalGroqTypeReferenceTo]?: 'article'
 }
 
+export type SanityFileAssetReference = {
+  _ref: string
+  _type: 'reference'
+  _weak?: boolean
+  [internalGroqTypeReferenceTo]?: 'sanity.fileAsset'
+}
+
 export type Link = {
   _type: 'link'
-  linkType?: 'internal' | 'external'
-  internalLink?: PageReference | ArticleReference
-  externalUrl?: string
   text?: string
-  openInNewTab?: boolean
+  type?: string
+  internalLink?: PageReference | ArticleReference
+  url?: string
+  email?: string
+  phone?: string
+  assetLink?: {
+    asset?: SanityFileAssetReference
+    media?: unknown
+    _type: 'file'
+  }
+  sms?: string
+  whatsapp?: string
+  fax?: string
+  value?: string
+  blank?: boolean
+  parameters?: string
+  anchor?: string
 }
 
 export type SanityImageCrop = {
@@ -276,6 +296,7 @@ export type AllSanitySchemaTypes =
   | Navigation
   | PageReference
   | ArticleReference
+  | SanityFileAssetReference
   | Link
   | SanityImageCrop
   | SanityImageHotspot
@@ -321,7 +342,8 @@ export type PageQueryResult = {
         markDefs: Array<{
           _key: string
           _type: 'link'
-          linkType?: 'external' | 'internal'
+          text?: string
+          type?: string
           internalLink:
             | {
                 _type: 'article'
@@ -334,9 +356,21 @@ export type PageQueryResult = {
                 title: string | null
               }
             | null
-          externalUrl?: string
-          text?: string
-          openInNewTab?: boolean
+          url?: string
+          email?: string
+          phone?: string
+          assetLink?: {
+            asset?: SanityFileAssetReference
+            media?: unknown
+            _type: 'file'
+          }
+          sms?: string
+          whatsapp?: string
+          fax?: string
+          value?: string
+          blank?: boolean
+          parameters?: string
+          anchor?: string
         }> | null
         level?: number
         _type: 'block'
@@ -356,7 +390,8 @@ export type PageQueryResult = {
   > | null
   link: {
     _type: 'link'
-    linkType?: 'external' | 'internal'
+    text?: string
+    type?: string
     internalLink:
       | {
           _type: 'article'
@@ -369,9 +404,21 @@ export type PageQueryResult = {
           title: string | null
         }
       | null
-    externalUrl?: string
-    text?: string
-    openInNewTab?: boolean
+    url?: string
+    email?: string
+    phone?: string
+    assetLink?: {
+      asset?: SanityFileAssetReference
+      media?: unknown
+      _type: 'file'
+    }
+    sms?: string
+    whatsapp?: string
+    fax?: string
+    value?: string
+    blank?: boolean
+    parameters?: string
+    anchor?: string
   } | null
   metadata: Metadata | null
   publishedAt: string | null
@@ -420,7 +467,8 @@ export type ArticleQueryResult = {
         markDefs: Array<{
           _key: string
           _type: 'link'
-          linkType?: 'external' | 'internal'
+          text?: string
+          type?: string
           internalLink:
             | {
                 _type: 'article'
@@ -433,9 +481,21 @@ export type ArticleQueryResult = {
                 title: string | null
               }
             | null
-          externalUrl?: string
-          text?: string
-          openInNewTab?: boolean
+          url?: string
+          email?: string
+          phone?: string
+          assetLink?: {
+            asset?: SanityFileAssetReference
+            media?: unknown
+            _type: 'file'
+          }
+          sms?: string
+          whatsapp?: string
+          fax?: string
+          value?: string
+          blank?: boolean
+          parameters?: string
+          anchor?: string
         }> | null
         level?: number
         _type: 'block'

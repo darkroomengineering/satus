@@ -9,8 +9,8 @@ import dynamic from 'next/dynamic'
 import { useRef } from 'react'
 import { useTempus } from 'tempus/react'
 
-const LenisScrollTriggerSync = dynamic(
-  () => import('./scroll-trigger').then((mod) => mod.LenisScrollTriggerSync),
+const LenisAnimeSync = dynamic(
+  () => import('./anime').then((mod) => mod.LenisAnimeSync),
   {
     ssr: false,
   }
@@ -29,14 +29,10 @@ function isOverlay(target: EventTarget) {
 interface LenisProps extends Omit<ReactLenisProps, 'ref'> {
   root: boolean
   options: LenisOptions
-  syncScrollTrigger?: boolean
+  syncAnime?: boolean
 }
 
-export function Lenis({
-  root,
-  options,
-  syncScrollTrigger = false,
-}: LenisProps) {
+export function Lenis({ root, options, syncAnime = false }: LenisProps) {
   const lenisRef = useRef<LenisRef>(null)
 
   // Tempus runs callbacks in ascending order inside one rAF. Lenis advances
@@ -49,7 +45,7 @@ export function Lenis({
   //   -1         Lenis.raf              here
   //    1         WebGL RAF (advance)    lib/webgl/components/raf
   //    6         Marquee                components/ui/marquee
-  //   10         GSAP updateRoot        components/effects/gsap.tsx
+  //   10         anime engine.update    components/layout/lenis/anime.tsx
   //   1000       DOM write queue        lib/utils/raf.ts
   //   +Infinity  Stats.end              lib/dev/stats
   useTempus(
@@ -76,7 +72,7 @@ export function Lenis({
           event.composedPath().some(isOverlay) ? false : undefined,
       }}
     >
-      {syncScrollTrigger && root && <LenisScrollTriggerSync />}
+      {syncAnime && root && <LenisAnimeSync />}
     </ReactLenis>
   )
 }

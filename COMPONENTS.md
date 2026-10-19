@@ -50,7 +50,6 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 
 | Component | Import | Type |
 |-----------|--------|------|
-| Gsap | `@/components/effects/gsap` | Client |
 | ProgressText | `@/components/effects/progress-text` | Client |
 
 ---

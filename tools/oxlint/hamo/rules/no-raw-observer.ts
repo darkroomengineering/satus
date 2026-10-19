@@ -41,8 +41,7 @@ function firstStringArgument(node: ESTree.CallExpression): string | null {
 
 /**
  * hamo shares one debounced ResizeObserver; each `new ResizeObserver` beside
- * it is one more observer firing on the same frame. `gsap.matchMedia()` is
- * not a browser call and is left alone.
+ * it is one more observer firing on the same frame.
  */
 export const noRawObserverRule = defineRule({
   meta: {

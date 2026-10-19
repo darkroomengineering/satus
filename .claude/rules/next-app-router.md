@@ -39,7 +39,7 @@ function PageClient({ data }: { data: Data }) {
 
 ## Performance
 
-- Browser-only libraries load through `next/dynamic` with `ssr: false`, or `lazy` + `<Suspense>` as in `lib/features`. Never static-import heavy libraries (`gsap`, analytics, editors) into the initial bundle.
+- Browser-only libraries load through `next/dynamic` with `ssr: false`, or `lazy` + `<Suspense>` as in `lib/features`. Never static-import heavy libraries (`three`, analytics, editors) into the initial bundle.
 - Add icon and utility packages to `experimental.optimizePackageImports` in `next.config.ts` instead of writing deep imports by hand.
 - `cache()` from `react` deduplicates a read within one request. Caching across requests is explicit per fetch (AGENTS.md § Caching).
 - Compose siblings so each child fetches in parallel instead of nesting awaits. Defer an `await` past early exits (`if (!id) return` before `await getUser(id)`).

@@ -99,7 +99,7 @@ function discoverRoutes(): string[] {
 
 /**
  * Wait for a route's `next/dynamic({ ssr: false })` chunks (e.g.
- * `OptionalFeatures`' opt-in GSAP runtime) to finish loading, plus web
+ * the Lenis anime.js bridge) to finish loading, plus web
  * fonts, before an a11y scan runs. Without this, axe races the dynamic
  * import: on a fast run it scans pre-mount markup, on a slow one it scans
  * the fully-mounted component — same route, two different DOM shapes,
@@ -194,7 +194,7 @@ test.describe('route sweep', () => {
       expect(pageErrors).toEqual([])
 
       // Let dynamically-loaded features (next/dynamic({ ssr: false })
-      // chunks, e.g. the opt-in GSAP runtime) and web fonts settle before
+      // chunks, e.g. the Lenis anime.js bridge) and web fonts settle before
       // scanning — otherwise axe races the dynamic import and the scan is
       // nondeterministic. See `waitForDynamicChunksIdle` above.
       await waitForDynamicChunksIdle(page)

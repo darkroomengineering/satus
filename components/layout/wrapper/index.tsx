@@ -130,11 +130,7 @@ export function Wrapper({
       {/* Footer is rendered here - do NOT add another in layout.tsx */}
       <Footer />
       {lenis && (
-        <Lenis
-          root
-          options={isLenisOptions(lenis) ? lenis : {}}
-          syncScrollTrigger
-        />
+        <Lenis root options={isLenisOptions(lenis) ? lenis : {}} syncAnime />
       )}
     </Theme>
   )

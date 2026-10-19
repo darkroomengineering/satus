@@ -28,7 +28,7 @@ import { Link } from '@/components/ui/link'
 
 ### Lenis for Scrolling
 
-Enabled per page through `<Wrapper lenis>` (`components/layout/wrapper/index.tsx`), which also syncs ScrollTrigger.
+Enabled per page through `<Wrapper lenis>` (`components/layout/wrapper/index.tsx`), which also runs anime.js on the Lenis scroll (`components/layout/lenis/anime.tsx`).
 
 ### Optional Features Pattern
 
@@ -102,7 +102,7 @@ strategy remounts it per route. Rendered only on WebGL-capable devices. See
 
 ## Animation
 
-Use `useReveal` (CSS-driven, compositor thread) for reveal-on-scroll and entrance animations. Reserve GSAP for orchestration, scrubbing, and pinning. Always honor `prefers-reduced-motion` — `useReveal` short-circuits automatically; CSS movement (transform, height, clip-path) goes inside `@media (--motion-ok)` while fades stay. See AGENTS.md § Animation.
+Use `useReveal` (CSS-driven, compositor thread) for reveal-on-scroll and entrance animations. Reserve anime.js for orchestration and scrubbing; pin with CSS `position: sticky`. Always honor `prefers-reduced-motion` — `useReveal` short-circuits automatically; CSS movement (transform, height, clip-path) goes inside `@media (--motion-ok)` while fades stay. See AGENTS.md § Animation.
 
 Directory layout: see `README.md` § Project Structure.
 

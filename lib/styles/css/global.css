@@ -190,7 +190,7 @@ html.screenshot {
  * transform, height and clip-path transitions inside `@media (--motion-ok)`, so
  * only opacity and color transitions remain under `reduce`. The view
  * transition crossfade and the reveal fade are opacity-only and keep running.
- * GSAP and WebGL animations gate themselves via usePreferredReducedMotion().
+ * anime.js and WebGL animations gate themselves via usePreferredReducedMotion().
  */
 @media (--reduced-motion) {
   * {

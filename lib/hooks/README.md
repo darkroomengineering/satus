@@ -123,7 +123,7 @@ import { usePreferredReducedMotion } from '@/hooks/use-sync-external'
 function AnimatedComponent() {
   const prefersReducedMotion = usePreferredReducedMotion()
 
-  // Pass as a CSS custom property or GSAP duration — CSS transitions
+  // Pass as a CSS custom property — CSS transitions
   // and useReveal already short-circuit automatically.
   const duration = prefersReducedMotion ? 0 : 0.3
 

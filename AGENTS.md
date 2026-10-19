@@ -17,7 +17,7 @@ This file changes only by deliberate review. When `next dev` detects an AI codin
 | Runtime            | Bun                                                   |
 | Linter / Formatter | oxlint + oxfmt                                        |
 | Validation         | Zod                                                   |
-| Animation          | Lenis, GSAP, Tempus                                   |
+| Animation          | Lenis, anime.js, Tempus                               |
 | 3D (optional)      | React Three Fiber, `@react-three/drei`                |
 
 ---
@@ -118,7 +118,8 @@ export function MyComponent({
 ### Animation
 
 - **Reveal-on-scroll / entrance** → `useReveal` (`lib/hooks/use-reveal.ts`). CSS-driven, runs on the compositor thread so it stays smooth through hydration. Mark staggered children `data-reveal-item`; tune per container with `--reveal-transform`, `--reveal-stagger`, `--reveal-duration`. Degrades to visible with JS off; short-circuits under reduced-motion. The mechanism lives once in `global.css`.
-- **Orchestration / scrubbing / pinning** → GSAP (timelines, ScrollTrigger via the Lenis bridge in `components/layout/lenis/`). GSAP's ticker is synced to Tempus (`components/effects/gsap.tsx`), so there's a single RAF loop. Don't reach for GSAP for simple reveals — that's main-thread work CSS does better off-thread. Write component animations with `useGSAP` from `@gsap/react`, passing `{ scope: ref }` — it scopes selector strings to that ref and reverts everything created inside it on unmount. Use its `contextSafe` wrapper for animations kicked off from event handlers, which otherwise run outside the scope. A bare `useEffect` + `gsap.to()` leaks tweens and ScrollTriggers across navigations.
+- **Orchestration / scrubbing** → anime.js (`createTimeline`; `animate` with `autoplay: onScroll({ sync: true })` for scrubs; `splitText` for words). The Lenis bridge (`components/layout/lenis/anime.tsx`) runs anime's engine on Tempus after Lenis writes the scroll, so there's a single RAF loop and scrubs render the frame's own scroll position. Don't reach for anime.js for simple reveals — that's main-thread work CSS does better off-thread. Create animations in a `useEffect` from elements (anime selector strings are global, not scoped to a ref) and return their `revert()`, which restores inline styles and tears down a linked `onScroll`. A standalone `onScroll` needs its own `revert()`, an animation added to a shared timeline removes itself with `timeline.remove(target)`, and a `splitText` reverts its markup and every animation registered through `addEffect` (see `components/effects/progress-text`); anything not reverted leaks across navigations.
+- **Pinning** → CSS `position: sticky` inside a taller parent; anime.js has no pin.
 - **Micro-interactions** (hover, toggle, ≤200ms) → CSS transitions.
 - **Smooth scroll** → Lenis; **RAF scheduling** → Tempus.
 - Honor reduced-motion: movement is off, fades stay. Declare transform, height, and clip-path transitions inside `@media (--motion-ok)` (`prefers-reduced-motion: no-preference`); opacity and color transitions stay unconditional. Press feedback on buttons (`:active` scale) goes in `--motion-ok` too. JS/WebGL gates via `usePreferredReducedMotion`.
@@ -197,11 +198,11 @@ state changes. Shared names must be unique among visible participants. The page
 crossfade in `global.css` is opacity-only, so it keeps running under reduced
 motion; any `::view-transition-*` rule that moves or resizes goes inside
 `@media (--motion-ok)`, since React does not disable it. Scroll entrances stay on `useReveal`, orchestration
-on GSAP. See `components/layout/README.md` for the contract and opt-out.
+on anime.js. See `components/layout/README.md` for the contract and opt-out.
 
 **Fragment refs** — Use `<Fragment ref={ref}>` for focus or observation across
 sibling DOM nodes without adding a wrapper. A `FragmentInstance` is not an
-HTMLElement or a GSAP scope. The cart uses one for initial focus and restores
+HTMLElement or an anime.js target. The cart uses one for initial focus and restores
 the previous focus in Effect cleanup, including Strict Mode replay.
 
 **`use(browser())`** — Call in a Client Component beneath Suspense when it

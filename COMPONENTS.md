@@ -124,6 +124,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | Export | Signature |
 |--------|-----------|
 | rateLimit | `(identifier: string, config: RateLimitConfig) => RateLimitResult` |
+| isRateLimited | `(identifier: string, config: RateLimitConfig) => boolean` |
 | getIPFromHeaders | `(headers: Pick<Headers, 'get'>) => string | null` |
 | getClientIP | `(request: Request) => string | null` |
 | RateLimitConfig |  |

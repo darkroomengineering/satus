@@ -29,6 +29,10 @@ const envSchema = z.object({
   VERCEL_PROJECT_PRODUCTION_URL: z.string().optional(),
   VERCEL_BRANCH_URL: z.string().optional(),
   VERCEL_URL: z.string().optional(),
+  // Password gate (proxy.ts). Set: every deployment except `next dev` asks
+  // for it through HTTP Basic auth. Unset: the site is public. An empty value
+  // fails here rather than leaving the site open while looking gated.
+  SITE_PASSWORD: z.string().min(1).optional(),
 
   // Sanity (supports both Satus and Vercel Marketplace conventions)
   NEXT_PUBLIC_SANITY_PROJECT_ID: z.string().optional(),

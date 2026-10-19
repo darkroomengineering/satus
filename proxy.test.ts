@@ -19,8 +19,10 @@ import { NextRequest } from 'next/server'
 import { rateLimiters } from '@/lib/utils/rate-limit'
 
 import {
+  checkSitePassword,
   config as proxyConfig,
   FILE_EXTENSION,
+  isSiteUnlocked,
   MACHINE_PATHS,
   proxy,
 } from './proxy'
@@ -193,5 +195,93 @@ describe('machine-path parity between proxy.ts and vercel.json', () => {
         `${path} in MACHINE_PATHS is redundant — already excluded elsewhere`
       ).toBe(false)
     }
+  })
+})
+
+// Ways the gate can fail: let a wrong or malformed password through; throw on
+// a bad header; leave an /api look-alike open; gate the webhooks; let a right
+// guess through once an IP is locked out; lock out a visitor for opening the
+// prompt or for browsing with the right password; omit `no-store`.
+describe('password gate', () => {
+  const PASSWORD = 's3cret'
+  const basic = (credentials: string) =>
+    `Basic ${Buffer.from(credentials).toString('base64')}`
+  const gate = (path: string, ip: string, authorization?: string) =>
+    checkSitePassword(
+      new NextRequest(`https://example.test${path}`, {
+        headers: {
+          'x-forwarded-for': ip,
+          ...(authorization && { authorization }),
+        },
+      }),
+      PASSWORD
+    )
+
+  it('accepts the password under any username', () => {
+    expect(isSiteUnlocked(basic('user:s3cret'), PASSWORD)).toBe(true)
+    expect(isSiteUnlocked(basic(':s3cret'), PASSWORD)).toBe(true)
+  })
+
+  it('compares everything after the first colon', () => {
+    expect(isSiteUnlocked(basic('u:a:b'), 'a:b')).toBe(true)
+    expect(isSiteUnlocked(basic('a:b'), 'a:b')).toBe(false)
+  })
+
+  it('rejects a missing, wrong, or malformed header without throwing', () => {
+    expect(isSiteUnlocked(null, PASSWORD)).toBe(false)
+    expect(isSiteUnlocked(basic('u:wrong!'), PASSWORD)).toBe(false)
+    expect(isSiteUnlocked(basic('u:s3cret-longer'), PASSWORD)).toBe(false)
+    expect(isSiteUnlocked(basic('u:'), PASSWORD)).toBe(false)
+    expect(isSiteUnlocked('Bearer s3cret', PASSWORD)).toBe(false)
+    expect(isSiteUnlocked('Basic %%%not-base64', PASSWORD)).toBe(false)
+  })
+
+  it('answers an uncached 401 with a Basic prompt', () => {
+    const response = gate('/', '198.51.100.1')
+    expect(response?.status).toBe(401)
+    expect(response?.headers.get('www-authenticate')).toStartWith('Basic ')
+    expect(response?.headers.get('cache-control')).toBe('no-store')
+  })
+
+  it('lets the right password through', () => {
+    expect(gate('/', '198.51.100.2', basic('u:s3cret'))).toBeNull()
+  })
+
+  it('leaves only the webhooks open, not their look-alikes', () => {
+    for (const path of [
+      '/api/revalidate',
+      '/api/draft-mode/enable',
+      '/api/draft-mode/disable',
+    ]) {
+      expect(gate(path, '198.51.100.3')).toBeNull()
+    }
+    for (const path of [
+      '/api/revalidate-other',
+      '/api/revalidate/extra',
+      '/api/draft-mode',
+      '/api/cart/ensure',
+      '/api/unknown',
+    ]) {
+      expect(gate(path, '198.51.100.3')?.status).toBe(401)
+    }
+  })
+
+  it('refuses even the right password once an IP sends too many wrong ones', () => {
+    for (let i = 0; i < rateLimiters.strict.limit; i++) {
+      expect(gate('/', '198.51.100.4', basic('u:wrong'))?.status).toBe(401)
+    }
+    const locked = gate('/', '198.51.100.4', basic('u:s3cret'))
+    expect(locked?.status).toBe(429)
+    expect(locked?.headers.get('cache-control')).toBe('no-store')
+    expect(gate('/', '198.51.100.5', basic('u:s3cret'))).toBeNull()
+  })
+
+  it('never counts the prompt-opening request or a right password', () => {
+    const ip = '198.51.100.6'
+    for (let i = 0; i < rateLimiters.strict.limit * 3; i++) {
+      expect(gate('/', ip)?.status).toBe(401)
+      expect(gate('/', ip, basic('u:s3cret'))).toBeNull()
+    }
+    expect(gate('/', ip, basic('u:wrong'))?.status).toBe(401)
   })
 })

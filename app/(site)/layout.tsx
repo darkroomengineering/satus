@@ -129,15 +129,8 @@ export default async function AppLayout({ children }: PropsWithChildren) {
           <ToastViewport />
         </ToastProvider>
       </RealViewport>
-      {/*
-        Optional features - conditionally loaded based on configuration.
-
-        `gsap` is on because the starter homepage animates its outro with
-        <ProgressText>. It costs ~43KB gzipped, so drop it once no page under
-        this layout uses GSAP — a site that does not animate should not ship
-        an animation engine.
-      */}
-      <OptionalFeatures gsap />
+      {/* Optional features - conditionally loaded based on configuration. */}
+      <OptionalFeatures />
 
       {/* Sanity Visual Editing - only when draft mode is enabled. It
           refreshes the page when an editor changes a field. */}

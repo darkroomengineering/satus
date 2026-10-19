@@ -483,7 +483,7 @@ describe('WebGL Code Transforms', () => {
       // Essential structure must remain
       expect(result).toContain("'use client'")
       expect(result).toContain('export function OptionalFeatures')
-      expect(result).toContain('GSAPRuntime')
+      expect(result).toContain('OrchestraTools')
 
       // The root WebGL canvas must be gone
       expect(result).not.toContain('LazyWebGLCanvas')
@@ -1020,7 +1020,6 @@ describe('Additive Transforms (remove → add round trips)', () => {
     expect(result.restored).toContain('@/webgl/components/canvas')
     expect(result.restored).toContain('<LazyWebGLCanvas root />')
     // Untouched features survive
-    expect(result.restored).toContain('GSAPRuntime')
     expect(result.restored).toContain('OrchestraTools')
   })
 

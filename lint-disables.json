@@ -1,5 +1,5 @@
 {
-  "anti-slop/no-runtime-typeof": 9,
+  "anti-slop/no-runtime-typeof": 6,
   "anti-slop/no-unknown-parameters": 2,
   "eslint/no-empty-function": 1,
   "eslint/no-restricted-imports": 2,

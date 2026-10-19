@@ -10,7 +10,7 @@ import { useEffect, useLayoutEffect, useRef } from 'react'
  * the viewport. The actual animation lives in CSS — animate `transform` and
  * `opacity` on `[data-reveal-item]` children so it runs on the compositor
  * thread, unaffected by main-thread work during hydration. This is the
- * off-main-thread alternative to driving entrance animations with GSAP.
+ * off-main-thread alternative to driving entrance animations with anime.js.
  *
  * Children that should stagger carry `data-reveal-item`; the hook sets a
  * `--reveal-index` custom property on each so CSS can derive a
@@ -76,7 +76,7 @@ interface UseRevealOptions {
   threshold?: number
   /**
    * IntersectionObserver rootMargin. The default bottom inset of -25% mirrors
-   * a GSAP ScrollTrigger `start: 'top 75%'` — reveal once the element is a
+   * an anime.js `onScroll` `enter: '75% top'` — reveal once the element is a
    * quarter into the viewport.
    */
   rootMargin?: string

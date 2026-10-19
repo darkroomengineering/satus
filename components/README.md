@@ -26,8 +26,8 @@ import { Wrapper } from '@/components/layout/wrapper'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 
-// Effects Components (GSAPRuntime is mounted by the layout through <OptionalFeatures gsap /> —
-// off by default; see lib/features/README.md — do not import it in pages)
+// Effects Components
+import { ProgressText } from '@/components/effects/progress-text'
 ```
 
 ## Component Inventory
@@ -78,12 +78,9 @@ Built on [Base UI](https://base-ui.com/) for accessibility.
 
 ## Effects Components
 
-`GSAPRuntime` is mounted by the layout through `<OptionalFeatures gsap />` (off by default; see `lib/features/README.md`) — do not import it in pages.
-
-| Component        | Purpose                                                             |
-| ---------------- | ------------------------------------------------------------------- |
-| `gsap/`          | GSAP + Tempus integration (mounted via `<OptionalFeatures gsap />`) |
-| `progress-text/` | Scroll-based text reveal                                            |
+| Component        | Purpose                  |
+| ---------------- | ------------------------ |
+| `progress-text/` | Scroll-based text reveal |
 
 ## Best Practices
 

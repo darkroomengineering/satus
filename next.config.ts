@@ -149,7 +149,7 @@ const nextConfig: NextConfig = {
     optimizePackageImports: [
       '@react-three/drei',
       '@react-three/fiber',
-      'gsap',
+      'animejs',
       'three',
       '@base-ui/react',
       'lenis',

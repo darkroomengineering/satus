@@ -169,14 +169,14 @@ export default function HomePage() {
               </li>
             ))}
           </ol>
-          {/* Scroll-driven reveal — the live example of the GSAP stack
-              (SplitText + ScrollTrigger scrubbed through Lenis). Delete with
-              the rest of this page. */}
+          {/* Scroll-driven reveal — the live example of the anime.js stack
+              (splitText + onScroll synced through Lenis). Delete with the
+              rest of this page. */}
           <p className={s.outro}>
-            {/* end must be reachable at max scroll — the outro sits at the page
-                bottom, so its top never reaches viewport center; its bottom
-                does reach the viewport bottom, exactly at full scroll. */}
-            <ProgressText start="top bottom" end="bottom bottom">
+            {/* leave must be reachable at max scroll — the outro sits at the
+                page bottom, so its top never reaches viewport center; its
+                bottom does reach the viewport bottom, exactly at full scroll. */}
+            <ProgressText enter="bottom top" leave="bottom bottom">
               Done here? Replace app/(site)/page.tsx with your homepage and
               delete page.module.css. That&apos;s the only cleanup.
             </ProgressText>

@@ -129,7 +129,7 @@ Satus is built for one job: content-driven marketing and creative sites with rea
 | Bun runtime + test runner                       | ✓                                    | ✗                 | ✗              | ✗                        | ✗                 |
 | oxc toolchain (`oxlint` + `oxfmt`)              | ✓                                    | ✗                 | ✗              | ✗                        | ✗                 |
 | Tailwind + CSS Modules under a cascade contract | ✓                                    | ✗                 | ✗              | ✗                        | ✗                 |
-| Animation stack (Lenis, GSAP, Tempus)           | ✓                                    | ✗                 | ✗              | ✗                        | ✗                 |
+| Animation stack (Lenis, anime.js, Tempus)       | ✓                                    | ✗                 | ✗              | ✗                        | ✗                 |
 | WebGL module (React Three Fiber)                | ✓ opt-in                             | ✗                 | ✗              | ✗                        | ✗                 |
 | CMS integration                                 | ✓ Sanity                             | ✗                 | ✓              | ✗                        | ✗                 |
 | E-commerce storefront                           | ✓ Shopify                            | ✗                 | ✗              | ✗                        | ✗                 |

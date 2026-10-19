@@ -91,6 +91,6 @@ want directional styles. For local state changes, use `startTransition` and
 optionally `addTransitionType` to
 select different animation classes; urgent input state should stay immediate.
 
-Keep scroll entrances on `useReveal`, timelines/pinning on GSAP, and hover
+Keep scroll entrances on `useReveal`, timelines and scrubs on anime.js, pinning on CSS `position: sticky`, and hover
 feedback on CSS transitions. View Transitions animate DOM snapshots and do
 not animate WebGL scenes.

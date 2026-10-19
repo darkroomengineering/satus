@@ -49,7 +49,6 @@
   },
 
   // Language-specific formatters
-  // markdown / yaml / toml are new: oxfmt formats them, Biome did not.
   "[css]": {
     "editor.defaultFormatter": "oxc.oxc-vscode"
   },

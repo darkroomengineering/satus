@@ -96,7 +96,7 @@
     "@types/three": "^0.186.0",
     "colorjs.io": "^0.7.1",
     "deslop-cli": "^0.9.12",
-    "happy-dom": "^20.14.6",
+    "happy-dom": "^21.0.3",
     "lefthook": "^2.2.1",
     "oxc-parser": "0.153.0",
     "oxfmt": "^0.72.0",

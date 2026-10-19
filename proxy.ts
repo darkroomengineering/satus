@@ -3,6 +3,8 @@
  *
  * Handles cross-cutting concerns for incoming requests, before route matching.
  *
+ * - Password gate: `passwordGate`, on while SITE_PASSWORD is set
+ *
  * Customize:
  * - Rate limiting: Adjust rateLimiters config per route pattern
  * - Auth: Add token/session validation before route matching
@@ -12,9 +14,12 @@
  * Note: Security headers are configured in next.config.ts (static, no need for proxy)
  */
 
+import { createHash, timingSafeEqual } from 'node:crypto'
+
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
+import { env } from '@/lib/env'
 import {
   type DocumentMediaType,
   HTML_FORMAT_OVERRIDE_PARAM,
@@ -29,7 +34,12 @@ import {
   MARKDOWN_SOURCE_PATH_HEADER,
   routePathFromMarkdown,
 } from '@/lib/seo/markdown-path'
-import { getClientIP, rateLimit, rateLimiters } from '@/lib/utils/rate-limit'
+import {
+  getClientIP,
+  isRateLimited,
+  rateLimit,
+  rateLimiters,
+} from '@/lib/utils/rate-limit'
 
 /**
  * Paths this proxy must exclude from page-document negotiation for a reason
@@ -113,7 +123,110 @@ function addAcceptVary(
   return response
 }
 
+/**
+ * Checks an `Authorization` header against the site password. Any username
+ * passes; only the part after the first `:` is compared, so a password may
+ * itself contain colons. Both sides are hashed first so the comparison takes
+ * the same time whatever the lengths, and leaks neither.
+ */
+export function isSiteUnlocked(
+  authorization: string | null,
+  password: string
+): boolean {
+  if (!authorization?.startsWith('Basic ')) return false
+  const credentials = Buffer.from(authorization.slice(6), 'base64').toString()
+  const given = credentials.slice(credentials.indexOf(':') + 1)
+  const digest = (value: string) => createHash('sha256').update(value).digest()
+  return timingSafeEqual(digest(given), digest(password))
+}
+
+/**
+ * Routes that stay open while the gate is on, because what calls them cannot
+ * answer a Basic auth prompt. Each checks its own secret: the publish webhook,
+ * and Presentation's draft-mode handshake. Every other `/api/*` route is gated
+ * like a page; `/api/cart/ensure` is same-origin, so the browser resends the
+ * credentials it already has.
+ */
+function isGateOpen(pathname: string): boolean {
+  return (
+    pathname === '/api/revalidate' || pathname.startsWith('/api/draft-mode/')
+  )
+}
+
+/**
+ * Pre-launch gate: with `SITE_PASSWORD` set, every response answers 401 until
+ * the browser's Basic auth prompt gets the password. It runs on Vercel and on
+ * a self-hosted `next start` alike; only `next dev` (`NODE_ENV` development)
+ * and a `vercel env pull` checkout (`VERCEL_ENV` development) skip it. CI
+ * deletes the env files before e2e, so it never sees a password.
+ *
+ * Costs, accepted while a site is private:
+ * - Paths the `matcher` skips never reach this function: `/_next/static`
+ *   (every client chunk, with each `NEXT_PUBLIC_*` value inlined), images and
+ *   fonts in `public/`, the `app/` icons and share images, robots.txt and
+ *   sitemap.xml. A URL with one of those extensions that matches no file
+ *   renders the 404 page, site header and footer included. Gating them means
+ *   running this function on every asset request of every site, gate or not.
+ * - Link unfurlers and the Lighthouse workflow get the 401.
+ * - On Vercel the proxy runs before the CDN cache, so a cached page is gated
+ *   too. A CDN in front of a self-hosted `next start` may cache an
+ *   authenticated 200 (prerendered pages send `s-maxage`) and serve it to
+ *   everyone; bypass that CDN's cache while the gate is on.
+ * - Wrong passwords are limited per IP (`rateLimiters.strict`, see
+ *   `checkSitePassword`), in memory per instance like every limit here: it
+ *   slows guessing, it does not stop a determined guesser. A long random
+ *   password does.
+ */
+function passwordGate(request: NextRequest): NextResponse | null {
+  if (!env.SITE_PASSWORD) return null
+  if (env.NODE_ENV === 'development' || env.VERCEL_ENV === 'development') {
+    return null
+  }
+  return checkSitePassword(request, env.SITE_PASSWORD)
+}
+
+/**
+ * The gate's answer for one request: `null` lets it through. An IP that sent
+ * too many wrong passwords gets 429 before the password is compared, so a
+ * right guess made while locked out learns nothing. Only a wrong password
+ * counts toward that: the first visit, with no header yet, is how the prompt
+ * appears, and a shared office IP must not lock itself out by opening pages.
+ */
+export function checkSitePassword(
+  request: NextRequest,
+  password: string
+): NextResponse | null {
+  if (isGateOpen(request.nextUrl.pathname)) return null
+
+  const authorization = request.headers.get('authorization')
+  const ip = authorization ? getClientIP(request) : null
+  if (ip && isRateLimited(`gate:${ip}`, rateLimiters.strict)) {
+    return new NextResponse('Too many attempts.\n', {
+      status: 429,
+      headers: {
+        'cache-control': 'no-store',
+        'content-type': 'text/plain; charset=utf-8',
+      },
+    })
+  }
+
+  if (isSiteUnlocked(authorization, password)) return null
+  if (ip) rateLimit(`gate:${ip}`, rateLimiters.strict)
+
+  return new NextResponse('Password required.\n', {
+    status: 401,
+    headers: {
+      'cache-control': 'no-store',
+      'content-type': 'text/plain; charset=utf-8',
+      'www-authenticate': 'Basic realm="Private site", charset="UTF-8"',
+    },
+  })
+}
+
 export function proxy(request: NextRequest) {
+  const gate = passwordGate(request)
+  if (gate) return gate
+
   // Rate limit API routes. Not the revalidation webhook: its secret check is
   // its gate (see `app/api/revalidate/route.ts`), and a bulk publish from one
   // provider IP would trip this limit and leave the site stale.

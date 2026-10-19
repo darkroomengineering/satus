@@ -126,6 +126,23 @@ export function rateLimit(
 }
 
 /**
+ * Whether `identifier` has used up its window, without counting this call.
+ * For limits that should count only failures but refuse every attempt once
+ * reached (see the password gate in `proxy.ts`).
+ */
+export function isRateLimited(
+  identifier: string,
+  config: RateLimitConfig
+): boolean {
+  const entry = store.get(identifier)
+  return (
+    entry !== undefined &&
+    Date.now() <= entry.resetTime &&
+    entry.count >= config.limit
+  )
+}
+
+/**
  * Extract client IP from a Headers object.
  * Works with Vercel, Cloudflare, and standard proxies.
  * Accepts both the Web API `Headers` and Next.js `ReadonlyHeaders`.

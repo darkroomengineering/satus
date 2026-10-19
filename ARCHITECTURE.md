@@ -120,7 +120,7 @@ Env and form schemas live in `lib/utils/validation.ts`; integration-local respon
 
 ### Request Proxy
 
-`proxy.ts` handles cross-cutting concerns (rate limiting for `/api/*`, except the `/api/revalidate` webhook). See AGENTS.md for usage guidance.
+`proxy.ts` handles cross-cutting concerns: the `SITE_PASSWORD` gate (HTTP Basic auth before launch, with the webhooks and `matcher`-skipped assets left open) and rate limiting for `/api/*`, except the `/api/revalidate` webhook. See AGENTS.md for usage guidance.
 
 ## Deployment Checklist
 

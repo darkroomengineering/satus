@@ -259,7 +259,7 @@ Critical rules:
 
 ### Next.js 16 Request Proxy
 
-`proxy.ts` at the project root handles cross-cutting request concerns — currently rate limiting for `/api/*` routes via `@/utils/rate-limit`, except the signed revalidation webhook (`/api/revalidate`), which its secret check gates instead. Security headers stay in `next.config.ts`, composed from the integration registry's `cspSources` by `lib/integrations/csp.ts`, plus project origins via `PROJECT_CSP_EXTRA_SOURCES` — details in `SECURITY.md`.
+`proxy.ts` at the project root handles cross-cutting request concerns: the password gate (HTTP Basic auth on every deployment except `next dev` while `SITE_PASSWORD` is set; the revalidation and draft-mode webhooks stay open, and paths the `matcher` skips, such as client chunks and `public/` files, are never gated) and rate limiting for `/api/*` routes via `@/utils/rate-limit`, except the signed revalidation webhook (`/api/revalidate`), which its secret check gates instead. Security headers stay in `next.config.ts`, composed from the integration registry's `cspSources` by `lib/integrations/csp.ts`, plus project origins via `PROJECT_CSP_EXTRA_SOURCES` — details in `SECURITY.md`.
 
 ### Error boundaries
 

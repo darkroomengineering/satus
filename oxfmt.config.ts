@@ -23,6 +23,15 @@ export default defineConfig({
   // Stops Markdown prose being re-wrapped, which keeps the .md diff to
   // whitespace and table normalisation instead of a full rewrite.
   proseWrap: 'preserve',
+  overrides: [
+    {
+      // Code blocks in docs stay as written. Formatting them sorts imports
+      // away from the `// Layout` style comments that label them, and the
+      // Tailwind sorter orders classes there unlike it does in .tsx files.
+      files: ['**/*.md'],
+      options: { embeddedLanguageFormatting: 'off' },
+    },
+  ],
 
   // Both sorters are off by default and have to be switched on. Between them
   // they replace Biome's organizeImports assist action and the useSortedClasses

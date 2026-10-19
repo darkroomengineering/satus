@@ -41,6 +41,12 @@ jobs:
           node-version-file: .node-version
           oxlint-annotations: 'true'
 
+      # Every package resolves to as few versions as its ranges allow. A
+      # Dependabot PR that leaves a duplicate fails here; run `bun dedupe` on
+      # its branch and push. Cost: those PRs no longer auto-merge on their own.
+      - name: bun dedupe --check
+        run: bun dedupe --check
+
       # Advisory — a starter intentionally exports things nothing imports (see
       # doctor.config.ts's deadCode note), so findings here are signal for
       # humans to review, not a merge gate.

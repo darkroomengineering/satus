@@ -26,6 +26,10 @@ updates:
     commit-message:
       prefix: 'chore(deps)'
     open-pull-requests-limit: 10
+    # Matches `minimumReleaseAge` in bunfig.toml, which refuses versions
+    # younger than 3 days; a shorter cooldown would open PRs that fail install.
+    cooldown:
+      default-days: 3
     # sanity-client-v8-hold:start
     # @sanity/client majors wait for next-sanity. An app-level v8 client next
     # to next-sanity's own v7 copy splits the TypeGen query types and every

@@ -1,8 +1,7 @@
 import { BlockContentIcon } from '@sanity/icons/BlockContent'
 import { defineType } from 'sanity'
 
-import { altField } from './fields'
-import { linkField } from './link'
+import { altField, linkField } from './fields'
 
 export const richText = defineType({
   name: 'richText',
@@ -34,7 +33,7 @@ export const richText = defineType({
           { title: 'Underline', value: 'underline' },
           { title: 'Strike', value: 'strike-through' },
         ],
-        annotations: [linkField],
+        annotations: [linkField('link', { title: 'Link' })],
       },
     },
     {

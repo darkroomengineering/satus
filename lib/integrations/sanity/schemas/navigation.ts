@@ -1,7 +1,7 @@
 import { MenuIcon } from '@sanity/icons/Menu'
 import { defineField, defineType } from 'sanity'
 
-import { altField } from './fields'
+import { altField, linkField } from './fields'
 
 export const navigation = defineType({
   name: 'navigation',
@@ -31,11 +31,7 @@ export const navigation = defineType({
               title: 'Logo',
               fields: [altField],
             }),
-            defineField({
-              name: 'socialMedia',
-              title: 'Social Media',
-              type: 'link',
-            }),
+            linkField('socialMedia', { title: 'Social Media' }),
           ],
         },
       ],

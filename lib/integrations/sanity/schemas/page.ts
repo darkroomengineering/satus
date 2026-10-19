@@ -1,7 +1,7 @@
 import { DocumentIcon } from '@sanity/icons/Document'
 import { defineField, defineType } from 'sanity'
 
-import { linkFieldWithLabelAndRequired } from './link'
+import { linkField } from './fields'
 
 const pageFields = [
   defineField({
@@ -17,7 +17,7 @@ const pageFields = [
     type: 'richText',
     description: 'The main content of the page',
   }),
-  linkFieldWithLabelAndRequired,
+  linkField('link', { title: 'Link', required: true, enableText: true }),
 ]
 
 export const page = defineType({

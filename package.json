@@ -50,7 +50,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
-    "@dotenvx/dotenvx": "^2.34.1",
+    "@dotenvx/dotenvx": "^2.37.0",
     "@dotenvx/next-env": "^2.4.5",
     "@portabletext/react": "^8.0.1",
     "@react-three/drei": "^10.7.9",

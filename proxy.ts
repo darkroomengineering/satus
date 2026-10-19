@@ -14,7 +14,7 @@
  * Note: Security headers are configured in next.config.ts (static, no need for proxy)
  */
 
-import { createHash, timingSafeEqual } from 'node:crypto'
+import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
 
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
@@ -123,11 +123,15 @@ function addAcceptVary(
   return response
 }
 
+const COMPARE_KEY = randomBytes(32)
+
 /**
  * Checks an `Authorization` header against the site password. Any username
  * passes; only the part after the first `:` is compared, so a password may
- * itself contain colons. Both sides are hashed first so the comparison takes
- * the same time whatever the lengths, and leaks neither.
+ * itself contain colons. Both sides go through an HMAC with a per-process
+ * random key first, so the comparison takes the same time whatever the
+ * lengths and leaks neither. Nothing is stored, so this is not password
+ * hashing.
  */
 export function isSiteUnlocked(
   authorization: string | null,
@@ -136,7 +140,8 @@ export function isSiteUnlocked(
   if (!authorization?.startsWith('Basic ')) return false
   const credentials = Buffer.from(authorization.slice(6), 'base64').toString()
   const given = credentials.slice(credentials.indexOf(':') + 1)
-  const digest = (value: string) => createHash('sha256').update(value).digest()
+  const digest = (value: string) =>
+    createHmac('sha256', COMPARE_KEY).update(value).digest()
   return timingSafeEqual(digest(given), digest(password))
 }
 

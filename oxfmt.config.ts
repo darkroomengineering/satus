@@ -6,8 +6,8 @@ import { defineConfig } from 'oxfmt'
  * A `.ts` file rather than `.oxfmtrc.json` so `bun run typecheck` covers it.
  * Note the filename: oxfmt auto-discovers `oxfmt.config.ts`, NOT `.oxfmtrc.ts`.
  *
- * House style is unchanged from the Biome era: 80 columns, 2-space indent,
- * single quotes, semicolons only where required, es5 trailing commas, LF.
+ * House style: 80 columns, 2-space indent, single quotes, semicolons only
+ * where required, es5 trailing commas, LF.
  * oxfmt's own defaults differ (printWidth 100, semi true, singleQuote false,
  * trailingComma "all"), so every one of those is set explicitly.
  */
@@ -33,9 +33,9 @@ export default defineConfig({
     },
   ],
 
-  // Both sorters are off by default and have to be switched on. Between them
-  // they replace Biome's organizeImports assist action and the useSortedClasses
-  // nursery lint rule, which is why unsorted classes are no longer a lint error.
+  // Both sorters are off by default and have to be switched on. Import order
+  // and Tailwind class order are fixed at format time, so neither is a lint
+  // error.
   sortImports: {
     groups: [
       'builtin',

@@ -198,10 +198,9 @@ export default defineConfig({
     'jsx-a11y/no-autofocus': 'warn',
     'jsx-a11y/no-distracting-elements': 'error',
     'jsx-a11y/img-redundant-alt': 'error',
-    // Maps to Biome's useSemanticElements, which was also a non-blocking warn.
-    // 3 pre-existing `role="status"` live regions in the Shopify cart; swapping
-    // them for <output> changes the rendered element and its styling, so it is
-    // a deliberate follow-up rather than part of this migration.
+    // Off: it flags 3 `role="status"` live regions in the Shopify cart, and
+    // swapping them for <output> changes the rendered element and its styling.
+    // Turn it on in the same change that swaps them.
     'jsx-a11y/prefer-tag-over-role': 'off',
     'nextjs/no-img-element': 'error',
     'import/first': 'error',
@@ -267,21 +266,18 @@ export default defineConfig({
     'promise/no-return-in-finally': 'error',
 
     // --- perf category, hand-picked ------------------------------------------
-    // Biome had no equivalent for any of these. The category as a whole is not
-    // enabled: its `no-await-in-loop` fires 49 times on scripts that are
-    // sequential on purpose. These three are the ones that pay for themselves;
-    // oxc/no-map-spread is deliberately not among them, since it wants
-    // Object.assign in place of a plain per-item spread, which reads worse for
-    // no measurable gain here.
+    // The category as a whole is not enabled: its `no-await-in-loop` fires 49
+    // times on scripts that are sequential on purpose. These three are the
+    // ones that pay for themselves; oxc/no-map-spread is deliberately not among
+    // them, since it wants Object.assign in place of a plain per-item spread,
+    // which reads worse for no measurable gain here.
     'unicorn/prefer-set-has': 'error',
     'unicorn/prefer-array-find': 'error',
     'react/no-object-type-as-default-prop': 'error',
 
-    // --- Consciously disabled during the Biome -> Oxc migration ---------------
-    // Under Biome these were nursery/warn, which never failed a build. `lint`
-    // now runs with --max-warnings=0, so leaving them on would turn pre-existing
-    // findings into hard failures. Off preserves today's effective behaviour.
-    // 11 pre-existing sites (regex literals in scripts + tests).
+    // --- Off on purpose ------------------------------------------------------
+    // `lint` runs with --max-warnings=0, so a warn here fails the build.
+    // Off until its 11 sites (regex literals in scripts + tests) are converted.
     'eslint/prefer-named-capture-group': 'off',
     // Off on purpose, and it should stay off: the fix this rule asks for is
     // useMemo around context values, which this repo forbids because the React
@@ -294,9 +290,8 @@ export default defineConfig({
     'typescript/no-floating-promises': 'error',
     'typescript/no-misused-promises': 'error',
 
-    // Biome's useNullishCoalescing was a nursery warn and never failed a build.
-    // 27 pre-existing `||` sites; converting them changes falsy-vs-nullish
-    // behaviour case by case, so it is a follow-up, not a migration step.
+    // Off until its 27 `||` sites are converted; each one changes
+    // falsy-vs-nullish behaviour, so each needs its own review.
     'typescript/prefer-nullish-coalescing': 'off',
 
     // `--type-aware` switches on every type-aware rule in the correctness

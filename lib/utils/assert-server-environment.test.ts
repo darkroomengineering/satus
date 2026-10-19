@@ -18,7 +18,6 @@ describe('assertServerEnvironment', () => {
     const originalEnv = process.env
     // Simulate the browser `process` polyfill: `window` exists (happy-dom's
     // preload registers it for every test), `process.env` does not.
-    // biome-ignore lint: test-only reassignment of a Node global
     process.env = {} as NodeJS.ProcessEnv
     try {
       expect(() => assertServerEnvironment('@/test-module')).toThrow(

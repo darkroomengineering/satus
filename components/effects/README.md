@@ -15,8 +15,8 @@ This directory is for anime.js effects: scrubbed scroll effects and timeline rev
 Words fade in as scroll progress advances, split by anime.js's `splitText` and
 synced 1:1 to an `onScroll` observer (fed by Lenis through the bridge in
 `components/layout/lenis`). Content is static after mount — remount with a
-`key` to change it. `prefers-reduced-motion` gets a single gentle fade
-instead of scroll linkage.
+`key` to change it. `prefers-reduced-motion` gets a single gentle fade when
+the text enters instead of scroll linkage.
 
 `enter` and `leave` take anime.js thresholds, viewport edge first, then the
 element's: `enter="bottom top"` starts when the viewport's bottom meets the

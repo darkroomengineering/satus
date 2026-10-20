@@ -173,10 +173,11 @@ export default function HomePage() {
               (splitText + onScroll synced through Lenis). Delete with the
               rest of this page. */}
           <p className={s.outro}>
-            {/* leave must be reachable at max scroll — the outro sits at the
-                page bottom, so its top never reaches viewport center; its
-                bottom does reach the viewport bottom, exactly at full scroll. */}
-            <ProgressText enter="bottom top" leave="bottom bottom">
+            {/* The footer keeps the outro's top from ever reaching the viewport
+                top, so `min` clamps leave to max scroll: the reveal runs from
+                the line entering to the end of the page, not across its own
+                line height. */}
+            <ProgressText enter="bottom top" leave="min top">
               Done here? Replace app/(site)/page.tsx with your homepage and
               delete page.module.css. That&apos;s the only cleanup.
             </ProgressText>

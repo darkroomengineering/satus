@@ -20,12 +20,15 @@ instead of scroll linkage.
 
 `enter` and `leave` take anime.js thresholds, viewport edge first, then the
 element's: `enter="bottom top"` starts when the viewport's bottom meets the
-element's top.
+element's top. The scroll distance between `enter` and `leave` is how long the
+reveal lasts, so keep it well above one line height. Near the page bottom,
+where the element can't reach the viewport top, `leave="min top"` clamps the
+end to max scroll.
 
 ```tsx
 import { ProgressText } from '@/components/effects/progress-text'
 
-;<ProgressText enter="bottom top" leave="bottom bottom" dimOpacity={0.33}>
+;<ProgressText enter="bottom top" leave="min top">
   This text reveals as you scroll through the section
 </ProgressText>
 ```

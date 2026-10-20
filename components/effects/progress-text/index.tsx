@@ -27,16 +27,10 @@ type ProgressTextProps = {
   /** anime.js `onScroll` `leave` threshold, e.g. `'bottom bottom'`. */
   leave?: string
   /**
-   * Opacity of words the scroll position hasn't reached yet. Default is
-   * 0.8, not a low "barely there" dim: this text is real visible content
-   * (not decorative), so its dimmest resting state still has to clear
-   * WCAG AA 4.5:1 against the page background. `.outro`
-   * (`app/(site)/page.module.css`) already renders this text at
-   * `opacity: 0.6`, and CSS opacity nests multiplicatively, so the two
-   * combine to 0.6 x 0.8 = 0.48 effective alpha (~4.9:1 for white-on-black,
-   * measured with colorjs.io's WCAG21 contrast — the 4.5:1 floor needs
-   * >= ~0.76 here). Lowering this without raising the container opacity
-   * re-fails color-contrast.
+   * Opacity of words the scroll position hasn't reached yet. This text is
+   * real content, so its dimmest state still has to clear WCAG AA 4.5:1:
+   * 0.5 gives ~5.3:1 for white on black. CSS opacity multiplies, so an
+   * ancestor with its own `opacity` lowers that further; raise this to match.
    */
   dimOpacity?: number
   className?: string
@@ -56,7 +50,7 @@ export function ProgressText({
   children,
   enter = 'top top',
   leave = 'bottom bottom',
-  dimOpacity = 0.8,
+  dimOpacity = 0.5,
   className,
   style,
 }: ProgressTextProps) {

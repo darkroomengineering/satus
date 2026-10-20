@@ -53,3 +53,24 @@ test('homepage outro words reveal across the scroll to the page bottom', async (
     contentType: 'image/png',
   })
 })
+
+test('with reduced motion, the outro fades once when it scrolls into view', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto('/')
+  await page.waitForLoadState('load')
+  await expect
+    .poll(async () => (await wordOpacities(page)).length)
+    .toBeGreaterThan(3)
+  await page.waitForTimeout(600)
+  expect(new Set(await wordOpacities(page))).toEqual(new Set([0.5]))
+
+  await page
+    .locator('[aria-hidden="true"]', { hasText: 'only cleanup' })
+    .scrollIntoViewIfNeeded()
+  await expect
+    .poll(async () => new Set(await wordOpacities(page)))
+    .toEqual(new Set([1]))
+})

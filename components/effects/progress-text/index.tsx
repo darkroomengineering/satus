@@ -44,7 +44,7 @@ type ProgressTextProps = {
  * through `enter`..`leave` (synced 1:1, no easing lag). Lenis feeds the
  * scroll through the bridge in `components/layout/lenis/anime.tsx`.
  * `prefers-reduced-motion: reduce` skips the scroll linkage and fades every
- * word in once.
+ * word in once, when the text enters.
  */
 export function ProgressText({
   children,
@@ -75,7 +75,13 @@ export function ProgressText({
     split.addEffect(({ words }) => {
       if (words.length === 0) return
       if (prefersReducedMotion) {
-        return animate(words, { opacity: [dimOpacity, 1], duration: 300 })
+        // `sync: 'play'` starts the fade when the text enters, not at mount,
+        // which for below-fold text would finish before anyone sees it.
+        return animate(words, {
+          opacity: [dimOpacity, 1],
+          duration: 300,
+          autoplay: onScroll({ target: container, enter, sync: 'play' }),
+        })
       }
       // Each word fades over twice its share of the range, so neighbours
       // overlap instead of switching on one at a time.

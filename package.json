@@ -49,7 +49,7 @@
     "sanity:mcp": "bun ./lib/scripts/copy-sanity-mcp.ts"
   },
   "dependencies": {
-    "@base-ui/react": "^1.8.0",
+    "@base-ui/react": "^1.9.0",
     "@dotenvx/dotenvx": "^2.34.2",
     "@dotenvx/next-env": "^2.4.5",
     "@portabletext/react": "^8.0.1",

@@ -6,7 +6,7 @@
       "name": "@darkroom.engineering/satus",
       "dependencies": {
         "@base-ui/react": "^1.8.0",
-        "@dotenvx/dotenvx": "^2.34.2",
+        "@dotenvx/dotenvx": "^2.38.0",
         "@dotenvx/next-env": "^2.4.5",
         "@portabletext/react": "^8.0.1",
         "@react-three/drei": "^10.7.9",
@@ -475,7 +475,7 @@
 
     "@dnd-kit/utilities": ["@dnd-kit/utilities@3.2.2", "", { "dependencies": { "tslib": "^2.0.0" }, "peerDependencies": { "react": ">=16.8.0" } }, "sha512-+MKAJEOfaBe5SmV6t34p80MMKhjvUz0vRrvVJbPT0WElzaOJ/1xs+D+KDv+tD/NE5ujfrChEcshd4fLn0wpiqg=="],
 
-    "@dotenvx/dotenvx": ["@dotenvx/dotenvx@2.37.0", "", { "dependencies": { "@dotenvx/primitives": "^3.3.1", "@dotenvx/providers": "^0.3.8", "@dotenvx/tooling": "^1.0.5", "undici": "^6.28.1", "write-file-atomic": "^5.0.1", "yocto-spinner": "^1.2.1" }, "bin": { "dx": "src/cli/dotenvx.js", "dotenvx": "src/cli/dotenvx.js" } }, "sha512-h3yaCxV2UwZj8yeJLyQJ/JqVT9GnxSMVES9sJ0U1bQFQDsqKPdtryrZtAOirS5yACl/xUtnvj6VhKBymvxvEaw=="],
+    "@dotenvx/dotenvx": ["@dotenvx/dotenvx@2.38.0", "", { "dependencies": { "@dotenvx/primitives": "^3.3.1", "@dotenvx/providers": "^0.3.8", "@dotenvx/tooling": "^1.0.5", "undici": "^6.28.1", "write-file-atomic": "^5.0.1", "yocto-spinner": "^1.2.1" }, "bin": { "dx": "src/cli/dotenvx.js", "dotenvx": "src/cli/dotenvx.js" } }, "sha512-HVkCYAQ+v/h/buDNWfQnA6QkidC34QZFFGcf9A5BMidAgiNKcIGWAA0eyhXNF4Ak8971ytJLDQY/u6xSLmsR2w=="],
 
     "@dotenvx/next-env": ["@dotenvx/next-env@2.4.5", "", {}, "sha512-dq6kB+wcSAQ/drDqA+no+B458ayHRU8qcOgA3Ldrw1a82hMKYPIF8RCuPmeOQQMuvElF1XFS461STNficROp5A=="],
 

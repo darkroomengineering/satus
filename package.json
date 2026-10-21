@@ -75,7 +75,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
-    "@axe-core/playwright": "4.13.0",
+    "@axe-core/playwright": "4.14.0",
     "@clack/prompts": "^1.8.1",
     "@csstools/postcss-global-data": "^4.0.0",
     "@happy-dom/global-registrator": "^21.0.3",

@@ -35,7 +35,7 @@
         "@clack/prompts": "^1.8.1",
         "@csstools/postcss-global-data": "^4.0.0",
         "@happy-dom/global-registrator": "^21.0.3",
-        "@next/bundle-analyzer": "16.3.8",
+        "@next/bundle-analyzer": "16.4.2",
         "@oxlint/plugins": "1.88.0",
         "@playwright/test": "1.64.1",
         "@sanity/icons": "^5.2.2",
@@ -665,7 +665,7 @@
 
     "@napi-rs/wasm-runtime": ["@napi-rs/wasm-runtime@1.1.6", "", { "dependencies": { "@tybys/wasm-util": "^0.10.3" }, "peerDependencies": { "@emnapi/core": "^1.7.1", "@emnapi/runtime": "^1.7.1" } }, "sha512-ZLv/JdUfkvOy9eCnnBaGfiO+XimbjebAeO+MRQqD/B+FR1tnRN0tpKSJHRbE8sFfS6aqsXZ67TQjfwfsxULVbg=="],
 
-    "@next/bundle-analyzer": ["@next/bundle-analyzer@16.3.8", "", { "dependencies": { "webpack-bundle-analyzer": "4.10.1" } }, "sha512-8VBk5/pjANz7fxbQZrDwUMTAs598Vckb4PE7BSYrDIPthJskKCXEHOK+WEMgDD6X2xWlKjrXPo2r41N/G1azSw=="],
+    "@next/bundle-analyzer": ["@next/bundle-analyzer@16.4.2", "", { "dependencies": { "webpack-bundle-analyzer": "4.10.1" } }, "sha512-tpNTC/WZYsmmixg3MZfx5JUuTh+Sgryu4eKhe7leQRcXHabztqtTkPCQM1Bk1VsE0trZ3w7NUCC3Zf7SeIBVzg=="],
 
     "@next/env": ["@dotenvx/next-env@2.4.5", "", {}, "sha512-dq6kB+wcSAQ/drDqA+no+B458ayHRU8qcOgA3Ldrw1a82hMKYPIF8RCuPmeOQQMuvElF1XFS461STNficROp5A=="],
 

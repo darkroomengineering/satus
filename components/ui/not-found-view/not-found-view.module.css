@@ -78,7 +78,7 @@
 .description {
   font-family: var(--font-mono);
   font-size: calc(11 / 375 * 100vw);
-  opacity: 0.45;
+  opacity: 0.5;
   line-height: 1.6;
   margin-bottom: calc(28 / 375 * 100vw);
 

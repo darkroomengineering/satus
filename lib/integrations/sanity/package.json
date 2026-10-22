@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "devDependencies": {
-    "sanity": "^6.19.0",
+    "sanity": "^6.20.0",
     "styled-components": "^6.6.0"
   }
 }

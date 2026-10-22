@@ -141,7 +141,7 @@ const STEPS: Step[] = [
 
 export default function HomePage() {
   return (
-    <Wrapper theme="dark">
+    <Wrapper theme="dark" safariEdges>
       <section className={cn(s.hero, 'dr-layout-grid')}>
         <div className="col-span-full dt:col-start-2 dt:col-end-11">
           <p className={s.kicker}>Start here</p>

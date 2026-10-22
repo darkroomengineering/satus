@@ -25,13 +25,14 @@ They are automatically rendered when you use `<Wrapper>`.
 
 ## Components
 
-| Component  | Purpose                                                                       |
-| ---------- | ----------------------------------------------------------------------------- |
-| `wrapper/` | Page container with theme, Lenis, WebGL support. **Includes Header + Footer** |
-| `header/`  | Site navigation                                                               |
-| `footer/`  | Site footer                                                                   |
-| `lenis/`   | Smooth scroll provider                                                        |
-| `theme/`   | Theme context provider                                                        |
+| Component       | Purpose                                                                                             |
+| --------------- | --------------------------------------------------------------------------------------------------- |
+| `wrapper/`      | Page container with theme, Lenis, WebGL support. **Includes Header + Footer**                       |
+| `header/`       | Site navigation                                                                                     |
+| `footer/`       | Site footer                                                                                         |
+| `lenis/`        | Smooth scroll provider                                                                              |
+| `theme/`        | Theme context provider                                                                              |
+| `safari-edges/` | Fixed edge strips that run the page color behind mobile Safari's toolbars (`<Wrapper safariEdges>`) |
 
 ## Usage
 

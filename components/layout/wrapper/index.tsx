@@ -15,6 +15,7 @@ import { ViewTransition } from 'react'
 import { Footer } from '@/components/layout/footer'
 import { Header } from '@/components/layout/header'
 import { Lenis } from '@/components/layout/lenis'
+import { SafariEdges } from '@/components/layout/safari-edges'
 import { Theme } from '@/components/layout/theme'
 import type { ThemeName } from '@/styles/config'
 import { Canvas } from '@/webgl/components/canvas'
@@ -44,6 +45,12 @@ interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
   webgl?: boolean
   /** Crossfade this page's main content during navigation. Defaults to true. */
   viewTransition?: boolean
+  /**
+   * Run the theme's primary color behind mobile Safari's status bar and
+   * bottom toolbar (see `components/layout/safari-edges`). Defaults to false:
+   * only pages whose top and bottom edges are one solid color benefit.
+   */
+  safariEdges?: boolean
 }
 
 /**
@@ -110,6 +117,7 @@ export function Wrapper({
   lenis = true,
   webgl = false,
   viewTransition = true,
+  safariEdges = false,
   ...props
 }: WrapperProps) {
   return (
@@ -129,6 +137,7 @@ export function Wrapper({
       </Canvas>
       {/* Footer is rendered here - do NOT add another in layout.tsx */}
       <Footer />
+      {safariEdges && <SafariEdges />}
       {lenis && (
         <Lenis root options={isLenisOptions(lenis) ? lenis : {}} syncAnime />
       )}

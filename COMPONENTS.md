@@ -41,6 +41,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | Footer | `@/components/layout/footer` | Server |
 | Header | `@/components/layout/header` | Client |
 | Lenis | `@/components/layout/lenis` | Client |
+| SafariEdges | `@/components/layout/safari-edges` | Server |
 | Theme | `@/components/layout/theme` | Client |
 | Wrapper | `@/components/layout/wrapper` | Client |
 

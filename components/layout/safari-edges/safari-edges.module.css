@@ -1,0 +1,24 @@
+/*
+ * 12px strips pulled 7px off screen leave 5px visible past the safe area:
+ * Safari needs about 5px to sample the color, and less of the page is covered.
+ * Above the fixed header (same z-index, later in the DOM) so the header's own
+ * background never decides the toolbar color.
+ */
+.edge {
+  position: fixed;
+  inset-inline: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.edge[data-edge='top'] {
+  top: -7px;
+  height: calc(env(safe-area-inset-top) + 12px);
+  background-color: var(--edge-top, var(--color-primary));
+}
+
+.edge[data-edge='bottom'] {
+  bottom: -7px;
+  height: calc(env(safe-area-inset-bottom) + 12px);
+  background-color: var(--edge-bottom, var(--color-primary));
+}

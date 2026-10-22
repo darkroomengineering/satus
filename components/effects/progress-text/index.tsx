@@ -24,7 +24,10 @@ type ProgressTextProps = {
    * element's (`'bottom top'`: the viewport's bottom meets the element's top).
    */
   enter?: string
-  /** anime.js `onScroll` `leave` threshold, e.g. `'bottom bottom'`. */
+  /**
+   * anime.js `onScroll` `leave` threshold. The default `'center bottom'`
+   * ends when the element's bottom crosses the viewport's middle.
+   */
   leave?: string
   /**
    * Opacity of words the scroll position hasn't reached yet. This text is
@@ -48,8 +51,8 @@ type ProgressTextProps = {
  */
 export function ProgressText({
   children,
-  enter = 'top top',
-  leave = 'bottom bottom',
+  enter = 'bottom top',
+  leave = 'center bottom',
   dimOpacity = 0.5,
   className,
   style,

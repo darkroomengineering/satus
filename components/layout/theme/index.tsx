@@ -71,6 +71,9 @@ export function Theme({
   useEffect(() => {
     if (global) {
       document.documentElement.setAttribute('data-theme', currentTheme)
+      document
+        .querySelector('meta[name="theme-color"]')
+        ?.setAttribute('content', themes[currentTheme].primary)
     }
   }, [pathname, currentTheme, global])
 

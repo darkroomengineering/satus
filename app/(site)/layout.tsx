@@ -81,7 +81,9 @@ if (env.NEXT_PUBLIC_FACEBOOK_APP_ID) {
 }
 
 export const viewport: Viewport = {
-  themeColor: themes.red.primary,
+  // Matches the server-rendered `data-theme="dark"` in app/layout.tsx; the
+  // client <Theme> rewrites it per route.
+  themeColor: themes.dark.primary,
   colorScheme: 'normal',
 }
 

@@ -20,7 +20,8 @@ the text enters instead of scroll linkage.
 
 `enter` and `leave` take anime.js thresholds, viewport edge first, then the
 element's: `enter="bottom top"` starts when the viewport's bottom meets the
-element's top. The scroll distance between `enter` and `leave` is how long the
+element's top. The defaults run from there to `leave="center bottom"`, where
+the element's bottom crosses the viewport's middle. The scroll distance between `enter` and `leave` is how long the
 reveal lasts, so keep it well above one line height. Near the page bottom,
 where the element can't reach the viewport top, `leave="min top"` clamps the
 end to max scroll.

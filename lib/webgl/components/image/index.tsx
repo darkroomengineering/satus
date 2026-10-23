@@ -43,7 +43,9 @@ export function Image({
   const [loadedUrl, setLoadedUrl] = useState<string>()
   // The cross-origin URL whose CORS probe last finished, and how it went.
   const [probed, setProbed] = useState<{ url: string; ok: boolean }>()
-  const [setRectRef, rect] = useRect()
+  // `useWebGLRect` adds any `TransformProvider` translate itself; measuring
+  // through the transform would count a parallax offset twice.
+  const [setRectRef, rect] = useRect({ ignoreTransform: true })
   const { isWebGL, isReducedMotion } = useDeviceDetection()
 
   // Hide the DOM image only when a WebGL canvas will actually render its

@@ -1186,3 +1186,63 @@ describe('applyCodeTransforms — missing target file (issue #381)', () => {
     expect(result).toEqual({ changes: 0, changedFiles: [], failures: [] })
   })
 })
+
+// Failure modes: removal drops the wrong binding or touches a destructuring of
+// another initializer; removal stops at an earlier matching pattern that lacks
+// the binding; add edits a later pattern instead of the first match; either op
+// is not idempotent; a required removal with no matching destructuring passes
+// silently.
+describe('destructured bindings', () => {
+  const remove: AstOperation = {
+    kind: 'removeDestructuredBinding',
+    bindingName: 'stats',
+    initializerContains: 'useOrchestra',
+  }
+  const add: AstOperation = {
+    kind: 'addDestructuredBinding',
+    bindingName: 'stats',
+    initializerContains: 'useOrchestra',
+  }
+
+  it('removes only the named binding from the matching destructuring', () => {
+    const fixture = `const { stats } = useMetrics()\nconst { studio, stats, grid } = useOrchestra()\n`
+    const result = applyOpsToText(fixture, [remove])
+    expect(result).toContain('const { stats } = useMetrics()')
+    expect(result).toContain('const { studio, grid } = useOrchestra()')
+    expect(applyOpsToText(result, [remove])).toBe(result)
+  })
+
+  it('removes from a later destructuring when the first match lacks the binding', () => {
+    const fixture = `const { studio } = useOrchestra()\nconst { grid, stats } = useOrchestra()\n`
+    const result = applyOpsToText(fixture, [remove])
+    expect(result).toContain('const { studio } = useOrchestra()')
+    expect(result).toContain('const { grid } = useOrchestra()')
+  })
+
+  it('adds to the first matching destructuring only, and is idempotent', () => {
+    const fixture = `const { studio } = useOrchestra()\nconst { grid } = useOrchestra()\n`
+    const result = applyOpsToText(fixture, [add])
+    expect(result).toContain('const { studio, stats } = useOrchestra()')
+    expect(result).toContain('const { grid } = useOrchestra()')
+    expect(applyOpsToText(result, [add])).toBe(result)
+  })
+
+  it('leaves the file unchanged when the first match already has the binding', () => {
+    const fixture = `const { stats } = useOrchestra()\nconst { grid } = useOrchestra()\n`
+    expect(applyOpsToText(fixture, [add])).toBe(fixture)
+  })
+
+  it('round-trips remove then add', () => {
+    const fixture = `const { studio, stats } = useOrchestra()\n`
+    const removed = applyOpsToText(fixture, [remove])
+    expect(removed).not.toContain('stats')
+    expect(applyOpsToText(removed, [add])).toBe(fixture)
+  })
+
+  it('throws for a required removal when no destructuring matches', () => {
+    const fixture = `const orchestra = useOrchestra()\n`
+    expect(() =>
+      applyOpsToText(fixture, [{ ...remove, required: true }])
+    ).toThrow(RequiredOpMatchError)
+  })
+})

@@ -19,6 +19,7 @@ import type {
   ReplaceJsDocOp,
 } from '../ast-operation-types'
 import {
+  findDestructuredBindings,
   objectElementMatches,
   openElementMatchesOp,
   resolvePropertyPath,
@@ -416,26 +417,23 @@ export function applyRemoveDestructuredBinding(
   op: RemoveDestructuredBindingOp
 ): string {
   return withSourceFile(project, sourceText, (sf) => {
-    for (const stmt of sf.getDescendantsOfKind(SyntaxKind.VariableStatement)) {
-      for (const decl of stmt.getDeclarations()) {
-        const nameNode = decl.getNameNode()
-        if (nameNode.getKind() !== SyntaxKind.ObjectBindingPattern) continue
+    // Unlike the add op, skip matching patterns that lack the binding and
+    // keep looking: the first destructuring of the initializer may not be the
+    // one holding it.
+    for (const pattern of findDestructuredBindings(
+      sf,
+      op.initializerContains
+    )) {
+      const elements = pattern.getElements()
+      const target = elements.find((el) => el.getName() === op.bindingName)
+      if (!target) continue
 
-        const pattern = nameNode.asKindOrThrow(SyntaxKind.ObjectBindingPattern)
-        const elements = pattern.getElements()
-        const target = elements.find((el) => el.getName() === op.bindingName)
-        if (!target) continue
+      const kept = elements
+        .filter((el) => el !== target)
+        .map((el) => el.getText())
+      pattern.replaceWithText(`{ ${kept.join(', ')} }`)
 
-        const initText = decl.getInitializer()?.getText() ?? ''
-        if (!initText.includes(op.initializerContains)) continue
-
-        const kept = elements
-          .filter((el) => el !== target)
-          .map((el) => el.getText())
-        pattern.replaceWithText(`{ ${kept.join(', ')} }`)
-
-        return undefined
-      }
+      return undefined
     }
 
     return sourceText

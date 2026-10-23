@@ -4,6 +4,7 @@ import {
   type JsxFragment,
   type JsxSelfClosingElement,
   type Node,
+  type ObjectBindingPattern,
   type Project,
   type SourceFile,
   SyntaxKind,
@@ -173,6 +174,25 @@ export function resolvePropertyPath(
   }
 
   return current
+}
+
+/**
+ * Every object-destructuring pattern (`const { a, b } = …`, at any depth) whose
+ * initializer text contains `initializerContains`, in source order.
+ */
+export function findDestructuredBindings(
+  sf: SourceFile,
+  initializerContains: string
+): ObjectBindingPattern[] {
+  return sf
+    .getDescendantsOfKind(SyntaxKind.VariableStatement)
+    .flatMap((stmt) => stmt.getDeclarations())
+    .filter((decl) =>
+      (decl.getInitializer()?.getText() ?? '').includes(initializerContains)
+    )
+    .flatMap(
+      (decl) => decl.getNameNode().asKind(SyntaxKind.ObjectBindingPattern) ?? []
+    )
 }
 
 export const JSX_CHILD_KINDS: SyntaxKind[] = [

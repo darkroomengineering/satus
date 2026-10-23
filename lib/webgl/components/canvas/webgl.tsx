@@ -10,13 +10,15 @@ import { bumpContextGeneration } from '@/lib/webgl/store'
 import { FlowmapProvider } from '@/webgl/components/flowmap-provider'
 import { PostProcessing } from '@/webgl/components/postprocessing'
 import { RAF } from '@/webgl/components/raf'
+import { wake } from '@/webgl/utils/awake'
+import type { Tunnel } from '@/webgl/utils/tunnel'
 
 import { useCanvas } from './'
 
 import s from './webgl.module.css'
 
 type WebGLCanvasProps = React.HTMLAttributes<HTMLDivElement> & {
-  render?: boolean
+  render?: boolean | 'always'
   postprocessing?: boolean
   alpha?: boolean
   className?: string
@@ -52,6 +54,7 @@ function ContextLossHandler() {
     }
     const handleContextRestored = () => {
       bumpContextGeneration()
+      wake()
     }
 
     canvasEl.addEventListener('webglcontextlost', handleContextLost)
@@ -65,6 +68,24 @@ function ContextLossHandler() {
       )
     }
   }, [gl])
+
+  return null
+}
+
+/**
+ * Wakes the canvas when it changes size or pixel ratio (a resize clears the
+ * drawing buffer, so an idle canvas would stay blank) and when tunnel content
+ * mounts, unmounts or re-renders.
+ */
+function WakeOnChange({ tunnel }: { tunnel: Tunnel }) {
+  const size = useThree((state) => state.size)
+  const dpr = useThree((state) => state.viewport.dpr)
+
+  useEffect(() => {
+    wake()
+  }, [size, dpr])
+
+  useEffect(() => tunnel.subscribe(wake), [tunnel])
 
   return null
 }
@@ -122,6 +143,7 @@ export function WebGLCanvas({
           />
           <RAF render={render} />
           <ContextLossHandler />
+          <WakeOnChange tunnel={WebGLTunnel} />
           <FlowmapProvider {...(simTypes && { simTypes })}>
             {postprocessing && <PostProcessing />}
             <Suspense>

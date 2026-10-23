@@ -1,9 +1,10 @@
 import { useFrame } from '@react-three/fiber'
 import type { Rect } from 'hamo'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import type { Group, Mesh } from 'three'
 
 import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
+import { holdAwake } from '@/webgl/utils/awake'
 
 /**
  * How the cube is turned to read as isometric: 45° about its own vertical,
@@ -39,6 +40,7 @@ interface WebGLCubeProps {
 export function WebGLCube({ rect }: WebGLCubeProps) {
   const groupRef = useRef<Group>(null)
   const meshRef = useRef<Mesh>(null)
+  const releaseRef = useRef<(() => void) | null>(null)
 
   // Position, scale and visibility all come from the box. The group starts
   // invisible; the hook's render effect places it right after this mounts.
@@ -48,7 +50,24 @@ export function WebGLCube({ rect }: WebGLCubeProps) {
     group.position.copy(position)
     group.scale.setScalar(scale.x * HEXAGON_TO_EDGE)
     group.visible = isVisible
+
+    // The spin changes every frame, so the canvas has to keep drawing while
+    // the cube is on screen. A hold rather than `useHoldAwake(isVisible)`
+    // keeps visibility out of React state: a scroll never re-renders.
+    if (isVisible && !releaseRef.current) {
+      releaseRef.current = holdAwake()
+    } else if (!isVisible && releaseRef.current) {
+      releaseRef.current()
+      releaseRef.current = null
+    }
   })
+
+  useEffect(() => {
+    return () => {
+      releaseRef.current?.()
+      releaseRef.current = null
+    }
+  }, [])
 
   // From the clock, not a per-frame increment, so a dropped frame skips
   // ahead rather than slowing the turn.

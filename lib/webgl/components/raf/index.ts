@@ -1,5 +1,8 @@
 import { useThree } from '@react-three/fiber'
+import { useEffect } from 'react'
 import { useTempus } from 'tempus/react'
+
+import { isAwake, wake } from '@/webgl/utils/awake'
 
 /**
  * RAF (Request Animation Frame) component for controlling WebGL rendering.
@@ -7,14 +10,21 @@ import { useTempus } from 'tempus/react'
  * Uses tempus for frame timing and manually advances the R3F frame loop.
  * The Canvas uses `frameloop="never"` so this component controls rendering.
  *
- * @param render - Whether to render frames. Set to false to pause rendering.
+ * @param render - `true` draws only while something keeps the canvas awake
+ *   (see `@/webgl/utils/awake`), `'always'` draws every frame, `false` never
+ *   draws.
  */
-export function RAF({ render = true }) {
+export function RAF({ render = true }: { render?: boolean | 'always' }) {
   const advance = useThree((state) => state.advance)
+
+  // The first frame has to draw before anything else wakes the canvas.
+  useEffect(() => {
+    wake()
+  }, [])
 
   useTempus(
     ({ time }) => {
-      if (render) {
+      if (render === 'always' || (render && isAwake(performance.now()))) {
         advance(time / 1000)
       }
     },

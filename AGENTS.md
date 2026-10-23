@@ -127,6 +127,7 @@ export function MyComponent({
 - Off screen is not paused. `opacity: 0` and a scrolled-away element still run their animations and frame writes, and pseudo-element animations restyle on the main thread. An infinite CSS animation starts `animation-play-state: paused` and runs only while its element is visible (a `data-*` attribute set from hamo's `useIntersectionObserver`); a frame loop skips writes while its element is hidden. `components/ui/marquee` gates its frame loop this way.
 - Per-frame writes go to `transform` or `opacity`. Writing a CSS custom property every frame restyles every element that reads it; if a variable must change per frame, quantize it and skip the write when the value is unchanged.
 - **Deferrable heavy boot** (WebGL contexts, shader compiles, third-party runtimes) → `useAfterLoad` / `<AfterLoad>` (`lib/hooks/use-after-load.ts`). Work done during hydration is billed as blocking time for pixels the DOM is already painting. The root `<Canvas>` already waits for `window.load`; `force` opts out.
+- **WebGL draws on demand.** The root canvas stops drawing about 2 s after the last change (a placement that moved, a texture, a resize, tunnel content), so a scene that animates on its own (a `useFrame` spin, a time uniform) calls `useHoldAwake(active)` from `lib/webgl/utils/awake.ts` while it is on screen, or it freezes. `<Canvas root render="always">` draws every frame for debugging. See `lib/webgl/README.md` § When the canvas draws.
 
 ### Design tokens and custom utilities
 

@@ -44,6 +44,8 @@ export interface Tunnel {
   In: (props: TunnelInProps) => null
   /** Renders every currently-registered `In` child, in registration order. */
   Out: () => ReactNode
+  /** Calls `listener` whenever the registered children change; returns the unsubscribe. */
+  subscribe: (listener: () => void) => () => void
 }
 
 /**
@@ -84,5 +86,9 @@ export function tunnel(): Tunnel {
       const current = useStore((state) => state.current)
       return createElement(Fragment, null, current)
     },
+    subscribe: (listener) =>
+      useStore.subscribe((state, previous) => {
+        if (state.current !== previous.current) listener()
+      }),
   }
 }

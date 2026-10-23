@@ -73,6 +73,46 @@ render loop.
 > equivalent) for that state. If the WebGL content is essential and motionless,
 > mount with `force` and damp motion inside the scene instead.
 
+## When the canvas draws
+
+The canvas draws only while something changed (`lib/webgl/utils/awake.ts`).
+An idle page keeps its last picture on screen and spends no GPU time. Two
+signals keep it drawing:
+
+- **`wake(ms = 2000)`**, a nudge: drawing continues for a grace window so
+  short eases finish. These already wake it: a `useWebGLRect` placement that
+  moved, resized, showed or hid its element (scroll, resize, re-measure,
+  `TransformProvider` translate); a texture loading in `Image`; a canvas
+  resize or pixel-ratio change; a WebGL context restore; tunnel content
+  mounting, unmounting or re-rendering.
+- **`useHoldAwake(active)`** (or `holdAwake()`, which returns its release),
+  a lease for anything that changes every frame. The flowmap and fluid sims
+  take one after each pointer move and release it once the trail has faded
+  below 1%.
+
+A scene that animates on its own, such as a `useFrame` spin or a time
+uniform, freezes once the grace window ends unless it holds the canvas:
+
+```tsx
+import { useFrame } from '@react-three/fiber'
+import { useHoldAwake } from '@/webgl/utils/awake'
+
+function Spinner({ isVisible }: { isVisible: boolean }) {
+  useHoldAwake(isVisible)
+  useFrame(({ clock }) => {
+    // …
+  })
+}
+```
+
+The `/webgl` cube calls `holdAwake()` from its `useWebGLRect` callback
+instead, so its visibility never becomes React state. State held inside the
+canvas that changes the picture without moving through the tunnel (a
+material color set from a canvas-side `useState`) calls `wake()` itself.
+
+`<Canvas root render="always">` draws every frame, which is useful for
+ruling out a missed wake while debugging; `render={false}` never draws.
+
 ## Architecture
 
 ```

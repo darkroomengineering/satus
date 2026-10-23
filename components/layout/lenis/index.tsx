@@ -43,7 +43,7 @@ export function Lenis({ root, options, syncAnime = false }: LenisProps) {
   //
   //   -Infinity  Stats.begin            lib/dev/stats
   //   -1         Lenis.raf              here
-  //    1         WebGL RAF (advance)    lib/webgl/components/raf
+  //    1         WebGL RAF (advance)    lib/webgl/components/raf, skipped while asleep
   //    6         Marquee                components/ui/marquee
   //   10         anime engine.update    components/layout/lenis/anime.tsx
   //   1000       DOM write queue        lib/utils/raf.ts

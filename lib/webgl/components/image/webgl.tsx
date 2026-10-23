@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { LinearFilter, type Mesh, MeshBasicMaterial } from 'three'
 
 import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
+import { wake } from '@/webgl/utils/awake'
 
 type WebGLImageProps = {
   src: string | undefined
@@ -71,6 +72,7 @@ function WebGLImageMesh({ src, rect }: WebGLImageMeshProps) {
     // react-doctor-disable-next-line react-hooks-js/immutability
     material.map = texture // oxlint-disable-line react/immutability -- imperative Three.js GPU work on a render-stable object
     material.needsUpdate = true
+    wake()
   })
 
   // Placed on the DOM image's rect: position, scale, visibility and matrix.

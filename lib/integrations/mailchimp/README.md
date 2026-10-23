@@ -1,16 +1,16 @@
 # Mailchimp Integration
 
-Email subscriptions with Cloudflare Turnstile spam protection.
+Email subscriptions and contact forms, with Cloudflare Turnstile spam protection.
 
 ## Environment Variables
 
 ```env
-MAILCHIMP_API_KEY=your-api-key
-MAILCHIMP_SERVER_PREFIX=us1
-MAILCHIMP_AUDIENCE_ID=your-audience-id
+MAILCHIMP_API_KEY=your-api-key            # Account → Extras → API Keys
+MAILCHIMP_SERVER_PREFIX=us1               # the suffix of the API key (e.g. us17)
+MAILCHIMP_AUDIENCE_ID=your-audience-id    # Audience → Settings → Audience name
 ```
 
-Turnstile env vars are configured separately — see `lib/integrations/turnstile/README.md`.
+Turnstile env vars are configured separately (`lib/integrations/turnstile/README.md`).
 
 ## Usage
 
@@ -24,41 +24,12 @@ import { mailchimpSubscriptionAction } from '@/integrations/mailchimp'
 </Form>
 ```
 
-`mailchimpContactAction` (also exported from `@/integrations/mailchimp`) handles a contact form instead of a newsletter signup. Its schema requires `name`, `email`, `subject`, and `message`; on submit it adds or updates the Mailchimp contact and posts the message as a note. Success requires storing the note; HTTP and network failures return an error even if the contact was saved. It returns the same `FormState` shape as `mailchimpSubscriptionAction`.
+`mailchimpContactAction` (same module) handles a contact form instead: its schema requires `name`, `email`, `subject`, and `message`; it adds or updates the Mailchimp contact and posts the message as a note. Success requires storing the note; HTTP and network failures return an error even if the contact was saved. It returns the same `FormState` shape as `mailchimpSubscriptionAction`.
 
-Tagging is optional: failures are logged without rejecting a saved contact or subscription. Email-only subscriptions preserve existing first and last names; supplied name fields update only those fields, and explicit empty strings clear them.
+## Behavior
 
-```tsx
-import { Form, Input, SubmitButton } from '@/components/ui/form'
-import { mailchimpContactAction } from '@/integrations/mailchimp'
-
-;<Form action={mailchimpContactAction}>
-  <Input name="name" required />
-  <Input name="email" type="email" required />
-  <Input name="subject" required />
-  <Input name="message" required />
-  <SubmitButton>Send</SubmitButton>
-</Form>
-```
-
-## Features
-
-- Double opt-in (GDPR compliant) — new members are added with `status: 'pending'` by default, which sends Mailchimp's confirmation email. Pass `status: 'subscribed'` to `addContactToMailchimp` / `addSubscriberToMailchimp` to skip it for projects with their own lawful basis for single opt-in.
-- Invisible Turnstile spam protection (via `lib/integrations/turnstile`)
-- Tag-based segmentation
-
-## Getting Credentials
-
-1. **API Key**: Account → Extras → API Keys
-2. **Server Prefix**: Found in API key (e.g., `us17`)
-3. **Audience ID**: Audience → Settings → Audience name
-
-### Validation
-
-Both actions validate email format (and the contact action's other fields) using Zod. Env vars are validated via `mailchimpEnvSchema` in the integration registry. Validation failures return `{ fieldErrors: Record<string, string> }`; API and network failures return only `{ status, message }`, with no `fieldErrors`.
-
-## Notes
-
-- Turnstile requires HTTPS (auto-disabled in development when secret key is absent)
-- The action validates the `cf-turnstile-response` form field — render Cloudflare's Turnstile widget inside the form (see `lib/integrations/turnstile/README.md`)
-- New subscribers appear as "Pending" until email confirmed
+- Double opt-in (GDPR compliant): new members are added with `status: 'pending'` by default, which sends Mailchimp's confirmation email, so new subscribers appear as "Pending" until they confirm. Pass `status: 'subscribed'` to `addContactToMailchimp` / `addSubscriberToMailchimp` to skip it for projects with their own lawful basis for single opt-in.
+- Tagging is optional: failures are logged without rejecting a saved contact or subscription.
+- Email-only subscriptions preserve existing first and last names; supplied name fields update only those fields, and explicit empty strings clear them.
+- Both actions validate the `cf-turnstile-response` form field, so render Cloudflare's Turnstile widget inside the form (`lib/integrations/turnstile/README.md`). Turnstile requires HTTPS (auto-disabled in development when its secret key is absent).
+- Both actions validate input with Zod; env vars are validated by `mailchimpEnvSchema` in the registry. Validation failures return `{ fieldErrors: Record<string, string> }`; API and network failures return only `{ status, message }`, with no `fieldErrors`.

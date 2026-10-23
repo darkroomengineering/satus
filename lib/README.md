@@ -4,33 +4,6 @@ Non-UI code: hooks, integrations, styles, and utilities.
 
 > **Rule**: Renders UI → `components/` · Everything else → `lib/`
 
-## Quick Imports
-
-```tsx
-// Hooks
-import { useScrollTrigger, useTransform } from 'hamo'
-import { useDeviceDetection } from '@/lib/hooks/use-device-detection'
-
-// Utilities - explicit imports for better tree-shaking
-import { clamp, lerp } from '@/lib/utils/math'
-import { slugify } from '@/lib/utils/strings'
-import { fetchWithTimeout } from '@/lib/utils/fetch'
-
-// Styles
-import { colors, themes, breakpoints } from '@/lib/styles/config'
-
-// Integrations
-import { sanityFetch } from '@/lib/integrations/sanity/fetch'
-import { Cart } from '@/lib/integrations/shopify/cart'
-
-// WebGL
-import { Canvas } from '@/lib/webgl/components/canvas'
-import { WebGLTunnel } from '@/lib/webgl/components/tunnel'
-
-// Dev tools
-import { useOrchestra } from '@/lib/dev'
-```
-
 ## Directories
 
 | Directory                               | Purpose                                                     | Optional? |
@@ -44,11 +17,4 @@ import { useOrchestra } from '@/lib/dev'
 | [webgl/](webgl/README.md)               | 3D graphics with R3F                                        | ✅ Yes    |
 | [dev/](dev/README.md)                   | Debug tools (CMD+O)                                         | ✅ Yes    |
 
-## Scripts
-
-```bash
-bun dev              # Start dev server
-bun run setup:project  # Configure integrations
-bun setup:styles     # Regenerate CSS
-bun run check:assets   # Fail on videos over 2MB or rasters over 2400px/1MB; part of bun run check
-```
+`bun run check:assets` (part of `bun run check`) fails on videos over 2MB or rasters over 2400px/1MB.

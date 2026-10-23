@@ -1,44 +1,30 @@
 # Hooks
 
-Custom React hooks for common patterns.
-
-```tsx
-import { useDeviceDetection } from '@/hooks/use-device-detection'
-```
+Custom React hooks, imported from `@/hooks/<file>`.
 
 ## Available Hooks
 
-| Hook                         | Purpose                                                                                                |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `useReveal`                  | Reveal-on-scroll via IntersectionObserver — CSS-driven, compositor-thread; reduced-motion + no-JS safe |
-| `useDeviceDetection`         | Detect screen size, input, motion preference, WebGL support (hardware only)                            |
-| `useAfterLoad` / `AfterLoad` | True once `window.load` fired — mount gate for deferrable heavy boot (WebGL, third-party runtimes)     |
-| `usePrefetch`                | Prefetch routes on visibility                                                                          |
-| `useOnlineStatus`            | Network online/offline status                                                                          |
-| `usePreferredColorScheme`    | System theme preference                                                                                |
-| `usePreferredReducedMotion`  | Reduced motion preference                                                                              |
-| `useDocumentVisibility`      | Tab visibility state                                                                                   |
+| Hook                         | File                   | Purpose                                                                                               |
+| ---------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------- |
+| `useReveal`                  | `use-reveal`           | Reveal-on-scroll via IntersectionObserver: CSS-driven, compositor-thread; reduced-motion + no-JS safe |
+| `useDeviceDetection`         | `use-device-detection` | Detect screen size, input, motion preference, WebGL support (hardware only)                           |
+| `useAfterLoad` / `AfterLoad` | `use-after-load`       | True once `window.load` fired; mount gate for deferrable heavy boot (WebGL, third-party runtimes)     |
+| `usePrefetch`                | `use-prefetch`         | Prefetch routes on visibility                                                                         |
+| `useOnlineStatus`            | `use-sync-external`    | Network online/offline status (`boolean`)                                                             |
+| `usePreferredColorScheme`    | `use-sync-external`    | System theme preference (`'light' \| 'dark'`)                                                         |
+| `usePreferredReducedMotion`  | `use-sync-external`    | Reduced motion preference (`boolean`)                                                                 |
+| `useDocumentVisibility`      | `use-sync-external`    | Tab visibility state (`'visible' \| 'hidden'`)                                                        |
+
+The `use-sync-external` hooks use `useSyncExternalStore` for concurrent-rendering safety. WebGL hooks (`useWebGLRect`) are in [lib/webgl/README.md](../webgl/README.md#hooks).
 
 ## useReveal
 
-Reveal children on scroll using IntersectionObserver. Toggles `data-reveal` on the container; children marked `data-reveal-item` animate `transform`/`opacity` on the compositor thread. The CSS contract lives in `lib/styles/css/global.css`. Per-container knobs: `--reveal-transform`, `--reveal-stagger`, `--reveal-duration`. Degrades to visible without JS; short-circuits under `prefers-reduced-motion`.
-
 ```tsx
-import { useReveal } from '@/hooks/use-reveal'
-
-function Cards({ items }) {
-  const ref = useReveal<HTMLDivElement>()
-  return (
-    <div ref={ref}>
-      {items.map((i) => (
-        <div key={i.id} data-reveal-item>
-          {i.name}
-        </div>
-      ))}
-    </div>
-  )
-}
+const ref = useReveal<HTMLDivElement>()
+// <div ref={ref}>{items.map((i) => <div key={i.id} data-reveal-item>…</div>)}</div>
 ```
+
+Toggles `data-reveal` on the container; children marked `data-reveal-item` animate `transform`/`opacity` on the compositor thread. The CSS contract lives in `lib/styles/css/global.css`. Per-container knobs: `--reveal-transform`, `--reveal-stagger`, `--reveal-duration`. Degrades to visible without JS; short-circuits under `prefers-reduced-motion`.
 
 ## useAfterLoad
 
@@ -47,126 +33,39 @@ is heavy and invisible during hydration: a WebGL context boot, a shader
 compile, a third-party runtime. The root `<Canvas>` already uses it, so
 WebGL content portaled into the root canvas needs nothing extra.
 
-```tsx
-import { useAfterLoad } from '@/hooks/use-after-load'
-
-function Ground() {
-  const afterLoad = useAfterLoad()
-  return afterLoad ? <ShaderGround /> : <div className={s.still} />
-}
-```
-
 `<AfterLoad>` is the same gate as a component, for server trees that cannot
 call the hook. Children pass through as references, so nothing new enters the
-client bundle:
+client bundle.
 
-```tsx
-import { AfterLoad } from '@/hooks/use-after-load'
+## useDeviceDetection
 
-;<AfterLoad>
-  <ShaderGround />
-</AfterLoad>
-```
-
-## Browser API Hooks
-
-These hooks use `useSyncExternalStore` for concurrent-rendering safety and optimal performance.
+SSR-safe device capabilities: `isMobile`, `isDesktop`, `isReducedMotion`,
+`isTouchOnly`, `dpr`, `isWebGL`, `isSafari`, `isAutoplaySupported`.
+`isWebGL` is false on software renderers (SwiftShader, llvmpipe, headless
+audit runners), so the DOM fallback is what PageSpeed Insights measures. It is
+also false below the desktop breakpoint and on touch-only devices
+(`isTouchOnly`), so phones in landscape and tablets get the fallback too.
 
 ### Media queries
 
-There is no general media-query hook. To show markup on one breakpoint, use
-the `desktop-only` and `mobile-only` classes: they need no JavaScript and match
-the server render. For behavior that differs by device, read `isMobile`,
-`isDesktop`, `isTouchOnly` or `isReducedMotion` from `useDeviceDetection`, and
-add a new query there rather than in a component. Importing hamo's
-`useMediaQuery` anywhere else is a lint error.
+There is no general media-query hook. To show or hide markup per breakpoint,
+use the `desktop-only` and `mobile-only` classes, not `isMobile`/`isDesktop`:
+they need no JavaScript and match the server render, while the hook has no
+value until mount. For behavior that differs by device, read the
+`useDeviceDetection` flags, and add a new query there rather than in a
+component. Importing hamo's `useMediaQuery` anywhere else is a lint error.
 
-### useOnlineStatus
+## usePrefetch
 
-Detect network connectivity:
-
-```tsx
-import { useOnlineStatus } from '@/hooks/use-sync-external'
-
-function NetworkAwareComponent() {
-  const isOnline = useOnlineStatus()
-
-  if (!isOnline) {
-    return <OfflineBanner />
-  }
-
-  return <App />
-}
-```
-
-### usePreferredColorScheme
-
-Get system color scheme preference:
-
-```tsx
-import { usePreferredColorScheme } from '@/hooks/use-sync-external'
-
-function ThemeProvider({ children }) {
-  const colorScheme = usePreferredColorScheme() // 'light' | 'dark'
-
-  return <div data-theme={colorScheme}>{children}</div>
-}
-```
-
-### usePreferredReducedMotion
-
-Respect user's motion preferences for accessibility:
-
-```tsx
-import { usePreferredReducedMotion } from '@/hooks/use-sync-external'
-
-function AnimatedComponent() {
-  const prefersReducedMotion = usePreferredReducedMotion()
-
-  // Pass as a CSS custom property — CSS transitions
-  // and useReveal already short-circuit automatically.
-  const duration = prefersReducedMotion ? 0 : 0.3
-
-  return (
-    <div style={{ '--duration': `${duration}s` } as React.CSSProperties}>
-      {/* children animate via CSS transition using var(--duration) */}
-    </div>
-  )
-}
-```
-
-### useDocumentVisibility
-
-React to tab visibility changes:
-
-```tsx
-import { useDocumentVisibility } from '@/hooks/use-sync-external'
-
-function VideoPlayer() {
-  const visibility = useDocumentVisibility() // 'visible' | 'hidden'
-  const videoRef = useRef<HTMLVideoElement>(null)
-
-  useEffect(() => {
-    if (visibility === 'hidden') {
-      videoRef.current?.pause()
-    }
-  }, [visibility])
-
-  return <video ref={videoRef} />
-}
-```
+`usePrefetch(href, { rootMargin })` prefetches a route when an element scrolls
+into view, through hamo's `useIntersectionObserver`. Skipped on 2G and
+Save-Data connections. Returns a ref callback, not a ref object.
 
 ## Hooks from `hamo`
 
 [`hamo`](https://github.com/darkroomengineering/hamo) is a Darkroom package and a
-regular dependency. Import from it directly — there is no local re-export layer:
-
-```tsx
-import { useScrollTrigger, useTransform, TransformProvider } from 'hamo'
-```
-
-The full surface, and what this repo does with it. The unused ones are not
-deprecated; they are simply available if you need them.
+regular dependency. Import from it directly; there is no local re-export layer.
+The unused exports are not deprecated, just available.
 
 | Export                                                    | Used here | What it does                                                                 |
 | --------------------------------------------------------- | --------- | ---------------------------------------------------------------------------- |
@@ -187,68 +86,11 @@ deprecated; they are simply available if you need them.
 
 Types: `Rect`, `Transform`, `TransformRef`, `UseScrollTriggerOptions`.
 
-> **Use React's `useEffectEvent`, not hamo's.** React 19.2 ships a stable
-> `useEffectEvent`, so import it from `react`. hamo's is an equivalent shim that
-> predates it, and keeping two sources for one primitive is how a codebase ends
-> up with both. See `lib/webgl/hooks/use-pointer-input.ts` for the pattern:
-> wrap a callback so an effect can call the latest version without listing it as
-> a dependency and re-subscribing.
-
-## useDeviceDetection
-
-Detect device capabilities (SSR-safe): screen size, input method, motion
-preference, WebGL support, Safari, and inline-video autoplay support.
-`isWebGL` is false on software renderers (SwiftShader, llvmpipe, headless
-audit runners), so the DOM fallback is what PageSpeed Insights measures. It is
-also false below the desktop breakpoint and on touch-only devices
-(`isTouchOnly`), so phones in landscape and tablets get the fallback too.
-
-```tsx
-import { useDeviceDetection } from '@/hooks/use-device-detection'
-
-function Component() {
-  const {
-    isMobile,
-    isDesktop,
-    isReducedMotion,
-    isTouchOnly,
-    dpr,
-    isWebGL,
-    isSafari,
-    isAutoplaySupported,
-  } = useDeviceDetection()
-
-  return isWebGL ? <WebGLHero /> : <StillHero />
-}
-```
-
-Use these for behavior. To show or hide markup per breakpoint, use the
-`desktop-only` and `mobile-only` classes instead of `isMobile`/`isDesktop`:
-they need no JavaScript and match the server render, while the hook has no
-value until mount.
-
-## usePrefetch
-
-Prefetch a route when an element scrolls into view, through hamo's
-`useIntersectionObserver`. Skipped on 2G and Save-Data connections. Returns a
-ref callback, not a ref object.
-
-```tsx
-import { usePrefetch } from '@/hooks/use-prefetch'
-
-function Teaser() {
-  const prefetchRef = usePrefetch('/about', { rootMargin: '200px' })
-  return <div ref={prefetchRef}>…</div>
-}
-```
-
-## WebGL Hooks
-
-See [webgl/hooks/](../webgl/hooks/):
-
-| Hook           | Purpose                                                                     |
-| -------------- | --------------------------------------------------------------------------- |
-| `useWebGLRect` | Place WebGL content on a hamo rect: scroll, transform and re-measure events |
+> **Use React's `useEffectEvent`, not hamo's.** React ships a stable
+> `useEffectEvent`; hamo's is an equivalent shim, and two sources for one
+> primitive end up both in use. `lib/webgl/hooks/use-pointer-input.ts` shows
+> the pattern: an effect calls the latest callback without listing it as a
+> dependency and re-subscribing.
 
 ## Viewport
 

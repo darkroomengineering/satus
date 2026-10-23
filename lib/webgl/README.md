@@ -1,76 +1,53 @@
 # WebGL / React Three Fiber
 
-WebGL 2-accelerated 3D rendering with a persistent root canvas, built on
-`@react-three/fiber`'s `WebGLRenderer`. GPU simulations (fluid, flowmap) run
-as GLSL3 `RawShaderMaterial` passes.
+WebGL 2 rendering with a persistent root canvas, built on `@react-three/fiber`'s
+`WebGLRenderer`. GPU simulations (fluid, flowmap) run as GLSL3
+`RawShaderMaterial` passes. Pages portal scene content into the canvas with
+`<WebGLTunnel>` (`@/webgl/components/tunnel`); the DOM-synced pattern is in
+[ARCHITECTURE.md § Code Patterns](../../ARCHITECTURE.md#code-patterns) (WebGL
+Element Lifecycle).
 
-## Quick Start
-
-```tsx
-import { Wrapper } from '@/components/layout/wrapper'
-import { WebGLTunnel } from '@/webgl/components/tunnel'
-
-export default function Page() {
-  return (
-    <Wrapper>
-      <WebGLTunnel>
-        <My3DScene />
-      </WebGLTunnel>
-      <section>HTML overlay</section>
-    </Wrapper>
-  )
-}
-```
-
-A worked example lives at `app/(site)/(examples)/webgl` (`/webgl` in dev):
-cubes that take their size and place from boxes CSS lays out, hold them
-through scroll and resize, and follow a parallax transform published through
-hamo's `TransformProvider`. Contributor-facing, noindex, and deleted by
+Worked example: `app/(site)/(examples)/webgl` (`/webgl` in dev): cubes that
+take their size and place from boxes CSS lays out, hold them through scroll and
+resize, and follow a parallax transform published through hamo's
+`TransformProvider`. Contributor-facing, noindex, and deleted by
 `setup:project` with the rest of the examples group.
+
+## Canvas strategy
 
 The canvas is mounted with `<Canvas root>`, either once in the shared layout
 (`lib/features`: `<OptionalFeatures />` mounts it unconditionally) so it
-persists across route navigation, or per page by passing `webgl` to the
-Wrapper (`<Wrapper webgl>`) after removing it from the layout.
-Pick exactly one — the store enforces a single root canvas at runtime, so if
-both are mounted the first one wins and the second is a no-op (with a dev
-warning), not a second canvas eating GPU.
+persists across route navigation, or per page with `<Wrapper webgl>` after
+removing it from the layout. Pick exactly one. The store enforces a single root
+canvas at runtime (`registerRootCanvasMount`): if both are mounted the first
+wins and the second is a no-op with a dev warning, not a second canvas eating
+GPU. The shared strategy keeps the context and shared assets alive across
+navigation.
 
-```mermaid
-flowchart TD
-    A{Scene shared across routes?} -->|yes| B["Layout: &lt;OptionalFeatures /&gt; → &lt;Canvas root&gt;"]
-    A -->|no, per page| C["Page: &lt;Wrapper webgl&gt; → &lt;Canvas root&gt;"]
-    B --> S[registerRootCanvasMount: first wins]
-    C --> S
-    S -->|second mount| W[dev warning, no-op]
-    S --> T["&lt;WebGLTunnel&gt; portals scene content"]
-    T --> G{useDeviceDetection.isWebGL?}
-    G -->|false| N[nothing rendered]
-```
+| Component     | Purpose                                                   |
+| ------------- | --------------------------------------------------------- |
+| `Canvas`      | Mounts the canvas via `root` (layout or per-page Wrapper) |
+| `WebGLTunnel` | Portal 3D content into the canvas                         |
+| `DOMTunnel`   | Portal HTML overlays                                      |
 
 ### Perf: opting into GPU simulations
 
-`<Canvas root>` mounts `FlowmapProvider` with no GPU simulations by default —
+`<Canvas root>` mounts `FlowmapProvider` with no GPU simulations by default:
 mounting a sim without a consumer wastes a render pass and window listeners.
-Pass `simTypes` with the sims you actually use:
-
-```tsx
-<Canvas root simTypes={['flowmap']} />
-```
+Pass the sims you use: `<Canvas root simTypes={['flowmap']} />`.
 
 ## Device gating
 
-The canvas is rendered only when `useDeviceDetection().isWebGL` is true (a
+The canvas renders only when `useDeviceDetection().isWebGL` is true (a
 hardware-accelerated WebGL2 context on a desktop viewport that is not
 touch-only) AND the user does not prefer reduced motion. On mobile, phones in
-landscape, tablets, unsupported devices, or under
-`prefers-reduced-motion` it's a no-op — nothing mounts. Rendering is driven
-manually by the `RAF` component (`frameloop="never"`), not the default r3f
-render loop.
+landscape, tablets, unsupported devices, or under `prefers-reduced-motion`
+nothing mounts. Rendering is driven by the `RAF` component
+(`frameloop="never"`), not r3f's default render loop.
 
 > **Always ship a fallback.** Because reduced-motion (and non-WebGL devices)
-> means the canvas may never mount, any page that puts _content_ in WebGL —
-> not just decoration — must render a non-WebGL fallback (static image, DOM
+> means the canvas may never mount, any page that puts _content_ in WebGL,
+> not just decoration, must render a non-WebGL fallback (static image, DOM
 > equivalent) for that state. If the WebGL content is essential and motionless,
 > mount with `force` and damp motion inside the scene instead.
 
@@ -91,28 +68,16 @@ signals keep it drawing:
   take one after each pointer move and release it once the trail has faded
   below 1%.
 
-A scene that animates on its own, such as a `useFrame` spin or a time
-uniform, freezes once the grace window ends unless it holds the canvas:
+A scene that animates on its own (a `useFrame` spin, a time uniform) freezes
+once the grace window ends unless it calls `useHoldAwake(isVisible)` from
+`@/webgl/utils/awake`. The `/webgl` cube takes a `useLease()` hold from its
+`useWebGLRect` callback instead, so its visibility never becomes React state.
+State held inside the canvas that changes the picture without moving through
+the tunnel (a material color set from a canvas-side `useState`) calls `wake()`
+itself.
 
-```tsx
-import { useFrame } from '@react-three/fiber'
-import { useHoldAwake } from '@/webgl/utils/awake'
-
-function Spinner({ isVisible }: { isVisible: boolean }) {
-  useHoldAwake(isVisible)
-  useFrame(({ clock }) => {
-    // …
-  })
-}
-```
-
-The `/webgl` cube takes a `useLease()` hold from its `useWebGLRect` callback
-instead, so its visibility never becomes React state. State held inside the
-canvas that changes the picture without moving through the tunnel (a
-material color set from a canvas-side `useState`) calls `wake()` itself.
-
-`<Canvas root render="always">` draws every frame, which is useful for
-ruling out a missed wake while debugging; `render={false}` never draws.
+`<Canvas root render="always">` draws every frame, useful for ruling out a
+missed wake while debugging; `render={false}` never draws.
 
 ## Pixel ratio
 
@@ -134,27 +99,7 @@ can. On its third change of direction it settles on the lower DPR and stops,
 so a device sitting on a threshold doesn't keep resizing the canvas. A DPR
 change wakes the canvas.
 
-## Architecture
-
-```
-<Canvas root> (layout OR per-page Wrapper) → rendered only when isWebGL
-    └─ WebGLTunnel.Out (portals 3D content from any page)
-```
-
-**Key benefits (shared/layout strategy):**
-
-- Context persists across navigation (no recreation)
-- Seamless route transitions
-- Shared assets stay loaded while anything on the page uses them
-- No-op on non-WebGL devices
-
-## Components
-
-| Component     | Purpose                                                   |
-| ------------- | --------------------------------------------------------- |
-| `Canvas`      | Mounts the canvas via `root` (layout or per-page Wrapper) |
-| `WebGLTunnel` | Portal 3D content into the canvas                         |
-| `DOMTunnel`   | Portal HTML overlays                                      |
+## Image
 
 `Image` (`@/webgl/components/image`) draws a DOM image as a textured plane.
 A texture is read with a CORS request, so the image host has to allow the
@@ -172,79 +117,21 @@ navigating between pages doesn't pile up textures on the persistent canvas.
 The delay lets the next page reuse a shared image: its plane mounts only
 after its DOM image loads, and without the delay the shared texture would be
 decoded and uploaded again on every navigation. A page that comes back after
-that loads the image again (usually from the HTTP cache). Image
-textures use mipmaps with trilinear filtering and up to 4x anisotropy, so a
-plane drawn smaller than its source doesn't shimmer as it scrolls.
+that loads the image again (usually from the HTTP cache).
 
-`/webgl` shows it: a 2048px test pattern drawn as planes a fifth of its width
-or less (`app/(site)/(examples)/webgl/_components/test-pattern`), served
-`unoptimized` so the plane gets the full file rather than a candidate near
-display size. In development a panel in the page's corner turns mipmaps off on
-every image texture (the `imageMipmaps` key of the Orchestra store, read in
-`lib/webgl/components/image/webgl.tsx`) and shows the canvas DPR, so the
-adaptive DPR described under Pixel ratio can be watched under DevTools CPU
-throttling. Leaving the page turns mipmaps back on.
+Image textures use mipmaps with trilinear filtering and up to 4x anisotropy,
+so a plane drawn smaller than its source doesn't shimmer as it scrolls.
+`/webgl` demonstrates it with a 2048px test pattern drawn as planes a fifth of
+its width or less (`app/(site)/(examples)/webgl/_components/test-pattern`),
+served `unoptimized` so the plane gets the full file rather than a candidate
+near display size. In development a panel in the page's corner turns mipmaps
+off on every image texture (the `imageMipmaps` key of the Orchestra store, read
+in `lib/webgl/components/image/webgl.tsx`) and shows the canvas DPR, so the
+adaptive DPR can be watched under DevTools CPU throttling. Leaving the page
+turns mipmaps back on.
 
 ## Hooks
 
-```tsx
-import { useRect } from 'hamo'
-import { useDeviceDetection } from '@/hooks/use-device-detection'
-import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
-
-// DOM side: measure the element once per resize (hamo), pass the rect down.
-const [setRectRef, rect] = useRect({ ignoreTransform: true })
-
-// Canvas side: place a mesh on it, on Lenis scroll events, provider
-// transform changes and re-measures.
-useWebGLRect(rect, onUpdate)
-
-// Gate rendering on capability
-const { isWebGL } = useDeviceDetection()
-```
-
-`onUpdate` receives `{ position, scale, isVisible }` in the camera's units
-(one unit per CSS pixel, origin mid-screen). Pass `ignoreTransform` to
-`useRect` for an element that moves under a `TransformProvider`, whose
-translate the hook adds itself. The hook works on either side of the tunnel:
-in the mesh component its render effect places the mesh as soon as it
-mounts; on the DOM side, where the mesh can mount later, the returned
-`update` goes in the mesh's ref callback.
-
-## DOM-Synced Component
-
-```tsx
-import { type Rect, useRect } from 'hamo'
-import { useRef } from 'react'
-import type { Mesh } from 'three'
-import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
-import { WebGLTunnel } from '@/webgl/components/tunnel'
-
-function WebGLBox({ className }) {
-  const [setRectRef, rect] = useRect()
-  return (
-    <div ref={setRectRef} className={className}>
-      <WebGLTunnel>
-        <BoxMesh rect={rect} />
-      </WebGLTunnel>
-    </div>
-  )
-}
-
-function BoxMesh({ rect }: { rect: Rect }) {
-  const meshRef = useRef<Mesh>(null)
-  useWebGLRect(rect, ({ position, scale, isVisible }) => {
-    const mesh = meshRef.current
-    if (!mesh) return
-    mesh.position.copy(position)
-    mesh.scale.copy(scale)
-    mesh.visible = isVisible
-  })
-  return (
-    <mesh ref={meshRef} visible={false}>
-      <planeGeometry />
-      <meshBasicMaterial />
-    </mesh>
-  )
-}
-```
+- `useRect({ ignoreTransform? })` from hamo measures the element on the DOM side, once per resize. Pass `ignoreTransform` for an element that moves under a `TransformProvider`; `useWebGLRect` adds that translate itself.
+- `useWebGLRect(rect, onUpdate)` (`@/webgl/hooks/use-webgl-rect`) places content on the rect on Lenis scroll events, provider transform changes and re-measures. `onUpdate` receives `{ position, scale, isVisible }` in the camera's units (one unit per CSS pixel, origin mid-screen). It works on either side of the tunnel: in the mesh component its render effect places the mesh as soon as it mounts; on the DOM side, where the mesh can mount later, the returned `update` goes in the mesh's ref callback.
+- `useDeviceDetection().isWebGL` (`@/hooks/use-device-detection`) gates rendering on capability.

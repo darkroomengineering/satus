@@ -4,10 +4,12 @@ Server-side API endpoints for integrations and webhooks.
 
 ## Response Shape
 
-Every JSON response follows `{ data, error }`: `error` is `null` and `data`
-holds the payload on success; `data` is `null` and `error` is a message string
-on failure. The HTTP status still carries the outcome (200 vs. 4xx/5xx) — the
-body shape never changes based on it.
+Every JSON response is `{ data, error }`: on success `error` is `null` and
+`data` holds the payload; on failure `error` is a message string and `data` is
+`null` unless the endpoint documents a payload (`/api/cart/ensure` returns
+`{ ready: false }`). The HTTP status carries the outcome (200 vs. 4xx/5xx); the body shape
+never changes with it. A new route under `app/api/<name>/route.ts` follows the
+same shape.
 
 ## Endpoints
 
@@ -22,24 +24,18 @@ body shape never changes based on it.
 
 ### Ensure Cart
 
-```
-POST /api/cart/ensure
-```
+| Case                     | Status | Body                                                        |
+| ------------------------ | ------ | ----------------------------------------------------------- |
+| Shopify not configured   | 503    | `{ data: null, error: 'Shopify is not configured' }`        |
+| `cartId` cookie present  | 200    | `{ data: { ready: true }, error: null }`                    |
+| Cart created, cookie set | 200    | `{ data: { ready: true }, error: null }`                    |
+| Cart creation failed     | 502    | `{ data: { ready: false }, error: 'Cart creation failed' }` |
 
-Gated on `isConfigured('shopify')` — returns 503 with
-`{ data: null, error: 'Shopify is not configured' }` when Shopify isn't
-configured. If the visitor already has a `cartId` cookie, it returns
-`{ data: { ready: true }, error: null }` immediately. Otherwise it creates a
-Shopify cart and sets it as an httpOnly cookie, then returns
-`{ data: { ready: true }, error: null }`. If cart creation fails, it returns
-`{ data: { ready: false }, error: 'Cart creation failed' }` with a 502 —
-non-fatal to the caller, since `addItem` still creates a cart when the cookie
-is missing. The cart id never reaches the client; the route reports only
-presence.
-
-Clients call this behind a cross-tab Web Lock so only one request is in
-flight per browser, closing a race where two concurrent first-adds each
-created their own cart.
+The cookie is httpOnly and the cart id never reaches the client; the route
+reports only presence. A 502 is non-fatal: `addItem` still creates a cart when
+the cookie is missing. Clients call the route behind a cross-tab Web Lock so
+only one request is in flight per browser, which stops two concurrent
+first-adds from each creating a cart.
 
 ## Draft Mode
 
@@ -47,33 +43,21 @@ Used by Sanity Visual Editing to preview unpublished content.
 
 ### Enable Draft Mode
 
-Draft mode is enabled from Sanity Studio's Presentation tool, which generates
-a signed preview link to `/api/draft-mode/enable` and validates it
-server-side. A hand-built request (e.g. `?slug=/page-slug` without a valid
-signature) returns 401 "Invalid secret". Without `SANITY_API_READ_TOKEN` (a
-Viewer token, server only) the route answers 503: draft mode needs it to read
-drafts.
+Sanity Studio's Presentation tool generates a signed preview link to
+`/api/draft-mode/enable`, validated server-side. A hand-built request without
+a valid signature returns 401 "Invalid secret". Without `SANITY_API_READ_TOKEN`
+(a Viewer token, server only) the route answers 503: draft mode needs it to
+read drafts.
 
 ### Disable Draft Mode
 
-```
-GET /api/draft-mode/disable
-```
-
-Clears draft mode cookies and redirects to homepage.
+Clears draft mode cookies and redirects to the homepage.
 
 ## Revalidation Webhook
 
-A single endpoint receives both Sanity and Shopify webhooks and dispatches to the matching
-provider's revalidation logic. Each provider owns its handler in its own integration folder
-(`lib/integrations/<provider>/revalidate.ts`); the route only matches the request to a provider
-and answers 404 when nothing matches.
-
-```
-POST /api/revalidate
-```
-
-The route dispatches on the request's origin:
+One endpoint receives both Sanity and Shopify webhooks. Each provider owns its
+handler (`lib/integrations/<provider>/revalidate.ts`); the route only matches
+the request to a provider and answers 404 when nothing matches.
 
 ```mermaid
 sequenceDiagram
@@ -95,69 +79,21 @@ sequenceDiagram
     R-->>W: 200 { data: { revalidated, now }, error: null }
 ```
 
-### Sanity Webhook Setup
-
-1. Go to Sanity project settings → API → Webhooks
-2. Create webhook with URL: `https://your-domain.com/api/revalidate`, method POST,
-   trigger on create, update and delete, and a secret
-3. Set the same secret in environment:
-
-```bash
-# .env.local
-SANITY_REVALIDATE_SECRET=your-secret-here
-```
-
-Sanity signs the request body and sends the signature in the `sanity-webhook-signature` header,
-which is how the route recognizes the request. `lib/integrations/sanity/revalidate.ts` then
-verifies it with `parseBody` from `next-sanity/webhook` and calls
-`revalidateTag('sanity', { expire: 0 })`. Every Sanity read carries that one tag, so any publish
-refreshes every page on its next visit. This webhook is the only thing that refreshes published
-Sanity content: there is no Sanity Live, and the cache entries live 30 days (a `revalidate`
-backstop on every published read) otherwise.
-
-### Shopify Webhook Setup
-
-1. Go to Shopify Admin → Settings → Notifications → Webhooks
-2. Create a webhook for each event (see `lib/integrations/shopify/README.md` for the full list)
-   with URL: `https://your-domain.com/api/revalidate?secret=YOUR_SHOPIFY_REVALIDATION_SECRET`
-3. Set secret in environment:
-
-```bash
-# .env.local
-SHOPIFY_REVALIDATION_SECRET=your-secret-here
-```
-
-Shopify sends the webhook topic in the `x-shopify-topic` header and the secret as the `secret`
-query param. The secret is compared in constant time (`timingSafeEqual`): missing or wrong
-returns 401, otherwise 200 so Shopify does not retry.
+Setup: Sanity in [lib/integrations/sanity/README.md § Revalidation](../../lib/integrations/sanity/README.md#revalidation), Shopify (including the event list) in [lib/integrations/shopify/README.md § Webhooks](../../lib/integrations/shopify/README.md#webhooks). A valid Shopify request gets 200 so Shopify does not retry.
 
 ## Security
 
-- Webhooks require a secret token for authentication (`SANITY_REVALIDATE_SECRET`,
-  `SHOPIFY_REVALIDATION_SECRET`)
-- Not rate limited, in the route or in `proxy.ts`, so a bulk publish is never turned away and
-  the site never stays stale. A request with neither provider's signal gets a 404 without its
-  body being read, and a Shopify secret is compared in constant time before any body read. A
-  request with a Sanity signature header has its whole body read (up to the platform's request
-  body cap) and HMACed before a wrong signature is rejected, with no wait. The cost: anyone can
-  make the route read and hash a body that size as often as they like
-- Invalid Sanity signature returns 401; malformed body returns 400; unset secret returns 503
-- Invalid or missing Shopify secret returns 401 (constant-time compare)
-- Every JSON response is `{ data, error }`: `error` is null on success, a
-  message string on failure
+- Webhooks require a secret (`SANITY_REVALIDATE_SECRET`,
+  `SHOPIFY_REVALIDATION_SECRET`).
+- Not rate limited, in the route or in `proxy.ts`, so a bulk publish is never
+  turned away and the site never stays stale. A request with neither
+  provider's signal gets a 404 without its body being read, and a Shopify
+  secret is compared in constant time before any body read. A request with a
+  Sanity signature header has its whole body read (up to the platform's
+  request body cap) and HMACed before a wrong signature is rejected, with no
+  wait. The cost: anyone can make the route read and hash a body that size as
+  often as they like.
+- Sanity: invalid signature 401, malformed body 400, unset secret 503.
+- Shopify: invalid or missing secret 401 (constant-time compare).
 
 See also: [SECURITY.md](../../SECURITY.md)
-
-## Adding New Endpoints
-
-Create a new route file:
-
-```tsx
-// app/api/my-endpoint/route.ts
-import { NextResponse } from 'next/server'
-
-export async function POST(request: Request) {
-  // Handle request
-  return NextResponse.json({ data: { success: true }, error: null })
-}
-```

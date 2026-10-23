@@ -9,7 +9,7 @@ import {
   getServerContextGeneration,
   subscribeContextGeneration,
 } from '@/webgl/store'
-import { framesToFade, holdAwake } from '@/webgl/utils/awake'
+import { framesToFade, useLease } from '@/webgl/utils/awake'
 import { Fluid } from '@/webgl/utils/fluid/fluid-sim'
 
 export function useFluidSim(
@@ -49,18 +49,11 @@ export function useFluidSim(
   // rate would otherwise freeze the fluid mid-fade. Only the dye is visible;
   // velocity dissipation can be 1 (no decay), which would hold forever.
   const fadeFramesRef = useRef(0)
-  const releaseRef = useRef<(() => void) | null>(null)
+  const lease = useLease()
   const holdUntilFaded = (fluid: Fluid) => {
     fadeFramesRef.current = framesToFade(fluid.densityDissipation)
-    releaseRef.current ??= holdAwake()
+    lease.acquire()
   }
-
-  useEffect(() => {
-    return () => {
-      releaseRef.current?.()
-      releaseRef.current = null
-    }
-  }, [])
 
   // Normalize pointer input and queue splats. The handler always reads the
   // latest `size` and `fluidRef.current`, because it's routed through
@@ -141,9 +134,8 @@ export function useFluidSim(
   useFrame((_, delta) => {
     fluidRef.current?.update(delta)
 
-    if (releaseRef.current && --fadeFramesRef.current <= 0) {
-      releaseRef.current()
-      releaseRef.current = null
+    if (lease.held && --fadeFramesRef.current <= 0) {
+      lease.release()
     }
   }, -10)
 

@@ -85,7 +85,7 @@ signals keep it drawing:
   `TransformProvider` translate); a texture loading in `Image`; a canvas
   resize or pixel-ratio change; a WebGL context restore; tunnel content
   mounting, unmounting or re-rendering.
-- **`useHoldAwake(active)`** (or `holdAwake()`, which returns its release),
+- **`useHoldAwake(active)`** (or `useLease()` for imperative acquire and release),
   a lease for anything that changes every frame. The flowmap and fluid sims
   take one after each pointer move and release it once the trail has faded
   below 1%.
@@ -105,7 +105,7 @@ function Spinner({ isVisible }: { isVisible: boolean }) {
 }
 ```
 
-The `/webgl` cube calls `holdAwake()` from its `useWebGLRect` callback
+The `/webgl` cube takes a `useLease()` hold from its `useWebGLRect` callback
 instead, so its visibility never becomes React state. State held inside the
 canvas that changes the picture without moving through the tunnel (a
 material color set from a canvas-side `useState`) calls `wake()` itself.

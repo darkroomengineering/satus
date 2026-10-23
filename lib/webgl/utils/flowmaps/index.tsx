@@ -9,7 +9,7 @@ import {
   getServerContextGeneration,
   subscribeContextGeneration,
 } from '@/webgl/store'
-import { framesToFade, holdAwake } from '@/webgl/utils/awake'
+import { framesToFade, useLease } from '@/webgl/utils/awake'
 import { Flowmap } from '@/webgl/utils/flowmaps/flowmap-sim'
 
 export function useFlowmapSim(
@@ -53,18 +53,11 @@ export function useFlowmapSim(
   // is held for a frame count rather than woken for a time window: a slow
   // frame rate would otherwise freeze the trail mid-fade.
   const fadeFramesRef = useRef(0)
-  const releaseRef = useRef<(() => void) | null>(null)
+  const lease = useLease()
   const holdUntilFaded = (dissipation: number) => {
     fadeFramesRef.current = framesToFade(dissipation)
-    releaseRef.current ??= holdAwake()
+    lease.acquire()
   }
-
-  useEffect(() => {
-    return () => {
-      releaseRef.current?.()
-      releaseRef.current = null
-    }
-  }, [])
 
   // Mouse/touch input — drives the flowmap stamp position and velocity.
   // The handler always reads the latest `size` and `flowmapRef.current`,
@@ -150,9 +143,8 @@ export function useFlowmapSim(
     movedRef.current = false
     flowmap?.update()
 
-    if (releaseRef.current && --fadeFramesRef.current <= 0) {
-      releaseRef.current()
-      releaseRef.current = null
+    if (lease.held && --fadeFramesRef.current <= 0) {
+      lease.release()
     }
   }, -10)
 

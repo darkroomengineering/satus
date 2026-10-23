@@ -17,7 +17,7 @@
  * Module state, not context: there is one root canvas.
  */
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 let awakeUntil = 0
 let holds = 0
@@ -47,6 +47,38 @@ export function useHoldAwake(active: boolean) {
     if (!active) return
     return holdAwake()
   }, [active])
+}
+
+interface Lease {
+  readonly held: boolean
+  acquire: () => void
+  release: () => void
+}
+
+function createLease(): Lease {
+  let release: (() => void) | null = null
+  return {
+    get held() {
+      return release !== null
+    },
+    acquire() {
+      if (!release) release = holdAwake()
+    },
+    release() {
+      release?.()
+      release = null
+    },
+  }
+}
+
+/**
+ * A hold the caller acquires and releases imperatively (from a frame loop or
+ * a rect callback, where React state would re-render). Released on unmount.
+ */
+export function useLease(): Lease {
+  const [lease] = useState(createLease)
+  useEffect(() => lease.release, [lease])
+  return lease
 }
 
 export function isAwake(now: number) {

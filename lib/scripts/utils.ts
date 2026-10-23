@@ -1,4 +1,5 @@
 import { access, rm } from 'node:fs/promises'
+import { resolve } from 'node:path'
 
 import { z } from 'zod'
 
@@ -13,6 +14,28 @@ export const pathExists = async (path: string): Promise<boolean> => {
   } catch {
     return false
   }
+}
+
+/**
+ * Where the current directory sits in git: the main checkout, a linked
+ * worktree, or outside any repo. A linked worktree shares `core.hooksPath`
+ * with the main checkout, so `lefthook install` refuses it, and its `.git` is a
+ * FILE, so an `existsSync('.git/hooks/...')` check always reports a false
+ * failure there.
+ */
+export const detectGitLayout = (): 'main' | 'worktree' | 'no-git' => {
+  const git = Bun.spawnSync([
+    'git',
+    'rev-parse',
+    '--absolute-git-dir',
+    '--git-common-dir',
+  ])
+  if (git.exitCode !== 0) return 'no-git'
+  const [gitDir, commonDir] = git.stdout.toString().trim().split('\n')
+  // Resolve both sides: on Windows git prints `C:/…` and resolve() gives `C:\…`.
+  if (gitDir && commonDir && resolve(gitDir) !== resolve(commonDir))
+    return 'worktree'
+  return 'main'
 }
 
 /**

@@ -24,9 +24,9 @@
  */
 
 import { unlink } from 'node:fs/promises'
-import { resolve } from 'node:path'
 
 import {
+  detectGitLayout,
   PENDING_FORMAT_MARKER,
   PENDING_FORMAT_MAX_ATTEMPTS,
   type PendingFormatMarker,
@@ -122,22 +122,14 @@ if (await pathExists(markerPath)) {
   }
 }
 
-const git = Bun.spawnSync([
-  'git',
-  'rev-parse',
-  '--absolute-git-dir',
-  '--git-common-dir',
-])
+const gitLayout = detectGitLayout()
 
-if (git.exitCode !== 0) {
+if (gitLayout === 'no-git') {
   console.log('prepare: not a git repository, skipping lefthook install')
   process.exit(0)
 }
 
-const [gitDir, commonDir] = git.stdout.toString().trim().split('\n')
-
-// Resolve both sides: on Windows git prints `C:/…` and resolve() gives `C:\…`.
-if (gitDir && commonDir && resolve(gitDir) !== resolve(commonDir)) {
+if (gitLayout === 'worktree') {
   console.log(
     'prepare: linked worktree, hooks are shared with the main checkout — skipping lefthook install'
   )

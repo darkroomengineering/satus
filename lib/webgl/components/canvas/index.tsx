@@ -27,7 +27,7 @@ import {
   releasePrimary,
   subscribePrimaryClaim,
 } from '@/lib/webgl/store'
-import type { tunnel } from '@/webgl/utils/tunnel'
+import type { Tunnel } from '@/webgl/utils/tunnel'
 
 const WebGLCanvas = dynamic(
   () => import('./webgl').then(({ WebGLCanvas }) => WebGLCanvas),
@@ -65,11 +65,9 @@ function useWebGLDevKillSwitch(): boolean {
   )
 }
 
-type TunnelInstance = ReturnType<typeof tunnel>
-
 type CanvasContextValue =
   | { active: false }
-  | { active: true; WebGLTunnel: TunnelInstance; DOMTunnel: TunnelInstance }
+  | { active: true; WebGLTunnel: Tunnel; DOMTunnel: Tunnel }
 
 type CanvasProps = PropsWithChildren<{
   /**

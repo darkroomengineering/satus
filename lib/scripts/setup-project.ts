@@ -35,6 +35,7 @@ import {
   getBundle,
   getIntegrationNames,
   INTEGRATION_BUNDLES,
+  type IntegrationBundle,
 } from './integration-bundles'
 import type { PayloadPackageJson, PayloadSource } from './payload-source'
 import { guardedPrompt } from './prompts'
@@ -356,6 +357,18 @@ const writePendingFormatMarker = async (files: string[]): Promise<void> => {
 }
 
 /**
+ * The bundles behind `ids`, in order, paired with their id. A RemovableId with
+ * no INTEGRATION_BUNDLES entry (turnstile, analytics) is skipped.
+ */
+const bundlesFor = (
+  ids: readonly RemovableId[]
+): { id: RemovableId; bundle: IntegrationBundle }[] =>
+  ids.flatMap((id) => {
+    const bundle = getBundle(id)
+    return bundle ? [{ id, bundle }] : []
+  })
+
+/**
  * Relative paths (folders / files / overwriteFiles) the kept bundles declare:
  * the set `setupSnapshot` needs on disk to build a working payload. Exported
  * for unit testing.
@@ -365,10 +378,7 @@ export const declaredBundlePaths = (
 ): string[] => {
   const paths: string[] = []
 
-  for (const id of keepIntegrations) {
-    const bundle = getBundle(id)
-    if (!bundle) continue // id: RemovableId — guard is honest
-
+  for (const { bundle } of bundlesFor(keepIntegrations)) {
     paths.push(
       ...bundle.folders,
       ...bundle.files,
@@ -409,10 +419,7 @@ const setupSnapshot = async (
 ): Promise<PayloadSource> => {
   const root = await mkdtemp(join(tmpdir(), 'satus-snapshot-'))
 
-  for (const id of keepIntegrations) {
-    const bundle = getBundle(id)
-    if (!bundle) continue // id: RemovableId — guard is honest
-
+  for (const { bundle } of bundlesFor(keepIntegrations)) {
     for (const folder of bundle.folders) {
       const src = resolvePath(folder)
       if (await pathExists(src)) {
@@ -435,9 +442,7 @@ const setupSnapshot = async (
     }
   }
 
-  for (const id of keepIntegrations) {
-    const bundle = getBundle(id)
-    if (!bundle) continue // id: RemovableId — guard is honest
+  for (const { bundle } of bundlesFor(keepIntegrations)) {
     for (const { file } of bundle.barrelExports) {
       const src = resolvePath(file)
       if (await pathExists(src)) {
@@ -655,10 +660,7 @@ export const setupAddIntegrations = async (
   const failures: TransformFailure[] = []
   const changedFiles = new Set<string>()
 
-  for (const id of keepIntegrations) {
-    const bundle = getBundle(id)
-    if (!bundle) continue // id: RemovableId — guard is honest
-
+  for (const { id, bundle } of bundlesFor(keepIntegrations)) {
     s.start(`Re-adding ${bundle.name}...`)
     // Counted as kept even if the re-add fails below, or
     // stripAbsentIntegrationWiring would treat it as absent and strip its
@@ -721,9 +723,7 @@ export const codeTransformTargetPaths = (
     }
   }
 
-  for (const id of keepIntegrations) {
-    const bundle = getBundle(id)
-    if (!bundle) continue // id: RemovableId — guard is honest
+  for (const { bundle } of bundlesFor(keepIntegrations)) {
     for (const transform of bundle.addTransforms ?? []) {
       paths.add(transform.file)
     }

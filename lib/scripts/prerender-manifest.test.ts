@@ -32,10 +32,9 @@ const manifestPath = '.next/prerender-manifest.json'
 const manifestFile = Bun.file(manifestPath)
 const manifestExists = await manifestFile.exists()
 
-// No prior `bun run build` (e.g. running `bun test` locally without one) —
-// skip quietly rather than failing. CI always builds before `bun run check`
-// (which runs this suite), so the assertion is live exactly where it matters.
-describe.skipIf(!manifestExists)(
+// Skips locally without a build. CI builds before `bun run check`, so there a
+// missing manifest fails instead of skipping.
+describe.skipIf(!manifestExists && !process.env.CI)(
   'prerender manifest (.next/prerender-manifest.json)',
   () => {
     it('homepage ("/") is prerendered as complete static HTML', async () => {

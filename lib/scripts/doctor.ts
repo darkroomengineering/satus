@@ -1,10 +1,11 @@
 #!/usr/bin/env bun
 import { existsSync } from 'node:fs'
-import { join, resolve } from 'node:path'
+import { join } from 'node:path'
 
 import { config } from '@dotenvx/dotenvx'
 
 import { coreEnvSchema } from '../utils/validation'
+import { detectGitLayout } from './utils'
 
 const ROOT = process.cwd()
 
@@ -35,27 +36,6 @@ interface Check {
   fix?: string
   /** Explanation printed when `check` returns `'skip'`. */
   skipReason?: string
-}
-
-/**
- * Mirrors the detection `prepare.ts` uses to decide whether `lefthook install`
- * is safe: linked worktrees share `core.hooksPath` with the main checkout and
- * lefthook refuses that shared path. There `.git` is a FILE, so an
- * `existsSync('.git/hooks/...')` check always reports a false failure.
- */
-const detectGitLayout = (): 'main' | 'worktree' | 'no-git' => {
-  const git = Bun.spawnSync([
-    'git',
-    'rev-parse',
-    '--absolute-git-dir',
-    '--git-common-dir',
-  ])
-  if (git.exitCode !== 0) return 'no-git'
-  const [gitDir, commonDir] = git.stdout.toString().trim().split('\n')
-  // Resolve both sides: on Windows git prints `C:/…` and resolve() gives `C:\…`.
-  if (gitDir && commonDir && resolve(gitDir) !== resolve(commonDir))
-    return 'worktree'
-  return 'main'
 }
 
 const colors = {

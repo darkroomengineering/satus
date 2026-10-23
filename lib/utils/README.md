@@ -6,10 +6,10 @@ Pure utility functions organized by concern. Import from the module directly (`@
 
 | Module       | Functions                                                                                                                                                                                                     |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `math`       | `clamp`, `lerp`, `mapRange`, `truncate`, `modulo`, `roundTo`, `degToRad`, `radToDeg`, `distance`                                                                                                              |
+| `math`       | `clamp`, `lerp`, `mapRange`, `truncate`, `modulo`, `distance`                                                                                                                                                 |
 | `raf`        | `mutate` (DOM write batching, prevents layout thrashing)                                                                                                                                                      |
 | `fetch`      | `fetchWithTimeout`, `fetchJSON`                                                                                                                                                                               |
-| `strings`    | `slugify`, `lowerFirstChar`, `capitalizeFirstLetter`, `isEmptyArray`, `stripHtmlTags`                                                                                                                         |
+| `strings`    | `stripHtmlTags`                                                                                                                                                                                               |
 | `metadata`   | `generatePageMetadata`, `generateSanityMetadata`                                                                                                                                                              |
 | `validation` | `emailSchema`, `phoneSchema`, `sanityEnvSchema`, `shopifyEnvSchema`, `hubspotEnvSchema`, `mailchimpEnvSchema`, `turnstileEnvSchema`, `analyticsEnvSchema`, `coreEnvSchema`, `parseFormData`, `zodToValidator` |
 | `rate-limit` | `rateLimit`, `getClientIP`, `rateLimiters`                                                                                                                                                                    |

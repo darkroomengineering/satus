@@ -39,18 +39,6 @@ export function modulo(n: number, d: number): number {
   return ((n % d) + d) % d
 }
 
-export function roundTo(value: number, multiple: number): number {
-  return Math.round(value / multiple) * multiple
-}
-
-export function degToRad(degrees: number): number {
-  return (degrees * Math.PI) / 180
-}
-
-export function radToDeg(radians: number): number {
-  return (radians * 180) / Math.PI
-}
-
 export function distance(
   x1: number,
   y1: number,

@@ -1,18 +1,16 @@
-import { tunnel } from '@/webgl/utils/tunnel'
+import { type Tunnel, tunnel } from '@/webgl/utils/tunnel'
 
-type WebGLTunnelInstance = ReturnType<typeof tunnel>
+let webGLTunnelSingleton: Tunnel | null = null
+let domTunnelSingleton: Tunnel | null = null
 
-let webGLTunnelSingleton: WebGLTunnelInstance | null = null
-let domTunnelSingleton: WebGLTunnelInstance | null = null
-
-export function getWebGLTunnel(): WebGLTunnelInstance {
+export function getWebGLTunnel(): Tunnel {
   if (!webGLTunnelSingleton) {
     webGLTunnelSingleton = tunnel()
   }
   return webGLTunnelSingleton
 }
 
-export function getDOMTunnel(): WebGLTunnelInstance {
+export function getDOMTunnel(): Tunnel {
   if (!domTunnelSingleton) {
     domTunnelSingleton = tunnel()
   }

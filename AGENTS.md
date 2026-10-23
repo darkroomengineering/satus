@@ -171,6 +171,12 @@ Dispose materials, textures, geometries, and render targets on unmount. Remove e
 - **Highly prefer E2E tests as the sole testing mechanism.** Use them (Playwright, `e2e/*.e2e.ts`) to verify that complex features work. At the end of an E2E test, produce a verifiable and repeatable artifact: a screenshot or recorded output attached with `testInfo.attach()`, or a report that a rerun reproduces.
 - **Never write unit tests after you write code.** A unit test written to fit finished code asserts what the code does, not what it must do, so it rarely catches a real bug.
 - **If you must test a system in isolation, first write down all the ways it could fail, then write the code.** The isolated tests assert against that list. The unit tests that remain in this repo cover what E2E cannot reach: CLI scripts (`setup:project`, `handoff`), configured-integration paths (E2E runs without credentials), and cross-module invariants.
+- **A test skips only for a dependency CI lacks; anything CI has fails when missing.** Current skips:
+  - `e2e/render-on-demand.e2e.ts`: software or missing WebGL2 (CI's SwiftShader); `E2E_GPU=1` runs it.
+  - `e2e/route-sweep.e2e.ts`: routes in `OPT_OUT`, reason in the test name.
+  - `e2e/secrets-in-bundle.e2e.ts`: locally, without the `leakcheck-*` values CI sets.
+  - `lib/scripts/prerender-manifest.test.ts`: without a prior build, except in ci.yml's build job (`PRERENDER_MANIFEST_REQUIRED`).
+  - `lib/scripts/setup-project.test.ts`: the chmod cases, as root.
 
 ### Git
 

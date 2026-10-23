@@ -71,7 +71,7 @@ function extractFontCalls(source: string, identifiers: string[]): FontCall[] {
 describe('font variable-axis invariant (lib/styles/fonts.ts)', () => {
   it('never passes an explicit weight[] to a family that ships a variable axis', async () => {
     const metadata = await loadFontMetadata()
-    if (!metadata) return // font-data.json absent — skip, not a real failure
+    if (!metadata) throw new Error(`${FONT_DATA_PATH} missing`)
 
     const source = await Bun.file('lib/styles/fonts.ts').text()
 

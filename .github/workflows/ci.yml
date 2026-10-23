@@ -37,6 +37,8 @@ jobs:
       # (>=24.20.0, the current LTS; native type-stripping of .ts files is unflagged).
       - name: Build and check
         uses: darkroomengineering/.github/actions/bun-web-ci@a75b42e03f56b5ca5b2808ac4f1b06c81998fbc6
+        env:
+          PRERENDER_MANIFEST_REQUIRED: '1'
         with:
           node-version-file: .node-version
           oxlint-annotations: 'true'
@@ -178,6 +180,16 @@ jobs:
       - name: Run e2e tests
         if: steps.gate.outputs.run == 'true'
         run: bun run test:e2e
+        # e2e/secrets-in-bundle.e2e.ts fails if a server secret in lib/env.ts is missing here.
+        env:
+          ERROR_REPORT_TOKEN: leakcheck-ERROR_REPORT_TOKEN
+          SANITY_API_READ_TOKEN: leakcheck-SANITY_API_READ_TOKEN
+          SANITY_REVALIDATE_SECRET: leakcheck-SANITY_REVALIDATE_SECRET
+          SHOPIFY_STOREFRONT_ACCESS_TOKEN: leakcheck-SHOPIFY_STOREFRONT_ACCESS_TOKEN
+          SHOPIFY_REVALIDATION_SECRET: leakcheck-SHOPIFY_REVALIDATION_SECRET
+          HUBSPOT_ACCESS_TOKEN: leakcheck-HUBSPOT_ACCESS_TOKEN
+          MAILCHIMP_API_KEY: leakcheck-MAILCHIMP_API_KEY
+          CLOUDFLARE_TURNSTILE_SECRET_KEY: leakcheck-CLOUDFLARE_TURNSTILE_SECRET_KEY
 
       - name: Upload Playwright report
         if: failure() && steps.gate.outputs.run == 'true'

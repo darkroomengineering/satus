@@ -32,10 +32,9 @@ const manifestPath = '.next/prerender-manifest.json'
 const manifestFile = Bun.file(manifestPath)
 const manifestExists = await manifestFile.exists()
 
-// No prior `bun run build` (e.g. running `bun test` locally without one) —
-// skip quietly rather than failing. CI always builds before `bun run check`
-// (which runs this suite), so the assertion is live exactly where it matters.
-describe.skipIf(!manifestExists)(
+// Skips without a build. ci.yml's build job sets PRERENDER_MANIFEST_REQUIRED,
+// so there a missing manifest fails. ci-gate.yml runs check without a build.
+describe.skipIf(!manifestExists && !process.env.PRERENDER_MANIFEST_REQUIRED)(
   'prerender manifest (.next/prerender-manifest.json)',
   () => {
     it('homepage ("/") is prerendered as complete static HTML', async () => {

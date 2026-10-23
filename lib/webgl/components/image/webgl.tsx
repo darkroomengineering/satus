@@ -1,7 +1,13 @@
 import { useTexture } from '@react-three/drei'
 import { useThree } from '@react-three/fiber'
 import type { Rect } from 'hamo'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react'
 import {
   LinearFilter,
   LinearMipmapLinearFilter,
@@ -10,6 +16,7 @@ import {
   type Texture,
 } from 'three'
 
+import Orchestra from '@/lib/dev/orchestra'
 import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
 import { wake } from '@/webgl/utils/awake'
 
@@ -56,6 +63,41 @@ function configure(texture: Texture, maxAnisotropy: number) {
   texture.magFilter = LinearFilter
   texture.anisotropy = Math.min(4, maxAnisotropy)
   texture.needsUpdate = true
+}
+
+// Development only: the `imageMipmaps` key of the Orchestra dev store (unset
+// means on; written by the dev panel on /webgl) switches every image texture
+// between trilinear and plain linear minification, to compare the two in the
+// same frame. three keys its GL texture on the filters, so a flip uploads the
+// image again, with or without mip levels.
+function subscribeToMipmapsToggle(onChange: () => void) {
+  return Orchestra.subscribe((state) => state.imageMipmaps, onChange)
+}
+
+function getMipmapsToggle() {
+  return Orchestra.getState().imageMipmaps ?? true
+}
+
+function setMinFilter(texture: Texture, mipmaps: boolean) {
+  const filter = mipmaps ? LinearMipmapLinearFilter : LinearFilter
+  if (texture.minFilter === filter) return
+  texture.minFilter = filter
+  texture.needsUpdate = true
+  wake()
+}
+
+function DevMipmapsToggle({ texture }: { texture: Texture }) {
+  const mipmaps = useSyncExternalStore(
+    subscribeToMipmapsToggle,
+    getMipmapsToggle,
+    getMipmapsToggle
+  )
+
+  useEffect(() => {
+    setMinFilter(texture, mipmaps)
+  }, [mipmaps, texture])
+
+  return null
 }
 
 function release(texture: Texture, src: string) {
@@ -146,6 +188,9 @@ function WebGLImageMesh({ src, rect }: WebGLImageMeshProps) {
     <mesh ref={meshRef} matrixAutoUpdate={false} visible={false}>
       <planeGeometry />
       <primitive object={material} />
+      {process.env.NODE_ENV === 'development' && (
+        <DevMipmapsToggle texture={texture} />
+      )}
     </mesh>
   )
 }

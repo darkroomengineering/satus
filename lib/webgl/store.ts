@@ -26,14 +26,7 @@ export function getDOMTunnel(): WebGLTunnelInstance {
 // effect with a symmetric cleanup, so Strict Mode's mount→cleanup→mount never
 // leaves a stale entry.
 let rootCanvasIds: readonly string[] = []
-const rootCanvasListeners = new Set<() => void>()
 let hasWarnedMultipleRootMounts = false
-
-function emitRootCanvasChange() {
-  for (const listener of rootCanvasListeners) {
-    listener()
-  }
-}
 
 /**
  * Register a `<Canvas root>` mount under a stable id (e.g. from `useId`) from
@@ -56,21 +49,11 @@ export function registerRootCanvasMount(id: string): () => void {
     )
   }
 
-  emitRootCanvasChange()
-
   return () => {
     rootCanvasIds = rootCanvasIds.filter((rootId) => rootId !== id)
     if (rootCanvasIds.length <= 1) {
       hasWarnedMultipleRootMounts = false
     }
-    emitRootCanvasChange()
-  }
-}
-
-export function subscribeRootCanvas(listener: () => void): () => void {
-  rootCanvasListeners.add(listener)
-  return () => {
-    rootCanvasListeners.delete(listener)
   }
 }
 

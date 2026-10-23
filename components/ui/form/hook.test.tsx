@@ -218,7 +218,6 @@ describe('useForm registration is keyed by field name', () => {
     expect(snapshot.current?.isValid.name).toBe(true)
     expect(snapshot.current?.errors.name?.state).toBe(false)
 
-    // Unmount it again
     rerender(
       <Harness
         fields={[emailField, nameField]}

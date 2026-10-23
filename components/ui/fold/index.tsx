@@ -88,7 +88,7 @@ export function Fold({
         )}
         {...props}
       >
-        <div className={cn(s.sticky)} ref={stickyRef}>
+        <div className={s.sticky} ref={stickyRef}>
           {children}
         </div>
         <div className={s.overlay} ref={overlayRef} />

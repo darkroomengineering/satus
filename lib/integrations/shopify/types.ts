@@ -106,8 +106,6 @@ export interface Cart extends DefaultCart {
   }
 }
 
-export type CartLineMutation = Pick<CartLineItem, 'id' | 'merchandise'>
-
 export interface CartLineInput {
   merchandiseId: string
   quantity: number
@@ -116,12 +114,6 @@ export interface CartLineInput {
 export interface AddItemPayload {
   variantId: string
   quantity?: number
-}
-
-export interface UpdateItemQuantityPayload {
-  merchandiseId: string
-  quantity: number
-  lineId?: string | undefined
 }
 
 export interface Collection {

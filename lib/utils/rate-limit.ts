@@ -21,7 +21,7 @@ interface RateLimitEntry {
 
 const store = new Map<string, RateLimitEntry>()
 
-const CLEANUP_INTERVAL = 60 * 1000 // 1 minute
+const CLEANUP_INTERVAL = 60 * 1000
 let lastCleanup = Date.now()
 
 function cleanup() {

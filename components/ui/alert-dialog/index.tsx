@@ -85,18 +85,18 @@ function AlertDialog({
         }
       />
       <BaseAlertDialog.Portal>
-        <BaseAlertDialog.Backdrop className={cn(s.backdrop)} />
+        <BaseAlertDialog.Backdrop className={s.backdrop} />
         <BaseAlertDialog.Popup className={cn(s.popup, className)}>
-          <BaseAlertDialog.Title className={cn(s.title)}>
+          <BaseAlertDialog.Title className={s.title}>
             {title}
           </BaseAlertDialog.Title>
           {description && (
-            <BaseAlertDialog.Description className={cn(s.description)}>
+            <BaseAlertDialog.Description className={s.description}>
               {description}
             </BaseAlertDialog.Description>
           )}
           <div className={s.actions}>
-            <BaseAlertDialog.Close className={cn(s.cancel)} onClick={onCancel}>
+            <BaseAlertDialog.Close className={s.cancel} onClick={onCancel}>
               {cancelLabel}
             </BaseAlertDialog.Close>
             <BaseAlertDialog.Close

@@ -171,7 +171,6 @@ export const copyToClipboard = async (text: string): Promise<boolean> => {
     }
 
     if (process.platform === 'linux') {
-      // Try xclip first, then xsel
       for (const cmd of [
         ['xclip', '-selection', 'clipboard'],
         ['xsel', '--clipboard', '--input'],

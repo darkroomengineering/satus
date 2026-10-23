@@ -1,7 +1,12 @@
 'use client'
 
-import { createContext, type ReactNode, use, useState } from 'react'
-import { useOptimistic } from 'react'
+import {
+  createContext,
+  type ReactNode,
+  use,
+  useOptimistic,
+  useState,
+} from 'react'
 
 import type { Cart, Product, ProductVariant } from '../types'
 import {

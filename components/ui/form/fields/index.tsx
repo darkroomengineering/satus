@@ -71,7 +71,7 @@ export function InputField({
       disabled={disabled}
     >
       {label && (
-        <Field.Label htmlFor={id} className={cn(s.label)}>
+        <Field.Label htmlFor={id} className={s.label}>
           {label}
           {required && <span aria-hidden="true"> *</span>}
         </Field.Label>
@@ -82,7 +82,7 @@ export function InputField({
         name={fieldName}
         required={required}
         placeholder={placeholder}
-        className={cn(s.input)}
+        className={s.input}
         // Without `label` no <Field.Label> renders, so fall back to the
         // placeholder, then the field name, for an accessible name. Not set
         // when a visible label exists: aria-label would override it and could
@@ -96,9 +96,7 @@ export function InputField({
         render={<input />}
       />
       {error?.state && error.message && (
-        <Field.Error className={cn(s.errorMessage)}>
-          {error.message}
-        </Field.Error>
+        <Field.Error className={s.errorMessage}>{error.message}</Field.Error>
       )}
     </Field.Root>
   )
@@ -143,7 +141,7 @@ export function TextareaField({
       disabled={disabled}
     >
       {label && (
-        <Field.Label htmlFor={id} className={cn(s.label)}>
+        <Field.Label htmlFor={id} className={s.label}>
           {label}
           {required && <span aria-hidden="true"> *</span>}
         </Field.Label>
@@ -162,9 +160,7 @@ export function TextareaField({
         render={<textarea rows={rows} />}
       />
       {error?.state && error.message && (
-        <Field.Error className={cn(s.errorMessage)}>
-          {error.message}
-        </Field.Error>
+        <Field.Error className={s.errorMessage}>{error.message}</Field.Error>
       )}
     </Field.Root>
   )
@@ -198,7 +194,7 @@ export function CheckboxesField({
 
   return (
     <Field.Root className={cn(s.field, s.checkboxGroup, className)}>
-      {label && <Field.Label className={cn(s.groupLabel)}>{label}</Field.Label>}
+      {label && <Field.Label className={s.groupLabel}>{label}</Field.Label>}
       <input
         type="hidden"
         name={name}

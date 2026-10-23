@@ -199,7 +199,9 @@ Types: `Rect`, `Transform`, `TransformRef`, `UseScrollTriggerOptions`.
 Detect device capabilities (SSR-safe): screen size, input method, motion
 preference, WebGL support, Safari, and inline-video autoplay support.
 `isWebGL` is false on software renderers (SwiftShader, llvmpipe, headless
-audit runners), so the DOM fallback is what PageSpeed Insights measures.
+audit runners), so the DOM fallback is what PageSpeed Insights measures. It is
+also false below the desktop breakpoint and on touch-only devices
+(`isTouchOnly`), so phones in landscape and tablets get the fallback too.
 
 ```tsx
 import { useDeviceDetection } from '@/hooks/use-device-detection'

@@ -106,8 +106,13 @@ function getStaticDetectionServerSnapshot() {
 
 /**
  * Detect device capabilities: screen size, input method, motion preference,
- * WebGL support (hardware-accelerated only, see `SOFTWARE_RENDERER`), Safari,
- * and inline-video autoplay support.
+ * WebGL support, Safari, and inline-video autoplay support.
+ *
+ * `isWebGL` is true only for a hardware-accelerated WebGL2 context (see
+ * `SOFTWARE_RENDERER`) on a desktop-width viewport that is not touch-only
+ * (`isTouchOnly`). Phones in landscape and tablets get the DOM fallback even
+ * past the desktop breakpoint; a laptop with a touchscreen keeps WebGL because
+ * its primary pointer can hover.
  *
  * @example
  * ```tsx
@@ -120,7 +125,7 @@ export function useDeviceDetection() {
   const isMobile = useMediaQuery(`(max-width: ${breakpoint - 1}px)`)
   const isDesktop = useMediaQuery(`(min-width: ${breakpoint}px)`)
   const isReducedMotion = usePreferredReducedMotion()
-  // Detects coarse-pointer / no-hover devices (touch-only, e.g. phones/tablets)
+  // Coarse pointer and no hover: phones and tablets. Closes the WebGL gate.
   const isTouchOnly = useMediaQuery('(any-pointer: coarse) and (hover: none)')
   const { dpr } = useWindowSize()
 
@@ -145,7 +150,9 @@ export function useDeviceDetection() {
     void detectIsAutoplaySupported().then(setIsAutoplaySupported)
   }, [])
 
-  const isWebGL = supportsWebGL && isDesktop
+  // `isTouchOnly` is undefined until its media query resolves; `!isTouchOnly`
+  // would read that as "not touch" and open the gate early.
+  const isWebGL = supportsWebGL && isDesktop && isTouchOnly === false
 
   return {
     // Screen size

@@ -37,7 +37,7 @@ which mounts the canvas on that page instead — pick one (see
 
 1. The canvas mounts only on WebGL-capable devices; the capability probe and the canvas module still load
 2. GPU capability is detected via a WebGL 2 context probe on a desktop
-   viewport (`useDeviceDetection().isWebGL`)
+   viewport that is not touch-only (`useDeviceDetection().isWebGL`)
 3. With the shared strategy, the context persists across navigation
 4. GPU boot still waits for `window.load` through `useAfterLoad`; `browser()` does not replace that scheduling gate
 

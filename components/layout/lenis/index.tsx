@@ -26,6 +26,17 @@ function isOverlay(target: EventTarget) {
   )
 }
 
+// `wheel` and `programmatic` are spread over defaults here and again inside
+// Lenis, so a key that is present but `undefined` (`{ lerp: undefined }`)
+// replaces the default and turns smoothing off. Drop those keys first.
+function withoutUndefined<T extends object>(value: T | undefined): Partial<T> {
+  const defined: Partial<T> = { ...value }
+  for (const key in defined) {
+    if (defined[key] === undefined) delete defined[key]
+  }
+  return defined
+}
+
 interface LenisProps extends Omit<ReactLenisProps, 'ref'> {
   root: boolean
   options: LenisOptions
@@ -63,8 +74,11 @@ export function Lenis({ root, options, syncAnime = false }: LenisProps) {
       root={root}
       options={{
         ...options,
-        wheel: { lerp: 0.125, ...options?.wheel },
-        programmatic: { lerp: 0.125, ...options?.programmatic },
+        wheel: { lerp: 0.125, ...withoutUndefined(options?.wheel) },
+        programmatic: {
+          lerp: 0.125,
+          ...withoutUndefined(options?.programmatic),
+        },
         // Tempus drives raf above.
         autoRaf: false,
         // Let overlays scroll natively.

@@ -14,6 +14,10 @@ updates:
       interval: weekly
     commit-message:
       prefix: 'ci'
+    # A freshly published action release gets a few days for compromise
+    # reports to surface before a PR proposes it.
+    cooldown:
+      default-days: 3
 
   # Native Bun updates package.json and bun.lock together; no PAT repair needed.
   # Each dependency is raised as its own PR so the auto-merge workflow

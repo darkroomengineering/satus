@@ -4,7 +4,7 @@
 
 A modern Next.js 16 starter with React 19, Tailwind CSS v4, and optional WebGL. _Satūs_ means "beginning" in Latin.
 
-Run `bun dev` and open [localhost:3000](http://localhost:3000) — the landing page is a step-by-step manual that walks you from a fresh clone to a shippable site. The rest of this README is the reference version.
+Run `bun dev` and open [localhost:3000](http://localhost:3000): the landing page is a step-by-step manual from a fresh clone to a shippable site.
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/darkroomengineering/satus)
 
@@ -36,7 +36,7 @@ Trim what you don't need: `bun run setup:project` strips unused integrations (co
 
 ## Environment variables
 
-A project's env vars are committed as one `.env` file, encrypted with [dotenvx](https://dotenvx.com). Satus itself ships none: a fork's first `bun dotenvx set` creates its `.env` and its own key (a shared `.env` would make every fork encrypt to satus's key). Next loads the file in `bun dev`, local builds and Vercel production and preview (CI builds without it, see below). Every value is encrypted, public ones included, and `lib/env-files.test.ts` fails on a plain one. Without the key nothing runs: `lib/env.ts` throws on any value it could not decrypt. Next decrypts the file on load through `@dotenvx/next-env`, which replaces `@next/env` via `overrides` in `package.json`. `bunfig.toml` turns off Bun's own `.env` loading, which would otherwise set the still-encrypted values first.
+A project's env vars are committed as one `.env` file, encrypted with [dotenvx](https://dotenvx.com). Satus itself ships none: a fork's first `bun dotenvx set` creates its `.env` and its own key (a shared `.env` would make every fork encrypt to satus's key). Next loads it in `bun dev`, local builds and Vercel production and preview (not CI, see below), decrypting through `@dotenvx/next-env`, which replaces `@next/env` via `overrides` in `package.json`. Every value is encrypted, public ones included; `lib/env-files.test.ts` fails on a plain one. Without the key nothing runs: `lib/env.ts` throws on any value it could not decrypt. `bunfig.toml` turns off Bun's own `.env` loading, which would otherwise set the still-encrypted values first.
 
 The base URL is not in the file. On Vercel, production uses `VERCEL_PROJECT_PRODUCTION_URL` and previews use their own `VERCEL_BRANCH_URL`, so share cards and absolute links on a preview point at that preview. Locally it falls back to localhost. Vercel's "Enable access to System Environment Variables" must stay on. Vercel picks the _shortest_ production custom domain: if the site lives on `www.example.com` and the apex redirects there, set `NEXT_PUBLIC_BASE_URL` to the `www` address.
 
@@ -95,7 +95,7 @@ lib/                    # Everything non-UI
 ```bash
 bun dev              # Development server
 bun run build        # Production build
-bun run check        # lint + format check + type-aware lint + typegen + tsc + unit tests + oxlint-plugin tests + manifest + asset budget (run before pushing)
+bun run check        # Full local gate, run before pushing (steps: AGENTS.md § Commands)
 bun run setup:project  # Strip integrations you don't need
 bun run handoff      # Client delivery: strips branding, swaps in PROD-README, generates inventory (--dry-run, --force)
 ```
@@ -108,15 +108,11 @@ The full list lives in `package.json`.
 vercel
 ```
 
-`vercel` (or the Deploy button above) links and deploys the project the first time. Once the project is linked, push to the tracked branch and Vercel deploys automatically — the CLI is only needed again for manual/preview deploys.
+The first `vercel` run (or the Deploy button above) links and deploys the project; after that, pushes to the tracked branch deploy automatically.
 
-**Optional GitHub Secrets** for the Lighthouse CI workflow: `VERCEL_TOKEN`
-(Vercel API token — the job skips gracefully with a warning when it's absent
-or invalid) and `VERCEL_AUTOMATION_BYPASS_SECRET` (needed when previews are
-Deployment Protection-guarded — the audit step skips loudly without it
-instead of scoring the SSO login page).
+**Optional GitHub Secrets** for the Lighthouse CI workflow: `VERCEL_TOKEN` (without a valid one the job skips with a warning) and `VERCEL_AUTOMATION_BYPASS_SECRET` (needed when previews sit behind Deployment Protection; without it the audit step skips loudly instead of scoring the SSO login page).
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the deployment checklist and cache strategies.
+Deployment checklist and caching: [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## How it compares
 

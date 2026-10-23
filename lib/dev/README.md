@@ -1,13 +1,11 @@
 # Orchestra (Dev Tools)
 
-Debug tools suite. Toggle with `Cmd/Ctrl + O`.
-
-## Features
+Debug tools suite, toggled with `Cmd/Ctrl + O`. Mounted by `OptionalFeatures` in `app/(site)/layout.tsx`, development only; production builds exclude all dev tools. Toggle state persists in `localStorage` and syncs across tabs.
 
 | Tool            | Description                                                                                                |
 | --------------- | ---------------------------------------------------------------------------------------------------------- |
 | Grid (🌐)       | Layout grid overlay                                                                                        |
-| Theatre.js (⚙️) | Animation debugging                                                                                        |
+| Theatre.js (⚙️) | Animation debugging (`useSheet`, `useTheatre` from `@/lib/dev/theatre`)                                    |
 | Stats (📈)      | FPS and performance (stats-gl frame-time / GPU meter)                                                      |
 | Dev Mode (🚧)   | Development toggle                                                                                         |
 | Minimap (🗺️)    | ScrollTrigger navigation                                                                                   |
@@ -17,24 +15,4 @@ Debug tools suite. Toggle with `Cmd/Ctrl + O`.
 
 React Scan (`react-scan`) is mounted only while its toggle is on, so a normal
 dev session carries no profiler overhead. It overlaps Stats only on the FPS
-readout — Stats is a frame-time/GPU meter, React Scan is a re-render profiler.
-
-## Usage
-
-Automatically included via `OptionalFeatures` in `app/(site)/layout.tsx`. Only loads in development.
-
-State persists in `localStorage` and syncs across tabs.
-
-## Theatre.js
-
-```tsx
-import { useSheet, useTheatre } from '@/lib/dev/theatre'
-
-function AnimatedComponent() {
-  const sheet = useSheet('MySheet')
-  const { values } = useTheatre(sheet, 'myObject', { opacity: 1 })
-  return <div style={{ opacity: values.opacity }}>...</div>
-}
-```
-
-Production builds automatically exclude all dev tools.
+readout: Stats is a frame-time/GPU meter, React Scan is a re-render profiler.

@@ -5,8 +5,8 @@ Form handling and marketing automation, with Cloudflare Turnstile spam protectio
 ## Environment Variables
 
 ```env
-HUBSPOT_ACCESS_TOKEN=your-token
-NEXT_PUBLIC_HUBSPOT_PORTAL_ID=your-portal-id
+HUBSPOT_ACCESS_TOKEN=your-token              # Account → Settings → Integrations → Private Apps
+NEXT_PUBLIC_HUBSPOT_PORTAL_ID=your-portal-id # Account → Settings → Account Setup → Account Defaults
 
 # Required in production — comma-separated allowlist of form IDs the
 # newsletter server action may submit to. Pins which HubSpot forms this app
@@ -18,52 +18,35 @@ NEXT_PUBLIC_HUBSPOT_PORTAL_ID=your-portal-id
 HUBSPOT_ALLOWED_FORM_IDS=form-id-one,form-id-two
 ```
 
+Env vars are validated by `hubspotEnvSchema` in the registry. Turnstile env vars are configured separately and auto-skip in development when the secret key is absent.
+
 ## Usage
-
-### Embedded Form
-
-```tsx
-import { EmbedHubspotForm } from '@/integrations/hubspot/embed'
-
-;<EmbedHubspotForm
-  formId="your-form-id"
-  onSubmit={() => console.log('Submitted!')}
-/>
-```
-
-### Server Action
 
 ```tsx
 import { Form, Input, SubmitButton } from '@/components/ui/form'
 import { HubspotNewsletterAction } from '@/integrations/hubspot/action'
+import { EmbedHubspotForm } from '@/integrations/hubspot/embed'
 
+// Embedded HubSpot form
+;<EmbedHubspotForm formId="your-form-id" onSubmit={() => {}} />
+
+// Server action, posts to the HubSpot Forms v3 API
 ;<Form action={HubspotNewsletterAction} formId="your-form-id">
   <Input name="email" type="email" required />
   <SubmitButton>Subscribe</SubmitButton>
 </Form>
 ```
 
-The action validates with Zod and posts directly to the HubSpot Forms v3 API. Rate limiting and Turnstile verification run first, in that order, via `runFormAction` — render a Turnstile widget in the form (see `lib/integrations/turnstile/README.md`) so its token lands in the `cf-turnstile-response` field.
+## Server action validation
 
-### Validation
+Checks run in this order (1 to 3 in `runFormAction`, 4 in the action's handler):
 
-The newsletter action validates input in this order:
-
-- Rate limiting by IP, applied first
-- Turnstile token, validated second (via `lib/integrations/turnstile`) — the action rejects submissions without a valid `cf-turnstile-response` form field; render Cloudflare's Turnstile widget inside the form (see `lib/integrations/turnstile/README.md`)
-- Zod validation last: email validated with `z.email()` (Zod 4 top-level validator), form ID validated as a non-empty string
-- If `HUBSPOT_ALLOWED_FORM_IDS` is set, `formId` must be in the list or the action rejects with `{ status: 400, fieldErrors: { formId: 'Form is not allowed' } }`
-- If `HUBSPOT_ALLOWED_FORM_IDS` is unset in production, the action rejects every submission with `{ status: 500, message: 'security_configuration_error_' }`; unset in development, it allows any formId and logs a warning
-- Returns `{ status: 400, fieldErrors }` on validation failure
-
-Env vars are validated via `hubspotEnvSchema` in the integration registry. Turnstile env vars are configured separately and auto-skip in development when the secret key is absent.
-
-## Getting Credentials
-
-1. **Access Token**: Account → Settings → Integrations → Private Apps
-2. **Portal ID**: Account → Settings → Account Setup → Account Defaults
+1. Rate limiting by IP
+2. Turnstile token (via `lib/integrations/turnstile`): submissions without a valid `cf-turnstile-response` field are rejected, so render Cloudflare's Turnstile widget inside the form (see `lib/integrations/turnstile/README.md`)
+3. Zod: email with `z.email()`, form ID as a non-empty string; failure returns `{ status: 400, fieldErrors }`
+4. Allowlist: with `HUBSPOT_ALLOWED_FORM_IDS` set, a `formId` not in the list returns `{ status: 400, fieldErrors: { formId: 'Form is not allowed' } }`; unset in production, every submission returns `{ status: 500, message: 'security_configuration_error_' }`; unset in development, any formId passes with a logged warning
 
 ## Troubleshooting
 
-- **Form not loading**: Check `NEXT_PUBLIC_HUBSPOT_PORTAL_ID`
-- **Submissions missing**: Verify form ID in HubSpot dashboard
+- **Form not loading**: check `NEXT_PUBLIC_HUBSPOT_PORTAL_ID`
+- **Submissions missing**: verify the form ID in the HubSpot dashboard

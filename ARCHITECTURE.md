@@ -1,30 +1,20 @@
 # Architecture Guide
 
-Key architectural decisions and patterns for teams working with this codebase.
+Architectural decisions and worked patterns. The enforced rules live in AGENTS.md.
 
 ## Core Decisions
 
 ### React Compiler (No Manual Memoization)
 
-React Compiler is enabled — no `useMemo`, `useCallback`, or `React.memo`. See AGENTS.md § No manual memoization.
+See AGENTS.md § No manual memoization.
 
 ### CSS Modules + Tailwind
 
-Tailwind for layout/spacing/color; CSS Modules for complex animations and custom layouts. See AGENTS.md § Styling split.
+See AGENTS.md § Styling split.
 
 ### Custom Image/Link Components
 
-Always use these, never native HTML:
-
-```tsx
-import { Image } from '@/components/ui/image'
-import { Link } from '@/components/ui/link'
-```
-
-**Why?**
-
-- Image: Optimization, aspect ratios, WebGL integration
-- Link: External detection, prefetching, consistent behavior
+Always use `@/components/ui/image` and `@/components/ui/link`, never native HTML. Image adds optimization, aspect ratios and WebGL integration; Link adds external detection, prefetching and consistent behavior.
 
 ### Lenis for Scrolling
 
@@ -32,42 +22,25 @@ Enabled per page through `<Wrapper lenis>` (`components/layout/wrapper/index.tsx
 
 ### Optional Features Pattern
 
-The app layout (`app/(site)/layout.tsx`) conditionally loads features:
-
-```tsx
-import { OptionalFeatures } from '@/lib/features'
-;<OptionalFeatures /> // Only loads WebGL, dev tools when needed
-```
+`<OptionalFeatures />` (`lib/features`) in `app/(site)/layout.tsx` loads WebGL and dev tools only when needed.
 
 ### Linting and Formatting (oxc)
 
-`oxlint` lints, `oxfmt` formats. One toolchain, one editor extension (`oxc.oxc-vscode`), one pre-commit hook.
+`oxlint` lints, `oxfmt` formats: one toolchain, one editor extension (`oxc.oxc-vscode`), one pre-commit hook. Commands are in AGENTS.md § Commands.
 
-```bash
-bun lint             # oxlint
-bun lint:fix         # oxlint, auto-fix
-bun lint:types       # type-aware rules (not in the pre-commit hook)
-bun run format       # oxfmt, writes in place
-bun run check        # oxlint + oxfmt --check + lint:types + ensure:typegen + tsc --noEmit + bun test + test:oxlint-plugin + manifest:check + check:assets (must pass before pushing)
-```
+- **Sorting is a formatting concern, not a lint error.** `oxfmt` sorts imports and Tailwind classes on format or save, so they never fail `bun lint`.
+- **One formatter for the whole repo.** Markdown, YAML and TOML are formatted alongside TS/TSX/CSS, so docs and workflows keep house style.
+- **Type-aware linting.** `bun lint:types` reads the TypeScript program to catch un-awaited promises and async handlers passed where a void return is expected, which a syntax-only linter cannot see. It runs in `bun run check` and CI but not the pre-commit hook, so commits stay fast.
 
-**Why?**
+**Trade-off:** oxlint has no CSS parser, so there is no CSS _linting_. `oxfmt` still formats stylesheets (CSS Modules and Tailwind v4 at-rules included), except the generated `lib/styles/css/tailwind.css` and `root.css`, which are left to their generator.
 
-- **Sorting is a formatting concern, not a lint error.** `oxfmt` sorts imports and Tailwind classes on format or save, so they fix themselves instead of failing `bun lint`.
-- **One formatter for the whole repo.** Markdown, YAML, and TOML are formatted alongside TS/TSX/CSS, so docs and workflows stop drifting from house style.
-- **Type-aware linting.** `bun lint:types` reads the TypeScript program to catch un-awaited promises and async handlers passed where a void return is expected — bugs a syntax-only linter cannot see. It runs in `bun run check` and CI but stays out of the pre-commit hook, so commits stay fast.
-
-**Trade-off:** oxlint has no CSS parser, so there is no CSS _linting_. `oxfmt` still formats stylesheets, CSS Modules and Tailwind v4 at-rules included, except the generated `lib/styles/css/tailwind.css` and `root.css`, which are deliberately left to their generator.
-
-Config lives in `oxlint.config.ts` and `oxfmt.config.ts` rather than JSON, so `bun run typecheck` covers it and each choice carries a comment. That catches invalid severities and duplicate rule keys, which a JSON config accepts silently; rule _names_ are still a permissive `Record`, so a typo'd rule name slips through either way. House style is pinned explicitly (80 columns, 2-space indent, single quotes, semicolons only where required) because oxfmt's own defaults differ. A vendored anti-slop plugin is loaded from `tools/oxlint/anti-slop` for custom rules. See AGENTS.md § Enforced Rules for the rule-by-rule list.
+Config lives in `oxlint.config.ts` and `oxfmt.config.ts`, not JSON, so `bun run typecheck` catches invalid severities and duplicate rule keys, which JSON accepts silently. Rule _names_ are a permissive `Record`, so a typo'd rule name still slips through. House style is pinned explicitly (80 columns, 2-space indent, single quotes, semicolons only where required) because oxfmt's defaults differ. Rule-by-rule list: AGENTS.md § Enforced Rules.
 
 ## Caching
 
-`cacheComponents` is off. Pages without request-time reads are prerendered as static HTML, and data is cached per fetch in Next's Data Cache: a cached read passes `next: { tags, revalidate }` (or `cache: 'force-cache'` with the tags); tags alone are not cached at request time. A CMS or Shopify webhook hits `POST /api/revalidate`, which calls `revalidateTag()` to expire the tag, and with it every static page whose render read that tag. Each integration sets its caching in its own data layer (Shopify's catalog readers, Sanity's `sanityFetchPublished`), so pages call them directly.
+`cacheComponents` is off; the rules are in AGENTS.md § Caching and § Sanity content and caching. Each integration sets its caching in its own data layer (Shopify's catalog readers, Sanity's `sanityFetchPublished`), so pages call them directly. `revalidateTag()` in `POST /api/revalidate` expires a tag and every static page whose render read it.
 
 The trade-off is Partial Prerendering. A route that reads `params` without `generateStaticParams`, cookies or headers renders fully per request instead of streaming into a prerendered shell. Its data still comes from the Data Cache, so it costs a render, not a CMS round trip.
-
-Sanity has no Live connection. Every published read carries the one tag `sanity` with a 30-day `revalidate`; the signed publish webhook calls `revalidateTag('sanity', { expire: 0 })`. In draft mode `sanityFetch` skips the cache and reads the perspective Presentation picked with the server-only Viewer token and stega markers, and Visual Editing refreshes the page with `router.refresh()` when an editor changes a field.
 
 ```mermaid
 flowchart LR
@@ -81,46 +54,29 @@ flowchart LR
     R -->|revalidateTag| Cache
 ```
 
-See AGENTS.md § Caching and § Sanity content and caching for the critical rules.
-
 ## WebGL Architecture
 
-A single root canvas (`<Canvas root>`) hosts the scene; content is portalled in
-with `<WebGLTunnel>`. Two mutually-exclusive strategies — pick one:
-
-```
-Shared (default):  Root Layout → <Canvas root> (lazy via lib/features)
-Per page:          <Wrapper webgl> → <Canvas root>
-
-    └─ WebGLTunnel (portals 3D content)
-        └─ Your 3D scene
-```
-
-The shared strategy keeps the context alive across navigation; the per-page
-strategy remounts it per route. Rendered only on WebGL-capable devices. See
-[lib/webgl/README.md](lib/webgl/README.md).
+A single root canvas (`<Canvas root>`) hosts the scene; pages portal content in with `<WebGLTunnel>`. Mount it either in the root layout (lazy via `lib/features`, keeps the context alive across navigation) or per page with `<Wrapper webgl>` (remounts per route), never both. It renders only on WebGL-capable devices. See [lib/webgl/README.md](lib/webgl/README.md).
 
 ## Animation
 
-Use `useReveal` (CSS-driven, compositor thread) for reveal-on-scroll and entrance animations. Reserve anime.js for orchestration and scrubbing; pin with CSS `position: sticky`. Always honor `prefers-reduced-motion` — `useReveal` short-circuits automatically; CSS movement (transform, height, clip-path) goes inside `@media (--motion-ok)` while fades stay. See AGENTS.md § Animation.
-
-Directory layout: see `README.md` § Project Structure.
+See AGENTS.md § Animation. Directory layout: see `README.md` § Project Structure.
 
 ## Boundaries
 
 ### Validation Layer
 
-Zod schemas provide type-safe validation at three boundaries:
+Zod schemas validate three boundaries:
 
-1. **Environment variables** -- Per-integration schemas validate config via the registry (`isConfigured()`) and `doctor.ts`
-2. **Server actions** -- `parseFormData()` validates FormData before processing (HubSpot, Mailchimp, Shopify)
-3. **Client forms** -- `zodToValidator()` bridges the same Zod schemas to the form hook's client-side validation
+1. **Environment variables**: per-integration schemas validate config via the registry (`isConfigured()`) and `doctor.ts`
+2. **Server actions**: `parseFormData()` validates FormData before processing (HubSpot, Mailchimp, Shopify)
+3. **Client forms**: `zodToValidator()` bridges the same Zod schemas to the form hook's client-side validation
 
-Env and form schemas live in `lib/utils/validation.ts`; integration-local response schemas live next to their client (`lib/integrations/hubspot/schema.ts`, `lib/integrations/shopify/schemas.ts`). The typed env singleton (`lib/env.ts`) provides IntelliSense for `process.env` access.
+Env and form schemas live in `lib/utils/validation.ts`; integration-local response schemas live next to their client (`lib/integrations/hubspot/schema.ts`, `lib/integrations/shopify/schemas.ts`). `lib/env.ts` is the typed env singleton.
 
 ### Request Proxy
 
-`proxy.ts` handles cross-cutting concerns: the `SITE_PASSWORD` gate (HTTP Basic auth before launch, with the webhooks and `matcher`-skipped assets left open) and rate limiting for `/api/*`, except the `/api/revalidate` webhook. See AGENTS.md for usage guidance.
+See AGENTS.md § Next.js 16 Request Proxy.
 
 ## Deployment Checklist
 
@@ -138,155 +94,70 @@ Env and form schemas live in `lib/utils/validation.ts`; integration-local respon
 
 ## Customization Boundaries
 
-One decision drives how you work in this repo: **are you building your project, or extending the starter?**
-
 - **Building your project** (pages, content, styling): modify freely. `app/` is yours.
-- **Extending the starter** (new shared primitives): add alongside the existing ones rather than rewriting them.
+- **Extending the starter** (new shared primitives): add alongside the existing ones instead of rewriting them, so pulling satus updates stays low-conflict.
 
-This keeps upstream updates smooth. When you create new components instead of modifying starter ones, and keep your pages and content separate from starter utilities, pulling satus updates stays low-conflict. There are no strict folder rules beyond that: `components/` for UI, `lib/` for everything else.
+No folder rules beyond that: `components/` for UI, `lib/` for everything else.
 
 ## Code Patterns
 
 ### 1. Compound Component
 
-UI primitives wrap `@base-ui/react` with project styling. Two patterns:
-
-**Pattern A - Namespace + named exports** (Accordion, Tabs):
+UI primitives wrap `@base-ui/react` with project styling, in one of two shapes:
 
 ```tsx
-'use client'
-import { Collapsible } from '@base-ui/react/collapsible'
-import cn from 'clsx'
-import s from './accordion.module.css'
-
-function Root({ children, className, ...props }: RootProps) {
-  return (
-    <Collapsible.Root className={cn(s.accordion, className)} {...props}>
-      {children}
-    </Collapsible.Root>
-  )
-}
-
+// A: namespace + named exports (Accordion, Tabs)
 export { Body, Button, Group, Root }
 export const Accordion = { Group, Root, Button, Body }
-```
 
-**Pattern B - Function properties** (Tooltip, Checkbox, Switch):
-
-```tsx
-function Tooltip({ content, children, side = 'top', className }: TooltipProps) {
-  /* simple API */
-}
+// B: function properties (Tooltip, Checkbox, Switch)
+function Tooltip({ content, children, side = 'top', className }: TooltipProps) {}
 Tooltip.Root = BaseTooltip.Root
 Tooltip.Popup = Popup
-export { Tooltip }
 ```
 
-Rules: always pass `className` through as `cn(s.root, className)`, spread `{...props}` for extensibility, provide both simple and compound API.
+Rules: pass `className` through as `cn(s.root, className)`, spread `{...props}`, and provide both the simple and the compound API.
 
-### 2. CSS Modules + Tailwind Hybrid
+### 2. Context Pattern
 
-```tsx
-import s from './component.module.css'
-import cn from 'clsx'
-
-<div className="flex items-center gap-4 p-2">              {/* Tailwind only */}
-<div className={s.animatedPanel}>                           {/* Module only */}
-<div className={cn(s.root, 'p-4', className)}>             {/* Combined */}
-```
-
-### 3. Context Pattern
-
-Shared contexts (theme, cart, form) use a typed `createContext` with a
-`{ state, actions, meta? }` value shape, plus a hook that throws when used
-outside the provider. See `components/layout/theme/index.tsx` for the
-reference implementation.
+Shared contexts (theme, cart, form) use a typed `createContext` with a `{ state, actions, meta? }` value and a hook that throws outside the provider. Reference implementation: `components/layout/theme/index.tsx`.
 
 ```tsx
-interface MyState {
-  count: number
-}
-interface MyActions {
-  increment: () => void
-}
-type MyContextValue = { state: MyState; actions: MyActions }
+const MyContext = createContext<{ state: MyState; actions: MyActions } | null>(
+  null
+)
 
-const MyContext = createContext<MyContextValue | null>(null)
-
-function useMyComponent(): MyContextValue {
+function useMyComponent() {
   const context = use(MyContext)
   if (!context) throw new Error('useMyComponent must be used within MyProvider')
   return context
 }
-
-function MyProvider({ children }: PropsWithChildren) {
-  const [count, setCount] = useState(0)
-  return (
-    <MyContext.Provider
-      value={{
-        state: { count },
-        actions: { increment: () => setCount((c) => c + 1) },
-      }}
-    >
-      {children}
-    </MyContext.Provider>
-  )
-}
 ```
 
-For component-scoped contexts, inline `createContext` + `useContext` is fine.
+Component-scoped contexts may use inline `createContext` + `useContext`.
 
-### 4. Server vs Client Split
+### 3. Server vs Client Split
 
-```tsx
-// product-page.tsx - Server Component (no directive)
-export default async function ProductPage({
-  params,
-}: {
-  params: { slug: string }
-}) {
-  const data = await fetchProduct(params.slug)
-  return <ProductView product={data} /> // serializable props only
-}
+A Server Component (no directive) fetches and passes serializable props to a Client Component. `'use client'` goes on the first line, before imports.
 
-// product-view.tsx - Client Component
-;('use client')
-export function ProductView({ product }: { product: Product }) {
-  const [qty, setQty] = useState(1)
-}
-```
-
-`'use client'` goes on the first line, before imports.
-
-### 5. Integration Optionality
+### 4. Integration Optionality
 
 ```tsx
 import { isConfigured } from '@/integrations/registry'
 import { NotConfigured } from '@/components/ui/not-configured'
 
-export default async function SanityPage() {
-  if (!isConfigured('sanity')) {
-    return <NotConfigured integration="Sanity" />
-  }
-  // ... normal page logic
-}
+if (!isConfigured('sanity')) return <NotConfigured integration="Sanity" />
 ```
 
 Available checks: `isConfigured('sanity' | 'shopify' | 'hubspot' | 'mailchimp' | 'turnstile' | 'analytics')`.
 
-Adding a new integration: add its Zod schema to `@/utils/validation`, add one entry to `lib/integrations/registry.ts`. `generate-manifest` and `setup:project` read the registry; `doctor` checks core env only. A removable integration also needs an `INTEGRATION_BUNDLES` entry in `lib/scripts/integration-bundles.ts` (files, deps, transforms, env stubs), or `setup:project` cannot strip it. See `lib/integrations/README.md`.
+Adding an integration: add its Zod schema to `@/utils/validation` and one entry to `lib/integrations/registry.ts`. `generate-manifest` and `setup:project` read the registry; `doctor` checks core env only. A removable integration also needs an `INTEGRATION_BUNDLES` entry in `lib/scripts/integration-bundles.ts` (files, deps, transforms, env stubs), or `setup:project` cannot strip it. See `lib/integrations/README.md`.
 
-Validate external API _responses_ at the boundary, not just env config. Pass
-untrusted upstream JSON (GraphQL envelopes, REST payloads) through
-`parseApiResponse(schema, data, context)` (`@/utils/validation`) so a malformed
-response fails clearly at the edge with context instead of crashing downstream.
-The Shopify, HubSpot, and Mailchimp clients all do this.
+Validate external API _responses_ at the boundary, not just env config: pass untrusted upstream JSON through `parseApiResponse(schema, data, context)` (`@/utils/validation`) so a malformed response fails at the edge with context instead of crashing downstream. The Shopify, HubSpot, and Mailchimp clients do this.
 
-### 6. WebGL Element Lifecycle
+### 5. WebGL Element Lifecycle
 
-DOM-synced WebGL via tunnel system. A single root canvas (`<Canvas root>`)
-hosts the scene — mounted either in the shared layout (`lib/features`, persists
-across routes) or per page via `<Wrapper webgl>`. Pick one strategy.
+DOM-synced WebGL through the tunnel system: the page portals content into the single root canvas (see WebGL Architecture above).
 
 ```
 <Canvas root> (layout OR <Wrapper webgl>) -> WebGLTunnel.Out, DOMTunnel.Out
@@ -329,14 +200,9 @@ function MyMesh({ rect }: { rect: Rect }) {
 }
 ```
 
-`WebGLTunnel` (and `DOMTunnel`, for HTML overlays) already wrap `useCanvas()`
-internally — this is the intended public API. Reach for `useCanvas()` directly
-only as a low-level escape hatch, e.g. building a new portal primitive. See
-`lib/webgl/README.md`.
+`WebGLTunnel` and `DOMTunnel` (HTML overlays) wrap `useCanvas()` internally and are the public API. Call `useCanvas()` directly only to build a new portal primitive. Always dispose GPU resources (materials, textures, geometries, render targets) on unmount.
 
-Always dispose GPU resources (materials, textures, geometries, render targets) on unmount.
-
-### 7. useRef for Object Instantiation
+### 6. useRef for Object Instantiation
 
 ```tsx
 // Persistent instances (compiler cannot optimize class instantiation)
@@ -350,16 +216,8 @@ const [material] = useState(() => new MeshBasicMaterial())
 useEffect(() => () => material.dispose(), [material])
 ```
 
-The compiler handles simple calculations and callbacks automatically - no manual memoization needed.
-
 ## Extending
 
-**New component**: add it to `components/ui/`
-
-**New integration**: Add Zod env schema in `@/utils/validation`, add entry in `lib/integrations/registry.ts`. `generate-manifest` and `setup:project` read the registry; `doctor` checks core env only. A removable integration also needs an `INTEGRATION_BUNDLES` entry in `lib/scripts/integration-bundles.ts` (files, deps, transforms, env stubs), or `setup:project` cannot strip it.
-
-**Modify styles**: Edit config in `lib/styles/`, run `bun setup:styles`
-
----
-
-_Built with [Satūs](https://github.com/darkroomengineering/satus) by [darkroom.engineering](https://darkroom.engineering)_
+- **New component**: add it to `components/ui/`.
+- **New integration**: see Integration Optionality above.
+- **Modify styles**: edit config in `lib/styles/`, run `bun setup:styles`.

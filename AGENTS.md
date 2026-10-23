@@ -176,6 +176,7 @@ Dispose materials, textures, geometries, and render targets on unmount. Remove e
 
 - Conventional commits: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`
 - No force push to `main`; no `--no-verify` unless explicitly requested
+- The `commit-msg` hook (`lib/scripts/check-commit-msg.ts`) enforces the conventional format and lists the allowed types when it rejects a message
 
 ### Rules the audits keep re-deriving
 
@@ -348,7 +349,7 @@ bun run setup:project  # Strip unused integrations (non-interactive: --preset/--
 bun run doctor       # Diagnose setup issues
 ```
 
-Pre-commit hook (lefthook) runs on staged files: oxfmt + oxlint --fix (sequential, one command), in parallel with tsc typecheck. Type-aware linting is excluded from the hook to keep commits fast.
+Pre-commit hook (lefthook) runs on staged files: oxfmt + oxlint --fix (sequential, one command), in parallel with tsc typecheck. Type-aware linting is excluded from the hook to keep commits fast. The commit-msg hook rejects a message whose first line is not a conventional commit subject.
 
 `next-env.d.ts` (gitignored) is what makes tsc resolve the ambient `.svg`/`.css` module declarations in `lib/utils/types.d.ts` — it's listed first in `tsconfig.json`'s `include`, and tsc needs that entry to exist for the rest of `include` to take effect. A byte-fresh clone has no `next-env.d.ts` (`next dev`/`next build` normally generate it), so `ensure:typegen` backfills it with `next typegen` — a route-type generation step, not a full build — before `typecheck`/`check` run. `next-env.d.ts` also imports `.next/types/routes.d.ts` and `.next/types/root-params.d.ts`, and the post-checkout hook deletes `.next/types` on every branch switch, so `ensure:typegen` checks all three files and regenerates when any is missing. It's a no-op once they exist, so `bun run check` is order-independent: run it before or after `bun run build`, doesn't matter.
 

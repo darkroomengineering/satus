@@ -14,8 +14,8 @@
  */
 
 // Fork owners: tune these for your own project's weight budget.
-const MAX_VIDEO_BYTES = 2 * 1024 * 1024 // 2MB
-const MAX_IMAGE_BYTES = 1 * 1024 * 1024 // 1MB
+const MAX_VIDEO_BYTES = 2 * 1024 * 1024
+const MAX_IMAGE_BYTES = 1 * 1024 * 1024
 const MAX_IMAGE_WIDTH_PX = 2400
 
 // Next file-based metadata icons (`app/icon.png`, `app/apple-icon.png`, and
@@ -25,7 +25,7 @@ const MAX_IMAGE_WIDTH_PX = 2400
 // limit won't catch.
 // A ceiling, not a target: a 192px icon from a plain resize fits without a
 // quantizing encoder; pngquant/oxipng land nearer 15KB.
-const MAX_ICON_BYTES = 48 * 1024 // 48KB
+const MAX_ICON_BYTES = 48 * 1024
 const MAX_ICON_WIDTH_PX = 512
 const ICON_BASENAME_PATTERN = /^(icon|apple-icon|favicon)\d*$/
 

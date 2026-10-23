@@ -158,7 +158,7 @@ const nextConfig: NextConfig = {
         hostname: 'cdn.shopify.com',
       },
     ],
-    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
+    minimumCacheTTL: 60 * 60 * 24 * 30,
     // 90: everything the optimizer encodes. 80: images resized by the CDN
     // loader in `components/ui/image`, which sends `quality` to the CDN, not
     // here. Next 16.3.8 only warns, in development, when a `quality` is

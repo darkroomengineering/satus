@@ -5,9 +5,8 @@ export default {
   /**
    * Off: satus is a template, so primitives, hooks and opt-in integrations
    * that nothing imports are intended, not dead (85 of 130 findings, incl.
-   * all of Shopify, HubSpot, Mailchimp). It also flagged `happy-dom`, which
-   * `bunfig.toml` preloads via `lib/scripts/test-setup.ts`. `bun run deslop`
-   * covers real dead code.
+   * all of Shopify, HubSpot, Mailchimp). `bun run deslop` covers real dead
+   * code.
    */
   deadCode: false,
 

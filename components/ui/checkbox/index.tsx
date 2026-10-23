@@ -51,7 +51,7 @@ function CheckboxControl({
 }: Omit<CheckboxProps, 'label' | 'labelClassName'>) {
   return (
     <BaseCheckbox.Root className={cn(s.root, className)} {...props}>
-      <BaseCheckbox.Indicator className={cn(s.indicator)}>
+      <BaseCheckbox.Indicator className={s.indicator}>
         <CheckIcon />
       </BaseCheckbox.Indicator>
     </BaseCheckbox.Root>

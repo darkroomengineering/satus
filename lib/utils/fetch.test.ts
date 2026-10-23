@@ -27,7 +27,6 @@ beforeAll(() => {
       }
 
       if (url.pathname === '/slow') {
-        // Delay 2 seconds
         return new Promise((resolve) =>
           setTimeout(
             () =>

@@ -47,7 +47,7 @@ function SwitchControl({
 }: Omit<SwitchProps, 'label' | 'labelClassName'>) {
   return (
     <BaseSwitch.Root className={cn(s.root, className)} {...props}>
-      <BaseSwitch.Thumb className={cn(s.thumb)} />
+      <BaseSwitch.Thumb className={s.thumb} />
     </BaseSwitch.Root>
   )
 }

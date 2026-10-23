@@ -276,6 +276,8 @@ For **component-level** isolation (one widget failing without blanking the page 
 
 No Suspense boundary (a `loading.tsx` or an in-page `<Suspense>`) above a `notFound()` call. Streaming starts the response with a 200 before `notFound()` runs, so the URL comes back 200 with a noindex tag instead of a 404. A `loading.tsx` at `app/(site)/` would sit above `[...slug]`, which catches every unmatched URL, so none goes there. For a skeleton, run the `notFound()` checks first and open the `<Suspense>` after them. `e2e/not-found.e2e.ts` asserts the 404 status.
 
+Server errors (render, route handler, server action, proxy) reach `onRequestError` in `instrumentation.ts`, which logs one JSON line and, when `ERROR_REPORT_URL` is set, POSTs the same JSON there (`ERROR_REPORT_TOKEN` goes out as a bearer token). The report holds the message, stack, digest, path without its query string, and route; never add headers, cookies or bodies to it. Next awaits the hook, so a slow receiver holds the response for up to the 3 s timeout, and a failed delivery is logged and dropped, not retried. To use a provider SDK (Sentry, Axiom), replace the body of `instrumentation.ts`; satus ships no SDK.
+
 ### Tailwind v4
 
 Configuration is CSS-first - no `tailwind.config.js`. Use `@theme` directive in CSS:

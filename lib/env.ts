@@ -33,6 +33,12 @@ const envSchema = z.object({
   // for it through HTTP Basic auth. Unset: the site is public. An empty value
   // fails here rather than leaving the site open while looking gated.
   SITE_PASSWORD: z.string().min(1).optional(),
+  // Server error reporting (instrumentation.ts). Every server error is logged
+  // either way; set the URL and each one is also POSTed there as JSON, with
+  // the token, when set, as `Authorization: Bearer`. A malformed URL fails
+  // here instead of dropping every report.
+  ERROR_REPORT_URL: z.url().optional(),
+  ERROR_REPORT_TOKEN: z.string().min(1).optional(),
 
   // Sanity (supports both Satus and Vercel Marketplace conventions)
   NEXT_PUBLIC_SANITY_PROJECT_ID: z.string().optional(),

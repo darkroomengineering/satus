@@ -96,6 +96,12 @@ type CanvasProps = PropsWithChildren<{
    * no consumer.
    */
   simTypes?: ('fluid' | 'flowmap')[]
+  /**
+   * When the root canvas draws. `true` (default) draws only while something
+   * changed, `'always'` draws every frame, `false` never draws. See
+   * `@/webgl/utils/awake`.
+   */
+  render?: boolean | 'always'
 }>
 
 export const CanvasContext = createContext<CanvasContextValue>({

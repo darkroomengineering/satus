@@ -5,6 +5,8 @@ import { useLenis } from 'lenis/react'
 import { useEffect, useEffectEvent, useRef } from 'react'
 import { Euler, Vector3 } from 'three'
 
+import { wake } from '@/webgl/utils/awake'
+
 /**
  * Where a DOM element sits in the root canvas, in the orthographic camera's
  * units: one unit per CSS pixel, origin mid-screen.
@@ -31,7 +33,9 @@ export interface WebGLTransform {
  * before the canvas draws), on provider transform changes, and after any
  * render of the calling component, which covers the first measurement and
  * every re-measure. Without Lenis it listens to the window's scroll event
- * instead. Nothing runs while nothing moves.
+ * instead. Nothing runs while nothing moves. A call that moves, resizes,
+ * shows or hides the element wakes the canvas (see `@/webgl/utils/awake`);
+ * an unchanged one does not.
  *
  * Works on either side of the tunnel. Called in the mesh component, inside
  * the canvas, the render effect runs after the mesh mounts, so the mesh is
@@ -93,6 +97,7 @@ export function useWebGLRect(
     scale: new Vector3(1, 1, 1),
     isVisible: false,
   })
+  const placedRef = useRef(false)
 
   // React's `useEffectEvent` is called here from outside its documented
   // contract (only from Effects; never passed to hooks or returned): the
@@ -128,17 +133,36 @@ export function useWebGLRect(
     const halfHeight = (rect.height * scale.y) / 2
 
     // Visible when that extent overlaps the viewport on both axes.
-    transform.isVisible =
+    const isVisible =
       centerX + halfWidth > 0 &&
       centerX - halfWidth < width &&
       centerY + halfHeight > scroll &&
       centerY - halfHeight < scroll + height
-    transform.position.x = -width / 2 + centerX
-    transform.position.y = height / 2 - centerY + scroll
-    transform.scale.x = rect.width * scale.x
-    transform.scale.y = rect.height * scale.y
+    const x = -width / 2 + centerX
+    const y = height / 2 - centerY + scroll
+    const scaleX = rect.width * scale.x
+    const scaleY = rect.height * scale.y
+
+    // Only a placement that moved something wakes the canvas: this runs on
+    // every Lenis scroll event and render, and a wake per unchanged call
+    // would keep an idle canvas drawing.
+    const changed =
+      !placedRef.current ||
+      isVisible !== transform.isVisible ||
+      x !== transform.position.x ||
+      y !== transform.position.y ||
+      scaleX !== transform.scale.x ||
+      scaleY !== transform.scale.y
+    placedRef.current = true
+
+    transform.isVisible = isVisible
+    transform.position.x = x
+    transform.position.y = y
+    transform.scale.x = scaleX
+    transform.scale.y = scaleY
 
     onUpdate?.(transform)
+    if (changed) wake()
   })
 
   // Apply after every render as well: the rect, the size or the callback just

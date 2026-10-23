@@ -9,6 +9,7 @@ import {
   getServerContextGeneration,
   subscribeContextGeneration,
 } from '@/webgl/store'
+import { framesToFade, useLease } from '@/webgl/utils/awake'
 import { Fluid } from '@/webgl/utils/fluid/fluid-sim'
 
 export function useFluidSim(
@@ -43,15 +44,28 @@ export function useFluidSim(
     }
   }, [resolution, gl, contextGeneration])
 
+  // Dye fades by its dissipation per frame, not per second, so the canvas is
+  // held for a frame count rather than woken for a time window: a slow frame
+  // rate would otherwise freeze the fluid mid-fade. Only the dye is visible;
+  // velocity dissipation can be 1 (no decay), which would hold forever.
+  const fadeFramesRef = useRef(0)
+  const lease = useLease()
+  const holdUntilFaded = (fluid: Fluid) => {
+    fadeFramesRef.current = framesToFade(fluid.densityDissipation)
+    lease.acquire()
+  }
+
   // Normalize pointer input and queue splats. The handler always reads the
   // latest `size` and `fluidRef.current`, because it's routed through
   // useEffectEvent — same guarantee usePointerInput itself gives its callers.
   const handlePointerMove = useEffectEvent(
     (clientX: number, clientY: number, dx: number, dy: number) => {
-      if (!(Math.abs(dx) || Math.abs(dy))) return
+      const fluid = fluidRef.current
+      if (!fluid || !(Math.abs(dx) || Math.abs(dy))) return
       const normalizedX = clientX / size.width
       const normalizedY = 1 - clientY / size.height
-      fluidRef.current?.addSplat(normalizedX, normalizedY, dx * 5, dy * -5)
+      fluid.addSplat(normalizedX, normalizedY, dx * 5, dy * -5)
+      holdUntilFaded(fluid)
     }
   )
 
@@ -105,6 +119,7 @@ export function useFluidSim(
         fluid.velocityDissipation = velocity
         fluid.pressureDissipation = pressure
         fluid.radius = radius
+        holdUntilFaded(fluid)
       },
       // Re-subscribe whenever the instance is rebuilt, so Theatre re-applies
       // its current values to the new Fluid. A ref's identity never changes,
@@ -118,6 +133,10 @@ export function useFluidSim(
   // apparent speed regardless of display refresh rate.
   useFrame((_, delta) => {
     fluidRef.current?.update(delta)
+
+    if (lease.held && --fadeFramesRef.current <= 0) {
+      lease.release()
+    }
   }, -10)
 
   return fluidRef

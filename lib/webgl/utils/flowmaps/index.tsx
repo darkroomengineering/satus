@@ -9,6 +9,7 @@ import {
   getServerContextGeneration,
   subscribeContextGeneration,
 } from '@/webgl/store'
+import { framesToFade, useLease } from '@/webgl/utils/awake'
 import { Flowmap } from '@/webgl/utils/flowmaps/flowmap-sim'
 
 export function useFlowmapSim(
@@ -48,6 +49,16 @@ export function useFlowmapSim(
   const movedRef = useRef(false)
   const lastTimeRef = useRef<number | null>(null)
 
+  // The trail fades by `dissipation` per frame, not per second, so the canvas
+  // is held for a frame count rather than woken for a time window: a slow
+  // frame rate would otherwise freeze the trail mid-fade.
+  const fadeFramesRef = useRef(0)
+  const lease = useLease()
+  const holdUntilFaded = (dissipation: number) => {
+    fadeFramesRef.current = framesToFade(dissipation)
+    lease.acquire()
+  }
+
   // Mouse/touch input — drives the flowmap stamp position and velocity.
   // The handler always reads the latest `size` and `flowmapRef.current`,
   // because it's routed through useEffectEvent — same guarantee
@@ -66,6 +77,7 @@ export function useFlowmapSim(
           : 16
       lastTimeRef.current = now
       movedRef.current = true
+      holdUntilFaded(flowmap.dissipation)
 
       // Normalized cursor (y flipped into UV space)
       flowmap.mouse.set(clientX / size.width, 1 - clientY / size.height)
@@ -110,6 +122,7 @@ export function useFlowmapSim(
         if (!flowmap) return
         flowmap.falloff = falloff
         flowmap.dissipation = dissipation
+        holdUntilFaded(dissipation)
       },
       // Re-subscribe whenever the instance is rebuilt, so Theatre re-applies
       // its current values to the new Flowmap. A ref's identity never changes,
@@ -129,6 +142,10 @@ export function useFlowmapSim(
     }
     movedRef.current = false
     flowmap?.update()
+
+    if (lease.held && --fadeFramesRef.current <= 0) {
+      lease.release()
+    }
   }, -10)
 
   return flowmapRef

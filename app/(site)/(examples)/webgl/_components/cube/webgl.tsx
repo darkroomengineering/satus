@@ -4,6 +4,7 @@ import { useRef } from 'react'
 import type { Group, Mesh } from 'three'
 
 import { useWebGLRect } from '@/webgl/hooks/use-webgl-rect'
+import { useLease } from '@/webgl/utils/awake'
 
 /**
  * How the cube is turned to read as isometric: 45° about its own vertical,
@@ -39,6 +40,7 @@ interface WebGLCubeProps {
 export function WebGLCube({ rect }: WebGLCubeProps) {
   const groupRef = useRef<Group>(null)
   const meshRef = useRef<Mesh>(null)
+  const lease = useLease()
 
   // Position, scale and visibility all come from the box. The group starts
   // invisible; the hook's render effect places it right after this mounts.
@@ -48,6 +50,12 @@ export function WebGLCube({ rect }: WebGLCubeProps) {
     group.position.copy(position)
     group.scale.setScalar(scale.x * HEXAGON_TO_EDGE)
     group.visible = isVisible
+
+    // The spin changes every frame, so the canvas has to keep drawing while
+    // the cube is on screen. A hold rather than `useHoldAwake(isVisible)`
+    // keeps visibility out of React state: a scroll never re-renders.
+    if (isVisible) lease.acquire()
+    else lease.release()
   })
 
   // From the clock, not a per-frame increment, so a dropped frame skips

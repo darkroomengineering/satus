@@ -54,6 +54,17 @@ If the Sanity integration is enabled, manage content at [sanity.io/manage](https
 
 Content updates publish through webhooks (Sanity publish, Shopify product/collection updates), which call `POST /api/revalidate`. To trigger it by hand: `curl -X POST "https://[domain]/api/revalidate?secret=$SHOPIFY_REVALIDATION_SECRET"` for Shopify tags, or re-publish the document in Sanity Studio. GET is not supported.
 
+## Error reporting
+
+Every server error writes one JSON line to the server log (on Vercel, the Logs tab): the error message and stack, its digest (the ID Next gives the error), the path without its query string, and the route. To also send each one to an error or logging service, point `ERROR_REPORT_URL` at that service's HTTP ingest endpoint:
+
+```bash
+bun dotenvx set ERROR_REPORT_URL "https://ingest.example.com/your-endpoint"
+bun dotenvx set ERROR_REPORT_TOKEN "..." # only if the endpoint wants Authorization: Bearer
+```
+
+Each error is POSTed as that same JSON. Headers, cookies and request bodies are never sent. If the service is down or takes longer than 3 seconds, the report is dropped and a warning is logged; the visitor still gets the error page. For a service that needs its own SDK, such as Sentry, replace `instrumentation.ts` with the SDK's setup.
+
 ## Deployment
 
 Vercel deploys automatically on every push to `main`. If the project isn't linked yet, run `vercel link` once first (see Quick Start).

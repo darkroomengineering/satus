@@ -37,6 +37,8 @@ jobs:
       # (>=24.20.0, the current LTS; native type-stripping of .ts files is unflagged).
       - name: Build and check
         uses: darkroomengineering/.github/actions/bun-web-ci@a75b42e03f56b5ca5b2808ac4f1b06c81998fbc6
+        env:
+          PRERENDER_MANIFEST_REQUIRED: '1'
         with:
           node-version-file: .node-version
           oxlint-annotations: 'true'

@@ -175,7 +175,7 @@ Dispose materials, textures, geometries, and render targets on unmount. Remove e
   - `e2e/render-on-demand.e2e.ts`: software or missing WebGL2 (CI's SwiftShader); `E2E_GPU=1` runs it.
   - `e2e/route-sweep.e2e.ts`: routes in `OPT_OUT`, reason in the test name.
   - `e2e/secrets-in-bundle.e2e.ts`: locally, without the `leakcheck-*` values CI sets.
-  - `lib/scripts/prerender-manifest.test.ts`: locally, without a prior build.
+  - `lib/scripts/prerender-manifest.test.ts`: without a prior build, except in ci.yml's build job (`PRERENDER_MANIFEST_REQUIRED`).
   - `lib/scripts/setup-project.test.ts`: the chmod cases, as root.
 
 ### Git

@@ -155,7 +155,7 @@ Exception: use `useRef` for class/object instantiation to prevent infinite loops
 
 Dispose materials, textures, geometries, and render targets on unmount. Remove event listeners. Gate debug UI with `process.env.NODE_ENV === 'development'`.
 
-`isWebGL` from `useDeviceDetection` is false on software renderers (SwiftShader, llvmpipe), not just on devices without WebGL2. PageSpeed Insights and other cloud Lighthouse runners have no GPU; a shader that runs there pegs the main thread for the whole audit and the report comes back as "page stopped responding". Anything that mounts a WebGL surface must go through that gate or the DOM fallback never gets exercised where it matters.
+`isWebGL` from `useDeviceDetection` is false on software renderers (SwiftShader, llvmpipe), not just on devices without WebGL2. It is also false on narrow viewports and on touch-only devices (`isTouchOnly`: coarse pointer, no hover) at any width, so a phone in landscape or a tablet past the 800px breakpoint gets the DOM fallback. PageSpeed Insights and other cloud Lighthouse runners have no GPU; a shader that runs there pegs the main thread for the whole audit and the report comes back as "page stopped responding". Anything that mounts a WebGL surface must go through that gate or the DOM fallback never gets exercised where it matters.
 
 ### Fonts
 

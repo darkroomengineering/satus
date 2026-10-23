@@ -18,7 +18,11 @@ import {
   applyAddJsxChild,
   applyAddVariableStatement,
 } from './add-ops'
-import { resolvePropertyPath, withSourceFile } from './helpers'
+import {
+  findDestructuredBindings,
+  resolvePropertyPath,
+  withSourceFile,
+} from './helpers'
 import {
   applyRemoveArrayObjectElement,
   applyRemoveArrayStringElement,
@@ -149,21 +153,8 @@ function missedRequiredOpAnchorAbsent(
     case 'removeInterfaceProperty':
       return probe((sf) => sf.getInterface(op.interfaceName) !== undefined)
     case 'removeDestructuredBinding':
-      return probe((sf) =>
-        sf
-          .getDescendantsOfKind(SyntaxKind.VariableStatement)
-          .some((stmt) =>
-            stmt
-              .getDeclarations()
-              .some(
-                (decl) =>
-                  decl.getNameNode().getKind() ===
-                    SyntaxKind.ObjectBindingPattern &&
-                  (decl.getInitializer()?.getText() ?? '').includes(
-                    op.initializerContains
-                  )
-              )
-          )
+      return probe(
+        (sf) => findDestructuredBindings(sf, op.initializerContains).length > 0
       )
     case 'removeCallArgument':
       return probe((sf) =>
@@ -253,6 +244,52 @@ function requiredOpAlreadySatisfied(
   }
 }
 
+type OpKind = AstOperation['kind']
+type OpOfKind<K extends OpKind> = Extract<AstOperation, { kind: K }>
+
+type OpHandlers = {
+  [K in OpKind]: (
+    project: Project,
+    sourceText: string,
+    op: OpOfKind<K>
+  ) => string
+}
+
+const OP_HANDLERS: OpHandlers = {
+  removeImport: applyRemoveImport,
+  removeNamedImport: applyRemoveNamedImport,
+  removeVariableStatement: applyRemoveVariableStatement,
+  removeCallStatement: applyRemoveCallStatement,
+  removeCallArgument: applyRemoveCallArgument,
+  removeJsxElement: applyRemoveJsxElement,
+  removeJsxAttribute: applyRemoveJsxAttribute,
+  removeDestructuredBinding: applyRemoveDestructuredBinding,
+  removeInterfaceProperty: applyRemoveInterfaceProperty,
+  removeFunctionParameter: applyRemoveFunctionParameter,
+  replaceJsDoc: applyReplaceJsDoc,
+  removeIfStatement: applyRemoveIfStatement,
+  removeTryStatement: applyRemoveTryStatement,
+  replaceFunctionBody: applyReplaceFunctionBody,
+  removeArrayObjectElement: applyRemoveArrayObjectElement,
+  removeArrayStringElement: applyRemoveArrayStringElement,
+  syncUnusedParameterPrefix: applySyncUnusedParameterPrefix,
+  addImport: applyAddImport,
+  addArrayStringElement: applyAddArrayStringElement,
+  addArrayObjectElement: applyAddArrayObjectElement,
+  addVariableStatement: applyAddVariableStatement,
+  addJsxChild: applyAddJsxChild,
+  addDestructuredBinding: applyAddDestructuredBinding,
+  addFunctionBodyStatement: applyAddFunctionBodyStatement,
+}
+
+function applyOp<K extends OpKind>(
+  project: Project,
+  sourceText: string,
+  op: OpOfKind<K>
+): string {
+  return OP_HANDLERS[op.kind](project, sourceText, op)
+}
+
 /**
  * Apply a sequence of typed AST operations to source text in memory (never
  * touches disk). Each handler creates and removes its own source file in a
@@ -304,80 +341,7 @@ export function applyOpsToText(
 
   for (const op of ops) {
     const before = text
-    switch (op.kind) {
-      case 'removeImport':
-        text = applyRemoveImport(project, text, op)
-        break
-      case 'removeNamedImport':
-        text = applyRemoveNamedImport(project, text, op)
-        break
-      case 'removeVariableStatement':
-        text = applyRemoveVariableStatement(project, text, op)
-        break
-      case 'removeCallStatement':
-        text = applyRemoveCallStatement(project, text, op)
-        break
-      case 'removeCallArgument':
-        text = applyRemoveCallArgument(project, text, op)
-        break
-      case 'removeJsxElement':
-        text = applyRemoveJsxElement(project, text, op)
-        break
-      case 'removeJsxAttribute':
-        text = applyRemoveJsxAttribute(project, text, op)
-        break
-      case 'removeDestructuredBinding':
-        text = applyRemoveDestructuredBinding(project, text, op)
-        break
-      case 'removeInterfaceProperty':
-        text = applyRemoveInterfaceProperty(project, text, op)
-        break
-      case 'removeFunctionParameter':
-        text = applyRemoveFunctionParameter(project, text, op)
-        break
-      case 'replaceJsDoc':
-        text = applyReplaceJsDoc(project, text, op)
-        break
-      case 'removeIfStatement':
-        text = applyRemoveIfStatement(project, text, op)
-        break
-      case 'removeTryStatement':
-        text = applyRemoveTryStatement(project, text, op)
-        break
-      case 'replaceFunctionBody':
-        text = applyReplaceFunctionBody(project, text, op)
-        break
-      case 'removeArrayObjectElement':
-        text = applyRemoveArrayObjectElement(project, text, op)
-        break
-      case 'removeArrayStringElement':
-        text = applyRemoveArrayStringElement(project, text, op)
-        break
-      case 'syncUnusedParameterPrefix':
-        text = applySyncUnusedParameterPrefix(project, text, op)
-        break
-      case 'addImport':
-        text = applyAddImport(project, text, op)
-        break
-      case 'addArrayStringElement':
-        text = applyAddArrayStringElement(project, text, op)
-        break
-      case 'addArrayObjectElement':
-        text = applyAddArrayObjectElement(project, text, op)
-        break
-      case 'addVariableStatement':
-        text = applyAddVariableStatement(project, text, op)
-        break
-      case 'addJsxChild':
-        text = applyAddJsxChild(project, text, op)
-        break
-      case 'addDestructuredBinding':
-        text = applyAddDestructuredBinding(project, text, op)
-        break
-      case 'addFunctionBodyStatement':
-        text = applyAddFunctionBodyStatement(project, text, op)
-        break
-    }
+    text = applyOp(project, text, op)
 
     if (
       op.required &&

@@ -19,6 +19,7 @@ import type {
   AddVariableStatementOp,
 } from '../ast-operation-types'
 import {
+  findDestructuredBindings,
   insertIndexAfterImports,
   jsxAttrStringValue,
   lastJsxChildIndent,
@@ -183,26 +184,17 @@ export function applyAddDestructuredBinding(
   op: AddDestructuredBindingOp
 ): string {
   return withSourceFile(project, sourceText, (sf) => {
-    for (const stmt of sf.getDescendantsOfKind(SyntaxKind.VariableStatement)) {
-      for (const decl of stmt.getDeclarations()) {
-        const nameNode = decl.getNameNode()
-        if (nameNode.getKind() !== SyntaxKind.ObjectBindingPattern) continue
+    const [pattern] = findDestructuredBindings(sf, op.initializerContains)
+    if (!pattern) return sourceText
 
-        const pattern = nameNode.asKindOrThrow(SyntaxKind.ObjectBindingPattern)
-        const initText = decl.getInitializer()?.getText() ?? ''
-        if (!initText.includes(op.initializerContains)) continue
-
-        const elements = pattern.getElements()
-        if (elements.some((el) => el.getName() === op.bindingName)) {
-          return sourceText
-        }
-
-        const names = [...elements.map((el) => el.getText()), op.bindingName]
-        pattern.replaceWithText(`{ ${names.join(', ')} }`)
-        return undefined
-      }
+    const elements = pattern.getElements()
+    if (elements.some((el) => el.getName() === op.bindingName)) {
+      return sourceText
     }
-    return sourceText
+
+    const names = [...elements.map((el) => el.getText()), op.bindingName]
+    pattern.replaceWithText(`{ ${names.join(', ')} }`)
+    return undefined
   })
 }
 

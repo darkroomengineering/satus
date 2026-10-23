@@ -3,13 +3,10 @@
 import { useEffect, useEffectEvent, useRef } from 'react'
 
 /**
- * Attaches window mouse/touch listeners and calls `onMove` with raw client
- * coordinates and pixel deltas on each move event. Seeds on first input —
- * `onMove` is NOT called for the very first pointer event (no delta to compute).
- *
- * `onMove` goes through `useEffectEvent`, so consumers can safely close over
- * reactive values (e.g. Three.js size, sim instances) without re-subscribing
- * the window listeners on every render.
+ * Calls `onMove` with raw client coordinates and pixel deltas on each window
+ * mouse/touch move. NOT called for the very first pointer event (it only seeds
+ * the position; no delta yet). `onMove` goes through `useEffectEvent`, so it
+ * can close over reactive values without re-subscribing the listeners.
  */
 export function usePointerInput(
   onMove: (x: number, y: number, dx: number, dy: number) => void
@@ -33,7 +30,6 @@ export function usePointerInput(
         return
       }
 
-      // Seed position on first event; no delta to report yet.
       if (!last.isInit) {
         last.isInit = true
         last.x = clientX
@@ -72,16 +68,10 @@ export type PointerMoveHandler = (
 ) => void
 
 /**
- * Multiplexes a single set of window pointer listeners to N subscribers.
- * Mount once — e.g. in `FlowmapProvider` — and hand the returned `subscribe`
- * function down through context so `useFluidSim`/`useFlowmapSim` each
- * register their own handler instead of every sim mounting its own
- * `usePointerInput` (which doubles mousemove/touchmove work per event when
- * both sims are active on the same canvas).
- *
- * The returned `subscribe` function has a stable identity for the lifetime
- * of the component, so consumers can safely list it in an effect's deps
- * without resubscribing on every render.
+ * Multiplexes one set of window pointer listeners to N subscribers. Mount once
+ * (in `FlowmapProvider`) and share the returned `subscribe` via context:
+ * separate `usePointerInput` calls per sim would double the move work per
+ * event. `subscribe` has a stable identity, so it is safe in effect deps.
  */
 export function usePointerInputSubscribe(): (
   handler: PointerMoveHandler

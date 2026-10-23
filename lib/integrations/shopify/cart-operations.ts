@@ -71,10 +71,8 @@ const toCart = (cart: ShopifyCart): Cart => {
 type CookieStore = Awaited<ReturnType<typeof cookies>>
 
 /**
- * Sets the httpOnly `cartId` cookie. Shared by both places that mint a cart
- * id — `addItem` (lib/integrations/shopify/cart/actions.ts) and the
- * `/api/cart/ensure` race-protection route — so the cookie config (expiry,
- * security flags) can't drift between the two call sites.
+ * Sets the httpOnly `cartId` cookie. Shared by `addItem` and the
+ * `/api/cart/ensure` route so the cookie config can't drift between them.
  */
 export function setCartIdCookie(
   cookieStore: CookieStore,
@@ -84,7 +82,7 @@ export function setCartIdCookie(
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 30, // 30 days
+    maxAge: 60 * 60 * 24 * 30,
     path: '/',
   })
 }
@@ -107,8 +105,7 @@ export async function addToCart(
     query: addToCartMutation,
     variables: {
       cartId,
-      // Copied into plain objects: GraphQL variables are a JSON value bag,
-      // not a place for a named domain interface.
+      // Copied to plain objects: GraphQL variables are a JSON value bag.
       lines: lines.map((line) => ({ ...line })),
     },
     cache: 'no-store',
@@ -149,8 +146,7 @@ export async function updateCart(
     query: editCartItemsMutation,
     variables: {
       cartId,
-      // Copied into plain objects: GraphQL variables are a JSON value bag,
-      // not a place for a named domain interface.
+      // Copied to plain objects: GraphQL variables are a JSON value bag.
       lines: lines.map((line) => ({ ...line })),
     },
     cache: 'no-store',
@@ -169,7 +165,7 @@ export async function getCart(cartId: string): Promise<Cart | undefined> {
     dataSchema: getCartResponseSchema,
   })
 
-  // Old carts becomes `null` when you checkout.
+  // Shopify nulls a cart once its checkout completes.
   if (!res.body.data.cart) {
     return undefined
   }

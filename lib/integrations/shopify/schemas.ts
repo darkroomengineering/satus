@@ -1,47 +1,28 @@
 import { z } from 'zod'
 
 /**
- * Zod schemas for the Shopify Storefront API payloads that
- * `lib/integrations/shopify/**` callers actually read.
+ * Zod schemas for the Storefront API `data` payloads `shopifyFetch` validates
+ * (via `dataSchema`), covering only the fields the app reads.
  *
- * These validate the `data` field of `shopifyFetch` responses at the
- * boundary (passed via `dataSchema`). They intentionally do NOT attempt
- * exhaustive Shopify API modeling — only the fields the app destructures.
- * Objects use Zod's default "strip unknown keys" mode rather than
- * `.passthrough()`, so their inferred types line up exactly with the plain
- * interfaces in `types.ts` (no leftover index signature). Where a GraphQL
- * fragment selects a field that isn't part of a call site's TS interface
- * but survives a `...rest` spread in `adapters.ts` (e.g. `Product.options`),
- * that field is declared explicitly below instead of relying on passthrough.
+ * Objects strip unknown keys instead of `.passthrough()`, so inferred types
+ * match the plain interfaces in `types.ts`. A field a fragment selects that
+ * survives a `...rest` spread in `adapters.ts` (e.g. `Product.options`) is
+ * declared explicitly.
  *
- * Optionality/nullability is aligned field-by-field with the real
- * Storefront API schema (verified against https://shopify.dev/docs/api/storefront),
- * not just with what happened to type-check before: fields a fragment always
- * selects are required here even when the corresponding `types.ts` field is
- * marked optional (a required source is always assignable to an optional
- * target), and fields the Storefront API documents as nullable use
- * `.nullable()` rather than `.optional()` or `.nullish()` so the inferred
- * type never includes an explicit `undefined` that
- * `exactOptionalPropertyTypes` would reject.
- *
- * Each schema is paired with an exported `z.infer` type alias so call sites
- * can do `shopifyFetch<GetProductResponseData>({ dataSchema: getProductResponseSchema, ... })`
- * without duplicating the shape.
+ * Optionality follows the real Storefront API schema
+ * (https://shopify.dev/docs/api/storefront): fields a fragment always selects
+ * are required even where `types.ts` marks them optional, and nullable fields
+ * use `.nullable()`, not `.optional()`/`.nullish()`, so the inferred type has
+ * no explicit `undefined` that `exactOptionalPropertyTypes` rejects.
  */
-
-// ---------------------------------------------------------------------------
-// Shared primitives
-// ---------------------------------------------------------------------------
 
 const moneySchema = z.object({
   amount: z.string(),
   currencyCode: z.string(),
 })
 
-// Storefront API `SEO.title` / `SEO.description` are nullable String fields
-// — they're `null` until a merchant explicitly sets meta title/description
-// in the admin, which is common. The wrapping `seo` field's own
-// nullability differs per parent type (see usage sites below).
+// `SEO.title`/`description` are `null` until a merchant sets them (common).
+// The wrapping `seo` field's nullability differs per parent type.
 const seoSchema = z.object({
   title: z.string().nullable(),
   description: z.string().nullable(),
@@ -52,11 +33,8 @@ const selectedOptionSchema = z.object({
   value: z.string(),
 })
 
-// `Image.url` is the only non-nullable field on Storefront API's `Image`
-// type. `altText`, `width`, and `height` are all nullable — the image
-// fragment always selects them, so the keys are always present, but their
-// values can be `null` (width/height specifically when the image isn't
-// hosted by Shopify).
+// Only `url` is non-nullable on Storefront API's `Image`; width/height are
+// `null` when the image isn't hosted by Shopify.
 const shopifyImageSchema = z.object({
   url: z.string(),
   altText: z.string().nullable(),
@@ -68,10 +46,6 @@ const edgeNode = <NodeSchema extends z.ZodTypeAny>(nodeSchema: NodeSchema) =>
   z.object({
     edges: z.array(z.object({ node: nodeSchema })),
   })
-
-// ---------------------------------------------------------------------------
-// Product (products.ts, collections.ts)
-// ---------------------------------------------------------------------------
 
 const shopifyProductVariantSchema = z.object({
   id: z.string(),
@@ -87,16 +61,9 @@ const productOptionSchema = z.object({
   values: z.array(z.string()),
 })
 
-// `description`, `descriptionHtml`, `priceRange`, `seo`, `tags`, `options`,
-// and `updatedAt` are all non-null on Storefront API's `Product` type and
-// are unconditionally selected by `productFragment`, so they're required
-// here even though `ShopifyProduct` marks some of them optional (a required
-// source is assignable to an optional target). `options` and `updatedAt`
-// aren't part of the `ShopifyProduct` TS type, but `toProduct()` does
-// `const { images, variants, ...rest } = product` and spreads `...rest`
-// into the adapted `Product` (which *does* declare `options`) — declaring
-// them explicitly here keeps that data alive without needing
-// `.passthrough()`.
+// `options` and `updatedAt` aren't on the `ShopifyProduct` type, but
+// `toProduct()` spreads `...rest` into `Product` (which declares `options`),
+// so they must be declared here to survive stripping.
 const shopifyProductSchema = z.object({
   id: z.string(),
   handle: z.string(),
@@ -104,12 +71,9 @@ const shopifyProductSchema = z.object({
   tags: z.array(z.string()),
   availableForSale: z.boolean(),
   images: edgeNode(shopifyImageSchema),
-  // `Product.featuredImage` is unconditionally selected by `productFragment`
-  // (fragments/product.ts) but is a nullable field on Storefront API's
-  // `Product` type (`null` when the product has no images) — same shape as
-  // `cartLineProductSchema.featuredImage` below. Without this key, Zod's
-  // default strip-unknown-keys mode silently deletes it from every parsed
-  // product, which left `featuredImage` always `undefined` downstream.
+  // `null` when the product has no images. Without this key, strip mode
+  // deletes it from every parsed product and `featuredImage` is always
+  // `undefined` downstream.
   featuredImage: shopifyImageSchema.nullable(),
   variants: edgeNode(shopifyProductVariantSchema),
   description: z.string(),
@@ -140,15 +104,8 @@ export const getProductsResponseSchema = z.object({
 })
 export type GetProductsResponseData = z.infer<typeof getProductsResponseSchema>
 
-// ---------------------------------------------------------------------------
-// Collection (collections.ts)
-// ---------------------------------------------------------------------------
-
-// `description`, `seo`, and `updatedAt` are non-null on Storefront API's
-// `Collection` type and are unconditionally selected by
-// `collectionFragment`, so they're required here even though `Collection`
-// marks them optional. `path` is deliberately NOT declared — it isn't a
-// Shopify field at all; `toCollection()` computes it client-side.
+// `path` is deliberately not declared: it isn't a Shopify field;
+// `toCollection()` computes it.
 const collectionSchema = z.object({
   handle: z.string(),
   title: z.string(),
@@ -178,10 +135,6 @@ export type GetCollectionsResponseData = z.infer<
   typeof getCollectionsResponseSchema
 >
 
-// ---------------------------------------------------------------------------
-// Menu + Page (pages.ts)
-// ---------------------------------------------------------------------------
-
 export const getMenuResponseSchema = z.object({
   menu: z
     .object({
@@ -196,10 +149,7 @@ export const getMenuResponseSchema = z.object({
 })
 export type GetMenuResponseData = z.infer<typeof getMenuResponseSchema>
 
-// `id`, `title`, `handle`, `body`, `bodySummary`, `createdAt`, and
-// `updatedAt` are all non-null on Storefront API's `Page` type. Unlike
-// Product/Collection, `Page.seo` itself is nullable (not just its
-// title/description) — it's `null` until a merchant sets page-level SEO.
+// Unlike Product/Collection, `Page.seo` itself is nullable.
 const pageSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -221,15 +171,8 @@ export const getPagesResponseSchema = z.object({
 })
 export type GetPagesResponseData = z.infer<typeof getPagesResponseSchema>
 
-// ---------------------------------------------------------------------------
-// Cart (cart-operations.ts)
-// ---------------------------------------------------------------------------
-
-// `ShopifyCartLineItem.merchandise.product` only declares
-// `{id, handle, title, featuredImage}` — nothing in the app reads any of
-// the other fields the cart fragment pulls in via the full product
-// fragment (`...product`), so they're intentionally not declared here and
-// get stripped rather than kept alive with `.passthrough()`.
+// Only the fields the app reads; the rest of the cart fragment's
+// `...product` is intentionally stripped.
 const cartLineProductSchema = z.object({
   id: z.string(),
   handle: z.string(),
@@ -256,8 +199,8 @@ const shopifyCartSchema = z.object({
   checkoutUrl: z.string(),
   totalQuantity: z.number(),
   cost: z.object({
-    // Deprecated + nullable on Storefront API's `CartCost` — see the
-    // `DefaultCart.cost.totalTaxAmount` comment in `types.ts`.
+    // Deprecated and nullable; see `DefaultCart.cost.totalTaxAmount` in
+    // `types.ts`.
     totalTaxAmount: moneySchema.nullable(),
     subtotalAmount: moneySchema,
     totalAmount: moneySchema,
@@ -296,10 +239,6 @@ export const getCartResponseSchema = z.object({
 })
 export type GetCartResponseData = z.infer<typeof getCartResponseSchema>
 
-// ---------------------------------------------------------------------------
-// Customer (customer/actions.ts)
-// ---------------------------------------------------------------------------
-
 const customerUserErrorSchema = z.object({
   message: z.string(),
 })
@@ -330,11 +269,8 @@ export type CustomerAccessTokenDeleteResponseData = z.infer<
   typeof customerAccessTokenDeleteResponseSchema
 >
 
-// `customerCreateMutation` only requests `id, email, firstName, lastName` —
-// it does NOT fetch `orders`, unlike the full `Customer` type (used by
-// `getCustomerQuery` below, which does fetch orders). Validating against the
-// fields actually queried here (rather than the full `Customer` interface)
-// avoids rejecting a real, well-formed response at the boundary.
+// `customerCreateMutation` does not fetch `orders` (unlike `getCustomerQuery`);
+// validating the full `Customer` shape would reject a well-formed response.
 const createdCustomerSchema = z.object({
   id: z.string(),
   email: z.string(),

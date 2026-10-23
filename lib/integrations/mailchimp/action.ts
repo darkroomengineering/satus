@@ -24,7 +24,6 @@ const subscriptionSchema = z.object({
   lastName: z.string().optional(),
 })
 
-// Contact form action
 export async function mailchimpContactAction(
   _initialState: FormState,
   formData: FormData
@@ -52,7 +51,6 @@ export async function mailchimpContactAction(
   })
 }
 
-// Newsletter subscription action
 export async function mailchimpSubscriptionAction(
   _initialState: FormState,
   formData: FormData

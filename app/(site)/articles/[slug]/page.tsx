@@ -17,12 +17,8 @@ import {
 import { SITE } from '@/lib/seo/site'
 import { generateSanityMetadata } from '@/utils/metadata'
 
-/**
- * Renders every published Sanity `article` document at `/articles/[slug]` —
- * its own namespace so an article slug can never collide with a `page`
- * slug resolved by the `[...slug]` catch-all.
- */
-
+// Own namespace so an article slug never collides with a `page` slug resolved
+// by the `[...slug]` catch-all.
 function fetchArticle(slug: string) {
   return sanityFetch({ query: articleQuery, params: { slug } })
 }
@@ -70,8 +66,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   return (
     <Wrapper theme="light">
-      {/* `/articles` has no index page — the breadcrumb trail goes
-          straight from the site root to the article itself. */}
+      {/* No `/articles` index page: the breadcrumb goes root to article. */}
       <JsonLd
         data={breadcrumbSchema([
           { name: SITE.name, url: SITE.url },
@@ -97,7 +92,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   )
 }
 
-// https://nextjs.org/docs/app/api-reference/functions/generate-metadata
 export async function generateMetadata({ params }: ArticlePageProps) {
   const { slug } = await params
 

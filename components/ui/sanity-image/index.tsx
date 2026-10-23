@@ -15,13 +15,10 @@ import { clamp } from '@/utils/math'
 // project sees artifacts (and add the value to `images.qualities`).
 const QUALITY = 80
 
-// Sizing is fully owned by this component (it always derives aspectRatio
-// from the editor's crop and always sets `sizes` itself below), so
-// fill/width/height and mobileSize/desktopSize/sizes are all omitted —
-// Omit over ImageProps' discriminated unions collapses each union to a
-// single flattened object type, so leaving any of these in would let a
-// caller pass a combination that no longer matches any single ImageProps
-// branch.
+// Sizing is fully owned here (aspectRatio from the editor's crop, `sizes` set
+// below), so fill/width/height and mobileSize/desktopSize/sizes are all
+// omitted. Omit over ImageProps' discriminated unions flattens each union, so
+// leaving any in would allow a combination matching no ImageProps branch.
 interface SanityImageProps extends Omit<
   ImageProps,
   | 'src'

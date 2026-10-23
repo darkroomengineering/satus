@@ -1,38 +1,30 @@
 'use client'
 
 import {
-  type TransformRef,
   TransformProvider,
+  type TransformRef,
   useRect,
   useScrollTrigger,
 } from 'hamo'
 import { type PropsWithChildren, useRef } from 'react'
 
 interface ParallaxProps extends PropsWithChildren {
-  /** Sizes and places the wrapper; what it wraps fills it. */
   className?: string | undefined
-  /**
-   * How far the content travels while the wrapper crosses the viewport, in
-   * CSS pixels: half of it before the middle, half after. Negative travels
-   * the other way.
-   */
+  /** Travel in CSS pixels while the wrapper crosses the viewport, half before the middle, half after. Negative reverses. */
   distance?: number
 }
 
 /**
  * Moves what it wraps with the scroll, in the DOM and in the canvas at once.
  *
- * The wrapper gets a CSS translate as it crosses the viewport, as any
- * parallax would. What keeps a cube inside it in step is the second write:
- * the same translate goes to hamo's `TransformProvider`, and `useWebGLRect`
- * in every WebGL element under it adds the provider's translate to the
- * element's resting rect. That rect is measured ignoring transforms, so the
- * offset is counted exactly once. Both writes happen in the scroll
- * callback, which Tempus runs before the canvas draws, so the box and the
- * cube move in the same frame.
+ * The same translate goes to the wrapper's CSS and to hamo's
+ * `TransformProvider`; `useWebGLRect` adds it to each WebGL element's resting
+ * rect, which is measured ignoring transforms so the offset counts once. Both
+ * writes happen in the scroll callback, which Tempus runs before the canvas
+ * draws, so box and cube move in the same frame.
  *
- * The trigger reads the wrapper's rect ignoring transforms too. Measured
- * through the transform, it would move its own start and end as it went.
+ * The trigger's rect ignores transforms too: measured through the transform,
+ * it would move its own start and end.
  */
 export function Parallax({
   className,

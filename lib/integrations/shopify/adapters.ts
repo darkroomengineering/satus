@@ -7,14 +7,6 @@ import type {
   ShopifyProduct,
 } from './types'
 
-/**
- * Shared Shopify response-adapting helpers.
- *
- * Storefront API responses wrap lists in `{ edges: [{ node }] }` and nest
- * images/variants; these helpers flatten and normalize them into the app's
- * domain types. Used by products, collections, and cart modules.
- */
-
 export const removeEdgesAndNodes = <T>(array: EdgeNode<T>): T[] => {
   return array.edges.map((edge) => edge?.node)
 }

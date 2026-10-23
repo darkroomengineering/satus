@@ -3,13 +3,13 @@
 import { Tabs as BaseTabs } from '@base-ui/react/tabs'
 import { useRender } from '@base-ui/react/use-render'
 import cn from 'clsx'
-import { Activity } from 'react'
 import type { ComponentProps, ReactNode } from 'react'
+import { Activity } from 'react'
 
 import s from './tabs.module.css'
 
 /**
- * Tabs component built on Base UI for accessible tab navigation.
+ * Tabs on Base UI.
  *
  * @example
  * ```tsx
@@ -39,10 +39,8 @@ import s from './tabs.module.css'
  * ```
  */
 
-// Root
 const Root = BaseTabs.Root
 
-// List (tab buttons container)
 type ListProps = ComponentProps<typeof BaseTabs.List> & {
   className?: string
 }
@@ -51,7 +49,6 @@ function List({ className, ...props }: ListProps) {
   return <BaseTabs.List className={cn(s.list, className)} {...props} />
 }
 
-// Tab (individual tab button)
 type TabProps = ComponentProps<typeof BaseTabs.Tab> & {
   className?: string
 }
@@ -60,7 +57,6 @@ function Tab({ className, ...props }: TabProps) {
   return <BaseTabs.Tab className={cn(s.tab, className)} {...props} />
 }
 
-// Indicator (animated underline)
 type IndicatorProps = ComponentProps<typeof BaseTabs.Indicator> & {
   className?: string
 }
@@ -71,7 +67,6 @@ function Indicator({ className, ...props }: IndicatorProps) {
   )
 }
 
-// Panel
 type PanelProps = ComponentProps<typeof BaseTabs.Panel> & {
   className?: string
   children?: ReactNode

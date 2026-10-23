@@ -21,7 +21,6 @@ export default async function SanityLayout({
   return (
     <>
       {children}
-      {/* Show "Disable Draft Mode" button on Sanity pages */}
       {sanityConfigured && isDraftMode && <DisableDraftMode />}
     </>
   )

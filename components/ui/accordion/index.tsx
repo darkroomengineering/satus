@@ -21,10 +21,7 @@ import {
 import s from './accordion.module.css'
 
 /**
- * Accordion component built on Base UI Collapsible.
- *
- * Combines Base UI's accessibility features with React 19's Activity
- * for optimal performance when accordion content is hidden.
+ * Accordion on Base UI Collapsible; closed content sits in React's `Activity`.
  *
  * @example
  * ```tsx
@@ -89,10 +86,7 @@ function isRenderFunction(
   return typeof children === 'function'
 }
 
-/**
- * Group component for single-open accordion behavior.
- * Only one accordion can be open at a time within a Group.
- */
+/** Only one accordion in a Group can be open at a time. */
 function Group({ children }: PropsWithChildren) {
   const [currentId, setCurrentId] = useState<string | undefined>()
 
@@ -105,37 +99,18 @@ function Group({ children }: PropsWithChildren) {
   )
 }
 
-/**
- * Props for the Accordion Root component.
- */
 type RootProps = {
-  /** Additional CSS classes */
   className?: string
-  /** Child components or render function with open state */
   children?: ReactNode | ((props: { isOpen: boolean }) => ReactNode)
-  /** Ref to access toggle method programmatically */
   ref?: Ref<{ toggle: () => void }>
-  /** Default open state (uncontrolled) */
   defaultOpen?: boolean
 }
 
-/**
- * Accordion item root component.
- *
- * Provides the context and state management for an individual accordion item.
- * When used within an Accordion.Group, only one item can be open at a time.
- *
- * @param props - Component props
- * @param props.children - Accordion content or render function
- * @param props.className - Additional CSS classes
- * @param props.ref - Ref for programmatic control
- * @param props.defaultOpen - Whether the accordion starts open
- */
+/** One accordion item; inside a Group, only one item is open at a time. */
 function Root({ children, className, ref, defaultOpen = false }: RootProps) {
   const id = useId()
   const { currentId, setCurrentId, inGroup } = useAccordionsGroupContext()
 
-  // If in a group, use group state; otherwise use local state
   const hasGroup = inGroup
   const [localOpen, setLocalOpen] = useState(defaultOpen)
 
@@ -166,10 +141,6 @@ function Root({ children, className, ref, defaultOpen = false }: RootProps) {
   )
 }
 
-/**
- * Accordion trigger button.
- * Clicking toggles the accordion open/closed state.
- */
 function Button({
   children,
   className,
@@ -187,10 +158,6 @@ function Button({
   )
 }
 
-/**
- * Accordion body/content panel.
- * Uses Activity to defer updates when hidden for better performance.
- */
 function Body({
   children,
   className,
@@ -201,11 +168,8 @@ function Body({
   const { isOpen } = useAccordionContext()
   const [setRectRef, entry] = useResizeObserver()
 
-  // Before the ResizeObserver's first measurement, `entry` is undefined —
-  // falling back to 'auto' (instead of the literal "undefinedpx", which the
-  // browser drops as invalid CSS) renders the panel at its natural height for
-  // that first frame. The transition still animates normally afterward, once
-  // `entry` is set and this resolves to a real pixel value.
+  // Before the first measurement `entry` is undefined: 'auto' renders the
+  // natural height for that frame instead of an invalid "undefinedpx".
   let panelHeight = '0px'
   if (isOpen) {
     panelHeight = entry ? `${entry.contentRect.height}px` : 'auto'
@@ -219,7 +183,6 @@ function Body({
       }}
     >
       <div ref={setRectRef}>
-        {/* Activity defers updates when closed and cleans up effects automatically */}
         <Activity mode={isOpen ? 'visible' : 'hidden'}>
           <div className={className}>{children}</div>
         </Activity>
@@ -230,7 +193,6 @@ function Body({
 
 export { Body, Button, Group, Root }
 
-// Also export as namespace for compound component pattern
 export const Accordion = {
   Group,
   Root,

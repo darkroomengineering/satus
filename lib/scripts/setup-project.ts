@@ -1,32 +1,18 @@
 #!/usr/bin/env bun
 /**
- * Interactive Project Setup Script
- *
- * Run after cloning the template: `bun run setup:project`
- *
- * This script helps you:
- * 1. Choose which integrations to keep — the set is expanded to include every
- *    transitive `requires` dependency (e.g. keeping theatre also keeps webgl)
+ * `bun run setup:project`, run after cloning the template:
+ * 1. Choose integrations to keep (expanded to every transitive `requires`
+ *    dependency, e.g. keeping theatre also keeps webgl)
  * 2. Strip to lean core (removes ALL integrations unconditionally)
- * 3. Re-add the kept integrations additively (copy files, restore
- *    dependencies, barrel exports, env stubs, and code transforms)
- * 4. Self-prune its own setup machinery from the scaffolded project
+ * 3. Re-add the kept integrations additively (files, dependencies, barrel
+ *    exports, env stubs, code transforms)
+ * 4. Self-prune its own setup machinery
  *
- * Non-interactive (CI) usage — skips the integration-selection prompt:
- *   bun run setup:project --preset <key>           Use a preset's integrations
- *   bun run setup:project --keep <id,id,...>       Keep an explicit set ('' = lean)
- *   bun run setup:project --keep '' --clean-homepage --yes
- *
- * `--clean-homepage` replaces the manual landing page (default: keep it);
- * `--skip-install` writes package.json without running `bun install`
- * (offline / tests).
- *
- * `--yes` skips the final proceed/confirm prompt. Without it, `--preset`/
- * `--keep` still skip the confirm prompt when stdio isn't a TTY (so scripted
- * / CI invocations — including create-darkroom's — never hang), but show it
- * when run at an interactive terminal, giving a human a chance to abort.
- *
- * Cross-platform compatible (Windows, macOS, Linux)
+ * Non-interactive flags (see `--help`): `--preset <key>`, `--keep <id,id,...>`
+ * (`''` = lean), `--clean-homepage`, `--skip-install`, `--yes`. `--yes` skips
+ * the final confirm; without it `--preset`/`--keep` still skip the confirm when
+ * stdio isn't a TTY (so create-darkroom's scripted runs never hang) but show it
+ * at an interactive terminal.
  */
 
 import { rmSync } from 'node:fs'
@@ -54,21 +40,16 @@ import type { PayloadPackageJson, PayloadSource } from './payload-source'
 import { guardedPrompt } from './prompts'
 import {
   getFlagValue,
-  parseCliFlags,
-  pathExists,
   PENDING_FORMAT_MARKER,
   type PendingFormatMarker,
+  parseCliFlags,
+  pathExists,
   projectRoot,
   removeDir,
   removeFile,
   resolvePath,
 } from './utils'
 
-/**
- * Preset project modes with pre-selected integrations
- *
- * Naming inspired by the darkroom/studio creative aesthetic
- */
 export const PROJECT_PRESETS = {
   editorial: {
     name: 'Editorial',
@@ -127,10 +108,7 @@ interface SetupOptions {
   skipInstall: boolean
 }
 
-/**
- * Minimal homepage written when the user opts to drop the demo marketing page.
- * Mirrors the reset documented in the header of `app/(site)/page.tsx`.
- */
+/** Mirrors the reset documented in the header of `app/(site)/page.tsx`. */
 const BLANK_HOMEPAGE = `import { Wrapper } from '@/components/layout/wrapper'
 
 export default function Home() {
@@ -142,11 +120,6 @@ export default function Home() {
 }
 `
 
-/**
- * Replace the manual landing page with a blank starter homepage.
- * Rewrites `app/(site)/page.tsx` to the minimal blank starter and removes the
- * co-located CSS module so no orphan file remains.
- */
 const replaceManualLandingPage = async (dryRun: boolean): Promise<void> => {
   if (dryRun) {
     p.log.message(
@@ -160,14 +133,11 @@ const replaceManualLandingPage = async (dryRun: boolean): Promise<void> => {
 }
 
 /**
- * Delete `app/(site)/(examples)` unconditionally, regardless of which
- * integrations are kept.
- *
- * The routes inside it (`/sanity`, a Sanity wiring tutorial; `/webgl`, the
- * WebGL-follows-CSS example) are for this repo's own contributors, not real
- * site content — they must never ship to a scaffolded project. Before this, the folder only disappeared when Sanity
- * was dropped (it lived in the sanity bundle's `folders`), which left it in
- * every project that kept Sanity — the common case.
+ * Delete `app/(site)/(examples)` regardless of which integrations are kept:
+ * its routes (`/sanity`, a Sanity wiring tutorial; `/webgl`, the
+ * WebGL-follows-CSS example) are for this repo's contributors and must never
+ * ship to a scaffolded project. It can't live in the sanity bundle's
+ * `folders`, which only apply when Sanity is dropped.
  */
 const pruneExampleRoutes = async (dryRun: boolean): Promise<void> => {
   if (dryRun) {
@@ -177,21 +147,14 @@ const pruneExampleRoutes = async (dryRun: boolean): Promise<void> => {
   await removeDir('app/(site)/(examples)', dryRun)
 }
 
-// Parsed package.json shape used by the in-memory mutation helpers below.
-// Only the fields these helpers touch are typed — the parsed object retains
-// every other real package.json field at runtime; JSON.stringify(pkg) still
-// round-trips them untouched.
+// Only the fields the helpers below touch are typed; others round-trip untouched.
 type PackageJson = {
   dependencies?: Record<string, string>
   devDependencies?: Record<string, string>
   scripts?: Record<string, string>
 }
 
-/**
- * Remove dependency entries from the in-memory package.json object.
- * Returns the lists of removed dep/devDep names (for logging).
- * Does NOT read or write the file — caller owns I/O.
- */
+/** Mutates the in-memory package.json (caller owns I/O); returns the removed names. */
 const removeDepsFromPackageJson = (
   pkg: PackageJson,
   depsToRemove: string[],
@@ -222,10 +185,6 @@ const removeDepsFromPackageJson = (
   return { deps: removedDeps, devDeps: removedDevDeps }
 }
 
-/**
- * Remove integration-owned script entries from the in-memory package.json
- * object. Returns the removed names. Does NOT read or write the file.
- */
 const removeScriptsFromPackageJson = (
   pkg: PackageJson,
   scriptsToRemove: string[],
@@ -241,9 +200,6 @@ const removeScriptsFromPackageJson = (
   return removed
 }
 
-/**
- * Clean up .env.example
- */
 const updateEnvExample = async (
   envVars: string[],
   dryRun: boolean
@@ -276,14 +232,10 @@ const updateEnvExample = async (
 }
 
 /**
- * Update barrel exports to remove references to deleted components.
- *
- * Failures are returned in the same `TransformFailure` shape the AST
- * transforms use, not just warned about (M7): a barrel file left re-exporting
- * a module this run just deleted breaks the build, and `setup()`'s
- * failure gate has to see it or it self-prunes over a broken tree.
- *
- * Exported for unit testing.
+ * Remove barrel export lines that reference deleted components. Failures are
+ * returned as `TransformFailure`s, not just warned about: a barrel re-exporting
+ * a deleted module breaks the build, and `setup()`'s failure gate must see it
+ * or it self-prunes over a broken tree. Exported for unit testing.
  */
 export const updateBarrelExports = async (
   barrelExports: { file: string; pattern: string }[],
@@ -316,14 +268,10 @@ export const updateBarrelExports = async (
 }
 
 /**
- * Write minimal `.next/types` stubs so that `tsc --noEmit` works on a fresh
- * setup without first running `bun dev`/`bun build`.
- *
- * `next-env.d.ts` (auto-generated by Next.js) imports BOTH
+ * Write empty `.next/types` stubs so `tsc --noEmit` works on a fresh setup
+ * before `bun dev`/`bun build`. `next-env.d.ts` imports BOTH
  * `./.next/types/routes.d.ts` and `./.next/types/root-params.d.ts`, and each
- * missing one is its own TS2307 before `.next/` exists (M8: only the routes
- * stub was written, so the second import still failed). The real files come
- * from `next typegen`; these empty stubs satisfy the imports until then.
+ * missing one is its own TS2307. `next typegen` writes the real files.
  */
 const ensureNextTypeStub = async (dryRun: boolean): Promise<void> => {
   const stubs = ['routes.d.ts', 'root-params.d.ts']
@@ -344,39 +292,20 @@ const ensureNextTypeStub = async (dryRun: boolean): Promise<void> => {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Post-run cleanup (P-B2): the AST-transform engine's output is functionally
-// correct but not always oxfmt-clean (a blank line off in a handful of
-// files), and COMPONENTS.md isn't self-updating. Both run as the final steps
-// of a real (non-dry) run so `bun run check` is green immediately after
-// setup, without a human having to notice and run them manually.
-//
-// Both need a real `bun install` to have already happened:
-//   - oxfmt needs `bun install` to have populated node_modules — its own
-//     `oxfmt.config.ts` (a typed config, not `.oxfmtrc.json`) imports the
-//     `oxfmt` package for `defineConfig`, which fails to resolve on a bare
-//     `--skip-install` tree even via `bunx` (unlike a plain module import,
-//     which Bun resolves from its global cache regardless of a local
-//     node_modules).
-//   - generate-manifest.ts resolves actual TYPE information via ts-morph
-//     (not just source text), so its output depends on which package
-//     versions are installed — regenerating it against a pre-install
-//     node_modules can produce a manifest that immediately fails
-//     `manifest:check` once the real install lands (an inferred type like
-//     `ZodEmail` reads as `any` against the wrong/stale zod install).
-//
-// When install already ran (`!skipInstall`), both run immediately — the
-// filesystem state right after `setup()` is exactly what `bun run check`
-// will see. When `--skip-install` was passed, both are deferred to a
-// `PENDING_FORMAT_MARKER` file that `prepare.ts` picks up and finishes the
-// next time `bun install` runs `prepare` (its normal lifecycle hook) — the
-// first point in that flow where both are guaranteed to work.
-// ---------------------------------------------------------------------------
+// Post-run cleanup: the AST transforms' output isn't always oxfmt-clean, and
+// COMPONENTS.md isn't self-updating, so a real run formats the changed files
+// and regenerates it to leave `bun run check` green. Both need a real
+// `bun install` first:
+//   - oxfmt's `oxfmt.config.ts` imports the `oxfmt` package, which doesn't
+//     resolve on a bare `--skip-install` tree even via `bunx`.
+//   - generate-manifest.ts resolves TYPE information via ts-morph, so a
+//     pre-install node_modules yields a manifest that fails `manifest:check`
+//     after the real install (e.g. `ZodEmail` reading as `any` against a
+//     stale zod).
+// With `--skip-install`, both defer to a `PENDING_FORMAT_MARKER` file that
+// `prepare.ts` finishes on the next `bun install`.
 
-/**
- * Run `bun run format` (oxfmt) over exactly the files this run's AST
- * transforms modified — never the whole repo. No-op when nothing changed.
- */
+/** Run `bun run format` (oxfmt) over exactly the files this run's transforms modified. */
 const formatChangedFiles = async (files: string[]): Promise<void> => {
   if (files.length === 0) return
 
@@ -392,10 +321,6 @@ const formatChangedFiles = async (files: string[]): Promise<void> => {
   }
 }
 
-/**
- * Regenerate COMPONENTS.md via the existing `generate:manifest` script so it
- * reflects the strip/re-add's final component set.
- */
 const regenerateManifest = async (): Promise<void> => {
   const s = p.spinner()
   s.start('Regenerating COMPONENTS.md...')
@@ -411,12 +336,9 @@ const regenerateManifest = async (): Promise<void> => {
 }
 
 /**
- * Persist the still-unformatted file list so `prepare.ts` can finish
- * formatting AND regenerate COMPONENTS.md once `bun install` actually runs
- * (see the module docstring above). Always written on a real, non-dry
- * --skip-install run — even with an empty `files` list — because the
- * manifest regeneration `prepare.ts` also performs needs deferring
- * regardless of whether any AST transform changed a file.
+ * Persist the unformatted file list for `prepare.ts`. Written on every real
+ * --skip-install run, even with an empty `files` list, because the manifest
+ * regeneration also needs deferring.
  */
 const writePendingFormatMarker = async (files: string[]): Promise<void> => {
   const marker: PendingFormatMarker = { files }
@@ -433,14 +355,10 @@ const writePendingFormatMarker = async (files: string[]): Promise<void> => {
   )
 }
 
-// ---------------------------------------------------------------------------
-// Preflight (H8): validate before any mutation begins
-// ---------------------------------------------------------------------------
-
 /**
- * Collect the relative paths (folders / files / overwriteFiles) declared by
- * the kept bundles' manifests — the exact set `setupSnapshot` needs present
- * on disk to build a working payload. Exported for unit testing.
+ * Relative paths (folders / files / overwriteFiles) the kept bundles declare:
+ * the set `setupSnapshot` needs on disk to build a working payload. Exported
+ * for unit testing.
  */
 export const declaredBundlePaths = (
   keepIntegrations: RemovableId[]
@@ -462,17 +380,12 @@ export const declaredBundlePaths = (
 }
 
 /**
- * Check which of `paths` are absent on disk. `exists` is injectable so tests
- * can simulate a missing path without touching the filesystem; it defaults
- * to a real `pathExists(resolvePath(...))` check.
- *
- * This is the preflight for H8: `setupSnapshot` silently skips any bundle
- * path that doesn't exist (`if (await pathExists(src))`), while the later
- * `installBundle` call throws hard on the resulting incomplete snapshot —
- * by which point folder removal, self-prune, and the package.json write may
- * already have run. Calling this BEFORE any of those steps means a missing
- * path is reported with zero mutations performed, instead of leaving the
- * project half-migrated.
+ * Which of `paths` are absent on disk (`exists` is injectable for tests).
+ * `setupSnapshot` silently skips missing bundle paths while the later
+ * `installBundle` throws on the incomplete snapshot, after folder removal and
+ * the package.json write may have run. Calling this BEFORE any mutation
+ * reports a missing path with nothing changed instead of leaving the project
+ * half-migrated.
  */
 export const findMissingPaths = async (
   paths: string[],
@@ -486,21 +399,10 @@ export const findMissingPaths = async (
   return missing
 }
 
-// ---------------------------------------------------------------------------
-// Phase orchestration helpers (additive model)
-// ---------------------------------------------------------------------------
-
 /**
- * Copy all files the kept integrations need into a temp directory, forming a
- * "snapshot" that can serve as a local payload source for the add step.
- *
- * Captures:
- *  - Each kept bundle's `folders` (recursive copy)
- *  - Each kept bundle's `files` and `overwriteFiles` (individual files)
- *  - The project's package.json (for dependency version pins during re-add)
- *
- * Returns a PayloadSource-shaped object with a cleanup() that removes the
- * temp dir.
+ * Copy the kept bundles' folders, files, overwriteFiles and barrel files, plus
+ * package.json (for version pins), into a temp dir that serves as the local
+ * payload source for the re-add step. `cleanup()` removes it.
  */
 const setupSnapshot = async (
   keepIntegrations: RemovableId[]
@@ -511,7 +413,6 @@ const setupSnapshot = async (
     const bundle = getBundle(id)
     if (!bundle) continue // id: RemovableId — guard is honest
 
-    // Copy integration folders
     for (const folder of bundle.folders) {
       const src = resolvePath(folder)
       if (await pathExists(src)) {
@@ -519,13 +420,11 @@ const setupSnapshot = async (
       }
     }
 
-    // Copy integration files and overwriteFiles
     const filesToCopy = [...bundle.files, ...(bundle.overwriteFiles ?? [])]
     for (const file of filesToCopy) {
       const src = resolvePath(file)
       if (await pathExists(src)) {
         const dest = join(root, file)
-        // Ensure parent directory exists (dirname of join(root, file))
         const segments = file.split('/')
         if (segments.length > 1) {
           const parentRel = segments.slice(0, -1).join('/')
@@ -536,7 +435,6 @@ const setupSnapshot = async (
     }
   }
 
-  // Capture barrel export files referenced by the kept bundles
   for (const id of keepIntegrations) {
     const bundle = getBundle(id)
     if (!bundle) continue // id: RemovableId — guard is honest
@@ -550,7 +448,7 @@ const setupSnapshot = async (
             recursive: true,
           })
         }
-        // Only copy if not already captured (multiple bundles may share a barrel)
+        // Multiple bundles may share a barrel.
         if (!(await pathExists(dest))) {
           await cp(src, dest)
         }
@@ -558,7 +456,6 @@ const setupSnapshot = async (
     }
   }
 
-  // Capture package.json for version pins
   const pkgSrc = resolvePath('package.json')
   if (await pathExists(pkgSrc)) {
     await cp(pkgSrc, join(root, 'package.json'))
@@ -572,13 +469,9 @@ const setupSnapshot = async (
 }
 
 /**
- * Apply the UNION of ALL bundles' removals unconditionally — stripping every
- * integration to leave a lean core.  This is a re-scoping of the prior
- * "remove unkept" logic to "remove all".
- *
- * Accepts a pre-parsed in-memory `pkg` object and calls `removeDepsFromPackageJson`
- * to mutate it directly — no file I/O for the package.json dep removal step.
- * Returns removal counts and any code-transform failures for logging.
+ * Apply the UNION of ALL bundles' removals, stripping every integration to
+ * lean core. Mutates the in-memory `pkg` (no file I/O for dep removal).
+ * Returns removal counts and collected failures.
  */
 const setupLean = async (
   pkg: PackageJson,
@@ -592,14 +485,12 @@ const setupLean = async (
   const integrationNames = getIntegrationNames()
   const s = p.spinner()
 
-  // Collect ALL code transforms (all bundles, not just the "unkept" ones)
   const allCodeTransforms: CodeTransform[] = []
   for (const name of integrationNames) {
-    // name: BundleId → INTEGRATION_BUNDLES[name] is always IntegrationBundle
     allCodeTransforms.push(...INTEGRATION_BUNDLES[name].codeTransforms)
   }
 
-  // Apply code transformations BEFORE removing folders
+  // Transforms run BEFORE folders are removed.
   let failures: TransformFailure[] = []
   let changedFiles: string[] = []
   if (allCodeTransforms.length > 0) {
@@ -614,19 +505,16 @@ const setupLean = async (
     )
   }
 
-  // Remove all integration folders and files
   for (const name of integrationNames) {
-    // name: BundleId → access is always total
     const bundle = INTEGRATION_BUNDLES[name]
 
     s.start(`Removing ${bundle.name}...`)
 
     const removed: string[] = []
 
-    // A removal that genuinely fails (permissions, a lock) throws — collect
-    // it like a transform failure rather than aborting the batch, so the run
-    // finishes stripping everything else and the caller still exits non-zero
-    // with self-prune skipped (M7).
+    // A failed removal (permissions, a lock) throws; collect it like a
+    // transform failure so the run strips everything else, then exits
+    // non-zero with self-prune skipped.
     for (const folder of bundle.folders) {
       try {
         if (await removeDir(folder, dryRun)) {
@@ -660,7 +548,6 @@ const setupLean = async (
     }
   }
 
-  // Collect all deps / env vars / barrel exports across ALL bundles
   const allDeps: string[] = []
   const allDevDeps: string[] = []
   const allScripts: string[] = []
@@ -668,7 +555,6 @@ const setupLean = async (
   const allBarrelExports: { file: string; pattern: string }[] = []
 
   for (const name of integrationNames) {
-    // name: BundleId → access is always total
     const bundle = INTEGRATION_BUNDLES[name]
     allDeps.push(...bundle.dependencies)
     allDevDeps.push(...bundle.devDependencies)
@@ -677,7 +563,6 @@ const setupLean = async (
     allBarrelExports.push(...bundle.barrelExports)
   }
 
-  // Mutate the in-memory package.json object (no file write here)
   let totalDeps = 0
   let totalDevDeps = 0
   if (allDeps.length > 0 || allDevDeps.length > 0) {
@@ -705,7 +590,6 @@ const setupLean = async (
     )
   }
 
-  // Update .env.example
   if (allEnvVars.length > 0) {
     s.start('Updating .env.example...')
     const changes = await updateEnvExample(allEnvVars, dryRun)
@@ -716,7 +600,6 @@ const setupLean = async (
     )
   }
 
-  // Update barrel exports
   if (allBarrelExports.length > 0) {
     s.start('Updating component exports...')
     const barrelResult = await updateBarrelExports(allBarrelExports, dryRun)
@@ -732,48 +615,25 @@ const setupLean = async (
 }
 
 /**
- * For each kept integration, run the shared re-add steps via `installBundle`,
- * which centralizes: copyBundleFiles, applyOverwriteFiles, addDependencies
- * and addScripts (from snapshot package.json), restoreBarrelExports, appendEnvStubs,
- * addTransforms.
+ * Re-add each kept integration via `installBundle`, then strip
+ * absent-integration wiring from the freshly copied files (keeping webgl
+ * without theatre must remove theatre hooks from the copied fluid/flowmaps).
+ * Returns collected failures; callers report and fail loudly after the batch.
  *
- * Also strips absent-integration wiring from freshly copied files (e.g.
- * keeping webgl without theatre must remove theatre hooks from the copied
- * fluid/flowmaps).
+ * `installBundle` can also throw a raw `Error` (the snapshot misses a declared
+ * path, or a write fails). Each bundle is caught individually: step 6
+ * (`setupLean`) already stripped every integration from the live tree, so an
+ * uncaught throw would leave every bundle AFTER the failing one un-re-added
+ * too. The failure is recorded as a `TransformFailure` with the bundle name as
+ * `file`, flowing through `setup()`'s step 10 gate and `main()`'s exit 3.
  *
- * Returns any code-transform failures collected along the way instead of
- * swallowing them — callers report and fail loudly once the whole batch is
- * done (M6).
- *
- * `installBundle` itself can also throw a raw `Error` (not a collected
- * `TransformFailure`) — `copyBundleFiles`/`readPayloadFile`/`listPayloadFiles`
- * fail loudly when the snapshot is missing a declared path or a write fails.
- * Each bundle's `installBundle` call is caught individually so one bundle's
- * I/O failure doesn't abort the whole re-add batch: step 6 (`setupLean`) has
- * already stripped every integration's files from the live tree by the time
- * this runs, so an uncaught throw here would leave every bundle AFTER the
- * failing one un-re-added too — not just the one that failed (M1). The
- * failure is recorded into the same `failures` array (reusing
- * `TransformFailure`'s `{file, error}` shape with the bundle's display name
- * standing in for `file`) so it flows through the existing collected-failure
- * reporting/exit-code path (`setup()`'s step 10 gate, `main()`'s exit 3).
- *
- * KNOWN LIMITATION (documented, not fixed here — see the M1 finding's escape
- * hatch): this makes the failing bundle's OWN files best-effort — whatever
- * `installBundle` wrote before throwing stays on disk, worse than nothing but
- * not further worsened, and it does NOT make a re-run reliably recover. A
- * re-run's preflight (`findMissingPaths` against `declaredBundlePaths`, see
- * `setup()` step 1) checks the CURRENT on-disk tree, which this same failed
- * run already stripped in step 6 before ever reaching this loop — so if the
- * failing bundle never got far enough to write its probe path back, the next
- * invocation's preflight finds it missing and refuses before any mutation,
- * same as before this fix. What this DOES fix: bundles other than the failing
- * one still get fully re-added in this run, and the run ends with every
- * failure reported and a non-zero exit instead of one abort erasing the
- * status of bundles that never got a chance to run at all. Making retry
- * itself reliable needs a snapshot/restore or resumable-apply mechanism,
- * which is out of scope here (would require restructuring `setup()`'s
- * strip-then-readd shape, not just this function's signature).
+ * KNOWN LIMITATION: the failing bundle's own files are best-effort (whatever
+ * `installBundle` wrote before throwing stays), and a re-run does NOT reliably
+ * recover: its preflight (`findMissingPaths`) checks the on-disk tree this run
+ * already stripped, so if the bundle never wrote its probe path back, the next
+ * run refuses before any mutation. Reliable retry needs a snapshot/restore or
+ * resumable-apply mechanism, which would restructure `setup()`'s
+ * strip-then-readd shape.
  *
  * Exported for unit testing.
  */
@@ -786,14 +646,11 @@ export const setupAddIntegrations = async (
 
   const s = p.spinner()
 
-  // Read the snapshot's package.json for dependency version pins
   const payloadPkgText = await Bun.file(
     join(source.root, 'package.json')
   ).text()
   const payloadPkg: PayloadPackageJson = JSON.parse(payloadPkgText)
 
-  // Re-add each kept integration in order (respecting requires transitivity
-  // is not needed here — the snapshot already has all files).
   const addedIntegrationIds = new Set<RemovableId>()
   const failures: TransformFailure[] = []
   const changedFiles = new Set<string>()
@@ -803,9 +660,8 @@ export const setupAddIntegrations = async (
     if (!bundle) continue // id: RemovableId — guard is honest
 
     s.start(`Re-adding ${bundle.name}...`)
-    // Counted as "kept" regardless of the outcome below — the user asked to
-    // keep it, and stripAbsentIntegrationWiring (next) must not treat a
-    // bundle that merely failed to fully re-add as "absent" and strip its
+    // Counted as kept even if the re-add fails below, or
+    // stripAbsentIntegrationWiring would treat it as absent and strip its
     // wiring out of other files too.
     addedIntegrationIds.add(id)
 
@@ -833,9 +689,6 @@ export const setupAddIntegrations = async (
     }
   }
 
-  // Strip absent-integration wiring from freshly copied files.
-  // e.g. keeping webgl without theatre must remove theatre wiring from the
-  // copied fluid/flowmap hooks.  These ops are no-ops on already-lean files.
   const stripResult = await stripAbsentIntegrationWiring(
     addedIntegrationIds,
     dryRun
@@ -852,21 +705,10 @@ export const setupAddIntegrations = async (
 }
 
 /**
- * Collect the target file of every `codeTransform` across ALL bundles — not
- * just kept ones. Unlike `declaredBundlePaths` (which only covers the kept
- * bundles' folders/files/overwriteFiles), `codeTransforms` run against the
- * tree unconditionally during `setupLean`'s strip pass (see `setup()`'s step
- * 6: `allCodeTransforms` is built from every bundle regardless of what's
- * kept), so a bundle NOT being kept doesn't make its codeTransform target
- * files any less required to exist before that pass runs.
- *
- * Deduplicated. Exported for unit testing.
- *
- * `addTransforms` targets are folded in too (L16): unlike `codeTransforms`
- * (which run unconditionally against every bundle regardless of what's
- * kept), a bundle's `addTransforms` only run for KEPT bundles — via
- * `installBundle` in `setupAddIntegrations` (step 8) — so only kept bundles'
- * `addTransforms` targets are required to exist here.
+ * Deduplicated target files that must exist before any mutation: every
+ * `codeTransform` of ALL bundles (they run unconditionally in `setupLean`'s
+ * strip pass, kept or not) plus the `addTransforms` of KEPT bundles only (they
+ * run via `installBundle` in step 8). Exported for unit testing.
  */
 export const codeTransformTargetPaths = (
   keepIntegrations: RemovableId[]
@@ -891,64 +733,44 @@ export const codeTransformTargetPaths = (
 }
 
 /**
- * Mutate the in-memory package.json object to remove the `setup:project` and
- * `test:setup` script entries, and delete the setup script files from disk.
- * Returns the list of deleted files and removed script keys (for logging).
- * Does NOT write package.json — caller owns the single write.
- *
- * KEPT (used by tests that ship with every project):
+ * Self-prune deletes the setup script files and the setup-machinery tests,
+ * found by globbing `lib/scripts/**\/*.test.ts` minus
+ * `SELF_PRUNE_KEEP_TEST_FILES` (a hardcoded list drifted whenever a setup test
+ * was added). KEPT because they ship with every project:
  *   - lib/scripts/test-setup.ts (bunfig.toml preloads it for ALL bun tests;
- *     not matched by the `*.test.ts` glob below, so it's inherently safe)
- *
- * KEPT (shared production machinery — used by `doctor` and
- * `prepare-handoff`, which ship with every project, not just by setup):
- *   - lib/scripts/integration-bundles.ts, bundle-installer.ts,
- *     ast-transforms/, barrel-file.ts, payload-source.ts, prompts.ts
- *
- * The setup-machinery test files to delete are discovered via a glob over
- * `lib/scripts/**\/*.test.ts` (L10 — not a hardcoded list, which drifted out
- * of sync whenever a new setup test file was added) minus an explicit KEEP
- * allowlist — see `SELF_PRUNE_KEEP_TEST_FILES` and `collectSelfPruneTestFiles`.
+ *     not matched by the `*.test.ts` glob)
+ *   - shared production machinery used by `doctor` and `prepare-handoff`:
+ *     integration-bundles.ts, bundle-installer.ts, ast-transforms/,
+ *     barrel-file.ts, payload-source.ts, prompts.ts
  */
 
 /**
- * Test files the glob-derived self-prune list must NOT delete, because they
- * ship with every scaffolded project rather than being setup-only machinery.
+ * Test files the glob-derived self-prune list must NOT delete because they
+ * ship with every scaffolded project.
  *
  * Two tests for shipped machinery are deliberately NOT here, because they
- * assert things a scaffold is allowed to change:
- *   - payload-source.test.ts reads this repo's own checkout, asserting
- *     lib/integrations/hubspot files exist — false in any scaffold that
- *     dropped HubSpot.
- *   - prerender-manifest.test.ts asserts the starter's own homepage is
- *     prerendered as static HTML. A scaffold's homepage may legitimately
- *     read request data and render per request.
+ * assert things a scaffold may change:
+ *   - payload-source.test.ts asserts lib/integrations/hubspot files exist in
+ *     this repo's checkout, false in any scaffold that dropped HubSpot.
+ *   - prerender-manifest.test.ts asserts the starter's homepage is prerendered
+ *     as static HTML; a scaffold's homepage may render per request.
  */
 export const SELF_PRUNE_KEEP_TEST_FILES: ReadonlySet<string> = new Set([
-  // Tests prepare-handoff's document templates, which ship with every
-  // scaffolded project (see the KEPT production-machinery note above) — it
-  // must survive self-prune.
+  // prepare-handoff's document templates.
   'lib/scripts/templates/templates.test.ts',
-  // Each entry below tests a command or invariant that SHIPS (M1: the glob
-  // deleted coverage for machinery the scaffold keeps running). A test only
-  // belongs here when everything it touches survives self-prune — no import
-  // of setup-project.ts, no assertion about a file an unkept bundle owns.
-  // The `handoff` CLI.
+  // A test belongs here only when everything it touches survives self-prune:
+  // no import of setup-project.ts, no assertion about a file an unkept bundle
+  // owns. The `handoff` CLI:
   'lib/scripts/prepare-handoff.test.ts',
-  // The lib/env.ts <-> integration-bundles.ts env-var parity guarantee; both
-  // files ship intact (setup strips .env.example lines, not schema keys).
+  // The lib/env.ts <-> integration-bundles.ts env-var parity; both ship intact
+  // (setup strips .env.example lines, not schema keys).
   'lib/scripts/env-drift.test.ts',
-  // The AST transform engine, which `prepare-handoff` uses for its footer
-  // ops. Its fixtures are inline strings, so it asserts nothing about which
-  // integrations a project kept.
+  // The AST engine, used by `prepare-handoff`'s footer ops; inline fixtures
+  // assert nothing about which integrations a project kept.
   'lib/scripts/ast-transforms.test.ts',
 ])
 
-/**
- * Discover the setup-machinery test files to delete during self-prune: every
- * `lib/scripts/**\/*.test.ts` file on disk, minus `SELF_PRUNE_KEEP_TEST_FILES`.
- * Exported for unit testing.
- */
+/** Setup-machinery tests to delete: every `lib/scripts/**\/*.test.ts` minus the keep list. Exported for unit testing. */
 export const collectSelfPruneTestFiles = async (): Promise<string[]> => {
   const testFiles = await Array.fromAsync(
     new Bun.Glob('lib/scripts/**/*.test.ts').scan({ cwd: projectRoot })
@@ -959,12 +781,9 @@ export const collectSelfPruneTestFiles = async (): Promise<string[]> => {
 }
 
 /**
- * Replacement value for package.json's `setup:project` script entry once
- * self-prune has deleted `lib/scripts/setup-project.ts` (P-B4). Previously
- * the entry was deleted too, so `bun run setup:project` on an already-set-up
- * project produced Bun's generic, unhelpful "Script not found" — this
- * explains what happened and where to find the deleted script instead, and
- * still exits non-zero (running it again was a mistake either way).
+ * Replacement for package.json's `setup:project` script once self-prune has
+ * deleted `lib/scripts/setup-project.ts`: explains what happened instead of
+ * Bun's generic "Script not found", and still exits non-zero.
  */
 export const SETUP_PROJECT_PRUNED_STUB =
   "echo 'This project is already set up — setup:project deletes itself after its first run. Run `git log -- lib/scripts/setup-project.ts` (or check out an earlier commit) to find it again.' && exit 1"
@@ -989,12 +808,9 @@ const selfPrune = async (
     }
   }
 
-  // Mutate the in-memory package.json scripts (no file write here).
-  // test:setup's own test file is deleted above (self-prune's glob), so
-  // there's nothing coherent left for it to run — remove the entry
-  // outright, same as before. setup:project's script FILE is also deleted
-  // (below), but its package.json entry is REPLACED, not removed (P-B4) —
-  // see SETUP_PROJECT_PRUNED_STUB's docstring.
+  // test:setup's test file is deleted above, so its entry is removed.
+  // setup:project's script file is deleted below, but its entry is REPLACED
+  // with SETUP_PROJECT_PRUNED_STUB.
   const scriptsRemoved: string[] = []
   const scripts = pkg.scripts
   if (scripts) {
@@ -1020,7 +836,7 @@ const selfPrune = async (
       : `Pruned ${deleted.length} files and ${scriptsRemoved.length} package.json scripts`
   )
 
-  // Delete this script itself last (Windows may fail to delete a running script)
+  // Last: Windows may fail to delete a running script.
   if (!dryRun) {
     try {
       await removeFile('lib/scripts/setup-project.ts', false)
@@ -1039,61 +855,39 @@ const selfPrune = async (
 /**
  * Main setup orchestration (additive model):
  *
- *   1. PREFLIGHT — validate every file/folder the kept bundles declare,
- *      PLUS every codeTransform target file across ALL bundles (they run
- *      unconditionally in step 6 regardless of what's kept), exists on
- *      disk. Exits loudly with zero mutations performed when anything is
- *      missing (H8) — must run before ANY of the mutating steps below.
+ *   1. PREFLIGHT — every file/folder the kept bundles declare, plus every
+ *      codeTransform target across ALL bundles, must exist. Throws with zero
+ *      mutations otherwise; must run before ANY mutating step.
  *   2. ensureNextTypeStub
- *   3. cleanMarketing (if flagged), then pruneExampleRoutes (unconditional —
- *      deletes app/(site)/(examples), the Sanity wiring tutorial, regardless
- *      of which integrations are kept)
+ *   3. cleanMarketing (if flagged), then pruneExampleRoutes (unconditional)
  *   4. snapshot(kept) — capture kept integration files before stripping
  *   5. Read package.json ONCE into memory
  *   6. setupLean — strip ALL integrations (mutates in-memory pkg)
- *   7. Write package.json (dep removal applied). Must happen BEFORE
- *      setupAddIntegrations so the snapshot re-add sees a consistent lockfile
- *      target; this is NOT the final write — see step 10.
+ *   7. Write package.json (dep removal applied), BEFORE setupAddIntegrations
+ *      so the re-add sees a consistent base. Not the final write (step 10).
  *   8. setupAddIntegrations — re-add the kept set from the snapshot
  *   9. snapshot.cleanup()
- *  10. selfPrune — gated on zero collected failures from steps 6 and 8
- *      (`leanResult.failures.length + addFailures.length === 0`). Those
- *      steps never throw on a single file's failure (see
- *      `applyCodeTransforms`'s docstring) — they collect into `failures` so
- *      the batch can finish — but an ungated selfPrune used to run anyway on
- *      that collected-failure path, deleting this script (and test:setup)
- *      before the caller ever reported the failures, breaking the "just
- *      re-run it" recovery the step order below is supposed to guarantee.
- *      When failures exist, this step is skipped entirely: nothing is
- *      deleted, pkg.scripts is not touched, and the caller (main()) still
- *      reports every failure and exits non-zero.
- *      When it DOES run: re-reads package.json from disk (P-C3: step 8's
- *      `addDependencies` writes dependency pins straight to disk, which the
- *      step-5 `pkg` object never observes; reusing that stale object here
- *      would silently revert those pins), then deletes setup files
- *      (including this script) and mutates the freshly-read pkg.scripts,
- *      THEN a second package.json write to persist the scripts removal.
- *      This is deliberately the LAST mutating step: running it only after
- *      setupAddIntegrations has completed with zero failures means any
- *      failure in steps 3–9 — thrown OR collected — leaves
- *      lib/scripts/setup-project.ts (and its package.json script entry)
- *      intact, so the run can simply be repeated (H8).
- *  11. bun install (unless --skip-install). Non-fatal on failure (M5): a
- *      registry/offline error is reported and surfaced to the caller via
- *      the returned `installFailed` flag, but does not undo or block the
- *      steps above — the setup itself already succeeded by this point.
- *  12. formatChangedFiles — run `bun run format` (oxfmt) over exactly the
- *      files steps 6/8 actually modified (P-B2: the AST-transform
- *      engine's output isn't always oxfmt-clean). Real (non-dry) runs only;
- *      independent of --skip-install.
- *  13. regenerateManifest — regenerate COMPONENTS.md via the existing
- *      `generate:manifest` script so it reflects the final component set
- *      (P-B2). Real (non-dry) runs only; independent of --skip-install.
+ *  10. selfPrune, gated on zero collected failures from steps 6 and 8. Those
+ *      steps never throw on a single file's failure; they collect so the batch
+ *      can finish. An ungated selfPrune would delete this script before the
+ *      caller reports the failures, breaking the "just re-run it" recovery.
+ *      With failures, nothing is deleted or touched and main() reports them
+ *      and exits non-zero. When it runs, it re-reads package.json from disk:
+ *      step 8's `addDependencies` writes pins straight to disk, which the
+ *      step-5 `pkg` never sees, so reusing it would silently revert them. Then
+ *      it deletes setup files (including this script), mutates the fresh
+ *      pkg.scripts, and writes package.json a second time. It is deliberately
+ *      the LAST mutating step: any failure in steps 3-9, thrown or collected,
+ *      leaves this script and its package.json entry intact so the run can be
+ *      repeated.
+ *  11. bun install (unless --skip-install). Non-fatal: a registry/offline
+ *      error is surfaced via `installFailed` but doesn't undo the setup.
+ *  12. formatChangedFiles over exactly the files steps 6/8 modified.
+ *  13. regenerateManifest (COMPONENTS.md).
+ *      Steps 12-13 are real (non-dry) runs only, deferred under --skip-install.
  *
- * Returns `installFailed` (bun install failed but setup files are all
- * written) and `transformFailures` (any AST code-transform that failed —
- * collected rather than swallowed, per M6) so the caller can report and
- * exit non-zero without the run appearing to have silently succeeded.
+ * Returns `installFailed` and `transformFailures` so the caller can report and
+ * exit non-zero instead of appearing to succeed.
  */
 const setup = async (
   options: SetupOptions
@@ -1103,11 +897,8 @@ const setup = async (
 }> => {
   const { dryRun, keepIntegrations, cleanMarketing, skipInstall } = options
 
-  // 1. PREFLIGHT: every kept bundle's declared folders/files/overwriteFiles,
-  //    PLUS every codeTransform target file across ALL bundles (they run
-  //    unconditionally regardless of what's kept — see
-  //    `codeTransformTargetPaths`'s docstring), must exist before any
-  //    mutation begins. Zero mutations performed here.
+  // 1. PREFLIGHT: see `codeTransformTargetPaths` for why codeTransform targets
+  //    of ALL bundles count. Zero mutations performed here.
   const missingPaths = await findMissingPaths([
     ...new Set([
       ...declaredBundlePaths(keepIntegrations),
@@ -1124,11 +915,8 @@ const setup = async (
     )
   }
 
-  // 2. Ensure the Next.js type stub is present so `bun run typecheck` works
-  //    immediately after setup without needing to run `bun dev` first.
   await ensureNextTypeStub(dryRun)
 
-  // 3. Replace the manual landing page (independent of integration removal).
   if (cleanMarketing) {
     const ms = p.spinner()
     ms.start('Replacing manual landing page...')
@@ -1136,15 +924,11 @@ const setup = async (
     ms.stop('Replaced manual landing page with a blank starter homepage')
   }
 
-  // Prune app/(site)/(examples) unconditionally — independent of both
-  // cleanMarketing and which integrations are kept. See pruneExampleRoutes'
-  // docstring for why this can't just live in the sanity bundle's `folders`.
   const es = p.spinner()
   es.start('Pruning example routes...')
   await pruneExampleRoutes(dryRun)
   es.stop('Pruned app/(site)/(examples)')
 
-  // 4. Snapshot the kept integration files before stripping.
   let snapshot: PayloadSource | null = null
   if (keepIntegrations.length > 0) {
     const ss = p.spinner()
@@ -1153,28 +937,15 @@ const setup = async (
     ss.stop(`Snapshot ready (${snapshot.label})`)
   }
 
-  // 5. Read package.json ONCE into memory. The dep-removal mutator operates
-  //    on this object; selfPrune's script removal is applied to the same
-  //    object later (step 10) and persisted with its own write, so this
-  //    object stays the single source of truth throughout.
   const pkgPath = resolvePath('package.json')
   const pkg: PackageJson = await Bun.file(pkgPath).json()
 
-  // 6. Strip ALL integrations unconditionally to lean core.
-  //    Mutates `pkg` for dep removal; other file changes (folders, env) happen here.
   const leanResult = await setupLean(pkg, dryRun)
 
-  // 7. Write package.json (dep removal applied). Runs before
-  //    setupAddIntegrations so the re-add's dependency pins land on a
-  //    consistent base; the scripts removal from selfPrune is persisted by
-  //    a second write at step 10, after setupAddIntegrations succeeds.
   if (!dryRun) {
     await Bun.write(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
   }
 
-  // 8. Re-add the kept integrations from the snapshot.
-  //    The snapshot cleanup is in `finally` so the temp dir is always removed,
-  //    even when setupAddIntegrations throws.
   let addFailures: TransformFailure[] = []
   let addChangedFiles: string[] = []
   if (snapshot) {
@@ -1187,36 +958,15 @@ const setup = async (
       addFailures = addResult.failures
       addChangedFiles = addResult.changedFiles
     } finally {
-      // 9. Cleanup snapshot temp directory (always runs — even on failure).
       await snapshot.cleanup()
     }
   }
 
-  // 10. Self-prune: delete setup files (including this script), mutate
-  //     pkg.scripts in-memory, and persist that with a second package.json
-  //     write. Deliberately last — see the docstring above. Gated on zero
-  //     collected failures from steps 6/8: those steps never throw on a
-  //     single file's failure, so an ungated selfPrune would delete this
-  //     script even when the caller is about to report failures and exit
-  //     non-zero — breaking the "just re-run it" recovery the docstring
-  //     promises. When failures exist, skip entirely and leave the setup
-  //     script in place so the run can be repeated after fixing the cause.
-  //
-  //     Re-read package.json from disk here rather than reusing the `pkg`
-  //     object from step 5: `setupAddIntegrations` (step 8) calls
-  //     `addDependencies` per kept bundle, which does its own
-  //     read-modify-write cycle against package.json on disk to pin each
-  //     kept integration's dependency versions. The step-5 `pkg` object
-  //     predates that write and knows nothing about it — writing it back
-  //     here would silently revert every dependency pin `setupAddIntegrations`
-  //     just made (P-C3: `--keep sanity` reported "N dependencies pinned"
-  //     while package.json on disk ended up with none of them, and the
-  //     resulting build failed on module-not-found).
-  // Every collected-failure source that feeds the returned
-  // `transformFailures` must be counted here, or the gate leaks: step 6's
-  // strip pass collects per-file failures the same way step 8 does,
-  // and missing it meant a failed strip still deleted this script while
-  // main() reported the failure and exited non-zero.
+  // 10. Self-prune, gated and re-reading package.json for the reasons in the
+  //     docstring above. Every collected-failure source that feeds the returned
+  //     `transformFailures` must be counted here (step 6's strip pass collects
+  //     per-file failures like step 8), or the gate leaks and a failed strip
+  //     still deletes this script.
   const collectedFailureCount = leanResult.failures.length + addFailures.length
   if (collectedFailureCount === 0) {
     const prunePkg: PackageJson = await Bun.file(pkgPath).json()
@@ -1231,9 +981,6 @@ const setup = async (
     )
   }
 
-  // 11. Run bun install to update the lockfile. Non-fatal: an offline /
-  //     registry failure is reported but does not mask the setup steps
-  //     above having already succeeded.
   let installFailed = false
   if (!(dryRun || skipInstall)) {
     const s = p.spinner()
@@ -1250,21 +997,9 @@ const setup = async (
     }
   }
 
-  // 12. Format exactly the files this run's AST transforms touched (P-B2) —
-  //     never the whole repo.
-  // 13. Regenerate COMPONENTS.md so it reflects the final component set
-  //     (P-B2).
-  // Both are final, best-effort steps: a real (non-dry) run only. Both also
-  // need a real `bun install` to have already happened: oxfmt can't run at
-  // all on a bare --skip-install tree (see the docstring above), and
-  // generate-manifest.ts resolves actual TYPE information via ts-morph (not
-  // just source text) — its output depends on which package versions are
-  // installed, so regenerating it against a pre-install node_modules can
-  // produce a manifest that immediately fails `manifest:check` once the
-  // real install lands. When bun install just ran (above), both run
-  // immediately; when --skip-install was passed, both are deferred to
-  // `prepare.ts` (see PENDING_FORMAT_MARKER's docstring), which runs the
-  // next time `bun install` does.
+  // 12-13. Format and regenerate COMPONENTS.md; both need a real install (see
+  // the post-run cleanup note above), so --skip-install defers them to
+  // `prepare.ts`.
   if (!dryRun) {
     const changedFiles = [
       ...new Set([...leanResult.changedFiles, ...addChangedFiles]),
@@ -1284,18 +1019,12 @@ const setup = async (
 }
 
 /**
- * Confirm-prompt gating contract (H6 — `--yes` was previously a no-op: the
- * proceed confirm was skipped whenever `--preset`/`--keep` was passed, whether
- * or not `--yes` was present).
- *
- *   - `yes` → always skip (the flag becomes meaningful).
- *   - no `hasFlags` (fully interactive, no `--preset`/`--keep`) → never skip
- *     — confirm as today.
- *   - `hasFlags`, no `yes` → skip only when NOT a TTY. This keeps
- *     create-darkroom's cross-repo scaffolding contract working (it invokes
- *     `setup:project --preset <key>` / `--keep <ids>` without `--yes`, with
- *     stdio inherited but often non-TTY) while still giving a human at an
- *     interactive terminal a chance to abort.
+ * Confirm-prompt gating:
+ *   - `yes`: always skip.
+ *   - no `hasFlags` (fully interactive): never skip.
+ *   - `hasFlags` without `yes`: skip only off a TTY. create-darkroom invokes
+ *     `--preset`/`--keep` without `--yes` over often-non-TTY stdio, and a human
+ *     at a terminal still gets a chance to abort.
  *
  * Pure and exported for unit testing.
  */
@@ -1314,9 +1043,8 @@ export const shouldSkipConfirm = ({
 }
 
 /**
- * Resolve the integrations to keep from the non-interactive flags.
- * Returns undefined when neither --preset nor --keep was passed.
- * Fails loudly on conflicting flags and unknown preset / integration ids.
+ * Integrations to keep from `--preset`/`--keep`; undefined when neither was
+ * passed. Throws on conflicting flags and unknown preset or integration ids.
  */
 export const resolveKeepFromFlags = (
   presetFlag: string | undefined,
@@ -1363,16 +1091,11 @@ export const resolveKeepFromFlags = (
 }
 
 /**
- * Expand a kept-integration set to include every transitive `requires`
- * dependency (e.g. keeping `theatre` — which requires `webgl` — also keeps
- * `webgl`) — the same closure algorithm the deleted `satus add` CLI used
- * (`resolveAddSet`), ported here because `setup:project` needs the same
- * invariant: for every kept id, everything in `INTEGRATION_BUNDLES[id].requires`
- * is kept too, or the re-add step leaves orphaned files (a kept integration
- * whose required dependency was stripped).
- *
- * Fails loudly on unknown ids and circular `requires` chains. `implied` lists
- * ids pulled in beyond the request, for logging. Exported for unit testing.
+ * Expand a kept set to every transitive `requires` dependency (keeping
+ * `theatre` also keeps `webgl`); otherwise the re-add leaves a kept
+ * integration whose dependency was stripped. Throws on unknown ids and
+ * circular chains. `implied` lists ids pulled in beyond the request. Exported
+ * for unit testing.
  */
 export function resolveTransitiveKeepSet(requested: string[]) {
   const knownIds = getIntegrationNames()
@@ -1415,9 +1138,7 @@ export function resolveTransitiveKeepSet(requested: string[]) {
   return { order, implied }
 }
 
-/** Interactive integration selection (preset select or custom multiselect). */
 const promptForIntegrations = async (): Promise<RemovableId[]> => {
-  // Build preset options
   const presetOptions = [
     ...Object.entries(PROJECT_PRESETS).map(([key, preset]) => ({
       value: key,
@@ -1431,7 +1152,6 @@ const promptForIntegrations = async (): Promise<RemovableId[]> => {
     },
   ]
 
-  // Ask what kind of project to start
   const selectedPreset = await guardedPrompt(
     () =>
       p.select({
@@ -1443,15 +1163,12 @@ const promptForIntegrations = async (): Promise<RemovableId[]> => {
   )
 
   if (selectedPreset === 'custom') {
-    // Build options for multiselect
-    // key: BundleId → INTEGRATION_BUNDLES[key] is always IntegrationBundle
     const integrationOptions = getIntegrationNames().map((key) => ({
       value: key,
       label: INTEGRATION_BUNDLES[key].name,
       hint: INTEGRATION_BUNDLES[key].description,
     }))
 
-    // Ask which integrations to keep
     return guardedPrompt(
       () =>
         p.multiselect({
@@ -1465,7 +1182,6 @@ const promptForIntegrations = async (): Promise<RemovableId[]> => {
     )
   }
 
-  // Use preset integrations
   // SAFETY: selectedPreset came from `p.select` with `presetOptions`, whose
   // `value`s are exactly PROJECT_PRESETS's own keys plus 'custom' (handled
   // and returned above), so anything reaching here is a real PresetKey.
@@ -1474,28 +1190,17 @@ const promptForIntegrations = async (): Promise<RemovableId[]> => {
 
   p.log.step(`Selected preset: ${preset.name}`)
   p.log.message(
-    // keepIntegrations: RemovableId[] from preset — use getBundle for safe access
     `  Includes: ${keepIntegrations.length > 0 ? keepIntegrations.map((k) => getBundle(k)?.name).join(', ') : 'None'}`
   )
 
   return keepIntegrations
 }
 
-// ---------------------------------------------------------------------------
-// Concurrency guard (P-B3)
-// ---------------------------------------------------------------------------
-
-/** Lock directory guarding against two concurrent setup:project runs. */
 const LOCK_PATH = resolvePath('.setup-project.lock')
-/** PID file inside the lock dir — the backstop for stale-lock detection. */
+// The pid file is the backstop for stale-lock detection.
 const LOCK_PID_FILE = `${LOCK_PATH}/pid`
 
-/**
- * True when a process with this PID is currently running. Uses the
- * `kill(pid, 0)` idiom: signal 0 sends nothing, it only probes whether the
- * process exists and is signalable. ESRCH means no such process (dead);
- * EPERM means it exists but is owned by someone else (still alive).
- */
+/** `kill(pid, 0)` probe: ESRCH means dead; EPERM means alive but owned by someone else. */
 const isProcessAlive = (pid: number): boolean => {
   try {
     process.kill(pid, 0)
@@ -1507,47 +1212,30 @@ const isProcessAlive = (pid: number): boolean => {
   }
 }
 
-/**
- * Release the lock directory. Synchronous by design — called from
- * `process.on('exit', …)` and from the explicit SIGINT/SIGTERM handlers
- * below, neither of which can await async cleanup.
- */
+/** Synchronous because `process.on('exit')` and the signal handlers can't await. */
 const releaseLockSync = (): void => {
   try {
     rmSync(LOCK_PATH, { recursive: true, force: true })
   } catch {
-    // Best-effort — a failed cleanup here shouldn't mask the real exit.
+    // A failed cleanup mustn't mask the real exit.
   }
 }
 
 /**
- * Prevent two concurrent `setup:project` runs in one workspace from
- * interleaving their mutations into a silent, contradictory hybrid (both
- * exit 0, but package.json / integration files reflect neither run
- * cleanly). `mkdir` (non-recursive) is atomic on POSIX filesystems: a
- * second run's `mkdir` fails with EEXIST the instant the first run's lock
- * directory exists, so there's no check-then-create race window a plain
- * "does this file exist" check would have.
+ * Prevent two concurrent `setup:project` runs from interleaving into a
+ * contradictory hybrid (both exit 0, neither run's result intact). Non-recursive
+ * `mkdir` is atomic: a second run fails with EEXIST with no check-then-create
+ * race.
  *
- * Stale-lock detection: the lock directory carries a `pid` file naming the
- * process that created it. When `mkdir` hits EEXIST, that PID is checked —
- * if it's no longer running (a crash, a `kill -9`, or any termination path
- * that outran even the signal handlers below), the lock is treated as
- * stale: removed and re-acquired instead of blocking the run forever. A
- * lock whose owning process IS still alive is genuinely in progress and
- * still throws.
+ * Stale locks: the lock dir carries a `pid` file. On EEXIST, a dead PID (crash,
+ * `kill -9`, anything that outran the handlers) means the lock is removed and
+ * re-acquired; a live PID, or an unreadable pid file, throws.
  *
- * Release paths: a synchronous `process.on('exit', …)` handler (registered
- * immediately after acquiring the lock) covers normal completion,
- * `guardedPrompt`/`cancelGuard`'s direct `process.exit()` calls on
- * cancel/EOF, and thrown errors. That alone isn't sufficient — Bun doesn't
- * reliably emit 'exit' for SIGINT/SIGTERM, so a Ctrl+C or `kill -TERM`
- * outside an active prompt (where @clack/prompts' own keypress handler
- * would otherwise catch it) can tear the process down before 'exit' fires.
- * Explicit SIGINT/SIGTERM handlers below release the lock and exit
- * non-zero directly, so the common case doesn't have to fall back to
- * stale-PID detection at all — that's the backstop for whatever still gets
- * past both (e.g. SIGKILL, which no userspace handler can intercept).
+ * Release paths: the `process.on('exit')` handler covers normal completion,
+ * `guardedPrompt`/`cancelGuard`'s `process.exit()` on cancel/EOF, and thrown
+ * errors. Bun doesn't reliably emit 'exit' for SIGINT/SIGTERM outside an active
+ * prompt, so explicit signal handlers release the lock and exit non-zero.
+ * SIGKILL is the case only stale-PID detection can catch.
  */
 const acquireLock = async (): Promise<void> => {
   try {
@@ -1565,9 +1253,8 @@ const acquireLock = async (): Promise<void> => {
       const parsed = Number.parseInt(pidText.trim(), 10)
       if (Number.isFinite(parsed)) stalePid = parsed
     } catch {
-      // No readable pid file — can't prove the owning process is gone, so
-      // fall through to the "still in progress" error below rather than
-      // guessing.
+      // No readable pid file: can't prove the owner is gone, so fall through
+      // to the "in progress" error rather than guessing.
     }
 
     if (stalePid === undefined || isProcessAlive(stalePid)) {
@@ -1598,10 +1285,8 @@ const acquireLock = async (): Promise<void> => {
 }
 
 /**
- * Guard against running against the wrong directory (L3): require a
- * package.json in cwd that declares the `setup:project` script this file is
- * invoked through, so a stray `bun run setup:project` outside a fresh satus
- * clone fails loudly before any prompt or mutation.
+ * Require a package.json in cwd that declares `setup:project`, so a stray run
+ * outside a fresh satus clone fails before any prompt or mutation.
  */
 const guardProjectRoot = async (): Promise<void> => {
   const pkgPath = resolvePath('package.json')
@@ -1620,13 +1305,10 @@ const guardProjectRoot = async (): Promise<void> => {
 }
 
 /**
- * Every CLI flag `setup-project.ts`'s `main()` actually reads: the
- * `parseCliFlags`-shared trio (`--dry-run`/`--verbose`/`--help`, each also
- * with its short form) plus this script's own `--preset`/`--keep`/`--yes`/
- * `--clean-homepage`/`--skip-install`. Kept as a single source of truth for
- * `findUnknownFlags` — without the guard, a typo'd flag (e.g. `--presett`)
- * would be silently absorbed and fall through to the interactive prompt,
- * which hangs forever on a non-TTY-but-open stdin (CI).
+ * Every flag `main()` reads, the source of truth for `findUnknownFlags`.
+ * Without that guard a typo'd flag (`--presett`) is silently absorbed and falls
+ * through to the interactive prompt, which hangs forever on a non-TTY-but-open
+ * stdin (CI).
  */
 export const KNOWN_SETUP_FLAGS: readonly string[] = [
   '--dry-run',
@@ -1643,14 +1325,10 @@ export const KNOWN_SETUP_FLAGS: readonly string[] = [
 ]
 
 /**
- * Find every `--`-prefixed argv token that isn't a known flag.
- *
- * Only `--`-prefixed tokens are checked — a flag's VALUE (e.g. the
- * `editorial` in `--preset editorial`, or a `--keep` id list) is a bare
- * token and never flagged; short flags (`-d`/`-v`/`-h`) are few, fixed, and
- * not the typo surface this guards (long-flag typos like `--presett`
- * are). A `--flag=value` token is checked by its flag name only (the
- * part before `=`). Exported for unit testing.
+ * Every `--`-prefixed argv token that isn't a known flag. Flag values are bare
+ * tokens and never flagged; short flags are few and fixed, not the typo
+ * surface; `--flag=value` is checked by the name before `=`. Exported for unit
+ * testing.
  */
 export const findUnknownFlags = (
   argv: string[],
@@ -1658,19 +1336,12 @@ export const findUnknownFlags = (
 ): string[] =>
   argv.filter((arg) => {
     if (!arg.startsWith('--')) return false
-    // SAFETY: `arg.split('=')` on a non-empty string always yields at least
-    // one element (the part before the first '=', or the whole string when
-    // there's no '=') — `arg` is non-empty because it just passed the
-    // startsWith('--') check above.
+    // SAFETY: `arg` is non-empty (it passed startsWith('--')), so split
+    // always yields at least one element.
     const name = arg.split('=')[0] as string
     return !knownFlags.includes(name)
   })
 
-/**
- * Print `--help`/`-h` usage (P-B6) and return — flags, every preset key
- * (from `PROJECT_PRESETS`, so this can't drift out of sync with the actual
- * preset list), and one example invocation.
- */
 const printUsage = (): void => {
   const presetLines = Object.entries(PROJECT_PRESETS)
     .map(([key, preset]) => `    ${key.padEnd(10)} ${preset.description}`)
@@ -1702,17 +1373,11 @@ Example:
 `)
 }
 
-/**
- * CLI entry point
- */
 const main = async (): Promise<void> => {
   const argv = process.argv.slice(2)
 
-  // Unknown-flag guard: parseCliFlags/getFlagValue silently absorb any
-  // token they don't read, so a typo'd flag (e.g. `--presett`) would fall
-  // through to the interactive prompt — which hangs forever on a
-  // non-TTY-but-open stdin (CI). Checked first, before anything else
-  // (including --help), so a bad invocation fails loudly and immediately.
+  // Checked first, before --help: parseCliFlags/getFlagValue silently absorb
+  // unread tokens (see KNOWN_SETUP_FLAGS).
   const unknownFlags = findUnknownFlags(argv)
   if (unknownFlags.length > 0) {
     p.log.error(
@@ -1724,11 +1389,8 @@ const main = async (): Promise<void> => {
 
   const { dryRun, help } = parseCliFlags(argv)
 
-  // --help/-h (P-B6): parseCliFlags already computed this, but main() never
-  // checked it, so `--help` silently fell through into a live interactive
-  // setup:project run instead of showing usage. Checked before
-  // guardProjectRoot()/acquireLock() so it works regardless of cwd and never
-  // touches the lock file.
+  // Before guardProjectRoot()/acquireLock() so --help works from any cwd and
+  // never touches the lock.
   if (help) {
     printUsage()
     return
@@ -1743,7 +1405,6 @@ const main = async (): Promise<void> => {
   const cleanHomepageFlag = argv.includes('--clean-homepage')
   const skipInstall = argv.includes('--skip-install')
 
-  // Throws on conflicting / unknown values — fails loudly before any prompt.
   const flagKeep = resolveKeepFromFlags(presetFlag, keepFlag)
   const nonInteractive = flagKeep !== undefined
 
@@ -1768,13 +1429,10 @@ const main = async (): Promise<void> => {
 
   if (flagKeep !== undefined) {
     keepIntegrations = flagKeep
-    // Default behavior preserved: the landing page is only replaced when
-    // --clean-homepage is passed explicitly.
     cleanMarketing = cleanHomepageFlag
   } else {
     keepIntegrations = await promptForIntegrations()
 
-    // Offer to drop the manual landing page for a clean slate.
     cleanMarketing = await guardedPrompt(
       () =>
         p.confirm({
@@ -1787,9 +1445,8 @@ const main = async (): Promise<void> => {
     )
   }
 
-  // Expand the kept set to include every transitive `requires` dependency
-  // (e.g. keeping theatre also keeps webgl) BEFORE strip/re-add runs, so a
-  // required dependency is never stripped out from under a kept integration.
+  // Must expand BEFORE strip/re-add so a required dependency is never
+  // stripped out from under a kept integration.
   const { order: resolvedKeepIntegrations, implied } =
     resolveTransitiveKeepSet(keepIntegrations)
   if (implied.length > 0) {
@@ -1799,7 +1456,6 @@ const main = async (): Promise<void> => {
   }
   keepIntegrations = resolvedKeepIntegrations
 
-  // Show summary
   p.log.step('Summary:')
 
   const toRemove = getIntegrationNames().filter(
@@ -1808,7 +1464,6 @@ const main = async (): Promise<void> => {
 
   if (keepIntegrations.length > 0) {
     p.log.message(
-      // keepIntegrations: RemovableId[] — use getBundle for safe access
       `  Keep: ${keepIntegrations.map((k) => getBundle(k)?.name).join(', ')}`
     )
   } else {
@@ -1817,7 +1472,6 @@ const main = async (): Promise<void> => {
 
   if (toRemove.length > 0) {
     p.log.message(
-      // toRemove: BundleId[] (filtered from getIntegrationNames()) — access is total
       `  Remove: ${toRemove.map((k) => INTEGRATION_BUNDLES[k].name).join(', ')}`
     )
   }
@@ -1830,10 +1484,6 @@ const main = async (): Promise<void> => {
 
   p.log.message('  Setup machinery: self-pruned after setup')
 
-  // Confirm gating (H6) — see `shouldSkipConfirm`'s docstring for the full
-  // contract: `--yes` always skips; `--preset`/`--keep` without `--yes` skip
-  // only off a TTY (create-darkroom's scripted, non-TTY invocations never
-  // hang on a prompt); fully interactive runs (no flags) always confirm.
   const skipConfirm = shouldSkipConfirm({
     yes,
     hasFlags: nonInteractive,
@@ -1841,9 +1491,8 @@ const main = async (): Promise<void> => {
   })
 
   if (!skipConfirm) {
-    // guardedPrompt handles an explicit cancel (Ctrl+C) or stdin closing
-    // (EOF) — both exit 1 with a clear message. A deliberate "No" answer is
-    // a different, intentional outcome: exit 0, no error.
+    // guardedPrompt exits 1 on cancel or stdin EOF; a deliberate "No" is
+    // intentional: exit 0.
     const proceed = await guardedPrompt(
       () =>
         p.confirm({
@@ -1859,7 +1508,6 @@ const main = async (): Promise<void> => {
     }
   }
 
-  // Run setup
   const { installFailed, transformFailures } = await setup({
     dryRun,
     keepIntegrations,
@@ -1874,7 +1522,6 @@ const main = async (): Promise<void> => {
     }
   }
 
-  // Done
   if (dryRun) {
     p.outro('Dry run complete. Run without --dry-run to apply changes.')
     return
@@ -1891,9 +1538,8 @@ const main = async (): Promise<void> => {
 
   if (transformFailures.length > 0) {
     p.outro('Setup finished with code-transform errors — review above.')
-    // Distinct non-zero codes: 3 = code transforms failed (severe, loud),
-    // 2 = only bun install failed (files are otherwise ready), 1 = a hard
-    // argument/setup error via the top-level catch below.
+    // Exit codes: 3 = code transforms failed, 2 = only bun install failed
+    // (files are ready), 1 = hard argument/setup error (top-level catch).
     process.exit(3)
   }
 
@@ -1907,7 +1553,6 @@ const main = async (): Promise<void> => {
   p.outro('Happy coding!')
 }
 
-// Run only when executed directly (not when imported by tests or other modules)
 if (import.meta.main) {
   main().catch((err) => {
     p.log.error(`Setup failed: ${err.message}`)

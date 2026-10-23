@@ -46,10 +46,9 @@ interface LenisProps extends Omit<ReactLenisProps, 'ref'> {
 export function Lenis({ root, options, syncAnime = false }: LenisProps) {
   const lenisRef = useRef<LenisRef>(null)
 
-  // Tempus runs callbacks in ascending order inside one rAF. Lenis advances
-  // the lerp and moves the document here, so anything that reads
-  // `lenis.scroll` to draw must run after it, or it paints a frame behind the
-  // DOM (a gap equal to the scroll velocity). Every explicit order, in one
+  // Tempus runs callbacks in ascending order inside one rAF. Lenis moves the
+  // document here, so anything that reads `lenis.scroll` to draw must run after
+  // it or it paints a frame behind the DOM. Every explicit order, in one
   // place; a new `useTempus` callback picks one relative to these:
   //
   //   -Infinity  Stats.begin            lib/dev/stats

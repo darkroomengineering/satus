@@ -20,10 +20,7 @@ function setMipmaps(imageMipmaps: boolean) {
   Orchestra.setState({ imageMipmaps })
 }
 
-/**
- * Reports the canvas DPR from inside the canvas. It re-renders only when r3f
- * changes the DPR, so it never keeps the canvas drawing.
- */
+/** Reports the canvas DPR from inside the canvas; re-renders only when r3f changes it, so it never keeps the canvas drawing. */
 function DprProbe({ onChange }: { onChange: (dpr: number) => void }) {
   const dpr = useThree((state) => state.viewport.dpr)
 
@@ -42,10 +39,9 @@ export function DevControlsPanel() {
   )
   const [dpr, setDpr] = useState<number>()
 
-  // The Orchestra store persists, so the switch resets to on when the page
-  // mounts, when it leaves, and when the tab closes or reloads (`pagehide`,
-  // where React never unmounts): mipmaps left off would follow every image on
-  // every other page, in the next session too.
+  // The Orchestra store persists: reset on mount, unmount and `pagehide`
+  // (React never unmounts on tab close), or mipmaps left off follow every
+  // image on every page, in the next session too.
   useEffect(() => {
     const reset = () => {
       setMipmaps(true)

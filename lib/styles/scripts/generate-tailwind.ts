@@ -12,9 +12,8 @@ export function generateTailwind({
   Config,
   'breakpoints' | 'colors' | 'customSizes' | 'fonts' | 'themes' | 'typography'
 >) {
-  // Theme
-  // NOTE: @theme is the single source of truth for the raw color palette.
-  // Easings are hand-authored in css/easings.css (static values, no generation needed).
+  // @theme is the source of truth for the raw palette; easings are
+  // hand-authored in css/easings.css.
   const themeEntries = Object.entries(themes)
   const firstTheme = themeEntries[0]?.[1] ?? {}
   const theme = `/** Custom theme **/
@@ -36,7 +35,6 @@ export function generateTailwind({
   ${formatObject(fonts, ([name, variableName]) => `--font-${name}: var(${variableName});`)}
 }`
 
-  // Theme overwrites
   const themeOverwrites = `
 /** Custom theme overwrites **/
 ${formatObject(
@@ -48,7 +46,6 @@ ${formatObject(
 )}
   `
 
-  // Utilities
   const utilities = `
 /** Custom static utilities **/
 ${Object.entries(typography)
@@ -87,9 +84,8 @@ ${Object.entries(typography)
         'mobile' in value &&
         'desktop' in value
       ) {
-        // SAFETY: key !== 'font-size' (handled above), so per TypeStyles this
-        // is line-height or letter-spacing's { mobile; desktop } template-literal
-        // variant — checked here just for the shared mobile/desktop shape.
+        // SAFETY: key !== 'font-size', so per TypeStyles this is line-height or
+        // letter-spacing's { mobile; desktop } variant.
         const v = value as { mobile: string | number; desktop: string | number }
         return [
           `${key}: ${v.mobile};`,
@@ -140,7 +136,6 @@ ${Object.entries(typography)
 	@apply dr-layout-block-inner dr-grid;
 }`
 
-  // Variants
   const variants = `
 /** Custom variants **/
 ${Object.keys(themes)

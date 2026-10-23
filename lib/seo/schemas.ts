@@ -3,12 +3,10 @@ import { SITE } from './site'
 /**
  * Typed schema.org node builders for JSON-LD.
  *
- * Hard rule: never emit a key whose value is null, undefined, or an empty
- * array. A `"description": null` is actively worse than an absent key —
- * validators flag it and answer engines treat the entity as incomplete.
- * Every optional field below is built by assigning to the field only when a
- * value is present (never an unconditional `field: undefined`, which would
- * still emit the key under `exactOptionalPropertyTypes`).
+ * Never emit a key whose value is null, undefined, or an empty array: validators
+ * flag `"description": null` and answer engines treat the entity as incomplete.
+ * Optional fields are assigned only when present (an unconditional
+ * `field: undefined` still emits the key).
  */
 
 export const ORGANIZATION_ID = `${SITE.url}/#organization`
@@ -99,7 +97,6 @@ export interface ArticleSchema {
   author?: ArticleAuthor
 }
 
-/** The union every JSON-LD node builder here can produce; `JsonLd` renders any of them. */
 export type JsonLdSchema =
   | OrganizationSchema
   | WebSiteSchema
@@ -161,15 +158,11 @@ export function breadcrumbSchema(
 }
 
 /**
- * A listing page — index, archive, category — as `CollectionPage` wrapping an
- * `ItemList` of what it links to.
+ * A listing page (index, archive, category) as `CollectionPage` wrapping an
+ * `ItemList`, so a crawler or answer engine reads the membership and order in
+ * one fetch instead of following every link.
  *
- * Without this a listing is just a page of links: a crawler has to follow
- * every one to learn what the collection contains, and an answer engine
- * asking "what has this studio worked on?" has nothing to read in one fetch.
- * The `ItemList` states the membership and the order directly.
- *
- * `url` and every item `url` must be absolute — relative paths are dropped by
+ * `url` and every item `url` must be absolute: relative paths are dropped by
  * most consumers, and a half-relative `ItemList` validates clean while
  * pointing nowhere.
  */

@@ -1,14 +1,5 @@
-/**
- * Tripwire: fails loudly if `proxy.ts` stops wiring up rate limiting.
- *
- * `proxy.ts` is how Next.js rate-limits API routes. Deleting it, or editing
- * it down to drop the `rate-limit` import, silently turns rate limiting off
- * — no build error, no runtime error, just an unprotected `/api/*`. This
- * first block is deliberately dumb and grep-like: it asserts the wiring is
- * still there. The limiter-scope block below exercises request behaviour.
- *
- * Run with: bun test proxy.test.ts
- */
+// Tripwire: dropping the `rate-limit` wiring from proxy.ts silently leaves
+// `/api/*` unprotected with no build or runtime error.
 
 import { describe, expect, it } from 'bun:test'
 import { existsSync } from 'node:fs'
@@ -152,13 +143,10 @@ describe('Vercel document response headers', () => {
 })
 
 describe('machine-path parity between proxy.ts and vercel.json', () => {
-  // Every path that must never be treated as a page document, regardless of
-  // which mechanism does the excluding: `MACHINE_PATHS` (only load-bearing
-  // for paths the other two mechanisms miss), the exported proxy `matcher`
-  // (paths that never reach `proxy()` at all), or `FILE_EXTENSION` (dotted
-  // last segment). `vercel.json`'s route `src` encodes the same list
-  // independently — this test is what keeps a future third machine
-  // endpoint from being added to only one of the two configs.
+  // Every path that must never be negotiated as a page document, whichever
+  // mechanism excludes it (`MACHINE_PATHS`, the `matcher`, `FILE_EXTENSION`).
+  // `vercel.json` encodes the same list independently; this keeps a new
+  // machine endpoint from landing in only one of them.
   const machinePaths = [
     ...MACHINE_PATHS,
     '/robots.txt',

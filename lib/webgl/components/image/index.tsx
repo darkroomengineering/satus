@@ -21,18 +21,15 @@ const WebGLImage = dynamic(
 )
 
 /**
- * WebGL-enhanced Image component.
- *
  * The DOM image is the measured element: hamo's `useRect` measures it once
- * per resize, and `useWebGLRect` in `./webgl` places the plane on that rect
- * on scroll, transform and re-measure. Falls back to the standard image on
- * non-WebGL devices.
+ * per resize, and `useWebGLRect` in `./webgl` places the plane on that rect.
+ * Falls back to the standard image on non-WebGL devices.
  */
 export function Image({
   className,
-  // The wrapper always renders the underlying image in `fill` mode — the
-  // sizing container is this component's own positioned <div>. Strip the
-  // sizing union members so the spread satisfies the `fill` branch.
+  // Always renders the underlying image in `fill` mode (the sizing container is
+  // this component's own positioned <div>); strip the sizing union members so
+  // the spread satisfies the `fill` branch.
   fill: _fill,
   width: _width,
   height: _height,
@@ -49,30 +46,24 @@ export function Image({
   const { isWebGL, isReducedMotion } = useDeviceDetection()
 
   // Hide the DOM image only when a WebGL canvas will actually render its
-  // replacement. `Canvas` mounts on `isWebGL && !isReducedMotion` (see
-  // components/canvas), so gating on `isWebGL` alone would blank the image for
-  // a reduced-motion visitor whose canvas never mounts — the exact fallback
-  // the module contract promises. `rootCanvasMounted` covers the other way
-  // this can go blank: no `<Canvas root>` mounted anywhere (neither the
-  // layout canvas nor a page's `<Wrapper webgl>`), which the device-capability
-  // checks alone can't detect. It's reactive, so the image reappears/hides
-  // correctly regardless of whether the root canvas mounts before or after
-  // this component (mount order isn't guaranteed across routes).
+  // replacement. `Canvas` mounts on `isWebGL && !isReducedMotion`, so gating on
+  // `isWebGL` alone would blank the image for a reduced-motion visitor whose
+  // canvas never mounts. `rootCanvasMounted` covers no `<Canvas root>` mounted
+  // anywhere, which device checks can't detect; it is reactive because mount
+  // order isn't guaranteed across routes.
   const rootCanvasMounted = useRootCanvasMounted()
   const webglActive = isWebGL && !isReducedMotion && rootCanvasMounted
 
   // A texture is read with a CORS request (three's loader sets
-  // `crossOrigin = 'anonymous'`), which the DOM image never makes. A host
-  // that refuses this page's origin (Sanity's CDN 403s any origin missing
-  // from the project's CORS list) would leave a hidden DOM image and an
-  // empty plane. So a cross-origin URL gets the same request as a probe
-  // first, and the plane receives a src only once it succeeds; on failure
-  // the DOM image stays visible. Cost: a cross-origin image downloads twice
-  // when its host varies on `Origin`, as Sanity's CDN does (the DOM request
-  // sent none), and the plane appears only after the probe finishes. It
-  // runs only where the plane will render (`webglActive`), so reduced
-  // motion, no WebGL and software renderers never pay it, and same-origin
-  // URLs (`/_next/image`) skip it, as they can't fail CORS.
+  // `crossOrigin = 'anonymous'`), which the DOM image never makes. A host that
+  // refuses this page's origin (Sanity's CDN 403s any origin missing from the
+  // project's CORS list) would leave a hidden DOM image and an empty plane. So
+  // a cross-origin URL gets the same request as a probe first, and the plane
+  // receives a src only once it succeeds; on failure the DOM image stays
+  // visible. Cost: a cross-origin image downloads twice when its host varies
+  // on `Origin`, as Sanity's CDN does, and the plane appears only after the
+  // probe finishes. It runs only where the plane will render (`webglActive`),
+  // and same-origin URLs (`/_next/image`) skip it, as they can't fail CORS.
   const crossOrigin = loadedUrl !== undefined && !isSameOrigin(loadedUrl)
   useEffect(() => {
     if (!(webglActive && loadedUrl && crossOrigin)) return

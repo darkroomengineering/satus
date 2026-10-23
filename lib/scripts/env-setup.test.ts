@@ -12,22 +12,9 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 
 /**
- * Written from this failure list before the script:
- * 1. the private key appears in the script's output (an agent running it would see it)
- * 2. the key is passed as a command argument instead of on stdin
- * 3. Vercel is missing, unlinked or rejects the key and the script still exits 0
- * 4. .env is missing, or has any plain value, and the script carries on
- * 5. the key is not on this machine and something (e.g. "null") gets pushed
- * 6. .env.production exists but only DOTENV_PRIVATE_KEY is pushed
- * 7. Vercel gets production but not preview
- * 8. an existing Vercel variable is not overwritten (rotating the key fails)
- * 9. the run doesn't say which Vercel project it writes to
- * 10. --copy misses a key, prints one, or pushes to Vercel
- * 11. preview gets no Git branch argument, which the Vercel CLI rejects when
- *     the value comes on stdin (an empty branch means every Preview branch)
- *
  * `vercel` and the clipboard commands are fakes that log what they receive.
- * The `vercel` fake rejects a preview add without a branch, as the CLI does.
+ * The `vercel` fake rejects a preview add without a branch, as the CLI does
+ * when the value comes on stdin (an empty branch means every Preview branch).
  */
 
 const script = join(import.meta.dir, 'env-setup.ts')
@@ -45,7 +32,6 @@ afterEach(() => {
 })
 
 interface ProjectOptions {
-  /** Env files to create, by name. */
   files?: Record<string, string>
   encrypt?: boolean
   linkVercel?: boolean

@@ -15,11 +15,7 @@ jobs:
   react-doctor:
     runs-on: ubuntu-latest
 
-    # Advisory only — never blocks a PR. Scores and diffs here are informational,
-    # same stance as the Lighthouse workflow (see lighthouse-to-slack.yml). The
-    # `--diff` scope below still keeps pre-existing issues out of the noise (only
-    # files the PR actually touches are scanned), but nothing in this job can
-    # fail the check.
+    # Advisory only, like the Lighthouse workflow: nothing here fails the check.
     continue-on-error: true
 
     steps:
@@ -32,17 +28,11 @@ jobs:
         with:
           bun-version-file: package.json
 
-      # React Doctor's React Compiler rules (react-hooks-js/*) only activate when
-      # eslint-plugin-react-hooks + the compiler are resolvable, so deps must be installed.
+      # Its React Compiler rules activate only when the compiler is resolvable.
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      # --diff <base>  : only scan files changed vs the PR base — keeps the
-      #                  existing backlog out of the report; new code stays clean.
-      # --no-telemetry : no score upload / share URL / crash reporting in CI.
-      # No --blocking flag: this job is advisory only (continue-on-error above),
-      # so a blocking exit code would be inert anyway — dropped to stop implying
-      # enforcement that isn't there.
-      # Pinned to 0.4.2 for reproducible runs — bump deliberately.
+      # No --blocking: the job is advisory, so it would imply enforcement that
+      # is not there. Pinned for reproducible runs; bump deliberately.
       - name: Run React Doctor on changed files
         run: bunx react-doctor@0.4.2 --diff origin/${{ github.base_ref }} --verbose --no-telemetry

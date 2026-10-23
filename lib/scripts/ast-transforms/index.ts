@@ -1,13 +1,3 @@
-/**
- * AST-based code transform engine — public API.
- *
- * Wires together the helper, remove-ops, and add-ops modules into the
- * two exported entry points used by the rest of the codebase:
- *
- *   applyOpsToText  — in-memory transform; safe to use in tests
- *   applyCodeTransforms — disk-writing orchestrator used by setup/satus
- */
-
 import {
   IndentationText,
   Project,
@@ -49,22 +39,16 @@ import {
 } from './remove-ops'
 import { applySyncUnusedParameterPrefix } from './set-ops'
 
-// ---------------------------------------------------------------------------
-// Required-match contract
-// ---------------------------------------------------------------------------
-
 /**
- * Thrown by `applyOpsToText` when a `required: true` op matches nothing —
- * see `RequiredMatchOp`'s docstring in `ast-operation-types.ts` for the full
- * rationale. Distinguished from a regular op-application error so
- * `applyCodeTransforms` can re-throw it (hard-fail the whole run) instead of
- * collecting it into `TransformFailure[]` like every other error.
+ * Thrown by `applyOpsToText` when a `required: true` op matches nothing (see
+ * `RequiredMatchOp` in `ast-operation-types.ts`). `applyCodeTransforms`
+ * re-throws it to hard-fail the run instead of collecting it into
+ * `TransformFailure[]`.
  */
 export class RequiredOpMatchError extends Error {
   override readonly name = 'RequiredOpMatchError'
 }
 
-/** One-line, human-readable description of an op, for RequiredOpMatchError's message. */
 function describeOp(op: AstOperation): string {
   switch (op.kind) {
     case 'removeImport':
@@ -115,39 +99,33 @@ function describeOp(op: AstOperation): string {
       return `addDestructuredBinding '${op.bindingName}'`
     case 'addFunctionBodyStatement':
       return `addFunctionBodyStatement '${op.marker}' in '${op.functionName}'`
-    // Exhaustiveness — TypeScript ensures all union members are handled above.
   }
 }
 
 /**
  * For a missed `required: true` op, decide whether the miss is provably
- * drift rather than a previous run's completed work. Some op kinds target a
- * construct INSIDE a container (a directive inside a named function, a
- * property on a named interface) — for those, the two causes of a miss are
+ * drift rather than a previous run's completed work. Ops that target a
+ * construct INSIDE a container (a named function, a named interface) are
  * distinguishable:
  *
- * - container present, construct gone → a previous run removed the
- *   construct; the miss is the idempotent re-run case. Returns false.
- * - container gone → the op's premise no longer exists in the source (a
- *   renamed function, a restructured config object) — drift, even when the
- *   file is otherwise byte-identical. Returns true.
+ * - container present, construct gone: a previous run removed it (idempotent
+ *   re-run). Returns false.
+ * - container gone: the op's premise no longer exists (renamed function,
+ *   restructured config object), so drift even on a byte-identical file.
+ *   Returns true.
  *
- * Kinds whose target IS the whole construct (an import, a variable
- * statement, a JSX element) have no container to probe — absence is
- * genuinely ambiguous there, and the function returns false (tolerated).
- * Each probe mirrors the corresponding handler's lookup in remove-ops.ts,
- * so "container present" means the handler would have found it.
+ * Ops whose target IS the whole construct (import, variable statement, JSX
+ * element) have no container to probe, so absence is ambiguous and the
+ * function returns false (tolerated). Each probe mirrors the corresponding
+ * handler's lookup in remove-ops.ts.
  *
  * `addFunctionBodyStatement` and `syncUnusedParameterPrefix` always return
- * true: their benign no-op is filtered out before it is recorded as a miss
- * (`requiredOpAlreadySatisfied`), so any miss of theirs that reaches here is
- * drift.
+ * true: their benign no-op is filtered out earlier
+ * (`requiredOpAlreadySatisfied`), so any miss reaching here is drift.
  *
- * Caveat this encodes: a container-anchored required op assumes no sibling
- * transform removes its container — if one did, the retry would read the
- * missing container as drift and fail. No current bundle does this (there
- * is no op kind that removes whole functions, interfaces, destructurings,
- * or config variables).
+ * Caveat: a container-anchored required op assumes no sibling transform
+ * removes its container, or the retry would read it as drift. No op kind
+ * removes whole functions, interfaces, destructurings, or config variables.
  */
 function missedRequiredOpAnchorAbsent(
   project: Project,
@@ -206,9 +184,6 @@ function missedRequiredOpAnchorAbsent(
                 el.getOpeningElement().getTagNameNode().getText() === op.tagName
             )
       )
-    // Already-satisfied no-ops never get recorded as misses (see
-    // `requiredOpAlreadySatisfied`); what is left is drift, even on a
-    // byte-identical file.
     case 'addFunctionBodyStatement':
     case 'syncUnusedParameterPrefix':
       return true
@@ -227,18 +202,16 @@ function missedRequiredOpAnchorAbsent(
 /**
  * For a `required` op that left the text unchanged, decide whether the no-op
  * is the op's own success state rather than a miss. Checked against the text
- * at the moment the op ran, before it is recorded, so a sibling op changing
- * the same file cannot turn it into a "matched nothing while others applied"
- * error.
+ * at the moment the op ran, so a sibling op changing the same file cannot
+ * turn it into a "matched nothing while others applied" error.
  *
- * - `addFunctionBodyStatement`: its marker is already in the body (a
- *   previous run, or a sibling bundle, added it). A function that is gone or
- *   a named anchor that matched nothing is still a miss.
+ * - `addFunctionBodyStatement`: its marker is already in the body. A missing
+ *   function or an unmatched named anchor is still a miss.
  * - `syncUnusedParameterPrefix`: the function has the parameter under either
- *   name, so an unchanged file means the name already matches the body.
+ *   name, so the name already matches the body.
  *
- * Every other kind returns false: for those, an unchanged file is a miss,
- * judged by the rules in `applyOpsToText`.
+ * Every other kind returns false (unchanged file is a miss, judged in
+ * `applyOpsToText`).
  */
 function requiredOpAlreadySatisfied(
   project: Project,
@@ -280,55 +253,38 @@ function requiredOpAlreadySatisfied(
   }
 }
 
-// ---------------------------------------------------------------------------
-// Per-file transform runner
-// ---------------------------------------------------------------------------
-
 /**
- * Apply a sequence of typed AST operations to source text (in memory).
- * Returns the transformed text. Safe to call from tests — never touches disk.
+ * Apply a sequence of typed AST operations to source text in memory (never
+ * touches disk). Each handler creates and removes its own source file in a
+ * shared in-memory Project, so no AST state leaks between ops. JSX is enabled
+ * so any op kind can parse `.tsx`.
  *
- * A single in-memory Project is shared across all operations for this call.
- * JSX compiler options are enabled so the project can parse `.tsx` files for
- * any op kind — enabling the JSX handlers without affecting non-JSX ops.
- * Each handler creates and removes its own source file, so no AST state leaks
- * between sequential ops.
+ * Required-match contract: a `required: true` op that leaves `text`
+ * unchanged is a drift signal only when some OTHER op in the sequence DID
+ * change the file. A no-op that is the op's own success state (see
+ * `requiredOpAlreadySatisfied`) is not a miss. Misses are collected across
+ * the sequence and judged at the end:
  *
- * Required-match contract: an op with `required: true` that leaves `text`
- * byte-for-byte unchanged (no match found) is a drift signal — but only when
- * some OTHER op in the same sequence DID change the file. A no-op that is
- * the op's own success state (an additive marker already present, a
- * parameter name already in sync; see `requiredOpAlreadySatisfied`) is not a
- * miss at all. Misses are collected across the whole sequence and judged at
- * the end:
- *
- * - Misses + a changed file → `RequiredOpMatchError`. Partial application is
- *   the hazard the contract exists for (an import stripped while the code
- *   that used it survives), and it can only happen on drifted source.
- * - Misses + a byte-identical file → no-op. Disk writes are per-file atomic
+ * - Misses + a changed file: `RequiredOpMatchError`. Partial application (an
+ *   import stripped while its users survive) can only happen on drifted
+ *   source.
+ * - Misses + a byte-identical file: no-op. Disk writes are per-file atomic
  *   (`applyCodeTransforms` writes once per transform), so a file where EVERY
- *   op misses is a file a previous run already fully transformed — the
- *   re-run recovery path after a mid-batch abort. Throwing here made
- *   "repeat the run" permanently fail with no way forward but a manual
- *   `git checkout`.
+ *   op misses was fully transformed by a previous run. Throwing here made
+ *   re-running an aborted batch fail permanently, recoverable only by a
+ *   manual `git checkout`.
  *
- * A byte-identical file gets one more check before passing: a missed
- * required op whose CONTAINER construct is gone (a function body whose
- * named function no longer exists, an interface property whose interface is
- * missing) is provable drift — the already-applied case leaves
- * the container standing — and throws even with no other change. See
- * `missedRequiredOpAnchorAbsent`. This is what keeps a single-op required
- * transform protected: it can
- * never trip the partial-application signal, so the anchor probe is its
- * only drift detection.
+ * One more check on a byte-identical file: a missed required op whose
+ * CONTAINER construct is gone (function, interface) is provable drift and
+ * throws (`missedRequiredOpAnchorAbsent`). This is the only drift detection
+ * for a single-op required transform, which can never trip the
+ * partial-application signal.
  *
- * The remaining tradeoff: for container-less op kinds (an import, a
- * variable statement, a JSX element), a file so drifted that NO op matches
- * is indistinguishable from an already-transformed file and passes
- * silently. Every pinned drift scenario (a renamed function, a
- * restructured try-block) leaves sibling ops matching, so partial
- * application still catches them — see `RequiredMatchOp`'s docstring in
- * `ast-operation-types.ts`.
+ * Accepted gap: for container-less op kinds (import, variable statement, JSX
+ * element), a file so drifted that NO op matches looks like an
+ * already-transformed file and passes silently. Every pinned drift scenario
+ * (renamed function, restructured try-block) leaves sibling ops matching, so
+ * partial application still catches them.
  */
 export function applyOpsToText(
   sourceText: string,
@@ -337,8 +293,7 @@ export function applyOpsToText(
   const project = new Project({
     useInMemoryFileSystem: true,
     compilerOptions: { jsx: ts.JsxEmit.ReactJSX },
-    // Match house style (oxfmt: 2-space indent, single quotes) so additive
-    // ops insert text that needs no reformatting.
+    // Match oxfmt style so additive ops insert text that needs no reformatting.
     manipulationSettings: {
       indentationText: IndentationText.TwoSpaces,
       quoteKind: QuoteKind.Single,
@@ -422,7 +377,6 @@ export function applyOpsToText(
       case 'addFunctionBodyStatement':
         text = applyAddFunctionBodyStatement(project, text, op)
         break
-      // Exhaustiveness — TypeScript ensures all union members are handled above.
     }
 
     if (
@@ -434,8 +388,6 @@ export function applyOpsToText(
     }
   }
 
-  // Judged after the whole sequence, not at the first miss — see the
-  // required-match contract in this function's docstring.
   if (missedRequiredOps.length > 0) {
     if (text !== sourceText) {
       throw new RequiredOpMatchError(
@@ -443,9 +395,8 @@ export function applyOpsToText(
       )
     }
 
-    // Byte-identical file: usually a previous run's completed work — but a
-    // container-anchored op whose container is GONE is provable drift even
-    // here (the already-applied case leaves the container standing).
+    // Byte-identical file is usually a previous run's work, but a missed op
+    // whose container is GONE is drift.
     const orphaned = missedRequiredOps.filter((op) =>
       missedRequiredOpAnchorAbsent(project, text, op)
     )
@@ -459,10 +410,6 @@ export function applyOpsToText(
   return text
 }
 
-// ---------------------------------------------------------------------------
-// Public disk-writing API used by setup-project.ts
-// ---------------------------------------------------------------------------
-
 /** A single file's transform failure, surfaced to callers instead of swallowed. */
 export interface TransformFailure {
   file: string
@@ -470,41 +417,27 @@ export interface TransformFailure {
 }
 
 /**
- * Apply code transformations to on-disk project source files.
- * Honors `dryRun` (no writes when true).
+ * Apply code transformations to on-disk project source files. No writes when
+ * `dryRun`.
  *
- * Never throws on a single file's failure — the transform continues across
- * the remaining files (a batch mid-run abort would leave some files
- * transformed and others not, which is worse than finishing the batch and
- * reporting every failure at once). Failures are collected and returned
- * instead of only logged, so callers can fail loudly — and non-zero — once
- * the batch is done, rather than exiting 0 on a silently-incomplete run.
+ * A single file's failure never throws: the batch continues, because a
+ * mid-run abort would leave some files transformed and others not. Failures
+ * are returned in `failures` so callers can exit non-zero once the batch is
+ * done.
  *
- * Exception: a `RequiredOpMatchError` (a `required: true` op that matched
- * nothing while sibling ops changed the same file — see `applyOpsToText`'s
- * contract) is deliberately NOT collected into `failures` — it's re-thrown
- * immediately, aborting this whole batch. Regular per-file failures are
- * recoverable (the other files still get their intended changes; the run
- * finishes and reports non-zero); a partial required-match miss means the
- * source shape has drifted from what a strip transform expects, which risks
- * leaving a broken tree (an import removed, the code that used it still
- * there) — that must stop the run before `setup()` reaches self-prune, not
- * just get reported alongside everything else at the end. A file where
- * EVERY op misses is instead treated as already transformed (a previous
- * run's write) and skipped, so repeating an aborted run recovers instead of
- * failing on work the first run already finished.
+ * Exception: a `RequiredOpMatchError` (see `applyOpsToText`) is re-thrown
+ * immediately, aborting the batch. Source drift from what a strip transform
+ * expects risks a broken tree (an import removed, its users still there), and
+ * that must stop the run before `setup()` reaches self-prune. A file where
+ * EVERY op misses is skipped as already transformed, so repeating an aborted
+ * run recovers.
  *
- * A missing target file is silently skipped (`continue`, no failure entry)
- * UNLESS the transform contains at least one `required: true` op — a missing
- * file can't possibly satisfy a required match, so that's the same drifted-
- * source signal as a required op matching nothing on a file that DOES exist,
- * and is handled identically: `RequiredOpMatchError` is thrown and aborts
- * the batch, same as above.
+ * A missing target file is silently skipped UNLESS the transform contains a
+ * `required: true` op: a missing file can't satisfy a required match, so it
+ * throws `RequiredOpMatchError` like any other drift.
  *
- * `changedFiles` (relative paths, deduped, one entry per transform that
- * actually wrote — a single file can appear once even if two transforms in
- * `transforms` both touch it) lets callers reformat exactly the files this
- * run modified afterward (P-B2), instead of the whole repo.
+ * `changedFiles` (relative paths, deduped, one entry per transform that wrote)
+ * lets callers reformat exactly the files this run modified.
  */
 export async function applyCodeTransforms(
   transforms: CodeTransform[],

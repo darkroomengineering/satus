@@ -7,7 +7,7 @@ import { type ComponentProps, isValidElement, type ReactNode } from 'react'
 import s from './tooltip.module.css'
 
 /**
- * Tooltip component built on Base UI for accessible hover hints.
+ * Tooltip on Base UI.
  *
  * @example
  * ```tsx
@@ -26,13 +26,11 @@ import s from './tooltip.module.css'
  */
 
 type TooltipProps = {
-  /** Content to display in the tooltip */
   content: ReactNode
-  /** The trigger element (must be a single element that accepts ref) */
+  /** The trigger: a single element that accepts a ref. */
   children: ReactNode
-  /** Side of the trigger to place the tooltip */
   side?: 'top' | 'right' | 'bottom' | 'left'
-  /** Additional class for the popup */
+  /** Class for the popup. */
   className?: string
 }
 
@@ -56,7 +54,6 @@ function Tooltip({ content, children, side = 'top', className }: TooltipProps) {
   )
 }
 
-// Compound components for advanced usage
 const Provider = BaseTooltip.Provider
 const Root = BaseTooltip.Root
 const Trigger = BaseTooltip.Trigger
@@ -90,7 +87,6 @@ function Arrow({
   return <BaseTooltip.Arrow className={cn(s.arrow, className)} {...props} />
 }
 
-// Attach compound components
 Tooltip.Provider = Provider
 Tooltip.Root = Root
 Tooltip.Trigger = Trigger

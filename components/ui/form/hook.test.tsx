@@ -6,8 +6,6 @@
  * the row's lifetime (React Compiler provides this stability to the
  * production fields; bun test does not run the compiler) and rows are keyed
  * by name so reorders move DOM nodes instead of repurposing them.
- *
- * Run with: bun test components/ui/form/hook.test.tsx
  */
 
 import { afterEach, describe, expect, test } from 'bun:test'

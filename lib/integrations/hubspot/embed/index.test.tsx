@@ -1,12 +1,7 @@
 /**
- * Tests for EmbedHubspotForm's default target id.
- *
- * Two instances rendered without an explicit `target` prop used to both
- * resolve to the same hardcoded id ('hubspot-form-wrapper'), so
- * `document.querySelector('#hubspot-form-wrapper')` always matched the
- * first one and the second embed's form injection silently no-opped.
- *
- * Run with: bun test lib/integrations/hubspot/embed/index.test.tsx
+ * Tests for EmbedHubspotForm's default target id: two instances without an
+ * explicit `target` must get distinct ids, or the second embed's form
+ * injection silently no-ops.
  */
 
 import { afterEach, describe, expect, test } from 'bun:test'

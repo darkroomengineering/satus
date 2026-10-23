@@ -16,12 +16,11 @@ import { generateSanityMetadata } from '@/utils/metadata'
  * `sanity` tag until the publish webhook, draft mode reads uncached. Callers
  * check `isKnownCmsPath` first, so only published slugs get a cache entry.
  *
- * Declared as `const` (not `function`) so the sanity bundle's strip transform
- * in `lib/scripts/integration-bundles.ts` can remove it with the existing
- * `removeVariableStatement` op: there is no remove-function-declaration op in
- * `lib/scripts/ast-operation-types.ts`, and this file (unlike the tutorial
- * page) must survive integration removal as the in-chrome 404 handler, so it
- * can't just be deleted wholesale.
+ * Declared as `const`, not `function`: the sanity bundle's strip transform
+ * (`lib/scripts/integration-bundles.ts`) removes it with
+ * `removeVariableStatement`, and `lib/scripts/ast-operation-types.ts` has no
+ * remove-function-declaration op. This file must survive integration removal
+ * as the in-chrome 404 handler, so it can't be deleted wholesale.
  */
 const fetchPage = (slug: string) =>
   sanityFetch({ query: pageQuery, params: { slug } })
@@ -31,20 +30,12 @@ interface CmsPageProps {
 }
 
 /**
- * Renders every published Sanity `page` document at its single-segment slug
- * (`/about`, `/pricing`, ...). Only a single path segment is resolved as a
- * CMS page — anything deeper 404s, same as a slug with no matching document.
+ * Renders a published Sanity `page` at its single-segment slug (`/about`);
+ * deeper paths 404. As the catch-all, `notFound()` here renders the 404 inside
+ * the (site) group's chrome and providers instead of the bare root layout.
  *
- * REPLACES the old `[...unmatched]` catch-all and keeps its job: when
- * nothing resolves, `notFound()` renders the 404 inside this (site) route
- * group's chrome and providers, instead of the bare root layout. Static
- * segments (`/sanity`, `/studio`, `/api`, ...) win over this catch-all
- * because Next matches more specific routes first.
- *
- * A sanity-less project keeps this exact file, stripped down to a lean
- * `notFound()` stub by the sanity bundle's `codeTransforms` in
- * `lib/scripts/integration-bundles.ts`, so the in-chrome 404 keeps working
- * with zero Sanity dependency.
+ * A sanity-less project keeps this file, stripped to a `notFound()` stub by
+ * the sanity bundle's `codeTransforms` in `lib/scripts/integration-bundles.ts`.
  */
 export default async function CmsPage({ params }: CmsPageProps) {
   const { slug } = await params
@@ -97,7 +88,6 @@ export default async function CmsPage({ params }: CmsPageProps) {
   )
 }
 
-// https://nextjs.org/docs/app/api-reference/functions/generate-metadata
 export async function generateMetadata({ params }: CmsPageProps) {
   const { slug } = await params
   const [slugSegment] = slug

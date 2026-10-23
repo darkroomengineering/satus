@@ -1,16 +1,8 @@
 /**
- * Unit tests for the additive AST operations in the transform engine
- *
- * Run with: bun test lib/scripts/ast-transforms.test.ts
- *
- * Every additive op must be:
- * 1. Effective — it inserts the construct when absent
- * 2. Idempotent — it returns the source byte-for-byte unchanged when present
- *    (the issue constraint: "add x twice is a no-op")
- * 3. Format-resilient — it works on compact / quoted-key / multiline variants
- *
- * Plus round-trip tests: remove-then-add (and add-then-remove) on a realistic
- * next.config-shaped fixture leaves the value present exactly once (or absent).
+ * Every additive op must be effective (inserts when absent), idempotent
+ * (byte-for-byte unchanged when present) and format-resilient (compact,
+ * quoted-key and multiline variants). Round-trip tests remove-then-add (and
+ * the reverse) on a next.config-shaped fixture.
  */
 
 import { describe, expect, it } from 'bun:test'
@@ -26,10 +18,6 @@ import {
 function count(haystack: string, needle: string): number {
   return haystack.split(needle).length - 1
 }
-
-// ---------------------------------------------------------------------------
-// Fixtures
-// ---------------------------------------------------------------------------
 
 const nextConfigFixture = `const nextConfig: NextConfig = {
   experimental: {
@@ -51,16 +39,12 @@ const nextConfigFixture = `const nextConfig: NextConfig = {
 export default nextConfig
 `
 
-// Compact / quoted-key variant — same semantics, hostile formatting.
+// Same semantics, hostile formatting.
 const compactConfigFixture = `const nextConfig = {
   experimental: { optimizePackageImports: ["gsap","three"] },
   images: { remotePatterns: [{"protocol":"https","hostname":"cdn.shopify.com"}] },
 }
 `
-
-// ---------------------------------------------------------------------------
-// removeCallArgument
-// ---------------------------------------------------------------------------
 
 describe('removeCallArgument', () => {
   const op: AstOperation = {
@@ -74,7 +58,6 @@ describe('removeCallArgument', () => {
     const result = applyOpsToText(fixture, [op])
     expect(result).toContain('useContextBridge(TransformContext)')
     expect(result).not.toContain('SheetContext')
-    // Removing again is a no-op.
     expect(applyOpsToText(result, [op])).toBe(result)
   })
 
@@ -88,10 +71,6 @@ describe('removeCallArgument', () => {
     expect(applyOpsToText(fixture, [op])).toBe(fixture)
   })
 })
-
-// ---------------------------------------------------------------------------
-// removeIfStatement
-// ---------------------------------------------------------------------------
 
 describe('replaceFunctionBody / replaceJsDoc — indentation-insensitive skip', () => {
   it('applies when the body differs only inside a template literal interior', () => {
@@ -111,7 +90,6 @@ describe('replaceFunctionBody / replaceJsDoc — indentation-insensitive skip', 
     const result = applyOpsToText(fixture, [op])
     expect(result).toContain('  world`')
     expect(result).not.toContain('      world`')
-    // Re-applying the now-satisfied op is a byte-identical no-op.
     expect(applyOpsToText(result, [op])).toBe(result)
   })
 
@@ -161,7 +139,6 @@ describe('removeIfStatement', () => {
     expect(result).not.toContain('if (isShopifyWebhook)')
     expect(result).not.toContain('shopifyRevalidate()')
     expect(result).toContain('return null')
-    // Removing again is a no-op.
     expect(applyOpsToText(result, [op])).toBe(result)
   })
 
@@ -220,10 +197,8 @@ function b() {
   })
 })
 
-// ---------------------------------------------------------------------------
-// Shopify webhook dispatch strip — composed ops against a route.ts-shaped
-// fixture (removeImport + removeVariableStatement + removeIfStatement)
-// ---------------------------------------------------------------------------
+// Shopify webhook dispatch strip: composed ops (removeImport +
+// removeVariableStatement + removeIfStatement) against a route.ts-shaped fixture.
 
 describe('Shopify webhook dispatch strip (composed ops)', () => {
   // The current route shape (app/api/revalidate/route.ts): two provider
@@ -267,7 +242,6 @@ export async function POST(request: NextRequest) {
   it('removes the import, guard variable, and dispatch, keeping the rest of the route intact', () => {
     const result = applyOpsToText(routeFixture, shopifyOps)
 
-    // Dangling import gone.
     expect(result).not.toContain('@/integrations/shopify/revalidate')
     expect(result).not.toContain('shopifyRevalidate')
     expect(result).not.toContain('isShopifyWebhook')
@@ -278,14 +252,11 @@ export async function POST(request: NextRequest) {
     expect(result).toContain("error: 'No webhook handler configured'")
     expect(result).toContain("from 'next/server'")
 
-    // Idempotent — re-applying to the already-stripped result changes nothing.
     expect(applyOpsToText(result, shopifyOps)).toBe(result)
   })
 })
 
-// ---------------------------------------------------------------------------
-// addFunctionBodyStatement anchors. Written against these failure modes,
-// listed before the code they test:
+// addFunctionBodyStatement anchors. Failure modes:
 //
 // 1. `beforeContains` inserts between the anchor and its leading comment,
 //    so the comment ends up describing the inserted text instead.
@@ -298,7 +269,6 @@ export async function POST(request: NextRequest) {
 // 5. Re-applying the op duplicates the statement.
 // 6. An anchor that is the block's first statement (its comment right after
 //    the opening brace) lands the text outside the body or mid-line.
-// ---------------------------------------------------------------------------
 
 describe('addFunctionBodyStatement anchors', () => {
   const fixture = `export function POST() {
@@ -390,14 +360,11 @@ describe('addFunctionBodyStatement anchors', () => {
   })
 })
 
-// ---------------------------------------------------------------------------
-// A required addFunctionBodyStatement whose marker is already in the body is
-// a success, not a miss, even when a sibling op changes the same file. The
-// bug: the runner recorded the no-op as a miss and, seeing the file changed
-// by the sibling, threw "matched nothing while others applied". Reproduced
-// with the webhook route missing only its Sanity import, then re-adding
-// Sanity: the import goes back, the guard is already there.
-// ---------------------------------------------------------------------------
+// A required addFunctionBodyStatement whose marker is already in the body is a
+// success, not a miss, even when a sibling op changes the same file (the runner
+// used to throw "matched nothing while others applied"). Reproduced with the
+// webhook route missing only its Sanity import, then re-adding Sanity: the
+// import goes back, the guard is already there.
 
 describe('required addFunctionBodyStatement beside a sibling change', () => {
   const fixture = `export function POST() {
@@ -444,9 +411,7 @@ describe('required addFunctionBodyStatement beside a sibling change', () => {
   })
 })
 
-// ---------------------------------------------------------------------------
-// syncUnusedParameterPrefix. Written against these failure modes, listed
-// before the code they test:
+// syncUnusedParameterPrefix. Failure modes:
 //
 // 1. A parameter the body still reads gets prefixed, leaving the body's
 //    references dangling.
@@ -461,7 +426,6 @@ describe('required addFunctionBodyStatement beside a sibling change', () => {
 // 7. A required op whose function or parameter is gone passes silently.
 // 8. A body that reads the prefixed name itself gets renamed out from under
 //    the author.
-// ---------------------------------------------------------------------------
 
 describe('syncUnusedParameterPrefix', () => {
   const sync = (required = false): AstOperation => ({
@@ -529,11 +493,8 @@ describe('syncUnusedParameterPrefix', () => {
   })
 })
 
-// ---------------------------------------------------------------------------
-// removeJsxElement — the JSX comment that documents a removed element goes
-// with it, whichever element form it documents (L4: only the self-closing
-// branch cleaned up, so removing `<Studio>…</Studio>` orphaned its comment).
-// ---------------------------------------------------------------------------
+// removeJsxElement: the JSX comment documenting a removed element goes with
+// it for either element form (removing `<Studio>…</Studio>` once orphaned it).
 
 describe('removeJsxElement — adjacent comment cleanup', () => {
   const fixture = (element: string) => `export function App() {
@@ -574,7 +535,6 @@ describe('removeJsxElement — adjacent comment cleanup', () => {
 
       expect(result).not.toContain(tagName)
       expect(result).not.toContain('documents the target')
-      // Neighbouring content is untouched.
       expect(result).toContain('<span>keep</span>')
     })
   }
@@ -589,10 +549,6 @@ describe('removeJsxElement — adjacent comment cleanup', () => {
     expect(result).toContain('documents the target')
   })
 })
-
-// ---------------------------------------------------------------------------
-// addImport
-// ---------------------------------------------------------------------------
 
 describe('addImport', () => {
   const canvasImport: AstOperation = {
@@ -615,14 +571,12 @@ export function Wrapper() {
     expect(result).toContain(
       "import { Canvas } from '@/webgl/components/canvas'"
     )
-    // Placement: after the last existing import, before the function.
     expect(result.indexOf("'@/lib/theme'")).toBeLessThan(
       result.indexOf("'@/webgl/components/canvas'")
     )
     expect(result.indexOf("'@/webgl/components/canvas'")).toBeLessThan(
       result.indexOf('export function Wrapper')
     )
-    // Adding twice is a no-op.
     expect(applyOpsToText(result, [canvasImport])).toBe(result)
   })
 
@@ -656,7 +610,6 @@ export const t = Theme
     ])
 
     expect(result).toContain('ThemeProvider')
-    // Merged, not duplicated — still a single declaration for the specifier.
     expect(count(result, "from '@/lib/theme'")).toBe(1)
     expect(count(result, 'import')).toBe(1)
   })
@@ -697,15 +650,10 @@ export const x = Alpha + Beta
 
     expect(result).toContain('Gamma')
     expect(count(result, "from '@/lib'")).toBe(1)
-    // Existing bindings survive the merge.
     expect(result).toContain('Alpha')
     expect(result).toContain('Beta')
   })
 })
-
-// ---------------------------------------------------------------------------
-// addArrayStringElement
-// ---------------------------------------------------------------------------
 
 describe('addArrayStringElement', () => {
   const addLenis: AstOperation = {
@@ -720,10 +668,8 @@ describe('addArrayStringElement', () => {
 
     expect(result).toContain("'lenis'")
     expect(count(result, 'lenis')).toBe(1)
-    // Existing entries survive.
     expect(result).toContain("'gsap'")
     expect(result).toContain("'three'")
-    // Adding twice is a no-op.
     expect(applyOpsToText(result, [addLenis])).toBe(result)
   })
 
@@ -760,10 +706,6 @@ describe('addArrayStringElement', () => {
   })
 })
 
-// ---------------------------------------------------------------------------
-// addArrayObjectElement
-// ---------------------------------------------------------------------------
-
 describe('addArrayObjectElement', () => {
   const addSanityPattern: AstOperation = {
     kind: 'addArrayObjectElement',
@@ -778,9 +720,7 @@ describe('addArrayObjectElement', () => {
 
     expect(result).toContain('cdn.sanity.io')
     expect(count(result, 'cdn.sanity.io')).toBe(1)
-    // Existing element survives.
     expect(result).toContain('cdn.shopify.com')
-    // Adding twice is a no-op.
     expect(applyOpsToText(result, [addSanityPattern])).toBe(result)
   })
 
@@ -818,10 +758,6 @@ describe('addArrayObjectElement', () => {
   })
 })
 
-// ---------------------------------------------------------------------------
-// addVariableStatement
-// ---------------------------------------------------------------------------
-
 describe('addVariableStatement', () => {
   const lazyCanvasStatement =
     "const LazyWebGLCanvas = dynamic(() => import('@/webgl/components/canvas').then((m) => m.Canvas))"
@@ -845,14 +781,12 @@ export function OptionalFeatures() {
     const result = applyOpsToText(featuresFixture, [addLazyCanvas])
 
     expect(result).toContain('const LazyWebGLCanvas')
-    // Placement: after the import, before the function.
     expect(result.indexOf("'next/dynamic'")).toBeLessThan(
       result.indexOf('const LazyWebGLCanvas')
     )
     expect(result.indexOf('const LazyWebGLCanvas')).toBeLessThan(
       result.indexOf('export function OptionalFeatures')
     )
-    // Adding twice is a no-op.
     expect(applyOpsToText(result, [addLazyCanvas])).toBe(result)
   })
 
@@ -889,10 +823,6 @@ export function OptionalFeatures() {
   })
 })
 
-// ---------------------------------------------------------------------------
-// addJsxChild
-// ---------------------------------------------------------------------------
-
 describe('addJsxChild', () => {
   const addCanvasChild: AstOperation = {
     kind: 'addJsxChild',
@@ -915,7 +845,6 @@ describe('addJsxChild', () => {
     expect(result).toContain(
       '      <main>{children}</main>\n      <Canvas root />\n    </div>'
     )
-    // Adding twice is a no-op.
     expect(applyOpsToText(result, [addCanvasChild])).toBe(result)
   })
 
@@ -965,10 +894,6 @@ describe('addJsxChild', () => {
   })
 })
 
-// ---------------------------------------------------------------------------
-// addJsxChild — fragment parents and attribute-narrowed idempotency
-// ---------------------------------------------------------------------------
-
 describe('addJsxChild (fragment parent)', () => {
   const fragmentFixture = `export function OptionalFeatures() {
   return (
@@ -991,14 +916,12 @@ describe('addJsxChild (fragment parent)', () => {
     const result = applyOpsToText(fragmentFixture, [addLazyCanvas])
 
     expect(result).toContain('<LazyWebGLCanvas />')
-    // Appended as the last fragment child, before the closing `</>`.
     expect(result.indexOf('<OrchestraTools />')).toBeLessThan(
       result.indexOf('<LazyWebGLCanvas />')
     )
     expect(result.indexOf('<LazyWebGLCanvas />')).toBeLessThan(
       result.indexOf('</>')
     )
-    // Adding twice is a no-op.
     expect(applyOpsToText(result, [addLazyCanvas])).toBe(result)
   })
 
@@ -1024,7 +947,6 @@ describe('addJsxChild (fragment parent)', () => {
     expect(result.indexOf('{stats && <Stats />}')).toBeLessThan(
       result.indexOf('{studio && <Studio />}')
     )
-    // Adding twice is a no-op (the <Studio /> element now exists).
     expect(applyOpsToText(result, [op])).toBe(result)
   })
 
@@ -1070,7 +992,6 @@ describe('addJsxChild (childAttribute disambiguation + sibling-aware parent)', (
     // …and inside the inner row div (before its closing tag), not appended
     // to the outer `<div id="orchestra">`.
     expect(result.indexOf('id="webgl"')).toBeLessThan(result.indexOf('</div>'))
-    // Adding twice is a no-op.
     expect(applyOpsToText(result, [addWebglToggle])).toBe(result)
   })
 
@@ -1094,11 +1015,6 @@ describe('addJsxChild (childAttribute disambiguation + sibling-aware parent)', (
     expect(blocked).toBe(togglesFixture)
   })
 })
-
-// ---------------------------------------------------------------------------
-// Round trips — remove + add (and vice versa) on a realistic
-// next.config-shaped fixture leave the construct present exactly once.
-// ---------------------------------------------------------------------------
 
 describe('Round Trips (remove + add)', () => {
   const nextConfigRealistic = `import type { NextConfig } from 'next'
@@ -1146,7 +1062,6 @@ export default nextConfig
     ])
 
     expect(count(result, "'gsap'")).toBe(1)
-    // Untouched entries are unaffected.
     expect(count(result, "'three'")).toBe(1)
     expect(count(result, '@react-three/drei')).toBe(1)
   })
@@ -1231,14 +1146,9 @@ export default nextConfig
   })
 })
 
-// ---------------------------------------------------------------------------
-// applyCodeTransforms — missing target file (issue #381)
-//
-// The disk-writing orchestrator used to `continue` past a nonexistent target
-// file before ever calling `applyOpsToText`, so a `required: true` op was
-// silently skipped instead of failing loudly — defeating the whole point of
-// `required` (see ast-operation-types.ts's `RequiredMatchOp` docstring).
-// ---------------------------------------------------------------------------
+// applyCodeTransforms with a missing target file (issue #381): it once
+// skipped a nonexistent file instead of failing a `required: true` op, which
+// defeats `required`.
 
 describe('applyCodeTransforms — missing target file (issue #381)', () => {
   const missingFile = 'lib/scripts/__fixtures__/does-not-exist.ts'

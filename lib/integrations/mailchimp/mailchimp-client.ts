@@ -14,11 +14,9 @@ export interface MailchimpConfig {
 }
 
 /**
- * Mailchimp member subscription status. Defaults to `'pending'`, which
- * triggers Mailchimp's double opt-in confirmation email — the GDPR-compliant
- * behaviour this integration advertises. Pass `'subscribed'` to skip the
- * confirmation email for projects that have their own lawful basis for
- * single opt-in.
+ * Defaults to `'pending'` (double opt-in confirmation email, the GDPR
+ * behaviour the README promises). `'subscribed'` skips it for projects with
+ * their own lawful basis.
  */
 export type MailchimpMemberStatus = 'pending' | 'subscribed'
 
@@ -36,7 +34,6 @@ export interface SubscriptionData {
   status?: MailchimpMemberStatus
 }
 
-// Typed error codes surfaced to callers
 export type MailchimpErrorCode =
   | 'invalid_email'
   | 'network_error'
@@ -50,12 +47,10 @@ export interface MailchimpResult {
   error?: string
 }
 
-// Zod schema for the Mailchimp member PUT response (only fields we consume)
 const mailchimpMemberResponseSchema = z.object({
   id: z.string(),
 })
 
-// Zod schema for Mailchimp API error responses (only fields we consume)
 const mailchimpErrorResponseSchema = z.object({
   type: z.string().optional(),
   title: z.string().optional(),
@@ -63,7 +58,6 @@ const mailchimpErrorResponseSchema = z.object({
   instance: z.string().optional(),
 })
 
-// Get Mailchimp configuration from environment variables
 function getMailchimpConfig(): MailchimpConfig {
   const apiKey = env.MAILCHIMP_API_KEY
   const serverPrefix = env.MAILCHIMP_SERVER_PREFIX
@@ -78,12 +72,11 @@ function getMailchimpConfig(): MailchimpConfig {
   return { apiKey, serverPrefix, audienceId }
 }
 
-// Compute the MD5 subscriber hash Mailchimp uses for member lookup
+// Mailchimp's member id: MD5 of the lowercased address (not a security use).
 function subscriberHash(email: string): string {
   return createHash('md5').update(email.trim().toLowerCase()).digest('hex')
 }
 
-// Base Mailchimp API client — config is threaded in to avoid repeated reads
 async function makeMailchimpRequest(
   endpoint: string,
   options: RequestInit,
@@ -101,11 +94,10 @@ async function makeMailchimpRequest(
       'Content-Type': 'application/json',
       ...options.headers,
     },
-    timeout: 10000, // 10 second timeout for Mailchimp API
+    timeout: 10000,
   })
 }
 
-// Apply tags to a member via the dedicated tags endpoint (best-effort)
 async function applyMemberTags(
   audienceId: string,
   email: string,
@@ -129,10 +121,6 @@ async function applyMemberTags(
   }
 }
 
-// ---------------------------------------------------------------------------
-// Private helper: upsert a member via PUT
-// ---------------------------------------------------------------------------
-
 interface SubscriberPayload {
   email_address: string
   status_if_new: MailchimpMemberStatus
@@ -155,10 +143,6 @@ interface UpsertMemberOptions {
   config: MailchimpConfig
 }
 
-/**
- * PUT a member into the audience. Returns the validated member response on
- * success, or a MailchimpResult error on failure.
- */
 async function upsertMember(
   opts: UpsertMemberOptions
 ): Promise<
@@ -167,14 +151,9 @@ async function upsertMember(
   const { audienceId, email, firstName, lastName, status, config } = opts
   const hash = subscriberHash(email)
 
-  // `status_if_new` alone drives the opt-in flow: a new address gets this
-  // status (so 'pending' sends Mailchimp's confirmation email), while an
-  // address already in the audience keeps whatever status it has. Sending
-  // `status` as well would apply it to existing members too, which for
-  // 'pending' means knocking an already-confirmed subscriber back to
-  // unconfirmed — they would silently stop receiving mail until they
-  // re-confirmed. Callers that genuinely need to move an existing member
-  // pass `forceStatus`.
+  // `status_if_new` alone: existing members keep their status. Also sending
+  // `status` would knock a confirmed subscriber back to 'pending', and they
+  // would silently stop receiving mail until they re-confirmed.
   const subscriberData: SubscriberPayload = {
     email_address: email,
     status_if_new: status,
@@ -209,7 +188,6 @@ async function upsertMember(
   const errorData = mailchimpErrorResponseSchema.safeParse(errorJson).data ?? {}
   const detail = errorData.detail || 'Failed to add/update member'
 
-  // Classify the error so callers can branch by code, not string-sniff
   const lowerDetail = detail.toLowerCase()
   const errorCode: MailchimpErrorCode =
     lowerDetail.includes('fake') || lowerDetail.includes('invalid')
@@ -222,11 +200,6 @@ async function upsertMember(
   }
 }
 
-// ---------------------------------------------------------------------------
-// Public API
-// ---------------------------------------------------------------------------
-
-// Add or update a contact in Mailchimp
 export async function addContactToMailchimp(
   contactData: ContactData
 ): Promise<MailchimpResult> {
@@ -248,7 +221,6 @@ export async function addContactToMailchimp(
   try {
     const { audienceId } = config
 
-    // Split name into first and last name
     const nameParts = contactData.name.trim().split(' ')
     const firstName = nameParts[0] || ''
     const lastName = nameParts.slice(1).join(' ') || ''
@@ -258,9 +230,6 @@ export async function addContactToMailchimp(
       email: contactData.email,
       firstName,
       lastName,
-      // Defaults to 'pending' (Mailchimp's double opt-in confirmation email)
-      // to match what the README promises. Pass status: 'subscribed'
-      // explicitly for projects with their own lawful basis to skip it.
       status: contactData.status ?? 'pending',
       config,
     })
@@ -270,7 +239,6 @@ export async function addContactToMailchimp(
     }
 
     // Tags are optional segmentation; a supplied note must be stored for success.
-
     try {
       await applyMemberTags(
         audienceId,
@@ -311,7 +279,6 @@ export async function addContactToMailchimp(
   }
 }
 
-// Add a subscriber to Mailchimp (for newsletter signups)
 export async function addSubscriberToMailchimp(
   subscriptionData: SubscriptionData
 ): Promise<MailchimpResult> {
@@ -338,9 +305,6 @@ export async function addSubscriberToMailchimp(
       email: subscriptionData.email,
       firstName: subscriptionData.firstName,
       lastName: subscriptionData.lastName,
-      // Defaults to 'pending' so new subscribers go through Mailchimp's
-      // double opt-in confirmation email, matching the README. Pass
-      // status: 'subscribed' explicitly to skip it for single opt-in.
       status: subscriptionData.status ?? 'pending',
       config,
     })
@@ -353,7 +317,7 @@ export async function addSubscriberToMailchimp(
       return upsert.result
     }
 
-    // best-effort tag application
+    // Tagging is best-effort.
     try {
       await applyMemberTags(
         audienceId,

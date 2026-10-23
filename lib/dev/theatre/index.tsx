@@ -13,11 +13,8 @@ import {
   useState,
 } from 'react'
 
-// Module scope on purpose. The React Compiler cannot lower an `import()`
-// expression that sits inside a component body ("BuildHIR: Handle Import
-// expressions") and silently gives up on optimising the whole component
-// (see `use-studio.ts`). Behind a plain function call it is just a call
-// expression, so the compiler is happy and the chunk still loads lazily.
+// Module scope on purpose: React Compiler cannot lower an `import()` inside a
+// component body (see `use-studio.ts`).
 const loadTheatreCore = () => import('@theatre/core')
 
 const TheatreProjectContext = createContext<IProject | undefined>(undefined)
@@ -52,10 +49,6 @@ export function TheatreProjectProvider({
           console.log(`Theatre: project ${id} loading...`)
         }
         isLoadingRef.current = true
-        // Fetch the checked-in state and load `@theatre/core` in parallel —
-        // neither depends on the other, and this is the only place in the
-        // dev-only project-bootstrap path that touches the package, so it's
-        // the only place its runtime is ever pulled into a chunk.
         void Promise.all([
           loadTheatreCore(),
           fetch(config).then((response) => response.json()),
@@ -72,8 +65,7 @@ export function TheatreProjectProvider({
             }
           })
           .catch((error) => {
-            // Reset so a remount can retry — a stuck flag would silently
-            // disable Theatre for the rest of the session.
+            // Reset so a remount can retry; a stuck flag disables Theatre for the session.
             isLoadingRef.current = false
             console.error(`Theatre: project ${id} failed to load`, error)
           })
@@ -144,13 +136,10 @@ export function useSheetDuration(sheet: ISheet) {
   return duration
 }
 
-// Default project + checked-in state, used when `SheetProvider` finds no
-// ancestor `<TheatreProjectProvider>` already in context. Both canvas mount
-// strategies (shared layout canvas, per-page `<Wrapper webgl>`) render
-// `<SheetProvider>` at the exact same choke point inside the r3f canvas
-// component, so self-bootstrapping the project here — rather than requiring
-// each canvas call site to remember to wrap one — is what actually makes
-// `useSheet`/`useTheatre` resolve to a live project in both strategies.
+// Used when `SheetProvider` finds no ancestor `<TheatreProjectProvider>`. Both
+// canvas mount strategies (layout root canvas, per-page `<Wrapper webgl>`)
+// render `<SheetProvider>` at one choke point inside the r3f canvas, so
+// bootstrapping here makes `useSheet`/`useTheatre` live in both.
 const DEFAULT_PROJECT_ID = 'Satus-R3f'
 const DEFAULT_PROJECT_CONFIG = '/config/Satus-R3f.json'
 
@@ -181,8 +170,7 @@ export function SheetProvider({
 }: PropsWithChildren<SheetProviderProps>) {
   const existingProject = useCurrentProject()
 
-  // Conditional spreads: exactOptionalPropertyTypes forbids forwarding an
-  // explicit `undefined` into SheetProviderInner's optional props.
+  // Conditional spreads: exactOptionalPropertyTypes forbids forwarding `undefined`.
   const inner = (
     <SheetProviderInner
       id={id}
@@ -193,18 +181,12 @@ export function SheetProvider({
     </SheetProviderInner>
   )
 
-  // Already inside a `<TheatreProjectProvider>` (a consumer wrapped one
-  // explicitly, e.g. for a non-default project) — resolve against it as-is.
   if (existingProject) return inner
 
-  // The self-bootstrapped default project is dev-only: it exists so the
-  // Studio editor (dev-panel-gated, see `lib/dev/theatre/studio`) has a live
-  // project to bind to. Production visitors never open Studio, so skip the
-  // fetch + `getProject` call entirely — `useSheet`/`useTheatre` resolve to
-  // `undefined` below `inner`, which every call site already treats as "no
-  // live values, use my own hard-coded defaults" (see `useTheatreObject`).
-  // `process.env.NODE_ENV` is inlined at build time, so production bundles
-  // dead-code-eliminate this branch rather than just skip it at runtime.
+  // The default project exists only so Studio has a live project to bind to.
+  // In production `useSheet`/`useTheatre` resolve to `undefined`, which every
+  // call site treats as "use my hard-coded defaults". NODE_ENV is inlined at
+  // build time, so the branch below is dead-code-eliminated.
   if (process.env.NODE_ENV !== 'development') return inner
 
   return (

@@ -1,9 +1,3 @@
-/**
- * Unit tests for validation utilities
- *
- * Run with: bun test lib/utils/validation.test.ts
- */
-
 import { describe, expect, test } from 'bun:test'
 
 import { z } from 'zod'
@@ -20,10 +14,6 @@ import {
   shopifyEnvSchema,
   turnstileEnvSchema,
 } from './validation'
-
-// ============================================
-// Environment Variable Schemas
-// ============================================
 
 describe('sanityEnvSchema', () => {
   test('valid config passes', () => {
@@ -272,10 +262,6 @@ describe('coreEnvSchema', () => {
   })
 })
 
-// ============================================
-// Field Validators
-// ============================================
-
 describe('emailSchema', () => {
   test('valid emails pass', () => {
     const validEmails = [
@@ -330,10 +316,6 @@ describe('phoneSchema', () => {
     }
   })
 })
-
-// ============================================
-// parseFormData
-// ============================================
 
 describe('parseFormData', () => {
   const testSchema = z.object({

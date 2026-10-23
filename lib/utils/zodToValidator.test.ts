@@ -1,21 +1,8 @@
-/**
- * Unit tests for zodToValidator bridge and form hook validators
- *
- * Tests that zodToValidator correctly converts Zod schemas into
- * boolean validator functions used by the form hook for client-side validation.
- *
- * Run with: bun test lib/utils/zodToValidator.test.ts
- */
-
 import { describe, expect, test } from 'bun:test'
 
 import { z } from 'zod'
 
 import { emailSchema, phoneSchema, zodToValidator } from './validation'
-
-// ============================================
-// zodToValidator
-// ============================================
 
 describe('zodToValidator', () => {
   test('converts email schema to validator function', () => {

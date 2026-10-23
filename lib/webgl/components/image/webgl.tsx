@@ -50,9 +50,9 @@ function retain(texture: Texture) {
   users.set(texture, (users.get(texture) ?? 0) + 1)
 }
 
-// Every plane with this src shares the texture, so the settings are the same
-// for all of them and apply once. Mipmaps with trilinear filtering keep a
-// downscaled image from shimmering as it moves.
+// Planes with the same src share the texture, so its settings apply once.
+// Mipmaps with trilinear filtering keep a downscaled image from shimmering as
+// it moves.
 const configured = new WeakSet<Texture>()
 
 function configure(texture: Texture, maxAnisotropy: number) {
@@ -65,11 +65,10 @@ function configure(texture: Texture, maxAnisotropy: number) {
   texture.needsUpdate = true
 }
 
-// Development only: the `imageMipmaps` key of the Orchestra dev store (unset
-// means on; written by the dev panel on /webgl) switches every image texture
-// between trilinear and plain linear minification, to compare the two in the
-// same frame. three keys its GL texture on the filters, so a flip uploads the
-// image again, with or without mip levels.
+// Development only: the Orchestra `imageMipmaps` key (unset means on; written
+// by the dev panel on /webgl) switches every image texture between trilinear
+// and plain linear minification. three keys its GL texture on the filters, so a
+// flip uploads the image again.
 function subscribeToMipmapsToggle(onChange: () => void) {
   return Orchestra.subscribe((state) => state.imageMipmaps, onChange)
 }
@@ -118,13 +117,9 @@ function release(texture: Texture, src: string) {
 }
 
 /**
- * WebGL image plane.
- *
- * Hooks can't be conditional, so the `useTexture` call (and the real decode
- * it triggers) only happens once a real `src` exists — see
- * {@link WebGLImageMesh}. Without this split, `useTexture(src ?? '', ...)`
- * would resolve `''` to the document's own URL and three's `ImageLoader`
- * would attempt to decode the page's HTML as an image.
+ * Split from {@link WebGLImageMesh} because hooks can't be conditional:
+ * `useTexture(src ?? '')` would resolve `''` to the document's own URL and
+ * three's `ImageLoader` would try to decode the page's HTML as an image.
  */
 export function WebGLImage({ src, rect }: WebGLImageProps) {
   if (!src) return null
@@ -136,7 +131,6 @@ function WebGLImageMesh({ src, rect }: WebGLImageMeshProps) {
   const meshRef = useRef<Mesh>(null)
   const [material] = useState(() => new MeshBasicMaterial())
 
-  // Mount effect owns the material it creates — dispose it on unmount.
   useEffect(() => {
     return () => {
       material.dispose()
@@ -153,13 +147,11 @@ function WebGLImageMesh({ src, rect }: WebGLImageMeshProps) {
     retain(texture)
 
     // `immutability` fires on this write because `material` came out of
-    // useState. It stays that way on purpose. The material has to exist during
-    // render (it is handed to <primitive object={material} /> below), so it
-    // cannot be built in an effect; and lazily instantiating it into a ref
-    // during render just trades this finding for a `refs` one, since that is a
-    // ref write during render. Assigning a Three.js material's map is
-    // imperative GPU work on an object React only stores; there is no React
-    // state to keep in sync, and the identity never changes.
+    // useState. It stays on purpose: the material must exist during render (it
+    // is handed to <primitive object={material} /> below), so it cannot be
+    // built in an effect, and lazily instantiating it into a ref during render
+    // just trades this finding for a `refs` one. Assigning a Three.js
+    // material's map is imperative GPU work on a render-stable object.
     // react-doctor-disable-next-line react-hooks-js/immutability
     material.map = texture // oxlint-disable-line react/immutability -- imperative Three.js GPU work on a render-stable object
     material.needsUpdate = true
@@ -172,7 +164,6 @@ function WebGLImageMesh({ src, rect }: WebGLImageMeshProps) {
     }
   }, [gl, material, src, texture])
 
-  // Placed on the DOM image's rect: position, scale, visibility and matrix.
   // The plane starts invisible; the hook's render effect places it right
   // after this mounts.
   useWebGLRect(rect, ({ position, scale, isVisible }) => {

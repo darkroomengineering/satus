@@ -1,26 +1,3 @@
-/**
- * Tests for lib/scripts/check-commit-msg.ts, the lefthook `commit-msg` check.
- *
- * Failure modes, written before the script:
- * 1. A valid `type(scope): subject` or `type: subject` is rejected.
- * 2. A breaking change marker (`type!:`, `type(scope)!:`) is rejected.
- * 3. A subject with no colon, or no space after it, is accepted.
- * 4. An unknown or capitalized type is accepted.
- * 5. An empty subject or an empty scope `()` is accepted.
- * 6. A git-generated subject (`Merge ...`, `Revert "..."`, `Reapply "..."`, `fixup! `,
- *    `squash! `, `amend! `) is rejected.
- * 7. Comment lines (`#`) are validated instead of skipped, so the template
- *    git writes above or below the message decides the result.
- * 8. Leading blank lines make the first line look empty.
- * 9. Body lines after the subject are validated.
- * 10. A message that is empty or only comments is accepted.
- * 11. CRLF line endings leave a `\r` that breaks the subject match.
- * 12. The CLI exits 0 on failure, prints no expected format, or crashes
- *     instead of exiting 1 when the message file argument is missing.
- *
- * Run with: bun test lib/scripts/check-commit-msg.test.ts
- */
-
 import { afterAll, describe, expect, it } from 'bun:test'
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'

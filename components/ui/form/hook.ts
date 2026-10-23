@@ -12,30 +12,25 @@ import { emailSchema, phoneSchema, zodToValidator } from '@/utils/validation'
 
 import type { FieldError, UseFormOptions, UseFormReturn } from './types'
 
-// Built-in validators (uses same Zod schemas as server-side validation).
-// Declared above useForm so validate() can reference it without a
-// use-before-define suppression. Starts empty and is populated below so the
-// dictionary type stays open for `addValidator` to extend at runtime.
+// Built-in validators, using the same Zod schemas as the server. Declared
+// above useForm so validate() can reference it without a use-before-define
+// suppression; populated below so the type stays open for `addValidator`.
 const validators: Record<string, (value: string) => boolean> = {}
 validators.email = zodToValidator(emailSchema)
 validators.phone = zodToValidator(phoneSchema)
-// Registered under both the field-name convention ('phone') and the DOM
-// input type used by <InputField type="tel" /> ('tel') — the type-fallback
-// lookup in resolveValidator keys off `element.type`, which is "tel" for
-// phone inputs, never "phone".
+// Registered under the field-name convention ('phone') and the DOM type
+// ('tel'): resolveValidator's type fallback keys off `element.type`, which is
+// "tel" for phone inputs, never "phone".
 validators.tel = zodToValidator(phoneSchema)
 
-// Allow extending validators
 export function addValidator(id: string, fn: (value: string) => boolean) {
   validators[id] = fn
 }
 
-// Pure: resolves an input's validity the same way regardless of whether it's
-// called from a live change/blur event or at registration time against a
-// prefilled value. Empty values are judged by requiredness so an untouched
-// optional field starts/stays valid and an untouched required field starts
-// invalid; a non-empty value always goes through the validator (or, absent
-// one, counts as valid).
+// Pure, so a live change/blur and registration against a prefilled value
+// resolve validity the same way. Empty values are judged by requiredness (an
+// untouched optional field is valid, a required one invalid); a non-empty
+// value goes through the validator, or counts as valid if there is none.
 function computeValidity(
   value: string,
   element: HTMLInputElement | HTMLTextAreaElement
@@ -86,17 +81,13 @@ export function useForm<T = unknown>({
   const inputsRefs = useRef<
     Record<string, HTMLInputElement | HTMLTextAreaElement | null>
   >({})
-  // `isPending` only updates after a render, so two submit events dispatched
-  // in the same tick (double Enter before React re-renders) both read it as
-  // false. This ref updates synchronously, so the second dispatch in the
-  // same tick sees the lock the first one set.
+  // `isPending` only updates after a render, so two submits in the same tick
+  // (double Enter) both read it as false; this ref updates synchronously.
   const submitLockRef = useRef(false)
 
-  // Initialize state for a field when it first registers.
-  // Hidden fields are always auto-valid. Otherwise, seed validity from the
-  // element's current value (defaultValue / SSR prefill) using the same
-  // computation validate() uses, so a prefilled required field starts ready
-  // instead of blocking submit until the user re-types it.
+  // Hidden fields are always valid. Otherwise validity is seeded from the
+  // element's current value (defaultValue / SSR prefill) via computeValidity,
+  // so a prefilled required field starts ready instead of blocking submit.
   function initializeInput(
     name: string,
     input: HTMLInputElement | HTMLTextAreaElement | null
@@ -117,9 +108,8 @@ export function useForm<T = unknown>({
     }))
   }
 
-  // Reveal errors on every currently-invalid field so a blocked submit
-  // (Enter key, or a click that slips through) explains itself instead of
-  // silently doing nothing.
+  // A blocked submit (Enter, or a click that slips through) shows errors
+  // instead of silently doing nothing.
   function revealErrorsForInvalidFields() {
     setErrors((prev) => {
       const next = { ...prev }
@@ -145,15 +135,12 @@ export function useForm<T = unknown>({
       return
     }
 
-    // A submission is already in flight — Enter-to-submit must respect the
-    // same gate as the SubmitButton's disabled state instead of dispatching
-    // a second server action while the first is still pending. The form is
-    // valid, just busy, so this does not reveal errors.
+    // Enter-to-submit respects the SubmitButton's gate. Busy but valid, so no
+    // errors are revealed.
     if (isPending) {
       return
     }
 
-    // Enter-to-submit must respect the same gate as the SubmitButton.
     // Server-side Zod validation remains the authoritative gate either way.
     if (!isReady) {
       revealErrorsForInvalidFields()
@@ -167,10 +154,9 @@ export function useForm<T = unknown>({
 
     submitLockRef.current = true
     startTransition(async () => {
-      // No try/finally: React Compiler can't lower a TryStatement with a
-      // finally clause. That's fine here — `formAction` is `useActionState`'s
-      // dispatch, typed `() => void`; it never returns a rejectable promise,
-      // so this await can't throw and skip the release below.
+      // No try/finally: React Compiler can't lower it. Safe here, as
+      // `formAction` is `useActionState`'s dispatch (`() => void`) and never
+      // rejects, so the release below can't be skipped.
       await formAction(formData)
       submitLockRef.current = false
     })
@@ -209,11 +195,9 @@ export function useForm<T = unknown>({
 
         if (node) return
 
-        // Unmounted (tab switch, multi-step wizard, feature flag). Leaving
-        // the field's isValid/isActive/errors entries behind would wedge
-        // isReady forever if this was a required field that mounted
-        // untouched — isReady requires every isValid entry to be true,
-        // including entries for fields that no longer exist.
+        // Unmounted (tab switch, wizard, feature flag). Stale entries would
+        // wedge isReady forever for a required field that mounted untouched:
+        // it needs every isValid entry true, including removed fields.
         setIsActive((prev) => {
           if (!(name in prev)) return prev
           const next = { ...prev }
@@ -269,10 +253,8 @@ export function useForm<T = unknown>({
 }
 
 /**
- * Pure helper: resolves the best matching validator for a given element.
- * Exported for testing and custom form integrations.
- *
- * Priority: name → id → elementType
+ * Resolves the validator for an element: name, then id, then type. Exported
+ * for testing and custom form integrations.
  */
 export function resolveValidator(
   validatorMap: Record<string, (value: string) => boolean>,

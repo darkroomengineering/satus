@@ -32,7 +32,6 @@
     outline: none;
     z-index: 50;
 
-    /* Base UI animation states */
     transform-origin: var(--transform-origin);
     transition: opacity 150ms ease-out;
 

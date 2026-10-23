@@ -1,11 +1,4 @@
-/*
- * Easing custom properties — hand-authored, single source of truth.
- *
- * These are static cubic-bezier strings; no generation is needed.
- * The @theme block registers them as Tailwind v4 design tokens so that
- * ease-* utilities (e.g. `transition-[ease-out-expo]`) work out of the box.
- * Tailwind compiles @theme into :root custom properties at build time.
- */
+/* Hand-authored (not generated). @theme exposes these as Tailwind `ease-*` utilities. */
 @theme {
   --ease-*: initial;
   --ease-in-quad: cubic-bezier(0.55, 0.085, 0.68, 0.53);

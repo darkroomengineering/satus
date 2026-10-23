@@ -1,24 +1,15 @@
-/**
- * Cross-platform parallel dev script
- * Replaces npm-run-all for running multiple processes simultaneously
- * Works on Windows, macOS, and Linux using Bun's native APIs
- */
-
 import { bunExecutable, colorEnv } from './utils'
 
 const isHttps = process.argv.includes('--https')
 const isInspect = process.argv.includes('--inspect')
 
-// Build next dev command args
 const nextDevArgs = [bunExecutable, 'next', 'dev']
 if (isHttps) nextDevArgs.push('--experimental-https')
 if (isInspect) nextDevArgs.push('--inspect')
 
-// Build environment with FORCE_COLOR
 const devEnv = colorEnv()
 
 const processes = [
-  // Style watcher
   Bun.spawn(
     [bunExecutable, '--watch', './lib/styles/scripts/setup-styles.ts'],
     {
@@ -28,7 +19,6 @@ const processes = [
     }
   ),
 
-  // Next.js dev server
   Bun.spawn(nextDevArgs, {
     stdout: 'inherit',
     stderr: 'inherit',
@@ -37,17 +27,12 @@ const processes = [
 ]
 
 /**
- * Terminate a spawned child AND all of its descendants.
- *
- * `proc.kill()` only signals the direct child. `next dev` forks several
- * Turbopack workers, and the `bun --watch` style task spawns its own children.
- * On Windows — which has no Unix-style process groups — killing only the direct
- * child orphans those grandchildren on every Ctrl-C / crash / restart, and they
- * pile up as runaway node processes (the "dozens of node.exe and growing" bug).
- *
- * `taskkill /T` walks and force-kills the whole tree (run synchronously so it
- * finishes before we exit). On Unix, a SIGTERM to the child is propagated to its
- * workers by Next/Bun, so the existing behavior is preserved there.
+ * Terminate a spawned child AND all of its descendants. `proc.kill()` only
+ * signals the direct child, and Windows has no process groups, so the
+ * Turbopack workers and `bun --watch` children would be orphaned on every
+ * Ctrl-C and pile up as runaway node processes. `taskkill /T` kills the tree
+ * (run synchronously so it finishes before we exit). On Unix, SIGTERM to the
+ * child propagates to its workers.
  */
 const killTree = (proc: Bun.Subprocess) => {
   const { pid } = proc
@@ -64,12 +49,10 @@ const killTree = (proc: Bun.Subprocess) => {
   }
 }
 
-// Handle graceful shutdown. Idempotent: a process exiting and an incoming
-// signal can both trigger this, and we must only tear down (and exit) once.
-// `exitCode` defaults to 0 for the SIGINT/SIGTERM path (a requested
-// shutdown, not a crash); the race below passes through whichever exit code
-// actually ended it, so a crashed child propagates non-zero instead of this
-// script always reporting success — see the L8 comment above the race.
+// Idempotent: a process exiting and an incoming signal can both trigger this,
+// and teardown must run once. `exitCode` defaults to 0 for SIGINT/SIGTERM (a
+// requested shutdown); the race below passes the child's own code so a crash
+// propagates non-zero.
 let shuttingDown = false
 const cleanup = (exitCode = 0) => {
   if (shuttingDown) return
@@ -78,14 +61,11 @@ const cleanup = (exitCode = 0) => {
   process.exit(exitCode)
 }
 
-// Wrapped in arrow functions — `process.on('SIGINT', cleanup)` would pass
-// the signal name ('SIGINT') as cleanup's `exitCode` argument, which is not
-// what we want here (a requested shutdown should still exit 0).
+// Arrow wrappers: passing `cleanup` directly would hand the signal name to
+// its `exitCode` parameter.
 process.on('SIGINT', () => cleanup())
 process.on('SIGTERM', () => cleanup())
 
-// Wait for any process to exit (if one crashes, we want to know) and exit
-// with that process's own code — a crash must propagate non-zero, not get
-// silently reported as success (L8).
+// Exit with whichever process ends first, using its own code.
 const exitCode = await Promise.race(processes.map((proc) => proc.exited))
 cleanup(exitCode)

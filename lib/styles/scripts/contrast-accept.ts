@@ -1,17 +1,9 @@
 /**
- * Record the current contrast failures as the accepted baseline.
- *
- * Run this after deliberately changing the palette — most often right after
- * rebranding a fork of this starter, when the shipped baseline no longer
- * describes your colours:
- *
- *   bun run contrast:accept
- *
- * It prints everything it is about to accept. Read that list: each line is a
- * colour pairing that does not meet WCAG AA (or falls below the APCA Lc 60
- * advisory floor), and accepting it is a decision to ship it. The resulting
- * `contrast-baseline.json` is meant to be reviewed in a pull request like any
- * other change.
+ * Records the current contrast failures as the accepted baseline
+ * (`bun run contrast:accept`). Run it after deliberately changing the palette,
+ * e.g. rebranding a fork. Read the printed list: accepting a pairing below
+ * WCAG AA or APCA Lc 60 is a decision to ship it, and `contrast-baseline.json`
+ * gets reviewed in a PR like any other change.
  */
 
 import {

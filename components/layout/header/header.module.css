@@ -26,10 +26,9 @@
 }
 
 .brandPath {
-  /* 0.5 rendered #808080 on white — 3.94:1, under WCAG AA's 4.5:1 (caught by
-     the e2e axe pass on /sanity's light-theme NotConfigured fallback). 0.55:
-     on black ≈#8c8c8c = 6.27:1; on white ≈#737373 = 4.74:1; both clear 4.5.
-     Opacity below ~0.535 fails white; below ~0.457 fails black. */
+  /* Contrast floor on both polarities: 0.55 gives 4.74:1 on white and 6.27:1
+     on black. Below ~0.535 fails white (0.5 was 3.94:1), below ~0.457 fails
+     black. Keep above 4.5:1. */
   opacity: 0.55;
   max-width: 12ch;
   overflow: hidden;
@@ -74,13 +73,10 @@
 }
 
 .navLinkDim {
-  /* Same dual-polarity fix as .brandPath above (see its comment for the math):
-     0.5 rendered #808080 on white — 3.94:1, under WCAG AA. 0.55 clears 4.5:1
-     on both white and black. */
+  /* Same contrast floor as .brandPath; see its comment. */
   opacity: 0.55;
 }
 
-/* Mobile menu toggle button — only shown on mobile */
 .menuToggle {
   display: none;
   align-items: center;
@@ -101,7 +97,6 @@
   }
 }
 
-/* Left-aligned vertical nav; hidden behind the toggle on mobile */
 .navList {
   display: flex;
   flex-direction: column;
@@ -120,7 +115,6 @@
   }
 }
 
-/* Mobile touch targets — bump up link height */
 @media (--mobile) {
   .navItem {
     min-height: 44px;

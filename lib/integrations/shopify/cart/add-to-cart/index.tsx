@@ -49,10 +49,9 @@ export function AddToCart({
       openCart()
     })
 
-    // Create the cart first, behind a cross-tab lock, so two simultaneous
-    // first-adds cannot each create one and orphan the loser's item. The
-    // action still creates a cart when this is skipped (no JS, no Web Locks),
-    // so this is protection, not a prerequisite.
+    // Cross-tab lock so simultaneous first-adds can't each create a cart and
+    // orphan one's item. The action still creates a cart without it (no JS, no
+    // Web Locks): protection, not a prerequisite.
     await ensureCart()
 
     const result = await addItem(null, {
@@ -62,7 +61,6 @@ export function AddToCart({
 
     setError(result.ok ? null : result.error)
 
-    // Refresh the router to sync server state with optimistic state
     router.refresh()
   }
 

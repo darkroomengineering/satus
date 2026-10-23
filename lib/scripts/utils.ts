@@ -1,31 +1,11 @@
-/**
- * Shared Script Utilities
- *
- * Cross-platform utilities for CLI scripts.
- * Works on Windows, macOS, and Linux.
- */
-
 import { access, rm } from 'node:fs/promises'
 
 import { z } from 'zod'
 
-// ============================================================================
-// Path Utilities
-// ============================================================================
-
-/**
- * Get the project root directory
- */
 export const projectRoot = process.cwd()
 
-/**
- * Resolve a path relative to the project root
- */
 export const resolvePath = (path: string): string => `${projectRoot}/${path}`
 
-/**
- * Check if a file or directory exists
- */
 export const pathExists = async (path: string): Promise<boolean> => {
   try {
     await access(path)
@@ -35,55 +15,31 @@ export const pathExists = async (path: string): Promise<boolean> => {
   }
 }
 
-// ============================================================================
-// setup:project ↔ prepare handoff (P-B2)
-// ============================================================================
-
 /**
- * Marker file `setup-project.ts` writes when it ran with `--skip-install`
- * (oxfmt can't format anything until `bun install` has populated
- * node_modules — see `setup-project.ts`'s "Post-run cleanup" docstring) and
- * `prepare.ts` reads on the next `bun install` to finish the deferred
- * formatting. Lives here (not in setup-project.ts) because prepare.ts ships
- * with every scaffolded project and must keep working after setup-project.ts
- * self-prunes.
+ * Marker `setup-project.ts` writes under `--skip-install` (oxfmt can't format
+ * until `bun install` populates node_modules) and `prepare.ts` reads on the
+ * next install to finish the deferred formatting. Lives here, not in
+ * setup-project.ts, because prepare.ts ships with every scaffolded project and
+ * must keep working after setup-project.ts self-prunes.
  */
 export const PENDING_FORMAT_MARKER = '.setup-project-pending-format.json'
 
-/** Schema for `PENDING_FORMAT_MARKER`'s JSON contents. */
 export const PendingFormatMarkerSchema = z.object({
   files: z.array(z.string()),
-  /**
-   * Number of times `prepare.ts` has already tried (and failed) to finish
-   * this marker. Absent/0 on the first attempt. `prepare.ts` deletes the
-   * marker with a loud instruction once `attempts` reaches
-   * `PENDING_FORMAT_MAX_ATTEMPTS`, instead of retrying forever on every
-   * future `bun install`.
-   */
+  /** Failed `prepare.ts` attempts so far; absent on the first. */
   attempts: z.number().optional(),
 })
 
-/** Shape of `PENDING_FORMAT_MARKER`'s JSON contents. */
 export type PendingFormatMarker = z.infer<typeof PendingFormatMarkerSchema>
 
-/**
- * How many times `prepare.ts` retries a failed format/manifest step before
- * giving up and deleting `PENDING_FORMAT_MARKER` outright (with a loud,
- * copy-pasteable manual-recovery instruction).
- */
+/** Retries before `prepare.ts` deletes the marker with a manual-recovery instruction. */
 export const PENDING_FORMAT_MAX_ATTEMPTS = 2
 
-// ============================================================================
-// File System Operations (Cross-platform)
-// ============================================================================
-
 /**
- * Turn a failed removal into the error the caller sees. ENOENT is the one
- * code that legitimately means "there was nothing to delete" (the path
- * vanished between the existence check and the removal) and maps to a plain
- * "nothing removed" result; every other code (EACCES, EPERM, EBUSY,
- * ENOTEMPTY on a locked tree) is a removal that FAILED and must not be read
- * as success.
+ * Turn a failed removal into the error the caller sees. ENOENT is the one code
+ * that means "nothing to delete" (the path vanished between the existence
+ * check and the removal); every other code (EACCES, EPERM, EBUSY, ENOTEMPTY on
+ * a locked tree) is a FAILED removal and must not read as success.
  */
 const describeRemovalError = (
   what: string,
@@ -97,16 +53,11 @@ const describeRemovalError = (
       })
 
 /**
- * Remove a directory recursively.
- *
- * Returns true when the directory was there and is now gone, false when there
- * was nothing to remove. A removal that fails for any other reason THROWS
- * (M7): collapsing a permission or lock error into "absent" reported a
- * half-stripped tree as a clean one, and `setup:project` then self-pruned on
- * top of it.
- *
- * @param path - Relative path from project root
- * @param dryRun - If true, skip actual deletion
+ * Remove a directory recursively (`path` relative to project root). Returns
+ * true when it was there and is now gone, false when there was nothing to
+ * remove. Any other failure THROWS: reading a permission or lock error as
+ * "absent" would report a half-stripped tree as clean, and `setup:project`
+ * would self-prune on top of it.
  */
 export const removeDir = async (
   path: string,
@@ -128,13 +79,7 @@ export const removeDir = async (
   return true
 }
 
-/**
- * Remove a file. Same contract as `removeDir`: false means "nothing to
- * remove", a real failure throws (M7).
- *
- * @param path - Relative path from project root
- * @param dryRun - If true, skip actual deletion
- */
+/** Remove a file. Same contract as `removeDir`. */
 export const removeFile = async (
   path: string,
   dryRun = false
@@ -155,22 +100,8 @@ export const removeFile = async (
   return true
 }
 
-// ============================================================================
-// Process Utilities
-// ============================================================================
-
-/**
- * Get the current Bun executable path (cross-platform)
- */
 export const bunExecutable = process.execPath
 
-// ============================================================================
-// CLI Argument Utilities
-// ============================================================================
-
-/**
- * Parse common CLI flags from process.argv
- */
 export const parseCliFlags = (argv: string[] = process.argv.slice(2)) => {
   return {
     dryRun: argv.includes('--dry-run') || argv.includes('-d'),
@@ -185,16 +116,13 @@ export const parseCliFlags = (argv: string[] = process.argv.slice(2)) => {
 
 /**
  * Read the value of a `--flag value` or `--flag=value` CLI argument.
+ * `undefined` when absent; the empty string when present without a value
+ * (`--keep=` / trailing `--keep`), so callers can tell "not passed" from
+ * "passed empty".
  *
- * Returns `undefined` when the flag is absent, and the empty string when the
- * flag is present without a value (`--keep=` / trailing `--keep`), so callers
- * can distinguish "not passed" from "passed empty".
- *
- * First-wins semantics are preserved when a flag is passed more than once
- * (kept deliberately — see `--force`/`--yes` style flags used by
- * `create-darkroom`'s cross-repo scaffolding contract), but a duplicate now
- * prints a warning naming the flag and the value that won, instead of
- * silently discarding the later value (L4).
+ * First wins when a flag repeats, because `create-darkroom`'s cross-repo
+ * scaffolding contract relies on it; the duplicate prints a warning naming the
+ * value that won.
  */
 export const getFlagValue = (
   argv: string[],
@@ -231,14 +159,7 @@ export const getFlagValue = (
   return result
 }
 
-// ============================================================================
-// Clipboard Utilities (Cross-platform)
-// ============================================================================
-
-/**
- * Copy text to clipboard (cross-platform)
- * @returns true if successful, false otherwise
- */
+/** Copy text to the clipboard; false when no clipboard tool worked. */
 export const copyToClipboard = async (text: string): Promise<boolean> => {
   try {
     if (process.platform === 'darwin') {
@@ -282,10 +203,7 @@ export const copyToClipboard = async (text: string): Promise<boolean> => {
   }
 }
 
-/**
- * Build environment with FORCE_COLOR enabled
- * Removes NO_COLOR to prevent warnings
- */
+/** `process.env` with FORCE_COLOR set and NO_COLOR removed (Node warns when both are set). */
 export const colorEnv = (): Record<string, string | undefined> => {
   // SAFETY: Object.assign's overloads intersect process.env's index signature
   // with the FORCE_COLOR literal, so the result is exactly a string-keyed,

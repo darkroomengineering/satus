@@ -1,11 +1,7 @@
 /**
- * Unit tests for the Shopify client's store-domain normalization.
- *
- * Covers H1: a scheme-less `SHOPIFY_STORE_DOMAIN` (the documented format,
- * e.g. "your-store.myshopify.com") previously produced a scheme-less fetch
- * URL that native `fetch` rejects with "Failed to parse URL".
- *
- * Run with: bun test lib/integrations/shopify/client.test.ts
+ * Unit tests for the Shopify client: store-domain normalization (a scheme-less
+ * `SHOPIFY_STORE_DOMAIN`, the documented format, must yield a fetchable URL)
+ * and retry behavior.
  */
 
 import { afterAll, afterEach, describe, expect, test } from 'bun:test'
@@ -77,9 +73,8 @@ describe('normalizeStoreDomain', () => {
   })
 })
 
-// Bun's `fetch` type is a call signature plus a `preconnect` static method;
-// delegating to the real `fetch.preconnect` keeps stubs structurally
-// assignable to `globalThis.fetch` without an unsafe cast.
+// Bun's `fetch` type includes a `preconnect` static; delegating to the real one
+// keeps stubs assignable to `globalThis.fetch` without an unsafe cast.
 function toFetchStub(
   impl: (...args: Parameters<typeof fetch>) => ReturnType<typeof fetch>
 ): typeof fetch {
@@ -87,10 +82,8 @@ function toFetchStub(
 }
 
 /**
- * A minimal step-sequenced `fetch` stub for the retry tests below. No module
- * mocking: this replaces the real `globalThis.fetch` global for the duration
- * of a test (restored in `afterEach`), the same pattern `test-setup.ts` uses
- * to swap network globals in and out around happy-dom registration.
+ * A step-sequenced `fetch` stub for the retry tests. It swaps
+ * `globalThis.fetch` (restored in `afterEach`) rather than mocking a module.
  */
 function mockFetchSequence(
   steps: { status: number; headers?: Record<string, string>; body?: unknown }[]
@@ -120,8 +113,7 @@ describe('shopifyFetch retry-with-backoff', () => {
   const originalToken = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN
 
   // isConfigured('shopify') re-reads process.env on every call, so a dummy
-  // pair here is enough to pass the gate — the mocked fetch below ignores
-  // the request URL entirely.
+  // pair passes the gate; the stubbed fetch ignores the URL.
   process.env.SHOPIFY_STORE_DOMAIN = 'test-store.myshopify.com'
   process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN = 'test-token'
 

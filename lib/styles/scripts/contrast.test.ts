@@ -1,24 +1,15 @@
 /**
- * Contrast gate for the theme palette.
+ * Contrast gate for the theme palette. The accepted baseline lives in
+ * `contrast-baseline.json`, so a rebranded fork re-records it with
+ * `bun run contrast:accept`.
  *
- * The accepted baseline lives in `contrast-baseline.json`, not in this file, so
- * a fork that rebrands can re-record it in one step instead of hand-editing a
- * list that describes someone else's colours:
+ * The gate ratchets: a pairing below WCAG AA that is not in the baseline fails,
+ * and one that improves past its recorded ratio also fails, so the baseline
+ * can't go stale. Fix both by re-accepting and reviewing the diff. APCA gets the
+ * same ratchet, scoped to text pairs below Lc 60; WCAG stays the absolute
+ * floor, APCA only gates changes.
  *
- *   bun run contrast:accept
- *
- * The gate ratchets. A pairing that drops below WCAG AA and is not in the
- * baseline fails; a pairing that improves past its recorded ratio also fails,
- * so the baseline cannot quietly go stale. Both are fixed by re-accepting and
- * reviewing the diff.
- *
- * APCA gets the same ratchet, scoped to text pairs (`min === AA_TEXT`) below
- * Lc 60. WCAG remains the legal, absolute floor; APCA instead gates *changes*
- * — quiet when nothing moved, failing on a new or worsened sub-60 pair.
- *
- * Measurement itself lives in `contrast.ts`, shared with the accept command.
- *
- * Run with: bun test lib/styles/scripts/contrast.test.ts
+ * Measurement lives in `contrast.ts`, shared with the accept command.
  */
 
 import { describe, expect, it } from 'bun:test'

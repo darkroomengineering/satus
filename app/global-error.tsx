@@ -6,10 +6,9 @@ import { ErrorView } from '@/components/ui/error-view'
 import '@/lib/styles/css/index.css'
 
 /**
- * Last-resort boundary: replaces the ENTIRE root layout when it crashes, so it
- * must render its own <html>/<body> and must not depend on any provider or
- * heavy chrome (Wrapper pulls in Lenis/WebGL/theme machinery — all bundled on
- * every route, and all liable to be the thing that just crashed).
+ * Replaces the entire root layout when it crashes, so it renders its own
+ * <html>/<body> and must not depend on any provider or heavy chrome: Wrapper
+ * pulls in Lenis/WebGL/theme, any of which may be what crashed.
  */
 export default function GlobalError({
   error,

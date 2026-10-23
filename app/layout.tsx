@@ -5,14 +5,12 @@ import { fontsVariable } from '@/lib/styles/fonts'
 import '@/lib/styles/css/index.css'
 
 /*
-  Bare shell shared by the app and /studio. Everything app-specific —
-  providers, metadata, JSON-LD, analytics, the satus-version script — lives
-  in app/(site)/layout.tsx so /studio doesn't inherit it. Anything added here
-  is a deliberate decision to ship it to Studio too.
+  Bare shell shared by the app and /studio: app-specific providers, metadata,
+  JSON-LD and analytics live in app/(site)/layout.tsx so /studio doesn't
+  inherit them. Anything added here ships to Studio too.
 
-  Font variables stay here on <html> so portaled UI (toasts, dialogs…)
-  inherits them for free; /studio paying a font preload is an acceptable
-  cost for that simplicity.
+  Font variables stay on <html> so portaled UI (toasts, dialogs) inherits
+  them; /studio paying a font preload is the accepted cost.
 */
 export default function Layout({ children }: PropsWithChildren) {
   return (
@@ -20,11 +18,9 @@ export default function Layout({ children }: PropsWithChildren) {
       lang="en"
       dir="ltr"
       className={fontsVariable}
-      // Default theme rendered server-side for no-flash initial paint; the
-      // client <Theme> updates data-theme per route via effect.
+      // Server-rendered default for no-flash paint; <Theme> updates it per
+      // route, hence the hydration-warning suppression.
       data-theme="dark"
-      // NOTE: data-theme is updated client-side per route, which would
-      // otherwise trip a hydration warning.
       suppressHydrationWarning
     >
       <body>{children}</body>

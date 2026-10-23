@@ -19,14 +19,12 @@ export function getDOMTunnel(): WebGLTunnelInstance {
   return domTunnelSingleton
 }
 
-// Registry of `<Canvas root>` instances currently mounted (layout canvas +
-// a per-page `<Wrapper webgl>` both grab the same singleton tunnels above,
-// silently doubling GPU cost if both were allowed to render). Used for the
-// dev-only multiple-mount warning below and to pick a fallback candidate
-// when the primary (see claimPrimary/releasePrimary) unmounts. Registration
-// happens in an effect with a symmetric unregister cleanup, so React Strict
-// Mode's mount→cleanup→mount on a single instance never leaves a stale entry
-// behind — only two instances mounted at once ever coexist here.
+// `<Canvas root>` instances currently mounted. A layout canvas plus a per-page
+// `<Wrapper webgl>` would share the singleton tunnels above and silently double
+// GPU cost. Feeds the dev multiple-mount warning and picks the successor when
+// the primary unmounts (see claimPrimary/releasePrimary). Registration is an
+// effect with a symmetric cleanup, so Strict Mode's mount→cleanup→mount never
+// leaves a stale entry.
 let rootCanvasIds: readonly string[] = []
 const rootCanvasListeners = new Set<() => void>()
 let hasWarnedMultipleRootMounts = false
@@ -38,13 +36,11 @@ function emitRootCanvasChange() {
 }
 
 /**
- * Register a `<Canvas root>` mount under a stable id (e.g. from `useId`).
- * Call from the mounting effect; call the returned cleanup on unmount.
- * In development, warns if more than one root canvas is mounted at the same
- * time — once per occurrence, not just once per page load: the warning flag
- * resets whenever the overlap clears, so a second unrelated overlap later in
- * the same session (e.g. navigating between two pages that both mount
- * `<Wrapper webgl>`) warns again instead of going silent.
+ * Register a `<Canvas root>` mount under a stable id (e.g. from `useId`) from
+ * the mounting effect; call the returned cleanup on unmount. In development,
+ * warns when more than one root canvas is mounted. The warning flag resets
+ * when the overlap clears, so a later unrelated overlap (navigating between
+ * two pages that both mount `<Wrapper webgl>`) warns again.
  */
 export function registerRootCanvasMount(id: string): () => void {
   rootCanvasIds = [...rootCanvasIds, id]
@@ -78,13 +74,10 @@ export function subscribeRootCanvas(listener: () => void): () => void {
   }
 }
 
-// Primacy claim — a token, not a resource. Distinct from `rootCanvasIds`
-// above: that registry is populated post-commit (from an effect) and is only
-// used for the dev warning + fallback promotion. The claim below is set
-// synchronously from the render body, so the very first commit already knows
-// which `<Canvas root>` instance is primary — no window where two instances
-// both see "unclaimed" and both mount a full r3f Canvas + WebGLRenderer
-// wired to the same singleton tunnels.
+// Primacy claim: a token, not a resource. `rootCanvasIds` is populated
+// post-commit (from an effect); the claim is set synchronously in the render
+// body, so the first commit already knows which instance is primary and two
+// instances never both mount a WebGLRenderer on the same tunnels.
 let primaryClaimId: string | undefined
 const primaryClaimListeners = new Set<() => void>()
 
@@ -95,22 +88,17 @@ function emitPrimaryClaimChange() {
 }
 
 /**
- * Synchronously claim (or confirm) primacy for `id`. Call directly from the
- * render body — not an effect — so mounting the GL canvas can be decided in
- * the same render that renders it.
+ * Claim (or confirm) primacy for `id`; call it from the render body, not an
+ * effect, so mounting the GL canvas is decided in the render that renders it.
  *
- * Never notifies subscribers: doing that from a render body makes React
- * re-render every subscribed component in the middle of this one ("Cannot
- * update a component while rendering a different component"). The claiming
- * instance calls `announcePrimaryClaim` from a layout effect instead.
+ * Never notifies subscribers: doing that during render re-renders subscribed
+ * components mid-render ("Cannot update a component while rendering a
+ * different component"). The claimer calls `announcePrimaryClaim` from a
+ * layout effect instead.
  *
- * Idempotent per id: re-claiming with the id that already holds the slot
- * returns `true` again, so React Strict Mode's double render (and a render
- * that never commits) are safe. Claiming while a *different* id holds the
- * slot always returns `false` — only that id's `releasePrimary` call can
- * free the slot.
- *
- * @returns Whether `id` is (now, or already) the primary.
+ * Idempotent per id, so Strict Mode's double render (and a render that never
+ * commits) is safe. Claiming while a different id holds the slot returns
+ * `false`; only that id's `releasePrimary` frees it.
  */
 export function claimPrimary(id: string): boolean {
   if (primaryClaimId === undefined) {
@@ -120,22 +108,20 @@ export function claimPrimary(id: string): boolean {
 }
 
 /**
- * Tell subscribers the claim changed. Call from the primary instance's layout
- * effect, after the commit that claimed it and before the browser paints, so
- * `useRootCanvasMounted` consumers update in the same frame. Cost: a consumer
- * that already rendered in the claiming commit renders once more.
+ * Tell subscribers the claim changed. Call from the primary's layout effect,
+ * after the claiming commit and before paint, so `useRootCanvasMounted`
+ * consumers update in the same frame. Cost: a consumer that already rendered in
+ * the claiming commit renders once more.
  */
 export function announcePrimaryClaim(): void {
   emitPrimaryClaimChange()
 }
 
 /**
- * Release a primacy claim. Call from the mounting effect's cleanup (never
- * from render) — pairing the synchronous claim with an effect-owned release
- * keeps resource teardown on the effect lifecycle the rest of the codebase
- * relies on. If `id` held the slot, promotes the next currently-registered
- * root canvas (see `registerRootCanvasMount`) so a survivor takes over
- * without waiting for its own next render.
+ * Call from the mounting effect's cleanup, never from render, so teardown
+ * stays on the effect lifecycle. If `id` held the slot, promotes the next
+ * registered root canvas so a survivor takes over without waiting for its own
+ * next render.
  */
 export function releasePrimary(id: string): void {
   if (primaryClaimId !== id) return
@@ -150,7 +136,6 @@ export function subscribePrimaryClaim(listener: () => void): () => void {
   }
 }
 
-/** The id of the current primary claim holder, if any. */
 export function getPrimaryClaimId(): string | undefined {
   return primaryClaimId
 }
@@ -161,13 +146,10 @@ export function getServerPrimaryClaimId(): undefined {
 }
 
 /**
- * Whether a `<Canvas root>` currently holds the primacy claim — i.e. a
- * mounted root canvas exists somewhere for tunnel content to portal into.
- * Reuses the primacy claim rather than a separate flag: the two are
- * equivalent (a claim only exists while its root canvas is mounted, see
- * `claimPrimary`/`releasePrimary` above) and staying on one source of truth
- * means this can subscribe via `subscribePrimaryClaim` instead of adding a
- * second listener set that could drift out of sync with it.
+ * Whether a mounted root canvas exists for tunnel content to portal into.
+ * Reuses the primacy claim (it only exists while its canvas is mounted) so it
+ * can subscribe via `subscribePrimaryClaim` instead of a second listener set
+ * that could drift out of sync.
  */
 export function isRootCanvasRegistered(): boolean {
   return primaryClaimId !== undefined
@@ -178,14 +160,12 @@ export function getServerRootCanvasRegistered(): boolean {
   return false
 }
 
-// Bumped whenever the root canvas's WebGL context is restored after a loss
-// (mobile GPU reset, long-backgrounded tab — see webgl.tsx's
-// `webglcontextlost`/`webglcontextrestored` listeners). Hand-built
-// double-buffered render targets (the fluid/flowmap sims) sit outside
-// three.js's own tracked-restore path, so nothing rebuilds them on restore
-// unless something forces it: `useFluidSim`/`useFlowmapSim` include this
-// value in their create/destroy effect's deps, so a bump replays their
-// existing cleanup→recreate cycle.
+// Bumped when the root canvas's WebGL context is restored after a loss (mobile
+// GPU reset, long-backgrounded tab; see webgl.tsx's `webglcontextlost` /
+// `webglcontextrestored` listeners). Hand-built double-buffered render targets
+// (the fluid/flowmap sims) sit outside three.js's tracked-restore path, so
+// `useFluidSim`/`useFlowmapSim` include this value in their create/destroy
+// effect deps, and a bump replays their cleanup→recreate cycle.
 let contextGeneration = 0
 const contextGenerationListeners = new Set<() => void>()
 

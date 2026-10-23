@@ -6,12 +6,9 @@ import { env } from '@/lib/env'
 
 import { SANITY_CACHE_TAG } from './published'
 
-// This is called from `app/api/revalidate/route.ts` so providers can control
-// revalidation logic — the same split Shopify uses in `./../shopify/revalidate`.
-// Keeping the handler here (rather than inline in the route) means dropping
-// Sanity deletes this file with the rest of `lib/integrations/sanity`, instead
-// of `setup:project` having to surgically strip a 40-line try block out of a
-// route two integrations share (P-B7).
+// Called from `app/api/revalidate/route.ts`, like Shopify's. Kept out of the
+// route so dropping Sanity deletes this file with its folder instead of
+// `setup:project` stripping a try block out of a route two integrations share.
 export async function revalidate(request: NextRequest): Promise<NextResponse> {
   try {
     const secret = env.SANITY_REVALIDATE_SECRET
@@ -22,16 +19,12 @@ export async function revalidate(request: NextRequest): Promise<NextResponse> {
       )
     }
 
-    // `true` (next-sanity names it `waitForContentLakeEventualConsistency`)
-    // sleeps a fixed 3 s after a valid signature. Content Lake is eventually
-    // consistent, so a query sent the instant the webhook fires can still get
-    // the old version; the sleep is a hedge against that replication lag, not
-    // a check that it has passed. Published reads skip the API CDN
-    // (`useCdn: false` in `./client.ts`), which removes the CDN's own cache lag
-    // on top. What the 3 s buys: the refetch after `revalidateTag` is far less
-    // likely to cache the old version until the next publish. Cost: every
-    // webhook call holds the request open 3 s, and a lag longer than that
-    // still caches stale content.
+    // `true` is `waitForContentLakeEventualConsistency`: a fixed 3 s sleep
+    // after a valid signature, hedging against replication lag (a query sent
+    // the instant the webhook fires can still get the old version). Published
+    // reads skip the API CDN (`useCdn: false` in `./client.ts`), so no CDN lag
+    // stacks on top. Cost: every webhook call holds the request open 3 s, and
+    // a longer lag still caches stale content until the next publish.
     const { isValidSignature } = await parseBody(request, secret, true)
 
     if (!isValidSignature) {
@@ -41,9 +34,9 @@ export async function revalidate(request: NextRequest): Promise<NextResponse> {
       )
     }
 
-    // Every Sanity read carries this one tag (see `./published.ts`), so a
-    // publish of any document refreshes every page. `expire: 0`, not `max`:
-    // the next visit gets fresh content, not one more stale page.
+    // One tag covers every Sanity read (`./published.ts`), so any publish
+    // refreshes every page. `expire: 0`, not `max`: the next visit gets fresh
+    // content, not one more stale page.
     revalidateTag(SANITY_CACHE_TAG, { expire: 0 })
 
     return NextResponse.json({
@@ -51,10 +44,9 @@ export async function revalidate(request: NextRequest): Promise<NextResponse> {
       error: null,
     })
   } catch (error) {
-    // next-sanity's parseBody() runs `JSON.parse` on the raw request body
-    // after signature validation; malformed JSON throws a SyntaxError here.
-    // That's a client-input problem, not a server fault, so it gets a 400
-    // instead of feeding 5xx-triggered retries/alarms.
+    // parseBody() throws a SyntaxError on malformed JSON after signature
+    // validation. A client-input problem, so 400 rather than a 5xx that
+    // triggers retries and alarms.
     if (error instanceof SyntaxError) {
       console.warn('Revalidation client error: invalid JSON body', error)
       return NextResponse.json(

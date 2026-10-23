@@ -33,9 +33,8 @@ export const metadata: Metadata = {
   },
   description: APP_DESCRIPTION,
   alternates: {
-    // Only the home route's canonical. Child routes build their own through
-    // `routeAlternates` — inheriting this one would canonicalize the whole
-    // site to `/`.
+    // Home canonical only: child routes build their own via `routeAlternates`,
+    // or inheriting this one canonicalizes the whole site to `/`.
     ...routeAlternates('/'),
   },
   appleWebApp: {
@@ -81,17 +80,16 @@ if (env.NEXT_PUBLIC_FACEBOOK_APP_ID) {
 }
 
 export const viewport: Viewport = {
-  // Matches the server-rendered `data-theme="dark"` in app/layout.tsx; the
-  // client <Theme> rewrites it per route.
+  // Matches the server-rendered `data-theme="dark"` in app/layout.tsx; <Theme>
+  // rewrites it per route.
   themeColor: themes.dark.primary,
   colorScheme: 'normal',
 }
 
 /**
- * App-wide providers, metadata and analytics for every route EXCEPT /studio,
- * which lives outside this route group so Sanity Studio doesn't drag in the
- * rAF loop, toasts, Visual Editing, JSON-LD, etc. The root layout owns the
- * html/body shell, global CSS and font variables.
+ * App-wide providers, metadata and analytics for every route except /studio,
+ * which sits outside this group so Studio doesn't pull in the rAF loop,
+ * toasts, Visual Editing or JSON-LD.
  */
 export default async function AppLayout({ children }: PropsWithChildren) {
   const { isEnabled: isDraftMode } = await draftMode()
@@ -104,11 +102,9 @@ export default async function AppLayout({ children }: PropsWithChildren) {
         id="satus-version"
         async
       >{`window.satusVersion = '${AppData.version}';`}</Script>
-      {/* Entity identity for search and answer engines, on every page — deep
-          pages are landed on directly far more often than the homepage. */}
+      {/* On every page, not just home: deep pages are landed on directly far more often. */}
       <JsonLd data={organizationSchema()} />
       <JsonLd data={websiteSchema()} />
-      {/* Skip link for keyboard navigation accessibility */}
       <Suspense fallback={null}>
         <Link
           href="#main-content"
@@ -117,7 +113,6 @@ export default async function AppLayout({ children }: PropsWithChildren) {
           Skip to main content
         </Link>
       </Suspense>
-      {/* Critical: CSS custom properties needed for layout */}
       <RealViewport>
         <ToastProvider>
           <TransformProvider>
@@ -131,18 +126,15 @@ export default async function AppLayout({ children }: PropsWithChildren) {
           <ToastViewport />
         </ToastProvider>
       </RealViewport>
-      {/* Optional features - conditionally loaded based on configuration. */}
       <OptionalFeatures />
 
-      {/* Sanity Visual Editing - only when draft mode is enabled. It
-          refreshes the page when an editor changes a field. */}
       {sanityConfigured && isDraftMode && (
         <Suspense fallback={null}>
           <SanityVisualEditing />
         </Suspense>
       )}
 
-      {/* RAF management - lightweight, but don't patch in draft mode to avoid conflicts */}
+      {/* Not patched in draft mode, to avoid conflicts. */}
       <ReactTempus patch={!isDraftMode} />
       {/* Vercel-hosted deployments only — the injected /_vercel/insights
           script 404s on self-hosted or CI `next start`. */}

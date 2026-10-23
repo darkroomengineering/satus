@@ -21,7 +21,6 @@ import {
 import { TAGS } from '../constants'
 import type { AddItemPayload, Cart } from '../types'
 
-/** Unified result shape for all cart mutations. */
 export type CartActionResult = { ok: true } | { ok: false; error: string }
 
 const addItemSchema = z.object({
@@ -36,14 +35,8 @@ const updateQuantitySchema = z.object({
 })
 
 /**
- * Shared prelude for cart server actions: extracts the client IP, applies the
- * standard rate limiter, and delegates to the provided `run` callback.
- *
- * Returns the rate-limit error result directly when the limit is exceeded, so
- * callers never need to repeat the IP + rateLimit boilerplate.
- *
- * @param rateLimitPrefix - Rate-limit key prefix (e.g. "cart-add"). The client IP is appended.
- * @param run - The action body to invoke after the prelude passes.
+ * Rate-limits by client IP, then runs the action. `rateLimitPrefix` is the key
+ * prefix (e.g. "cart-add"); the IP is appended.
  */
 async function runCartAction(
   rateLimitPrefix: string,
@@ -64,13 +57,9 @@ async function runCartAction(
 }
 
 /**
- * Resolve the Shopify cart line ID for a given merchandise item.
- *
- * Fast path: returns `{ lineId }` directly when the caller already has it,
- * skipping the extra `getCart` round-trip.
- * Fallback: fetches the cart and finds the line by `merchandiseId`.
- *
- * Returns `{ error }` when the cart cannot be fetched or the item is not found.
+ * Resolves the cart line ID for a merchandise item. Returns a caller-supplied
+ * `lineId` as-is (skipping a `getCart` round trip), else looks it up in the
+ * cart.
  */
 async function resolveLineId(
   cartId: string,
@@ -128,8 +117,8 @@ export async function addItem(
   { variantId, quantity = 1 }: AddItemPayload
 ): Promise<CartActionResult> {
   return runCartAction('cart-add', async () => {
-    // Validate input before creating a cart, so an invalid request doesn't leave
-    // an orphaned cart + cookie behind.
+    // Validate before creating a cart, so an invalid request leaves no
+    // orphaned cart + cookie.
     const parsed = addItemSchema.safeParse({ variantId, quantity })
     if (!parsed.success) {
       return {
@@ -141,22 +130,20 @@ export async function addItem(
     const _cookies = await cookies()
     let cartId = _cookies.get('cartId')?.value
 
-    // A cart id in the cookie can be stale: Shopify nulls a cart once its
-    // checkout completes, but the 30-day cookie outlives it. Reusing a dead id
-    // makes every post-checkout add fail until the cookie expires. Verify the
-    // cart is still live and drop a dead id so the create-fresh branch runs.
-    // Guard the check: a transient getCart failure must not orphan a live cart,
-    // so on error keep the id and let addToCart surface any real problem.
+    // The cookie's cart id can be stale: Shopify nulls a cart once checkout
+    // completes, but the 30-day cookie outlives it, and a dead id would fail
+    // every post-checkout add. Drop a dead id so the create branch runs. On a
+    // transient getCart failure keep the id, so a live cart isn't orphaned and
+    // addToCart surfaces any real problem.
     if (cartId) {
       try {
         if (!(await getCart(cartId))) cartId = undefined
       } catch {
-        // Liveness check failed transiently — keep the existing id.
+        // Liveness check failed transiently; keep the existing id.
       }
     }
 
-    // This is here because cookie can only be set server side
-    // and useFormState executes the addItem action in the server
+    // The cookie can only be set server side.
     if (!cartId) {
       const cart = await createCart()
       cartId = cart.id

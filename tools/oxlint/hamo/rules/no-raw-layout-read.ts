@@ -109,7 +109,6 @@ export const noRawLayoutReadRule = defineRule({
         context.report({ node, messageId: 'layoutRead', data: { name, hook } })
       },
       Identifier(node) {
-        // Bare `scrollY` with no `window.` in front.
         if (!WINDOW_GLOBALS.has(node.name)) return
         if (isPropertyPosition(node)) return
         if (!isUnshadowedGlobal(context.sourceCode, node)) return
@@ -123,7 +122,6 @@ export const noRawLayoutReadRule = defineRule({
         })
       },
       CallExpression(node) {
-        // Bare `getComputedStyle(el)` with no `window.` in front.
         if (
           node.callee.type === 'Identifier' &&
           node.callee.name === 'getComputedStyle' &&

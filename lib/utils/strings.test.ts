@@ -1,9 +1,3 @@
-/**
- * Unit tests for string utilities
- *
- * Run with: bun test lib/utils/strings.test.ts
- */
-
 import { describe, expect, it } from 'bun:test'
 
 import { stripHtmlTags } from './strings'

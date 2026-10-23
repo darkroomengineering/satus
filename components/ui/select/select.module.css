@@ -46,7 +46,6 @@
     max-height: 300px;
     overflow-y: auto;
 
-    /* Base UI animation states */
     transform-origin: var(--transform-origin);
     transition: opacity 150ms ease-out;
 

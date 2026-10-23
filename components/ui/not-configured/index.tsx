@@ -5,25 +5,13 @@ import { Link } from '@/components/ui/link'
 import s from './not-configured.module.css'
 
 interface NotConfiguredProps {
-  /**
-   * Name of the integration (e.g., 'Sanity', 'Shopify', 'HubSpot')
-   */
+  /** Integration name, e.g. 'Sanity'. */
   integration: string
-  /**
-   * Optional description of what the integration does
-   */
   description?: string
-  /**
-   * Link to the integration's documentation or setup guide
-   */
+  /** Docs or setup guide. */
   docsUrl?: string
-  /**
-   * Environment variables required for this integration
-   */
+  /** Environment variables the integration requires. */
   envVars?: string[]
-  /**
-   * Additional CSS classes
-   */
   className?: string
 }
 
@@ -67,9 +55,8 @@ function isKnownIntegration(
 }
 
 /**
- * Displays a friendly message when an integration is not configured.
- *
- * Use this in example pages to show helpful setup instructions instead of crashing.
+ * Setup instructions for an unconfigured integration, shown on example pages
+ * instead of crashing.
  *
  * @example
  * ```tsx

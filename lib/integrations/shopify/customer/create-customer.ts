@@ -13,18 +13,12 @@ export interface CreateCustomerInput {
 }
 
 /**
- * Dependencies `createCustomerAndSignIn` needs, as an injectable interface
- * rather than direct module imports. This file has no `next/headers` or
- * Shopify-client import of its own — `actions.ts` wires the real
- * implementations (which do need `cookies()` and `shopifyFetch`) — so tests
- * exercise the real create-then-signed-in logic against faithful fakes
- * without needing to mock any module (house convention: no module mocking,
- * see `oxlint.config.ts`'s `anti-slop/no-module-mocking`). Kept in its own
- * file, separate from `actions.ts`, specifically so importing it for tests
- * never transitively imports `next/headers` — a 'use server' action file
- * importing `cookies` at module scope would collide with any test file in
- * the same `bun test` run that has already replaced that module via
- * `mock.module` (e.g. lib/utils/form-action.test.ts).
+ * Injected dependencies, wired to the real `cookies()` and `shopifyFetch` in
+ * `actions.ts`, so tests use fakes instead of module mocks
+ * (`anti-slop/no-module-mocking`). Kept out of `actions.ts` so importing it
+ * never pulls in `next/headers`, which would collide with a test file in the
+ * same `bun test` run that replaced that module via `mock.module` (e.g.
+ * lib/utils/form-action.test.ts).
  */
 export interface CreateCustomerAndSignInDeps {
   createCustomer: (
@@ -40,12 +34,10 @@ export interface CreateCustomerAndSignInDeps {
 }
 
 /**
- * Creates the Shopify customer, then signs them in immediately (standard
- * create-then-signed-in UX) by reusing the same token-create + cookie-set
- * path `LoginCustomerAction` uses. The account already exists once
- * `createCustomer` succeeds, so a token failure past that point is never
- * reported as a creation failure — it falls back to "created, please log
- * in" instead of silently pretending the customer is signed in.
+ * Creates the customer, then signs them in via the same token-create and
+ * cookie-set path as `LoginCustomerAction`. A token failure after creation
+ * succeeds is not a creation failure: it falls back to "created, please log
+ * in" rather than pretending the customer is signed in.
  */
 export async function createCustomerAndSignIn(
   input: CreateCustomerInput,

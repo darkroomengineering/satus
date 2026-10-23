@@ -1,11 +1,3 @@
-/**
- * Shared helpers for the AST transform engine.
- *
- * Contains: source-file lifecycle wrapper, JSX attribute reader,
- * element-match predicates, index/path resolution utilities, and
- * JSX child indentation helpers.
- */
-
 import {
   type JsxAttributeLike,
   type JsxElement,
@@ -19,16 +11,10 @@ import {
 
 import type { RemoveJsxElementOp } from '../ast-operation-types'
 
-// ---------------------------------------------------------------------------
-// Source-file lifecycle
-// ---------------------------------------------------------------------------
-
 /**
- * Owns the create / getFullText / removeSourceFile lifecycle for a single
- * in-memory source file. `fn` receives the SourceFile, mutates it, and returns
- * either `undefined` (proceed with `sf.getFullText()`) or a string (short-
- * circuit early — returned verbatim, bypassing getFullText). The source file is
- * always removed in `finally` regardless of how `fn` exits.
+ * Runs `fn` on a temporary in-memory source file, always removed afterwards.
+ * `fn` returns `undefined` to proceed with `sf.getFullText()`, or a string to
+ * short-circuit (returned verbatim).
  */
 export function withSourceFile(
   project: Project,
@@ -36,7 +22,9 @@ export function withSourceFile(
   fn: (sf: SourceFile) => string | undefined | undefined,
   fileName = '__tmp__.tsx'
 ): string {
-  const sf = project.createSourceFile(fileName, sourceText, { overwrite: true })
+  const sf = project.createSourceFile(fileName, sourceText, {
+    overwrite: true,
+  })
   try {
     const earlyResult = fn(sf)
     if (typeof earlyResult === 'string') return earlyResult
@@ -46,11 +34,7 @@ export function withSourceFile(
   }
 }
 
-// ---------------------------------------------------------------------------
-// JSX attribute helpers
-// ---------------------------------------------------------------------------
-
-/** Extract the string value from a JSX attribute initialiser node. */
+/** String value of a JSX attribute: `value="foo"`, `value={"foo"}`, or the raw expression text. */
 export function jsxAttrStringValue(
   attrNode: JsxAttributeLike | undefined
 ): string | undefined {
@@ -59,26 +43,19 @@ export function jsxAttrStringValue(
   if (!attr) return undefined
   const init = attr.getInitializer()
   if (!init) return undefined
-  // String literal: value="foo"
   if (init.getKind() === SyntaxKind.StringLiteral) {
     return init.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue()
   }
-  // JSX expression: value={"foo"} or value={true}
   if (init.getKind() === SyntaxKind.JsxExpression) {
     const expr = init.asKindOrThrow(SyntaxKind.JsxExpression).getExpression()
     if (!expr) return undefined
     if (expr.getKind() === SyntaxKind.StringLiteral) {
       return expr.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue()
     }
-    // Fallback: raw text without surrounding {}
     return expr.getText().trim()
   }
   return undefined
 }
-
-// ---------------------------------------------------------------------------
-// JSX element matchers
-// ---------------------------------------------------------------------------
 
 export function selfClosingMatchesOp(
   el: JsxSelfClosingElement,
@@ -121,7 +98,6 @@ export function objectElementMatches(
   const matchProp = obj.getProperties().find(
     (p) =>
       p.getKind() === SyntaxKind.PropertyAssignment &&
-      // Normalize quoted property names ("hostname": …) to bare names.
       p
         .asKindOrThrow(SyntaxKind.PropertyAssignment)
         .getName()
@@ -138,10 +114,6 @@ export function objectElementMatches(
       : undefined
   return initValue === matchProperty.value
 }
-
-// ---------------------------------------------------------------------------
-// Import insertion index
-// ---------------------------------------------------------------------------
 
 /**
  * Statement index immediately after the last import declaration, falling back
@@ -161,19 +133,11 @@ export function insertIndexAfterImports(sf: SourceFile): number {
   return index
 }
 
-// ---------------------------------------------------------------------------
-// Property path resolver
-// ---------------------------------------------------------------------------
-
 /**
- * Resolve a dot-separated property path from an object-expression node,
- * returning the deepest PropertyAccessExpression value node or undefined.
- *
- * Operates on a caller-owned SourceFile — the caller is responsible for the
- * file's lifetime (open before, remove in `finally` via `withSourceFile`).
- *
- * e.g. `resolvePropertyPath(sf, 'nextConfig', 'images.remotePatterns')` returns
- * the node for the `remotePatterns` array initialiser.
+ * Resolve a dot-separated property path under a named variable's object
+ * literal, e.g. `resolvePropertyPath(sf, 'nextConfig', 'images.remotePatterns')`
+ * returns the `remotePatterns` array initialiser, or undefined. The caller owns
+ * the SourceFile's lifetime (see `withSourceFile`).
  */
 export function resolvePropertyPath(
   sf: SourceFile,
@@ -211,11 +175,6 @@ export function resolvePropertyPath(
   return current
 }
 
-// ---------------------------------------------------------------------------
-// JSX child indentation helpers
-// ---------------------------------------------------------------------------
-
-/** JSX child kinds considered when matching an existing child's indentation. */
 export const JSX_CHILD_KINDS: SyntaxKind[] = [
   SyntaxKind.JsxElement,
   SyntaxKind.JsxSelfClosingElement,

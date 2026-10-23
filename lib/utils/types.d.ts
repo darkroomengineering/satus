@@ -1,11 +1,8 @@
-// Type augmentations and module declarations
-
 // Bun globals (`Bun`, `bun:test`, etc.). `@types/bun` isn't auto-included under
 // TypeScript 6's resolution (it re-exports `bun-types` via a triple-slash
 // reference with an empty `main`), so reference it explicitly here.
 /// <reference types="bun" />
 
-// React CSS custom properties support
 import 'react'
 
 declare module 'react' {
@@ -22,7 +19,6 @@ declare module '*.svg' {
   export default content
 }
 
-// Global window extensions
 declare global {
   interface Window {
     hbspt?: {

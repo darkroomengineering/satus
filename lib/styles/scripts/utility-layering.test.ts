@@ -2,55 +2,34 @@
  * Guards the cascade contract: consumer CSS Module > Tailwind utility >
  * component CSS Module > browser reset.
  *
- * A component that exposes `className` wraps its own module in
- * `@layer components` so a consumer's Tailwind utility can override it (see
- * AGENTS.md § Styling split). That layer has no block in any global
- * stylesheet, so `index.css` must NAME it in the order declaration: without
- * `components` there, the first component module to load would create the
- * layer after `utilities` and invert the rule. The second describe block
- * below checks the declaration; the last one checks every component module.
+ * A component that exposes `className` wraps its module in `@layer components`
+ * so a consumer's utility can override it (AGENTS.md § Styling split). No global
+ * stylesheet has a block in that layer, so `index.css` must NAME it in the
+ * order declaration; otherwise the first component module to load creates it
+ * after `utilities` and inverts the rule.
  *
- * `@import 'tailwindcss/utilities.css'` alone (no full `@import
- * 'tailwindcss'`, no `layer()` modifier) compiles every utility — Tailwind's
- * built-ins and the custom `@utility` rules in `tailwind.css` — as bare,
- * unlayered CSS, at the same cascade tier as `reset.css`'s unlayered
- * `all: unset` rule and any unlayered CSS Module. Whoever loads last (or has
- * the higher specificity) wins, which is unpredictable across chunks.
- *
- * The fix needs the layers in a specific declared order, not just one:
+ * Without `layer()` modifiers, `@import 'tailwindcss/utilities.css'` compiles
+ * every utility unlayered, at the same tier as `reset.css`'s `all: unset` and
+ * any unlayered CSS Module, so the winner depends on load order and
+ * specificity. Layering the imports alone is not enough; the fix needs all of:
  *   @layer base, components, utilities;
  *   @import 'tailwindcss/utilities.css' layer(utilities);
  *   @import './reset.css' layer(base);
+ * Without the explicit order, priority follows content-encounter order, and
+ * Tailwind's import is physically first in `index.css`, so reset would end up
+ * HIGHER than utilities. Any unlayered style beats any layered one regardless
+ * of specificity, so an unlayered CSS Module still wins against both tiers, and
+ * root.css / global.css (deliberately unlayered) still win against reset.
  *
- * `@layer base, utilities;` fixes the relative priority regardless of import
- * order: `base` (reset) is declared first, so it has LOWER priority —
- * `utilities` (Tailwind) always beats it. Layering reset ALONE (without also
- * declaring this order, or without layering reset at all) is not enough:
- * skip the explicit order and Tailwind utilities also need this file's
- * content-encounter order to happen to match, which the raw compile does NOT
- * guarantee (Tailwind's utilities import is physically first in
- * `lib/styles/css/index.css`, reset second — so without the explicit
- * `@layer base, utilities;` statement, reset would end up HIGHER priority
- * than utilities, the wrong way round). And per CSS Cascade Layers, ANY
- * unlayered style beats ANY layered style regardless of specificity — so an
- * unlayered CSS Module rule still wins against both tiers, and root.css /
- * global.css (deliberately left unlayered) still win against reset.
- *
- * Manually verified against a full Next.js production build + real browser
- * (`playwright-core`, computed styles): a Tailwind utility (`w-[160px]`)
- * beats reset's `all: unset` on a reset-touched `<button>` (160px, not
- * collapsed), and a CSS Module rule beats that same Tailwind utility (80px,
- * not 160px). Not re-run here — spinning up a server per `bun test` run is
- * disproportionate for a unit test; this file instead asserts the same
- * contract at the compiled-CSS-text level, which is what actually breaks
- * when someone reverts the fix.
+ * Verified once against a production build in a real browser: `w-[160px]` beats
+ * reset's `all: unset` on a `<button>` (160px), and a CSS Module rule beats that
+ * utility (80px). Not re-run here; this file asserts the same contract on the
+ * compiled CSS text, which is what breaks when someone reverts the fix.
  *
  * On failure: someone reverted the layer setup in `lib/styles/css/index.css`.
- * Put the `@layer base, components, utilities;` declaration and both
- * `layer(...)` import modifiers back. If the component-module test fails, wrap
- * that module in `@layer components { ... }`.
- *
- * Run with: bun test lib/styles/scripts/utility-layering.test.ts
+ * Restore the `@layer base, components, utilities;` declaration and both
+ * `layer(...)` import modifiers. If the component-module test fails, wrap that
+ * module in `@layer components { ... }`.
  */
 
 import { describe, expect, it } from 'bun:test'
@@ -120,7 +99,6 @@ describe('cascade layer order (compiled output)', () => {
     if (!base) return
 
     const layerBody = css.slice(base.bodyStart, base.bodyEnd)
-    // The reset's signature rule (lib/styles/css/reset.css).
     expect(layerBody).toMatch(/all:\s*unset/)
   })
 
@@ -133,11 +111,8 @@ describe('cascade layer order (compiled output)', () => {
 
     const layerBody = css.slice(utilities.bodyStart, utilities.bodyEnd)
 
-    // A stock Tailwind utility.
     expect(layerBody).toMatch(/\.block\s*\{[^}]*display:\s*block/)
-    // A custom @utility from lib/styles/css/tailwind.css — proves custom
-    // utilities ride the same layer as Tailwind's built-ins, not just the
-    // stock ones.
+    // Custom `@utility` from tailwind.css rides the same layer as built-ins.
     expect(layerBody).toMatch(/\.h1\s*\{/)
   })
 
@@ -150,10 +125,9 @@ describe('cascade layer order (compiled output)', () => {
     expect(utilities).toBeDefined()
     if (!(base && utilities)) return
 
-    // `overscroll-behavior: none` is a global.css marker (the `body` rule).
-    // It must sit outside both layer bodies — unlayered CSS beats every
-    // layer regardless of specificity, which is what lets a CSS Module
-    // override reset AND utilities.
+    // `overscroll-behavior: none` marks global.css (the `body` rule). It must sit
+    // outside both layer bodies: unlayered CSS beats every layer, which is what
+    // lets a CSS Module override reset AND utilities.
     const globalIndex = css.indexOf('overscroll-behavior: none')
     expect(globalIndex).toBeGreaterThan(-1)
     const insideBase =
@@ -166,9 +140,8 @@ describe('cascade layer order (compiled output)', () => {
 
   it('only base and utilities have blocks in the global stylesheet — components is declared but stays empty here', async () => {
     const css = await compile()
-    // `@layer properties` is Tailwind's own internal @property-fallback
-    // layer — expected and unrelated to this contract. `components` is named
-    // in the order declaration but only component modules put rules in it.
+    // `@layer properties` is Tailwind's own @property-fallback layer, unrelated
+    // here. `components` is declared but only component modules fill it.
     const namedLayerBlocks = (
       css.match(/@layer\s+([a-z]+)\s*\{/gi) ?? []
     ).filter((block) => !block.includes('properties'))
@@ -182,12 +155,10 @@ describe('cascade layer order (compiled output)', () => {
 
 describe('component modules are layered', () => {
   it("every module beside a component that merges `className` is wrapped in '@layer components' (or 'utilities')", async () => {
-    // A component that does `cn(s.x, className)` promises the consumer's
-    // className wins. That only holds when the module is layered below
-    // `utilities`; an unlayered module rule beats every utility regardless
-    // of what cn() outputs. `image.module.css` layers into `utilities` on
-    // purpose (Tailwind `object-*` beats it by specificity), so either
-    // layer name satisfies the rule.
+    // `cn(s.x, className)` promises the consumer's className wins, which holds
+    // only when the module is layered: an unlayered rule beats every utility.
+    // `image.module.css` layers into `utilities` on purpose (Tailwind
+    // `object-*` beats it by specificity), so either layer name passes.
     const glob = new Bun.Glob('{components,lib}/**/*.tsx')
     const offenders: string[] = []
     for await (const tsxPath of glob.scan({ cwd: repoRoot })) {

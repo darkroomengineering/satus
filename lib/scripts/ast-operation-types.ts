@@ -1,45 +1,27 @@
-/**
- * AST-operation type system shared by `ast-transforms.ts` and `integration-bundles.ts`.
- *
- * Contains only exported interface/type declarations — zero runtime code.
- */
+/** AST-operation types shared by `ast-transforms.ts` and `integration-bundles.ts`. Types only, no runtime code. */
 
 /**
- * Shared by every op: a required-match contract (cross-model review
- * finding). When `required` is true, the op matches nothing on the file
- * it's applied to, AND a sibling op in the same transform DID change the
- * file, the runner (`applyOpsToText` in `ast-transforms/index.ts`) throws
- * instead of silently leaving a partial result — a source shape that
- * drifted out from under a strip transform (a rename, a moved function, a
- * restructured try/catch) would otherwise strip an import while leaving the
- * code that used it, producing a tree that fails to build with no signal
- * until `bun run build` — by which point `setup:project` has already
- * self-pruned the machinery that could have caught it.
+ * Required-match contract. When `required` is true and the op matches nothing
+ * while a sibling op in the same transform DID change the file, the runner
+ * (`applyOpsToText` in `ast-transforms/index.ts`) throws. Otherwise a drifted
+ * source shape would strip an import but leave the code using it, and the
+ * build would fail with no signal after `setup:project` self-pruned the
+ * machinery that could have caught it.
  *
- * When EVERY op in the transform misses (the file comes back
- * byte-identical), the runner no-ops instead: file writes are per-transform
- * atomic, so an all-miss file is one a previous run already transformed.
- * That makes required ops idempotent — repeating a `setup:project` run that
- * aborted mid-batch succeeds over the half-stripped tree instead of
- * throwing on the files the first run finished.
+ * When EVERY op in the transform misses (file byte-identical), the runner
+ * no-ops: writes are per-transform atomic, so an all-miss file was already
+ * transformed by a previous run. That keeps required ops idempotent, so
+ * re-running an aborted `setup:project` succeeds.
  *
- * Defaults to false/undefined: most ops are intentionally best-effort or
- * idempotent by design (e.g. an additive op that's a legitimate no-op
- * because the construct is already present, or a removal op reapplied to an
- * already-lean file via `stripAbsentIntegrationWiring`) — `required` is only
- * safe to set on ops whose single, deterministic application point is
- * guaranteed to see pristine, never-before-touched source (see each op's
- * `required: true` usage in `integration-bundles.ts` / `setup-project.ts`
- * for the reasoning).
+ * Only set `required` on ops whose single application point is guaranteed to
+ * see pristine source. Most ops stay best-effort (additive ops already
+ * present, removals re-applied via `stripAbsentIntegrationWiring`).
  */
 export interface RequiredMatchOp {
   /**
-   * When true, zero matches for this op is a hard failure when it is
-   * evidence of drift: a sibling op changed the file (partial application),
-   * or the op's container construct is gone (`missedRequiredOpAnchorAbsent`
-   * in `ast-transforms/index.ts`). A miss on a byte-identical file whose
-   * container survives is tolerated as a previous run's completed work —
-   * the idempotent re-run contract described above.
+   * Zero matches is a hard failure only as evidence of drift: a sibling op
+   * changed the file, or the op's container construct is gone
+   * (`missedRequiredOpAnchorAbsent` in `ast-transforms/index.ts`).
    */
   required?: boolean
 }
@@ -52,17 +34,13 @@ export interface RemoveImportOp extends RequiredMatchOp {
 }
 
 /**
- * Remove a single named binding from an existing import declaration, keeping
- * any other named/default/namespace bindings on that declaration intact.
- * When the removed binding was the declaration's only binding, the whole
- * declaration is removed (mirrors `removeImport`'s cleanup). No-op when the
- * specifier or the named binding isn't found.
+ * Remove one named binding from an import declaration, keeping the others.
+ * Removes the whole declaration when it was the only binding. No-op when the
+ * specifier or binding isn't found.
  *
- * Use this instead of `removeImport` when a declaration is shared by bindings
- * owned by different integrations, e.g. `import { type NextRequest,
- * NextResponse } from 'next/server'` where only `NextResponse` is
- * sanity-owned and `NextRequest` must survive (it types the shared handler's
- * parameter).
+ * Use instead of `removeImport` when bindings of one declaration belong to
+ * different integrations, e.g. `import { type NextRequest, NextResponse } from
+ * 'next/server'` where only `NextResponse` is sanity-owned.
  */
 export interface RemoveNamedImportOp extends RequiredMatchOp {
   kind: 'removeNamedImport'
@@ -74,10 +52,8 @@ export interface RemoveNamedImportOp extends RequiredMatchOp {
 
 /**
  * Remove a `try { … } catch { … }` statement whose try-block source text
- * contains `blockContains` (disambiguates multiple try statements in the same
- * file). Matches at any scope depth; removes every occurrence, including its
- * own leading comments. Pure deletion — no replacement — mirrors
- * `removeIfStatement`.
+ * contains `blockContains`. Matches at any scope depth; removes every
+ * occurrence, including its own leading comments.
  */
 export interface RemoveTryStatementOp extends RequiredMatchOp {
   kind: 'removeTryStatement'
@@ -86,12 +62,8 @@ export interface RemoveTryStatementOp extends RequiredMatchOp {
 }
 
 /**
- * Replace the entire body of a named function with `replacement` (source
- * text including the surrounding braces, e.g. `{ return [] }`). Used to gut a
- * function down to a lean stub when the codeTransform machinery can't express
- * a targeted removal inside a complex body (mirrors `replaceJsDoc`'s
- * whole-block-replacement approach, applied to a function body instead of a
- * JSDoc comment).
+ * Replace the entire body of a named function with `replacement`, for gutting
+ * a function to a stub when a targeted removal can't express the change.
  */
 export interface ReplaceFunctionBodyOp extends RequiredMatchOp {
   kind: 'replaceFunctionBody'
@@ -109,8 +81,7 @@ export interface RemoveVariableStatementOp extends RequiredMatchOp {
 }
 
 /**
- * Remove a bare call-expression statement by its callee name, e.g. the whole
- * `useTheatre(sheet, 'fluid simulation', { … })` statement. Matches at any
+ * Remove a bare call-expression statement by its callee name. Matches at any
  * scope depth; removes every occurrence in the file.
  */
 export interface RemoveCallStatementOp extends RequiredMatchOp {
@@ -121,9 +92,8 @@ export interface RemoveCallStatementOp extends RequiredMatchOp {
 
 /**
  * Remove a single argument (by its source text) from every call to `callee`,
- * e.g. drop `SheetContext` from `useContextBridge(TransformContext, SheetContext)`
- * so the remaining `useContextBridge(TransformContext)` stops depending on the
- * stripped Theatre.js module. No-op when the argument is already absent.
+ * e.g. drop `SheetContext` from `useContextBridge(TransformContext, SheetContext)`.
+ * No-op when the argument is already absent.
  */
 export interface RemoveCallArgumentOp extends RequiredMatchOp {
   kind: 'removeCallArgument'
@@ -133,21 +103,14 @@ export interface RemoveCallArgumentOp extends RequiredMatchOp {
   argument: string
 }
 
-/**
- * Remove (or unwrap) a JSX element by its tag name.
- *
- * - `attribute` — optional {name, value} pair that must match to disambiguate
- *   elements sharing the same tag (e.g. OrchestraToggle with id="webgl").
- * - `unwrap` — when true, keep the element's children and remove only the
- *   opening / closing tags (e.g. strip <Canvas> but keep its content).
- */
+/** Remove (or unwrap) a JSX element by its tag name. */
 export interface RemoveJsxElementOp extends RequiredMatchOp {
   kind: 'removeJsxElement'
   /** JSX tag name, e.g. 'LazyWebGLCanvas', 'Canvas', 'OrchestraToggle' */
   tagName: string
-  /** Optional attribute to match for disambiguation */
+  /** Disambiguates elements sharing a tag, e.g. OrchestraToggle with id="webgl" */
   attribute?: { name: string; value: string }
-  /** When true, keep children and remove only the tags */
+  /** Keep children and remove only the opening and closing tags */
   unwrap?: boolean
 }
 
@@ -161,11 +124,8 @@ export interface RemoveInterfacePropertyOp extends RequiredMatchOp {
 }
 
 /**
- * Remove a named JSX attribute from all JSX elements with a given tag name.
- * Targets both self-closing and open/close elements.
- *
- * @example Remove `webgl` prop from every `<Wrapper webgl …>` usage:
- * `{ kind: 'removeJsxAttribute', tagName: 'Wrapper', attributeName: 'webgl' }`
+ * Remove a named JSX attribute from every element with the given tag name,
+ * self-closing or not.
  */
 export interface RemoveJsxAttributeOp extends RequiredMatchOp {
   kind: 'removeJsxAttribute'
@@ -176,22 +136,18 @@ export interface RemoveJsxAttributeOp extends RequiredMatchOp {
 }
 
 /**
- * Remove a named binding from a destructured variable declaration.
- *
- * Targets `const { …, name, … } = expr` statements at any scope depth.
- * Rebuilt from the remaining elements, preserving defaults and rest elements.
- *
- * @example Remove `studio` from `const { stats, grid, studio } = useOrchestra()`
- * `{ kind: 'removeDestructuredBinding', variableName: 'studio', declarationPattern: 'useOrchestra' }`
+ * Remove a named binding from a destructured variable declaration
+ * (`const { …, name, … } = expr`, any scope depth). Rebuilt from the
+ * remaining elements, preserving defaults and rest elements.
  */
 export interface RemoveDestructuredBindingOp extends RequiredMatchOp {
   kind: 'removeDestructuredBinding'
   /** The binding name to remove, e.g. 'studio' */
   bindingName: string
   /**
-   * Substring of the initializer expression text used to narrow the target
-   * declaration (e.g. 'useOrchestra'). Prevents accidentally modifying
-   * unrelated destructurings that happen to bind the same name.
+   * Substring of the initializer expression text that narrows the target
+   * declaration (e.g. 'useOrchestra'), so unrelated destructurings binding
+   * the same name are left alone.
    */
   initializerContains: string
 }
@@ -206,9 +162,8 @@ export interface RemoveFunctionParameterOp extends RequiredMatchOp {
 }
 
 /**
- * Replace the entire JSDoc block on a named function with a provided string.
- * Used when multiple partial-text edits to the JSDoc would be brittle; a full
- * replacement is simpler and guarantees the result is well-formed.
+ * Replace the entire JSDoc block on a named function. Preferred over partial
+ * text edits, which are brittle.
  */
 export interface ReplaceJsDocOp extends RequiredMatchOp {
   kind: 'replaceJsDoc'
@@ -219,19 +174,14 @@ export interface ReplaceJsDocOp extends RequiredMatchOp {
 }
 
 /**
- * Remove a bare `if (condition) { … }` statement (including any attached
- * `else` chain) whose condition source text contains `conditionContains`.
- * Matches at any scope depth; removes every occurrence in the file, including
- * each matched statement's own leading comments.
+ * Remove a bare `if (condition) { … }` statement (including any `else` chain)
+ * whose condition source text contains `conditionContains`. Matches at any
+ * scope depth; removes every occurrence, including each statement's own
+ * leading comments.
  *
- * Designed for guard-dispatch patterns like a webhook router delegating to an
- * integration handler:
- * `if (isShopifyWebhook) { return shopifyRevalidate(request) }` — pair with
- * `removeImport` (for the handler import) and `removeVariableStatement` (for
- * the guard variable) to remove the whole dispatch.
- *
- * @example Remove the Shopify webhook dispatch:
- * `{ kind: 'removeIfStatement', conditionContains: 'isShopifyWebhook' }`
+ * For guard-dispatch patterns such as a webhook router delegating to an
+ * integration handler; pair with `removeImport` (handler) and
+ * `removeVariableStatement` (guard variable) to remove the whole dispatch.
  */
 export interface RemoveIfStatementOp extends RequiredMatchOp {
   kind: 'removeIfStatement'
@@ -241,17 +191,13 @@ export interface RemoveIfStatementOp extends RequiredMatchOp {
 
 /**
  * Remove an object element from an array property nested inside a named
- * variable declaration.  Designed for `images.remotePatterns` in next.config.ts.
- *
- * Matches an array element that is an object literal containing a property
- * whose name and string value both match the given `matchProperty`.
+ * variable declaration, e.g. `images.remotePatterns` in next.config.ts.
+ * Matches an object literal containing a property whose name and string value
+ * both match `matchProperty`.
  */
 export interface RemoveArrayObjectElementOp extends RequiredMatchOp {
   kind: 'removeArrayObjectElement'
-  /**
-   * Dot-separated path from the variable declaration down to the array
-   * property, e.g. `'images.remotePatterns'`.
-   */
+  /** Dot-separated path from the variable declaration to the array, e.g. `'images.remotePatterns'`. */
   propertyPath: string
   /** The variable name that holds the object, e.g. `'nextConfig'`. */
   variableName: string
@@ -261,26 +207,17 @@ export interface RemoveArrayObjectElementOp extends RequiredMatchOp {
 
 /**
  * Remove a string-literal element from an array property nested inside a named
- * variable declaration.  Designed for `experimental.optimizePackageImports`.
+ * variable declaration, e.g. `experimental.optimizePackageImports`.
  */
 export interface RemoveArrayStringElementOp extends RequiredMatchOp {
   kind: 'removeArrayStringElement'
-  /**
-   * Dot-separated path from the variable declaration down to the array
-   * property, e.g. `'experimental.optimizePackageImports'`.
-   */
+  /** Dot-separated path from the variable declaration to the array, e.g. `'experimental.optimizePackageImports'`. */
   propertyPath: string
   /** The variable name that holds the object, e.g. `'nextConfig'`. */
   variableName: string
   /** The exact string value to remove from the array. */
   value: string
 }
-
-// ---------------------------------------------------------------------------
-// Mutating operations
-// Unlike the additive ops below, these never create a construct that doesn't
-// already exist — they overwrite an existing value in place.
-// ---------------------------------------------------------------------------
 
 /**
  * Keep a function parameter's `_` prefix in step with whether the body still
@@ -307,20 +244,13 @@ export interface SyncUnusedParameterPrefixOp extends RequiredMatchOp {
   parameterName: string
 }
 
-// ---------------------------------------------------------------------------
-// Additive operations (inverse of the removals above)
-// Every additive op is IDEMPOTENT: when the construct it would add is already
-// present, the source text is returned byte-for-byte unchanged, so applying
-// the same op twice is a no-op.
-// ---------------------------------------------------------------------------
+// Additive ops are IDEMPOTENT: when the construct is already present the
+// source comes back byte-for-byte unchanged.
 
 /**
- * Add a top-level import declaration, given as full source text.
- *
- * If an import with the same module specifier already exists, any missing
- * named imports are merged into it (no-op when all bindings are present).
- * Otherwise the declaration is inserted after the last existing import, e.g.
- * re-adding `import { Canvas } from '@/webgl/components/canvas'`.
+ * Add a top-level import declaration, given as full source text. If an import
+ * with the same module specifier exists, missing named imports are merged into
+ * it; otherwise the declaration is inserted after the last import.
  */
 export interface AddImportOp extends RequiredMatchOp {
   kind: 'addImport'
@@ -330,19 +260,14 @@ export interface AddImportOp extends RequiredMatchOp {
 
 /**
  * Append a string-literal element to an array property nested inside a named
- * variable declaration.  Inverse of `removeArrayStringElement`; designed for
- * `experimental.optimizePackageImports` in next.config.ts.
- *
- * No-op when an element with the same literal value already exists.
+ * variable declaration. Inverse of `removeArrayStringElement`. No-op when the
+ * same literal value already exists.
  */
 export interface AddArrayStringElementOp extends RequiredMatchOp {
   kind: 'addArrayStringElement'
   /** The variable name that holds the object, e.g. `'nextConfig'`. */
   variableName: string
-  /**
-   * Dot-separated path from the variable declaration down to the array
-   * property, e.g. `'experimental.optimizePackageImports'`.
-   */
+  /** Dot-separated path from the variable declaration to the array, e.g. `'experimental.optimizePackageImports'`. */
   propertyPath: string
   /** The string value to append to the array. */
   value: string
@@ -350,21 +275,15 @@ export interface AddArrayStringElementOp extends RequiredMatchOp {
 
 /**
  * Append an object-literal element to an array property nested inside a named
- * variable declaration.  Inverse of `removeArrayObjectElement`; designed for
- * `images.remotePatterns` in next.config.ts.
- *
- * No-op when an element already matches `matchProperty` (same matching
- * semantics as `removeArrayObjectElement`, including quoted-key
- * normalization).
+ * variable declaration. Inverse of `removeArrayObjectElement`. No-op when an
+ * element already matches `matchProperty` (same semantics as the removal,
+ * including quoted-key normalization).
  */
 export interface AddArrayObjectElementOp extends RequiredMatchOp {
   kind: 'addArrayObjectElement'
   /** The variable name that holds the object, e.g. `'nextConfig'`. */
   variableName: string
-  /**
-   * Dot-separated path from the variable declaration down to the array
-   * property, e.g. `'images.remotePatterns'`.
-   */
+  /** Dot-separated path from the variable declaration to the array, e.g. `'images.remotePatterns'`. */
   propertyPath: string
   /** The object literal to append, as source text, e.g. `{ protocol: 'https', hostname: 'cdn.sanity.io' }` */
   objectText: string
@@ -373,11 +292,8 @@ export interface AddArrayObjectElementOp extends RequiredMatchOp {
 }
 
 /**
- * Insert a full variable statement, e.g. re-adding
- * `const LazyWebGLCanvas = dynamic(…)` to lib/features/index.tsx.
- *
- * No-op when a variable named `name` already exists anywhere in the file
- * (any scope depth, mirroring `removeVariableStatement`).
+ * Insert a full variable statement. No-op when a variable named `name` already
+ * exists anywhere in the file (any scope depth, like `removeVariableStatement`).
  */
 export interface AddVariableStatementOp extends RequiredMatchOp {
   kind: 'addVariableStatement'
@@ -385,74 +301,56 @@ export interface AddVariableStatementOp extends RequiredMatchOp {
   name: string
   /** Full statement text to insert, e.g. `const LazyWebGLCanvas = dynamic(() => …)` */
   text: string
-  /**
-   * When true or omitted, insert after the last import declaration.
-   * When false, append at the end of the file.
-   */
+  /** Insert after the last import (true or omitted) or append at end of file (false). */
   afterImports?: boolean
 }
 
 /**
  * Append a JSX child as the last child of the first element whose opening tag
- * matches `parentTagName`, e.g. re-adding `<Canvas root />` inside <Wrapper>.
+ * matches `parentTagName`, e.g. `<Canvas root />` inside <Wrapper>.
  *
  * Parent selection: among same-tag candidates, an element that already
  * contains a direct child with tag `childTagName` wins, so re-added elements
- * land next to their siblings (e.g. an OrchestraToggle row). The special
- * value `parentTagName: 'Fragment'` falls back to the first JSX fragment
- * (`<>…</>`) when no `<Fragment>` element matches.
+ * land next to their siblings. `parentTagName: 'Fragment'` falls back to the
+ * first JSX fragment (`<>…</>`) when no `<Fragment>` element matches.
  *
- * No-op when any JSX element (or self-closing element) with tag
- * `childTagName` already exists anywhere in the file — narrowed to elements
- * whose attribute matches when `childAttribute` is provided.
+ * No-op when any JSX element with tag `childTagName` already exists anywhere
+ * in the file, narrowed to elements whose attribute matches when
+ * `childAttribute` is provided.
  */
 export interface AddJsxChildOp extends RequiredMatchOp {
   kind: 'addJsxChild'
-  /**
-   * Tag name of the parent element to append into, e.g. 'Wrapper'.
-   * 'Fragment' targets the first JSX fragment when no element matches.
-   */
+  /** Tag name of the parent element to append into, e.g. 'Wrapper' */
   parentTagName: string
   /** The JSX child to append, as source text, e.g. `<Canvas root />` */
   childText: string
   /** Tag name of the child, used for the idempotency check, e.g. 'Canvas' */
   childTagName: string
   /**
-   * Optional attribute narrowing the idempotency check: only an existing
-   * `childTagName` element whose attribute matches blocks insertion, so
-   * `<OrchestraToggle id="webgl">` can be re-added next to other toggles.
+   * Narrows the idempotency check: only an existing `childTagName` element
+   * whose attribute matches blocks insertion, so `<OrchestraToggle id="webgl">`
+   * can be re-added next to other toggles.
    */
   childAttribute?: { name: string; value: string }
 }
 
 /**
  * Add a named binding to an existing destructured variable declaration.
- * Inverse of `removeDestructuredBinding`.
- *
- * Targets `const { …, name, … } = expr` statements at any scope depth,
- * narrowed by `initializerContains` (same matching semantics as
- * `removeDestructuredBinding`). No-op when a binding with `bindingName`
- * already exists on the matched pattern, or when no matching destructuring is
- * found.
- *
- * @example Re-add `stats` to `const { grid, studio } = useOrchestra()`
- * `{ kind: 'addDestructuredBinding', bindingName: 'stats', initializerContains: 'useOrchestra' }`
+ * Inverse of `removeDestructuredBinding` (same `initializerContains`
+ * matching). No-op when the binding already exists or no matching
+ * destructuring is found.
  */
 export interface AddDestructuredBindingOp extends RequiredMatchOp {
   kind: 'addDestructuredBinding'
   /** The binding name to add, e.g. 'stats' */
   bindingName: string
-  /**
-   * Substring of the initializer expression text used to find the target
-   * declaration (e.g. 'useOrchestra').
-   */
+  /** Substring of the initializer expression text that finds the target declaration (e.g. 'useOrchestra'). */
   initializerContains: string
 }
 
 /**
  * Insert a full statement into a named function's body. No-op when a
- * statement containing `marker` already exists in the body (idempotency
- * check, mirrors `addVariableStatement`'s name-based check).
+ * statement containing `marker` already exists in the body.
  *
  * Positioning, first match wins:
  *
@@ -461,8 +359,7 @@ export interface AddDestructuredBindingOp extends RequiredMatchOp {
  * - `beforeContains`: `text` goes on its own lines immediately before the
  *   first statement containing the substring, ahead of that statement's
  *   leading comments (the way to land ahead of a terminal return). An array
- *   is a list of candidates tried in order, so an op can prefer one anchor
- *   and fall back to another.
+ *   is a list of candidates tried in order.
  * - Neither given: `text` is appended as the body's last statement.
  *
  * An anchor that is given but matches no statement is a miss: the source
@@ -477,12 +374,7 @@ export interface AddFunctionBodyStatementOp extends RequiredMatchOp {
   text: string
   /** Substring used for the idempotency check against existing statements. */
   marker: string
-  /** Optional anchor: insert immediately after the statement containing this substring. */
   afterContains?: string
-  /**
-   * Optional anchor: insert immediately before the statement containing this
-   * substring (or the first candidate of an array that matches).
-   */
   beforeContains?: string | readonly string[]
 }
 
@@ -515,6 +407,5 @@ export type AstOperation =
 export interface CodeTransform {
   /** Path to the file to transform (relative to project root) */
   file: string
-  /** Typed AST operations to apply */
   ops: AstOperation[]
 }

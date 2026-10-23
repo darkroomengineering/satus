@@ -7,20 +7,15 @@ import { type ComponentProps, createContext, type ReactNode, use } from 'react'
 import s from './toast.module.css'
 
 /**
- * Toast component built on Base UI for accessible notifications.
+ * Toast on Base UI. `ToastProvider` and `ToastViewport` are mounted app-wide
+ * in `app/(site)/layout.tsx`; call `useToast()` from any client component.
  *
- * `ToastProvider` and `ToastViewport` are mounted app-wide in
- * `app/(site)/layout.tsx` — call `useToast()` from any client component.
- *
- * `app/(site)/layout.tsx` is a Server Component, so it must import `ToastProvider`
- * / `ToastViewport` as direct named exports rather than through the `Toast`
- * compound object below — property access on a plain object exported from a
- * `'use client'` module (`Toast.Provider`) isn't given a client reference by
- * Next's RSC/Turbopack transform (only top-level export bindings are), so it
- * resolves to `undefined` across the server → client boundary. The `Toast.*`
- * compound object remains safe to use for `Toast.Root` / `Toast.Title` /
- * etc., since those are only ever consumed from within other client
- * components (e.g. inside `Viewport` here), never from a Server Component.
+ * That layout is a Server Component, so it must import `ToastProvider` and
+ * `ToastViewport` as direct named exports, not through the `Toast` compound
+ * object: Next's RSC/Turbopack transform gives client references only to
+ * top-level export bindings, so `Toast.Provider` resolves to `undefined`
+ * across the server to client boundary. `Toast.Root`, `Toast.Title` etc. are
+ * safe because only client components consume them.
  *
  * @example
  * ```tsx
@@ -61,7 +56,6 @@ export function useToast() {
   return context
 }
 
-// Provider
 function Provider({ children }: { children: ReactNode }) {
   return (
     <BaseToast.Provider>
@@ -98,7 +92,6 @@ function ToastContextWrapper({ children }: { children: ReactNode }) {
   )
 }
 
-// Viewport (where toasts appear)
 type ViewportProps = ComponentProps<typeof BaseToast.Viewport> & {
   className?: string
 }
@@ -164,5 +157,5 @@ export const Toast = {
   Close,
 }
 
-// Direct named exports for consumption from Server Components (see note above).
+// Direct named exports for Server Components (see the JSDoc above).
 export { Provider as ToastProvider, Viewport as ToastViewport }

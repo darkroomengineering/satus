@@ -1,9 +1,6 @@
 /**
- * COMPONENTS.md manifest generator
- *
  * Introspects the codebase with ts-morph and writes COMPONENTS.md.
- * Run with: bun run generate:manifest
- * Check mode: bun run manifest:check (exits 1 if file differs)
+ * `manifest:check` exits 1 if the file differs.
  */
 
 import { existsSync, readFileSync } from 'node:fs'
@@ -59,10 +56,10 @@ interface ExportSig {
 }
 
 /**
- * Format a ts-morph type string for the manifest. Strips the machine-specific
+ * Format a ts-morph type string for the manifest. Strips the
  * `import("/abs/path/node_modules/...").` qualifiers the compiler emits for
- * inferred types (they bake an absolute path into the output and make it
- * non-deterministic across checkouts), collapses whitespace, and truncates.
+ * inferred types (they make the output differ across checkouts), collapses
+ * whitespace, and truncates.
  */
 function formatTypeText(raw: string): string {
   const cleaned = raw
@@ -124,13 +121,7 @@ function getExportedSignatures(
   }
 }
 
-// ---------------------------------------------------------------------------
-// Read tsconfig paths
-// ---------------------------------------------------------------------------
-
 function readTsconfigPaths(): { alias: string; mapsTo: string }[] {
-  // ts-morph reads tsconfig with the TypeScript compiler's JSONC parser, so
-  // comments and trailing commas are handled correctly.
   const project = new Project({
     tsConfigFilePath: join(ROOT, 'tsconfig.json'),
     skipAddingFilesFromTsConfig: true,
@@ -143,10 +134,6 @@ function readTsconfigPaths(): { alias: string; mapsTo: string }[] {
     return { alias, mapsTo }
   })
 }
-
-// ---------------------------------------------------------------------------
-// Section generators
-// ---------------------------------------------------------------------------
 
 function buildComponentSection(
   title: string,
@@ -195,7 +182,6 @@ function buildEffectSection(): string {
     } else {
       const match = file.match(/components\/effects\/([^/]+)\.tsx$/)
       const base = match?.[1] ?? ''
-      // Skip webgl sub-files (e.g., animated-gradient/webgl.tsx)
       if (base.includes('webgl')) continue
       name = toPascalCase(base)
       importPath = `@/components/effects/${base}`
@@ -372,10 +358,6 @@ ${rows.join('\n')}
 `
 }
 
-// ---------------------------------------------------------------------------
-// Main
-// ---------------------------------------------------------------------------
-
 function generate(): string {
   const project = new Project({
     tsConfigFilePath: join(ROOT, 'tsconfig.json'),
@@ -442,7 +424,6 @@ if (IS_CHECK) {
     console.log('COMPONENTS.md is up to date.')
     process.exit(0)
   }
-  // Print a simple diff summary
   const existingLines = existing.split('\n')
   const newLines = content.split('\n')
   console.error(

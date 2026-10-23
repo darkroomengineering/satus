@@ -1,13 +1,7 @@
 /**
- * Unit tests for Shopify product schema validation.
- *
- * Covers issue #386: `shopifyProductSchema` omitted `featuredImage`, so
- * Zod's default strip-unknown-keys mode silently deleted it from every
- * parsed product (getProduct/getProducts/getProductRecommendations/
- * getCollectionProducts), leaving the cart-drawer thumbnail blank until
- * router.refresh() landed.
- *
- * Run with: bun test lib/integrations/shopify/schemas.test.ts
+ * Unit tests for Shopify product schema validation: `featuredImage` must
+ * survive parsing, or the cart-drawer thumbnail is blank until
+ * router.refresh() lands.
  */
 
 import { describe, expect, test } from 'bun:test'

@@ -1,16 +1,10 @@
 /**
- * Guards the generated stylesheets against drift.
- *
- * `lib/styles/css/tailwind.css` and `root.css` are produced from the palette in
- * `colors.ts` and the rest of `lib/styles/config.ts`. Editing a color without
- * re-running `setup:styles` leaves the CSS stale, and nothing else in the
- * pipeline notices: the app keeps compiling and every theme keeps rendering the
- * previous palette. These tests rebuild in memory and compare against what is
- * committed, so the drift fails here instead of shipping.
+ * Guards the generated stylesheets against drift. `lib/styles/css/tailwind.css`
+ * and `root.css` are built from `colors.ts` and `lib/styles/config.ts`; a stale
+ * copy still compiles and renders the old palette. These tests rebuild in memory
+ * and compare with the committed files.
  *
  * On failure: run `bun run setup:styles` and commit the regenerated files.
- *
- * Run with: bun test lib/styles/scripts/setup-styles.test.ts
  */
 
 import { describe, expect, it } from 'bun:test'
@@ -61,8 +55,7 @@ describe('generated stylesheets', () => {
 
 describe('color authoring rules', () => {
   // AGENTS.md: colors are always oklch, mixing is always oklab. Hex and rgb()
-  // survive round-tripping through the generator unnoticed, so the palette is
-  // checked at its source rather than in the generated output.
+  // survive the generator unnoticed, so the palette is checked at its source.
   it('authors every palette value in oklch', () => {
     for (const [name, value] of Object.entries(colors)) {
       expect(`${name}: ${value}`).toMatch(/: oklch\(/)
@@ -76,9 +69,8 @@ describe('color authoring rules', () => {
     }
   })
 
-  // The checks above only see generated output. Hand-written modules are where
-  // a stray `background: pink` actually lands, so scan those too — including
-  // CSS named colours, which read as intentional and survive a hex/rgb grep.
+  // Hand-written modules are where a stray `background: pink` lands, so scan
+  // them too, including CSS named colours that survive a hex/rgb grep.
   it('authors every colour in hand-written CSS as oklch', async () => {
     const offenders: string[] = []
 

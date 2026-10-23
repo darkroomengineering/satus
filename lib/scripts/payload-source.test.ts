@@ -1,13 +1,4 @@
-/**
- * Unit tests for payload source readers (`setup:project`'s additive re-add
- * step, via `installBundle` in `bundle-installer.ts`).
- *
- * Run with: bun test lib/scripts/payload-source.test.ts
- *
- * Network-free: constructs a `PayloadSource` pointing at this repo's own
- * checkout (no resolution step to exercise — `setup:project` builds its own
- * local snapshot instead).
- */
+/** Network-free: uses a `PayloadSource` pointing at this repo's own checkout. */
 
 import { describe, expect, it } from 'bun:test'
 
@@ -19,7 +10,6 @@ import {
   readPayloadPackageJson,
 } from './payload-source'
 
-/** A payload source pointing at this repo checkout, for reader tests. */
 const repoSource: PayloadSource = {
   root: process.cwd(),
   label: 'this repo checkout',
@@ -57,7 +47,6 @@ describe('payload readers (against the repo itself)', () => {
 
     expect(files).toContain('lib/integrations/hubspot/action.ts')
     expect(files).toContain('lib/integrations/hubspot/embed/index.tsx')
-    // Sorted, deterministic output
     expect([...files].sort()).toEqual(files)
   })
 

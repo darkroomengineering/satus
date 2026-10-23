@@ -1,7 +1,3 @@
-# Lefthook configuration for git hooks
-# Cross-platform compatible (Windows, macOS, Linux)
-# https://github.com/evilmartians/lefthook
-
 pre-commit:
   parallel: true
   commands:
@@ -17,10 +13,8 @@ pre-commit:
       stage_fixed: true
     typecheck:
       glob: '*.{ts,tsx}'
-      # TS7 native (single `typescript@^7` package; Next 16.3 shells out to
-      # the TS CLI itself, so no classic JS-API copy is needed). Incremental
-      # is on: typescript is the only writer of tsconfig.tsbuildinfo, and the
-      # warm cache is ~4x faster.
+      # Incremental is safe: tsc is the only writer of tsconfig.tsbuildinfo,
+      # and the warm cache is ~4x faster.
       run: bun node_modules/typescript/bin/tsc --noEmit
       stage_fixed: false
     # A plain value in a committed env file must never reach git, not even in a
@@ -48,11 +42,9 @@ pre-push:
         - merge
         - rebase
 
-# Branch switches leave the previous branch's generated route types in
-# .next/types (tsconfig includes them), producing ghost tsc errors about
-# routes that don't exist on the new branch. Clear them on real branch
-# checkouts only — {3} is git's flag: 1 = branch switch, 0 = file checkout.
-# They regenerate on the next `bun dev` / `bun run build`.
+# Stale route types in .next/types (included by tsconfig) cause ghost tsc
+# errors after a branch switch. {3} is 1 for a branch switch, 0 for a file
+# checkout. They regenerate on the next `bun dev` / `bun run build`.
 post-checkout:
   commands:
     clear-generated-types:

@@ -13,7 +13,6 @@ import s from './header.module.css'
 // automatically via isExternalHref.
 type NavLink = { href: string; label: string; newTab?: boolean }
 
-// Navigation links - customize for your project
 const LINKS: NavLink[] = [
   { href: '/', label: 'home' },
   {
@@ -28,13 +27,11 @@ export function Header() {
 
   return (
     <header className={s.header}>
-      {/* Brand: logo + live pathname */}
       <div className={s.brand}>
         <span>Satūs</span>
         <span className={s.brandPath}>{pathname}</span>
       </div>
 
-      {/* Mobile menu toggle */}
       <button
         aria-expanded={menuOpen}
         aria-controls="header-nav"
@@ -46,7 +43,6 @@ export function Header() {
         {menuOpen ? '✕ close' : '≡ menu'}
       </button>
 
-      {/* Level 1: Main navigation */}
       <ul className={cn(s.navList, menuOpen && s.navListOpen)} id="header-nav">
         {LINKS.map((link) => {
           const { isExternal: opensNewTab, isActive } = getLinkIntent(

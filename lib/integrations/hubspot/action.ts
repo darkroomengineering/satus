@@ -1,31 +1,3 @@
-// USAGE — HubSpot Forms
-// 1. Set env vars: NEXT_PUBLIC_HUBSPOT_PORTAL_ID (embed widget), and the
-//    form's own ID (passed to the action below, e.g. from an embedded form's
-//    `formId` field or hardcoded in the page).
-//
-// 2. Wire the server action to a form that submits an `email` and `formId`:
-//
-//   import { Form } from '@/components/ui/form'
-//   import { HubspotNewsletterAction } from '@/integrations/hubspot/action'
-//
-//   export default function NewsletterPage() {
-//     return (
-//       <Form action={HubspotNewsletterAction}>
-//         <input type="hidden" name="formId" value="your-hubspot-form-id" />
-//         <input type="email" name="email" placeholder="Your email" required />
-//         <button type="submit">Subscribe</button>
-//       </Form>
-//     )
-//   }
-//
-// 3. The server action validates with Zod and posts to the HubSpot Forms v3 API.
-//    Rate limiting and Turnstile verification are applied automatically via
-//    runFormAction, in that order — render a Turnstile widget in the form
-//    (see lib/integrations/turnstile/README.md) so the widget's token lands
-//    in the `cf-turnstile-response` field.
-//
-// Full walkthrough: see the manual (app/(site)/page.tsx) step 5 "Add a plugin".
-
 'use server'
 
 import { env } from '@/lib/env'
@@ -88,7 +60,7 @@ export async function HubspotNewsletterAction(
           method: 'POST',
           body: JSON.stringify(body),
           headers: { 'Content-Type': 'application/json' },
-          timeout: 8000, // 8 second timeout for HubSpot API
+          timeout: 8000,
         })
 
         if (!response.ok) {

@@ -1,35 +1,16 @@
 /**
- * Content-Security-Policy composer
+ * Content-Security-Policy composer. `next.config.ts` calls `composeCsp()` at
+ * config-eval time: once for the site, once with `isStudio` for `/studio/*`.
  *
- * `next.config.ts` calls `composeCsp()` at config-eval time to build the
- * enforced `Content-Security-Policy` header value: once for the site, and once
- * with `isStudio` for the embedded Sanity Studio on `/studio/*`. This is
- * deliberately config-eval composition — a pure function next.config.ts
- * imports and calls — rather than `setup:project` writing a literal policy
- * string into `next.config.ts` via an AST transform (the pattern it uses for
- * `experimental.optimizePackageImports`, and for Shopify's
- * `images.remotePatterns` entry).
- * Config-eval composition can't drift: strip an integration's folder and its
- * origins vanish on the very next build, with no transform to keep in sync.
- * AST literal-writing was only the fallback if next.config.ts genuinely
- * couldn't import `lib/` code — verified empirically that it can (see
- * `isIntegrationKept` and the relative-import note in `./registry`).
+ * Composition is a pure function rather than a literal policy string written
+ * by a `setup:project` AST transform, so stripping an integration folder
+ * drops its origins on the next build with nothing to keep in sync.
  *
- * Every `Content-Security-Policy` value from every KEPT integration in
- * `./registry` (`cspSources`, see there for what "browser-visible" means) is
- * unioned with a small hand-maintained base policy, environment-specific
- * additions (dev-only HMR/eval, preview-only Vercel toolbar), and the
- * project-specific escape hatch below.
- *
- * Enforced, not Report-Only — see the CHANGELOG entry and #318: without a
- * nonce pipeline (out of scope here — that's a `proxy.ts` + per-request
- * headers architecture change), `script-src` still needs `'unsafe-inline'`
- * (and, in dev, `'unsafe-eval'` for React Refresh). That's a real, documented
- * gap: an injected `<script>` tag is not blocked by this policy. But
- * `connect-src`/`img-src`/`frame-ancestors` now have real teeth restricted to
- * exactly the origins the kept integrations load — a large upgrade over the
- * previous Report-Only baseline, which allowed `https:`/`wss:` everywhere
- * and enforced nothing.
+ * Enforced, not Report-Only. Without a nonce pipeline (a `proxy.ts` plus
+ * per-request headers change), `script-src` still needs `'unsafe-inline'`
+ * (and `'unsafe-eval'` in dev for React Refresh), so an injected `<script>`
+ * is not blocked. `connect-src`, `img-src` and `frame-ancestors` are limited
+ * to the origins the kept integrations load.
  */
 
 import { existsSync } from 'node:fs'
@@ -39,51 +20,28 @@ import { fileURLToPath } from 'node:url'
 import {
   type CspDirective,
   type CspSources,
-  integrations,
   type IntegrationEntry,
   type IntegrationId,
+  integrations,
 } from './registry'
 
-// -----------------------------------------------------------------------------
-// Escape hatch — project-specific origins
-// -----------------------------------------------------------------------------
-
 /**
- * Extra CSP origins for things the registry can't know about: a custom API
- * this project's frontend calls, a third-party embed added after setup, a
- * HubSpot portal's own submission/tracking origin (see the `hubspot` entry
- * in `./registry` — not verifiable from this repo's code). Empty by default.
- * Merged into every environment (dev + prod + preview) — scope an origin to
- * one environment yourself inside `composeCsp` if that's ever needed.
- *
- * Example:
- * ```ts
- * export const PROJECT_CSP_EXTRA_SOURCES: CspSources = {
- *   'connect-src': ['https://api.example.com'],
- *   'frame-src': ['https://challenges.cloudflare.com'],
- * }
- * ```
+ * Extra CSP origins the registry can't know about: a custom API, a
+ * third-party embed added after setup, a HubSpot portal's own
+ * submission/tracking origin (see the `hubspot` entry in `./registry`).
+ * Merged into every environment; scope one to a single environment inside
+ * `composeCsp`.
  */
 export const PROJECT_CSP_EXTRA_SOURCES: CspSources = {}
 
-// -----------------------------------------------------------------------------
-// "Kept" detection
-// -----------------------------------------------------------------------------
-
-// This module's own directory is lib/integrations/; the project root is two
-// levels up. Resolved from import.meta.url (not process.cwd()) so it's
-// correct regardless of the directory `next build`/`next dev` was invoked
-// from.
+// Resolved from import.meta.url, not process.cwd(), so it holds wherever
+// `next build`/`next dev` was invoked from.
 const PROJECT_ROOT = fileURLToPath(new URL('../../', import.meta.url))
 
 /**
- * Integration ids with no removable bundle in
- * `lib/scripts/integration-bundles.ts` (`INTEGRATION_BUNDLES`) — `turnstile`
- * and `analytics` ship unconditionally; `setup:project` has nothing to
- * strip for them (they're gated purely by env vars at runtime, not by file
- * presence). Their CSP origins are therefore always composed in, the same
- * way `isIntegrationKept` would report `true` for them if it checked a
- * folder that could never be absent.
+ * Ids with no removable bundle in `lib/scripts/integration-bundles.ts`
+ * (gated by env vars at runtime, not file presence), so their CSP origins
+ * are always composed in.
  */
 const NEVER_STRIPPED: ReadonlySet<IntegrationId> = new Set([
   'turnstile',
@@ -92,37 +50,20 @@ const NEVER_STRIPPED: ReadonlySet<IntegrationId> = new Set([
 
 /**
  * True when `id`'s integration code is present in this checkout.
+ * `setup:project` strips an integration by deleting its whole
+ * `lib/integrations/<id>` folder, so folder existence is the signal. It does
+ * not import `lib/scripts/integration-bundles.ts`, to keep setup tooling out
+ * of next.config.ts's eval path.
  *
- * `setup:project` strips an unkept integration by deleting its entire
- * `lib/integrations/<id>` folder in one atomic step (see `setupLean` /
- * `setupAddIntegrations` in `lib/scripts/setup-project.ts`, and each
- * integration's `folders` entry in `lib/scripts/integration-bundles.ts`) —
- * so checking that folder's existence is a reliable, dependency-free proxy
- * for "kept". Deliberately not importing
- * `lib/scripts/integration-bundles.ts` here to read the real folder list:
- * that module is dev/setup tooling, and every kept id's primary folder is
- * exactly `lib/integrations/<id>` (verified against the bundle definitions
- * for sanity/shopify/hubspot/mailchimp), so hardcoding that one path per id
- * avoids pulling setup-script machinery into next.config.ts's eval path.
- *
- * Deliberately NOT based on `isConfigured(id)` (env-var presence, see
- * `./registry`): a project can keep an integration's code without having
- * filled in real credentials yet (e.g. a CI/preview build before secrets are
- * set), and the policy still needs to allow that origin the moment
- * credentials land. Composing from "kept" rather than "configured" means the
- * header only moves when the codebase changes, not when an env var does.
- *
- * Exported for `next.config.ts`, and for any tooling that must answer the
- * same question, so the rule has one copy.
+ * Deliberately not `isConfigured(id)`: code can be kept before credentials
+ * are filled in (CI or preview builds), and the policy must already allow
+ * the origin when they land. The header moves with the codebase, not env
+ * vars.
  */
 export function isIntegrationKept(id: IntegrationId): boolean {
   if (NEVER_STRIPPED.has(id)) return true
   return existsSync(join(PROJECT_ROOT, 'lib/integrations', id))
 }
-
-// -----------------------------------------------------------------------------
-// Merging
-// -----------------------------------------------------------------------------
 
 /** Union `sources` per directive, de-duplicating and preserving first-seen order. */
 function mergeSources(...sources: CspSources[]): CspSources {
@@ -144,22 +85,10 @@ function mergeSources(...sources: CspSources[]): CspSources {
   return merged
 }
 
-// -----------------------------------------------------------------------------
-// Composition
-// -----------------------------------------------------------------------------
-
-/**
- * `frame-ancestors` is intentionally NOT derived from anything above — kept
- * byte-for-byte identical to the previous enforced header (audit fix #267
- * L1) per #318's explicit instruction to leave it untouched. It's merged
- * into the same single `Content-Security-Policy` header as everything else
- * here (rather than staying a second header entry) because Next's `headers`
- * config can only emit one value per header key per route.
- */
 /**
  * Origins the embedded Sanity Studio loads beyond the site policy. Served
- * only on `/studio/*` (see the second CSP rule in `next.config.ts`), so the
- * site's own policy stays as narrow as its integrations need.
+ * only on `/studio/*` (second CSP rule in `next.config.ts`), so the site
+ * policy stays narrow.
  */
 const STUDIO_SOURCES: CspSources = {
   // Presentation's comlink bridge, injected by the Studio.
@@ -180,27 +109,21 @@ const STUDIO_SOURCES: CspSources = {
   ],
 }
 
+// Not derived from the integrations. Merged into the single header because
+// Next's `headers` config emits one value per header key per route.
 const FRAME_ANCESTORS = ["'self'", 'https://*.sanity.studio']
 
 /**
- * Directives in output order. Fixed (not derived from `Object.entries`
- * insertion order) so the composed header is deterministic across builds —
- * useful for diffing and for the verification snapshot in #318.
+ * Directives in output order. Fixed so the composed header is deterministic
+ * across builds.
  *
- * `worker-src` is deliberately absent: audited `lib/webgl/**` for
- * `Worker(`/loader usage (DRACOLoader, KTX2Loader, etc.) and found none — no
- * decoder workers. Omitting it falls back to `script-src`/`default-src`,
- * which already cover the only blob: use found (`lib/dev/theatre/studio`'s
- * `URL.createObjectURL` for a save-file *download* link — an anchor
- * navigation, not a fetch/worker, and dev-only). Add it (with sources) if
- * that changes.
+ * `worker-src` is absent: `lib/webgl/**` has no decoder workers, and the one
+ * `blob:` use (`lib/dev/theatre/studio`'s save-file download link) is
+ * dev-only and not a worker or fetch. Add it if a worker appears.
  *
- * `media-src` IS present: `lib/hooks/use-device-detection.ts`'s
- * `checkIsAutoplaySupported()` (used by every `useDeviceDetection()` caller,
- * i.e. every route, not an integration) creates a `<video>` with a
- * `data:video/mp4;base64,...` source to probe inline-autoplay support — a
- * real violation caught by this PR's own dev-server check (`media-src` falls
- * back to `default-src 'self'` when unset, which has no `data:` scheme).
+ * `media-src` is present for `checkIsAutoplaySupported()` in
+ * `lib/hooks/use-device-detection.ts`, which probes with a `data:video/mp4`
+ * source on every route.
  */
 const DIRECTIVE_ORDER: CspDirective[] = [
   'script-src',
@@ -235,10 +158,8 @@ export function composeCsp({
   isVercelPreview,
   isStudio = false,
 }: ComposeCspOptions): string {
-  // Base policy. `'unsafe-inline'` on script-src/style-src is the documented
-  // trade-off from this module's header comment (no nonce pipeline in this
-  // PR) — see e.g. app/(site)/layout.tsx's inline `window.satusVersion`
-  // script, which needs it. `'unsafe-eval'` is dev-only, for React Refresh.
+  // `'unsafe-inline'` is the no-nonce trade-off from the header comment;
+  // app/(site)/layout.tsx's inline `window.satusVersion` script needs it.
   const base: CspSources = {
     'script-src': [
       "'self'",
@@ -246,44 +167,32 @@ export function composeCsp({
       ...(isDev ? ["'unsafe-eval'"] : []),
     ],
     'style-src': ["'self'", "'unsafe-inline'"],
-    // data: — next/image blur placeholders. blob: — no current use found
-    // (see DIRECTIVE_ORDER's comment) but kept as a low-risk allowance for
-    // future client-side image generation (e.g. canvas.toBlob previews);
-    // it's a scheme, not a host, so it can't be used to exfiltrate to a
-    // third party.
+    // data: for next/image blur placeholders. blob: has no current use; kept
+    // for future client-side image generation. It is a scheme, not a host,
+    // so it cannot exfiltrate to a third party.
     'img-src': ["'self'", 'data:', 'blob:'],
-    // next/font self-hosts Google Fonts at build time (see lib/styles/fonts.ts)
-    // — no external font-src host is ever needed.
+    // next/font self-hosts, so no external font host is needed.
     'font-src': ["'self'", 'data:'],
     'connect-src': ["'self'", ...(isDev ? ['ws:', 'wss:'] : [])],
-    // The Studio's Presentation tool frames the site. Declared even though
-    // `default-src 'self'` covers it: any other `frame-src` source (the
-    // preview toolbar below, a Turnstile widget) replaces that fallback, and
-    // without `'self'` here the Presentation iframe is blocked.
+    // Declared although `default-src` covers it: any other `frame-src`
+    // source (preview toolbar, Turnstile) replaces that fallback, and without
+    // 'self' the Studio's Presentation iframe is blocked.
     'frame-src': ["'self'"],
-    // data: — lib/hooks/use-device-detection.ts's autoplay probe (see
-    // DIRECTIVE_ORDER's comment). Without this, `media-src` falls back to
-    // `default-src 'self'`, which has no `data:` scheme, and every route
-    // using `useDeviceDetection()` throws a CSP violation on load.
+    // data: for the autoplay probe (see DIRECTIVE_ORDER). `media-src` falls
+    // back to `default-src 'self'`, which blocks it on every route.
     'media-src': ["'self'", 'data:'],
-    // `form-action` is a navigation directive — it does NOT fall back to
-    // default-src, so omitting it means "forms may submit anywhere". Every
-    // integration submits through Server Actions / Route Handlers ('self'),
-    // never a cross-origin <form action>; a third-party embed that needs one
-    // adds its origin via PROJECT_CSP_EXTRA_SOURCES.
+    // Does not fall back to default-src: omitting it lets forms submit
+    // anywhere. Integrations submit through Server Actions / Route Handlers;
+    // a cross-origin <form action> adds its origin via
+    // PROJECT_CSP_EXTRA_SOURCES.
     'form-action': ["'self'"],
   }
 
-  // Dev-only: `@vercel/analytics`'s script tag only reaches an external host
-  // when `NODE_ENV === 'development'` (see the package's `getScriptSrc` —
-  // `isDevelopment()` checks NODE_ENV, not VERCEL_ENV). On every real
-  // deployment (`next build` always sets NODE_ENV=production) it loads from
-  // the same-origin `/_vercel/insights/script.js` path instead, needing
-  // nothing here. This only matters for `vercel dev` locally (VERCEL_ENV set
-  // + NODE_ENV=development) — `bun run dev`/`next dev` alone never renders
-  // `<Analytics />` at all (app/(site)/layout.tsx gates it on VERCEL_ENV), so
-  // this is a defensive allowance for a workflow this PR's own verification
-  // can't exercise, not something observed to violate.
+  // `@vercel/analytics` reaches an external host only when
+  // NODE_ENV=development (deployments use the same-origin
+  // `/_vercel/insights/script.js`), i.e. under `vercel dev`. Plain `next dev`
+  // never renders `<Analytics />` (layout gates it on VERCEL_ENV). A
+  // defensive allowance, not an observed violation.
   const devVercelAnalytics: CspSources = isDev
     ? {
         'script-src': ['https://va.vercel-scripts.com'],
@@ -294,9 +203,8 @@ export function composeCsp({
       }
     : {}
 
-  // Preview-only: Vercel's preview feedback toolbar (injected automatically
-  // on Preview deployments, unrelated to any package in this repo). Origins
-  // per Vercel's published toolbar CSP requirements.
+  // Vercel's preview feedback toolbar, injected on Preview deployments.
+  // Origins per Vercel's published toolbar CSP requirements.
   const previewToolbar: CspSources = isVercelPreview
     ? {
         'script-src': ['https://vercel.live'],

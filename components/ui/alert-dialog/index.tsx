@@ -47,23 +47,16 @@ import s from './alert-dialog.module.css'
  */
 
 type AlertDialogProps = {
-  /** Trigger element */
   trigger: ReactNode
-  /** Dialog title */
   title: string
-  /** Dialog description */
   description?: string
-  /** Confirm button label */
   confirmLabel?: string
-  /** Cancel button label */
   cancelLabel?: string
-  /** Callback when confirmed */
   onConfirm?: () => void
-  /** Callback when cancelled */
   onCancel?: () => void
-  /** Whether the action is destructive (styles confirm button) */
+  /** Styles the confirm button as destructive. */
   destructive?: boolean
-  /** Additional class for the popup */
+  /** Class for the popup. */
   className?: string
 }
 
@@ -78,9 +71,8 @@ function AlertDialog({
   destructive = false,
   className,
 }: AlertDialogProps) {
-  // When trigger is a ReactElement, pass it as the render prop so Base UI
-  // merges its own trigger props (aria-*, data-*, onClick) correctly without
-  // clobbering the element's existing handlers.
+  // An element trigger goes in `render` so Base UI merges its trigger props
+  // (aria-*, data-*, onClick) without clobbering the element's handlers.
   return (
     <BaseAlertDialog.Root>
       <BaseAlertDialog.Trigger
@@ -120,7 +112,6 @@ function AlertDialog({
   )
 }
 
-// Compound components
 const Root = BaseAlertDialog.Root
 const Trigger = BaseAlertDialog.Trigger
 const Portal = BaseAlertDialog.Portal

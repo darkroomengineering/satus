@@ -1,12 +1,4 @@
-/**
- * Unit tests for the client-handoff document templates.
- *
- * Run with: bun test lib/scripts/templates/templates.test.ts
- *
- * The handoff CLI (`bun run handoff`) is interactive, so these tests exercise
- * the pure render functions directly to guarantee the templates render the
- * expected handoff documents.
- */
+// The handoff CLI is interactive, so these exercise the pure render functions directly.
 
 import { describe, expect, it } from 'bun:test'
 
@@ -87,7 +79,6 @@ Generated: 2026-01-01
     expect(output).not.toContain('## Shopify')
     expect(output).not.toContain('## Mailchimp')
 
-    // Integration sections appear between Pre-Deployment and Performance.
     expect(output.indexOf('## Sanity CMS')).toBeLessThan(
       output.indexOf('## HubSpot')
     )
@@ -96,10 +87,6 @@ Generated: 2026-01-01
     )
   })
 
-  // M8: Mailchimp ships in the `boutique` preset (same shape as HubSpot —
-  // MAILCHIMP_API_KEY / MAILCHIMP_SERVER_PREFIX / MAILCHIMP_AUDIENCE_ID),
-  // but its section was missing entirely — a shipped integration with no
-  // pre-launch checklist entry.
   it('includes a Mailchimp section when Mailchimp ships (M8)', () => {
     const output = renderDeploymentChecklist({
       projectName: 'Acme',
@@ -141,8 +128,8 @@ Generated: 2026-01-01
       date: '2026-01-01',
     })
 
-    // Section survives even though env isn't configured — a handoff that
-    // omits setup steps for shipping code is the bug this guards against.
+    // Section survives an unconfigured env: omitting setup steps for shipping
+    // code is the bug this guards against.
     expect(output).toContain('## Shopify')
     expect(output).toContain(
       '- [ ] ⚠️ Not yet configured in this environment — see .env.example'

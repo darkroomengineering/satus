@@ -10,12 +10,10 @@ import { env } from '@/lib/env'
 import { TAGS } from './constants'
 
 /**
- * Constant-time secret comparison. Plain `!==` on strings short-circuits on
- * the first mismatched character, which leaks timing information an
- * attacker can use to guess the secret byte-by-byte. `timingSafeEqual`
- * requires equal-length buffers, so both sides are hashed first — this also
- * sidesteps the case where `secret`/`env.SHOPIFY_REVALIDATION_SECRET` differ
- * in length (which would otherwise throw before the safe comparison runs).
+ * Constant-time secret comparison: `!==` short-circuits on the first
+ * mismatched character, leaking timing an attacker can use to guess the
+ * secret. `timingSafeEqual` needs equal-length buffers, so both sides are
+ * hashed first, which also avoids a throw when the lengths differ.
  */
 function secretsMatch(a: string, b: string): boolean {
   const hashA = createHash('sha256').update(a).digest()
@@ -35,10 +33,9 @@ const productWebhooks = new Set([
 ])
 const pageWebhooks = new Set(['pages/create', 'pages/delete', 'pages/update'])
 
-// This is called from `app/api/revalidate/route.ts` so providers can control revalidation logic.
+// Called from `app/api/revalidate/route.ts`.
 export async function revalidate(req: NextRequest): Promise<NextResponse> {
-  // We always need to respond with a 200 status code to Shopify,
-  // otherwise it will continue to retry the request.
+  // Non-2xx responses make Shopify keep retrying the webhook.
   const headersList = await headers()
   const topic = headersList.get('x-shopify-topic') ?? 'unknown'
   const secret = req.nextUrl.searchParams.get('secret')
@@ -59,7 +56,6 @@ export async function revalidate(req: NextRequest): Promise<NextResponse> {
   }
 
   if (!(isCollectionUpdate || isProductUpdate || isPageUpdate)) {
-    // We don't need to revalidate anything for any other topics.
     return NextResponse.json({
       data: { revalidated: false, now: Date.now() },
       error: null,

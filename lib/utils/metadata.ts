@@ -8,15 +8,11 @@ import { BASE_URL, SITE } from '@/lib/seo/site'
 const DESCRIPTION_MAX_LENGTH = 155
 
 /**
- * Trims prose to snippet length on a word boundary.
+ * Trims prose to snippet length on a word boundary, for deriving a description
+ * from body copy. A page inheriting the site-wide description is, to an answer
+ * engine, indistinguishable from every other page.
  *
- * For deriving a description from body copy when a page has no hand-written
- * one. A page that inherits the site-wide description is, to an answer
- * engine, indistinguishable from every other page — a real sentence from the
- * page's own content is worth more than a polished generic one.
- *
- * Returns `''` for empty input so callers can use `||` to fall through to
- * their own fallback rather than emitting an empty `description` tag.
+ * Returns `''` for empty input so callers can use `||` to fall through.
  */
 export function truncateDescription(
   text: string | null | undefined,
@@ -29,17 +25,9 @@ export function truncateDescription(
   const clipped = collapsed.slice(0, maxLength)
   const lastSpace = clipped.lastIndexOf(' ')
 
-  // A single word longer than the limit has no space to cut at; hard-clip it
-  // rather than returning the whole untruncated string.
+  // A single word longer than the limit has no space to cut at; hard-clip it.
   return `${(lastSpace > 0 ? clipped.slice(0, lastSpace) : clipped).trimEnd()}…`
 }
-
-/**
- * Metadata Generation Utilities
- *
- * Helpers to generate consistent metadata across pages,
- * reducing duplication and ensuring SEO best practices.
- */
 
 interface GenerateMetadataOptions {
   title?: string
@@ -60,24 +48,6 @@ interface GenerateMetadataOptions {
   authors?: string[]
 }
 
-/**
- * Generate complete metadata object for pages
- *
- * @example
- * ```ts
- * export async function generateMetadata({ params }) {
- *   const page = await fetchPage(params.slug)
- *
- *   return generatePageMetadata({
- *     title: page.metadata?.title || page.title,
- *     description: page.metadata?.description,
- *     image: { url: page.metadata?.image?.asset?.url },
- *     url: `/page/${params.slug}`,
- *     noIndex: page.metadata?.noIndex,
- *   })
- * }
- * ```
- */
 export function generatePageMetadata(
   options: GenerateMetadataOptions
 ): Metadata {
@@ -156,38 +126,15 @@ export function generatePageMetadata(
 }
 
 /**
- * Generate metadata specifically for Sanity CMS pages
- *
  * Pass a stega-cleaned document (`stegaClean(data)` from `next-sanity`). In
  * draft mode every Sanity string carries Presentation's hidden edit markers,
  * and this helper copies them into `<title>`, the description and the Open
  * Graph tags as is. It doesn't clean them itself because `setup:project`
  * keeps this file when it strips Sanity and removes `next-sanity` with it.
  * Cost: each caller has to remember the call; the three in `app/(site)` do.
- *
- * @example
- * ```ts
- * import { stegaClean } from 'next-sanity'
- * import { sanityFetch } from '@/integrations/sanity/fetch'
- *
- * export async function generateMetadata({ params }) {
- *   const { slug } = await params
- *   // Cached under the `sanity` tag; drafts in draft mode. Outside draft
- *   // mode, calling it again from the page reuses the same cache entry; in
- *   // draft mode each call reads Sanity again, uncached.
- *   const data = await sanityFetch({ query: pageQuery, params: { slug } })
- *   if (!data) return
- *
- *   return generateSanityMetadata({
- *     document: stegaClean(data),
- *     url: `/sanity/${slug}`,
- *   })
- * }
- * ```
  */
 export function generateSanityMetadata(options: {
-  // Fields are nullable to accept TypeGen query-result types directly
-  // (projections type optional fields as `T | null`).
+  // Nullable to accept TypeGen query-result types directly.
   document: {
     title?: string | null
     metadata?: {
@@ -207,13 +154,12 @@ export function generateSanityMetadata(options: {
   const { document, url, type = 'website' } = options
   const metadata = document.metadata
 
-  // Editors leave the SEO description empty far more often than they leave the
-  // body empty, and a page with no description of its own inherits the
-  // site-wide one — which makes every such page look identical to a crawler.
+  // Editors leave the SEO description empty far more often than the body, and
+  // a page with no description of its own inherits the site-wide one, making
+  // every such page look identical to a crawler.
   const derivedDescription = truncateDescription(document.excerpt)
 
   if (!metadata) {
-    // Fallback to basic metadata if none provided
     const fallbackOptions: GenerateMetadataOptions = { type }
     if (document.title) fallbackOptions.title = document.title
     if (derivedDescription) fallbackOptions.description = derivedDescription
@@ -221,11 +167,9 @@ export function generateSanityMetadata(options: {
     return generatePageMetadata(fallbackOptions)
   }
 
-  // Bind to locals so control-flow narrowing strips the `null` before the
-  // values reach generatePageMetadata (which expects `string`, not `string | null`).
-  // Note: OG image is not derived from `metadata.image` — the queries don't
-  // dereference the asset (`asset->{url}`), so generatePageMetadata's default
-  // image is used. Add a resolved url to the query to wire a per-page OG image.
+  // Locals let control-flow narrowing strip `null` before generatePageMetadata.
+  // The OG image is not derived from `metadata.image`: the queries don't
+  // dereference the asset (`asset->{url}`), so the default image is used.
   const title = metadata.title ?? document.title
   const { description, keywords, noIndex } = metadata
   const { publishedAt, _updatedAt } = document

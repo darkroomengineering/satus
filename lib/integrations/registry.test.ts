@@ -1,10 +1,6 @@
 /**
- * Unit tests for the integration registry (issue #380).
- *
- * `isConfigured` reads `process.env` fresh on every call (no module-level
- * caching), so these tests mutate `process.env` directly and restore it in
- * a `finally` block — the same pattern used in
- * `lib/integrations/shopify/client.test.ts`.
+ * `isConfigured` reads `process.env` on every call, so these tests mutate it
+ * directly and restore it in a `finally` block.
  */
 
 import { afterEach, describe, expect, test } from 'bun:test'

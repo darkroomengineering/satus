@@ -66,7 +66,6 @@ const typography = {
 
 export { fonts, typography }
 
-// UTIL TYPES
 type TypeStyles = Record<
   string,
   {

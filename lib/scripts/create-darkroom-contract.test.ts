@@ -1,10 +1,7 @@
 /**
- * create-darkroom flag-contract canary
- *
- * `create-darkroom` (the scaffolder CLI, a separate repo) clones satus `main`
- * and invokes `bun run setup:project` with pass-through flags. It has no
- * version pin on satus. This file mirrors that invocation exactly — its
- * ground truth is `create-darkroom`'s `src/index.ts`, verbatim:
+ * create-darkroom flag-contract canary. `create-darkroom` (a separate repo,
+ * no version pin on satus) clones satus `main` and runs `bun run setup:project`
+ * with pass-through flags. Ground truth, from its `src/index.ts`:
  *
  *   235	    const setupArgs = ['run', 'setup:project']
  *   236	    if (args.preset !== undefined) setupArgs.push('--preset', args.preset)
@@ -14,25 +11,17 @@
  *   240	    if (!run('bun', setupArgs, projectPath)) {
  *   241	      fail('setup:project failed — the clone is intact, re-run it manually')
  *
- * Note it does NOT pass `--yes` — it relies on `setup-project.ts`'s non-TTY
- * skip (see `shouldSkipConfirm`) to avoid hanging on a confirm prompt.
+ * It does NOT pass `--yes`; it relies on the non-TTY skip (`shouldSkipConfirm`)
+ * to avoid hanging on a confirm prompt.
  *
- * If a satus PR renames or changes the semantics of any of these flags — and
- * updates satus's own tests in the same PR — everything here stays green
- * while every future `create-darkroom` scaffold breaks silently. A failure
- * in this file means exactly that: a change here breaks scaffolding for
- * every new project created via `create-darkroom`. The fix is a coordinated
- * change in BOTH repos (this one, and create-darkroom), never editing this
- * test to match a renamed/removed flag.
+ * A satus PR that renames or changes these flags while updating satus's own
+ * tests keeps everything green and silently breaks every future scaffold. A
+ * failure here therefore needs a coordinated change in BOTH repos, never an
+ * edit of this test to match a renamed or removed flag.
  *
- * Prune-safety: this file derives presets/ids from the live
- * `PROJECT_PRESETS` / `getIntegrationNames()` exports rather than hardcoding
- * integration names (beyond asserting the universally-present `blank`
- * preset exists), so it survives `setup:project` stripping integrations out
- * of a scaffolded project. (This file itself ships only in the satus repo,
- * not in scaffolded projects — see `SELF_PRUNE_KEEP_TEST_FILES` in
- * `setup-project.ts` for the self-prune allowlist that governs which test
- * files DO ship; this one isn't in it, matching `env-drift.test.ts`.)
+ * Presets and ids come from the live `PROJECT_PRESETS` / `getIntegrationNames()`
+ * exports (beyond asserting `blank` exists) so the file survives stripping.
+ * It ships only in the satus repo: not in `SELF_PRUNE_KEEP_TEST_FILES`.
  */
 
 import { describe, expect, it } from 'bun:test'
@@ -48,11 +37,9 @@ describe('create-darkroom flag contract', () => {
   it('the literal argv strings create-darkroom depends on are wired into the actual argv-parsing mechanism', async () => {
     const source = await Bun.file('lib/scripts/setup-project.ts').text()
 
-    // setup-project.ts parses process.argv manually (via `getFlagValue` /
-    // `argv.includes`), not `util.parseArgs`. Anchor each assertion to that
-    // exact call shape — not to a comment mentioning the flag — so a rename
-    // of the flag string here fails this test even if a comment still
-    // mentions the old name.
+    // setup-project.ts parses argv manually (`getFlagValue` / `argv.includes`).
+    // Anchored to that call shape, not a comment, so a renamed flag fails even
+    // if a comment still mentions the old name.
     expect(source).toContain(`getFlagValue(argv, '--preset')`)
     expect(source).toContain(`getFlagValue(argv, '--keep')`)
     expect(source).toContain(`argv.includes('--clean-homepage')`)
@@ -62,8 +49,6 @@ describe('create-darkroom flag contract', () => {
   it("--preset resolves to that preset's integrations, for every preset key", () => {
     const presetKeys = Object.keys(PROJECT_PRESETS)
 
-    // create-darkroom offers the preset list dynamically — don't hardcode
-    // beyond asserting the universal 'blank' preset is among them.
     expect(presetKeys).toContain('blank')
 
     for (const key of presetKeys) {

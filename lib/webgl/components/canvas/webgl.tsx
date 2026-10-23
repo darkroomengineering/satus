@@ -28,26 +28,17 @@ type WebGLCanvasProps = React.HTMLAttributes<HTMLDivElement> & {
   postprocessing?: boolean
   alpha?: boolean
   className?: string
-  /**
-   * Which GPU simulations `FlowmapProvider` mounts. Defaults to none
-   * (opt-in) — pass the sims you actually use, e.g. `['flowmap']`, to avoid
-   * paying for a GPU pass and window listeners with no consumer.
-   */
+  /** GPU simulations `FlowmapProvider` mounts; none by default (each costs a GPU pass). */
   simTypes?: ('fluid' | 'flowmap')[]
 }
 
 /**
- * Attaches `webglcontextlost`/`webglcontextrestored` listeners to the r3f
- * canvas element. `preventDefault()` on loss tells the browser to attempt
- * automatic restoration instead of treating the loss as permanent (mobile
- * GPU resets and long-backgrounded tabs are the common causes — the root
- * canvas persists across client-side navigation, so without this the sims
- * stay visually broken for the rest of the session). On restore, bumps the
- * shared context generation counter so GPU-resource-owning hooks
- * (useFluidSim, useFlowmapSim) rebuild via their existing create/destroy
- * effect cleanup — their hand-built double-buffered render targets sit
- * outside three.js's own tracked-restore path and don't come back on their
- * own.
+ * `preventDefault()` on `webglcontextlost` tells the browser to restore the
+ * context instead of treating the loss as permanent (mobile GPU resets and
+ * long-backgrounded tabs; the root canvas persists across navigation, so the
+ * sims would stay broken for the session). On restore it bumps the shared
+ * context generation so `useFluidSim`/`useFlowmapSim` rebuild their
+ * hand-built render targets, which three.js doesn't restore.
  */
 function ContextLossHandler() {
   const gl = useThree((state) => state.gl)
@@ -106,17 +97,17 @@ interface DprHistory {
 }
 
 /**
- * Lowers the canvas DPR on sustained frame drops and raises it again on
- * recovery, by stepping `factor` between 0 (DPR 1) and 1 (the full ceiling).
+ * Steps `factor` between 0 (DPR 1) and 1 (the full ceiling): down on sustained
+ * frame drops, up on recovery.
  *
  * drei's `PerformanceMonitor` measures fps from the time between frames, and
- * the canvas draws no frames while it sleeps. It is remounted every time the
- * canvas stops drawing, so each measurement only covers continuous frames.
- * One decision takes 10 samples of 250 ms, so a single `wake()` window
- * (2 s) never adjusts anything; only sustained drawing (scrolling, a hold)
- * does. On the `MAX_DPR_REVERSALS`th change of direction it settles on the
- * lower of the two factors and stops, so a device whose fps sits on a
- * boundary can't keep resizing the canvas.
+ * the canvas draws none while it sleeps, so it is remounted every time the
+ * canvas stops drawing and each measurement covers only continuous frames.
+ * One decision takes 10 samples of 250 ms, so a single `wake()` window (2 s)
+ * never adjusts anything; only sustained drawing (scrolling, a hold) does. On
+ * the `MAX_DPR_REVERSALS`th change of direction it settles on the lower factor
+ * and stops, so a device whose fps sits on a boundary can't keep resizing the
+ * canvas.
  */
 function AdaptiveDpr({
   factor,
@@ -165,7 +156,6 @@ export function WebGLCanvas({
   simTypes,
   ...props
 }: WebGLCanvasProps) {
-  // Use context directly for local tunnels
   const { WebGLTunnel, DOMTunnel } = useCanvas()
   const { width } = useWindowSize()
   const [dprFactor, setDprFactor] = useState(1)
@@ -174,14 +164,14 @@ export function WebGLCanvas({
     return null
   }
 
-  // The canvas DPR has one owner: this `dpr` prop. r3f overwrites any
-  // `setDpr` call with it on the next render. It stays a range so r3f clamps
-  // `devicePixelRatio` into it and keeps following the display when the
-  // window moves or zooms. The ceiling is 2, or 1 when postprocessing runs
-  // above 2048 CSS px (its full-screen buffers at 2x cost too much fill
-  // rate). `AdaptiveDpr` lowers it towards 1, never below: the planes stand
-  // in for DOM images and text, and under 1 device pixel per CSS pixel they
-  // look blurrier than the page around them.
+  // The canvas DPR has one owner: this `dpr` prop (r3f overwrites any `setDpr`
+  // call with it on the next render). It stays a range so r3f clamps
+  // `devicePixelRatio` into it and keeps following the display when the window
+  // moves or zooms. The ceiling is 2, or 1 when postprocessing runs above 2048
+  // CSS px (2x full-screen buffers cost too much fill rate). `AdaptiveDpr`
+  // lowers it towards 1, never below: the planes stand in for DOM images and
+  // text, and under 1 device pixel per CSS pixel they look blurrier than the
+  // page around them.
   const ceiling = postprocessing && width !== undefined && width > 2048 ? 1 : 2
   const maxDpr = 1 + (ceiling - 1) * dprFactor
 
@@ -191,7 +181,6 @@ export function WebGLCanvas({
         gl={{
           precision: 'highp',
           powerPreference: 'high-performance',
-          // Disable MSAA when DPR is high to avoid redundant work
           antialias: !postprocessing && window.devicePixelRatio < 2,
           alpha,
           ...(postprocessing && { stencil: false, depth: false }),
@@ -204,9 +193,8 @@ export function WebGLCanvas({
         eventSource={document.documentElement}
         eventPrefix="client"
         resize={{ scroll: false, debounce: 500 }}
-        // Keep the fixed, full-screen canvas from swallowing DOM clicks. r3f
-        // still gets pointer events via `eventSource={document.documentElement}`,
-        // so 3D raycasting works while the DOM underneath stays interactive.
+        // Keeps the fixed, full-screen canvas from swallowing DOM clicks; r3f
+        // still gets pointer events via `eventSource`.
         style={{ pointerEvents: 'none' }}
       >
         <SheetProvider id="webgl">

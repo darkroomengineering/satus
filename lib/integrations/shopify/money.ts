@@ -1,14 +1,10 @@
 import type { Money } from './types'
 
-// Formatters are keyed on the (locale, currency) pair since both vary at
-// call time; `new Intl.NumberFormat` is expensive to construct, so each
-// unique pair is built once and reused.
+// `Intl.NumberFormat` is expensive to construct; build once per
+// (locale, currency) pair.
 const formatters = new Map<string, Intl.NumberFormat>()
 
-/**
- * Format a Shopify `Money` object using its own `currencyCode`, instead of
- * assuming `$` and two decimals. Locale defaults to the runtime's locale.
- */
+/** Formats with the money's own `currencyCode`; locale defaults to the runtime's. */
 export function formatMoney(money: Money, locale?: string): string {
   const key = JSON.stringify([locale, money.currencyCode])
   let formatter = formatters.get(key)

@@ -2,53 +2,8 @@
 
 import { useEffect, useLayoutEffect, useRef } from 'react'
 
-/**
- * Reveal-on-scroll primitive.
- *
- * Attaches an IntersectionObserver to the returned ref and flips a
- * `data-reveal` attribute (`"hidden"` → `"visible"`) when the element enters
- * the viewport. The actual animation lives in CSS — animate `transform` and
- * `opacity` on `[data-reveal-item]` children so it runs on the compositor
- * thread, unaffected by main-thread work during hydration. This is the
- * off-main-thread alternative to driving entrance animations with anime.js.
- *
- * Children that should stagger carry `data-reveal-item`; the hook sets a
- * `--reveal-index` custom property on each so CSS can derive a
- * `transition-delay`. The visual treatment (distance, axis, duration, easing)
- * stays in the component's CSS module — this hook only owns the mechanism.
- *
- * Degrades gracefully: with JS disabled the `data-reveal` attribute is never
- * set, so the CSS hidden state (scoped under `[data-reveal]`) never applies and
- * content renders visible. Under `prefers-reduced-motion`, or when the bundle
- * hydrated late enough that the visitor was already reading the SSR text, the
- * element is revealed immediately and the observer is skipped.
- *
- * The reveal CSS contract lives once, globally, in `lib/styles/css/global.css`;
- * per-section knobs are set on the container in its own CSS module:
- * `--reveal-transform` (hidden offset), `--reveal-stagger`, `--reveal-duration`.
- *
- * @example
- * ```tsx
- * const ref = useReveal<HTMLDivElement>()
- * return (
- *   <div ref={ref} className={s.grid}>
- *     {items.map((item) => (
- *       <div key={item.id} data-reveal-item className={s.card}>{item.name}</div>
- *     ))}
- *   </div>
- * )
- * ```
- *
- * ```css
- * .grid {
- *   --reveal-transform: translateY(32px);
- *   --reveal-stagger: 120ms;
- * }
- * ```
- */
-
 // Layout effect on the client (avoids a hidden→visible flash for elements
-// already in view on mount), plain effect on the server (no-op, no SSR warning).
+// already in view on mount), plain effect on the server (no SSR warning).
 const useIsomorphicLayoutEffect =
   // oxlint-disable-next-line anti-slop/no-runtime-typeof -- SSR guard; literal typeof enables bundler dead-code elimination
   typeof window === 'undefined' ? useEffect : useLayoutEffect
@@ -74,16 +29,25 @@ const HYDRATED_LATE = typeof window !== 'undefined' && performance.now() > 2500
 interface UseRevealOptions {
   /** IntersectionObserver threshold (0–1). Default 0. */
   threshold?: number
-  /**
-   * IntersectionObserver rootMargin. The default bottom inset of -25% mirrors
-   * an anime.js `onScroll` `enter: '75% top'` — reveal once the element is a
-   * quarter into the viewport.
-   */
+  /** Default bottom inset of -25% reveals once the element is a quarter into the viewport. */
   rootMargin?: string
   /** Reveal only once, then disconnect. Default true. */
   once?: boolean
 }
 
+/**
+ * Flips `data-reveal` (`"hidden"` → `"visible"`) on the returned ref when it
+ * enters the viewport; the animation itself is CSS on `[data-reveal-item]`
+ * children (compositor thread, unaffected by hydration work). Items get a
+ * `--reveal-index` property for staggered `transition-delay`. The CSS contract
+ * lives once in `lib/styles/css/global.css`; per-section knobs are
+ * `--reveal-transform`, `--reveal-stagger` and `--reveal-duration` on the
+ * container.
+ *
+ * Without JS `data-reveal` is never set, so the hidden state never applies.
+ * Under reduced motion, or when `HYDRATED_LATE`, the element is revealed
+ * immediately and the observer is skipped.
+ */
 export function useReveal<T extends HTMLElement = HTMLElement>({
   threshold = 0,
   rootMargin = '0px 0px -25% 0px',
@@ -95,14 +59,11 @@ export function useReveal<T extends HTMLElement = HTMLElement>({
     const element = ref.current
     if (!element) return
 
-    // Index staggered children so CSS can offset each via transition-delay.
     const items = element.querySelectorAll<HTMLElement>('[data-reveal-item]')
     items.forEach((item, index) => {
       item.style.setProperty('--reveal-index', String(index))
     })
 
-    // Respect reduced motion, and never re-hide content the visitor could
-    // already read (see HYDRATED_LATE): reveal immediately, never observe.
     if (
       HYDRATED_LATE ||
       // oxlint-disable-next-line hamo/no-raw-observer -- hook returns the server snapshot during hydration

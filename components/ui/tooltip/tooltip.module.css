@@ -9,7 +9,6 @@
     z-index: 100;
     box-shadow: 0 2px 8px oklch(0 0 0 / 0.15);
 
-    /* Base UI animation states */
     transform-origin: var(--transform-origin);
     transition: opacity 150ms ease-out;
 

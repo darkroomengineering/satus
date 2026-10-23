@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react'
 import { Cmdo } from './cmdo'
 import Orchestra from './orchestra'
 
-// Dynamically load debug tools
 const Studio = dynamic(
   () => import('./theatre/studio').then(({ Studio }) => Studio),
   { ssr: false }

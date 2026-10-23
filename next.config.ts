@@ -1,18 +1,13 @@
 import bundleAnalyzer from '@next/bundle-analyzer'
 import type { NextConfig } from 'next'
 
-// Relative import — see the comment on `./lib/integrations/registry`'s own
-// `@/utils/validation` import for why: Next's next.config.ts loader
-// mis-resolves `@/*` aliases for transitively-required files, so both this
-// import and everything it pulls in must use relative paths.
+// Relative import: Next's config loader mis-resolves `@/*` aliases in
+// transitively required files, so this import and everything it pulls in
+// must use relative paths.
 import { composeCsp, isIntegrationKept } from './lib/integrations/csp'
 
-// --- Content-Security-Policy --------------------------------------------------
-// Composed at config-eval time from the integration registry (see
-// lib/integrations/csp.ts for the full design rationale) — every `next
-// build`/`next dev` re-derives the policy from whatever integrations are
-// actually kept in this checkout, so stripping one via `setup:project` drops
-// its origins automatically, with nothing to keep in sync by hand.
+// Derived from the integration registry at config-eval time, so an
+// integration removed by `setup:project` drops its origins with it.
 const CSP_OPTIONS = {
   isDev: process.env.NODE_ENV === 'development',
   isVercelPreview: process.env.VERCEL_ENV === 'preview',
@@ -24,7 +19,6 @@ const STUDIO_CONTENT_SECURITY_POLICY = composeCsp({
   ...CSP_OPTIONS,
   isStudio: true,
 })
-// -----------------------------------------------------------------------------
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -111,12 +105,10 @@ const nextConfig: NextConfig = {
   // renders fully on the server per request instead of streaming into a
   // prerendered shell.
   cacheComponents: false,
-  // Off because it needs `cacheComponents: true`. Cost: links prefetch the
-  // classic way (the nearest `loading.tsx` for dynamic routes, the full
-  // payload for static ones) instead of one shared loading shell per route.
-  // `app/(site)/` has no `loading.tsx` (it would turn 404s into 200s, see
-  // app/README.md), so a link to a dynamic route there prefetches only the
-  // shared layout and the click waits for the server render.
+  // Needs `cacheComponents`. Cost: classic prefetch (nearest `loading.tsx`, or
+  // the full payload for static routes). `app/(site)/` has no `loading.tsx`
+  // (it would turn 404s into 200s), so a link to a dynamic route there
+  // prefetches only the layout and the click waits for the server render.
   partialPrefetching: false,
   compress: true,
   logging: {
@@ -131,21 +123,14 @@ const nextConfig: NextConfig = {
     // visited route refetches its dynamic data instead of reusing a
     // client-side copy.
     cachedNavigations: false,
-    // Not setting `inlineCss: true`. Measured 2026-09-02 (Lighthouse mobile,
-    // 3 runs each, localhost build): FCP 905 -> 810 ms, LCP 3.40 -> 3.40 s,
-    // TBT and CLS unchanged. It removed 4 stylesheets (14 KB transfer) but
-    // grew the document from 10 to 33 KB transfer (45 -> 176 KB raw), and
-    // that CSS also rides in every RSC payload. A 100 ms first-paint gain
-    // for +9 KB on the wire and no LCP movement is not worth it here; the
-    // starter's LCP is the throttled shell floor, not CSS delivery. A client
-    // project with more render-blocking CSS should re-measure.
-    // Native Rust port of the React Compiler, run inside Turbopack. Pairs
-    // with the top-level `reactCompiler: true`.
+    // Not `inlineCss: true`. Measured 2026-09-02 (Lighthouse mobile, 3 runs,
+    // localhost): FCP 905 -> 810 ms, LCP unchanged at 3.40 s, document 10 ->
+    // 33 KB transfer, and the CSS also rides in every RSC payload. Re-measure
+    // on a project with more render-blocking CSS.
     turbopackRustReactCompiler: true,
     sri: { algorithm: 'sha384' },
-    // Not setting `cssChunking: 'graph'`. Measured on this branch it produced
-    // 11 stylesheets instead of the default's 9, for identical total bytes —
-    // more requests, no saving. The default 'loose' heuristic wins here.
+    // Not `cssChunking: 'graph'`: measured 11 stylesheets against the
+    // default's 9 for identical total bytes.
     optimizePackageImports: [
       '@react-three/drei',
       '@react-three/fiber',

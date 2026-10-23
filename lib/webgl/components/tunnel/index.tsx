@@ -1,17 +1,5 @@
 'use client'
 
-/**
- * @module tunnel
- *
- * Provides portal components for bridging React children across renderer
- * boundaries. React Three Fiber renders into its own React reconciler,
- * which means standard React contexts from the DOM tree are not available
- * inside the R3F canvas. This module uses the `tunnel()` factory from
- * `@/webgl/utils/tunnel` to teleport JSX from the DOM tree into the WebGL
- * scene graph (via {@link WebGLTunnel}) or into an HTML overlay layer on
- * top of the canvas (via {@link DOMTunnel}).
- */
-
 import { useContextBridge } from '@react-three/drei'
 import { TransformContext } from 'hamo'
 import { Fragment, type PropsWithChildren, useId } from 'react'
@@ -20,39 +8,12 @@ import { SheetContext } from '@/lib/dev/theatre'
 import { useCanvas } from '@/webgl/components/canvas'
 
 /**
- * Portals React children into the R3F Canvas scene graph.
+ * Portals children into the R3F scene graph. R3F uses a separate reconciler,
+ * so DOM-tree contexts (`TransformContext`, Theatre `SheetContext`) are
+ * re-provided via drei's `useContextBridge`.
  *
- * Because React Three Fiber uses a separate React reconciler, contexts
- * from the DOM tree (e.g. `TransformContext`, Theatre.js `SheetContext`)
- * are invisible inside the canvas. `useContextBridge` from `@react-three/drei`
- * re-provides those contexts so children rendered inside the canvas can
- * still consume them.
- *
- * `useId` is used as the `key` on the bridge wrapper so that when the
- * route changes, React treats it as an entirely new subtree and forces
- * a full remount. This prevents stale Three.js objects from leaking
- * across page navigations.
- *
- * @param props - Standard React `PropsWithChildren`.
- * @returns The children teleported into the WebGL tunnel, or `undefined`
- *   if the tunnel is not yet available (canvas not mounted).
- *
- * @example
- * ```tsx
- * // Inside a page component (DOM tree)
- * import { WebGLTunnel } from '@/webgl/components/tunnel'
- *
- * export default function HeroSection() {
- *   return (
- *     <WebGLTunnel>
- *       <mesh>
- *         <boxGeometry />
- *         <meshStandardMaterial color="hotpink" />
- *       </mesh>
- *     </WebGLTunnel>
- *   )
- * }
- * ```
+ * The `useId` key remounts the subtree on route change, so stale Three.js
+ * objects don't leak across navigations.
  */
 export function WebGLTunnel({ children }: PropsWithChildren) {
   const { WebGLTunnel } = useCanvas()
@@ -65,12 +26,11 @@ export function WebGLTunnel({ children }: PropsWithChildren) {
   return (
     <WebGLTunnel.In>
       {/*
-        `static-components` fires because ContextBridge comes out of a hook, and
-        a component built during render would normally reset its state. It does
-        not here: drei wraps the returned component in `useMemo(..., [])`
+        `static-components` fires because ContextBridge comes out of a hook.
+        It is safe: drei wraps the component in `useMemo(..., [])`
         (node_modules/@react-three/drei/core/useContextBridge.js), so it is
-        created once per hook instance and kept, with fresh context values read
-        through a ref. The `key` keeps identity stable across re-parents.
+        created once per hook instance, with fresh context values read through
+        a ref. The `key` keeps identity stable across re-parents.
       */}
       {/* oxlint-disable react/static-components -- drei memoizes the component once per hook instance */}
       {/* react-doctor-disable-next-line react-hooks-js/static-components */}
@@ -81,32 +41,8 @@ export function WebGLTunnel({ children }: PropsWithChildren) {
 }
 
 /**
- * Portals HTML children into the canvas DOM overlay layer.
- *
- * While {@link WebGLTunnel} places children into the Three.js scene,
- * `DOMTunnel` places standard HTML/React DOM elements into an overlay
- * `<div>` that sits on top of the canvas. This is useful for labels,
- * tooltips, or any HTML content that should visually overlay the 3D scene
- * but remain in the DOM for accessibility and interaction.
- *
- * Like `WebGLTunnel`, a `useId`-based key forces a remount on route changes
- * to prevent stale DOM nodes from persisting across navigations.
- *
- * @param props - Standard React `PropsWithChildren`.
- * @returns The children teleported into the DOM overlay tunnel.
- *
- * @example
- * ```tsx
- * import { DOMTunnel } from '@/webgl/components/tunnel'
- *
- * export default function SceneLabel() {
- *   return (
- *     <DOMTunnel>
- *       <p className="scene-label">Interactive 3D Scene</p>
- *     </DOMTunnel>
- *   )
- * }
- * ```
+ * Portals HTML children into the DOM overlay layer on top of the canvas. The
+ * `useId` key remounts on route change, like {@link WebGLTunnel}.
  */
 export function DOMTunnel({ children }: PropsWithChildren) {
   const { DOMTunnel } = useCanvas()

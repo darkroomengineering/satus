@@ -1,10 +1,4 @@
 #!/usr/bin/env bun
-/**
- * Doctor Script - Diagnose common setup issues
- *
- * Run with: bun run doctor
- */
-
 import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
@@ -27,10 +21,8 @@ config({
   quiet: true,
 })
 
-// The single source of the runtime floor is package.json's engines field —
-// deriving it here keeps the doctor's check and fix hint from drifting when
-// a dependency raises the requirement (the way @portabletext/react v8 moved
-// the floor to 22.12).
+// package.json's engines field is the single source of the runtime floor, so
+// the check and fix hint can't drift when a dependency raises it.
 const packageJson: { engines?: { node?: string } } = await Bun.file(
   join(ROOT, 'package.json')
 ).json()
@@ -46,15 +38,10 @@ interface Check {
 }
 
 /**
- * Detect whether cwd is a git repo's main checkout, a linked worktree
- * (`git worktree add`), or not a git repo at all — mirrors the exact
- * detection `prepare.ts` uses to decide whether `lefthook install` is safe
- * to run (linked worktrees share `core.hooksPath` with the main checkout
- * and `lefthook install` refuses to run against that shared path).
- *
- * In a linked worktree, `.git` is a FILE (not a directory) pointing at
- * `<main>/.git/worktrees/<name>`, so a plain `existsSync('.git/hooks/...')`
- * check can never resolve there — it always reports a false failure.
+ * Mirrors the detection `prepare.ts` uses to decide whether `lefthook install`
+ * is safe: linked worktrees share `core.hooksPath` with the main checkout and
+ * lefthook refuses that shared path. There `.git` is a FILE, so an
+ * `existsSync('.git/hooks/...')` check always reports a false failure.
  */
 const detectGitLayout = (): 'main' | 'worktree' | 'no-git' => {
   const git = Bun.spawnSync([
@@ -160,10 +147,9 @@ const checks: Check[] = [
   },
   {
     name: 'Oxc config present',
-    // The configs are .ts, so `bun run typecheck` already validates their
-    // shape. All this needs to check is that they exist under the exact names
-    // oxlint/oxfmt auto-discover: `.oxlintrc.ts` and `.oxfmtrc.ts` are silently
-    // ignored, and the tools fall back to their defaults without complaining.
+    // Only existence under the exact auto-discovered names needs checking:
+    // `.oxlintrc.ts` and `.oxfmtrc.ts` are silently ignored and the tools fall
+    // back to defaults.
     check: () =>
       existsSync(join(ROOT, 'oxlint.config.ts')) &&
       existsSync(join(ROOT, 'oxfmt.config.ts')),
@@ -198,11 +184,8 @@ const checks: Check[] = [
     name: 'Git hooks installed (lefthook)',
     check: () => {
       const layout = detectGitLayout()
-      // Outside a git repo there's nothing to check; in a linked worktree
-      // hooks are shared with the main checkout via `core.hooksPath` and
-      // `bunx lefthook install` refuses to run against that shared path
-      // (same skip prepare.ts already applies) — reporting a fix here would
-      // suggest a command that fails.
+      // Skip outside a git repo and in linked worktrees: the suggested fix
+      // would fail there (see detectGitLayout).
       if (layout !== 'main') return 'skip'
       return existsSync(join(ROOT, '.git/hooks/pre-commit'))
     },

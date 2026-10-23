@@ -1,22 +1,9 @@
 #!/usr/bin/env bun
 /**
- * Client Handoff Preparation Script
- *
- * Prepares the codebase for delivery to clients by:
- * - Removing Satūs branding assets
- * - Updating package.json name and description
- * - Cleaning up unused environment variables
- * - Swapping README with production version
- * - Generating component inventory
- * - Creating deployment checklist
- *
- * Usage:
- *   bun run handoff
- *   bun run handoff --dry-run
- *   bun run handoff --force        Overwrite an existing README.original.md backup
- *   bun run handoff --help         Show usage and exit
- *
- * Cross-platform compatible (Windows, macOS, Linux)
+ * Client handoff: removes Satūs branding, renames package.json, trims unused
+ * env vars, swaps in PROD-README, and generates the component inventory and
+ * deployment checklist. `--force` overwrites an existing README.original.md
+ * backup; `--help` shows usage.
  */
 
 import * as p from '@clack/prompts'
@@ -39,34 +26,26 @@ import {
 import { renderInventory } from './templates/inventory'
 import { parseCliFlags, pathExists, removeFile, resolvePath } from './utils'
 
-/** Current date as an ISO `YYYY-MM-DD` string for generated-document headers. */
 const today = (): string => new Date().toISOString().split('T')[0] ?? ''
 
-/** True when `id` is a runtime-registry integration id (has an env schema). */
-// Widened to ReadonlySet<string> so the guard can probe with any string —
-// the whole point of a type-guard is accepting the unnarrowed input.
+// Widened to ReadonlySet<string> so the guard can probe with any string.
 const REGISTRY_IDS: ReadonlySet<string> = new Set(
   Object.keys(registryIntegrations)
 )
 const isRegistryId = (id: string): id is IntegrationId => REGISTRY_IDS.has(id)
 
 /**
- * Determine which integrations actually ship on disk (audit H7 — "presence
- * = disk", not "presence = configured env").
+ * Which integrations actually ship on disk: presence on disk, not configured
+ * env.
  *
- * Bundle-backed integrations (sanity, shopify, hubspot, mailchimp, webgl,
- * theatre) are reported only when `isInstalled` finds their code on disk —
- * an integration stripped by `setup:project` must not appear here, even if
- * its env vars happen to still be set in the current shell.
+ * Bundle-backed integrations are reported only when `isInstalled` finds their
+ * code, so one stripped by `setup:project` never appears even if its env vars
+ * are still set in the shell. Registry-only integrations with no removable
+ * bundle (turnstile, analytics) always ship, so they are always reported.
  *
- * Registry-only integrations with no removable bundle (turnstile, analytics)
- * have no strippable on/off disk state — their code always ships — so they
- * are always reported.
- *
- * Env validity becomes a reported *axis*, not a filter: an installed-but-
- * unconfigured integration is still included (`configured: false`) so
- * INVENTORY.md, DEPLOYMENT-CHECKLIST.md, and the `.env.example` cleanup below
- * don't silently omit setup steps for code that actually ships.
+ * Env validity is a reported axis (`configured`), not a filter, so INVENTORY.md,
+ * DEPLOYMENT-CHECKLIST.md, and the `.env.example` cleanup don't omit setup
+ * steps for code that ships.
  */
 const getShippedIntegrations = async (): Promise<IntegrationStatus[]> => {
   const results: IntegrationStatus[] = []
@@ -96,9 +75,8 @@ const getShippedIntegrations = async (): Promise<IntegrationStatus[]> => {
 }
 
 /**
- * Scan a components directory for `*\/index.tsx` entries and return the sorted
- * component names (the leading directory of each match). Returns `null` if the
- * directory cannot be scanned, so the caller can render a fallback line.
+ * Sorted component names from a directory's `*\/index.tsx` entries, or `null`
+ * if it cannot be scanned (the caller renders a fallback line).
  */
 const scanComponentDir = async (dir: string): Promise<string[] | null> => {
   try {
@@ -111,10 +89,7 @@ const scanComponentDir = async (dir: string): Promise<string[] | null> => {
   }
 }
 
-/**
- * Scan `app/` for page routes, excluding the `(examples)` group. Returns the
- * processed, sorted routes, or `null` if the scan fails.
- */
+/** Sorted page routes under `app/` excluding `(examples)`, or `null` if the scan fails. */
 const scanPages = async (): Promise<string[] | null> => {
   try {
     const pages = await Array.fromAsync(
@@ -141,21 +116,16 @@ interface HandoffOptions {
   force: boolean
 }
 
-/** What actually happened during a `runHandoff` run, for the CLI summary. */
 interface HandoffResult {
   /**
-   * True only when `swapReadme` actually wrote a fresh `README.original.md`
-   * this run — not merely when the swap action was selected (P-C6). A re-run
-   * where an existing backup is kept (no `--force`) or `PROD-README.md` is
-   * missing must not claim a backup was written.
+   * True only when `swapReadme` wrote a fresh `README.original.md` this run,
+   * not merely when the swap was selected: a re-run that keeps an existing
+   * backup (no `--force`) or lacks `PROD-README.md` must not claim one.
    */
   readmeBackupWritten: boolean
 }
 
-/**
- * AST ops that drop the Darkroom credit link (logo + link to
- * darkroom.engineering) from the footer, and its now-dangling Logo import.
- */
+/** AST ops that drop the Darkroom credit link from the footer, and its Logo import. */
 const FOOTER_LOGO_OPS: AstOperation[] = [
   { kind: 'removeImport', specifier: '@/components/ui/darkroom.svg' },
   {
@@ -166,15 +136,9 @@ const FOOTER_LOGO_OPS: AstOperation[] = [
 ]
 
 /**
- * Remove the Darkroom credit logo/link from the footer (cross-platform).
- *
- * `removeBrandingAssets` deletes `components/ui/darkroom.svg`, and the
- * footer is the only place in the tree that imports it — leaving the import
- * in place breaks `bun run build` with a "Module not found" error. This
- * rewrites the footer via the AST transform engine to drop the Logo import
- * and the credit link that renders it, then collapses the whitespace-only
- * line the JSX removal leaves behind so the file stays `oxfmt`-clean.
- * Idempotent: re-running over an already-cleaned footer is a no-op.
+ * Remove the Darkroom credit logo/link from the footer. `removeBrandingAssets`
+ * deletes `components/ui/darkroom.svg`, and the footer is its only importer, so
+ * leaving the import breaks `bun run build`. Idempotent.
  */
 const removeFooterLogo = async (dryRun: boolean): Promise<boolean> => {
   try {
@@ -185,8 +149,7 @@ const removeFooterLogo = async (dryRun: boolean): Promise<boolean> => {
     const afterOps = applyOpsToText(original, FOOTER_LOGO_OPS)
     if (afterOps === original) return false // already cleaned — no-op
 
-    // JSX-element removal leaves the credit link's former indentation as a
-    // whitespace-only line; collapse it so the file stays `oxfmt`-clean.
+    // JSX removal leaves a whitespace-only line; collapse it to stay `oxfmt`-clean.
     const transformed = afterOps.replace(/\n[ \t]+\n/g, '\n')
 
     if (!dryRun) {
@@ -199,9 +162,6 @@ const removeFooterLogo = async (dryRun: boolean): Promise<boolean> => {
   }
 }
 
-/**
- * Remove Satūs-specific branding and assets (cross-platform)
- */
 const removeBrandingAssets = async (dryRun: boolean): Promise<boolean> => {
   const brandingFiles = [
     'components/ui/darkroom.svg',
@@ -228,9 +188,6 @@ const removeBrandingAssets = async (dryRun: boolean): Promise<boolean> => {
   return removedCount > 0
 }
 
-/**
- * Update package.json name and description with project-specific information
- */
 const setPackageJsonNameAndDescription = async (
   projectName: string,
   dryRun: boolean
@@ -239,14 +196,12 @@ const setPackageJsonNameAndDescription = async (
     const pkgPath = resolvePath('package.json')
     const pkg = await Bun.file(pkgPath).json()
 
-    // Generate a slug from project name
     const slug = projectName
       .toLowerCase()
       .replace(/[^a-z0-9]/g, '-')
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '')
 
-    // Update package.json fields
     const updates = {
       name: slug,
       description: `${projectName} - Built with Next.js`,
@@ -271,10 +226,7 @@ const setPackageJsonNameAndDescription = async (
   }
 }
 
-/**
- * Clean up unused environment variables from .env.example.
- * Exported for unit testing.
- */
+/** Clean up unused environment variables from .env.example. Exported for unit testing. */
 export const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
   try {
     const envExamplePath = resolvePath('.env.example')
@@ -285,10 +237,9 @@ export const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
 
     const content = await Bun.file(envExamplePath).text()
 
-    // Keep env vars that belong to an INSTALLED integration (H7 — presence =
-    // disk). Stripping env vars for code that still ships would delete the
-    // stub the client needs to fill in — env validity in the current shell is
-    // not a valid signal for "should this var's stub survive cleanup".
+    // Keep env vars of an INSTALLED integration (presence on disk). Stripping
+    // them would delete the stub the client needs to fill in; env validity in
+    // the current shell is not a signal for whether a stub should survive.
     const keepVars = new Set<string>()
     for (const [, bundle] of getIntegrationEntries()) {
       if (!(await isInstalled(bundle))) continue
@@ -296,11 +247,10 @@ export const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
     }
 
     // Core variables unrelated to any single integration are always kept.
-    // Regexes are matched against the var name with any leading
-    // `NEXT_PUBLIC_` stripped (mirrors env-drift.test.ts's `ownsKey()`), so
-    // e.g. Turnstile's client-exposed NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY
-    // survives alongside its server-only CLOUDFLARE_TURNSTILE_SECRET_KEY
-    // sibling instead of being silently stripped for not matching literally.
+    // Regexes match the var name with any leading `NEXT_PUBLIC_` stripped
+    // (mirrors env-drift.test.ts's `ownsKey()`), so Turnstile's client-exposed
+    // NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY survives with its server-only
+    // sibling.
     const alwaysKeep = [
       /^BASE_URL$/,
       /^GOOGLE_/,
@@ -312,7 +262,6 @@ export const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
     const lines = content.split('\n')
     const filteredLines = lines.filter((line) => {
       const trimmed = line.trim()
-      // Preserve blank lines and comments.
       if (!trimmed || trimmed.startsWith('#')) return true
       const varName = trimmed.split('=')[0] ?? ''
       const bareVarName = varName.startsWith('NEXT_PUBLIC_')
@@ -336,21 +285,13 @@ export const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
   }
 }
 
-/** Outcome of `swapReadme`, distinguishing "swap happened" from "backup written" (P-C6). */
+/** Outcome of `swapReadme`, distinguishing "swap happened" from "backup written". */
 interface SwapReadmeResult {
-  /** True when the README was actually swapped (PROD-README.md existed). */
   swapped: boolean
-  /**
-   * True only when a fresh `README.original.md` backup was written this run.
-   * False on dry runs, when the swap was skipped, and when an existing
-   * backup was kept because `--force` wasn't passed.
-   */
+  /** False on dry runs, a skipped swap, or an existing backup kept without `--force`. */
   backupWritten: boolean
 }
 
-/**
- * Swap README.md with PROD-README.md content
- */
 const swapReadme = async (
   projectName: string,
   dryRun: boolean,
@@ -367,16 +308,14 @@ const swapReadme = async (
 
     let content = await Bun.file(prodReadmePath).text()
 
-    // Replace placeholders
     content = content.replace(/\[PROJECT NAME\]/g, projectName)
     content = content.replace(/\[your-domain\.com\]/g, 'your-domain.com')
 
     let backupWritten = false
 
     if (!dryRun) {
-      // Backup original README — never clobber a pre-existing backup unless
-      // --force is passed (H5): a second handoff run would otherwise silently
-      // overwrite the one copy of the pre-swap README.
+      // Never clobber an existing backup without --force: a second handoff run
+      // would overwrite the only copy of the pre-swap README.
       const backupPath = resolvePath('README.original.md')
       if (!force && (await pathExists(backupPath))) {
         p.log.warn(
@@ -388,10 +327,8 @@ const swapReadme = async (
         backupWritten = true
       }
 
-      // Write new README
       await Bun.write(readmePath, content)
 
-      // Remove PROD-README (cross-platform)
       await removeFile('PROD-README.md')
     }
 
@@ -402,13 +339,6 @@ const swapReadme = async (
   }
 }
 
-/**
- * Generate component inventory.
- *
- * Scans the component and page directories, then renders the markdown via the
- * `inventory` template. The document content lives in
- * `./templates/inventory.ts`.
- */
 const generateInventory = async (dryRun: boolean): Promise<string> => {
   const content = renderInventory({
     date: today(),
@@ -426,12 +356,6 @@ const generateInventory = async (dryRun: boolean): Promise<string> => {
   return content
 }
 
-/**
- * Generate deployment checklist.
- *
- * Renders the markdown via the `deployment-checklist` template. The document
- * content lives in `./templates/deployment-checklist.ts`.
- */
 const generateChecklist = async (
   projectName: string,
   dryRun: boolean
@@ -449,9 +373,6 @@ const generateChecklist = async (
   return content
 }
 
-/**
- * Main handoff function
- */
 const runHandoff = async (options: HandoffOptions): Promise<HandoffResult> => {
   const {
     dryRun,
@@ -467,21 +388,18 @@ const runHandoff = async (options: HandoffOptions): Promise<HandoffResult> => {
 
   const s = p.spinner()
 
-  // Remove branding
   if (doRemoveBranding) {
     s.start('Removing Satūs branding...')
     const removed = await removeBrandingAssets(dryRun)
     s.stop(removed ? 'Removed branding assets' : 'No branding assets to remove')
   }
 
-  // Update package.json
   if (doUpdatePackageJson) {
     s.start('Updating package.json...')
     const updated = await setPackageJsonNameAndDescription(projectName, dryRun)
     s.stop(updated ? 'Updated package.json' : 'No package.json changes needed')
   }
 
-  // Cleanup environment variables
   if (doCleanupEnvVars) {
     s.start('Cleaning up environment variables...')
     const cleaned = await cleanupEnvVars(dryRun)
@@ -490,7 +408,6 @@ const runHandoff = async (options: HandoffOptions): Promise<HandoffResult> => {
     )
   }
 
-  // Swap README
   let readmeBackupWritten = false
   if (doSwapReadme) {
     s.start('Swapping README...')
@@ -505,14 +422,12 @@ const runHandoff = async (options: HandoffOptions): Promise<HandoffResult> => {
     )
   }
 
-  // Generate inventory
   if (doGenerateInventory) {
     s.start('Generating component inventory...')
     await generateInventory(dryRun)
     s.stop('Component inventory generated')
   }
 
-  // Generate checklist
   if (doGenerateChecklist) {
     s.start('Generating deployment checklist...')
     await generateChecklist(projectName, dryRun)
@@ -537,16 +452,11 @@ Options:
   --help, -h    Show this help message and exit
 `
 
-/**
- * CLI entry point
- */
 const main = async (): Promise<void> => {
   const { dryRun, help } = parseCliFlags()
   const force = process.argv.slice(2).includes('--force')
 
-  // --help must short-circuit before anything interactive starts (P-C5) —
-  // parseCliFlags already parsed it, but main() never read it, so `--help`
-  // launched the interactive prompts instead of printing usage.
+  // --help must short-circuit before anything interactive starts.
   if (help) {
     console.log(HELP_TEXT)
     process.exit(0)
@@ -560,7 +470,6 @@ const main = async (): Promise<void> => {
     p.log.warn('Dry run mode - no files will be modified')
   }
 
-  // Get project name
   const projectNameValue = await guardedPrompt(
     () =>
       p.text({
@@ -574,7 +483,6 @@ const main = async (): Promise<void> => {
     'Handoff cancelled'
   )
 
-  // Ask what to do
   const actionsValue = await guardedPrompt(
     () =>
       p.multiselect({
@@ -623,14 +531,12 @@ const main = async (): Promise<void> => {
     'Handoff cancelled'
   )
 
-  // Show summary
   p.log.step('Summary:')
   p.log.message(`  Project: ${projectNameValue}`)
   p.log.message(`  Actions: ${actionsValue.join(', ')}`)
 
-  // Confirm — guardedPrompt handles an explicit cancel (Ctrl+C) or stdin
-  // closing (EOF), both exit 1 with a clear message. A deliberate "No"
-  // answer is a different, intentional outcome: exit 0, no error.
+  // guardedPrompt exits 1 on cancel or stdin EOF; a deliberate "No" is
+  // intentional: exit 0.
   const proceed = await guardedPrompt(
     () =>
       p.confirm({
@@ -646,7 +552,6 @@ const main = async (): Promise<void> => {
     process.exit(0)
   }
 
-  // Run handoff
   const handoffResult = await runHandoff({
     dryRun,
     projectName: projectNameValue,
@@ -659,7 +564,6 @@ const main = async (): Promise<void> => {
     force,
   })
 
-  // Done
   if (dryRun) {
     p.outro('Dry run complete. Run without --dry-run to apply changes.')
   } else {
@@ -670,10 +574,7 @@ const main = async (): Promise<void> => {
     if (actionsValue.includes('generateChecklist')) {
       generated.push('  - DEPLOYMENT-CHECKLIST.md (launch tasks)')
     }
-    // Gated on the actual outcome, not just the action being selected
-    // (P-C6) — a re-run that keeps an existing backup, or a swap skipped
-    // because PROD-README.md was missing, must not claim a backup was
-    // written.
+    // Gated on the actual outcome, not the selected action.
     if (handoffResult.readmeBackupWritten) {
       generated.push('  - README.original.md (backup, gitignored)')
     }
@@ -691,10 +592,8 @@ const main = async (): Promise<void> => {
   }
 }
 
-// Run only when executed directly (not when imported by tests or other
-// modules — a bare top-level `main()` call would otherwise run the whole
-// interactive CLI as a side effect of importing this file for its exported
-// pure functions, e.g. `cleanupEnvVars`).
+// Only when executed directly: importing this file for `cleanupEnvVars` etc.
+// must not launch the interactive CLI.
 if (import.meta.main) {
   main().catch((err) => {
     p.log.error(`Handoff failed: ${err.message}`)

@@ -1,28 +1,17 @@
 /**
- * Simple in-memory rate limiter
+ * In-memory rate limiter. Serverless limitation: the counter lives in a
+ * module-level `Map`, scoped to one process/isolate. On Vercel (and any
+ * horizontally-scaled host) requests spread across instances and regions, each
+ * with its OWN counter, and cold starts reset the window. A client hitting N
+ * instances effectively gets N× the limit. Treat this as best-effort,
+ * per-instance throttling, NOT a global guarantee.
  *
- * ⚠️ Serverless / Vercel limitation — read before relying on this in prod:
- * the counter lives in a module-level `Map`, so it is scoped to a single
- * process/isolate. On Vercel (and any horizontally-scaled host) requests are
- * spread across multiple function instances and regions, each with its OWN
- * counter — and instances are recycled on cold starts. A client hitting N
- * instances effectively gets N× the limit, and a cold start resets the window.
- * Treat this as best-effort, per-instance throttling, NOT a global guarantee.
- *
- * For a durable, cross-instance limit, swap the `store` for a shared backend:
- * - `@upstash/ratelimit` with Upstash Redis (recommended on Vercel)
- * - any Redis / KV reachable from the function
- *
- * Works well as-is for: local development, single-server deployments, and
- * coarse per-isolate abuse-dampening at the edge.
- *
- * Recorded decision: satus targets Vercel-first, where the platform
- * overwrites `x-forwarded-for` at the edge — client spoofing of that header
- * is not applicable there — so the in-memory store is accepted as
- * best-effort, per-instance throttling. Self-hosters behind their own proxy
- * must guarantee a trusted XFF chain themselves, and should swap the `store`
- * for a durable backend (e.g. Upstash Redis) for anything security-critical.
- * The store is the single seam to swap; nothing else here needs to change.
+ * Recorded decision: satus targets Vercel-first, where the platform overwrites
+ * `x-forwarded-for` at the edge, so client spoofing of that header doesn't
+ * apply and the in-memory store is accepted. Self-hosters behind their own
+ * proxy must guarantee a trusted XFF chain themselves, and should swap `store`
+ * for a durable backend (`@upstash/ratelimit` with Upstash Redis, any Redis /
+ * KV) for anything security-critical. `store` is the single seam to swap.
  */
 
 interface RateLimitEntry {
@@ -32,7 +21,6 @@ interface RateLimitEntry {
 
 const store = new Map<string, RateLimitEntry>()
 
-// Clean up expired entries periodically
 const CLEANUP_INTERVAL = 60 * 1000 // 1 minute
 let lastCleanup = Date.now()
 
@@ -62,21 +50,7 @@ export interface RateLimitResult {
   resetIn: number
 }
 
-/**
- * Check if a request should be rate limited
- *
- * @param identifier - Unique identifier (e.g., IP address, user ID)
- * @param config - Rate limit configuration
- * @returns Rate limit result
- *
- * @example
- * ```ts
- * const result = rateLimit('192.168.1.1:login', { limit: 5, windowSeconds: 60 })
- * if (!result.success) {
- *   return new Response('Too many requests', { status: 429 })
- * }
- * ```
- */
+/** `identifier` is any unique key, e.g. `${ip}:login`. */
 export function rateLimit(
   identifier: string,
   config: RateLimitConfig
@@ -87,7 +61,6 @@ export function rateLimit(
   const windowMs = config.windowSeconds * 1000
   const entry = store.get(identifier)
 
-  // No existing entry or window expired - create new entry
   if (!entry || now > entry.resetTime) {
     store.set(identifier, {
       count: 1,
@@ -101,7 +74,6 @@ export function rateLimit(
     }
   }
 
-  // Within window - check limit
   const remaining = config.limit - entry.count - 1
   const resetIn = Math.ceil((entry.resetTime - now) / 1000)
 
@@ -114,7 +86,6 @@ export function rateLimit(
     }
   }
 
-  // Increment counter
   entry.count++
 
   return {
@@ -143,28 +114,21 @@ export function isRateLimited(
 }
 
 /**
- * Extract client IP from a Headers object.
- * Works with Vercel, Cloudflare, and standard proxies.
- * Accepts both the Web API `Headers` and Next.js `ReadonlyHeaders`.
- *
- * Priority: x-forwarded-for → cf-connecting-ip → x-real-ip → null (no IP
- * header present — callers must skip rate limiting rather than bucket these
- * requests together, or every headerless visitor shares one counter).
+ * Priority: x-forwarded-for → cf-connecting-ip → x-real-ip → null. `null`
+ * means no IP header: callers must skip rate limiting rather than bucket these
+ * requests together, or every headerless visitor shares one counter.
  */
 export function getIPFromHeaders(headers: Pick<Headers, 'get'>): string | null {
-  // Vercel / standard proxy
   const forwardedFor = headers.get('x-forwarded-for')
   if (forwardedFor) {
     return forwardedFor.split(',')[0]?.trim() || null
   }
 
-  // Cloudflare
   const cfConnectingIP = headers.get('cf-connecting-ip')
   if (cfConnectingIP) {
     return cfConnectingIP
   }
 
-  // Real IP header
   const realIP = headers.get('x-real-ip')
   if (realIP) {
     return realIP
@@ -173,20 +137,15 @@ export function getIPFromHeaders(headers: Pick<Headers, 'get'>): string | null {
   return null
 }
 
-/**
- * Get client IP from a Request object.
- * Works with Vercel, Cloudflare, and standard proxies.
- */
 export function getClientIP(request: Request): string | null {
   return getIPFromHeaders(request.headers)
 }
 
-// Pre-configured rate limiters for common use cases
 export const rateLimiters = {
-  /** Strict: 5 requests per minute (login, auth) */
+  /** Login, auth */
   strict: { limit: 5, windowSeconds: 60 },
-  /** Standard: 20 requests per minute (API routes) */
+  /** API routes */
   standard: { limit: 20, windowSeconds: 60 },
-  /** Relaxed: 60 requests per minute (general endpoints) */
+  /** General endpoints */
   relaxed: { limit: 60, windowSeconds: 60 },
 } as const

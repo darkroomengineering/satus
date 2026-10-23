@@ -6,18 +6,15 @@ import { createContext, use, useEffect, useState } from 'react'
 import type { Themes } from '@/styles/colors'
 import { type ThemeName, themes } from '@/styles/config'
 
-// Context state
 export interface ThemeState {
   name: ThemeName
   theme: Themes[ThemeName]
 }
 
-// Context actions
 export interface ThemeActions {
   setTheme: (theme: ThemeName) => void
 }
 
-// Context value shape
 export type ThemeContextStandard = {
   state: ThemeState
   actions: ThemeActions
@@ -25,17 +22,7 @@ export type ThemeContextStandard = {
 
 const ThemeContextInternal = createContext<ThemeContextStandard | null>(null)
 
-/**
- * Hook to access the theme context with standard structure.
- * Returns { state, actions } for new implementations.
- *
- * @example
- * ```tsx
- * const { state, actions } = useTheme()
- * const { name, theme } = state
- * const { setTheme } = actions
- * ```
- */
+/** Access the theme context: `{ state, actions }`. */
 export function useTheme(): ThemeContextStandard {
   const context = use(ThemeContextInternal)
   if (!context) {
@@ -55,11 +42,9 @@ export function Theme({
 }) {
   const pathname = usePathname()
 
-  // `currentTheme` defaults to the route's `theme` prop but can still be
-  // overridden at runtime via the `setTheme` action. When the prop changes
-  // (navigation), we re-sync *during render* — React's recommended replacement
-  // for a setState-in-effect "mirror". This avoids the wasted extra render and
-  // breaks the effect chain into the data-theme effect below.
+  // `currentTheme` follows the route's `theme` prop but `setTheme` can override
+  // it. On a prop change (navigation) it re-syncs during render, not in an
+  // effect, which skips an extra render.
   // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
   const [currentTheme, setCurrentTheme] = useState(theme)
   const [prevTheme, setPrevTheme] = useState(theme)
@@ -87,11 +72,10 @@ export function Theme({
     },
   }
 
-  // NOTE: the global theme is applied to <html> via the effect above (and a
-  // server-rendered default in the root layout for no-flash initial paint).
-  // We intentionally do NOT render an inline <script> here: scripts inside
-  // client components never execute on client navigation and trigger a React
-  // "Encountered a script tag while rendering" error.
+  // No inline <script> here: scripts in client components never execute on
+  // client navigation and trigger React's "Encountered a script tag while
+  // rendering" error. The root layout's server-rendered default covers the
+  // first paint.
   return (
     <ThemeContextInternal.Provider value={contextValue}>
       {children}

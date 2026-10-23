@@ -1,24 +1,12 @@
 /**
- * Static homepage regression invariant
+ * `/` must be prerendered at build time as static HTML. Any dynamic read in
+ * the homepage's tree (`cookies()`, `headers()`, `searchParams`, a fetch with
+ * `cache: 'no-store'`) silently flips the whole route to per-request rendering,
+ * and nothing else in CI notices: the build passes either way (see PR #324).
+ * This reads `.next/prerender-manifest.json`, written by `bun run build`.
  *
- * `/` is expected to be prerendered at build time as complete static HTML,
- * served without any per-request rendering. Any dynamic read anywhere in the
- * homepage's component tree (`cookies()`, `headers()`, `searchParams`, a
- * fetch with `cache: 'no-store'`) silently flips the whole route to
- * server-rendered on every request. Nothing else in CI catches this: the
- * build succeeds either way, lint and typecheck don't know about rendering
- * mode, and the page still looks correct in a browser. This happened for real
- * in this repo (see PR #324) and was only caught by a human reading build
- * output.
- *
- * `bun run build` writes `.next/prerender-manifest.json`, which lists every
- * route Next prerendered and how. This test reads that file so the
- * regression fails CI instead of shipping silently.
- *
- * Only `/` is asserted on. Other routes (studio, api routes, `[slug]` pages)
- * legitimately render per request, and forks add/remove routes — asserting
- * on those would make this test fight every fork instead of protecting the
- * one route it exists for.
+ * Only `/` is asserted: other routes (studio, api, `[slug]`) legitimately
+ * render per request, and forks add and remove routes.
  */
 
 import { describe, expect, it } from 'bun:test'

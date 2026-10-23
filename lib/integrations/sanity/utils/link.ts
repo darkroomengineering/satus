@@ -1,10 +1,9 @@
 import { stegaClean } from 'next-sanity'
 
 /**
- * Structural shape of a `sanity-plugin-link-field` value, raw or with its
- * internal reference dereferenced (`internalLink->{_type, slug}`). Kept
- * permissive so the TypeGen output for both satisfies it without coupling
- * this util to either generated type.
+ * Shape of a `sanity-plugin-link-field` value, raw or dereferenced
+ * (`internalLink->{_type, slug}`). Permissive so TypeGen output for both
+ * satisfies it.
  */
 type LinkLike = {
   type?: string | null
@@ -21,14 +20,11 @@ type LinkLike = {
 } | null
 
 /**
- * Schemes allowed on a rendered external `href`. The plugin's `url` field
- * only accepts http(s) and relative URLs in the Studio, but that schema check
- * is advisory, never enforced by the Sanity content API: a write token, a
- * content import, or a direct API write can still plant a `javascript:` (or
- * other dangerous-scheme) URL that reaches this anchor's `href`. Re-check at
- * render time so a bad scheme becomes an inert `#` instead of executing.
- * `mailto:` and `tel:` stay allowed because both are inert and a link written
- * outside the Studio may still carry one in `url`.
+ * Schemes allowed on a rendered external `href`. The Studio's http(s)-only
+ * `url` check is advisory; the content API doesn't enforce it, so a write
+ * token, import or direct write can plant a `javascript:` URL. Re-checked at
+ * render so it becomes an inert `#`. `mailto:` and `tel:` are inert and may
+ * appear in `url` when written outside the Studio.
  */
 const SAFE_EXTERNAL_SCHEMES = new Set(['http:', 'https:', 'mailto:', 'tel:'])
 
@@ -76,7 +72,6 @@ function isSafeExternalUrl(url: string): boolean {
   const trimmed = url.trim()
   if (trimmed.startsWith('//') || trimmed.includes('\\')) return false
 
-  // Relative targets (path, query, hash) are same-origin and always safe.
   if (
     trimmed.startsWith('/') ||
     trimmed.startsWith('#') ||
@@ -86,9 +81,8 @@ function isSafeExternalUrl(url: string): boolean {
   }
 
   try {
-    // A scheme-bearing URL keeps its own protocol; `javascript:`/`data:`/
-    // `vbscript:` therefore fail the allowlist. The base only resolves
-    // genuinely relative inputs, which the guard above already accepted.
+    // A scheme-bearing URL keeps its own protocol, so `javascript:`/`data:`
+    // fail the allowlist; the base only resolves relative inputs.
     return SAFE_EXTERNAL_SCHEMES.has(
       new URL(trimmed, 'http://localhost').protocol
     )
@@ -99,18 +93,14 @@ function isSafeExternalUrl(url: string): boolean {
 
 /**
  * Resolves a Sanity link to an `href`, or `#` when it resolves to nothing.
- * In draft mode Presentation's stega encoding can append invisible edit
- * markers to link strings (a relative `#anchor` or `?query` URL is not
- * recognised as a URL and gets encoded), so the input is cleaned here rather
- * than by each caller.
+ * Cleans the input because draft-mode stega encoding can append invisible
+ * edit markers to link strings (a relative `#anchor` or `?query` gets encoded).
  */
 export const urlForReference = (raw: LinkLike): string => {
   const link = stegaClean(raw)
   if (!link) return '#'
 
   switch (link.type) {
-    // Reject any scheme outside the allowlist (see isSafeExternalUrl) so CMS
-    // content can't inject a `javascript:` href.
     case 'external':
       return link.url && isSafeExternalUrl(link.url)
         ? withSuffix(link.url, link)
@@ -138,7 +128,6 @@ export const urlForReference = (raw: LinkLike): string => {
   }
 }
 
-/** Appends the plugin's optional `parameters` and `anchor` fields. */
 function withSuffix(href: string, link: NonNullable<LinkLike>): string {
   const query = link.parameters?.trim().replace(/^[?&]+/, '')
   const hash = link.anchor?.trim().replace(/^#/, '')
@@ -161,10 +150,8 @@ function resolveDocumentUrl(documentType?: string, slug?: string): string {
   if (!slug || !isSafeInternalSlug(slug)) return '#'
 
   switch (documentType) {
-    // Every page slug maps to its own path — including `home` → `/home`.
-    // `/` is the developer-owned starter page (`app/(site)/page.tsx`) and the
-    // catch-all can't match an empty segment, so claiming `/` for a `home`
-    // document would link to a route that never serves it.
+    // `home` maps to `/home`, not `/`: `/` is the developer-owned
+    // `app/(site)/page.tsx` and the catch-all can't match an empty segment.
     case 'page':
       return `/${slug}`
     case 'article':
@@ -176,15 +163,12 @@ function resolveDocumentUrl(documentType?: string, slug?: string): string {
 }
 
 /**
- * `href`, `target` and `rel` for a Sanity link, ready to spread onto `Link`
- * from `@/components/ui/link`. Pass `target` and `rel` even when undefined:
- * `Link` opens every absolute http(s) URL in a new tab on its own, and an
- * explicit `undefined` is what turns that off for a link whose editor
- * switched "open in new window" off.
+ * `href`, `target` and `rel` to spread onto `Link` (`@/components/ui/link`).
+ * Pass `target` and `rel` even when undefined: `Link` opens absolute http(s)
+ * URLs in a new tab itself, and an explicit `undefined` turns that off.
  *
- * New tab is tri-state. The plugin's `blank` wins whenever it is set, either
- * way; an unset `blank` (a link saved before the toggle existed, or never
- * touched) falls back to opening absolute http(s) URLs in a new tab.
+ * New tab is tri-state: the plugin's `blank` wins when set; unset falls back
+ * to a new tab for absolute http(s) URLs.
  */
 export const getLinkAttributes = (raw: LinkLike) => {
   const link = stegaClean(raw)

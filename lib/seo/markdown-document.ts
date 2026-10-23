@@ -10,17 +10,15 @@ import {
   HTML_FORMAT_OVERRIDE_VALUE,
 } from '@/lib/seo/content-negotiation'
 import { STATIC_ROUTES } from '@/lib/seo/route-catalog'
-import { getCmsRoutesResult } from '@/lib/seo/routes'
 import type { ContentRoute } from '@/lib/seo/routes'
+import { getCmsRoutesResult } from '@/lib/seo/routes'
 import { SITE } from '@/lib/seo/site'
 
 /**
- * `303` carries only a redirect location: the client asked for Markdown on
- * a page that only exists as HTML, but its Accept header also allows HTML —
- * so the fix is to send it to the HTML document, not to explain the 406.
- * `503` is the CMS-outage case: the catalog couldn't be checked, so absence
- * can't be confirmed as real yet. Both are distinguished from `404`/`406` at
- * the type level so a caller can't read `contentType`/`body` off a redirect.
+ * `303` carries only a location (the client's Accept header also allows HTML,
+ * so redirect instead of explaining a 406). `503` is a CMS outage: absence
+ * can't be confirmed. Both are distinct types so a caller can't read
+ * `contentType`/`body` off a redirect.
  */
 export type MarkdownDocument =
   | {
@@ -43,10 +41,9 @@ interface BuildMarkdownDocumentOptions {
   /** Whether the requesting client's Accept header also permits text/html. */
   htmlAcceptable?: boolean
   /**
-   * Original request query string, including its leading `?` (or `''` when
-   * absent). Preserved through the proxy rewrite so the HTML-fallback 303
-   * below merges `format=html` into it instead of replacing it and dropping
-   * params like `?variant=x`.
+   * Original query string with its leading `?` (or `''`), preserved through
+   * the proxy rewrite so the 303 merges `format=html` into it instead of
+   * dropping params like `?variant=x`.
    */
   search?: string
 }
@@ -74,10 +71,8 @@ No Markdown representation is available for \`${path}\`. The starter currently p
 }
 
 /**
- * A Sanity outage and a genuinely nonexistent route both leave `path`
- * unmatched in the (empty) catalog — but only the outage might resolve
- * itself. `Retry-After: 60` tells a well-behaved crawler to check back
- * instead of learning the URL 404s.
+ * An outage and a nonexistent route both leave `path` unmatched, but only the
+ * outage resolves itself; a retry hint stops crawlers learning the URL 404s.
  */
 function buildMarkdownDegraded(path: string): MarkdownDocument {
   return {
@@ -100,10 +95,8 @@ function buildMarkdownUnavailable(
   htmlAcceptable: boolean,
   search: string
 ): MarkdownDocument {
-  // The client's Accept header still permits text/html — RFC 9110 only
-  // allows a 406 when none of the available representations are
-  // acceptable, and HTML is available here. Send it to the HTML document
-  // instead of explaining that Markdown doesn't exist for it.
+  // RFC 9110 allows a 406 only when no available representation is
+  // acceptable, and HTML is available here.
   if (htmlAcceptable) {
     return { status: 303, location: htmlOverrideUrl(path, search) }
   }
@@ -117,7 +110,6 @@ function buildMarkdownUnavailable(
   }
 }
 
-/** Classifies a path against an already-resolved route catalog. */
 export function buildMarkdownDocumentFromRoutes(
   requestedPath: string,
   cmsRoutes: readonly ContentRoute[],
@@ -140,9 +132,8 @@ export function buildMarkdownDocumentFromRoutes(
         search
       )
     }
-    // A degraded catalog can't confirm the route is absent — only that it
-    // couldn't be checked. Static routes are unaffected: they never depend
-    // on the CMS fetch this flag reports on.
+    // A degraded catalog can't confirm absence. Static routes never depend on
+    // the CMS fetch, so they are unaffected.
     return catalogDegraded
       ? buildMarkdownDegraded(path)
       : buildMarkdownNotFound(path)
@@ -174,7 +165,6 @@ ${buildStaticRoutesMarkdown()}${buildCmsRoutesMarkdown(cmsRoutes)}${buildAgentGu
   }
 }
 
-/** Builds a concise, truthful Markdown representation of a public page. */
 export async function buildMarkdownDocument(
   requestedPath: string,
   options: BuildMarkdownDocumentOptions = {}

@@ -14,17 +14,8 @@ interface UsePrefetchOptions {
 
 /**
  * Prefetch a route when an element scrolls into view. Skipped on 2G and
- * Save-Data connections.
- *
- * @param href - The route to prefetch; nothing happens while it is null.
- * @param options - Observer options.
- * @returns A ref callback for the element that triggers the prefetch.
- *
- * @example
- * ```tsx
- * const prefetchRef = usePrefetch('/about')
- * return <div ref={prefetchRef}>…</div>
- * ```
+ * Save-Data connections. Returns a ref callback for the triggering element;
+ * nothing happens while `href` is null.
  */
 export function usePrefetch(
   href: Route | null | undefined,
@@ -71,7 +62,6 @@ export function usePrefetch(
   return setElement
 }
 
-// TypeScript types for Network Information API
 interface NetworkInformation {
   readonly effectiveType: 'slow-2g' | '2g' | '3g' | '4g'
   readonly saveData: boolean

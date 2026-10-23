@@ -9,11 +9,10 @@ import { buildMarkdownDocument } from '@/lib/seo/markdown-document'
 import { MARKDOWN_SOURCE_PATH_HEADER } from '@/lib/seo/markdown-path'
 
 export async function GET(request: NextRequest) {
-  // Next preserves the browser-visible URL across a proxy rewrite, including
-  // in route-handler `nextUrl`. The proxy forwards the source path AND its
-  // original query string as an upstream-only request header (path+search
-  // joined, e.g. `/about?variant=x`) so the internal handler can both
-  // identify the route and preserve params through the HTML-fallback 303.
+  // Next keeps the browser-visible URL across a proxy rewrite, even in
+  // `nextUrl`. The proxy forwards the source path and query string as one
+  // upstream-only header (e.g. `/about?variant=x`) so this handler can
+  // identify the route and keep params through the HTML-fallback 303.
   const sourcePath = request.headers.get(MARKDOWN_SOURCE_PATH_HEADER) ?? ''
   const queryIndex = sourcePath.indexOf('?')
   const path = queryIndex === -1 ? sourcePath : sourcePath.slice(0, queryIndex)

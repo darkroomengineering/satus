@@ -1,12 +1,7 @@
 /**
- * The Satūs manual — a single, self-contained landing page.
- *
- * This is the ONE file you replace when starting a real project: swap this
- * component for your homepage and delete `page.module.css`. Nothing else in the
- * repo is wired into it, so there is nothing else to clean up.
- *
- * It walks from a fresh clone to a shippable site. Integrations are opt-in
- * plugins under `lib/integrations/*`.
+ * The Satūs manual: a self-contained landing page and the one file to replace
+ * when starting a real project (swap this component, delete
+ * `page.module.css`). Nothing else is wired into it.
  */
 import cn from 'clsx'
 
@@ -169,14 +164,10 @@ export default function HomePage() {
               </li>
             ))}
           </ol>
-          {/* Scroll-driven reveal — the live example of the anime.js stack
-              (splitText + onScroll synced through Lenis). Delete with the
-              rest of this page. */}
           <p className={s.outro}>
-            {/* The footer keeps the outro's top from ever reaching the viewport
-                top, so `min` clamps leave to max scroll: the reveal runs from
-                the line entering to the end of the page, not across its own
-                line height. */}
+            {/* The footer keeps the outro's top from reaching the viewport top,
+                so `min` clamps leave to max scroll: the reveal runs from the
+                line entering to the end of the page, not its own line height. */}
             <ProgressText enter="bottom top" leave="min top">
               Done here? Replace app/(site)/page.tsx with your homepage and
               delete page.module.css. That&apos;s the only cleanup.

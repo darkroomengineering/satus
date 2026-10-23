@@ -2,19 +2,16 @@ import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 
 import type { FormState } from '@/lib/types/form'
 
-// Server action type
 export type FormAction<T = unknown> = (
   prevState: FormState<T> | null,
   formData: FormData
 ) => Promise<FormState<T>>
 
-// Internal state tracking
 export type FieldError = {
   state: boolean
   message: string
 }
 
-// Form hook options
 export interface UseFormOptions<T = unknown> {
   action: FormAction<T>
   initialState?: FormState<T> | null
@@ -22,7 +19,6 @@ export interface UseFormOptions<T = unknown> {
   formId?: string
 }
 
-// Form hook return value
 export interface UseFormReturn<T = unknown> {
   formState: FormState<T> | null
   formAction: (formData: FormData) => void
@@ -43,7 +39,6 @@ export interface UseFormReturn<T = unknown> {
   errors: Record<string, FieldError>
 }
 
-// Form component props
 export interface FormProps<T = unknown> extends Omit<
   ComponentPropsWithoutRef<'form'>,
   'action' | 'onError'
@@ -56,7 +51,6 @@ export interface FormProps<T = unknown> extends Omit<
   onError?: (state: FormState<T>) => void
 }
 
-// Context state
 export interface FormContextState<T = unknown> {
   formState: FormState<T> | null
   isPending: boolean
@@ -66,25 +60,21 @@ export interface FormContextState<T = unknown> {
   errors: Record<string, FieldError>
 }
 
-// Context actions
 export interface FormContextActions<T = unknown> {
   register: UseFormReturn<T>['register']
   resetForm: () => void
 }
 
-// Context meta
 export interface FormContextMeta {
   formId: string
 }
 
-// Context value shape
 export type FormContextStandard<T = unknown> = {
   state: FormContextState<T>
   actions: FormContextActions<T>
   meta?: FormContextMeta
 }
 
-// Submit button props
 export interface SubmitButtonProps extends Omit<
   ComponentPropsWithoutRef<'button'>,
   'children'
@@ -97,7 +87,6 @@ export interface SubmitButtonProps extends Omit<
   errorText?: string
 }
 
-// Messages component props
 export interface MessagesProps extends ComponentPropsWithoutRef<'div'> {
   className?: string
 }

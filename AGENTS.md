@@ -124,6 +124,8 @@ export function MyComponent({
 - **Micro-interactions** (hover, toggle, ≤200ms) → CSS transitions.
 - **Smooth scroll** → Lenis; **RAF scheduling** → Tempus.
 - Honor reduced-motion: movement is off, fades stay. Declare transform, height, and clip-path transitions inside `@media (--motion-ok)` (`prefers-reduced-motion: no-preference`); opacity and color transitions stay unconditional. Press feedback on buttons (`:active` scale) goes in `--motion-ok` too. JS/WebGL gates via `usePreferredReducedMotion`.
+- Off screen is not paused. `opacity: 0` and a scrolled-away element still run their animations and frame writes, and pseudo-element animations restyle on the main thread. An infinite CSS animation starts `animation-play-state: paused` and runs only while its element is visible (a `data-*` attribute set from hamo's `useIntersectionObserver`); a frame loop skips writes while its element is hidden. `components/ui/marquee` gates its frame loop this way.
+- Per-frame writes go to `transform` or `opacity`. Writing a CSS custom property every frame restyles every element that reads it; if a variable must change per frame, quantize it and skip the write when the value is unchanged.
 - **Deferrable heavy boot** (WebGL contexts, shader compiles, third-party runtimes) → `useAfterLoad` / `<AfterLoad>` (`lib/hooks/use-after-load.ts`). Work done during hydration is billed as blocking time for pixels the DOM is already painting. The root `<Canvas>` already waits for `window.load`; `force` opts out.
 
 ### Design tokens and custom utilities
@@ -150,6 +152,8 @@ Only add `'use client'` when you need hooks, event handlers, or browser APIs. Ke
 React Compiler handles all optimization. Never use `useMemo`, `useCallback`, or `React.memo`; importing them is a lint error.
 
 Exception: use `useRef` for class/object instantiation to prevent infinite loops (see ARCHITECTURE.md § Code Patterns).
+
+The compiler recognizes a ref only when it comes from `useRef` or its name ends in `Ref`. A ref carried inside an object (`props.refs.panel`, `{ el }`) reads as a mutable value, and the compiler can skip optimizing the component. Destructure it into an `xRef` name before use.
 
 ### WebGL cleanup
 

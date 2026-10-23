@@ -176,6 +176,15 @@ that loads the image again (usually from the HTTP cache). Image
 textures use mipmaps with trilinear filtering and up to 4x anisotropy, so a
 plane drawn smaller than its source doesn't shimmer as it scrolls.
 
+`/webgl` shows it: a 2048px test pattern drawn as planes a fifth of its width
+or less (`app/(site)/(examples)/webgl/_components/test-pattern`), served
+`unoptimized` so the plane gets the full file rather than a candidate near
+display size. In development a panel in the page's corner turns mipmaps off on
+every image texture (the `imageMipmaps` key of the Orchestra store, read in
+`lib/webgl/components/image/webgl.tsx`) and shows the canvas DPR, so the
+adaptive DPR described under Pixel ratio can be watched under DevTools CPU
+throttling. Leaving the page turns mipmaps back on.
+
 ## Hooks
 
 ```tsx

@@ -3,7 +3,9 @@ import type { Metadata } from 'next'
 import { Wrapper } from '@/components/layout/wrapper'
 
 import { Cube } from './_components/cube'
+import { DevControls } from './_components/dev-controls'
 import { Parallax } from './_components/parallax'
+import { TestPattern } from './_components/test-pattern'
 
 // A worked example for this repo's contributors, not site content. noindex
 // here, and `/webgl` sits in `RESERVED_PATHS` (lib/seo/routes.ts) so it never
@@ -25,6 +27,10 @@ export const metadata: Metadata = {
  * canvas through hamo's `TransformProvider`, so the cube moves with its
  * box. Scroll and resize: a cube never leaves its box. See
  * `_components/cube` and `_components/parallax`.
+ *
+ * The last section draws a 2048px test pattern as WebGL image planes at
+ * most a fifth of its width, so the GPU shrinks it every frame: mipmaps
+ * keep it from shimmering as it scrolls. See `_components/test-pattern`.
  *
  * Where the canvas does not mount (mobile, reduced motion, no WebGL2, and
  * the GPU-less browser the e2e sweep runs in) the dashed boxes stand alone:
@@ -108,6 +114,16 @@ export default function WebGLExamplePage() {
             loop, no polling, no work while nothing moves. A new source of
             movement gets a new signal, never a loop.
           </li>
+          <li>
+            Images: <code>Image</code> from{' '}
+            <code>@/webgl/components/image</code> draws the file its DOM image
+            loaded as a textured plane on that image&apos;s rect. Drawn smaller
+            than its source, a texture is sampled from mipmaps (copies
+            prefiltered at half, quarter, eighth size) with trilinear filtering,
+            so fine detail averages out instead of shimmering as it scrolls. In
+            development a panel in the corner of this page turns mipmaps off on
+            every image to compare, and shows the canvas DPR as it adapts.
+          </li>
         </ol>
       </section>
       <section className="flex items-end dr-gap-48 dr-p-120">
@@ -118,6 +134,25 @@ export default function WebGLExamplePage() {
           <Cube />
         </Parallax>
       </section>
+      <section className="dr-px-120 dr-pb-120 font-mono">
+        <h2 className="dr-mb-16 font-display dr-text-28 leading-[1.15]">
+          Mipmaps
+        </h2>
+        <p className="dr-mb-48 dr-max-w-560 dr-text-14 leading-[1.5]">
+          One 2048px test pattern, drawn as WebGL planes at a fifth of its width
+          or less. Mipmapped, its rings and 1px lines settle into an even gray
+          and stay still as the page scrolls. Without mipmaps they break into
+          moiré that crawls with every pixel of scroll. Where the canvas does
+          not mount these are plain images, shrunk by the browser.
+        </p>
+        <div className="flex items-end dr-gap-48">
+          <TestPattern className="dr-w-96" />
+          <TestPattern className="dr-w-200" />
+          <TestPattern className="dr-w-400" />
+          <TestPattern className="dr-w-300" />
+        </div>
+      </section>
+      {process.env.NODE_ENV === 'development' && <DevControls />}
     </Wrapper>
   )
 }

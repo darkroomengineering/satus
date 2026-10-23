@@ -1,20 +1,13 @@
 /**
- * Unit tests for `createCustomerAndSignIn`'s create-then-signed-in behavior
- * (L7 audit finding). It lives in ./create-customer.ts — a plain function
- * taking its Shopify-client/cookie dependencies as parameters, with no
- * `next/headers` import of its own — so it's exercised here against
- * faithful fakes instead of mocking a module (house convention: no
- * module mocking; see `oxlint.config.ts`'s `anti-slop/no-module-mocking`).
- * Importing from `./actions` instead would pull in `next/headers` at
- * module scope, which breaks when this file runs in the same `bun test`
- * process as lib/utils/form-action.test.ts (its `mock.module('next/headers', ...)`
- * permanently replaces the module for the rest of the run).
+ * Unit tests for `createCustomerAndSignIn` (./create-customer.ts), run against
+ * fakes for its injected dependencies (no module mocking,
+ * `anti-slop/no-module-mocking`). Importing from `./actions` would pull in
+ * `next/headers`, which breaks in the same `bun test` process as
+ * lib/utils/form-action.test.ts (its `mock.module('next/headers', ...)`
+ * replaces the module for the rest of the run).
  *
- * The login/createCustomer Zod schemas in actions.ts are inline, not
- * exported, so they aren't covered here — a hand-copied replica of them
- * would drift from the real schema silently and never catch a regression.
- *
- * Run with: bun test lib/integrations/shopify/customer/actions.test.ts
+ * The inline Zod schemas in actions.ts aren't covered: a hand-copied replica
+ * would drift silently and never catch a regression.
  */
 
 import { describe, expect, test } from 'bun:test'
@@ -42,10 +35,6 @@ const validAccessToken = {
   accessToken: 'token-abc',
   expiresAt: '2099-01-01T00:00:00Z',
 }
-
-// ============================================
-// createCustomerAndSignIn — create-then-signed-in (L7)
-// ============================================
 
 describe('createCustomerAndSignIn', () => {
   test('signs the new customer in: sets the session cookie and returns success', async () => {
@@ -81,7 +70,10 @@ describe('createCustomerAndSignIn', () => {
       }),
       createAccessToken: async () => {
         accessTokenCalls++
-        return { customerAccessToken: validAccessToken, customerUserErrors: [] }
+        return {
+          customerAccessToken: validAccessToken,
+          customerUserErrors: [],
+        }
       },
       setSessionCookie: async () => undefined,
     }

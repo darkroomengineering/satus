@@ -1,37 +1,26 @@
 /**
- * `prepare` entry point — installs the lefthook git hooks, and finishes any
- * `setup:project` run that deferred formatting + COMPONENTS.md regeneration
- * because it ran with `--skip-install` (P-B2): oxfmt can't run until `bun
- * install` has populated node_modules (its own `oxfmt.config.ts` imports the
- * `oxfmt` package for typed config authoring, which doesn't resolve on a
- * bare `--skip-install` tree), and generate-manifest.ts resolves actual type
- * information via ts-morph, so regenerating it before that install can
- * produce a manifest that doesn't match the real, post-install types. `bun
- * install` always runs `prepare` afterward (unless `--ignore-scripts`), so
- * this is the first reliable point in that flow to finish the job — see
- * `PENDING_FORMAT_MARKER` in `./utils.ts`.
+ * `prepare` entry point: installs the lefthook git hooks, and finishes any
+ * `setup:project --skip-install` run that deferred formatting and COMPONENTS.md
+ * regeneration (see `PENDING_FORMAT_MARKER` in `./utils.ts`). oxfmt can't run
+ * before `bun install` (its config imports the `oxfmt` package), and the
+ * manifest resolves types via ts-morph, so generating it earlier can disagree
+ * with the post-install types. `bun install` always runs `prepare` afterward,
+ * which makes this the first reliable point to finish the job.
  *
- * The marker handoff is defensive by design (cross-model review finding):
- *   - A malformed/partial marker (bad JSON, missing `files`) is warned about
- *     and deleted, never thrown — an uncaught exception here would crash
- *     `prepare.ts` before the marker is removed, and since `bun install`
- *     always re-runs `prepare`, that would brick every future `bun install`
- *     in the project on the same crash, forever.
- *   - Listed files that no longer exist (moved/deleted since setup ran) are
- *     skipped with a note instead of failing oxfmt on a missing path.
- *   - On a format/manifest step failure, the marker is KEPT (with its
- *     `attempts` counter incremented) so the NEXT `bun install` retries,
- *     and the exact manual recovery commands are printed either way. Capped
- *     at `PENDING_FORMAT_MAX_ATTEMPTS`: past that, the marker is deleted
- *     with a loud instruction instead of retrying forever.
+ * The marker handoff must never throw: `bun install` re-runs `prepare` every
+ * time, so a crash before the marker is removed would brick every future
+ * install.
+ *   - A malformed marker is warned about and deleted.
+ *   - Listed files that no longer exist are skipped.
+ *   - On a format/manifest failure the marker is KEPT with `attempts`
+ *     incremented, so the next `bun install` retries. Past
+ *     `PENDING_FORMAT_MAX_ATTEMPTS` it is deleted with a loud instruction.
  *
- * In a linked worktree (`git worktree add`), the repo config is shared with the
- * main checkout and `core.hooksPath` already points at its `.git/hooks`, so the
- * hooks apply here without installing anything — and `lefthook install` refuses
- * to run against that path and fails the whole `bun install`. Skip it instead.
- * Outside a git repo (exported archive, CI cache restore) there is nothing to
- * install into, so that skips too. Neither skip affects the pending-format
- * check above, which runs regardless.
+ * In a linked worktree, `core.hooksPath` already points at the main checkout's
+ * hooks and `lefthook install` refuses that path, failing the whole
+ * `bun install`, so it is skipped. Outside a git repo there is nothing to
+ * install into. Neither skip affects the pending-format check, which runs
+ * regardless.
  */
 
 import { unlink } from 'node:fs/promises'
@@ -40,8 +29,8 @@ import { resolve } from 'node:path'
 import {
   PENDING_FORMAT_MARKER,
   PENDING_FORMAT_MAX_ATTEMPTS,
-  PendingFormatMarkerSchema,
   type PendingFormatMarker,
+  PendingFormatMarkerSchema,
   pathExists,
   resolvePath,
 } from './utils'
@@ -52,7 +41,7 @@ const deleteMarker = async (): Promise<void> => {
   try {
     await unlink(markerPath)
   } catch {
-    // Already gone (or unremovable) — nothing more to do.
+    // Already gone.
   }
 }
 
@@ -63,7 +52,7 @@ if (await pathExists(markerPath)) {
     const parsed = PendingFormatMarkerSchema.safeParse(raw)
     if (parsed.success) marker = parsed.data
   } catch {
-    // Malformed JSON — `marker` stays undefined, handled below.
+    // Malformed JSON: marker stays undefined.
   }
 
   if (!marker) {
@@ -74,8 +63,6 @@ if (await pathExists(markerPath)) {
   } else {
     const attempts = (marker.attempts ?? 0) + 1
 
-    // Skip files that no longer exist since setup ran, rather than failing
-    // oxfmt on a missing path.
     const existingFiles: string[] = []
     for (const file of marker.files) {
       if (await pathExists(resolvePath(file))) {
@@ -123,9 +110,6 @@ if (await pathExists(markerPath)) {
         )
         await deleteMarker()
       } else {
-        // Keep the marker (with the attempt count bumped) so the next
-        // `bun install` retries — never brick install itself on a failure
-        // here; this script still finishes and lefthook still runs below.
         await Bun.write(
           markerPath,
           `${JSON.stringify({ files: existingFiles, attempts }, null, 2)}\n`

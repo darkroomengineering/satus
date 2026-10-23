@@ -1,8 +1,3 @@
-/**
- * Cross-platform Sanity MCP setup helper
- * Copies the Cursor deeplink to clipboard on macOS/Linux/Windows
- */
-
 import { copyToClipboard } from './utils'
 
 const link =

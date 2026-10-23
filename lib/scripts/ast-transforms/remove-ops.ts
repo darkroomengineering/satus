@@ -1,12 +1,3 @@
-/**
- * Subtractive AST operation handlers.
- *
- * Each handler receives source text, applies one remove/replace op, and
- * returns the new source text. Handlers accept a shared in-memory Project
- * to avoid repeated instantiation; source files are removed after each
- * handler so the next op starts from a clean slate.
- */
-
 import { type Node, type Project, SyntaxKind } from 'ts-morph'
 
 import type {
@@ -50,11 +41,6 @@ export function applyRemoveImport(
   })
 }
 
-/**
- * Remove a single named binding from an import declaration, keeping other
- * bindings on the same declaration. Removes the whole declaration when the
- * removed binding was its only one (no default/namespace import left either).
- */
 export function applyRemoveNamedImport(
   project: Project,
   sourceText: string,
@@ -79,7 +65,7 @@ export function applyRemoveNamedImport(
       decl.remove()
     }
 
-    return undefined // proceed with sf.getFullText()
+    return undefined
   })
 }
 
@@ -94,19 +80,14 @@ export function applyRemoveVariableStatement(
       for (const decl of stmt.getDeclarations()) {
         if (decl.getName() === op.name) {
           stmt.remove()
-          return undefined // proceed with sf.getFullText()
+          return undefined
         }
       }
     }
-    return sourceText // no match — return original unchanged
+    return sourceText
   })
 }
 
-/**
- * Remove bare call-expression statements by callee name, e.g. the whole
- * `useTheatre(sheet, …)` statement. Removes every occurrence in the file,
- * including each statement's attached leading comments.
- */
 export function applyRemoveCallStatement(
   project: Project,
   sourceText: string,
@@ -130,20 +111,12 @@ export function applyRemoveCallStatement(
   })
 }
 
-/**
- * Remove every `if (condition) { … }` statement (including an attached
- * `else` chain) whose condition text contains `op.conditionContains`. Mirrors
- * `applyRemoveCallStatement`'s full-file, remove-all-matches loop, and
- * removes each match's `getFullStart()..getEnd()` span so a directly
- * attached leading comment is removed with it.
- */
 export function applyRemoveIfStatement(
   project: Project,
   sourceText: string,
   op: RemoveIfStatementOp
 ): string {
   return withSourceFile(project, sourceText, (sf) => {
-    // Text removal invalidates collected nodes, so re-resolve after each pass.
     while (true) {
       const stmt = sf
         .getDescendantsOfKind(SyntaxKind.IfStatement)
@@ -155,11 +128,6 @@ export function applyRemoveIfStatement(
   })
 }
 
-/**
- * Remove a `try { … } catch { … }` statement whose try-block text contains
- * `blockContains`. Pure deletion (no replacement) — mirrors
- * `applyRemoveIfStatement`.
- */
 export function applyRemoveTryStatement(
   project: Project,
   sourceText: string,
@@ -178,19 +146,16 @@ export function applyRemoveTryStatement(
 }
 
 /**
- * Splice `replacement` verbatim over the node's exact source range, bypassing
- * ts-morph's manipulation printer. `replaceWithText` re-indents inserted
- * lines relative to the replaced node's original shape, so the first
- * application and a re-application of the same replacement produce different
- * whitespace — breaking the idempotent re-run contract `applyOpsToText`
- * depends on (see `RequiredMatchOp` in `ast-operation-types.ts`). A verbatim
- * splice makes re-applying an already-applied replacement byte-identical,
- * which the runner's change detection (`text === before`) counts as the
- * required-op miss it is. No text-similarity heuristic is involved, so
- * whitespace that is content (a multiline template literal's interior, a
- * JSDoc's spacing) can never make a needed replacement look already applied.
- * The trade-off: `replacement` must be authored pre-indented for its target
- * (both current targets are top-level, authored flush).
+ * Splice `replacement` verbatim over the node's exact range, bypassing
+ * ts-morph's printer. `replaceWithText` re-indents inserted lines relative to
+ * the replaced node, so a first application and a re-application differ in
+ * whitespace and break the idempotent re-run contract (see `RequiredMatchOp`).
+ * A verbatim splice makes re-applying byte-identical, which the runner's
+ * `text === before` check counts as the required-op miss it is. No
+ * text-similarity heuristic, so whitespace that is content (template literal
+ * interior, JSDoc spacing) can't make a needed replacement look applied.
+ * Trade-off: `replacement` must be authored pre-indented for its target (both
+ * current targets are top-level, authored flush).
  */
 const spliceNodeText = (
   sourceText: string,
@@ -201,11 +166,6 @@ const spliceNodeText = (
   replacement +
   sourceText.slice(node.getEnd())
 
-/**
- * Replace a named function's entire body with `replacement` (source text
- * including the surrounding braces). No-op when the function isn't found, or
- * when its body already says what `replacement` says.
- */
 export function applyReplaceFunctionBody(
   project: Project,
   sourceText: string,
@@ -245,12 +205,10 @@ export function applyRemoveCallArgument(
 }
 
 /**
- * Find the JSX comment expression that documents `target`, if any: the nearest
- * preceding sibling in the JSX child list, skipping the whitespace-only
- * JsxText between them. Returns the comment node so the caller can remove it
- * AFTER removing `target` — the comment sits earlier in the source, so its
- * position survives the target's removal, while the reverse order would
- * invalidate the target node.
+ * The JSX comment expression documenting `target`, if any: the nearest
+ * preceding sibling, skipping whitespace-only JsxText. Remove it AFTER
+ * `target`: it sits earlier in the source so its position survives, while the
+ * reverse order would invalidate the target node.
  */
 function findPrecedingJsxComment(target: Node): Node | undefined {
   const siblings =
@@ -276,20 +234,11 @@ function findPrecedingJsxComment(target: Node): Node | undefined {
 }
 
 /**
- * Walk all JSX elements in the source file and find those matching the op.
- *
- * Self-closing elements: remove the whole element (plus any immediately
- * preceding JSX comment expression on the prior sibling position).
- *
- * Open/close elements with `unwrap: true`: replace the element with its
- * children, preserving indentation. The comment cleanup is skipped here —
- * the children stay, so whatever the comment documents is still rendered.
- *
- * Open/close elements without `unwrap`: remove entirely, including any
- * wrapping JsxExpression container (handles `{studio && <Studio />}`) and the
- * same preceding comment the self-closing branch removes (L4 — both branches
- * must share the cleanup, or a removed `<Studio>…</Studio>` leaves its
- * documenting comment orphaned).
+ * Self-closing and open/close elements both remove the enclosing
+ * JsxExpression container (`{studio && <Studio />}`) and the preceding JSX
+ * comment, or a removed element leaves its documenting comment orphaned.
+ * `unwrap: true` keeps the children and skips comment cleanup, since whatever
+ * the comment documents is still rendered.
  */
 export function applyRemoveJsxElement(
   project: Project,
@@ -316,14 +265,10 @@ export function applyRemoveJsxElement(
       if (match.kind === 'self') {
         const node = match.node
 
-        // Walk up the full ancestor chain to find the enclosing JsxExpression.
-        // This handles `{<Foo />}` (direct), `{cond && <Foo />}` (one level of
-        // binary expression), and deeper nesting like
-        // `{a && b && (<Wrapper><Foo /></Wrapper>)}` where Foo is several
-        // levels inside a JsxElement that itself is inside the JsxExpression.
-        // We do NOT stop at JsxElement boundaries here because the element being
-        // removed may be a leaf inside a wrapper (e.g. `<Suspense><Foo/></Suspense>`)
-        // that is itself inside the target JsxExpression.
+        // Walk the full ancestor chain to the enclosing JsxExpression. Do NOT
+        // stop at JsxElement boundaries: the element may be a leaf inside a
+        // wrapper (`{a && (<Suspense><Foo /></Suspense>)}`) that is itself
+        // inside the target JsxExpression.
         let enclosingJsxExpr: Node | undefined
         let cursor: Node | undefined = node.getParent()
         while (cursor) {
@@ -343,18 +288,15 @@ export function applyRemoveJsxElement(
         removed.replaceWithText('')
         comment?.replaceWithText('')
       } else {
-        // JsxElement (open+close pair)
         const node = match.node
         if (op.unwrap) {
-          // Keep children, strip opening/closing tags.
           const childText = node
             .getJsxChildren()
             .map((c) => c.getText())
             .join('')
           node.replaceWithText(childText)
         } else {
-          // Remove entirely — walk up to find the enclosing JsxExpression so
-          // that `{cond && <Elem>…</Elem>}` is removed whole, not just the tags.
+          // Remove the enclosing JsxExpression too, so `{cond && <Elem>…</Elem>}` goes whole.
           let enclosingExpr: Node | undefined
           let cur: Node | undefined = node.getParent()
           while (cur) {
@@ -362,7 +304,6 @@ export function applyRemoveJsxElement(
               enclosingExpr = cur
               break
             }
-            // Stop if we reach another JSX element boundary (don't escape siblings)
             if (
               cur.getKind() === SyntaxKind.JsxElement ||
               cur.getKind() === SyntaxKind.JsxFragment
@@ -381,19 +322,12 @@ export function applyRemoveJsxElement(
   })
 }
 
-/**
- * Remove a named attribute from all JSX elements with the given tag name.
- * Handles both self-closing (`<Foo bar />`) and open/close (`<Foo bar>…</Foo>`)
- * elements, and both boolean shorthand (`webgl`) and valued (`webgl={true}`)
- * attribute forms.
- */
 export function applyRemoveJsxAttribute(
   project: Project,
   sourceText: string,
   op: RemoveJsxAttributeOp
 ): string {
   return withSourceFile(project, sourceText, (sf) => {
-    // Collect attribute nodes from self-closing elements
     const selfClosingAttrs = sf
       .getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement)
       .filter((el) => el.getTagNameNode().getText() === op.tagName)
@@ -402,7 +336,6 @@ export function applyRemoveJsxAttribute(
         return attr ? [attr] : []
       })
 
-    // Collect attribute nodes from open/close elements
     const openElementAttrs = sf
       .getDescendantsOfKind(SyntaxKind.JsxElement)
       .filter(
@@ -413,7 +346,6 @@ export function applyRemoveJsxAttribute(
         return attr ? [attr] : []
       })
 
-    // Process in reverse source order to keep positions stable
     const allAttrs = [...selfClosingAttrs, ...openElementAttrs].sort(
       (a, b) => b.getPos() - a.getPos()
     )
@@ -437,7 +369,7 @@ export function applyRemoveInterfaceProperty(
     if (!prop) return sourceText
 
     prop.remove()
-    return undefined // proceed with sf.getFullText()
+    return undefined
   })
 }
 
@@ -450,7 +382,6 @@ export function applyRemoveFunctionParameter(
     const fn = sf.getFunction(op.functionName)
     if (!fn) return sourceText
 
-    // Props are destructured in the first parameter's object binding pattern.
     const param = fn.getParameters()[0]
     if (!param) return sourceText
 
@@ -469,26 +400,16 @@ export function applyRemoveFunctionParameter(
     )
     if (!target) return sourceText
 
-    // BindingElement has no `.remove()`; rebuild the binding pattern text from the
-    // remaining elements (each element's text preserves its default value, and a
-    // rest element like `...props` is kept verbatim).
+    // BindingElement has no `.remove()`; rebuild the pattern from the rest
+    // (element text keeps defaults, and rest elements stay verbatim).
     const kept = elements
       .filter((el) => el !== target)
       .map((el) => el.getText())
     pattern.replaceWithText(`{ ${kept.join(', ')} }`)
-    return undefined // proceed with sf.getFullText()
+    return undefined
   })
 }
 
-/**
- * Remove a named binding from a destructured variable declaration at any scope
- * depth, e.g. `const { stats, grid, studio } = useOrchestra()`.
- *
- * The declaration is located by finding a VariableStatement whose binding
- * pattern contains `bindingName` AND whose initializer text contains
- * `initializerContains` (substring match). The remaining elements are preserved
- * verbatim (including defaults and rest elements).
- */
 export function applyRemoveDestructuredBinding(
   project: Project,
   sourceText: string,
@@ -505,7 +426,6 @@ export function applyRemoveDestructuredBinding(
         const target = elements.find((el) => el.getName() === op.bindingName)
         if (!target) continue
 
-        // Narrow by initializer text to avoid modifying unrelated destructurings.
         const initText = decl.getInitializer()?.getText() ?? ''
         if (!initText.includes(op.initializerContains)) continue
 
@@ -514,11 +434,11 @@ export function applyRemoveDestructuredBinding(
           .map((el) => el.getText())
         pattern.replaceWithText(`{ ${kept.join(', ')} }`)
 
-        return undefined // proceed with sf.getFullText()
+        return undefined
       }
     }
 
-    return sourceText // no match — return original unchanged
+    return sourceText
   })
 }
 
@@ -534,9 +454,7 @@ export function applyReplaceJsDoc(
     const docs = fn.getJsDocs()
     if (docs.length === 0) return sourceText
 
-    // Replace the first (and typically only) JSDoc block — verbatim splice
-    // over the /** … */ range; see `spliceNodeText` for why not
-    // `replaceWithText`.
+    // Verbatim splice over the first JSDoc block; see `spliceNodeText`.
     const firstDoc = docs[0]
     if (!firstDoc) return sourceText
     return spliceNodeText(sourceText, firstDoc, op.replacement)
@@ -561,11 +479,10 @@ export function applyRemoveArrayObjectElement(
     for (const el of elements) {
       if (!objectElementMatches(el, op.matchProperty)) continue
 
-      // Found the matching element — remove it from the array
       arr.removeElement(el)
       break
     }
-    return undefined // proceed with sf.getFullText()
+    return undefined
   })
 }
 
@@ -594,6 +511,6 @@ export function applyRemoveArrayStringElement(
         break
       }
     }
-    return undefined // proceed with sf.getFullText()
+    return undefined
   })
 }

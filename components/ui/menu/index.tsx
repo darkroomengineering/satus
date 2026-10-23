@@ -7,8 +7,7 @@ import type { ComponentProps, ReactNode } from 'react'
 import s from './menu.module.css'
 
 /**
- * Menu component built on Base UI for accessible dropdown menus, with keyboard
- * navigation and positioning via Floating UI.
+ * Dropdown menu on Base UI (keyboard navigation, Floating UI positioning).
  *
  * @example
  * ```tsx
@@ -48,10 +47,8 @@ import s from './menu.module.css'
  * ```
  */
 
-// Re-export Root directly
 const Root = BaseMenu.Root
 
-// Trigger with default styling
 type TriggerProps = ComponentProps<typeof BaseMenu.Trigger> & {
   className?: string
 }
@@ -64,10 +61,8 @@ function Trigger({ className, children, ...props }: TriggerProps) {
   )
 }
 
-// Portal - just re-export
 const Portal = BaseMenu.Portal
 
-// Positioner with sensible defaults
 type PositionerProps = ComponentProps<typeof BaseMenu.Positioner>
 
 function Positioner({ sideOffset = 4, className, ...props }: PositionerProps) {
@@ -80,7 +75,6 @@ function Positioner({ sideOffset = 4, className, ...props }: PositionerProps) {
   )
 }
 
-// Popup with default styling
 type PopupProps = ComponentProps<typeof BaseMenu.Popup> & {
   className?: string
 }
@@ -89,7 +83,6 @@ function Popup({ className, ...props }: PopupProps) {
   return <BaseMenu.Popup className={cn(s.popup, className)} {...props} />
 }
 
-// Item with default styling
 type ItemProps = ComponentProps<typeof BaseMenu.Item> & {
   className?: string
 }
@@ -98,7 +91,6 @@ function Item({ className, ...props }: ItemProps) {
   return <BaseMenu.Item className={cn(s.item, className)} {...props} />
 }
 
-// Separator
 type SeparatorProps = {
   className?: string
 }
@@ -107,7 +99,6 @@ function Separator({ className }: SeparatorProps) {
   return <hr className={cn(s.separator, className)} />
 }
 
-// Arrow indicator (for trigger)
 type ArrowProps = {
   className?: string
   children?: ReactNode
@@ -121,23 +112,18 @@ function Arrow({ className, children }: ArrowProps) {
   )
 }
 
-// Group for organizing items
 const Group = BaseMenu.Group
 const GroupLabel = BaseMenu.GroupLabel
 
-// Radio items for single selection
 const RadioGroup = BaseMenu.RadioGroup
 const RadioItem = BaseMenu.RadioItem
 const RadioItemIndicator = BaseMenu.RadioItemIndicator
 
-// Checkbox items for multiple selection
 const CheckboxItem = BaseMenu.CheckboxItem
 const CheckboxItemIndicator = BaseMenu.CheckboxItemIndicator
 
-// Submenu support
 const SubmenuTrigger = BaseMenu.SubmenuTrigger
 
-// Export as namespace for compound component pattern
 export const Menu = {
   Root,
   Trigger,

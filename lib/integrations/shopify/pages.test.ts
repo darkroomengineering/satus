@@ -1,12 +1,7 @@
 /**
- * Unit tests for `menuItemPath` (pages.ts).
- *
- * Covers issue #384: unanchored `String.replace` remaps corrupting product
- * handles that merely contain `/pages` or `/collections` as a substring, and
- * absolute URLs (external links, hashes) being collapsed into dead local
- * routes.
- *
- * Run with: bun test lib/integrations/shopify/pages.test.ts
+ * Unit tests for `menuItemPath` (pages.ts): remaps must not corrupt product
+ * handles that merely contain `/pages` or `/collections`, and external links
+ * must not collapse into dead local routes.
  */
 
 import { describe, expect, test } from 'bun:test'
@@ -17,10 +12,9 @@ import { normalizeStoreDomain } from './client'
 import { menuItemPath } from './pages'
 
 /**
- * Derive the fixture host the same way `isStoreHost` does, so these cases
- * stay correct whether or not SHOPIFY_STORE_DOMAIN is configured in the
- * environment running the tests. Hardcoding a host would fail the moment a
- * developer has a real store domain in .env.local.
+ * Derives the fixture host the way `isStoreHost` does, so cases hold whether
+ * or not SHOPIFY_STORE_DOMAIN is set; a hardcoded host fails once a developer
+ * has a real store domain in .env.local.
  */
 const storeOrigin = normalizeStoreDomain(env.SHOPIFY_STORE_DOMAIN)
 const STORE_HOST = storeOrigin

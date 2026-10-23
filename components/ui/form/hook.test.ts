@@ -4,8 +4,6 @@
  * Verifies that validators are looked up by element.name first,
  * then element.id, then element.type — so a field where name !== id
  * still applies a name-keyed validator correctly.
- *
- * Run with: bun test components/ui/form/hook.test.ts
  */
 
 import { describe, expect, test } from 'bun:test'

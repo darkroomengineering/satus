@@ -1,14 +1,6 @@
-// ---------------------------------------------------------------------------
-// Canonical barrel-file (index.ts re-export) string transforms.
-// Pure functions — no I/O. Callers own their own read/write, dry-run, and
-// logging. See bundle-installer (restore) and setup-project (remove) for the
-// I/O wrappers.
-// ---------------------------------------------------------------------------
+// Pure string transforms; callers (bundle-installer, setup-project) own I/O.
 
-/**
- * Find the export line in a source barrel matching the removal `pattern`,
- * using a quoted-specifier match (`'pattern'` or `'./pattern'`).
- */
+/** First export line whose quoted specifier is `'pattern'` or `'./pattern'`. */
 export function findBarrelLine(
   sourceText: string,
   pattern: string
@@ -20,11 +12,7 @@ export function findBarrelLine(
     )
 }
 
-/**
- * Remove every barrel export line matching `pattern` (quoted specifier or
- * quoted './specifier'). Pure: returns the new text and whether anything
- * changed. Callers handle dry-run and persistence.
- */
+/** Remove every export line matching `pattern` (same match as `findBarrelLine`). */
 export function removeBarrelLines(sourceText: string, pattern: string) {
   const lines = sourceText.split('\n')
   const filtered = lines.filter(
@@ -37,9 +25,8 @@ export function removeBarrelLines(sourceText: string, pattern: string) {
 }
 
 /**
- * Insert a barrel export line when absent (sorted position among existing
- * `export` lines, best-effort). Returns the text unchanged when an identical
- * line already exists — idempotent.
+ * Insert a barrel export line in sorted position among existing `export`
+ * lines (best-effort). Idempotent: unchanged when the line already exists.
  */
 export function insertBarrelLine(localText: string, line: string): string {
   const newLine = line.trim()

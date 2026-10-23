@@ -15,22 +15,19 @@ export const metadata: Metadata = {
 }
 export { viewport } from 'next-sanity/studio'
 
-// Prerender `/studio` at build time, as next-sanity recommends. Deeper Studio
-// paths (`/studio/structure/...`) would each render and cache their own copy
-// on first request; the `/studio/:path+` rewrite in next.config.ts sends them
-// all to this one page instead. Cost: the configured check below runs once per
-// build, not per request, so turning Sanity on or off takes a rebuild. It
-// always did for the browser side, since `sanity.config.ts` sees only the
-// NEXT_PUBLIC_* values inlined at build time.
+// Prerendered as next-sanity recommends. Deeper Studio paths would each render
+// and cache their own copy; the `/studio/:path+` rewrite in next.config.ts
+// sends them all to this page. Cost: the configured check below runs once per
+// build, so turning Sanity on or off takes a rebuild (as it does for the
+// browser side, where `sanity.config.ts` sees only inlined NEXT_PUBLIC_*).
 export const dynamic = 'force-static'
 
 export default function StudioPage() {
-  // 404 here rather than inside <Studio />: this decides on the server, before
-  // the client reference is emitted, so an unconfigured project never mounts
-  // the Studio at all. Deliberately the same `projectId && dataset` condition
-  // sanity.config.ts gates on, read from the same module — any other predicate
-  // can disagree with it and strand the route between a pass here and a null
-  // config there.
+  // Decides on the server, before the client reference is emitted, so an
+  // unconfigured project never mounts Studio. Must stay the same
+  // `projectId && dataset` condition sanity.config.ts gates on, read from the
+  // same module: any other predicate can pass here and meet a null config
+  // there.
   if (!projectId || !dataset) {
     notFound()
   }

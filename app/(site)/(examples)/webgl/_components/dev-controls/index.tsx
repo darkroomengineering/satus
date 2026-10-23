@@ -7,11 +7,7 @@ const DevControlsPanel = dynamic(
   { ssr: false }
 )
 
-/**
- * Development-only controls for the mipmap test: a mipmap switch and a
- * canvas DPR readout. Renders nothing in production, and the panel's chunk
- * is never requested there.
- */
+/** Dev-only mipmap switch and canvas DPR readout; the panel chunk is never requested in production. */
 export function DevControls() {
   if (process.env.NODE_ENV !== 'development') return null
 

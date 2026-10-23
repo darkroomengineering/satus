@@ -1,15 +1,3 @@
-/**
- * Unit tests for the setup-project AST transform engine
- *
- * Run with: bun test lib/scripts/setup-project.test.ts
- *
- * These tests verify:
- * 1. The typed AST operations produce correct output on actual source files
- * 2. Integration bundle configurations are structurally valid
- * 3. Preset configurations reference valid integrations
- * 4. Combined (webgl + theatre) removal leaves files in a valid state
- */
-
 import { beforeAll, describe, expect, it } from 'bun:test'
 import { chmod, mkdir, mkdtemp, rm, symlink } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -53,13 +41,12 @@ import {
 } from './utils'
 
 /**
- * Copies the repo to `tmpRoot` for tests that run the real scripts, leaving
- * out `node_modules`, `.next` and `.git` (no `.git` makes prepare.ts's
- * lefthook step a no-op), then links the nearest real `node_modules` so the
- * copy resolves packages offline. The walk goes up from `projectRoot`
- * because a git worktree has no `node_modules` of its own. Throws when none
- * exists: without the link, Bun falls back to auto-install, which needs the
- * network and fails outright on some Bun versions.
+ * Copies the repo to `tmpRoot` for tests that run the real scripts, leaving out
+ * `node_modules`, `.next` and `.git` (no `.git` makes prepare.ts's lefthook step
+ * a no-op), then links the nearest real `node_modules` (found by walking up from
+ * `projectRoot`, since a git worktree has none of its own) so the copy resolves
+ * packages offline. Throws when none exists: without the link Bun falls back to
+ * auto-install, which needs the network and fails on some Bun versions.
  */
 async function copyRepo(tmpRoot: string): Promise<void> {
   const rsync = Bun.spawnSync([
@@ -86,9 +73,7 @@ async function copyRepo(tmpRoot: string): Promise<void> {
   throw new Error(`copyRepo: no node_modules found above ${projectRoot}`)
 }
 
-// ---------------------------------------------------------------------------
-// Source file fixtures — loaded once, never written to disk
-// ---------------------------------------------------------------------------
+// Source fixtures: loaded once, never written to disk.
 const sourceFiles: Record<string, string> = {}
 
 beforeAll(async () => {
@@ -111,10 +96,6 @@ beforeAll(async () => {
     }
   }
 })
-
-// ---------------------------------------------------------------------------
-// Structural tests — shape of the bundle config
-// ---------------------------------------------------------------------------
 
 describe('Integration Bundle Configuration', () => {
   it('should have valid structure for all bundles', () => {
@@ -178,7 +159,6 @@ describe('Integration Bundle Configuration', () => {
         expect(Array.isArray(transform.ops)).toBe(true)
 
         for (const op of transform.ops) {
-          // Every op must have a known kind
           expect([
             'removeImport',
             'removeNamedImport',
@@ -199,7 +179,6 @@ describe('Integration Bundle Configuration', () => {
             'syncUnusedParameterPrefix',
           ]).toContain(op.kind)
 
-          // Each op kind must carry its required fields
           if (op.kind === 'removeImport') {
             expect(op.specifier).toBeTruthy()
           } else if (op.kind === 'removeVariableStatement') {
@@ -271,10 +250,8 @@ describe('Integration Bundle Configuration', () => {
         expect(Array.isArray(transform.ops)).toBe(true)
 
         for (const op of transform.ops) {
-          // Every additive op must have a known ADDITIVE kind
           expect(additiveKinds).toContain(op.kind)
 
-          // Each op kind must carry its required fields
           if (op.kind === 'addImport') {
             expect(op.text).toBeTruthy()
           } else if (op.kind === 'addArrayStringElement') {
@@ -329,9 +306,9 @@ describe('Integration Bundle Configuration', () => {
     }
   })
 
-  // L17: with `force: true` the only call mode `installBundle` ever uses,
-  // an overwriteFiles entry for a path ALSO in the same bundle's `files` is
-  // a redundant no-op — copyBundleFiles already force-overwrites it.
+  // With `force: true`, the only call mode `installBundle` uses, an
+  // overwriteFiles entry for a path also in the same bundle's `files` is a
+  // redundant no-op: copyBundleFiles already force-overwrites it.
   it('overwriteFiles never duplicates a path already in files (L17)', () => {
     for (const [name, bundle] of getIntegrationEntries()) {
       const fileSet = new Set(bundle.files)
@@ -344,13 +321,8 @@ describe('Integration Bundle Configuration', () => {
     }
   })
 
-  /**
-   * Symmetry invariant: for every bundle, every file named in codeTransforms
-   * must be covered by either overwriteFiles OR an addTransforms entry for
-   * the same file.  This ensures every removal is reversible.
-   *
-   * hubspot and mailchimp have empty codeTransforms and trivially pass.
-   */
+  // Symmetry: every file named in a bundle's codeTransforms must be covered by
+  // overwriteFiles OR an addTransforms entry, so every removal is reversible.
   it('every codeTransform file is covered by overwriteFiles or addTransforms', () => {
     for (const [name, bundle] of getIntegrationEntries()) {
       const overwriteSet = new Set(bundle.overwriteFiles ?? [])
@@ -371,10 +343,6 @@ describe('Integration Bundle Configuration', () => {
   })
 })
 
-// ---------------------------------------------------------------------------
-// Theatre.js transforms — real engine against actual source
-// ---------------------------------------------------------------------------
-
 describe('Theatre.js Code Transforms', () => {
   const theatreBundle = INTEGRATION_BUNDLES.theatre
   if (!theatreBundle) throw new Error('Theatre bundle not found')
@@ -393,12 +361,10 @@ describe('Theatre.js Code Transforms', () => {
 
       const result = applyOpsToText(content, transform.ops)
 
-      // Essential structure must remain
       expect(result).toContain("'use client'")
       expect(result).toContain('export function OrchestraTools')
       expect(result).toContain('export function useOrchestra')
 
-      // Theatre-specific code must be gone
       expect(result).not.toContain('./theatre/studio')
       expect(result).not.toContain('<Studio')
       expect(result).not.toContain('const Studio')
@@ -419,9 +385,7 @@ describe('Theatre.js Code Transforms', () => {
 
       const result = applyOpsToText(content, transform.ops)
 
-      // studio toggle removed
       expect(result).not.toContain('id="studio"')
-      // webgl toggle must still be present (not targeted by theatre transforms)
       expect(result).toContain('id="webgl"')
     })
   })
@@ -444,14 +408,12 @@ describe('Theatre.js Code Transforms', () => {
 
         const result = applyOpsToText(content, transform.ops)
 
-        // Theatre wiring must be gone
         expect(result).not.toContain('@theatre/core')
         expect(result).not.toContain('@/dev/theatre')
         expect(result).not.toContain('useTheatre')
         expect(result).not.toContain('useCurrentSheet')
         expect(result).not.toContain('sheet')
 
-        // Simulation logic must remain
         expect(result).toContain(`export function ${exportName}`)
         expect(result).toContain(simName)
         expect(result).toContain('useFrame')
@@ -459,10 +421,6 @@ describe('Theatre.js Code Transforms', () => {
     })
   }
 })
-
-// ---------------------------------------------------------------------------
-// WebGL transforms — real engine against actual source
-// ---------------------------------------------------------------------------
 
 describe('WebGL Code Transforms', () => {
   const webglBundle = INTEGRATION_BUNDLES.webgl
@@ -480,12 +438,10 @@ describe('WebGL Code Transforms', () => {
 
       const result = applyOpsToText(content, transform.ops)
 
-      // Essential structure must remain
       expect(result).toContain("'use client'")
       expect(result).toContain('export function OptionalFeatures')
       expect(result).toContain('OrchestraTools')
 
-      // The root WebGL canvas must be gone
       expect(result).not.toContain('LazyWebGLCanvas')
       expect(result).not.toContain('@/webgl/components/canvas')
     })
@@ -503,7 +459,6 @@ describe('WebGL Code Transforms', () => {
 
       const result = applyOpsToText(content, transform.ops)
 
-      // Essential structure must remain
       expect(result).toContain('export function Wrapper')
       expect(result).toContain('interface WrapperProps')
       expect(result).toContain('<Theme')
@@ -511,7 +466,6 @@ describe('WebGL Code Transforms', () => {
       expect(result).toContain('<Footer')
       expect(result).toContain('<Lenis')
 
-      // WebGL code must be gone
       expect(result).not.toContain('@/webgl')
       expect(result).not.toContain('<Canvas')
       expect(result).not.toContain('webgl?:')
@@ -531,17 +485,11 @@ describe('WebGL Code Transforms', () => {
 
       const result = applyOpsToText(content, transform.ops)
 
-      // webgl toggle removed
       expect(result).not.toContain('id="webgl"')
-      // studio toggle must still be present
       expect(result).toContain('id="studio"')
     })
   })
 })
-
-// ---------------------------------------------------------------------------
-// Preset configuration validity
-// ---------------------------------------------------------------------------
 
 describe('Preset Configurations', () => {
   // Derive the preset arrays from the authoritative PROJECT_PRESETS export so
@@ -599,11 +547,8 @@ describe('Preset Configurations', () => {
   })
 })
 
-// ---------------------------------------------------------------------------
-// RequiredOpMatchError — the required-match contract (cross-model review
-// HIGH finding on the P-B7 ops): a `required: true` op that matches nothing
-// must fail the whole run loudly, not silently leave a broken tree.
-// ---------------------------------------------------------------------------
+// RequiredOpMatchError: a `required: true` op that matches nothing must fail
+// the whole run loudly, not silently leave a broken tree.
 
 describe('RequiredOpMatchError (required-match contract)', () => {
   it('applyOpsToText throws when a required op misses while a sibling op applies', () => {
@@ -695,9 +640,9 @@ describe('RequiredOpMatchError (required-match contract)', () => {
   })
 
   it('re-applying a real bundle transform to an already-stripped file no-ops', () => {
-    // The exact H5 scenario: a required op late in setupLean's union fails
-    // after lib/seo/routes.ts was already stripped and written; the retry
-    // reapplies the same ops to the stripped file and must not throw.
+    // A required op late in setupLean's union fails after lib/seo/routes.ts was
+    // already stripped and written; the retry reapplies the same ops to the
+    // stripped file and must not throw.
     const content = sourceFiles['lib/seo/routes.ts']
     const bundle = INTEGRATION_BUNDLES.sanity
     const transform = bundle?.codeTransforms.find(
@@ -725,9 +670,8 @@ describe('RequiredOpMatchError (required-match contract)', () => {
     expect(result).toBe(src)
   })
 
-  // The exact scenario the finding describes: "a future rename moves
-  // getCmsRoutes" — proven against the REAL sanity bundle ops and the REAL
-  // (mutated) source, not a synthetic fixture.
+  // Drift scenario "a future rename moves getCmsRoutes", proven against the
+  // REAL sanity bundle ops and REAL (mutated) source, not a synthetic fixture.
   it('drifted fixture: renaming getCmsRoutes makes the sanity lib/seo/routes.ts strip fail loudly', () => {
     const content = sourceFiles['lib/seo/routes.ts']
     const bundle = INTEGRATION_BUNDLES.sanity
@@ -745,9 +689,8 @@ describe('RequiredOpMatchError (required-match contract)', () => {
     expect(() => applyOpsToText(content, transform.ops)).not.toThrow()
   })
 
-  // The other scenario the finding names: the shared revalidate route's
-  // sanity dispatch is renamed or restructured — proven against the real
-  // shared-file ops.
+  // Drift scenario: the shared revalidate route's sanity dispatch is renamed
+  // or restructured, proven against the real shared-file ops.
   it('drifted fixture: renaming the revalidate route guard makes the sanity strip fail loudly', () => {
     const content = sourceFiles['app/api/revalidate/route.ts']
     const bundle = INTEGRATION_BUNDLES.sanity
@@ -785,12 +728,7 @@ describe('RequiredOpMatchError (required-match contract)', () => {
   })
 })
 
-// ---------------------------------------------------------------------------
-// AST-based next.config.ts transforms (replaces the old regex updateNextConfig)
-// ---------------------------------------------------------------------------
-
 describe('next.config.ts AST Transforms', () => {
-  // Canonical fixture matching the real next.config.ts shape
   const nextConfigFixture = `
 const nextConfig: NextConfig = {
   experimental: {
@@ -820,8 +758,8 @@ const nextConfig: NextConfig = {
 }
 `
 
-  // Formatting-variant fixture — indentation and quote style differ from the
-  // canonical fixture; the old regex would have silently missed these entries.
+  // Formatting-variant fixture: indentation and quote style differ from the
+  // canonical fixture.
   const nextConfigFormattingVariant = `
 const nextConfig: NextConfig = {
   experimental: {
@@ -881,7 +819,6 @@ const nextConfig: NextConfig = {
     expect(result).not.toContain('@sanity/image-url')
     expect(result).not.toContain('@sanity/asset-utils')
     expect(result).not.toContain('@portabletext/react')
-    // Non-Sanity entries must survive
     expect(result).toContain('gsap')
     expect(result).toContain('@react-three/drei')
   })
@@ -905,13 +842,11 @@ const nextConfig: NextConfig = {
     expect(result).not.toContain('@react-three/fiber')
     expect(result).not.toContain('"three"')
     expect(result).not.toContain("'three'")
-    // Non-WebGL entries must survive
     expect(result).toContain('gsap')
     expect(result).toContain('@sanity/client')
   })
 
   it('should handle formatting variants the old regex would have missed', () => {
-    // cdn.shopify.com removal in compact object notation
     const result = applyOpsToText(nextConfigFormattingVariant, [
       {
         kind: 'removeArrayObjectElement',
@@ -924,10 +859,6 @@ const nextConfig: NextConfig = {
     expect(result).toContain('cdn.sanity.io')
   })
 })
-
-// ---------------------------------------------------------------------------
-// Combined transforms (webgl + theatre removed simultaneously)
-// ---------------------------------------------------------------------------
 
 describe('Combined Transforms (Multiple Integrations Removed)', () => {
   it('should work when both WebGL and Theatre are removed', () => {
@@ -961,11 +892,9 @@ describe('Combined Transforms (Multiple Integrations Removed)', () => {
         result = applyOpsToText(result, theatreTransform.ops)
       }
 
-      // No broken imports to webgl or theatre
       expect(result).not.toMatch(/from ['"]@\/webgl/)
       expect(result).not.toMatch(/from ['"]\.\/theatre/)
 
-      // Basic structure is intact (no empty exports)
       if (file.endsWith('index.tsx')) {
         expect(result).toMatch(/export (?<keyword>function|const)/)
       }
@@ -973,13 +902,9 @@ describe('Combined Transforms (Multiple Integrations Removed)', () => {
   })
 })
 
-// ---------------------------------------------------------------------------
-// Additive transforms — remove → add round trips on the real sources
-// (the re-add step applied to the lean state produced by `setup:project`)
-// ---------------------------------------------------------------------------
-
+// Additive transforms: remove then add round trips on the real sources (the
+// re-add step applied to the lean state `setup:project` produces).
 describe('Additive Transforms (remove → add round trips)', () => {
-  /** Number of times `needle` occurs in `haystack`. */
   const count = (haystack: string, needle: string): number =>
     haystack.split(needle).length - 1
 
@@ -1002,7 +927,6 @@ describe('Additive Transforms (remove → add round trips)', () => {
     const lean = applyOpsToText(content, removal.ops)
     const restored = applyOpsToText(lean, additive.ops)
 
-    // Issue constraint: adding twice is a no-op.
     expect(applyOpsToText(restored, additive.ops)).toBe(restored)
 
     return { lean, restored }
@@ -1019,7 +943,6 @@ describe('Additive Transforms (remove → add round trips)', () => {
     expect(result.restored).not.toContain('next/dynamic')
     expect(result.restored).toContain('@/webgl/components/canvas')
     expect(result.restored).toContain('<LazyWebGLCanvas root />')
-    // Untouched features survive
     expect(result.restored).toContain('OrchestraTools')
   })
 
@@ -1065,7 +988,6 @@ describe('Additive Transforms (remove → add round trips)', () => {
 
     expect(result.lean).not.toContain('id="studio"')
     expect(count(result.restored, 'id="studio"')).toBe(1)
-    // The webgl toggle is untouched by the theatre round trip
     expect(count(result.restored, 'id="webgl"')).toBe(1)
   })
 
@@ -1081,7 +1003,6 @@ describe('Additive Transforms (remove → add round trips)', () => {
     expect(count(result.restored, "'@sanity/image-url'")).toBe(1)
     expect(count(result.restored, "'@sanity/asset-utils'")).toBe(1)
     expect(count(result.restored, "'@portabletext/react'")).toBe(1)
-    // The shopify pattern is untouched
     expect(count(result.restored, 'cdn.shopify.com')).toBe(1)
   })
 
@@ -1118,7 +1039,6 @@ describe('Additive Transforms (remove → add round trips)', () => {
     expect(result.lean).not.toContain('sanityRevalidate')
     expect(count(result.restored, 'sanityRevalidate')).toBe(2) // import + dispatch
     expect(count(result.restored, 'const isSanityWebhook')).toBe(1)
-    // Shopify's half of the shared file is untouched by sanity's round trip.
     expect(count(result.restored, 'const isShopifyWebhook')).toBe(1)
   })
 
@@ -1133,15 +1053,12 @@ describe('Additive Transforms (remove → add round trips)', () => {
   })
 })
 
-// ---------------------------------------------------------------------------
-// H1 — the shared webhook route must compile in EVERY keep-combination.
-// The bug this pins: the sanity strip used to remove the `NextResponse`
-// import that the provider-neutral rate-limit block still called, and to
-// delete the handler's terminal returns along with its try block, so a blank
-// or shopify-only scaffold failed its very first `bun run check` (TS2304 plus
-// noImplicitReturns). Asserting strip/re-add mechanics never caught it —
-// these assertions are about the VALIDITY of each variant's output.
-// ---------------------------------------------------------------------------
+// The shared webhook route must compile in EVERY keep-combination. These
+// assert the VALIDITY of each variant's output, not strip/re-add mechanics:
+// the sanity strip once removed the `NextResponse` import the neutral block
+// still called and deleted the handler's terminal returns, so a blank or
+// shopify-only scaffold failed its first `bun run check` (TS2304 plus
+// noImplicitReturns).
 
 describe('Lean-variant validity: app/api/revalidate/route.ts (H1)', () => {
   const FILE = 'app/api/revalidate/route.ts'
@@ -1188,15 +1105,13 @@ describe('Lean-variant validity: app/api/revalidate/route.ts (H1)', () => {
   }
 
   /**
-   * Type-check a variant under the repo's strict flags, with the modules it
-   * imports stubbed: what this asserts is the route's own validity (unused
-   * parameters and imports, implicit returns, dangling references), not the
-   * integrations' types. Ways it could pass while the scaffold fails, each
-   * closed below: the strict flags not set (they are, copied from
-   * tsconfig.json), a stub so loose that a dangling identifier type-checks
-   * (each stub declares only what the route uses), and a test that never
-   * looks at the route's diagnostics (it is the only non-stub file, and the
-   * guard test below proves a known error surfaces).
+   * Type-check a variant under the repo's strict flags with its imports
+   * stubbed, asserting the route's own validity (unused parameters and
+   * imports, implicit returns, dangling references), not the integrations'
+   * types. False passes are closed: the strict flags are copied from
+   * tsconfig.json, each stub declares only what the route uses (so a dangling
+   * identifier fails), and the route is the only non-stub file (the guard
+   * test below proves a known error surfaces).
    */
   const typeErrors = (variant: string): string[] => {
     const project = new Project({
@@ -1346,17 +1261,12 @@ declare module '@/integrations/shopify/revalidate' {
   }
 })
 
-// ---------------------------------------------------------------------------
-// The same validity gate for lib/seo/routes.ts — the second file where a
-// partial strip shipped code referencing symbols it had just removed:
-// `getCmsRoutes` was stubbed while `buildRoutesFromDocuments` and
-// `fetchCmsRoutesResult` still read the deleted schema, query, and sanity
-// helpers (six TS2304s on a blank or shopify-only scaffold).
-//
-// Sanity restores this file wholesale via overwriteFiles (single-owner, see
-// the bundle's comment), so a kept-sanity variant IS the pristine file; only
-// the stripped variant needs asserting.
-// ---------------------------------------------------------------------------
+// The same validity gate for lib/seo/routes.ts: a partial strip once stubbed
+// `getCmsRoutes` while `buildRoutesFromDocuments` and `fetchCmsRoutesResult`
+// still read the deleted schema, query, and helpers (six TS2304s). Sanity
+// restores this file wholesale via overwriteFiles (single-owner), so a
+// kept-sanity variant IS the pristine file; only the stripped variant needs
+// asserting.
 
 describe('Lean-variant validity: lib/seo/routes.ts', () => {
   const FILE = 'lib/seo/routes.ts'
@@ -1368,7 +1278,6 @@ describe('Lean-variant validity: lib/seo/routes.ts', () => {
   const variantFor = (kept: ('sanity' | 'shopify')[]): string | undefined => {
     const pristine = sourceFiles[FILE]
     if (!(pristine && stripTransform)) return undefined
-    // Shopify owns nothing here; keeping sanity restores the pristine file.
     return kept.includes('sanity')
       ? pristine
       : applyOpsToText(pristine, stripTransform.ops)
@@ -1409,7 +1318,7 @@ describe('Lean-variant validity: lib/seo/routes.ts', () => {
         }
       }
 
-      // The identifiers those imports provided, which the old strip left
+      // The identifiers those imports provided, which a partial strip leaves
       // behind inside the two un-stubbed functions.
       for (const identifier of [
         'sanityFetch',
@@ -1434,11 +1343,8 @@ describe('Lean-variant validity: lib/seo/routes.ts', () => {
   })
 })
 
-// ---------------------------------------------------------------------------
-// resolveTransitiveKeepSet — transitive `requires` resolution (ported from
-// the deleted `satus add` CLI's `resolveAddSet`; regression coverage for the
-// bug where `--keep theatre` stripped webgl out from under it)
-// ---------------------------------------------------------------------------
+// resolveTransitiveKeepSet: transitive `requires` resolution (`--keep theatre`
+// once stripped webgl out from under it).
 
 describe('resolveTransitiveKeepSet', () => {
   it('resolves a standalone integration to itself', () => {
@@ -1478,27 +1384,21 @@ describe('resolveTransitiveKeepSet', () => {
   })
 })
 
-// ---------------------------------------------------------------------------
-// H8 — preflight validation before any mutation
-// ---------------------------------------------------------------------------
-
+// Preflight validation before any mutation.
 describe('declaredBundlePaths / findMissingPaths (H8 preflight)', () => {
   it('declaredBundlePaths collects folders, files, and overwriteFiles for kept bundles', () => {
     const paths = declaredBundlePaths(['sanity'])
 
     expect(paths).toContain('lib/integrations/sanity')
     expect(paths).toContain('app/api/draft-mode/enable/route.ts')
-    // overwriteFiles
     expect(paths).toContain('app/(site)/layout.tsx')
   })
 
   it('sanity bundle owns every route folder that imports from it', () => {
     // These routes import from lib/integrations/sanity. If they fall out of
-    // the bundle's folders/overwriteFiles, a fork that drops Sanity keeps
-    // them and fails to build on module-not-found (the lean-fork build
-    // break). app/(site)/(examples)/sanity is NOT here — it's pruned
-    // unconditionally by setup:project (see the pruneExampleRoutes tests),
-    // regardless of which integrations are kept.
+    // the bundle, a fork that drops Sanity keeps them and fails to build on
+    // module-not-found. app/(site)/(examples)/sanity is NOT here: setup:project
+    // prunes it unconditionally (see the pruneExampleRoutes tests).
     const paths = declaredBundlePaths(['sanity'])
     expect(paths).toContain('app/(site)/articles')
     expect(paths).toContain('app/studio')
@@ -1508,10 +1408,8 @@ describe('declaredBundlePaths / findMissingPaths (H8 preflight)', () => {
   })
 
   it('shopify bundle owns every route folder that imports from it', () => {
-    // app/api/cart/ensure imports lib/integrations/shopify's cart operations.
-    // If it falls out of the bundle's folders, a fork that drops Shopify
-    // keeps the route and fails to build on module-not-found — the same
-    // lean-fork break the sanity assertions above guard against.
+    // app/api/cart/ensure imports lib/integrations/shopify's cart operations;
+    // the same lean-fork break the sanity assertions above guard against.
     const paths = declaredBundlePaths(['shopify'])
     expect(paths).toContain('lib/integrations/shopify')
     expect(paths).toContain('app/api/cart')
@@ -1522,8 +1420,7 @@ describe('declaredBundlePaths / findMissingPaths (H8 preflight)', () => {
   })
 
   it('findMissingPaths reports nothing missing when every real bundle path exists on disk', async () => {
-    // Runs against the actual repo tree (this IS the satus repo), so every
-    // declared path for every real bundle must be present.
+    // Runs against the real repo tree: every declared path must be present.
     for (const id of getIntegrationNames()) {
       const missing = await findMissingPaths(declaredBundlePaths([id]))
       expect(missing).toEqual([])
@@ -1545,13 +1442,10 @@ describe('declaredBundlePaths / findMissingPaths (H8 preflight)', () => {
   })
 })
 
-// ---------------------------------------------------------------------------
-// issue #389 — preflight also covers codeTransform target files, not just
-// kept-bundle folders/files/overwriteFiles. codeTransforms run against the
-// tree unconditionally (setupLean's strip pass touches every bundle,
-// regardless of what's kept), so a shared file that's absent must fail the
-// preflight even when no bundle declares it in folders/files.
-// ---------------------------------------------------------------------------
+// issue #389: preflight also covers codeTransform target files. They run
+// unconditionally (setupLean's strip pass touches every bundle), so an absent
+// shared file must fail the preflight even when no bundle declares it in
+// folders/files.
 
 describe('codeTransformTargetPaths (issue #389 preflight)', () => {
   it('collects the target file of every bundle codeTransform', () => {
@@ -1568,8 +1462,7 @@ describe('codeTransformTargetPaths (issue #389 preflight)', () => {
   })
 
   it('findMissingPaths reports nothing missing against the real repo tree', async () => {
-    // Runs against the actual repo tree (this IS the satus repo), so every
-    // codeTransform's target file must be present.
+    // Runs against the real repo tree: every codeTransform target must be present.
     const missing = await findMissingPaths(codeTransformTargetPaths([]))
     expect(missing).toEqual([])
   })
@@ -1588,13 +1481,11 @@ describe('codeTransformTargetPaths (issue #389 preflight)', () => {
     expect(missing).toEqual([deletedFile])
   })
 
-  // L16: addTransforms only ran for KEPT bundles (via installBundle, step 8),
-  // but the preflight never walked addTransforms at all — it only required
-  // codeTransforms targets. Every addTransforms target happens to coincide
-  // with some bundle's codeTransforms target today (verified below), so the
-  // gap was silent; this pins the contract so a FUTURE addTransforms-only
-  // target (the exact drift L16 warns about) fails loudly here instead of
-  // wedging setupAddIntegrations mid-run.
+  // addTransforms only run for KEPT bundles (via installBundle, step 8), so the
+  // preflight must walk their targets too. Today every addTransforms target
+  // coincides with some bundle's codeTransforms target, so a gap would be
+  // silent; this pins the contract so a FUTURE addTransforms-only target fails
+  // loudly here instead of wedging setupAddIntegrations mid-run.
   it('includes every kept bundle addTransforms target file (L16)', () => {
     for (const [id, bundle] of getIntegrationEntries()) {
       const addTransformFiles = (bundle.addTransforms ?? []).map((t) => t.file)
@@ -1608,11 +1499,9 @@ describe('codeTransformTargetPaths (issue #389 preflight)', () => {
   })
 
   it('does not require a bundle addTransforms target when that bundle is not kept and no other bundle needs it', () => {
-    // Cross-check against the real bundle set: today every addTransforms
-    // target coincides with SOME bundle's unconditional codeTransforms
-    // target, so codeTransformTargetPaths([]) already contains it via that
-    // path — this documents why the empty-keep-set case looks unchanged,
-    // rather than leaving that coincidence unexplained.
+    // Documents why the empty-keep-set case looks unchanged: every
+    // addTransforms target coincides with SOME bundle's unconditional
+    // codeTransforms target, so codeTransformTargetPaths([]) already has it.
     const codeTransformFiles = new Set<string>()
     for (const bundle of Object.values(INTEGRATION_BUNDLES)) {
       for (const transform of bundle.codeTransforms) {
@@ -1627,11 +1516,8 @@ describe('codeTransformTargetPaths (issue #389 preflight)', () => {
   })
 })
 
-// ---------------------------------------------------------------------------
-// M4 — a typo'd CLI flag used to be silently absorbed and fall through to
-// the interactive prompt, which hangs forever on a non-TTY-but-open stdin
-// (CI). findUnknownFlags rejects it loudly instead.
-// ---------------------------------------------------------------------------
+// A typo'd CLI flag must be rejected by findUnknownFlags, not fall through to
+// the interactive prompt, which hangs on a non-TTY-but-open stdin (CI).
 
 describe('findUnknownFlags (M4 — unknown-flag rejection)', () => {
   it('returns [] for every documented flag, long and short form', () => {
@@ -1689,23 +1575,17 @@ describe('findUnknownFlags (M4 — unknown-flag rejection)', () => {
   }, 20000)
 })
 
-// ---------------------------------------------------------------------------
-// M1 — a raw throw from installBundle's copyBundleFiles/readPayloadFile/
-// listPayloadFiles used to escape uncaught, aborting the whole re-add batch
-// (every bundle after the failing one never even attempted a re-add) after
-// step 6 had already stripped every bundle's files from the live tree.
-// setupAddIntegrations now catches per-bundle, collects the failure, and
-// keeps processing the remaining bundles.
-// ---------------------------------------------------------------------------
+// A raw throw from installBundle's copyBundleFiles/readPayloadFile/
+// listPayloadFiles must not abort the re-add batch (bundles after the failing
+// one would never re-add after step 6 stripped the live tree);
+// setupAddIntegrations catches per bundle, collects the failure, and continues.
 
 describe('M1: setupAddIntegrations collects per-bundle installBundle failures', () => {
   it('a bundle whose payload is missing a declared folder fails without aborting the batch', async () => {
-    // Minimal synthetic payload source — NOT built via setupSnapshot, so it
-    // can deliberately omit a declared path. webgl's payload is incomplete
-    // ('lib/webgl' is never created), which makes copyBundleFiles's
-    // listPayloadFiles call throw a raw Error — the exact M1 escape hatch.
-    // hubspot's payload is complete, so it should install cleanly right
-    // after webgl's failure.
+    // Synthetic payload source, NOT built via setupSnapshot, so it can omit a
+    // declared path. webgl's payload is incomplete ('lib/webgl' is never
+    // created), so copyBundleFiles's listPayloadFiles throws a raw Error.
+    // hubspot's is complete and should install cleanly right after.
     const payloadRoot = await mkdtemp(join(tmpdir(), 'satus-m1-payload-'))
     try {
       await Bun.write(
@@ -1735,8 +1615,8 @@ describe('M1: setupAddIntegrations collects per-bundle installBundle failures', 
         true
       )
 
-      // The raw throw was caught and collected, not left to propagate —
-      // this whole call resolving (not rejecting) IS the M1 fix.
+      // The raw throw was caught and collected: this call resolving, not
+      // rejecting, is the point.
       expect(result.failures.length).toBe(1)
       expect(result.failures[0]?.file).toBe('WebGL / 3D')
       expect(result.failures[0]?.error).toContain('lib/webgl')
@@ -1750,10 +1630,7 @@ describe('M1: setupAddIntegrations collects per-bundle installBundle failures', 
   })
 })
 
-// ---------------------------------------------------------------------------
-// L4 — duplicate CLI flags: first wins, but now with a warning
-// ---------------------------------------------------------------------------
-
+// Duplicate CLI flags: first wins, with a warning.
 describe('getFlagValue (L4 — duplicate flag warning)', () => {
   it('returns the single value when the flag is passed once', () => {
     expect(getFlagValue(['--keep', 'sanity'], '--keep')).toBe('sanity')
@@ -1822,10 +1699,7 @@ describe('getFlagValue (L4 — duplicate flag warning)', () => {
   })
 })
 
-// ---------------------------------------------------------------------------
-// L10 — selfPrune's test-file list is glob-derived, not hardcoded
-// ---------------------------------------------------------------------------
-
+// selfPrune's test-file list is glob-derived, not hardcoded.
 describe('collectSelfPruneTestFiles (L10 — glob-derived, not hardcoded)', () => {
   it('discovers the real setup-machinery test files on disk', async () => {
     const files = await collectSelfPruneTestFiles()
@@ -1847,9 +1721,8 @@ describe('collectSelfPruneTestFiles (L10 — glob-derived, not hardcoded)', () =
     expect(files).not.toContain('lib/scripts/templates/templates.test.ts')
   })
 
-  // M1: the glob used to delete tests for commands the scaffold keeps
-  // running — `handoff`, the AST engine, and the env-parity guarantee. Each
-  // entry here names a command that ships.
+  // The glob must not delete tests for commands the scaffold keeps running:
+  // `handoff`, the AST engine, and the env-parity guarantee.
   it('keeps the tests for commands that ship', async () => {
     const files = await collectSelfPruneTestFiles()
 
@@ -1882,10 +1755,6 @@ describe('collectSelfPruneTestFiles (L10 — glob-derived, not hardcoded)', () =
     expect(files).toContain('lib/scripts/prerender-manifest.test.ts')
   })
 })
-
-// ---------------------------------------------------------------------------
-// H6 — `--yes` confirm-prompt gating
-// ---------------------------------------------------------------------------
 
 describe('shouldSkipConfirm (H6 — --yes gating)', () => {
   it('always skips when --yes is passed', () => {
@@ -1922,26 +1791,15 @@ describe('shouldSkipConfirm (H6 — --yes gating)', () => {
   })
 })
 
-// ---------------------------------------------------------------------------
-// P-C3 regression — a kept bundle's dependency pins must survive selfPrune's
-// package.json write.
+// A kept bundle's dependency pins must survive selfPrune's package.json write.
+// Step 8's `addDependencies` read-modify-writes package.json on disk, and a
+// selfPrune that reused the step-5 in-memory `pkg` would revert every pin:
+// `--keep sanity` would report "N dependencies pinned" while the file ended up
+// with none, and the build failed on module-not-found.
 //
-// `setupAddIntegrations` (step 8 of `setup()`) calls `addDependencies` per
-// kept bundle, which read-modify-writes package.json on disk to pin the
-// bundle's dependency versions. `selfPrune` (step 10) used to reuse the
-// step-5 in-memory `pkg` object — read from disk BEFORE step 8 ran — and
-// write IT back to disk, silently reverting every pin `setupAddIntegrations`
-// had just written. `--keep sanity` would report "N dependencies pinned"
-// while package.json on disk ended up with none of them, and the resulting
-// `bun install && bun run build` failed on module-not-found.
-//
-// This exercises the REAL script end-to-end (not just its exported helpers):
-// a throwaway rsync copy of the repo (node_modules symlinked, matching the
-// manual acceptance procedure), run non-interactively with --skip-install
-// (no network needed — this only proves the on-disk package.json is
-// correct, not that `bun install`/`bun run build` succeed; that's covered
-// by the manual acceptance procedure in the PR description).
-// ---------------------------------------------------------------------------
+// Runs the REAL script end-to-end on a throwaway copy of the repo (node_modules
+// symlinked), non-interactively with --skip-install. It proves only the
+// on-disk package.json, not that `bun install`/`bun run build` succeed.
 
 describe("P-C3 regression: kept bundle deps survive selfPrune's package.json write", () => {
   it('--keep sanity pins sanity deps to disk through a full (non-dry) run', async () => {
@@ -2000,9 +1858,8 @@ describe("P-C3 regression: kept bundle deps survive selfPrune's package.json wri
         ).toBeTruthy()
       }
 
-      // P-B4: self-prune replaces (not deletes) the setup:project entry
-      // with a friendly, non-zero-exit stub — Bun's generic "Script not
-      // found" is gone, and the script file itself is really deleted.
+      // Self-prune replaces (not deletes) the setup:project entry with a
+      // non-zero-exit stub, while the script file itself is really deleted.
       expect(pkg.scripts?.['setup:project']).toBe(SETUP_PROJECT_PRUNED_STUB)
       expect(
         await pathExists(join(tmpRoot, 'lib/scripts/setup-project.ts'))
@@ -2124,20 +1981,13 @@ describe('addScripts', () => {
   }, 60000)
 })
 
-// ---------------------------------------------------------------------------
-// issue #382 — selfPrune must not run when steps 6/8 collected (non-thrown)
-// transform failures. `applyCodeTransforms` never throws on a single file's
-// failure (see its docstring) — it collects into `failures` so the batch can
-// finish — but selfPrune used to run regardless, deleting this script (and
-// its package.json entry) before the caller ever reported those failures,
-// breaking the "just re-run it" recovery the setup() docstring promises.
+// issue #382: selfPrune must not run when steps 6/8 collected (non-thrown)
+// transform failures, or it deletes this script before the caller reports them,
+// breaking the "just re-run it" recovery.
 //
-// This exercises the REAL script end-to-end (matching the P-C3 pattern
-// above): a throwaway rsync copy of the repo, with one codeTransform target
-// file made unreadable (EACCES) to force a genuine, non-required-
-// match transform failure — a plain fs error caught and collected by
-// `applyCodeTransforms`, not a `RequiredOpMatchError`.
-// ---------------------------------------------------------------------------
+// Runs the REAL script end-to-end on a throwaway copy with one codeTransform
+// target made unreadable (EACCES): a plain fs error that `applyCodeTransforms`
+// collects, not a `RequiredOpMatchError`.
 
 describe('issue #382: selfPrune is gated on collected transform failures', () => {
   // chmod 000 is a no-op permission check for uid 0 (root can read anything
@@ -2153,12 +2003,10 @@ describe('issue #382: selfPrune is gated on collected transform failures', () =>
       try {
         await copyRepo(tmpRoot)
 
-        // `--keep ''` (lean/blank) strips every integration, so the lean
-        // pass transforms the shared revalidate route. Stripping read
-        // permission from it makes `applyCodeTransforms` hit a genuine
-        // EACCES from `file.text()`: a plain Error, collected into
-        // `failures` regardless of whether the op it never got to apply
-        // was `required`.
+        // `--keep ''` strips every integration, so the lean pass transforms the
+        // shared revalidate route. Removing its read permission makes
+        // `applyCodeTransforms` hit a genuine EACCES from `file.text()`, a plain
+        // Error collected into `failures` whether or not the op was `required`.
         await chmod(targetFile, 0o000)
 
         const proc = Bun.spawnSync(
@@ -2174,16 +2022,13 @@ describe('issue #382: selfPrune is gated on collected transform failures', () =>
           { cwd: tmpRoot, stdout: 'pipe', stderr: 'pipe' }
         )
 
-        // Exit code 3: code-transform failures were collected and reported —
-        // see main()'s exit-code contract.
         if (proc.exitCode !== 3) {
           console.error(proc.stdout.toString())
           console.error(proc.stderr.toString())
         }
         expect(proc.exitCode).toBe(3)
 
-        // The whole point of the fix: the setup script and its package.json
-        // entry survive a collected-failure run, so it can simply be re-run.
+        // The script and its package.json entry survive, so it can be re-run.
         expect(
           await pathExists(join(tmpRoot, 'lib/scripts/setup-project.ts'))
         ).toBe(true)
@@ -2204,13 +2049,10 @@ describe('issue #382: selfPrune is gated on collected transform failures', () =>
   )
 })
 
-// ---------------------------------------------------------------------------
-// M7 — the two holes in setup's failure gate.
-//   (a) updateBarrelExports only warned, so a barrel file left re-exporting a
-//       deleted module never reached the gate.
-//   (b) removeDir/removeFile turned every error into "path absent", so an
-//       EACCES or a lock reported a half-stripped tree as a clean one.
-// ---------------------------------------------------------------------------
+// Setup's failure gate must see both:
+//   (a) a barrel file left re-exporting a deleted module (updateBarrelExports),
+//   (b) an EACCES or lock in removeDir/removeFile, which must not read as
+//       "path absent" and report a half-stripped tree as clean.
 
 describe('M7: removal and barrel failures reach the failure gate', () => {
   const isRoot = (process.getuid?.() ?? -1) === 0
@@ -2253,8 +2095,8 @@ describe('M7: removal and barrel failures reach the failure gate', () => {
     })
   })
 
-  // The M7 regression itself: a removal that fails must never be reported as
-  // an absent path, or self-prune runs over a half-stripped tree.
+  // A failed removal must never be reported as an absent path, or self-prune
+  // runs over a half-stripped tree.
   it.skipIf(isRoot)(
     'removeFile throws when the removal itself fails',
     async () => {
@@ -2320,18 +2162,10 @@ describe('M7: removal and barrel failures reach the failure gate', () => {
   })
 })
 
-// -------------------------------------------------------------------------
-// Issue #392 — app/(site)/(examples) (the Sanity wiring tutorial at
-// `/sanity`) must never ship to a scaffolded project, regardless of which
-// integrations are kept. Before pruneExampleRoutes existed, the folder only
-// disappeared when Sanity was DROPPED (it lived in the sanity bundle's
-// `folders`), so a run that keeps Sanity — the common case — is the one that
-// regresses without this test.
-//
-// Same real end-to-end harness as the P-C3 regression above: an rsync copy
-// of the repo (node_modules symlinked), run non-interactively with
-// --skip-install.
-// ---------------------------------------------------------------------------
+// Issue #392: app/(site)/(examples) (the Sanity wiring tutorial at `/sanity`)
+// must never ship, regardless of which integrations are kept. A run that
+// keeps Sanity, the common case, is the one that regresses without this test.
+// Same end-to-end harness as the dependency-pins test above.
 
 describe('Issue #392: app/(site)/(examples) is pruned unconditionally', () => {
   it('--keep sanity still deletes app/(site)/(examples)', async () => {
@@ -2377,14 +2211,10 @@ describe('Issue #392: app/(site)/(examples) is pruned unconditionally', () => {
   }, 60000)
 })
 
-// ---------------------------------------------------------------------------
-// P-D2 — cancel/EOF guard: stdin closing before a prompt resolves must exit
-// 1 with a readable message, never fall through to a silent exit 0.
-//
-// Runs against the real repo tree directly (no rsync copy needed): with no
-// flags, guardedPrompt's stdin-close race fires before guardProjectRoot()'s
-// checks would matter and before any mutation, so this is read-only.
-// ---------------------------------------------------------------------------
+// Cancel/EOF guard: stdin closing before a prompt resolves must exit 1 with a
+// readable message, never a silent exit 0. Runs against the real repo tree
+// (no copy needed): with no flags the stdin-close race fires before any
+// mutation, so this is read-only.
 
 describe('P-D2: stdin EOF guard (guardedPrompt)', () => {
   it('bun run setup:project </dev/null exits 1 with a readable stderr message', async () => {
@@ -2403,24 +2233,19 @@ describe('P-D2: stdin EOF guard (guardedPrompt)', () => {
   }, 20000)
 })
 
-// ---------------------------------------------------------------------------
-// P-D2 (LOW, cross-model review follow-up) — answer-wins ordering:
-// guardedPrompt must not false-cancel when a legitimate final answer races
-// stdin's `close` event (reproduced: a valid default confirm answer
-// immediately followed by pipe closure, e.g. `printf '\n' | script`).
-// ---------------------------------------------------------------------------
+// Answer-wins ordering: guardedPrompt must not false-cancel when a legitimate
+// final answer races stdin's `close` event (a default confirm immediately
+// followed by pipe closure, e.g. `printf '\n' | script`).
 
 describe('guardedPrompt (answer-wins ordering)', () => {
   it('a prompt that resolves one microtask AFTER stdin close still wins (the actual repro: setImmediate defers long enough for the answer to land first)', async () => {
     const promptFn = () =>
       new Promise<string>((resolve) => {
-        // This is the real regression repro: stdin closes first (its `eof`
-        // promise is already-settled by the time Promise.race runs), and
-        // the prompt's answer settles one microtask later — exactly what a
-        // real @clack/core resolution racing a piped stream's `close` can
-        // look like. Without the setImmediate defer, Promise.race picks
-        // the already-settled `eof` and this incorrectly exits as
-        // cancelled (verified against the pre-fix implementation).
+        // Stdin closes first (its `eof` promise is already settled when
+        // Promise.race runs) and the answer settles one microtask later, as a
+        // real @clack/core resolution racing a piped stream's `close` can.
+        // Without the setImmediate defer, Promise.race picks `eof` and this
+        // incorrectly exits as cancelled.
         process.stdin.emit('close')
         queueMicrotask(() => resolve('no'))
       })
@@ -2430,11 +2255,7 @@ describe('guardedPrompt (answer-wins ordering)', () => {
   })
 })
 
-// ---------------------------------------------------------------------------
-// P-B6 — --help/-h was computed by parseCliFlags but never checked by
-// main(), so it silently fell through into a live interactive run instead
-// of printing usage.
-// ---------------------------------------------------------------------------
+// --help/-h must print usage, not fall through into a live interactive run.
 
 describe('P-B6: --help prints usage and exits 0', () => {
   it('lists every flag and every preset key, and exits 0', async () => {
@@ -2469,10 +2290,8 @@ describe('P-B6: --help prints usage and exits 0', () => {
   }, 20000)
 })
 
-// ---------------------------------------------------------------------------
-// P-B3 — a concurrency lock: two setup:project runs racing in one workspace
-// used to interleave into a silent, contradictory hybrid (both exit 0).
-// ---------------------------------------------------------------------------
+// Concurrency lock: two setup:project runs in one workspace must not
+// interleave into a contradictory hybrid (both exit 0).
 
 describe('P-B3: concurrent setup:project runs', () => {
   it('one run succeeds, the other fails immediately naming the lock', async () => {
@@ -2509,11 +2328,9 @@ describe('P-B3: concurrent setup:project runs', () => {
       // this doesn't depend on which stream the CLI library picks.
       const combinedOutputs = [outA + errA, outB + errB]
 
-      // Exactly one succeeds, exactly one fails.
       expect(exits.filter((code) => code === 0)).toHaveLength(1)
       expect(exits.filter((code) => code !== 0)).toHaveLength(1)
 
-      // The failing run's message names the lock and gives a recovery step.
       const failingOutput =
         combinedOutputs[exits.findIndex((code) => code !== 0)] ?? ''
       expect(failingOutput).toContain(
@@ -2522,7 +2339,6 @@ describe('P-B3: concurrent setup:project runs', () => {
       expect(failingOutput).toContain('.setup-project.lock')
       expect(failingOutput.toLowerCase()).toContain('delete the lock')
 
-      // The lock is cleaned up once both runs have finished.
       expect(await pathExists(join(tmpRoot, '.setup-project.lock'))).toBe(false)
     } finally {
       await rm(tmpRoot, { recursive: true, force: true })
@@ -2530,14 +2346,9 @@ describe('P-B3: concurrent setup:project runs', () => {
   }, 60000)
 })
 
-// ---------------------------------------------------------------------------
-// P-B3 follow-up (cross-model review MEDIUM finding): the lock used to leak
-// on SIGINT/SIGTERM — Bun doesn't reliably emit 'exit' for those signals, so
-// a `kill -TERM` mid-run (or Ctrl+C outside an active prompt) could leave
-// the lock directory behind forever, blocking every future run. Fixed with
-// explicit SIGINT/SIGTERM handlers (release + exit non-zero) plus a PID-file
-// stale-lock backstop for whatever still gets past those (e.g. SIGKILL).
-// ---------------------------------------------------------------------------
+// The lock must not leak on SIGINT/SIGTERM: Bun doesn't reliably emit 'exit'
+// for them, so explicit handlers release it and a PID-file stale-lock check
+// backstops whatever gets past those (e.g. SIGKILL).
 
 describe('P-B3 follow-up: lock survives SIGTERM / stale-lock detection', () => {
   it('kill -TERM on a mid-run process releases the lock instead of leaking it', async () => {
@@ -2545,11 +2356,10 @@ describe('P-B3 follow-up: lock survives SIGTERM / stale-lock detection', () => {
     try {
       await copyRepo(tmpRoot)
 
-      // No flags → fully interactive → hangs at the first prompt once
-      // guardProjectRoot()/acquireLock() have already run, giving us a
-      // window where the lock exists and the process is still alive to
-      // signal. stdin stays open (not `</dev/null`) so this is a genuine
-      // "process running, mid-prompt" state, not the P-D2 EOF path.
+      // No flags means interactive: it hangs at the first prompt after
+      // acquireLock(), a window where the lock exists and the process is alive
+      // to signal. stdin stays open (not `</dev/null`) so this is a genuine
+      // mid-prompt state, not the EOF path.
       const child = Bun.spawn(['bun', 'lib/scripts/setup-project.ts'], {
         cwd: tmpRoot,
         stdin: 'pipe',
@@ -2578,8 +2388,7 @@ describe('P-B3 follow-up: lock survives SIGTERM / stale-lock detection', () => {
     try {
       await copyRepo(tmpRoot)
 
-      // A PID guaranteed to be dead: spawn a trivial process and wait for
-      // it to exit, then reuse its (now-dead) pid.
+      // A guaranteed-dead PID: spawn a trivial process, wait for it to exit.
       const dead = Bun.spawn(['bun', '-e', 'process.exit(0)'])
       await dead.exited
       const deadPid = dead.pid
@@ -2620,8 +2429,6 @@ describe('P-B3 follow-up: lock survives SIGTERM / stale-lock detection', () => {
     try {
       await copyRepo(tmpRoot)
 
-      // Our own test-runner process is unambiguously alive for the
-      // duration of this test.
       const livePid = process.pid
 
       const lockPath = join(tmpRoot, '.setup-project.lock')
@@ -2644,7 +2451,6 @@ describe('P-B3 follow-up: lock survives SIGTERM / stale-lock detection', () => {
       const output = proc.stdout.toString() + proc.stderr.toString()
       expect(proc.exitCode).not.toBe(0)
       expect(output).toContain('setup:project run appears to be in progress')
-      // The still-alive owner's lock is left exactly as it was.
       expect(await pathExists(lockPath)).toBe(true)
       expect(await Bun.file(join(lockPath, 'pid')).text()).toContain(
         String(livePid)
@@ -2655,13 +2461,9 @@ describe('P-B3 follow-up: lock survives SIGTERM / stale-lock detection', () => {
   }, 30000)
 })
 
-// ---------------------------------------------------------------------------
-// prepare.ts's pending-format marker handling (cross-model review MEDIUM
-// finding): the marker is unvalidated — a malformed/partial marker used to
-// throw BEFORE unlinking, bricking every subsequent `bun install` on the
-// same crash forever; and a format/manifest failure deleted the marker
-// anyway, losing the retry.
-// ---------------------------------------------------------------------------
+// prepare.ts's pending-format marker is unvalidated: a malformed marker must
+// not throw before unlinking (bricking every later `bun install`), and a
+// format/manifest failure must keep the marker so the retry survives.
 
 describe('prepare.ts pending-format marker (defensive handling)', () => {
   const setupCopy = async (): Promise<string> => {
@@ -2728,7 +2530,6 @@ describe('prepare.ts pending-format marker (defensive handling)', () => {
       expect(
         (proc.stdout.toString() + proc.stderr.toString()).toLowerCase()
       ).toContain('no longer exists')
-      // Nothing left to retry — the marker is cleaned up.
       expect(await pathExists(markerPath)).toBe(false)
     } finally {
       await rm(tmpRoot, { recursive: true, force: true })
@@ -2762,7 +2563,6 @@ describe('prepare.ts pending-format marker (defensive handling)', () => {
   it('a repeatedly-failing step keeps the marker (with attempts incrementing) up to the cap, then gives up loudly instead of retrying forever', async () => {
     const tmpRoot = await setupCopy()
     try {
-      // Force the format step to fail deterministically.
       const pkgPath = join(tmpRoot, 'package.json')
       const pkg = JSON.parse(await Bun.file(pkgPath).text()) as {
         scripts: Record<string, string>

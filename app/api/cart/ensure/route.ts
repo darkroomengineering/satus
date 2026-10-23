@@ -8,21 +8,18 @@ import {
 } from '@/integrations/shopify/cart-operations'
 
 /**
- * Idempotently ensure the visitor has a Shopify cart, and return nothing but
- * whether one now exists.
+ * Idempotently ensure the visitor has a Shopify cart; returns only whether
+ * one exists.
  *
- * Exists to close a race: `addItem` creates the cart when the `cartId` cookie
- * is absent, so two concurrent first-adds each created their own cart. One
- * cookie won and the other cart — with the item the buyer had just added —
- * was orphaned. Serverless invocations share no state, so the fix has to
- * happen where the requests do share something: the browser. Clients call
- * this behind a cross-tab Web Lock (see `ensure-cart.ts`), so only one
- * request can be in flight per browser and every later one finds the cookie
- * already set.
+ * Closes a race: `addItem` creates a cart when the `cartId` cookie is absent,
+ * so two concurrent first-adds each made one and the loser's cart (with the
+ * item) was orphaned. Serverless invocations share no state, so clients call
+ * this behind a cross-tab Web Lock (see `ensure-cart.ts`): one request in
+ * flight per browser, and every later one finds the cookie set.
  *
- * The cart id never leaves the server. Shopify's cart id embeds a secret and
- * their docs say to treat it like a password, so it stays in an httpOnly
- * cookie and this route reports only presence.
+ * The cart id never leaves the server: Shopify says to treat it like a
+ * password, so it stays in an httpOnly cookie and this route reports only
+ * presence.
  */
 export async function POST() {
   if (!isConfigured('shopify')) {
@@ -34,8 +31,7 @@ export async function POST() {
 
   const cookieStore = await cookies()
 
-  // Already have one — the common case once a visitor has added anything, and
-  // the case every request queued behind the Web Lock hits.
+  // Common case, and what every request queued behind the Web Lock hits.
   if (cookieStore.get('cartId')?.value) {
     return NextResponse.json({ data: { ready: true }, error: null })
   }

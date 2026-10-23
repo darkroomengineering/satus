@@ -8,20 +8,17 @@ import { mapRange } from '@/utils/math'
 
 import s from './scrollbar.module.css'
 
-// Fixed nudge per Arrow key press — mirrors a typical native scrollbar's
-// arrow-key step rather than jumping the full viewport.
+// Per Arrow key press, like a native scrollbar's step, not a full viewport.
 const ARROW_KEY_SCROLL_AMOUNT = 100
 
 interface ScrollbarProps {
   /**
-   * DOM id of the element this scrollbar controls (the `ReactLenis`
-   * wrapper, or the page root when Lenis runs in `root` mode). Feeds
-   * `aria-controls` — see https://www.w3.org/TR/wai-aria-1.2/#scrollbar.
+   * DOM id of the element this scrollbar controls (the `ReactLenis` wrapper,
+   * or the page root in `root` mode); feeds `aria-controls`, see
+   * https://www.w3.org/TR/wai-aria-1.2/#scrollbar.
    *
-   * Optional rather than required: this is an exported primitive, and forks
-   * already render `<Scrollbar />` with no props. Omitting it costs the
-   * `aria-controls` association and nothing else, so a missing id degrades
-   * the semantics instead of breaking the build.
+   * Optional because forks already render `<Scrollbar />` with no props;
+   * omitting it costs only the `aria-controls` association.
    */
   controlsId?: string
 }
@@ -40,9 +37,8 @@ export function Scrollbar({ controlsId }: ScrollbarProps = {}) {
         progress * (innerHeight - thumbHeight)
       }px,0)`
 
-      // Imperative, not React state: this runs on every scroll frame, and a
-      // state update here would re-render just to move an attribute the DOM
-      // already reflects visually through the transform above.
+      // Imperative, not state: this runs every scroll frame, and a re-render
+      // would only move an attribute the transform above already reflects.
       thumbRef.current.setAttribute(
         'aria-valuenow',
         String(Math.round(progress * 100))

@@ -57,7 +57,6 @@ export function InputField({
   const { state, actions } = useFormContext()
   const { errors, isActive } = state
   const { register } = actions
-  // Use name (or id as fallback) as the registration key — matches the input's name attribute
   const fieldName = name ?? id
   const error = errors[fieldName]
 
@@ -84,19 +83,15 @@ export function InputField({
         required={required}
         placeholder={placeholder}
         className={cn(s.input)}
-        // `label` is optional, and without it no <Field.Label> is rendered, so
-        // the control would otherwise reach screen readers with no accessible
-        // name. Fall back to the placeholder, then to the field name, so there
-        // is always one. Deliberately NOT set when a visible label exists:
-        // aria-label would override it, and the announced name could then
-        // drift from the text on screen. Spread rather than passing
-        // `undefined`, which `exactOptionalPropertyTypes` rejects.
-        //
+        // Without `label` no <Field.Label> renders, so fall back to the
+        // placeholder, then the field name, for an accessible name. Not set
+        // when a visible label exists: aria-label would override it and could
+        // drift from the on-screen text. Spread because
+        // `exactOptionalPropertyTypes` rejects `undefined`.
         {...(label ? {} : { 'aria-label': placeholder ?? fieldName })}
         {...register(fieldName)}
-        // The finding lands on this inner element. Base UI merges id, name and
-        // the aria-label above onto it at runtime, so a static read of this
-        // line sees an unlabelled input that never reaches the DOM.
+        // Base UI merges id, name and the aria-label above onto this element
+        // at runtime, so a static read sees an unlabelled input.
         // react-doctor-disable-next-line react-doctor/control-has-associated-label
         render={<input />}
       />
@@ -159,12 +154,10 @@ export function TextareaField({
         required={required}
         placeholder={placeholder}
         className={s.textarea}
-        // Same as InputField: no `label` means no <Field.Label>, so fall back
-        // to the placeholder and then the field name.
+        // Same aria-label fallback as InputField.
         {...(label ? {} : { 'aria-label': placeholder ?? fieldName })}
         {...reg}
-        // Same as InputField: Base UI merges the real attributes onto this
-        // element at runtime.
+        // Same as InputField: Base UI merges the real attributes at runtime.
         // react-doctor-disable-next-line react-doctor/control-has-associated-label
         render={<textarea rows={rows} />}
       />
@@ -211,11 +204,10 @@ export function CheckboxesField({
         name={name}
         id={hiddenInputId}
         value={JSON.stringify(selected)}
-        // Spread rather than picking `ref` off: only `ref` is live here (the
-        // value is React-state-driven and a hidden input never fires change
-        // or blur), but naming `reg.ref` in JSX reads as a render-time ref
-        // access to the React Compiler lint and fails the build. The unused
-        // handlers are inert.
+        // Spread, not `reg.ref`: only `ref` is live here (the value is state
+        // driven and a hidden input never fires change or blur), but naming
+        // `reg.ref` in JSX reads as a render-time ref access to the React
+        // Compiler lint and fails the build. The other handlers are inert.
         {...reg}
       />
       <div className={s.options}>

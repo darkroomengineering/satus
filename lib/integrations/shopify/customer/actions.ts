@@ -45,11 +45,8 @@ const createCustomerSchema = z.object({
     .min(8, { error: 'Password must be at least 8 characters' }),
 })
 
-/**
- * Calls the customerAccessTokenCreate mutation and returns the raw result.
- * Shared by LoginCustomerAction and CreateCustomerAction — a fresh account
- * is signed in the same way an existing customer logs in.
- */
+// Shared by LoginCustomerAction and CreateCustomerAction: a fresh account is
+// signed in the same way an existing customer logs in.
 async function createCustomerAccessToken(
   email: string,
   password: string
@@ -64,7 +61,6 @@ async function createCustomerAccessToken(
   return res.body.data.customerAccessTokenCreate
 }
 
-/** Sets the httpOnly session cookie for a Shopify customer access token. */
 async function setCustomerAccessTokenCookie(
   accessToken: string,
   expiresAt: string
@@ -78,11 +74,11 @@ async function setCustomerAccessTokenCookie(
   })
 }
 
-// Both actions below go through runFormAction, which rate-limits and then
-// verifies Cloudflare Turnstile by default — these are exactly the endpoints
-// credential-stuffing and account-creation bots target. Render a Turnstile
-// widget in the corresponding form (see lib/integrations/turnstile/README.md)
-// so its token lands in the `cf-turnstile-response` field.
+// Both customer actions go through runFormAction, which rate-limits and then
+// verifies Turnstile: credential-stuffing and account-creation bots target
+// exactly these endpoints. The form must render a Turnstile widget (see
+// lib/integrations/turnstile/README.md) so its token lands in
+// `cf-turnstile-response`.
 export async function LoginCustomerAction(
   _prevState: FormState | null,
   formData: FormData
@@ -150,14 +146,12 @@ export async function LogoutCustomerAction(
   return { status: 200, message: 'Logged out successfully' }
 }
 
-/** Wires `createCustomerAndSignIn`'s dependencies to the real Shopify client and cookie jar. */
 const liveCreateCustomerAndSignInDeps: CreateCustomerAndSignInDeps = {
   createCustomer: async (input) => {
     const res = await shopifyFetch<CustomerCreateResponseData>({
       query: customerCreateMutation,
-      // Copied into a plain object: GraphQL variables are a JSON value bag,
-      // not a place for a named domain interface (same pattern as
-      // cart-operations.ts's addToCart/updateCart).
+      // Copied to a plain object: GraphQL variables are a JSON value bag
+      // (same as cart-operations.ts).
       variables: { input: { ...input } },
       cache: 'no-store',
       dataSchema: customerCreateResponseSchema,

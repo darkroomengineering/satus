@@ -1,11 +1,6 @@
 import type { ZodType } from 'zod'
 
-/**
- * A JSON-serializable value accepted as a Storefront API GraphQL variable.
- * Query variables (ids, handles, cart line arrays, etc.) are plain JSON —
- * this is the value contract `JSON.stringify` in `shopifyFetch` actually
- * requires, in place of an `unknown` escape hatch.
- */
+/** A JSON-serializable GraphQL variable value, the contract `shopifyFetch`'s `JSON.stringify` requires. */
 export type GraphQLVariableValue =
   | string
   | number
@@ -15,7 +10,6 @@ export type GraphQLVariableValue =
   | readonly GraphQLVariableValue[]
   | { [key: string]: GraphQLVariableValue }
 
-/* Fetch types  */
 export interface ShopifyFetchOptions<T = unknown> {
   cache?: RequestCache
   headers?: HeadersInit
@@ -25,10 +19,8 @@ export interface ShopifyFetchOptions<T = unknown> {
   revalidate?: number
   variables?: Record<string, GraphQLVariableValue>
   /**
-   * Optional Zod schema for the GraphQL response payload (`data` field).
-   * When provided, the payload is validated at the Shopify boundary before
-   * being returned to callers. When omitted, the caller accepts the raw cast
-   * (opt-in trust — useful for callers that have their own downstream checks).
+   * Validates the response `data` at the boundary. When omitted, the caller
+   * accepts the raw cast (opt-in trust).
    */
   dataSchema?: ZodType<T>
 }
@@ -41,7 +33,6 @@ export interface ShopifyResponse<T = unknown> {
   }
 }
 
-/* Cart types */
 export interface Money {
   amount: string
   currencyCode: string
@@ -51,9 +42,8 @@ export interface DefaultCart {
   checkoutUrl: string
   totalQuantity: number
   cost: {
-    // `CartCost.totalTaxAmount` is a deprecated, nullable field on the
-    // Storefront API — Shopify can return `null`. `toCart` already
-    // falls back to a zero amount when it's absent.
+    // Deprecated and nullable on the Storefront API; `toCart` falls back to
+    // a zero amount.
     totalTaxAmount: Money | null
     subtotalAmount: Money
     totalAmount: Money
@@ -85,7 +75,7 @@ export interface ShopifyCartLineItem {
   }
 }
 
-// After reshaping data — the full post-reshape line-item shape
+// After reshaping data
 export interface CartLineItem {
   id: string
   quantity: number
@@ -116,7 +106,6 @@ export interface Cart extends DefaultCart {
   }
 }
 
-// Minimal shape used for cart-mutation payloads (derived from CartLineItem)
 export type CartLineMutation = Pick<CartLineItem, 'id' | 'merchandise'>
 
 export interface CartLineInput {
@@ -124,7 +113,6 @@ export interface CartLineInput {
   quantity: number
 }
 
-/* Cart actions types */
 export interface AddItemPayload {
   variantId: string
   quantity?: number
@@ -136,14 +124,12 @@ export interface UpdateItemQuantityPayload {
   lineId?: string | undefined
 }
 
-/* Collection types */
 export interface Collection {
   handle: string
   title: string
   description?: string
-  // Storefront API `SEO.title` / `SEO.description` are nullable and are
-  // `null` until a merchant explicitly sets meta title/description in the
-  // admin — every consumer already falls back with `??`.
+  // `SEO.title`/`description` are `null` until a merchant sets them;
+  // consumers fall back with `??`.
   seo?: {
     title: string | null
     description: string | null
@@ -154,12 +140,9 @@ export interface Collection {
 
 export interface ShopifyImage {
   url: string
-  // Shopify returns `null` (not just an absent field) when an image has no
-  // alt text — every consumer already falls back with `??`, so the type
-  // reflects that.
+  // `null` (not just absent) when an image has no alt text.
   altText?: string | null
-  // Storefront API `Image.width` / `Image.height` are nullable — they
-  // return `null` when the image isn't hosted by Shopify.
+  // `null` when the image isn't hosted by Shopify.
   width?: number | null
   height?: number | null
 }
@@ -187,7 +170,6 @@ export interface ShopifyProduct {
     minVariantPrice: Money
     maxVariantPrice: Money
   }
-  // See the `Collection.seo` comment — SEO title/description are nullable.
   seo?: {
     title: string | null
     description: string | null
@@ -223,7 +205,6 @@ export interface Product {
     minVariantPrice: Money
     maxVariantPrice: Money
   }
-  // See the `Collection.seo` comment — SEO title/description are nullable.
   seo?: {
     title: string | null
     description: string | null
@@ -240,16 +221,13 @@ export interface ProductVariant {
   title: string
 }
 
-/* Page types */
 export interface Page {
   id: string
   title: string
   handle: string
   body: string
   bodySummary: string
-  // Unlike Product/Collection, Storefront API `Page.seo` itself is nullable
-  // (not just its title/description) — it's `null` until a merchant sets
-  // page-level SEO metadata in the admin.
+  // Unlike Product/Collection, `Page.seo` itself is nullable.
   seo?: {
     title: string | null
     description: string | null
@@ -258,7 +236,6 @@ export interface Page {
   updatedAt: string
 }
 
-/* Customer types */
 export interface Customer {
   id: string
   email: string

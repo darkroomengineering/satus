@@ -18,11 +18,9 @@ const Orchestra = createStore<OrchestraState>()(
   )
 )
 
-// Guard against double-registration on module re-evaluation (HMR, duplicate
-// chunks) — without this a re-eval would stack a second 'storage' listener
-// that's never removed. A `globalThis` flag (rather than a module-scope
-// variable) is what actually survives re-evaluation, since a fresh module
-// instance would otherwise reset a plain variable back to its initial value.
+// Guards against stacking a second 'storage' listener when the module
+// re-evaluates (HMR, duplicate chunks). Must be a `globalThis` flag: a
+// module-scope variable resets on re-evaluation.
 declare global {
   var __satusOrchestraStorageRegistered: boolean | undefined
 }

@@ -1,22 +1,10 @@
-/**
- * Unit tests for fetch utilities
- *
- * Tests fetchWithTimeout and fetchJSON -- wrapper functions that add
- * timeout protection and JSON parsing to the native fetch API.
- *
- * Run with: bun test lib/utils/fetch.test.ts
- */
-
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test'
 
 import { z } from 'zod'
 
 import { fetchJSON, fetchWithTimeout } from './fetch'
 
-/**
- * A minimal local HTTP server for testing fetch behavior without mocks.
- * Serves JSON, delayed responses, and error status codes.
- */
+// Local HTTP server so fetch behavior is tested without mocks.
 let server: ReturnType<typeof Bun.serve>
 let baseURL: string
 

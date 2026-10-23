@@ -7,9 +7,7 @@ import type { ComponentProps } from 'react'
 import s from './select.module.css'
 
 /**
- * Select component built on Base UI for accessible dropdown selection.
- *
- * Supports both controlled and uncontrolled modes with full keyboard navigation.
+ * Select on Base UI; controlled or uncontrolled.
  *
  * @example
  * ```tsx
@@ -60,7 +58,6 @@ import s from './select.module.css'
  * ```
  */
 
-// Types
 type Option<T = string> = {
   value: T
   label: string
@@ -72,27 +69,18 @@ type Option<T = string> = {
 const EMPTY_OPTIONS: readonly never[] = []
 
 type SelectProps<T = string> = {
-  /** CSS class for the trigger element */
+  /** Class for the trigger. */
   className?: string
-  /** Label displayed above the select */
   label?: string
-  /** Options to display in the dropdown */
   options?: readonly Option<T>[]
-  /** Placeholder text when no value is selected */
   placeholder?: string
-  /** Custom icon for the trigger */
   icon?: React.ReactNode
-  /** Controlled value */
   value?: T
-  /** Default value (uncontrolled) */
   defaultValue?: T
-  /** Callback when value changes, including a cleared selection (`null`) */
+  /** Also fires with `null` when the selection is cleared. */
   onValueChange?: (value: T | null) => void
-  /** Whether the select is disabled */
   disabled?: boolean
-  /** Name attribute for form submission */
   name?: string
-  /** Whether a value is required */
   required?: boolean
 }
 
@@ -168,7 +156,6 @@ function Select<T extends string = string>({
   )
 }
 
-// Default chevron icon
 function ChevronIcon() {
   return (
     <svg
@@ -189,7 +176,6 @@ function ChevronIcon() {
   )
 }
 
-// Compound component exports for advanced usage
 const Root = BaseSelect.Root
 
 function Trigger({
@@ -222,7 +208,6 @@ const GroupLabel = BaseSelect.GroupLabel
 const Separator = BaseSelect.Separator
 const Arrow = BaseSelect.Arrow
 
-// Attach compound components to Select
 Select.Root = Root
 Select.Trigger = Trigger
 Select.Value = Value

@@ -1,13 +1,8 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 
-/**
- * The `/ai` route's generic smoke (render, console errors, a11y) is now
- * covered by `e2e/route-sweep.e2e.ts` — it's a static page like any other.
- * This file keeps only what the sweep can't generate: the 404 status and
- * branded view for URLs nothing resolves, which depend on how a streamed
- * response sets its status line, not a copy-pastable smoke.
- */
+// The 404 status and view for unresolved URLs; generic smoke is in
+// route-sweep.e2e.ts.
 
 // One URL per way a page reaches `notFound()`: nothing matches, so the
 // `[...slug]` catch-all runs, and a dynamic route whose slug has no document.
@@ -47,33 +42,22 @@ for (const url of UNKNOWN_URLS) {
 
     const response = await page.goto(url)
 
-    // A real 404, not a 200 with noindex. This holds only while no
-    // `loading.tsx` sits above these pages: a loading file wraps the page in
-    // a Suspense boundary, the response starts streaming the fallback with a
-    // 200 status, and `notFound()` runs after the status line was sent. A
-    // `loading.tsx` in `app/(site)/`, `app/(site)/[...slug]/` or
-    // `app/(site)/articles/[slug]/` each turned the matching URL here back
-    // into a 200 (checked with curl against `next build && next start`).
+    // A real 404 only while no `loading.tsx` sits above these pages: its
+    // Suspense boundary streams a 200 before `notFound()` runs. One in
+    // `app/(site)/`, `[...slug]/` or `articles/[slug]/` each turned the URL
+    // into a 200 (curl against `next build && next start`).
     expect(response?.status()).toBe(404)
 
-    // `networkidle` never settles here — the WebGL scene and the dev HMR
-    // socket keep the connection busy — so anchor on web assertions instead.
-    // Page renders: assert a non-empty document title (auto-waits).
     await expect(page).toHaveTitle(/.+/)
     await expect(page.locator('body')).toBeVisible()
 
-    // The noindex meta Next.js injects for a page resolved via notFound(),
-    // kept as a second signal next to the status. Scoped to the noindex meta
-    // rather than all robots metas: the layout's SEO defaults can emit their
-    // own robots tag, and matching the pair trips Playwright's strict mode.
+    // Scoped to the noindex meta: the layout can emit its own robots tag, and
+    // matching both trips Playwright's strict mode.
     await expect(
       page.locator('meta[name="robots"][content*="noindex"]').first()
     ).toBeAttached()
 
-    // Branded not-found copy from components/ui/not-found-view/index.tsx —
-    // rendered as sentence-case text nodes ("404" heading, "Page not found"
-    // message) that CSS uppercases visually via `text-transform: uppercase`.
-    // Assert on the actual DOM text, not the rendered case.
+    // DOM text is sentence case; CSS uppercases it.
     await expect(page.getByRole('heading', { name: '404' })).toBeVisible()
     await expect(page.getByText('Page not found')).toBeVisible()
     await expect(
@@ -93,10 +77,8 @@ for (const url of UNKNOWN_URLS) {
     expect(consoleErrors).toEqual([])
     expect(pageErrors).toEqual([])
 
-    // Basic a11y: scoped to critical + serious violations only.
-    // Minor/moderate issues in third-party assets are excluded to keep
-    // the baseline stable; tighten to all violations once the starter is
-    // confirmed clean at the full severity level.
+    // Critical and serious only, so minor third-party findings do not churn
+    // the baseline.
     const results = await new AxeBuilder({ page }).analyze()
     const seriousViolations = results.violations.filter(
       (v) => v.impact === 'critical' || v.impact === 'serious'

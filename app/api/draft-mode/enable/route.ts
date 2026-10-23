@@ -7,9 +7,9 @@ import { env } from '@/lib/env'
 
 const token = env.SANITY_API_READ_TOKEN
 
-// Draft mode needs the Viewer token: without it `sanityFetch` can't read
-// drafts, and `defineEnableDraftMode` can't validate Presentation's preview
-// secret. Fail with a clear error instead of a confusing downstream 401/403.
+// Draft mode needs the Viewer token (`sanityFetch` reads drafts with it,
+// `defineEnableDraftMode` validates the preview secret with it). Fail with a
+// clear error instead of a downstream 401/403.
 const draftModeHandler =
   isConfigured('sanity') && client && token
     ? defineEnableDraftMode({

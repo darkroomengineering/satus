@@ -1,11 +1,3 @@
-/**
- * Bundle installation primitives and shared sequences.
- *
- * Extracted from `satus.ts` so that both `satus.ts` and `setup-project.ts`
- * can import from a neutral module rather than `setup-project.ts` depending
- * on the CLI executable `satus.ts`.
- */
-
 import { mkdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 
@@ -30,10 +22,6 @@ import {
 } from './payload-source'
 import { pathExists, resolvePath } from './utils'
 
-// ---------------------------------------------------------------------------
-// Install steps (moved from satus.ts)
-// ---------------------------------------------------------------------------
-
 /** A bundle counts as installed when its first folder (or file) exists. */
 export function bundleProbePath(bundle: IntegrationBundle): string | undefined {
   return bundle.folders[0] ?? bundle.files[0]
@@ -48,9 +36,9 @@ export const isInstalled = async (
 }
 
 /**
- * Copy the bundle's `folders` and `files` from the payload source into the
- * project. Existing files are kept (unless --force); missing ones are always
- * copied. Fails loudly when the payload lacks a declared folder or file.
+ * Copy the bundle's `folders` and `files` from the payload source. Existing
+ * files are kept (unless --force). Throws when the payload lacks a declared
+ * folder or file.
  */
 export const copyBundleFiles = async (
   source: PayloadSource,
@@ -89,14 +77,11 @@ export const copyBundleFiles = async (
 }
 
 /**
- * Copy the bundle's integration-owned `overwriteFiles` wholesale from the
- * payload source, unconditionally. `setup:project` (the sole caller, via
- * `installBundle`) always strips every integration to lean core (step 6 of
- * `setup()`) before re-adding the kept set, so by the time this runs there
- * is nothing locally modified left to preserve — the file on disk is either
- * already the payload version (a cheap no-op check below) or the lean/absent
- * version the strip pass just produced. A no-op check against the payload
- * text avoids a redundant write when the file already matches.
+ * Copy the bundle's integration-owned `overwriteFiles` from the payload source,
+ * unconditionally. `setup:project` (the sole caller, via `installBundle`)
+ * strips every integration to lean core (step 6 of `setup()`) before re-adding
+ * the kept set, so nothing locally modified is left to preserve. Skips the
+ * write when the file already matches the payload.
  */
 export const applyOverwriteFiles = async (
   source: PayloadSource,
@@ -130,9 +115,8 @@ const sortRecord = (record: Record<string, string>): Record<string, string> =>
   )
 
 /**
- * Add the bundle's dependencies to the local package.json, pinning each to
- * the version declared by the payload source's package.json. Dependencies
- * already present locally keep their existing pin.
+ * Add the bundle's dependencies to the local package.json, pinned to the
+ * payload's versions. Dependencies already present keep their pin.
  */
 export const addDependencies = async (
   bundle: IntegrationBundle,
@@ -140,9 +124,7 @@ export const addDependencies = async (
   options: { dryRun: boolean }
 ): Promise<{ added: string[]; missing: string[] }> => {
   const pkgPath = resolvePath('package.json')
-  // Only the fields touched below are typed — the parsed object retains every
-  // other real package.json field at runtime; JSON.stringify(pkg) still
-  // round-trips them untouched.
+  // Only the fields touched below are typed; others round-trip untouched.
   const pkg: {
     dependencies?: Record<string, string>
     devDependencies?: Record<string, string>
@@ -185,16 +167,15 @@ export const addDependencies = async (
 }
 
 /**
- * Copy the bundle's package.json scripts from the payload's package.json.
- * A script already present locally keeps its local command.
+ * Copy the bundle's package.json scripts from the payload. A script already
+ * present locally keeps its local command.
  *
- * A declared script the payload lacks is warned about and skipped, not
- * thrown. setup:project's payload is the project's own pre-strip
- * package.json, so a missing script is one the fork removed: there is
- * nothing to restore, and a throw here would land after setupLean already
- * stripped the bundle, leaving it half re-added on every re-run. The cost:
- * a kept integration can finish setup without a script it declares, and
- * only the warning says so.
+ * A declared script the payload lacks is warned about and skipped, not thrown:
+ * setup:project's payload is the project's own pre-strip package.json, so it is
+ * a script the fork removed, and a throw would land after setupLean already
+ * stripped the bundle, leaving it half re-added on every re-run. Cost: a kept
+ * integration can finish setup without a script it declares, and only the
+ * warning says so.
  */
 export const addScripts = async (
   bundle: IntegrationBundle,
@@ -212,7 +193,6 @@ export const addScripts = async (
   }
 
   const pkgPath = resolvePath('package.json')
-  // Only `scripts` is typed; every other field round-trips untouched.
   const pkg: { scripts?: Record<string, string> } =
     await Bun.file(pkgPath).json()
   const scripts = pkg.scripts ?? {}
@@ -233,9 +213,9 @@ export const addScripts = async (
 }
 
 /**
- * Restore the bundle's barrel export lines: read each pattern's line from the
- * SOURCE repo's barrel file and insert it into the local barrel when absent
- * (created when missing). Warns when the payload has no matching barrel/line.
+ * Restore the bundle's barrel export lines from the payload's barrel into the
+ * local one (created when missing). Warns when the payload has no matching
+ * barrel or line.
  */
 export const restoreBarrelExports = async (
   source: PayloadSource,
@@ -305,20 +285,14 @@ export const appendEnvStubs = async (
   return missing.length
 }
 
-// ---------------------------------------------------------------------------
-// Shared install sequence
-// ---------------------------------------------------------------------------
-
 /**
- * Run the shared per-bundle install sequence: copy files, restore overwrite
- * files, add dependencies and scripts, restore barrel exports, append env stubs, apply
+ * Run the per-bundle install sequence: copy files, restore overwrite files, add
+ * dependencies and scripts, restore barrel exports, append env stubs, apply
  * additive code transforms.
  *
- * Returns a `details` string array (one entry per action taken) that callers
- * can use for logging, plus any `failures` from the additive code transforms
- * (never thrown — collected so callers can report and fail loudly once the
- * whole batch is done instead of aborting mid-run). Does not manage spinners
- * or log directly.
+ * Returns `details` (one entry per action taken) for logging, plus `failures`
+ * from the additive code transforms (collected, never thrown, so callers can
+ * fail loudly once the whole batch is done instead of aborting mid-run).
  */
 export const installBundle = async (
   source: PayloadSource,
@@ -376,32 +350,18 @@ export const installBundle = async (
   }
 }
 
-// ---------------------------------------------------------------------------
-// Shared strip block (de-duplicated from satus.ts and setup-project.ts)
-// ---------------------------------------------------------------------------
-
 /**
- * Strip absent-integration wiring from freshly copied files.
+ * Strip absent-integration wiring from freshly copied files: for every
+ * integration NOT in `installedOrAdded` and not installed on disk, apply its
+ * subtractive `codeTransforms` (no-ops on files already lean, so it is safe
+ * after an install). Returns the files changed and any collected failures.
  *
- * For every integration NOT in `installedOrAdded` AND not currently installed
- * on disk, apply its subtractive `codeTransforms`. These ops are no-ops on
- * files already in the lean state, so calling this after an install is safe.
- *
- * Downgrades every op's `required` flag to false before applying (regardless
- * of how the bundle definition set it): by the time this runs, `setupLean`'s
- * union pass has already applied every bundle's codeTransforms — including
- * these — to the project's original files exactly once, which is where a
- * required-match violation (drifted source) is caught. This is a genuinely
- * separate, later pass over whatever's on disk NOW for a bundle that isn't
- * kept; finding nothing left to strip here is the expected, idempotent
- * outcome, not a sign of drift — enforcing `required` a second time here
- * would false-positive on every preset that doesn't keep every integration.
- *
- * @param installedOrAdded - Set (or array) of integration ids that are being
- *   added / were already added in this run and should NOT be stripped.
- * @param dryRun - When true, count changes but do not write files.
- * @returns The number of files changed and any transform failures collected
- *   (never thrown — callers report and fail loudly once the batch is done).
+ * Downgrades every op's `required` flag to false before applying: `setupLean`'s
+ * union pass already applied every bundle's codeTransforms once to the
+ * original files, which is where a required-match violation (drifted source)
+ * is caught. This later pass finding nothing left to strip is the expected
+ * outcome, not drift, and enforcing `required` again would false-positive on
+ * every preset that doesn't keep every integration.
  */
 export const stripAbsentIntegrationWiring = async (
   installedOrAdded: Set<string> | string[],

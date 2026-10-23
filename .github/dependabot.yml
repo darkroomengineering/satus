@@ -1,13 +1,9 @@
-# Dependabot configuration
-# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
-#
 # Stable patch/minor bumps that pass CI can be auto-merged by
 # .github/workflows/automerge-dependabot.yml. Major, 0.x, prerelease and
 # unrecognized updates stay open for human review.
 
 version: 2
 updates:
-  # GitHub Actions
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -19,10 +15,7 @@ updates:
     cooldown:
       default-days: 3
 
-  # Native Bun updates package.json and bun.lock together; no PAT repair needed.
-  # Each dependency is raised as its own PR so the auto-merge workflow
-  # can parse the "from A to B" version transition from the PR title.
-  # Grouping the updates would defeat the auto-merge title parser.
+  # No groups: the auto-merge workflow parses "from A to B" from each PR title.
   - package-ecosystem: bun
     directory: /
     schedule:

@@ -19,7 +19,7 @@ export const sorting: SortOption[] = [
     slug: 'trending-desc',
     sortKey: 'BEST_SELLING',
     reverse: false,
-  }, // asc
+  },
   {
     title: 'Latest arrivals',
     slug: 'latest-desc',
@@ -31,7 +31,7 @@ export const sorting: SortOption[] = [
     slug: 'price-asc',
     sortKey: 'PRICE',
     reverse: false,
-  }, // asc
+  },
   {
     title: 'Price: High to low',
     slug: 'price-desc',

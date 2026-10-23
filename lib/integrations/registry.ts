@@ -1,26 +1,14 @@
 /**
- * Integration Registry
- *
- * Single source of truth for all available integrations.
- * Each integration declares its name, env schema, and documentation link.
- *
- * To add a new integration:
- * 1. Create its Zod env schema in `@/utils/validation`
- * 2. Add an entry here
- * 3. Everything else (doctor, listing helpers, setup scripts) picks it up automatically
+ * Single source of truth for available integrations: name, env schema, docs
+ * link. Adding one is an env schema in `@/utils/validation` plus an entry
+ * here; doctor, listing helpers and setup scripts pick it up.
  */
 
 import type { z } from 'zod'
 
-// Relative import, not the `@/utils/validation` alias used elsewhere in this
-// codebase: this file is required transitively when `next.config.ts` imports
-// the CSP composer (`./csp`), which imports this registry. Next's
-// next.config.ts loader (`next/dist/build/next-config-ts/require-hook.js`)
-// rewrites `@/*` aliases via SWC's `paths` option, but only resolves them
-// correctly for the entry file itself — a transitively-required file's own
-// `@/*` import gets rewritten relative to the wrong directory and 404s
-// (verified empirically: `Cannot find module './lib/utils/validation'`
-// required from this file). A relative import sidesteps the bug entirely.
+// Relative imports, not `@/` aliases: `next.config.ts` requires this file
+// transitively via `./csp`, and Next's config loader resolves `@/*` correctly
+// only for the entry file (`Cannot find module './lib/utils/validation'`).
 import { assertServerEnvironment as assertServerEnv } from '../utils/assert-server-environment'
 import {
   analyticsEnvSchema,
@@ -33,18 +21,10 @@ import {
 } from '../utils/validation'
 
 /**
- * Content-Security-Policy directives an integration's browser-visible code
- * genuinely needs (script/style/img/etc. `src` lists, minus the `'self'`
- * baseline every directive already gets). Consumed by
- * `./csp`'s `composeCsp()`, which unions this across every KEPT integration
- * (see `./csp` for what "kept" means) to build the single enforced
- * `Content-Security-Policy` header in `next.config.ts`.
- *
- * An integration that is entirely server-side (no origin a browser ever
- * talks to directly — e.g. a fetch made only from a Server Component,
- * Server Action, or Route Handler) declares nothing here. Adding an origin
- * "just in case" defeats the point: the whole feature is that the shipped
- * policy reflects exactly what the kept code loads.
+ * CSP directives an integration's browser-visible code needs, minus the
+ * `'self'` baseline. `./csp`'s `composeCsp()` unions them across kept
+ * integrations. A server-only integration declares nothing: the policy must
+ * reflect exactly what the kept code loads, so no "just in case" origins.
  */
 export type CspDirective =
   | 'script-src'
@@ -59,21 +39,16 @@ export type CspDirective =
 export type CspSources = Partial<Record<CspDirective, string[]>>
 
 export interface IntegrationEntry {
-  /** Display name */
   name: string
-  /** Zod schema for required environment variables */
   envSchema: z.ZodType
   /**
-   * Optional narrower schemas for sub-capabilities of this integration.
-   * Use `hasCapability(id, capability)` to check one of these instead of
-   * `isConfigured(id)` when a code path needs more than "some env var is
-   * set" (e.g. HubSpot's `embed` capability requires only the public
+   * Narrower schemas for sub-capabilities, checked with `hasCapability`
+   * instead of `isConfigured` (HubSpot's `embed` needs only the public
    * portal id, while `isConfigured('hubspot')` accepts either var).
    */
   capabilities?: Record<string, z.ZodType>
-  /** Documentation or setup link */
   docsUrl?: string
-  /** CSP origins this integration's browser-visible code needs. See `CspSources`. */
+  /** CSP origins this integration's browser-visible code needs. */
   cspSources?: CspSources
 }
 
@@ -83,24 +58,16 @@ export const integrations = {
     envSchema: sanityEnvSchema,
     docsUrl: 'https://www.sanity.io/docs',
     cspSources: {
-      // Images: `lib/integrations/sanity/client.ts` + `@sanity/image-url`'s
-      // `urlForImage()` (used by `components/ui/sanity-image`) build URLs on
-      // `cdn.sanity.io`, which the browser loads directly
+      // The browser loads `cdn.sanity.io` image URLs directly
       // (`components/ui/image`'s Sanity loader, not Next's optimizer).
       'img-src': ['https://cdn.sanity.io'],
-      // API: the embedded Studio talks to the project's API from the
-      // browser. `client.ts` reads on the server, which the CSP doesn't
-      // govern. The API host is a project-id subdomain (`@sanity/client`'s
-      // `defaultConfig.apiHost = "https://api.sanity.io"`, prefixed with
-      // `<projectId>.`), so the source must be a wildcard subdomain, not a
-      // literal host. No API CDN host (`*.apicdn.sanity.io`): nothing on site
-      // routes reads with `useCdn: true` (Visual Editing reaches the Studio
-      // over postMessage, not HTTP), and `/studio/*` gets it through
-      // `STUDIO_SOURCES`' `https://*.sanity.io` in `./csp.ts`. A fork that
-      // adds a browser-side `useCdn: true` read adds the host back here.
-      // The bare host (no project subdomain) is what the embedded Studio at
-      // /studio uses for tracing and feedback calls; the wildcard doesn't
-      // match a bare apex, so it needs its own entry.
+      // The embedded Studio calls the API from the browser; `client.ts` reads
+      // on the server, which CSP doesn't govern. The host is a project-id
+      // subdomain, so it needs a wildcard, plus the bare host (the wildcard
+      // doesn't match the apex) for the Studio's tracing and feedback calls.
+      // No `*.apicdn.sanity.io`: no site route reads with `useCdn: true`, and
+      // `/studio/*` gets it from `STUDIO_SOURCES` in `./csp.ts`. A browser-side
+      // `useCdn: true` read adds the host back here.
       'connect-src': ['https://*.api.sanity.io', 'https://api.sanity.io'],
     },
   },
@@ -109,13 +76,9 @@ export const integrations = {
     envSchema: shopifyEnvSchema,
     docsUrl: 'https://shopify.dev/docs/api/storefront',
     cspSources: {
-      // Images only — the same host `next.config.ts`'s
-      // `images.remotePatterns` already trusts. Every Storefront API call
-      // (`lib/integrations/shopify/client.ts`'s `shopifyFetch`) runs from a
-      // Server Component, Server Action, or Route Handler; none of the
-      // 'use client' cart files (`cart-context.tsx`, `cart-store-context.ts`,
-      // `add-to-cart/index.tsx`, `modal/index.tsx`) call it directly, so
-      // there is no browser-visible `connect-src` origin to declare.
+      // Images only (the host `images.remotePatterns` trusts). Every
+      // Storefront API call (`shopifyFetch`) runs server-side; no 'use client'
+      // cart file calls it, so there is no `connect-src` origin.
       'img-src': ['https://cdn.shopify.com'],
     },
   },
@@ -127,15 +90,11 @@ export const integrations = {
     },
     docsUrl: 'https://developers.hubspot.com/docs/api',
     cspSources: {
-      // `lib/integrations/hubspot/embed/index.tsx` loads HubSpot's embeddable
-      // forms script via `<Script src="https://js.hsforms.net/forms/v2.js">`.
-      // The server-side form submission path (`action.ts`'s POST to
-      // `api.hsforms.com`) never runs in the browser, so it needs no entry
-      // here. Not verified: what origin(s) the rendered form itself talks to
-      // once loaded (submission/tracking) — that depends on the HubSpot
-      // portal's own config and isn't observable from this repo's code. Add
-      // it via `PROJECT_CSP_EXTRA_SOURCES` in `./csp` if a project hits a
-      // violation after wiring this component into a page.
+      // `hubspot/embed/index.tsx` loads the forms script. `action.ts`'s POST
+      // to `api.hsforms.com` is server-side and needs no entry. Not verified:
+      // the origins the rendered form talks to (they depend on the portal's
+      // config); add them via `PROJECT_CSP_EXTRA_SOURCES` in `./csp` on a
+      // violation.
       'script-src': ['https://js.hsforms.net'],
     },
   },
@@ -143,96 +102,64 @@ export const integrations = {
     name: 'Mailchimp',
     envSchema: mailchimpEnvSchema,
     docsUrl: 'https://mailchimp.com/developer/',
-    // No cspSources: `lib/integrations/mailchimp/{action,mailchimp-client}.ts`
-    // call the Mailchimp API only from server code (Server Actions / route
-    // handlers) — no browser-visible origin exists to declare.
+    // No cspSources: the Mailchimp API is called only from server code.
   },
   turnstile: {
     name: 'Turnstile',
     envSchema: turnstileEnvSchema,
     docsUrl: 'https://developers.cloudflare.com/turnstile/',
-    // No cspSources: `lib/integrations/turnstile/index.ts` only calls
-    // Cloudflare's siteverify endpoint server-side. Per its own README ("The
-    // starter ships no widget component — render it with Cloudflare's
-    // script"), this repo has no client-side Turnstile widget today, so
-    // there's no `challenges.cloudflare.com` script/frame to allow yet. A
-    // project that adds the widget needs `script-src`/`frame-src
-    // https://challenges.cloudflare.com` — add it via
+    // No cspSources: siteverify is called server-side and the starter ships
+    // no widget. A project adding the widget needs `script-src` and
+    // `frame-src` for `https://challenges.cloudflare.com` via
     // `PROJECT_CSP_EXTRA_SOURCES` in `./csp`.
   },
   analytics: {
     name: 'Analytics',
     envSchema: analyticsEnvSchema,
     docsUrl: 'https://developers.google.com/analytics',
-    // No cspSources: this entry validates NEXT_PUBLIC_GOOGLE_ANALYTICS /
-    // NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID (see `lib/utils/validation.ts`), but
-    // no code in this repo actually loads a Google Analytics/Tag Manager
-    // script — the env schema exists for `doctor`/validation only. Nothing
-    // to allow until that loader exists. (Not to be confused with
-    // `@vercel/analytics`, wired in `app/(site)/layout.tsx` — that one is
-    // handled directly in `./csp`, since it isn't a registry integration.)
+    // No cspSources: no code loads a Google Analytics/Tag Manager script;
+    // the schema exists for `doctor`/validation only. `@vercel/analytics` is
+    // not a registry integration and is handled directly in `./csp`.
   },
 } as const satisfies Record<string, IntegrationEntry>
 
-/** Union of all runtime-detectable integration ids (keys of the registry). */
 export type IntegrationId = keyof typeof integrations
 
-/**
- * Integrations that are dev-time-only removables with no runtime env detection.
- * These exist in the setup scripts' bundle record but not in the runtime registry.
- */
+/** Removables with no runtime env detection; in the setup bundles only. */
 export const devOnlyRemovables = ['webgl', 'theatre'] as const
 
-/** Union of all ids that can be targeted for removal during project setup. */
 export type RemovableId = IntegrationId | (typeof devOnlyRemovables)[number]
 
 /**
- * Every check in this module validates the whole `process.env` object, which
- * only holds real values on the server. Bundlers inline `process.env.FOO`
- * literals into client code but leave a wholesale `process.env` reference
- * pointing at the browser `process` polyfill, whose `env` is a permanently
- * empty `{}`. A client-side call would therefore report every integration as
- * unconfigured — silently, and wrongly. Throw instead of returning that.
- *
- * Delegates to the shared `assertServerEnvironment` (see
- * `../utils/assert-server-environment` for the full rationale) so this guard
- * can't drift from `@/lib/env`'s copy of the same check.
+ * Every check here validates the whole `process.env`, which is empty in the
+ * browser polyfill; a client call would silently report every integration as
+ * unconfigured. Throws instead. Delegates to the shared guard so it can't
+ * drift from `@/lib/env`'s copy.
  */
 function assertServerEnvironment(): void {
   assertServerEnv('@/integrations/registry')
 }
 
-/**
- * Check if a specific integration is configured
- */
 export function isConfigured(id: IntegrationId): boolean {
   assertServerEnvironment()
   return integrations[id].envSchema.safeParse(process.env).success
 }
 
-/** Union of capability names declared by a given integration, if any. */
 export type CapabilityOf<Id extends IntegrationId> =
   (typeof integrations)[Id] extends { capabilities: Record<infer K, z.ZodType> }
     ? K
     : never
 
 /**
- * Check if a specific capability of an integration is configured.
- *
- * Capabilities are narrower env requirements than the integration's overall
- * `envSchema` (e.g. HubSpot's `embed` capability requires only the public
- * portal id, while `isConfigured('hubspot')` accepts either var).
- *
- * Fallback: if the integration declares no `capabilities` (or the named
- * capability doesn't exist on it), this falls back to `isConfigured(id)`.
+ * Whether a capability's narrower env requirement is met. Falls back to
+ * `isConfigured(id)` when the integration declares no such capability.
  */
 export function hasCapability<Id extends IntegrationId>(
   id: Id,
   capability: CapabilityOf<Id> extends never ? string : CapabilityOf<Id>
 ): boolean {
   assertServerEnvironment()
-  // Widen from the literal entry union (where most entries lack the key)
-  // to the interface, which declares `capabilities` as optional.
+  // Widen from the literal entry union (most entries lack the key).
   const entry: IntegrationEntry = integrations[id]
   // SAFETY: `capability`'s type is a deferred conditional on the generic
   // `Id`, but both of its branches (`CapabilityOf<Id>` and the `string`
@@ -245,24 +172,16 @@ export function hasCapability<Id extends IntegrationId>(
   return schema.safeParse(process.env).success
 }
 
-/**
- * Get all configured integration ids
- */
 export function getConfiguredIds(): IntegrationId[] {
   assertServerEnvironment()
-  // SAFETY: `integrations` is keyed exactly by `IntegrationId` — `Object.keys`
-  // just types every result as plain `string[]` regardless of the source
-  // object's literal keys.
+  // SAFETY: `integrations` is keyed exactly by `IntegrationId`; `Object.keys`
+  // types its result as `string[]`.
   return (Object.keys(integrations) as IntegrationId[]).filter(
     (id) => integrations[id].envSchema.safeParse(process.env).success
   )
 }
 
-/**
- * Get all configured integration display names, for human-facing output
- * (handoff summaries, logs). For programmatic matching against bundle keys,
- * use `getConfiguredIds()`.
- */
+/** Display names for human-facing output; match programmatically with `getConfiguredIds()`. */
 export function getConfigured(): string[] {
   assertServerEnvironment()
   return Object.values(integrations).flatMap((entry) =>
@@ -270,9 +189,6 @@ export function getConfigured(): string[] {
   )
 }
 
-/**
- * Get all unconfigured integration names
- */
 export function getUnconfigured(): string[] {
   assertServerEnvironment()
   return Object.values(integrations).flatMap((entry) =>

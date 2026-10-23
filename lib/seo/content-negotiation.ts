@@ -2,12 +2,10 @@ export const HTML_MEDIA_TYPE = 'text/html'
 export const MARKDOWN_MEDIA_TYPE = 'text/markdown'
 
 /**
- * Query param `proxy.ts` honors as a one-shot negotiation override: skip
- * `negotiateDocumentType` entirely and serve HTML regardless of Accept. The
- * markdown handler issues the redirect that carries this param — see
- * `lib/seo/markdown-document.ts` — closing the loop where a client whose
- * Accept still prefers `text/markdown` would otherwise bounce back into the
- * same 406/redirect on every request.
+ * Query param `proxy.ts` honors as a one-shot override: skip
+ * `negotiateDocumentType` and serve HTML regardless of Accept. The redirect in
+ * `lib/seo/markdown-document.ts` carries it, so a client whose Accept still
+ * prefers `text/markdown` doesn't bounce into the same redirect forever.
  */
 export const HTML_FORMAT_OVERRIDE_PARAM = 'format'
 export const HTML_FORMAT_OVERRIDE_VALUE = 'html'
@@ -139,11 +137,9 @@ export function negotiateDocumentType(
 
 /**
  * True when `mediaType` has any acceptable (q>0) match in the Accept header,
- * independent of which representation `negotiateDocumentType` would prefer.
- * Distinguishes "the client ranked markdown above html" (html still on offer,
- * a 406 would be wrong) from "the client never offered html at all" (a 406
- * is correct) — `negotiateDocumentType` alone collapses both into one
- * "markdown won" result and loses that distinction.
+ * regardless of preference. Separates "ranked markdown above html" (html still
+ * on offer, a 406 would be wrong) from "never offered html" (406 is correct),
+ * which `negotiateDocumentType` collapses into one result.
  */
 export function acceptsMediaType(
   accept: string | null,

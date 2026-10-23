@@ -1,16 +1,8 @@
 /**
- * Unit tests for runFormAction's check ordering.
- *
- * Rate limiting must run before Turnstile verification: the in-memory
- * counter is nearly free, while Turnstile makes an outbound POST to
- * Cloudflare's siteverify endpoint with a multi-second timeout. A request
- * the rate limiter already rejects must never reach Turnstile.
- *
- * next/headers and the Turnstile module are mocked because runFormAction
- * calls headers() outside of a real Next.js request scope, and because we
- * need to observe whether Turnstile was invoked without hitting the network.
- *
- * Run with: bun test lib/utils/form-action.test.ts
+ * runFormAction's check ordering: a request the rate limiter rejects must never
+ * reach Turnstile (an outbound POST with a multi-second timeout). `next/headers`
+ * and Turnstile are mocked: `headers()` needs a request scope, and Turnstile
+ * calls must be observable without the network.
  */
 
 import { describe, expect, mock, test } from 'bun:test'

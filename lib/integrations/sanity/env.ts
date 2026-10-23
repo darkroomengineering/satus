@@ -1,43 +1,29 @@
-/**
- * Sanity Environment Configuration
- *
- * All values have safe defaults to allow the app to build and run
- * without Sanity configured. Use isSanityConfigured() to check
- * if Sanity is properly set up before making API calls.
- */
+// Dual-compiled: `sanity.config.ts` reaches the client bundle through
+// `app/studio/[[...tool]]/studio.tsx`. So this module reads literal
+// `process.env.NEXT_PUBLIC_X` expressions (statically inlinable) and must not
+// import `@/lib/env`, which parses the whole `process.env` object. Defaults
+// let the app build without Sanity configured.
 
 /**
- * Sanity API version - pinned for stability, update periodically.
- *
- * Deliberately reads `process.env.NEXT_PUBLIC_SANITY_API_VERSION` directly
- * (not via `env` from `@/lib/env`) — this module is bundled client-side
- * through `sanity.config.ts`, which `app/studio/[[...tool]]/studio.tsx` (the
- * Studio's `'use client'` boundary) imports, and
- * `lib/env.ts` parses the whole `process.env` object rather than individual
- * literal `process.env.NEXT_PUBLIC_X` expressions, so it isn't safe to
- * import into code that reaches the client bundle. The value IS still
- * validated (format: YYYY-MM-DD) via the schema in `lib/env.ts` wherever
- * `env` is imported server-side, so a malformed value fails loudly there.
+ * Pinned API version. Format is validated by `lib/env.ts` wherever `env` is
+ * imported server-side.
  */
 export const apiVersion =
   process.env.NEXT_PUBLIC_SANITY_API_VERSION ?? '2025-03-01'
 
-/** Sanity dataset name - defaults to 'production' */
 export const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET ?? 'production'
 
-/** Sanity project ID - empty string if not configured */
+/** Empty string when not configured. */
 export const projectId =
   process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ??
   process.env.SANITY_STUDIO_PROJECT_ID ??
   ''
 
-/** Sanity Studio URL for visual editing */
 export const studioUrl =
   process.env.NODE_ENV === 'development'
     ? 'http://localhost:3000/studio'
     : `${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/studio`
 
-/** Preview URL for draft mode */
 export const previewURL =
   process.env.NODE_ENV === 'development'
     ? 'http://localhost:3000'

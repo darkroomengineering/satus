@@ -1,11 +1,10 @@
 import { NotFoundView } from '@/components/ui/not-found-view'
 
 /**
- * Boundary for routes OUTSIDE the (site) group (e.g. /studio). It renders
- * under the bare root layout, with none of the providers app/(site)/layout.tsx
- * mounts (Lenis, Theme, Header, Footer, WebGL Canvas), so it must stay
- * provider-free — same reasoning app/global-error.tsx documents for dropping
- * Wrapper. Routes inside (site) get the richer group-level 404 instead.
+ * Boundary for routes outside the (site) group (e.g. /studio). It renders
+ * under the bare root layout, without the providers `app/(site)/layout.tsx`
+ * mounts, so it must stay provider-free (same reason as `global-error.tsx`).
+ * Routes inside (site) get the group-level 404.
  */
 export default function NotFound() {
   return (

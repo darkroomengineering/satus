@@ -1,12 +1,7 @@
 /**
- * Regression test for issue #398 item L11: `z.array(routableDocumentSchema)
- * .safeParse(data)` returned `[]` on ANY validation failure, so one
- * malformed CMS document dropped every CMS route from `sitemap.xml` and
- * `/llms.txt` — contradicting the function's own docstring, which says
- * malformed documents are "skipped per-entry". `buildRoutesFromDocuments`
- * now validates each document independently and only skips the bad ones.
- *
- * Run with: bun test lib/seo/routes.test.ts
+ * `buildRoutesFromDocuments` validates each CMS document independently: one
+ * malformed document must not drop every CMS route from `sitemap.xml` and
+ * `/llms.txt`.
  */
 
 import { describe, expect, it, spyOn } from 'bun:test'
@@ -28,8 +23,7 @@ describe('buildRoutesFromDocuments', () => {
         slug: { current: 'about' },
         _updatedAt: '2026-01-01T00:00:00.000Z',
       },
-      // Malformed: `_type` is not in the enum at all — this is the entry
-      // that used to fail the whole batch.
+      // Malformed: `_type` is not in the enum.
       {
         _type: 'not-a-real-type',
         title: 'Broken',
@@ -223,7 +217,7 @@ describe('buildRoutesFromDocuments', () => {
  * The two accessors split on purpose: the static surfaces (sitemap.xml,
  * llms.txt, `/ai`) must throw so Next keeps the last good copy, and the
  * per-request Markdown handler must not throw so it can answer 503. Ways
- * that split could break, written before the loader seam existed:
+ * that split could break:
  *
  * 1. `getCmsRoutes` swallows a failed fetch and returns `[]`, so a static
  *    surface stores a copy without CMS routes for up to 30 days.

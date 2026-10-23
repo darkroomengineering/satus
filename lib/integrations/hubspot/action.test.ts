@@ -1,10 +1,6 @@
 /**
- * Unit tests for HubSpot newsletter action validation schema
- *
- * Tests the Zod schema used by HubspotNewsletterAction in isolation,
- * without requiring Next.js server-side mocks (headers, cookies, etc.).
- *
- * Run with: bun test lib/integrations/hubspot/action.test.ts
+ * Tests the Zod schema behind HubspotNewsletterAction in isolation, without
+ * Next.js server-side mocks (headers, cookies).
  */
 
 import { describe, expect, test } from 'bun:test'

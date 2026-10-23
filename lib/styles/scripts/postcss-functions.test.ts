@@ -1,12 +1,7 @@
 /**
- * Regression test for issue #395: `mobile-vh()` emitted
- * `clamp(Nvh, Nsvh, Ndvh)`. `clamp(MIN, VAL, MAX)` is `max(MIN, min(VAL,
- * MAX))`, and on modern mobile browsers `vh >= dvh >= svh`, so that clamp
- * always collapsed to plain `vh` — the address-bar-hidden value the
- * project's own `h-dvh` house rule exists to avoid. `mobile-vh()` now emits
- * `dvh` directly.
- *
- * Run with: bun test lib/styles/scripts/postcss-functions.test.ts
+ * Regression test for issue #395: `mobile-vh()` must emit `dvh` directly, not
+ * `clamp(Nvh, Nsvh, Ndvh)`, which resolves to plain `vh` (`vh >= dvh >= svh` on
+ * modern mobile) - the address-bar-hidden value `h-dvh` exists to avoid.
  */
 
 import { describe, expect, it } from 'bun:test'

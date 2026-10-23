@@ -54,10 +54,9 @@ export function Marquee({
 
   const lenis = useLenis()
 
-  // order: 6 — Lenis writes scroll state at order -1 (see the order table in
-  // components/layout/lenis/index.tsx); without an explicit order here,
-  // Tempus defaults this callback to order 0 and sequencing becomes
-  // mount-order luck, reading `lenis.velocity` one frame stale.
+  // order: 6, after Lenis (order -1; table in components/layout/lenis/index.tsx).
+  // Tempus defaults to order 0, which makes sequencing mount-order luck and
+  // reads `lenis.velocity` one frame stale.
   useTempus(
     ({ deltaTime }) => {
       const entry = getEntry()
@@ -122,9 +121,8 @@ export function Marquee({
             data-nosnippet={i !== 0 ? '' : undefined}
             ref={(node) => {
               if (!node) {
-                // React calls the ref callback with null on detach — clear the
-                // slot so the RAF loop above stops animating this stale node
-                // (matters when a shrinking `repeat` removes trailing items).
+                // Null on detach: clear the slot so the RAF loop stops
+                // animating a stale node (shrinking `repeat`).
                 elementsRef.current[i] = undefined
                 return
               }

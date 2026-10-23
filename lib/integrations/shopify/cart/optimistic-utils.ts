@@ -150,8 +150,7 @@ function createOrUpdateCartItem(
   const totalAmount = calculateItemCost(quantity, variant.price.amount)
 
   return {
-    // Use the existing Shopify-assigned id, or '' for new optimistic items
-    // (the real id is populated after the server round-trip and cart refresh).
+    // '' for new optimistic items; the real id arrives with the server refresh.
     id: existingItem?.id ?? '',
     quantity,
     cost: {

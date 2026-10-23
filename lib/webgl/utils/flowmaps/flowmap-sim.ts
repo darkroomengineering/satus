@@ -76,9 +76,6 @@ void main() {
 }
 `
 
-/**
- * A class for a mouse flowmap.
- */
 export class Flowmap {
   renderer: WebGLRenderer
   mouse: Vector2
@@ -136,16 +133,13 @@ export class Flowmap {
     this.mouse = new Vector2(-1, -1)
     this.velocity = new Vector2()
 
-    // Render targets
     this.mask = getDoubleRenderTarget(size, size, {
       type: HalfFloatType,
       depthBuffer: false,
     })
 
-    // Output uniform containing render target textures
     this.uniform = { value: this.mask.read.texture }
 
-    // Flowmap material
     // SAFETY: the uniforms object literal below is created with exactly
     // these keys (tMap, uFalloff, uAlpha, uDissipation, uAspect, uMouse,
     // uVelocity) — RawShaderMaterial's own return type only knows a generic
@@ -159,7 +153,6 @@ export class Flowmap {
         uAlpha: { value: alpha },
         uDissipation: { value: dissipation },
 
-        // User needs to update these
         uAspect: { value: 1 },
         uMouse: { value: this.mouse },
         uVelocity: { value: this.velocity },
@@ -179,7 +172,6 @@ export class Flowmap {
       | 'uVelocity'
     >
 
-    // Fullscreen triangle
     this.screenCamera = new OrthographicCamera(-1, 1, 1, -1, 0, 1)
     this.screenTriangle = getFullscreenTriangle()
     this.screen = new Mesh(this.screenTriangle, this.material)
@@ -187,7 +179,6 @@ export class Flowmap {
   }
 
   update() {
-    // Renderer state
     const currentRenderTarget = this.renderer.getRenderTarget()
     const currentAutoClear = this.renderer.autoClear
     this.renderer.autoClear = false
@@ -198,7 +189,6 @@ export class Flowmap {
 
     this.uniform.value = this.mask.read.texture
 
-    // Restore renderer settings
     this.renderer.autoClear = currentAutoClear
     this.renderer.setRenderTarget(currentRenderTarget)
   }

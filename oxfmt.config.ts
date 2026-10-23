@@ -1,16 +1,7 @@
 import { defineConfig } from 'oxfmt'
 
-/**
- * Oxfmt configuration.
- *
- * A `.ts` file rather than `.oxfmtrc.json` so `bun run typecheck` covers it.
- * Note the filename: oxfmt auto-discovers `oxfmt.config.ts`, NOT `.oxfmtrc.ts`.
- *
- * House style: 80 columns, 2-space indent, single quotes, semicolons only
- * where required, es5 trailing commas, LF.
- * oxfmt's own defaults differ (printWidth 100, semi true, singleQuote false,
- * trailingComma "all"), so every one of those is set explicitly.
- */
+// Must be named `oxfmt.config.ts` (`.oxfmtrc.ts` is not discovered). Every
+// house-style option is explicit because oxfmt's defaults differ.
 export default defineConfig({
   printWidth: 80,
   tabWidth: 2,
@@ -33,9 +24,7 @@ export default defineConfig({
     },
   ],
 
-  // Both sorters are off by default and have to be switched on. Import order
-  // and Tailwind class order are fixed at format time, so neither is a lint
-  // error.
+  // Both sorters are off by default.
   sortImports: {
     groups: [
       'builtin',

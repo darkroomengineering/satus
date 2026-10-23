@@ -11,29 +11,21 @@ import s from './progress-text.module.css'
 
 type ProgressTextProps = {
   /**
-   * Text content to reveal — a string, or JSX with inline markup (e.g.
-   * `<em>word</em>`). anime.js's `splitText` splits every rendered word
-   * regardless of nesting. Treated as STATIC after mount: the split takes
-   * ownership of the rendered text nodes, so React updating `children` in
-   * place would clash with the split DOM. To change the content, remount
-   * with a `key`.
+   * A string or JSX with inline markup; `splitText` splits every rendered word
+   * regardless of nesting. Static after mount: the split owns the rendered
+   * text nodes, so React updating `children` in place would clash with it.
+   * Remount with a `key` to change the content.
    */
   children: ReactNode
-  /**
-   * anime.js `onScroll` `enter` threshold, viewport edge first, then the
-   * element's (`'bottom top'`: the viewport's bottom meets the element's top).
-   */
+  /** anime.js `onScroll` `enter`, viewport edge first (`'bottom top'`: viewport bottom meets element top). */
   enter?: string
-  /**
-   * anime.js `onScroll` `leave` threshold. The default `'center bottom'`
-   * ends when the element's bottom crosses the viewport's middle.
-   */
+  /** anime.js `onScroll` `leave`. The default ends when the element's bottom crosses the viewport's middle. */
   leave?: string
   /**
-   * Opacity of words the scroll position hasn't reached yet. This text is
-   * real content, so its dimmest state still has to clear WCAG AA 4.5:1:
-   * 0.5 gives ~5.3:1 for white on black. CSS opacity multiplies, so an
-   * ancestor with its own `opacity` lowers that further; raise this to match.
+   * Opacity of words the scroll hasn't reached yet. This is real content, so
+   * its dimmest state must clear WCAG AA 4.5:1 (0.5 gives ~5.3:1, white on
+   * black). CSS opacity multiplies: an ancestor with its own `opacity` lowers
+   * that further, so raise this to match.
    */
   dimOpacity?: number
   className?: string
@@ -41,13 +33,11 @@ type ProgressTextProps = {
 }
 
 /**
- * Scroll-driven text reveal, built on anime.js's `splitText` + `onScroll`.
- *
- * Words fade from `dimOpacity` to fully opaque as scroll progress advances
- * through `enter`..`leave` (synced 1:1, no easing lag). Lenis feeds the
- * scroll through the bridge in `components/layout/lenis/anime.tsx`.
- * `prefers-reduced-motion: reduce` skips the scroll linkage and fades every
- * word in once, when the text enters.
+ * Scroll-driven text reveal (anime.js `splitText` + `onScroll`): words fade
+ * from `dimOpacity` to opaque across `enter`..`leave`, synced 1:1. Lenis feeds
+ * the scroll via `components/layout/lenis/anime.tsx`. Under
+ * `prefers-reduced-motion: reduce` every word fades in once, when the text
+ * enters.
  */
 export function ProgressText({
   children,
@@ -105,10 +95,8 @@ export function ProgressText({
 
   return (
     <>
-      {/* Real accessible text: a plain element (not the split container) so
-          aria-hidden placement never depends on the split having run — the
-          sentence is readable to assistive tech from first paint, not just
-          after the reveal animation wires up. */}
+      {/* Accessible text lives outside the split container, so it is readable
+          from first paint, before the split has run. */}
       <span className="sr-only">{children}</span>
       <span
         ref={containerRef}

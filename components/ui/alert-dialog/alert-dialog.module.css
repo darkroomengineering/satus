@@ -6,7 +6,6 @@
     z-index: 100;
     backdrop-filter: blur(2px);
 
-    /* Base UI animation states */
     transition: opacity 150ms ease-out;
     opacity: 1;
 
@@ -30,7 +29,6 @@
     width: 100%;
     box-shadow: 0 8px 32px oklch(0 0 0 / 0.2);
 
-    /* Base UI animation states */
     transition: opacity 150ms ease-out;
 
     @media (--motion-ok) {

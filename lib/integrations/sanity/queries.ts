@@ -1,6 +1,5 @@
 import { defineQuery } from 'next-sanity'
 
-// Helper for rich text content with link projections
 const richTextWithLinks = `
   content[]{
     ...,
@@ -21,7 +20,6 @@ const linkWithLabel = `
   }
 `
 
-// Page queries
 export const pageQuery = defineQuery(`
   *[_type == "page" && slug.current == $slug][0] {
     _id,
@@ -41,7 +39,6 @@ export const pageExistsQuery = defineQuery(`
   defined(*[_type == "page" && slug.current == $slug][0]._id)
 `)
 
-// Article queries
 export const articleQuery = defineQuery(`
   *[_type == "article" && slug.current == $slug][0] {
     _id,

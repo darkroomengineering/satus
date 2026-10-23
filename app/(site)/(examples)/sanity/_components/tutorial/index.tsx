@@ -5,10 +5,8 @@ import { RichText } from '@/integrations/sanity/components/rich-text'
 import type { PageQueryResult } from '@/integrations/sanity/sanity.types'
 import { getLinkAttributes } from '@/integrations/sanity/utils/link'
 
-// The page fetches with `stega` keyed off draft mode, and next-sanity brands
-// a stega'd result's strings as `StegaString` (safe to render, not comparable
-// to string literals). Accept both shapes so the draft-mode fetch type-checks
-// without stripping the stega payload Presentation's click-to-edit relies on.
+// Draft-mode fetches brand strings as `StegaString`; accept both shapes so
+// they type-check without stripping the stega payload click-to-edit relies on.
 type PageData = NonNullable<PageQueryResult>
 type SanityTutorialProps = PageData | StegaBranded<PageData>
 

@@ -1,11 +1,7 @@
 /**
- * Payload source readers shared by `setup:project`'s additive re-add step
- * (`installBundle` in `bundle-installer.ts`).
- *
- * A `PayloadSource` is a directory on disk holding a full copy of the repo
- * (or the subset a caller captured) that integration files are copied from.
- * `setup:project` builds its own local snapshot (`setupSnapshot` in
- * `setup-project.ts`) as the payload source for re-adding kept integrations.
+ * A `PayloadSource` is a directory holding a copy of the repo that
+ * `installBundle` (`bundle-installer.ts`) copies integration files from;
+ * `setup:project` passes its own `setupSnapshot`.
  */
 
 import { readdir } from 'node:fs/promises'
@@ -22,20 +18,18 @@ export interface PayloadSource {
   cleanup(): Promise<void>
 }
 
-/** Shape of the payload package.json fields the CLI reads versions and scripts from. */
+/** The payload package.json fields the CLI reads. */
 export interface PayloadPackageJson {
   dependencies?: Record<string, string>
   devDependencies?: Record<string, string>
   scripts?: Record<string, string>
 }
 
-/** True when `relPath` exists in the payload source (file or directory). */
 export const payloadPathExists = (
   source: PayloadSource,
   relPath: string
 ): Promise<boolean> => pathExists(join(source.root, relPath))
 
-/** Read a payload file as text. Fails loudly when missing. */
 export const readPayloadFile = async (
   source: PayloadSource,
   relPath: string
@@ -47,7 +41,6 @@ export const readPayloadFile = async (
   return file.text()
 }
 
-/** Parsed package.json of the payload source, for dependency version pinning. */
 export const readPayloadPackageJson = async (
   source: PayloadSource
 ): Promise<PayloadPackageJson> => {
@@ -55,11 +48,7 @@ export const readPayloadPackageJson = async (
   return JSON.parse(text)
 }
 
-/**
- * Recursively list the files under a payload directory, returned as paths
- * relative to the payload root (e.g. 'lib/integrations/sanity/client.ts'),
- * sorted for deterministic output. Fails loudly when the directory is absent.
- */
+/** Recursively list files under a payload directory as sorted root-relative paths. Throws when absent. */
 export const listPayloadFiles = async (
   source: PayloadSource,
   relDir: string

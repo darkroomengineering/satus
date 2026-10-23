@@ -1,19 +1,8 @@
-/**
- * Unit tests for rate limiting utilities
- *
- * Tests the in-memory rate limiter and IP extraction from request headers.
- *
- * Run with: bun test lib/utils/rate-limit.test.ts
- */
-
 import { describe, expect, it } from 'bun:test'
 
 import { getClientIP, getIPFromHeaders, rateLimit } from './rate-limit'
 
-/**
- * Helper to generate a unique identifier per test to avoid cross-test pollution
- * from the shared in-memory store.
- */
+// Unique per test: the in-memory store is shared across tests.
 let counter = 0
 function uniqueId(prefix = 'test'): string {
   return `${prefix}-${Date.now()}-${counter++}`
@@ -48,12 +37,10 @@ describe('rateLimit', () => {
     const id = uniqueId()
     const config = { limit: 3, windowSeconds: 60 }
 
-    // Use all 3 allowed requests
     rateLimit(id, config)
     rateLimit(id, config)
     rateLimit(id, config)
 
-    // 4th request should be blocked
     const blocked = rateLimit(id, config)
     expect(blocked.success).toBe(false)
     expect(blocked.remaining).toBe(0)
@@ -81,33 +68,27 @@ describe('rateLimit', () => {
     const id2 = uniqueId('user-b')
     const config = { limit: 2, windowSeconds: 60 }
 
-    // Exhaust id1
     rateLimit(id1, config)
     rateLimit(id1, config)
     const blocked1 = rateLimit(id1, config)
     expect(blocked1.success).toBe(false)
 
-    // id2 should still be allowed
     const result2 = rateLimit(id2, config)
     expect(result2.success).toBe(true)
   })
 
   it('should reset after window expires', async () => {
     const id = uniqueId()
-    // 1-second window for fast test
     const config = { limit: 1, windowSeconds: 1 }
 
     const r1 = rateLimit(id, config)
     expect(r1.success).toBe(true)
 
-    // Should be blocked immediately
     const r2 = rateLimit(id, config)
     expect(r2.success).toBe(false)
 
-    // Wait for window to expire
     await new Promise((resolve) => setTimeout(resolve, 1100))
 
-    // Should be allowed again
     const r3 = rateLimit(id, config)
     expect(r3.success).toBe(true)
   })

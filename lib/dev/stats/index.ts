@@ -5,8 +5,7 @@ import { useTempus } from 'tempus/react'
 import s from './stats.module.css'
 
 export function Stats() {
-  // Instantiate once via a lazy state initializer. The instance is stable for
-  // the component's lifetime and — unlike a ref — is safe to read during render.
+  // Lazy state initializer, not a ref: the instance is safe to read during render.
   const [stats] = useState(
     () =>
       new _Stats({
@@ -15,12 +14,8 @@ export function Stats() {
   )
 
   useEffect(() => {
-    // stats-gl declares `dom` as a private class field, but it is a real
-    // runtime property meant to be appended to the DOM (that's how the
-    // library's own usage docs mount the panel) — TypeScript just doesn't
-    // expose it. Two honest steps: widen to `unknown` first (never flagged,
-    // since it isn't narrowing away known evidence), then assert the one
-    // field this component actually reads off the instance.
+    // stats-gl types `dom` as private, but it is the public panel element.
+    // Widen to `unknown` first so anti-slop/no-widen-then-assert stays quiet.
     const statsInstance: unknown = stats
     // SAFETY: `dom` is stats-gl's private-but-public-at-runtime overlay
     // element; the library always sets it in its constructor.

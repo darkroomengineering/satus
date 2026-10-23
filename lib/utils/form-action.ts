@@ -14,49 +14,34 @@ import { parseFormData } from '@/lib/utils/validation'
 interface RunFormActionOptions<T> {
   /** Rate-limit key prefix (e.g. "mailchimp-contact"). The client IP is appended. */
   rateLimitPrefix: string
-  /** Zod schema to validate the FormData against. */
   schema: z.ZodType<T>
-  /** The raw FormData from the server action. */
   formData: FormData
-  /**
-   * Message returned when the rate limit is exceeded.
-   * Defaults to `'rate_limit_exceeded_'`.
-   */
+  /** Defaults to `'rate_limit_exceeded_'`. */
   rateLimitMessage?: string
-  /**
-   * Rate limiter config. Defaults to the standard limiter (20 req/min).
-   * Pass `rateLimiters.strict` for sensitive endpoints like login.
-   */
+  /** Defaults to the standard limiter (20 req/min); use `rateLimiters.strict` for login-like endpoints. */
   rateLimiter?: RateLimitConfig
   /**
-   * Verify the `cf-turnstile-response` field via Cloudflare Turnstile.
-   *
-   * Opt-in, and every public form action in this starter opts in. It is not
-   * on by default because `validateTurnstile` rejects a request that carries
-   * no token at all, and this starter ships no widget component — a default
-   * of `true` would break any form a project writes with this helper until
-   * they wire Cloudflare's script themselves. Turn it on for anything
-   * reachable by an anonymous visitor.
+   * Verify the `cf-turnstile-response` field via Cloudflare Turnstile. Opt-in,
+   * and every public form action in this starter opts in. Not the default
+   * because `validateTurnstile` rejects a request with no token at all and this
+   * starter ships no widget component: a default of `true` would break any
+   * form a project writes with this helper until they wire Cloudflare's
+   * script. Turn it on for anything reachable by an anonymous visitor.
    */
   turnstile?: boolean
-  /** Business logic to run after validation succeeds. */
+  /** Runs after validation succeeds. */
   run: (input: T) => Promise<FormState>
 }
 
 /**
- * Shared server-action helper that handles:
- * 1. IP extraction from `x-forwarded-for`
- * 2. Rate limiting (configurable; defaults to standard limiter, 20 req/min)
- * 3. Turnstile verification (opt in with `turnstile: true`)
- * 4. Zod schema validation via `parseFormData`
- * 5. Delegation to the provided `run` callback
+ * Shared server-action pipeline: rate limit, optional Turnstile, Zod
+ * validation via `parseFormData`, then `run`.
  *
- * Rate limiting runs before Turnstile: the in-memory counter is nearly free
- * to check, while Turnstile verification makes an outbound POST to
- * Cloudflare's siteverify endpoint with a multi-second timeout. Gating the
- * expensive network call behind the cheap check means a flood of requests
- * gets rejected before any of them can hold a serverless invocation open
- * waiting on Cloudflare.
+ * Rate limiting runs before Turnstile: the in-memory counter is nearly free,
+ * while Turnstile verification makes an outbound POST to Cloudflare's
+ * siteverify with a multi-second timeout. Gating the expensive call behind the
+ * cheap check means a flood is rejected before any request can hold a
+ * serverless invocation open waiting on Cloudflare.
  */
 export async function runFormAction<T>({
   rateLimitPrefix,
@@ -70,8 +55,8 @@ export async function runFormAction<T>({
   const headersList = await headers()
   const ip = getIPFromHeaders(headersList)
 
-  // No IP header present: skip rate limiting rather than bucket every
-  // headerless visitor under one shared counter (fail open, not shared-fail).
+  // No IP header: skip rate limiting rather than bucket every headerless
+  // visitor under one shared counter.
   if (ip) {
     const rateLimitResult = rateLimit(`${rateLimitPrefix}:${ip}`, rateLimiter)
 

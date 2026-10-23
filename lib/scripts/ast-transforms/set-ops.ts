@@ -1,19 +1,11 @@
-/**
- * Mutating AST operation handlers — overwrite an existing value in place.
- *
- * Unlike the additive handlers in `add-ops.ts`, these never create a
- * construct that doesn't already exist.
- */
-
 import { Node, type Project, SyntaxKind } from 'ts-morph'
 
 import type { SyncUnusedParameterPrefixOp } from '../ast-operation-types'
 import { withSourceFile } from './helpers'
 
 /**
- * Rename a function parameter's declaration between `name` and `_name` so it
- * matches whether the body still reads it. See `SyncUnusedParameterPrefixOp`
- * for when to use it and the no-op cases.
+ * Rename a parameter's declaration between `name` and `_name` to match
+ * whether the body still reads it (see `SyncUnusedParameterPrefixOp`).
  *
  * "Reads" means an identifier in the body with that text, other than a
  * property name (`x.request`, `{ request: 1 }`). A local that shadows the
@@ -53,6 +45,6 @@ export function applySyncUnusedParameterPrefix(
     if (param.getName() === wanted) return sourceText
 
     param.getNameNode().replaceWithText(wanted)
-    return undefined // proceed with sf.getFullText()
+    return undefined
   })
 }

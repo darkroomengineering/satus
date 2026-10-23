@@ -278,9 +278,6 @@ void main () {
 }
 `
 
-/**
- * A class for fluid distortion.
- */
 export class Fluid {
   renderer: WebGLRenderer
   simRes: number
@@ -339,7 +336,6 @@ export class Fluid {
 
     this.splats = []
 
-    // Fluid simulation render targets
     this.density = getDoubleRenderTarget(dyeRes, dyeRes, {
       type: HalfFloatType,
       depthBuffer: false,
@@ -375,13 +371,10 @@ export class Fluid {
       depthBuffer: false,
     })
 
-    // Output uniform containing render target textures
     this.uniform = { value: this.density.read.texture }
 
-    // Common uniform
     const texelSize = { value: new Vector2(1 / simRes, 1 / simRes) }
 
-    // Fluid simulation materials
     // SAFETY: the uniforms object literal below is created with exactly the
     // keys named in the type argument — RawShaderMaterial's own return type
     // only knows a generic uniforms record, not this narrowed uniform-key
@@ -513,7 +506,6 @@ export class Fluid {
       depthWrite: false,
     }) as ShaderMaterial<'uPressure' | 'uVelocity'>
 
-    // Fullscreen triangle
     this.screenCamera = new OrthographicCamera(-1, 1, 1, -1, 0, 1)
     this.screenTriangle = getFullscreenTriangle()
     this.screen = new Mesh(this.screenTriangle)
@@ -541,16 +533,13 @@ export class Fluid {
     const curlStrength = this.curlStrength
     const radius = this.radius
 
-    // Renderer state
     const currentRenderTarget = renderer.getRenderTarget()
     const currentAutoClear = renderer.autoClear
     renderer.autoClear = false
 
-    // Propagate frame delta to time-dependent materials
     this.advectionMaterial.uniforms.dt.value = dt
     this.vorticityMaterial.uniforms.dt.value = dt
 
-    // Render all of the inputs since the last frame
     for (let i = this.splats.length - 1; i >= 0; i--) {
       const splat = this.splats.splice(i, 1)[0]
       if (!splat) continue
@@ -572,7 +561,6 @@ export class Fluid {
       this.density.swap()
     }
 
-    // Perform all of the fluid simulation renders
     this.curlMaterial.uniforms.uVelocity.value = this.velocity.read.texture
     this.screen.material = this.curlMaterial
     renderer.setRenderTarget(this.curl)
@@ -645,7 +633,6 @@ export class Fluid {
 
     this.uniform.value = this.density.read.texture
 
-    // Restore renderer settings
     renderer.autoClear = currentAutoClear
     renderer.setRenderTarget(currentRenderTarget)
   }

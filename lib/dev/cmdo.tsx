@@ -16,7 +16,6 @@ export function Cmdo() {
         setOpen((open) => !open)
       }
 
-      // Toggle grid
       if (e.key === 'G' && e.shiftKey) {
         e.preventDefault()
         Orchestra.setState((state) => ({

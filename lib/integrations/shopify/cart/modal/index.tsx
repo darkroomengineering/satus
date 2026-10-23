@@ -28,10 +28,8 @@ export function CartModal({ children, isOpen, closeCart }: CartModalProps) {
   const contentsRef = useRef<FragmentInstance>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
 
-  // Move focus into the drawer on open, and back to whatever triggered it on
-  // close — a hand-rolled dialog has no native focus management, so without
-  // this the close button/steppers/checkout link are only reachable by tab
-  // order, never announced as the new focus target.
+  // A hand-rolled dialog has no native focus management: move focus in on
+  // open and back to the trigger on close.
   useEffect(() => {
     if (!isOpen) return
 
@@ -47,7 +45,6 @@ export function CartModal({ children, isOpen, closeCart }: CartModalProps) {
     }
   }, [isOpen])
 
-  // Escape closes the drawer, matching every native/Base UI dialog.
   useEffect(() => {
     if (!isOpen) return
 
@@ -62,9 +59,8 @@ export function CartModal({ children, isOpen, closeCart }: CartModalProps) {
   return (
     <>
       {children}
-      {/* `inert` removes the whole closed drawer from tab order and the a11y
-          tree in one property — closed-state controls must be unreachable,
-          not merely visually hidden (see prior-M6). */}
+      {/* `inert` makes the closed drawer's controls unreachable, not merely
+          visually hidden. */}
       <div className={cn(s.modal, isOpen && s.open)} inert={!isOpen}>
         <button
           className={s['catch-click']}
@@ -131,17 +127,12 @@ function InnerCart() {
 }
 
 /**
- * One cart line, with quantity steppers and a remove control.
- *
- * All three controls share a single `isPending` transition, so only one
- * mutation for this line can be in flight at a time. This is the fix for the
- * concurrent-mutation race: each control computes an ABSOLUTE target quantity
- * from `quantity` (the current render's value), so two overlapping clicks
- * (a fast +/− before the first resolves) would otherwise send conflicting
- * absolutes — e.g. 6 and 4 off a base of 5 — and whichever server response
- * landed last would win, never the intended value. Serialising per line means
- * the second click is disabled until the first settles and the displayed
- * quantity has advanced, so each mutation builds on the previous one.
+ * One cart line. All three controls share one `isPending` transition, so only
+ * one mutation per line is in flight. Each control sends an ABSOLUTE target
+ * quantity computed from the current render, so two overlapping clicks would
+ * send conflicting absolutes (6 and 4 off a base of 5) and the last response
+ * would win. Disabling controls until the first settles makes each mutation
+ * build on the previous one.
  */
 function CartLine({ line }: { line: CartLineItem }) {
   const { id, merchandise, cost, quantity } = line
@@ -160,7 +151,6 @@ function CartLine({ line }: { line: CartLineItem }) {
         lineId: id,
       })
       setError(result.ok ? null : result.error)
-      // Sync server state with the optimistic update.
       router.refresh()
     })
   }
@@ -180,13 +170,12 @@ function CartLine({ line }: { line: CartLineItem }) {
         <Image
           src={merchandise.product.featuredImage?.url ?? ''}
           alt={merchandise.product.featuredImage?.altText ?? ''}
-          // The drawer is 75vw (mobile) / 50vw (desktop) and `.media`
-          // spans 2 of its 6 columns, so a third of each.
+          // The drawer is 75vw (mobile) / 50vw (desktop); `.media` spans 2 of
+          // its 6 columns.
           mobileSize="25vw"
           desktopSize="17vw"
-          // Product shots vary in aspect and must not be cropped in the
-          // cart. This has to be the prop, not CSS: Image writes
-          // object-fit inline, which outranks any stylesheet rule.
+          // The prop, not CSS: Image writes object-fit inline, which outranks
+          // any stylesheet rule.
           objectFit="contain"
           {...(merchandise.product.featuredImage?.width &&
           merchandise.product.featuredImage?.height

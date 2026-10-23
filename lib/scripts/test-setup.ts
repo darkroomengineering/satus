@@ -1,26 +1,18 @@
 /**
- * Bun test preload (wired via `[test] preload` in bunfig.toml).
- *
- * Registers happy-dom globals (document, window, HTMLInputElement, ...) so
- * component tests can render through @testing-library/react.
- *
- * happy-dom's registrator also swaps Bun's network globals (fetch, Request,
- * Response, ...) for its own browser emulations, which breaks tests that hit
- * a real local server (lib/utils/fetch.test.ts). Tests need the DOM, not the
- * emulated network stack — so the native implementations are captured before
- * registration and restored after.
+ * Bun test preload (`[test] preload` in bunfig.toml): registers happy-dom
+ * globals. Its registrator also swaps Bun's network globals (fetch, Request,
+ * ...) for browser emulations, which breaks tests that hit a real local server
+ * (lib/utils/fetch.test.ts), so the native ones are restored after.
  */
 
 import { AsyncLocalStorage } from 'node:async_hooks'
 
 import { GlobalRegistrator } from '@happy-dom/global-registrator'
 
-// Next's server puts AsyncLocalStorage on globalThis before it loads anything
-// else; without it, Next's request stores are stubs that throw on `run()`.
-// Doing the same here lets a route-handler test run its handler inside a real
-// request store. It has to happen in this preload, before any test file
-// imports `next/*`: each store is created on first import, so setting it from
-// one test file would only work when that file happens to load first.
+// Next's server puts AsyncLocalStorage on globalThis before loading anything
+// else; without it Next's request stores are stubs that throw on `run()`. Must
+// happen in this preload, before any test imports `next/*`: each store is
+// created on first import, so a test file would only work when it loads first.
 Object.assign(globalThis, { AsyncLocalStorage })
 
 const native = {

@@ -1,17 +1,9 @@
 import { defineConfig } from 'oxlint'
 
-/**
- * Oxlint configuration.
- *
- * This is a `.ts` file rather than `.oxlintrc.json` so the config is covered by
- * `bun run typecheck` in CI. That catches invalid severities and duplicate rule
- * keys, both of which a JSON config accepts silently. Note the filename: oxlint
- * auto-discovers `oxlint.config.ts`, NOT `.oxlintrc.ts`. Get it wrong and it
- * falls back to defaults without saying anything.
- *
- * Rule names themselves are not typed (the rule map is a permissive
- * `Record<string, ...>`), so a typo'd rule name still slips through.
- */
+// A `.ts` config so tsc catches bad severities and duplicate keys (JSON
+// accepts both silently); rule names are untyped, so typos still pass. The
+// filename must be `oxlint.config.ts`: oxlint does not discover
+// `.oxlintrc.ts` and silently falls back to defaults.
 export default defineConfig({
   jsPlugins: [
     { name: 'anti-slop', specifier: './tools/oxlint/anti-slop/index.ts' },
@@ -59,14 +51,10 @@ export default defineConfig({
 
         // Deliberately NOT mapped:
         //
-        // Link: 'a' would give us jsx-a11y/anchor-is-valid on <Link>, but
-        // react/forbid-elements reads this same map, so every one of the 13
-        // <Link> usages in the repo gets reported as a forbidden raw anchor.
-        // Silencing those would gut the rule that replaced the old
-        // no-anchor-element GritQL plugin. The only thing the mapping actually
-        // catches here is <Link href="#">; the real risk (target/rel) is
-        // covered above. Revisit if oxlint stops sharing the map across
-        // plugins.
+        // Link: react/forbid-elements reads this same map, so mapping Link to
+        // 'a' would report all 13 <Link> usages as raw anchors. It would only
+        // add a <Link href="#"> check; target/rel is covered above. Revisit if
+        // oxlint stops sharing the map across plugins.
         //
         // SanityImage: 'img' reports a false positive: the component resolves
         // alt={stegaClean(alt ?? image.alt) ?? ''} from CMS data, so call
@@ -97,9 +85,7 @@ export default defineConfig({
   ],
 
   rules: {
-    // --- anti-slop (vendored, tools/oxlint/anti-slop) -------------------------
-    // Rules that reject low-evidence TypeScript patterns, aimed at the code
-    // agents tend to produce. Vendored per upstream's own recommendation
+    // anti-slop is vendored per upstream's own recommendation
     // (https://github.com/dmmulroy/anti-slop), so the rules are ours to edit;
     // no-module-mocking is extended locally to recognize bun:test mock.module.
     // The Effect-specific plugin is not vendored; this repo does not use Effect.
@@ -125,11 +111,9 @@ export default defineConfig({
     'anti-slop/no-widen-then-assert': 'error',
     'anti-slop/require-safety-comment-for-type-assertion': 'error',
 
-    // --- hamo (tools/oxlint/hamo) ---------------------------------------------
     'hamo/no-raw-layout-read': 'error',
     'hamo/no-raw-observer': 'error',
 
-    // --- styling (tools/oxlint/styling) --------------------------------------
     'styling/no-class-string-variable': 'error',
 
     'eslint/no-unused-vars': [
@@ -265,8 +249,7 @@ export default defineConfig({
     'oxc/no-accumulating-spread': 'warn',
     'promise/no-return-in-finally': 'error',
 
-    // --- perf category, hand-picked ------------------------------------------
-    // The category as a whole is not enabled: its `no-await-in-loop` fires 49
+    // Hand-picked from the perf category, which is off as a whole: its `no-await-in-loop` fires 49
     // times on scripts that are sequential on purpose. These three are the
     // ones that pay for themselves; oxc/no-map-spread is deliberately not among
     // them, since it wants Object.assign in place of a plain per-item spread,
@@ -275,17 +258,14 @@ export default defineConfig({
     'unicorn/prefer-array-find': 'error',
     'react/no-object-type-as-default-prop': 'error',
 
-    // --- Off on purpose ------------------------------------------------------
     // `lint` runs with --max-warnings=0, so a warn here fails the build.
     // Off until its 11 sites (regex literals in scripts + tests) are converted.
     'eslint/prefer-named-capture-group': 'off',
-    // Off on purpose, and it should stay off: the fix this rule asks for is
-    // useMemo around context values, which this repo forbids because the React
-    // Compiler already memoises them (see AGENTS.md). Enabling it would mean
-    // hand-writing memoisation the compiler undoes.
+    // Stays off: its fix is useMemo around context values, which the React
+    // Compiler makes redundant and AGENTS.md forbids.
     'react/jsx-no-constructed-context-values': 'off',
 
-    // --- Type-aware rules (only active under `bun run lint:types`) -----------
+    // Type-aware: active only under `bun run lint:types`.
     'typescript/consistent-type-exports': 'error',
     'typescript/no-floating-promises': 'error',
     'typescript/no-misused-promises': 'error',
@@ -294,11 +274,8 @@ export default defineConfig({
     // falsy-vs-nullish behaviour, so each needs its own review.
     'typescript/prefer-nullish-coalescing': 'off',
 
-    // `--type-aware` switches on every type-aware rule in the correctness
-    // category, not just the ones enabled above. These extras are new signal
-    // that no one has triaged yet; each needs its own pass, and leaving them on
-    // would fail `bun run check` on day one. Turned off deliberately, to be
-    // re-enabled one at a time.
+    // `--type-aware` enables every type-aware correctness rule. These are
+    // untriaged and would fail `bun run check`; re-enable one at a time.
     'typescript/await-thenable': 'off',
     'typescript/restrict-template-expressions': 'off',
     'typescript/no-misused-spread': 'off',

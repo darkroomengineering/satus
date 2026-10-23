@@ -2,22 +2,6 @@ import { z } from 'zod'
 
 import { assertServerEnvironment } from '@/utils/assert-server-environment'
 
-/**
- * Typed Environment Variables
- *
- * Provides validated, type-safe access to environment variables.
- * Import `env` instead of using `process.env` directly for type safety.
- *
- * @example
- * ```ts
- * import { env } from '@/lib/env'
- *
- * // Type-safe access with IntelliSense
- * const url = env.NEXT_PUBLIC_BASE_URL // string | undefined
- * const projectId = env.NEXT_PUBLIC_SANITY_PROJECT_ID // string | undefined
- * ```
- */
-
 const envSchema = z.object({
   // Core
   NODE_ENV: z.enum(['development', 'production', 'test']).optional(),
@@ -43,12 +27,9 @@ const envSchema = z.object({
   // Sanity (supports both Satus and Vercel Marketplace conventions)
   NEXT_PUBLIC_SANITY_PROJECT_ID: z.string().optional(),
   NEXT_PUBLIC_SANITY_DATASET: z.string().optional(),
-  // Sanity API version (YYYY-MM-DD) — validated here so a malformed value
-  // fails loudly at startup instead of silently falling back to the
-  // hardcoded default in lib/integrations/sanity/env.ts. NOTE: this schema
-  // key is not currently consumed by sanity/env.ts, which reads
-  // process.env.NEXT_PUBLIC_SANITY_API_VERSION directly to stay client-bundle-safe
-  // for the Sanity Studio route (see sanity/env.ts for the caveat).
+  // Validated so a malformed value fails at startup. Not consumed by
+  // lib/integrations/sanity/env.ts, which reads process.env directly to stay
+  // client-bundle-safe for the Studio route (see its caveat).
   NEXT_PUBLIC_SANITY_API_VERSION: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, {
@@ -58,9 +39,8 @@ const envSchema = z.object({
   // Viewer token for draft mode (Presentation), server only. Never give it a
   // NEXT_PUBLIC_ name: that inlines it into the browser bundle.
   SANITY_API_READ_TOKEN: z.string().optional(),
-  // Sanity's own CLI/template convention for the project ID env var name —
-  // recognized so a project provisioned by `sanity init` or the CLI
-  // template validator isn't treated as unconfigured.
+  // Sanity CLI's own name for the project ID, so a project from `sanity init`
+  // isn't treated as unconfigured.
   SANITY_STUDIO_PROJECT_ID: z.string().optional(),
   // Webhook secret for on-demand revalidation (app/api/revalidate)
   SANITY_REVALIDATE_SECRET: z.string().optional(),
@@ -94,13 +74,6 @@ const envSchema = z.object({
 
 type Env = z.infer<typeof envSchema>
 
-/**
- * Validated environment variables with full TypeScript IntelliSense.
- *
- * All fields are optional -- integrations check their own requirements
- * via the registry's `isConfigured()`. This object provides type-safe access
- * without runtime validation overhead (parsing happens once at import).
- */
 assertServerEnvironment('@/lib/env')
 
 /**
@@ -134,26 +107,22 @@ if (!parsedEnv.success) {
   throw new Error(`Invalid environment configuration:\n${issues}`)
 }
 
+// Every field is optional: integrations check their own requirements through
+// the registry's `isConfigured()`.
 export const env: Env = parsedEnv.data
 
 /**
- * Canonical base URL for the application.
+ * Canonical base URL. NEXT_PUBLIC_BASE_URL wins; on Vercel it is usually
+ * unset, so production uses VERCEL_PROJECT_PRODUCTION_URL and a preview its
+ * own branch URL (previews stay out of search via Vercel's
+ * `x-robots-tag: noindex`).
  *
- * NEXT_PUBLIC_BASE_URL wins when set. On Vercel it is usually left unset:
- * production uses VERCEL_PROJECT_PRODUCTION_URL, and a preview its own branch
- * URL, so a preview's canonical URLs, sitemap and OG images point at the
- * preview. Previews stay out of search results through the
- * `x-robots-tag: noindex` Vercel sends on them.
- *
- * Costs: Vercel picks the *shortest* production custom domain, so a site served
- * on `www.example.com` with the apex redirecting to it would get the apex; set
- * NEXT_PUBLIC_BASE_URL to the primary domain there. And with Vercel deployment
- * protection on for previews, link unfurlers (Slack, X) get its login page
- * instead of a preview's OG image.
- *
- * Locally it falls back to `https://localhost:3000` (the dev server supports
- * --https mode). A production build with none of these resolves canonical
- * URLs, sitemaps, and OG images to localhost, breaking SEO entirely.
+ * Costs: Vercel picks the shortest production custom domain, so a site on
+ * `www.example.com` with the apex redirecting to it gets the apex; set
+ * NEXT_PUBLIC_BASE_URL there. With deployment protection on for previews,
+ * link unfurlers get the login page instead of the OG image. A production
+ * build with none of these resolves canonical URLs, sitemaps and OG images to
+ * `https://localhost:3000`.
  */
 const vercelHost =
   env.VERCEL_ENV === 'production'

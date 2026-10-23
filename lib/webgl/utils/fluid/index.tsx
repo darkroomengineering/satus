@@ -20,19 +20,18 @@ export function useFluidSim(
   const gl = useThree((state) => state.gl)
   const size = useThree((state) => state.size)
 
-  // Bumped after a WebGL context restore (see webgl.tsx's ContextLossHandler)
-  // — included below so the create/destroy effect replays and rebuilds the
-  // sim, which sits outside three.js's own tracked-restore path.
+  // Bumped after a WebGL context restore (see webgl.tsx's ContextLossHandler);
+  // listed in the deps below so the sim, which sits outside three.js's tracked
+  // restore path, is rebuilt.
   const contextGeneration = useSyncExternalStore(
     subscribeContextGeneration,
     getContextGeneration,
     getServerContextGeneration
   )
 
-  // Created/destroyed by the effect, keyed on gl + resolution. Held in a ref
-  // (not state) because the instance is mutated imperatively below — the
-  // React Compiler cannot optimize a component that constructs-then-setStates
-  // an instance in an effect and later mutates that same state value.
+  // A ref, not state: the instance is mutated imperatively, and the React
+  // Compiler cannot optimize a component that constructs-then-setStates an
+  // instance in an effect and later mutates that same state value.
   const fluidRef = useRef<null | Fluid>(null)
 
   useEffect(() => {
@@ -55,9 +54,8 @@ export function useFluidSim(
     lease.acquire()
   }
 
-  // Normalize pointer input and queue splats. The handler always reads the
-  // latest `size` and `fluidRef.current`, because it's routed through
-  // useEffectEvent — same guarantee usePointerInput itself gives its callers.
+  // Routed through useEffectEvent so it always reads the latest `size` and
+  // `fluidRef.current`.
   const handlePointerMove = useEffectEvent(
     (clientX: number, clientY: number, dx: number, dy: number) => {
       const fluid = fluidRef.current
@@ -69,25 +67,20 @@ export function useFluidSim(
     }
   )
 
-  // Subscribes to the shared pointer bus (mounted once in FlowmapProvider)
-  // instead of mounting its own window listeners — see usePointerInputSubscribe.
+  // The shared pointer bus is mounted once in FlowmapProvider, so this adds no
+  // window listeners of its own.
   useEffect(() => {
     return subscribePointerMove?.(handlePointerMove)
   }, [subscribePointerMove])
 
-  // Update aspect ratio when viewport size changes.
-  //
-  // `gl` and `resolution` are dependencies even though they are not read here:
-  // they are what recreates the instance above, and a fresh Fluid needs its
-  // aspect set. Before the instance moved into a ref, the old `fluid` state
-  // value in this list did that job.
+  // `gl` and `resolution` are dependencies though not read here: they recreate
+  // the instance above, and a fresh Fluid needs its aspect set.
   useEffect(() => {
     const fluid = fluidRef.current
     if (!fluid) return
     fluid.splatMaterial.uniforms.uAspect.value = size.width / size.height
   }, [size, gl, resolution, contextGeneration])
 
-  // Theatre.js controls for fluid parameters
   useTheatre(
     sheet,
     'fluid simulation',
@@ -121,16 +114,15 @@ export function useFluidSim(
         fluid.radius = radius
         holdUntilFaded(fluid)
       },
-      // Re-subscribe whenever the instance is rebuilt, so Theatre re-applies
-      // its current values to the new Fluid. A ref's identity never changes,
-      // so listing `fluidRef` here would mean never re-subscribing, and the
-      // initial values would be dropped on the floor.
+      // Re-subscribes when the instance is rebuilt so Theatre re-applies its
+      // current values to the new Fluid. A ref's identity never changes, so
+      // listing `fluidRef` would never re-subscribe and the initial values
+      // would be dropped.
       deps: [gl, resolution, contextGeneration],
     }
   )
 
-  // Drive the simulation with the real frame delta so it runs at the same
-  // apparent speed regardless of display refresh rate.
+  // Real frame delta, so apparent speed is independent of refresh rate.
   useFrame((_, delta) => {
     fluidRef.current?.update(delta)
 

@@ -4,15 +4,11 @@ import { getCmsRoutes, STATIC_ROUTES } from '@/lib/seo/routes'
 import { BASE_URL } from '@/lib/seo/site'
 
 /**
- * Static routes are listed in `lib/seo/routes.ts` (`STATIC_ROUTES`) —
- * shared with `/llms.txt` so the two surfaces can't drift. New static
- * routes must be added there and to `PAGES` in `app/(site)/ai/page.tsx`;
- * the machine view (`/ai`) has no link from the design, so crawlers only
- * discover it here.
+ * Static routes come from `STATIC_ROUTES` in `lib/seo/routes.ts`, shared with
+ * `/llms.txt` and `/ai` so they can't drift. The design doesn't link `/ai`, so
+ * crawlers only discover it here.
  *
- * CMS-driven routes (`getCmsRoutes`) are appended when the Sanity
- * integration is configured; a fresh clone with no CMS env set gets the
- * static routes only.
+ * CMS routes (`getCmsRoutes`) are appended when Sanity is configured.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const cmsRoutes = await getCmsRoutes()

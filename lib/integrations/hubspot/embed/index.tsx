@@ -14,7 +14,6 @@ type EmbedHubspotFormProps = {
   onSubmit?: () => void
 }
 
-// Track script loading state globally
 let isScriptLoaded = false
 
 export function EmbedHubspotForm({
@@ -24,9 +23,9 @@ export function EmbedHubspotForm({
   className,
   onSubmit,
 }: EmbedHubspotFormProps) {
-  // Default to a per-instance id so two embeds on the same page never collide
-  // on the DOM id `window.hbspt.forms.create` targets — useId()'s colons
-  // aren't valid in a bare `#id` CSS selector, so they're stripped.
+  // Per-instance id so two embeds never collide on the DOM id
+  // `hbspt.forms.create` targets; useId()'s colons are invalid in a bare
+  // `#id` selector, so they're stripped.
   const generatedId = useId().replace(/:/g, '')
   const target = targetProp ?? `hubspot-form-wrapper-${generatedId}`
   const formCreatedRef = useRef(false)
@@ -35,9 +34,8 @@ export function EmbedHubspotForm({
   function createForm() {
     if (formCreatedRef.current) return
 
-    // Client component: read NEXT_PUBLIC_* directly so Next inlines it into the
-    // browser bundle. The `env` object's parse(process.env) access is not
-    // reliably inlined client-side and can be undefined at runtime.
+    // Read NEXT_PUBLIC_* directly so Next inlines it; the `env` object's
+    // parse(process.env) is not reliably inlined client-side.
     const portalId = process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID
     if (window.hbspt && isScriptLoaded && portalId) {
       formCreatedRef.current = true
@@ -60,7 +58,6 @@ export function EmbedHubspotForm({
 
   useEffect(() => {
     createForm()
-    // Clean up on unmount
     return () => {
       formCreatedRef.current = false
       // oxlint-disable-next-line react/exhaustive-deps -- ref is read in cleanup deliberately; the node is torn down with the effect

@@ -7,7 +7,7 @@ import type { ComponentProps } from 'react'
 import s from './checkbox.module.css'
 
 /**
- * Checkbox component built on Base UI for accessible checkboxes.
+ * Checkbox on Base UI.
  *
  * @example
  * ```tsx
@@ -40,11 +40,8 @@ type CheckboxProps = Omit<
   ComponentProps<typeof BaseCheckbox.Root>,
   'children'
 > & {
-  /** Label for the checkbox */
   label?: string
-  /** Additional class for the checkbox */
   className?: string
-  /** Additional class for the label */
   labelClassName?: string
 }
 
@@ -94,7 +91,6 @@ function CheckIcon() {
   )
 }
 
-// Compound components
 function Root({
   className,
   ...props

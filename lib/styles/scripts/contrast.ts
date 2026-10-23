@@ -1,17 +1,11 @@
 /**
- * Contrast measurement for the theme palette.
+ * Contrast measurement shared by `contrast.test.ts` (asserts) and
+ * `contrast-accept.ts` (records the baseline), so they can't measure differently.
  *
- * Shared by `contrast.test.ts` (which asserts) and `contrast-accept.ts` (which
- * records a new baseline), so the gate and the accept command can never measure
- * different things.
- *
- * WCAG 2.1 is the blocking metric because it is what accessibility law and
- * client contracts reference — the DOJ's 2024 ADA rule and EN 301 549 both cite
- * WCAG 2.1 AA, and it remains the absolute floor no baseline can waive below.
- * APCA is computed alongside it as a second signal: it is perceptually better
- * and is W3C's candidate for WCAG 3, but WCAG 3 is still a working draft, so
- * rather than blocking on it directly, it gates *changes* against an accepted
- * baseline — new or worsened sub-60 pairs fail, same as WCAG.
+ * WCAG 2.1 blocks: the DOJ 2024 ADA rule and EN 301 549 cite WCAG 2.1 AA, so it
+ * is the floor no baseline waives. APCA (W3C's candidate for WCAG 3, still a
+ * draft) is a second signal that gates changes against the accepted baseline:
+ * new or worsened sub-60 pairs fail.
  */
 
 import { join } from 'node:path'
@@ -90,20 +84,15 @@ const PAIRS: { label: string; bg: string; fg: Role; min: number }[] = [
 const MIX =
   /--(?<token>[\w-]+):\s*color-mix\(\s*in oklab,\s*var\(--color-(?<from>\w+)\)\s+(?<pct>\d+)%,\s*(?:var\(--color-(?<onto>\w+)\)|transparent)\s*\)/g
 
-/**
- * Read the `color-mix(in oklab, …)` recipes out of `global.css` so the check
- * recomputes when a percentage is edited instead of drifting from it.
- */
+/** Reads the `color-mix(in oklab, …)` recipes from `global.css`, so edited percentages are re-measured. */
 export async function readDerivedTokens() {
   const css = await Bun.file(
     join(import.meta.dir, '..', 'css', 'global.css')
   ).text()
 
-  // SAFETY: `token`, `from`, and `pct` are unconditional capture groups in
-  // MIX — TS types every named group as `string | undefined` regardless,
-  // but any successful match has all three set; `onto` is the pattern's one
-  // genuinely optional group (the `transparent` alternative doesn't capture
-  // it), handled by its own fallback below.
+  // SAFETY: `token`, `from`, `pct` are unconditional groups in MIX, so any
+  // match has them set; `onto` is optional (the `transparent` alternative
+  // doesn't capture it), hence its fallback below.
   return [...css.matchAll(MIX)].map(({ groups }) => ({
     token: groups?.token as string,
     from: groups?.from as Role,
@@ -112,7 +101,6 @@ export async function readDerivedTokens() {
   }))
 }
 
-/** Measure every pair in every theme. */
 export async function measureContrast(): Promise<Measurement[]> {
   const derived = await readDerivedTokens()
   const measurements: Measurement[] = []

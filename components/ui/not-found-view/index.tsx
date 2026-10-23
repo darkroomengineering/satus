@@ -4,11 +4,9 @@ import s from './not-found-view.module.css'
 
 interface NotFoundViewProps {
   /**
-   * Element rendered in place of the default "Go Home" anchor. Pass the
-   * project's `Link` (from '@/components/ui/link') when rendering inside the
-   * router (e.g. app/(site)/not-found.tsx). Defaults to a raw `<a>`, which is
-   * required in app/not-found.tsx since it renders under the bare root
-   * layout, outside the (site) group's providers.
+   * Replaces the default "Go Home" anchor. Pass `Link` (`@/components/ui/link`)
+   * inside the router; the default raw `<a>` is required in app/not-found.tsx,
+   * which renders under the bare root layout.
    */
   homeLink?: ReactNode
   /** Router-aware links when available; raw anchors keep the root variant safe. */
@@ -42,12 +40,9 @@ const DEFAULT_RECOVERY_LINKS = (
 )
 
 /**
- * Shared 404 view used by both app/(site)/not-found.tsx and app/not-found.tsx.
- *
- * Uses no hooks and no app providers, so it stays server-renderable and is
- * safe to render both inside the (site) group (wrapped in Wrapper there) and
- * under the bare root layout, which has none of Wrapper's Lenis/Theme/Header/
- * Footer/Canvas machinery available.
+ * 404 view shared by app/(site)/not-found.tsx and app/not-found.tsx. No hooks
+ * or providers, so it stays server-renderable and works under the bare root
+ * layout, which has none of Wrapper's Lenis/Theme/Header/Footer/Canvas.
  */
 export function NotFoundView({
   homeLink = DEFAULT_HOME_LINK,

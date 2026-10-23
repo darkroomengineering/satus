@@ -5,14 +5,9 @@ import { useTempus } from 'tempus/react'
 import { isAwake, noteSleep, wake } from '@/webgl/utils/awake'
 
 /**
- * RAF (Request Animation Frame) component for controlling WebGL rendering.
- *
- * Uses tempus for frame timing and manually advances the R3F frame loop.
- * The Canvas uses `frameloop="never"` so this component controls rendering.
- *
- * @param render - `true` draws only while something keeps the canvas awake
- *   (see `@/webgl/utils/awake`), `'always'` draws every frame, `false` never
- *   draws.
+ * Advances the R3F frame loop (the Canvas uses `frameloop="never"`) on
+ * Tempus. `render`: `true` draws only while something keeps the canvas awake
+ * (see `@/webgl/utils/awake`), `'always'` every frame, `false` never.
  */
 export function RAF({ render = true }: { render?: boolean | 'always' }) {
   const advance = useThree((state) => state.advance)

@@ -6,10 +6,9 @@ import { useEffect, useRef } from 'react'
 
 import s from './studio.module.css'
 
-// Module scope on purpose. The React Compiler cannot lower an `import()`
-// expression inside a component body ("BuildHIR: Handle Import expressions")
-// and silently gives up on optimising the whole component. Behind a plain
-// function call the chunk still loads lazily and the compiler is happy.
+// Module scope on purpose: React Compiler cannot lower an `import()` inside a
+// component body ("BuildHIR: Handle Import expressions") and skips optimising
+// the whole component.
 const loadStudio = () => import('@theatre/studio')
 
 export function Studio() {
@@ -18,8 +17,6 @@ export function Studio() {
   useEffect(() => {
     let cancelled = false
 
-    // .catch keeps no-floating-promises happy and surfaces a failed chunk
-    // load instead of leaving an unhandled rejection.
     loadStudio()
       .then((mod) => {
         if (cancelled) return
@@ -60,7 +57,6 @@ export function Studio() {
           const url = URL.createObjectURL(file)
           const a = document.createElement('a')
           a.href = url
-          // create title using id and date up to seconds
           const title = `${id}-${new Date().toISOString().slice(0, 19)}`
           a.download = title
           a.click()

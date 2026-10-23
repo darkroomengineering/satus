@@ -15,7 +15,6 @@ import { CartModal } from './modal'
 import { cartReconciler } from './optimistic-utils'
 
 export { useCartContext } from './cart-store-context'
-// Re-export types and hook so existing import paths keep working
 export type { CartActions, CartContextStandard, CartMeta, CartState }
 
 interface CartModalContextType {
@@ -27,10 +26,8 @@ interface CartModalContextType {
 const CartModalContext = createContext<CartModalContextType | null>(null)
 
 /**
- * Throws outside `CartProvider`, matching the sibling `useCartContext`
- * pattern (cart-store-context.ts) — a working-but-inert default
- * (`isOpen: false`, no-op openCart/closeCart) would silently no-op instead
- * of surfacing the missing provider.
+ * Throws outside `CartProvider`: an inert default (no-op openCart/closeCart)
+ * would hide the missing provider.
  */
 export function useCartModal(): CartModalContextType {
   const context = use(CartModalContext)

@@ -1,3 +1,5 @@
+// GLSL blend modes port the compositing spec's sRGB/HSL definitions; rewriting
+// them in OKLab would change standard blend-mode output.
 import { BlendFunction, BlendMode } from 'postprocessing'
 
 const HUE = /* glsl */ `

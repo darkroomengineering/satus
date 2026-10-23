@@ -1,22 +1,16 @@
 #!/usr/bin/env bun
 /**
- * env:setup - hand the dotenvx private keys to Vercel, or to a teammate
+ * env:setup - hand the dotenvx private keys to Vercel (`[--dry-run]`), or to a
+ * teammate's `.env.keys` via the clipboard (`--copy`).
  *
- * Run with: bun run env:setup [--dry-run]
- *           bun run env:setup --copy
+ * Vercel needs the private key of every encrypted file a build reads: `.env`
+ * and, when it exists, `.env.production`. `.env.development` is local-only. CI
+ * gets no key: it builds without the encrypted files (ci.yml), keeping the key
+ * away from dependency code in Dependabot and fork PRs.
  *
- * Every committed env file is encrypted (README § Environment variables), so
- * Vercel needs the private key of every file a build reads: `.env`
- * (DOTENV_PRIVATE_KEY) and, when it exists, `.env.production`
- * (DOTENV_PRIVATE_KEY_PRODUCTION). `.env.development` is local-only. CI gets
- * no key at all: it builds without the encrypted files (ci.yml), which keeps
- * the key away from dependency code in Dependabot and fork PRs.
- *
- * The key is read into memory and piped to `vercel` on stdin. It is never
- * printed and never passed as an argument: an AI agent running this script
- * sees its output, and arguments show up in process lists. Child output is
- * shown only on failure, with the key redacted. `--copy` puts the lines a
- * teammate needs for `.env.keys` on the clipboard instead, again unprinted.
+ * The key goes to `vercel` on stdin, never printed and never an argument: an
+ * AI agent running this script sees its output, and arguments show up in
+ * process lists. Child output is shown only on failure, with the key redacted.
  */
 
 import { existsSync, readFileSync } from 'node:fs'
@@ -29,7 +23,6 @@ const flags = new Set(process.argv.slice(2))
 const dryRun = flags.has('--dry-run')
 const copy = flags.has('--copy')
 
-/** Files a build reads, and the name each file's private key goes by. */
 const BUILD_FILES = [
   { file: '.env', keyName: 'DOTENV_PRIVATE_KEY' },
   { file: '.env.production', keyName: 'DOTENV_PRIVATE_KEY_PRODUCTION' },
@@ -48,7 +41,6 @@ function fail(message: string): never {
   process.exit(1)
 }
 
-/** Keys whose value in `source` is not encrypted. */
 function plainKeys(source: string) {
   return source
     .split('\n')
@@ -65,7 +57,6 @@ function plainKeys(source: string) {
     .map(({ key }) => key)
 }
 
-/** The private key for `file`, or null when this machine doesn't have it. */
 function readPrivateKey(file: string, keyName: string) {
   const result = Bun.spawnSync(
     [bunExecutable, dotenvxCli, 'keypair', keyName, '-f', file],
@@ -75,13 +66,11 @@ function readPrivateKey(file: string, keyName: string) {
   return /^[0-9a-f]{64}$/.test(key) ? key : null
 }
 
-/** What `vercel link` writes to .vercel/project.json. */
 interface VercelProjectFile {
   projectName?: string
   projectId?: string
 }
 
-/** The linked Vercel project's name (or id), or null when not linked. */
 function linkedVercelProject() {
   const path = join(projectRoot, '.vercel', 'project.json')
   if (!existsSync(path)) return null

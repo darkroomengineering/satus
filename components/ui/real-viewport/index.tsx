@@ -4,31 +4,9 @@ import { useWindowSize } from 'hamo'
 import { type ReactNode, useEffect } from 'react'
 
 /**
- * Measures the browser's scrollbar width and exposes it as a CSS custom
- * property, re-measuring on resize. Viewport units themselves are handled
- * natively via `dvh`/`svh` — this component does not set any viewport-unit
- * custom properties.
- *
- * Place this component once at the root of your app.
- *
- * CSS variables set:
- * - `--scrollbar-width` — browser scrollbar width in pixels
- *
- * @example
- * ```tsx
- * // app/(site)/layout.tsx
- * import { RealViewport } from '@/components/ui/real-viewport'
- *
- * export default function RootLayout({ children }) {
- *   return (
- *     <html>
- *       <body>
- *         <RealViewport>{children}</RealViewport>
- *       </body>
- *     </html>
- *   )
- * }
- * ```
+ * Sets `--scrollbar-width` (px), re-measured on resize. Viewport units are
+ * native (`dvh`/`svh`); no viewport-unit properties are set. Render once at
+ * the app root; usage in `./README.md`.
  */
 export function RealViewport({ children }: { children?: ReactNode }) {
   const { width } = useWindowSize()

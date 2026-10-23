@@ -22,10 +22,9 @@ export function RichText({ content }: RichTextProps) {
         },
         marks: {
           link: ({ children, value }) => {
-            // SAFETY: `value` is whatever the `link` mark's Sanity schema
-            // produced (the `link` type sanity-plugin-link-field registers in
-            // `../sanity.config.ts`); `@portabletext/react` types every
-            // mark's `value` generically, with no per-mark shape.
+            // SAFETY: `value` is a `link` type value (registered by
+            // sanity-plugin-link-field); `@portabletext/react` types mark
+            // values generically.
             const linkData = value as SanityLink
             const { href, target, rel } = getLinkAttributes(linkData)
 

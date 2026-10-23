@@ -15,7 +15,6 @@ declare module '*.module.sass' {
   export default classes
 }
 
-// Regular CSS imports
 declare module '*.css'
 declare module '*.scss'
 declare module '*.sass'

@@ -1,11 +1,3 @@
-/**
- * Cloudflare Turnstile - Better than reCAPTCHA
- * - Completely invisible to users
- * - Faster verification
- * - More privacy-friendly
- * - Perfect for terminal aesthetics
- */
-
 import { headers } from 'next/headers'
 import { z } from 'zod'
 
@@ -67,7 +59,7 @@ export async function validateTurnstile(
           response: token,
           ...(ip && { remoteip: ip }),
         }),
-        timeout: 5000, // 5 second timeout for Turnstile verification
+        timeout: 5000,
       }
     )
 

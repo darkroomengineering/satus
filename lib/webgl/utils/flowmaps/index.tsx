@@ -20,19 +20,18 @@ export function useFlowmapSim(
   const gl = useThree((state) => state.gl)
   const size = useThree((state) => state.size)
 
-  // Bumped after a WebGL context restore (see webgl.tsx's ContextLossHandler)
-  // — included below so the create/destroy effect replays and rebuilds the
-  // sim, which sits outside three.js's own tracked-restore path.
+  // Bumped after a WebGL context restore (see webgl.tsx's ContextLossHandler);
+  // listed in the deps below so the sim, which sits outside three.js's tracked
+  // restore path, is rebuilt.
   const contextGeneration = useSyncExternalStore(
     subscribeContextGeneration,
     getContextGeneration,
     getServerContextGeneration
   )
 
-  // Created/destroyed by the effect, keyed on gl + resolution. Held in a ref
-  // (not state) because the instance is mutated imperatively below — the
-  // React Compiler cannot optimize a component that constructs-then-setStates
-  // an instance in an effect and later mutates that same state value.
+  // A ref, not state: the instance is mutated imperatively, and the React
+  // Compiler cannot optimize a component that constructs-then-setStates an
+  // instance in an effect and later mutates that same state value.
   const flowmapRef = useRef<Flowmap | null>(null)
 
   useEffect(() => {
@@ -44,8 +43,8 @@ export function useFlowmapSim(
     }
   }, [gl, resolution, contextGeneration])
 
-  // Track whether the pointer moved this frame (for idle detection in useFrame)
-  // and the timestamp of the last event (for velocity calculation).
+  // `movedRef`: pointer moved this frame (idle detection in useFrame).
+  // `lastTimeRef`: timestamp of the last event (velocity calculation).
   const movedRef = useRef(false)
   const lastTimeRef = useRef<number | null>(null)
 
@@ -59,18 +58,16 @@ export function useFlowmapSim(
     lease.acquire()
   }
 
-  // Mouse/touch input — drives the flowmap stamp position and velocity.
-  // The handler always reads the latest `size` and `flowmapRef.current`,
-  // because it's routed through useEffectEvent — same guarantee
-  // usePointerInput itself gives its callers.
+  // Routed through useEffectEvent so it always reads the latest `size` and
+  // `flowmapRef.current`.
   const handlePointerMove = useEffectEvent(
     (clientX: number, clientY: number, dx: number, dy: number) => {
       const flowmap = flowmapRef.current
       if (!flowmap) return
 
       const now = performance.now()
-      // Use a safe default on the very first call; clamp to avoid velocity spikes
-      // after an idle period or tab switch.
+      // Safe default on the first call; clamped to avoid velocity spikes after
+      // an idle period or tab switch.
       const dt =
         lastTimeRef.current !== null
           ? Math.max(14, now - lastTimeRef.current)
@@ -79,24 +76,22 @@ export function useFlowmapSim(
       movedRef.current = true
       holdUntilFaded(flowmap.dissipation)
 
-      // Normalized cursor (y flipped into UV space)
+      // Cursor in UV space (y flipped)
       flowmap.mouse.set(clientX / size.width, 1 - clientY / size.height)
       // Pixels per millisecond; the shader flips Y via vec2(1, -1)
       flowmap.velocity.set(dx / dt, dy / dt)
     }
   )
 
-  // Subscribes to the shared pointer bus (mounted once in FlowmapProvider)
-  // instead of mounting its own window listeners — see usePointerInputSubscribe.
+  // The shared pointer bus is mounted once in FlowmapProvider, so this adds no
+  // window listeners of its own.
   useEffect(() => {
     return subscribePointerMove?.(handlePointerMove)
   }, [subscribePointerMove])
 
-  // Aspect ratio so the cursor falloff stays round
-  // `gl` and `resolution` are dependencies even though they are not read here:
-  // they are what recreates the instance above, and a fresh Flowmap needs its
-  // aspect set. Before the instance moved into a ref, the old `flowmap` state
-  // value in this list did that job.
+  // Keeps the cursor falloff round. `gl` and `resolution` are dependencies
+  // though not read here: they recreate the instance above, and a fresh
+  // Flowmap needs its aspect set.
   useEffect(() => {
     const flowmap = flowmapRef.current
     if (!flowmap) return
@@ -124,10 +119,10 @@ export function useFlowmapSim(
         flowmap.dissipation = dissipation
         holdUntilFaded(dissipation)
       },
-      // Re-subscribe whenever the instance is rebuilt, so Theatre re-applies
-      // its current values to the new Flowmap. A ref's identity never changes,
-      // so listing `flowmapRef` here would mean never re-subscribing, and the
-      // initial values would be dropped on the floor.
+      // Re-subscribes when the instance is rebuilt so Theatre re-applies its
+      // current values to the new Flowmap. A ref's identity never changes, so
+      // listing `flowmapRef` would never re-subscribe and the initial values
+      // would be dropped.
       deps: [gl, resolution, contextGeneration],
     }
   )
@@ -135,8 +130,8 @@ export function useFlowmapSim(
   useFrame(() => {
     const flowmap = flowmapRef.current
     if (flowmap && !movedRef.current) {
-      // Pointer idle this frame: park off-screen + zero velocity so the
-      // existing trail dissipates instead of stamping a fixed smear.
+      // Pointer idle: park off-screen with zero velocity so the existing trail
+      // dissipates instead of stamping a fixed smear.
       flowmap.mouse.set(-1, -1)
       flowmap.velocity.set(0, 0)
     }

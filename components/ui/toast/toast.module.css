@@ -27,7 +27,6 @@
     box-shadow: 0 4px 12px oklch(0 0 0 / 0.15);
     position: relative;
 
-    /* Base UI animation states */
     transition: opacity 200ms ease-out;
 
     @media (--motion-ok) {
@@ -54,7 +53,6 @@
       border-radius: desktop-vw(8px);
     }
 
-    /* Toast types */
     &.success {
       border-left: 4px solid oklch(0.7227 0.192 149.58);
     }

@@ -48,21 +48,9 @@ import s from './form.module.css'
  * ```
  */
 
-// Context with standard { state, actions, meta } structure
 const FormContext = createContext<FormContextStandard | null>(null)
 
-/**
- * Hook to access the form context with standard structure.
- * Returns { state, actions, meta } for new implementations.
- *
- * @example
- * ```tsx
- * const { state, actions, meta } = useFormContext()
- * const { isPending, formState, errors } = state
- * const { register, resetForm } = actions
- * const { formId } = meta
- * ```
- */
+/** Access the form context: `{ state, actions, meta }`. */
 export function useFormContext(): FormContextStandard {
   const context = use(FormContext)
   if (!context) {
@@ -71,7 +59,6 @@ export function useFormContext(): FormContextStandard {
   return context
 }
 
-// Main Form component
 export function Form<T = unknown>({
   children,
   action,
@@ -82,17 +69,14 @@ export function Form<T = unknown>({
   ...props
 }: FormProps<T>) {
   const [key, setKey] = useState<string | null>(null)
-  // formState from useActionState survives the `key` remount below (it lives
-  // in this component, not the inner <form>), so a stale success/error state
-  // would otherwise persist forever after the visual reset. Dismissed on
-  // every reset path and cleared again the moment a new submission starts.
+  // formState survives the `key` remount below (it lives here, not in the
+  // inner <form>), so a stale success/error state would outlast the visual
+  // reset. Dismissed on every reset path, cleared when a new submission starts.
   const [isDismissed, setIsDismissed] = useState(false)
 
-  // onSuccess/onError fire from the action itself rather than from an effect
-  // watching formState. The effect had to list them as dependencies, so a
-  // parent re-rendering with fresh inline callbacks re-ran it and fired them a
-  // second time for a submission that had already been handled. The result is
-  // known right here, so there is nothing to observe after the fact.
+  // onSuccess/onError fire from the action, not from an effect watching
+  // formState: such an effect would depend on them, and a parent re-rendering
+  // with fresh inline callbacks would re-fire them for a handled submission.
   const actionWithCallbacks: FormAction<T> = async (prevState, formData) => {
     setIsDismissed(false)
     const result = await action(prevState, formData)
@@ -122,12 +106,10 @@ export function Form<T = unknown>({
     initialState: null,
   })
 
-  // Clear the form a beat after a successful submit. Scheduling goes through
-  // the rAF write queue to keep it off the layout-read path.
-  //
-  // `cancelled` covers unmounting before that queue drains: `resetTimer` is
-  // assigned inside the queued callback, so without the flag the timer could be
-  // created after teardown and setKey would fire on a component that is gone.
+  // Scheduled through the rAF write queue, off the layout-read path.
+  // `cancelled` covers unmounting before the queue drains: `resetTimer` is
+  // assigned inside the queued callback, so without the flag the timer could
+  // be created after teardown and call setKey on an unmounted component.
   useEffect(() => {
     if (formState?.status !== 200) return
 
@@ -148,7 +130,6 @@ export function Form<T = unknown>({
     }
   }, [formState])
 
-  // Reset form function for actions
   const resetForm = () => {
     setKey(crypto.randomUUID())
     setIsDismissed(true)
@@ -176,9 +157,8 @@ export function Form<T = unknown>({
     <FormContext.Provider value={contextValue}>
       <form
         {...props}
-        // Internal submission control — `action`/`onSubmit` (and `key`,
-        // which drives the post-submit remount) are not overridable by a
-        // consumer's spread; they must win over `...props`.
+        // `action`, `onSubmit` and `key` (the post-submit remount) must win
+        // over a consumer's `...props`.
         key={key}
         className={cn(s.form, className)}
         action={formAction}
@@ -190,7 +170,6 @@ export function Form<T = unknown>({
   )
 }
 
-// Submit Button
 export function SubmitButton({
   className,
   children,
@@ -217,9 +196,7 @@ export function SubmitButton({
   return (
     <button
       {...props}
-      // Internal submission control — `type` and the disabled-gate
-      // `onClick` are not overridable by a consumer's spread; they must win
-      // over `...props`.
+      // `type` and the disabled-gate `onClick` must win over `...props`.
       type="submit"
       aria-disabled={!isReady || isPending}
       onClick={(e) => {
@@ -241,7 +218,6 @@ export function SubmitButton({
   )
 }
 
-// Messages (error display)
 export function Messages({ className, ...props }: MessagesProps) {
   const { state } = useFormContext()
   const { errors, formState } = state
@@ -266,7 +242,6 @@ export function Messages({ className, ...props }: MessagesProps) {
   )
 }
 
-// Re-export types
 export type { FormState } from '@/lib/types/form'
 export { useForm } from './hook'
 export type {

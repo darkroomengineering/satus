@@ -7,7 +7,7 @@ import type { ComponentProps } from 'react'
 import s from './switch.module.css'
 
 /**
- * Switch component built on Base UI for accessible toggle switches.
+ * Switch on Base UI.
  *
  * @example
  * ```tsx
@@ -36,11 +36,8 @@ import s from './switch.module.css'
  */
 
 type SwitchProps = Omit<ComponentProps<typeof BaseSwitch.Root>, 'children'> & {
-  /** Label for the switch */
   label?: string
-  /** Additional class for the switch */
   className?: string
-  /** Additional class for the label */
   labelClassName?: string
 }
 
@@ -68,7 +65,6 @@ function Switch({ label, labelClassName, ...props }: SwitchProps) {
   )
 }
 
-// Compound components
 function Root({ className, ...props }: ComponentProps<typeof BaseSwitch.Root>) {
   return <BaseSwitch.Root className={cn(s.root, className)} {...props} />
 }

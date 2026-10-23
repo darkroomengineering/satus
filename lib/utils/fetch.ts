@@ -1,7 +1,3 @@
-/**
- * Fetch utilities with timeout protection for external API calls.
- */
-
 import type { z } from 'zod'
 
 import { type JsonValue, parseApiResponse } from './validation'
@@ -41,21 +37,8 @@ export async function fetchWithTimeout(
 }
 
 /**
- * Fetch and parse JSON with timeout protection.
- *
- * Without a schema, returns `Promise<JsonValue>` — the caller must narrow the type.
- *
- * @example
- * ```ts
- * // Unvalidated — returns a JsonValue, caller must narrow
- * const raw = await fetchJSON('https://api.example.com/data')
- *
- * // Validated — throws a descriptive error if the shape doesn't match
- * import { z } from 'zod'
- * const UserSchema = z.object({ name: z.string() })
- * const user = await fetchJSON('https://api.example.com/user', {}, UserSchema)
- * //    ^? { name: string }
- * ```
+ * Without a schema returns `JsonValue` the caller must narrow; with one,
+ * throws a descriptive error if the shape doesn't match.
  */
 export async function fetchJSON(
   url: string,

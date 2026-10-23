@@ -1,15 +1,12 @@
 const scaleUtilityMap = {
-  // Text
   text: 'font-size',
   tracking: 'letter-spacing',
   leading: 'line-height',
-  // Border
   border: 'border-width',
   'border-t': 'border-top-width',
   'border-r': 'border-right-width',
   'border-b': 'border-bottom-width',
   'border-l': 'border-left-width',
-  // Border radius
   rounded: 'border-radius',
   'rounded-t': ['border-top-left-radius', 'border-top-right-radius'],
   'rounded-r': ['border-top-right-radius', 'border-bottom-right-radius'],
@@ -22,18 +19,15 @@ const scaleUtilityMap = {
 }
 
 const columnUtilityMap = {
-  // Sizing
   w: 'width',
   'min-w': 'min-width',
   'max-w': 'max-width',
   h: 'height',
   'min-h': 'min-height',
   'max-h': 'max-height',
-  // Gap
   gap: 'gap',
   'gap-x': 'column-gap',
   'gap-y': 'row-gap',
-  // Padding
   p: 'padding',
   px: 'padding-inline',
   py: 'padding-block',
@@ -41,7 +35,6 @@ const columnUtilityMap = {
   pr: 'padding-right',
   pl: 'padding-left',
   pb: 'padding-bottom',
-  // Margin
   m: 'margin',
   mx: 'margin-inline',
   my: 'margin-block',
@@ -49,7 +42,6 @@ const columnUtilityMap = {
   mr: 'margin-right',
   ml: 'margin-left',
   mb: 'margin-bottom',
-  // Position
   top: 'top',
   right: 'right',
   bottom: 'bottom',
@@ -98,10 +90,8 @@ function columnScaleUtility(name: string, properties: string | string[]) {
     .join('\n')}
 }`
 
-  // Negate the whole expression, not just the column term. Negating only
-  // `--value(integer) * var(--column-width)` while leaving the gap term
-  // `(--value(integer) - 1) * var(--gap)` alone undercounts the negative
-  // value by 2 * (N - 1) * gap for every N >= 2.
+  // Negate the whole expression: negating only the column term undercounts the
+  // negative value by 2 * (N - 1) * gap for every N >= 2.
   const negatedUtility = `@utility -dr-${name}-col-* {
 	${propertiesArray
     .map(

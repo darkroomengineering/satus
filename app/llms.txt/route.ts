@@ -9,22 +9,16 @@ import { getCmsRoutes } from '@/lib/seo/routes'
 import { formatList, SITE } from '@/lib/seo/site'
 
 /**
- * `/llms.txt` — the emerging convention for giving LLMs a plain-text site
- * summary they can fetch without executing JS or parsing HTML.
+ * `/llms.txt`: a plain-text site summary for LLMs, in the emerging convention.
+ * The entity section comes from `lib/seo/site.ts` and the page list from
+ * `getCmsRoutes()` (shared with `app/sitemap.ts`), so neither drifts from the
+ * JSON-LD graph, on-page copy or sitemap.
  *
- * This is the cheapest possible AEO (answer-engine optimization) win: one
- * static endpoint that states the entity in the format crawlers already
- * expect. The entity section is generated from `lib/seo/site.ts` rather
- * than hand-written so it can never drift from the JSON-LD graph or
- * on-page copy; the content list is generated from the same
- * `getCmsRoutes()` that feeds `app/sitemap.ts`, so both surfaces describe
- * the same set of pages.
- *
- * Prerendered at build time: GET handlers are dynamic unless they opt in.
+ * Prerendered at build time (GET handlers are dynamic unless they opt in).
  * The Sanity read behind `getCmsRoutes()` carries the `sanity` tag, so the
  * publish webhook regenerates this file too. Cost: `force-static` makes
- * request APIs (`headers()`, `cookies()`) return empty here, so this handler
- * can never vary by request.
+ * request APIs (`headers()`, `cookies()`) return empty, so this handler can
+ * never vary by request.
  */
 export const dynamic = 'force-static'
 

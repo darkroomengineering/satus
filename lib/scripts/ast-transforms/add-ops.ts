@@ -1,10 +1,5 @@
-/**
- * Additive AST operation handlers.
- *
- * Every handler is IDEMPOTENT: when the construct it would add is already
- * present, the original source text is returned byte-for-byte unchanged
- * (no-op paths return `sourceText`, never re-printed text).
- */
+// Every handler is IDEMPOTENT: when the construct is already present, no-op
+// paths return `sourceText` byte-for-byte, never re-printed text.
 
 import {
   type JsxAttributeLike,
@@ -33,14 +28,9 @@ import {
 } from './helpers'
 
 /**
- * Add an import declaration given as full source text. The text is parsed in
- * a throwaway file to extract its module specifier and bindings, so arbitrary
- * formatting of both the op text and the target file is handled.
- *
- * - Existing import from the same specifier: merge missing named imports (and
- *   a missing default import) into it; no-op when everything is present.
- * - No existing import: insert after the last import declaration, or after
- *   the directive prologue ('use client') when the file has no imports.
+ * Add an import declaration given as full source text. Same specifier already
+ * imported: merge missing named/default bindings into it. Otherwise insert
+ * after the last import, or after the directive prologue when there are none.
  */
 export function applyAddImport(
   project: Project,
@@ -93,19 +83,15 @@ export function applyAddImport(
       }
 
       if (!changed) return sourceText
-      return undefined // proceed with sf.getFullText()
+      return undefined
     }
 
     sf.insertStatements(insertIndexAfterImports(sf), op.text)
-    return undefined // proceed with sf.getFullText()
+    return undefined
   })
 }
 
-/**
- * Append a string-literal element to the array at
- * `variableName`.`propertyPath`. No-op when an element with the same literal
- * value (regardless of quote style) already exists.
- */
+/** No-op when an element with the same literal value (any quote style) exists. */
 export function applyAddArrayStringElement(
   project: Project,
   sourceText: string,
@@ -131,21 +117,15 @@ export function applyAddArrayStringElement(
       return sourceText
     }
 
-    // Escape backslashes before quotes so the emitted literal round-trips.
     const escaped = op.value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")
     arr.addElement(`'${escaped}'`, {
       useNewLines: arr.getText().includes('\n'),
     })
-    return undefined // proceed with sf.getFullText()
+    return undefined
   })
 }
 
-/**
- * Append an object-literal element (given as source text) to the array at
- * `variableName`.`propertyPath`. No-op when an element already matches
- * `matchProperty` — same semantics as removeArrayObjectElement, including
- * quoted-key normalization.
- */
+/** No-op when an element already matches `matchProperty` (same semantics as removeArrayObjectElement). */
 export function applyAddArrayObjectElement(
   project: Project,
   sourceText: string,
@@ -169,14 +149,13 @@ export function applyAddArrayObjectElement(
     arr.addElement(op.objectText, {
       useNewLines: arr.getText().includes('\n'),
     })
-    return undefined // proceed with sf.getFullText()
+    return undefined
   })
 }
 
 /**
- * Insert a full variable statement. No-op when a variable named `name`
- * already exists anywhere in the file — descendant scan mirrors
- * removeVariableStatement, so function-scoped declarations count as present.
+ * No-op when a variable named `name` exists anywhere in the file (descendant
+ * scan, like removeVariableStatement, so function-scoped declarations count).
  */
 export function applyAddVariableStatement(
   project: Project,
@@ -194,15 +173,10 @@ export function applyAddVariableStatement(
     } else {
       sf.insertStatements(insertIndexAfterImports(sf), op.text)
     }
-    return undefined // proceed with sf.getFullText()
+    return undefined
   })
 }
 
-/**
- * Add a named binding to an existing destructured variable declaration.
- * Inverse of `removeDestructuredBinding`. No-op when the binding already
- * exists, or when no destructuring matches `initializerContains`.
- */
 export function applyAddDestructuredBinding(
   project: Project,
   sourceText: string,
@@ -220,31 +194,25 @@ export function applyAddDestructuredBinding(
 
         const elements = pattern.getElements()
         if (elements.some((el) => el.getName() === op.bindingName)) {
-          return sourceText // already present — idempotent no-op
+          return sourceText
         }
 
         const names = [...elements.map((el) => el.getText()), op.bindingName]
         pattern.replaceWithText(`{ ${names.join(', ')} }`)
-        return undefined // proceed with sf.getFullText()
+        return undefined
       }
     }
-    return sourceText // no matching destructuring found
+    return sourceText
   })
 }
 
 /**
- * Insert `text` into a named function's body. No-op when a statement
- * containing `marker` already exists.
+ * Positioning is documented on `AddFunctionBodyStatementOp`.
  *
- * Positioning, first match wins: after the statement containing
- * `afterContains`; before the statement containing `beforeContains` (or the
- * first of its candidates that matches), ahead of that statement's leading
- * comments; with neither anchor given, appended as the last statement.
- *
- * A given anchor that matches nothing returns `sourceText` unchanged rather
- * than falling back to an append: an append lands after a terminal return
- * as dead code, and an unchanged file is what lets a `required` op report
- * the miss (`applyOpsToText`) so self-prune never runs over it.
+ * A given anchor that matches nothing returns `sourceText` unchanged instead
+ * of appending: an append lands after a terminal return as dead code, and an
+ * unchanged file is what lets a `required` op report the miss
+ * (`applyOpsToText`) so self-prune never runs over it.
  */
 export function applyAddFunctionBodyStatement(
   project: Project,
@@ -266,16 +234,14 @@ export function applyAddFunctionBodyStatement(
     const containing = (needle: string) =>
       statements.find((s) => s.getText().includes(needle))
 
-    // Raw text insertion (rather than `block.insertStatements(index, …)`)
-    // deliberately: ts-morph's numeric-index insertion mis-positions by one
-    // when a leading comment precedes the block's first statement (the index
-    // returned by `getStatements()` and the index `insertStatements` expects
-    // stop agreeing once trivia is involved).
+    // Raw text insertion, not `block.insertStatements(index, …)`: ts-morph's
+    // numeric index mis-positions by one when a leading comment precedes the
+    // block's first statement.
     if (op.afterContains !== undefined) {
       const anchor = containing(op.afterContains)
       if (anchor) {
         sf.insertText(anchor.getEnd(), `\n${op.text}`)
-        return undefined // proceed with sf.getFullText()
+        return undefined
       }
     }
 
@@ -287,17 +253,15 @@ export function applyAddFunctionBodyStatement(
       for (const candidate of candidates) {
         const anchor = containing(candidate)
         if (!anchor) continue
-        // Start of the line holding the anchor's first leading comment (or
-        // the anchor itself), so the comment stays attached to its statement.
+        // Start at the anchor's first leading comment so it stays attached.
         const commentStart = anchor.getLeadingCommentRanges()[0]?.getPos()
         const start = commentStart ?? anchor.getStart()
         const lineStart = sf.getFullText().lastIndexOf('\n', start - 1) + 1
         sf.insertText(lineStart, `${op.text}\n\n`)
-        return undefined // proceed with sf.getFullText()
+        return undefined
       }
     }
 
-    // An anchor was named and none matched: a miss, not an append.
     if (op.afterContains !== undefined || op.beforeContains !== undefined) {
       return sourceText
     }
@@ -311,26 +275,17 @@ export function applyAddFunctionBodyStatement(
       )
       sf.insertText(openBrace.getEnd(), `\n${op.text}`)
     }
-    return undefined // proceed with sf.getFullText()
+    return undefined
   })
 }
 
 /**
- * Append `childText` as the last child of the first JSX element whose opening
- * tag matches `parentTagName`. Among same-tag candidates, an element that
- * already contains a direct `childTagName` child wins, so re-added elements
- * land next to their siblings. `parentTagName: 'Fragment'` falls back to the
- * first JSX fragment (`<>…</>`) when no `<Fragment>` element matches.
+ * Parent selection and the idempotency check are documented on `AddJsxChildOp`.
  *
- * No-op when any JSX element (or self-closing element) with tag
- * `childTagName` already exists anywhere in the file — narrowed to elements
- * whose attribute matches when `op.childAttribute` is provided (so e.g.
- * `<OrchestraToggle id="webgl">` can be re-added next to other toggles).
- *
- * Indentation heuristic: when the parent's closing tag sits on its own line,
- * the child goes on its own line matching the last existing child's indent
- * (or one level past the closing tag). Single-line parents get the child
- * inserted inline before the closing tag.
+ * Indentation: when the parent's closing tag sits on its own line, the child
+ * goes on its own line matching the last existing child's indent (or one level
+ * past the closing tag); single-line parents get it inline before the closing
+ * tag.
  */
 export function applyAddJsxChild(
   project: Project,
@@ -368,7 +323,6 @@ export function applyAddJsxChild(
         )
     if (childExists) return sourceText
 
-    // True when `el` has a direct JSX child whose tag matches the op's child.
     const hasSameTagChild = (el: JsxElement | JsxFragment): boolean =>
       el.getJsxChildren().some((child) => {
         if (child.getKind() === SyntaxKind.JsxSelfClosingElement) {
@@ -417,14 +371,12 @@ export function applyAddJsxChild(
     const closingLinePrefix = sourceText.slice(lineStart, closingStart)
 
     if (/^[ \t]*$/.test(closingLinePrefix)) {
-      // Closing tag on its own line — give the child its own indented line.
       const childIndent =
         lastJsxChildIndent(parent, sourceText) ?? `${closingLinePrefix}  `
       sf.insertText(lineStart, `${childIndent}${op.childText}\n`)
     } else {
-      // Single-line parent (e.g. `<main>{children}</main>`) — insert inline.
       sf.insertText(closingStart, op.childText)
     }
-    return undefined // proceed with sf.getFullText()
+    return undefined
   })
 }

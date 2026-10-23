@@ -1,9 +1,3 @@
-/**
- * Configuration for the standalone Sanity Studio — run it with
- * `bunx sanity dev` from this directory, or `bunx sanity deploy`
- * to host it at https://<project>.sanity.studio.
- */
-
 import { defineConfig } from 'sanity'
 import { linkField } from 'sanity-plugin-link-field'
 import {
@@ -22,13 +16,11 @@ import { schema } from './schemas'
 const SINGLETONS = ['navigation']
 const SINGLETON_BLOCKED_ACTIONS = new Set(['delete', 'unpublish'])
 
-// Helper function for URL resolution — kept in sync with
-// `resolveDocumentUrl` in `./utils/link.ts` (this file can't import that
-// module: it's dual-compiled into the client bundle for the Studio route).
+// Keep in sync with `resolveDocumentUrl` in `./utils/link.ts`, which this
+// dual-compiled file can't import.
 function resolveHref(documentType?: string, slug?: string): string | undefined {
   switch (documentType) {
-    // `home` is not special-cased: `/` is the developer-owned starter page,
-    // so a `home` document previews at `/home` like any other slug.
+    // `home` previews at `/home`: `/` is the developer-owned starter page.
     case 'page':
       return slug ? `/${slug}` : undefined
     case 'article':
@@ -40,18 +32,16 @@ function resolveHref(documentType?: string, slug?: string): string | undefined {
 }
 
 /**
- * `null` when Sanity isn't configured (no projectId) — `defineConfig` throws
- * on an empty projectId, so this must not be called during CI/preview
- * builds that have no Sanity secrets set. The studio page checks this and
+ * `null` when there is no projectId: `defineConfig` throws on an empty one,
+ * which would break CI/preview builds without Sanity secrets. The studio page
  * renders a 404 instead of mounting `NextStudio`.
  *
- * Gated on the values from `./env`, NOT on `isConfigured('sanity')`. This
- * module is dual-compiled into the client bundle (the Studio route imports
- * it across a `'use client'` boundary), and `isConfigured` validates the
- * whole `process.env` object — which the browser `process` polyfill defines
- * as a permanently empty `{}`. Only literal `process.env.NEXT_PUBLIC_X`
- * reads get inlined at build time, so the schema check was always false in
- * the browser and 404'd a correctly configured Studio after hydration.
+ * Gated on the `./env` values, not `isConfigured('sanity')`. This module is
+ * dual-compiled into the client bundle (the Studio route imports it across a
+ * `'use client'` boundary), where `isConfigured` sees the browser `process`
+ * polyfill's empty `{}` (only literal `process.env.NEXT_PUBLIC_X` reads are
+ * inlined), so it was always false and 404'd a correctly configured Studio
+ * after hydration.
  */
 export default projectId && dataset
   ? defineConfig({
@@ -82,14 +72,11 @@ export default projectId && dataset
                 ...SINGLETONS.map((id) => S.listItem().singleton(id)),
               ]),
         }),
-        // Presentation tool for visual editing
         presentationTool({
           resolve: {
-            // Map routes to documents and GROQ filters
             mainDocuments: defineDocuments([
-              // Static segments win over the catch-all — keep this first so
-              // the tutorial page (a real static route) resolves ahead of
-              // the generic page-by-slug entry below.
+              // First: the static `/sanity` route must resolve ahead of the
+              // generic page-by-slug entry.
               {
                 route: '/sanity',
                 filter: `_type == "page" && slug.current == "sanity"`,

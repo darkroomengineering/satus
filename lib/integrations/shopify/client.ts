@@ -10,16 +10,12 @@ import { SHOPIFY_GRAPHQL_API_ENDPOINT } from './constants'
 import type { ShopifyFetchOptions, ShopifyResponse } from './types'
 
 /**
- * Normalize a Shopify store domain into a `https://` origin.
+ * Normalizes a store domain into a single `https://` origin. The documented
+ * value is scheme-less, but some setups include a scheme or trailing slash,
+ * and `fetch` throws "Failed to parse URL" on a scheme-less host.
  *
- * The documented env value is scheme-less (`your-store.myshopify.com`), but
- * some setups store it with an existing `https://`/`http://` prefix and/or a
- * trailing slash. Native `fetch` throws "Failed to parse URL" on a scheme-less
- * host, so this always normalizes to a single `https://` prefix.
- *
- * Returns an empty string when `domain` is missing — the caller is
- * responsible for gating usage (e.g. via `isConfigured('shopify')`); this
- * helper must never throw at module scope.
+ * Returns an empty string when `domain` is missing; callers gate on
+ * `isConfigured('shopify')`, and this must never throw at module scope.
  */
 export function normalizeStoreDomain(domain: string | undefined): string {
   if (!domain) return ''
@@ -35,11 +31,9 @@ const shopifyEnvelopeSchema = z.object({
   errors: z.array(z.object({ message: z.string() })).optional(),
 })
 
-// Shared across all attempts of a single shopifyFetch call: fetchWithTimeout
-// applies its `timeout` per attempt, so retries would otherwise multiply the
-// wall-clock time a Server Action waits past the original 10s budget. Each
-// attempt gets the remaining slice of this fixed budget instead of a fresh
-// 10s, keeping the total in line with what a caller already tolerates today.
+// One budget shared by all attempts of a shopifyFetch call: fetchWithTimeout's
+// `timeout` is per attempt, so retries would otherwise stretch a Server
+// Action's wait past 10s. Each attempt gets the remaining slice.
 const REQUEST_BUDGET_MS = 10000
 const MAX_RETRIES = 2 // up to 3 attempts total
 const RETRYABLE_STATUSES = new Set([429, 503])
@@ -54,16 +48,14 @@ function parseRetryAfterMs(header: string | null): number | null {
   return Math.max(0, Math.min(dateMs - Date.now(), 5000))
 }
 
-/** Exponential backoff (250ms, 500ms) with +/-20% jitter for the given attempt index. */
+/** 250ms, then 500ms, each with +/-20% jitter. */
 function backoffMs(attempt: number): number {
   const base = attempt === 0 ? 250 : 500
   const jitter = base * 0.2 * (Math.random() * 2 - 1)
   return base + jitter
 }
 
-// Waits `ms`, but bails immediately (rejecting with the abort reason) if
-// `signal` is already aborted or fires mid-wait, so a retry can never outlive
-// an aborted cacheSignal/timeout.
+// Rejects on abort so a retry never outlives an aborted cacheSignal/timeout.
 function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   if (signal?.aborted) {
     return Promise.reject(
@@ -83,10 +75,8 @@ function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   })
 }
 
-// Shared low-level wrapper for cached catalog reads (which pass `tags` and
-// `revalidate`, e.g. products.ts) and uncached per-user/mutation calls (which
-// pass cache: 'no-store', e.g. cart-operations.ts). Caching policy belongs to
-// the caller, not this wrapper.
+// Caching policy belongs to the caller: catalog reads pass `tags` and
+// `revalidate`, per-user/mutation calls pass cache: 'no-store'.
 export async function shopifyFetch<T = unknown>({
   cache = 'force-cache',
   headers: customHeaders,
@@ -105,13 +95,11 @@ export async function shopifyFetch<T = unknown>({
   }
 
   try {
-    // cacheSignal aborts when the server render this read belongs to ends or
-    // is aborted, so an abandoned render stops waiting on Shopify. It is null
-    // outside a render (Server Actions, Route Handlers).
-    // SAFETY: cacheSignal() is typed to return the opaque, memberless
-    // `CacheSignal` marker interface, but React always hands back a real
-    // AbortSignal (or null) at runtime — the empty interface just hides
-    // the DOM shape from the public type.
+    // Aborts when the render this read belongs to ends, so an abandoned render
+    // stops waiting on Shopify. Null outside a render (Server Actions, Route
+    // Handlers).
+    // SAFETY: typed as an opaque `CacheSignal`, but React returns a real
+    // AbortSignal (or null) at runtime.
     const signal = cacheSignal() as AbortSignal | null
 
     const deadline = Date.now() + REQUEST_BUDGET_MS
@@ -152,8 +140,7 @@ export async function shopifyFetch<T = unknown>({
         parseRetryAfterMs(result.headers.get('Retry-After')) ??
         backoffMs(attempt)
 
-      // Bail without sleeping once the shared budget can't absorb another
-      // round trip — a shorter, doomed final attempt isn't worth making.
+      // A shorter, doomed final attempt isn't worth making.
       if (deadline - Date.now() - delay <= 0) break
 
       await sleep(delay, signal ?? undefined)
@@ -190,11 +177,8 @@ export async function shopifyFetch<T = unknown>({
       )
     }
 
-    // If a schema was provided, validate the payload at the boundary.
-    // Otherwise, trust the cast (opt-in — callers without a schema are responsible
-    // for ensuring T matches the actual response shape).
     // SAFETY: no dataSchema means the caller opted out of boundary
-    // validation; T is asserted on the caller's contract, not verified here.
+    // validation; T is the caller's contract, not verified here.
     const data = dataSchema
       ? parseApiResponse(dataSchema, envelope.data, 'Shopify Storefront data')
       : (envelope.data as T)
@@ -204,7 +188,6 @@ export async function shopifyFetch<T = unknown>({
       body: { data },
     }
   } catch (e) {
-    // Handle both cache expiry aborts and timeouts
     if (
       e instanceof Error &&
       e.name === 'AbortError' &&

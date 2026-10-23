@@ -7,34 +7,27 @@ import { DevControls } from './_components/dev-controls'
 import { Parallax } from './_components/parallax'
 import { TestPattern } from './_components/test-pattern'
 
-// A worked example for this repo's contributors, not site content. noindex
-// here, and `/webgl` sits in `RESERVED_PATHS` (lib/seo/routes.ts) so it never
-// reaches the sitemap or the `/ai` view; `setup:project` deletes the whole
-// examples group. Same contract as `/sanity`.
+// Not site content: noindex here, and `/webgl` sits in `RESERVED_PATHS`
+// (lib/seo/routes.ts) so it never reaches the sitemap or `/ai`. Same contract
+// as `/sanity`.
 export const metadata: Metadata = {
   title: 'WebGL follows CSS',
   robots: { index: false, follow: false },
 }
 
 /**
- * A worked example of how WebGL follows the DOM: each cube takes its size
- * and place from a plain box that CSS lays out. The page sizes the boxes
- * two ways on purpose — viewport-scaled `dr-*` widths and a share of their
- * row — and places them by flow, to show any CSS length works. The cube
- * component only knows the box's proportions. Nothing about a cube is
- * positioned in JavaScript. One of the boxes also
- * moves with the scroll: a CSS transform on a wrapper, published to the
- * canvas through hamo's `TransformProvider`, so the cube moves with its
- * box. Scroll and resize: a cube never leaves its box. See
- * `_components/cube` and `_components/parallax`.
+ * A worked example of WebGL following the DOM: each cube takes its size and
+ * place from a plain box that CSS lays out. The boxes are sized two ways on
+ * purpose (viewport-scaled `dr-*` widths and a share of their row) to show any
+ * CSS length works. One box also moves with the scroll through a CSS
+ * transform published via hamo's `TransformProvider`. See `_components/cube`
+ * and `_components/parallax`.
  *
- * The last section draws a 2048px test pattern as WebGL image planes at
- * most a fifth of its width, so the GPU shrinks it every frame: mipmaps
- * keep it from shimmering as it scrolls. See `_components/test-pattern`.
+ * The last section draws a 2048px test pattern at most a fifth of its width;
+ * mipmaps keep it from shimmering. See `_components/test-pattern`.
  *
- * Where the canvas does not mount (mobile, reduced motion, no WebGL2, and
- * the GPU-less browser the e2e sweep runs in) the dashed boxes stand alone:
- * the layout the cubes follow is the fallback.
+ * Where the canvas does not mount (mobile, reduced motion, no WebGL2, the
+ * GPU-less e2e browser) the dashed boxes stand alone as the fallback.
  */
 export default function WebGLExamplePage() {
   return (
@@ -52,7 +45,6 @@ export default function WebGLExamplePage() {
             provider.
           </p>
         </div>
-        {/* In the first screen, so the page lands on a cube. */}
         <Cube className="dr-w-300" />
       </section>
       <section className="dr-max-w-880 dr-px-120 dr-pb-120 font-mono dr-text-14 leading-[1.5]">
@@ -129,7 +121,6 @@ export default function WebGLExamplePage() {
       <section className="flex items-end dr-gap-48 dr-p-120">
         <Cube className="dr-w-96" />
         <Cube className="dr-w-220" />
-        {/* A share of the row: resizes with it, as a column would. */}
         <Parallax className="w-1/4" distance={240}>
           <Cube />
         </Parallax>

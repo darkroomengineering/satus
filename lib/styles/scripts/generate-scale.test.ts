@@ -1,17 +1,9 @@
 /**
- * Regression tests for issue #394: the column-utility CSS generator was
- * broken two ways —
- *
- * (a) the `dr-*-col-value` autocomplete variants hardcoded the literal JS
- *     string `'value'` into the CSS body (`calc((value * ...))`), which is
- *     invalid CSS and silently dropped. That variant earned nothing (no call
- *     site ever referenced a `-col-value` class), so it was removed outright
- *     rather than patched.
- * (b) the negative wildcard utilities (`-dr-w-col-*`) negated only the
- *     column term, leaving the gap term unnegated — wrong by
- *     `2 * (N - 1) * gap` for every N >= 2.
- *
- * Run with: bun test lib/styles/scripts/generate-scale.test.ts
+ * Regression tests for issue #394 in the column-utility generator:
+ * (a) no `dr-*-col-value` variant may emit the literal `value` into the CSS
+ *     body (`calc((value * ...))`), which is invalid CSS and silently dropped;
+ * (b) negative wildcards (`-dr-w-col-*`) must negate the gap term too, or they
+ *     are wrong by `2 * (N - 1) * gap` for every N >= 2.
  */
 
 import { describe, expect, it } from 'bun:test'
@@ -40,10 +32,8 @@ function getDeclarationValue(body: string, property: string): string {
   return body.slice(valueStart, valueEnd).trim()
 }
 
-// Minimal recursive-descent arithmetic evaluator (+, -, *, parens, negative
-// numbers) — no `Function`/`eval`, just enough to evaluate the `calc()`
-// bodies this generator emits once their CSS tokens are substituted for
-// numbers.
+// Minimal arithmetic evaluator (+, -, *, parens, negatives) for the generated
+// `calc()` bodies; no `Function`/`eval`.
 function evalArithmetic(expr: string): number {
   let i = 0
 
@@ -114,10 +104,8 @@ function evalArithmetic(expr: string): number {
   return result
 }
 
-// Evaluates a generated `calc()` expression as plain arithmetic by
-// substituting `--value(integer)`, `var(--column-width)`, and `var(--gap)`
-// with concrete numbers, then rewriting `calc(` to `(` (their parens already
-// balance, so the result is a valid arithmetic expression).
+// Substitutes numbers for `--value(integer)`, `var(--column-width)` and
+// `var(--gap)`, rewrites `calc(` to `(`, then evaluates.
 function evalCalcExpression(
   expr: string,
   value: number,

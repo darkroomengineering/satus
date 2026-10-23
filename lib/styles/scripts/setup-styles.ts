@@ -13,12 +13,7 @@ export const OUTPUTS = {
   root: 'lib/styles/css/root.css',
 } as const
 
-/**
- * Build the generated stylesheets in memory, without touching disk.
- *
- * Kept pure so `setup-styles.test.ts` can assert the committed CSS still
- * matches what the current palette and config produce.
- */
+/** Builds the generated stylesheets in memory; pure so `setup-styles.test.ts` can compare them to the committed CSS. */
 export function buildStyleSheets() {
   return {
     tailwind: [banner, generateTailwind(config), generateScale()].join('\n\n'),

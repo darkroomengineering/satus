@@ -1,7 +1,5 @@
-/* GLOBAL CSS FILE - Contains global styles that shouldn't be reset */
-
 html {
-  scrollbar-gutter: stable; /* This is needed to prevent the scrollbar from jumping */
+  scrollbar-gutter: stable;
 }
 
 * {
@@ -9,10 +7,9 @@ html {
 }
 
 /*
- * Derived semantic tokens — depth, hairlines, motion.
- * Surfaces and lines are derived from the active theme's colors via color-mix,
- * so they adapt automatically across every [data-theme] without new palette
- * entries. The red `--color-contrast` doubles as the accent.
+ * Surfaces and lines derive from the active theme via color-mix, so they adapt
+ * to every [data-theme] without new palette entries. The red `--color-contrast`
+ * doubles as the accent.
  */
 :root {
   --surface: color-mix(
@@ -49,13 +46,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Selection styling */
 *::selection {
   background-color: var(--color-contrast);
   color: var(--color-primary);
 }
 
-/* SVG icon colors */
 svg.icon {
   path[fill],
   rect[fill],
@@ -69,7 +64,6 @@ svg.icon {
   }
 }
 
-/* Hover states */
 .link {
   @media (--hover) {
     &:hover {
@@ -78,7 +72,6 @@ svg.icon {
   }
 }
 
-/* Focus states */
 *:focus-visible {
   outline: 2px solid var(--color-contrast);
   outline-offset: 2px;
@@ -108,13 +101,11 @@ html.screenshot {
 }
 
 /*
- * Reveal-on-scroll primitive — paired with the `useReveal` hook.
- * The hook toggles [data-reveal] hidden→visible on a container and indexes
- * [data-reveal-item] children via --reveal-index. Only transform + opacity
- * animate, so the reveal runs on the compositor thread — off the main thread,
- * unaffected by React hydration. Scoped under [data-reveal] so it applies only
- * once JS has run: with JS disabled the attribute never appears and content
- * renders visible. Per-section knobs: set these on the container —
+ * Paired with `useReveal`, which toggles [data-reveal] hidden→visible on a
+ * container and indexes [data-reveal-item] children via --reveal-index. Only
+ * transform + opacity animate, so it runs on the compositor thread, unaffected
+ * by hydration. Scoped under [data-reveal], which appears only once JS runs, so
+ * content is visible with JS off. Per-container knobs:
  *   --reveal-transform : hidden-state offset (default translateY(16px))
  *   --reveal-stagger   : delay step between items (default 60ms)
  *   --reveal-duration  : per-item duration (default 700ms)
@@ -140,9 +131,8 @@ html.screenshot {
   transform: none;
 }
 
-/* React owns the snapshots; keep global chrome outside the page crossfade.
- * No group geometry animation: navigation only animates opacity, for 150ms.
- */
+/* React owns the snapshots; global chrome stays outside the page crossfade.
+ * Opacity only, no group geometry animation. */
 ::view-transition {
   pointer-events: none;
 }
@@ -186,11 +176,10 @@ html.screenshot {
 }
 
 /*
- * Respect reduced-motion: movement is off, fades stay. Components declare their
- * transform, height and clip-path transitions inside `@media (--motion-ok)`, so
- * only opacity and color transitions remain under `reduce`. The view
- * transition crossfade and the reveal fade are opacity-only and keep running.
- * anime.js and WebGL animations gate themselves via usePreferredReducedMotion().
+ * Reduced motion: movement off, fades stay. Components declare transform,
+ * height and clip-path transitions inside `@media (--motion-ok)`; the view
+ * transition crossfade and reveal fade are opacity-only and keep running.
+ * anime.js and WebGL gate themselves via usePreferredReducedMotion().
  */
 @media (--reduced-motion) {
   * {

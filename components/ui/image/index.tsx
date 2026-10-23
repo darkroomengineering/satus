@@ -1,14 +1,6 @@
 'use client'
 
-/**
- * Enhanced Image Component
- *
- * Next.js Image wrapper with optimized defaults and error handling.
- * Always use this component instead of next/image directly.
- *
- * Note: This is a Client Component due to event handlers (onDragStart).
- * Blur placeholders are still generated efficiently via blurDataURL prop.
- */
+/** Next.js Image wrapper; use it instead of next/image. A Client Component for the `onDragStart` handler. */
 
 import cn from 'clsx'
 // oxlint-disable-next-line eslint/no-restricted-imports -- this is the wrapper the rule points everyone else at
@@ -78,40 +70,32 @@ type ImageSizesProps =
     }
 
 /**
- * Enhanced Image component props extending Next.js Image.
+ * Props extending Next.js Image.
  *
- * Adds responsive sizing, aspect ratio support, and automatic blur placeholders.
- * Always use this component instead of next/image directly.
+ * Sizing is required (`fill`, `width`+`height`, or `aspectRatio`): an image
+ * with no reserved box shifts layout when it loads, so the types enforce a
+ * path instead of faking dimensions.
  *
- * Sizing is required: pass `fill`, explicit `width`+`height`, or `aspectRatio`.
- * There is no dimension-less fallback — an image with no reserved box causes
- * layout shift when it loads, so the type system enforces one of these paths
- * instead of silently faking dimensions.
- *
- * `sizes` is required too: pass `mobileSize`+`desktopSize`, or a raw `sizes`
- * string. There is no `100vw` fallback — see `ImageSizesProps`.
+ * `sizes` is required too (`mobileSize`+`desktopSize`, or a raw `sizes`
+ * string); there is no `100vw` fallback, see `ImageSizesProps`.
  */
 export type ImageProps = Omit<
   NextImageProps,
   'objectFit' | 'alt' | 'width' | 'height' | 'fill' | 'sizes'
 > & {
   /**
-   * CSS object-fit property for image positioning. Omitted by default — the
-   * visual default (`cover`) comes from a zero-specificity CSS rule instead
-   * of an inline style, so a consumer CSS Module or Tailwind `object-*`
-   * utility can override it without fighting inline-style specificity.
-   * Passing this prop explicitly still applies it as an inline style, which
+   * Omitted by default: the visual default (`cover`) comes from a
+   * zero-specificity CSS rule, so a consumer CSS Module or Tailwind `object-*`
+   * utility can override it. Passing this prop applies an inline style, which
    * wins over both.
    */
   objectFit?: CSSProperties['objectFit']
-  /** Ref for accessing the underlying img element */
   ref?: Ref<HTMLImageElement>
   /** Alt text for accessibility. Required — pass `alt=""` explicitly for decorative images. */
   alt: string
 } & ImageSizingProps &
   ImageSizesProps
 
-// Base64 encoding for blur placeholders (works in browser and Node.js)
 function toBase64(str: string): string {
   // oxlint-disable-next-line anti-slop/no-runtime-typeof -- SSR guard; literal typeof enables bundler dead-code elimination
   return typeof window === 'undefined'
@@ -123,7 +107,6 @@ function isStringSrc(src: NextImageProps['src']): src is string {
   return typeof src === 'string'
 }
 
-// Helper to generate blur placeholder with transparent background by default
 function generateShimmer(w: number, h: number): string {
   return `
   <svg width="${w}" height="${h}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -140,9 +123,8 @@ function generateShimmer(w: number, h: number): string {
   </svg>`
 }
 
-// Base dimension used to derive honest placeholder width/height from an
-// aspectRatio-only render (no explicit width/height supplied). Keeps the
-// reserved box's proportions correct instead of faking a square (1x1).
+// Base for deriving placeholder width/height from an aspectRatio-only render,
+// so the reserved box keeps its proportions instead of a fake 1x1.
 const BASE_PLACEHOLDER_DIMENSION = 1000
 
 function derivePlaceholderDimensions(aspectRatio: number) {
@@ -157,7 +139,6 @@ function derivePlaceholderDimensions(aspectRatio: number) {
       }
 }
 
-// Helper to determine if blur placeholder should be used
 function shouldUseBlurPlaceholder(
   src: NextImageProps['src'],
   placeholder: string,
@@ -168,7 +149,6 @@ function shouldUseBlurPlaceholder(
   return !isSvg && placeholder === 'blur' && !blurDataURL
 }
 
-// Helper to generate blur data URL
 function generateBlurDataURL(
   shouldUse: boolean,
   aspectRatio: number | undefined,
@@ -180,7 +160,6 @@ function generateBlurDataURL(
   return `data:image/svg+xml;base64,${toBase64(shimmerSvg)}`
 }
 
-// Helper to determine final placeholder value
 function getFinalPlaceholder(
   shouldUse: boolean,
   aspectRatio: number | undefined,
@@ -197,58 +176,12 @@ function getFinalPlaceholder(
 }
 
 /**
- * Enhanced Image component with responsive sizing and automatic optimizations.
+ * Responsive image with blur placeholders, lazy loading by default and
+ * required sizing. Usage and props: `./README.md`.
  *
- * Always use this component instead of next/image directly. Provides:
- * - Automatic responsive sizes generation
- * - Smart blur placeholders with aspect ratio support
- * - Performance optimizations (lazy loading by default)
- * - Preload for LCP images
- *
- * @param props - Image props extending Next.js Image
- * @param props.aspectRatio - Aspect ratio for layout stability and blur placeholder
- * @param props.mobileSize - Rendered width below the desktop breakpoint (e.g. "50vw"). Required together with `desktopSize`, unless `sizes` is passed instead.
- * @param props.desktopSize - Rendered width at/above the desktop breakpoint (e.g. "33vw"). Required together with `mobileSize`, unless `sizes` is passed instead.
- * @param props.preload - Ergonomic alias for next/image's native `preload` prop
- *   (the modern replacement for the deprecated `priority` prop). Also sets
- *   `loading="eager"` unless `loading` is explicitly provided.
- *
- * @example
- * ```tsx
- * // Basic usage with aspect ratio
- * <Image
- *   src="/hero.jpg"
- *   alt="Hero image"
- *   aspectRatio={16/9}
- *   mobileSize="100vw"
- *   desktopSize="100vw"
- * />
- * ```
- *
- * @example
- * ```tsx
- * // LCP image with preload
- * <Image
- *   src="/hero.jpg"
- *   alt="Hero image"
- *   aspectRatio={16/9}
- *   mobileSize="100vw"
- *   desktopSize="100vw"
- *   preload // Preloads image for LCP
- * />
- * ```
- *
- * @example
- * ```tsx
- * // Responsive grid image
- * <Image
- *   src="/product.jpg"
- *   alt="Product"
- *   aspectRatio={1}
- *   mobileSize="100vw"
- *   desktopSize="33vw"
- * />
- * ```
+ * `preload` aliases next/image's native `preload` (the replacement for the
+ * deprecated `priority`) and also sets `loading="eager"` unless `loading` is
+ * given.
  */
 export function Image({
   style,
@@ -271,16 +204,13 @@ export function Image({
   preload = false,
   ...props
 }: ImageProps) {
-  // Determine loading strategy
   const finalLoading = loading ?? (preload ? 'eager' : 'lazy')
 
-  // Compute `sizes` from whichever branch of ImageSizesProps was supplied.
   const finalSizes =
     sizes ?? `(min-width: ${breakpoints.dt}px) ${desktopSize}, ${mobileSize}`
 
   if (!src) return null
 
-  // Determine SVG status and placeholder logic
   const isSvg = isStringSrc(src) && src.includes('.svg')
   const shouldUsePlaceholder = shouldUseBlurPlaceholder(
     src,
@@ -299,9 +229,7 @@ export function Image({
     placeholder
   )
 
-  // Derive placeholder dimensions from aspectRatio when no explicit
-  // width/height were supplied (the aspectRatio-only sizing variant).
-  // Honest proportional dims instead of a fake 1x1 box.
+  // aspectRatio-only variant: proportional placeholder dims, not a fake 1x1.
   const derivedDimensions =
     !fill && width === undefined && height === undefined && aspectRatio
       ? derivePlaceholderDimensions(aspectRatio)
@@ -310,17 +238,14 @@ export function Image({
   const finalWidth = width ?? derivedDimensions?.width
   const finalHeight = height ?? derivedDimensions?.height
 
-  // Derived purely from the sizing union — never an independent prop, so
-  // the value passed to next/image's `fill` can never disagree with whether
-  // `width`/`height` are also being spread in (issue #393).
+  // Derived from the sizing union, never an independent prop, so next/image's
+  // `fill` can't disagree with `width`/`height` being spread (issue #393).
   const isBlock = !fill
 
-  // Only set inline when explicitly passed — an explicit request should
-  // always win. The unset default (visually `cover`) comes from the
-  // zero-specificity `:where(.img)` rule in image.module.css instead, so
-  // consumer CSS (module or utility) can override it. Built as statements
-  // (rather than conditional spreads) so each property is added only when
-  // present, then `style` is layered on top to let it override both.
+  // Inline only when explicitly passed, so it wins. The unset default
+  // (visually `cover`) is the zero-specificity `:where(.img)` rule in
+  // image.module.css, which consumer CSS can override. `style` layers on top
+  // to override both.
   const baseStyle: CSSProperties = {
     ...(objectFit && { objectFit }),
   }

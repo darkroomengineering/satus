@@ -1,8 +1,13 @@
 'use client'
 
-import { type Rect, useTransform, useWindowSize } from 'hamo'
+import {
+  type Rect,
+  useEffectEvent as useStableCallback,
+  useTransform,
+  useWindowSize,
+} from 'hamo'
 import { useLenis } from 'lenis/react'
-import { useEffect, useEffectEvent, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { Euler, Vector3 } from 'three'
 
 import { wake } from '@/webgl/utils/awake'
@@ -99,15 +104,11 @@ export function useWebGLRect(
   })
   const placedRef = useRef(false)
 
-  // React's `useEffectEvent` is called here from outside its documented
-  // contract (only from Effects; never passed to hooks or returned): the
-  // Lenis and provider subscriptions, the window listener and a consumer's
-  // ref callback. At runtime it only refuses calls during render, and none
-  // of these are, so it works; the rules-of-hooks lint enforces the contract
-  // by name, hence the three disables. The cost: its identity changes every
-  // render, so `useLenis` re-subscribes and calls it once per render of the
-  // caller. Those renders are rare (a rect, a size, a src).
-  const update = useEffectEvent(() => {
+  // hamo's `useEffectEvent`, renamed: unlike React's, it returns one stable
+  // function that always runs the latest closure, so it may be passed to
+  // subscriptions and returned. The rules-of-hooks lint applies React's
+  // contract to anything named `useEffectEvent`, whatever the import.
+  const update = useStableCallback(() => {
     if (width === undefined || height === undefined) return
     if (
       rect.top === undefined ||
@@ -171,14 +172,10 @@ export function useWebGLRect(
   // scrolls.
   useEffect(update)
 
-  // oxlint-disable-next-line react-hooks/rules-of-hooks -- effect event outside an Effect, see above
   useTransform(update, [])
-  // oxlint-disable-next-line react-hooks/rules-of-hooks -- effect event outside an Effect, see above
   useLenis(update, [])
 
-  // Fallback for a page without Lenis. Every closure `update` returns reads
-  // the same implementation slot, so the one captured here stays fresh and
-  // is not a dependency.
+  // Fallback for a page without Lenis.
   useEffect(() => {
     if (lenis) return
 
@@ -188,8 +185,7 @@ export function useWebGLRect(
     return () => {
       window.removeEventListener('scroll', update, false)
     }
-  }, [lenis])
+  }, [lenis, update])
 
-  // oxlint-disable-next-line react-hooks/rules-of-hooks -- effect event outside an Effect, see above
   return update
 }

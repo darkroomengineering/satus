@@ -12,7 +12,6 @@ export function PostProcessing() {
   const viewport = useThree((state) => state.viewport)
   const camera = useThree((state) => state.camera)
   const scene = useThree((state) => state.scene)
-  const setDpr = useThree((state) => state.setDpr)
   const size = useThree((state) => state.size)
 
   const isWebgl2 = gl.capabilities.isWebGL2
@@ -54,20 +53,14 @@ export function PostProcessing() {
     }
   }, [composer])
 
+  // The canvas owns the DPR (see `WebGLCanvas`). The composer sizes its
+  // buffers from the renderer's drawing buffer, so a DPR change alone has to
+  // resize it too, and the MSAA sample count follows the DPR.
   useEffect(() => {
-    const initialDpr = Math.min(window.devicePixelRatio, 2)
-
-    const dpr = size.width <= 2048 ? initialDpr : 1
-    setDpr(dpr)
-
     composer.setSize(size.width, size.height)
-    // Recompute MSAA sample count for the new dpr — `needsAA`/`maxSamples`
-    // were only read once, in the useState initializer above, so a resize
-    // that changes dpr (e.g. moving the window to another display) never
-    // updated the composer's actual sample count.
     // react-doctor-disable-next-line react-hooks-js/immutability
     composer.multisampling = isWebgl2 && dpr < 2 ? maxSamples : 0 // oxlint-disable-line react/immutability -- imperative GPU work on a state-held composer whose identity never changes
-  }, [composer, size, setDpr, isWebgl2, maxSamples])
+  }, [composer, size, dpr, isWebgl2, maxSamples])
 
   useFrame((_, deltaTime) => {
     composer.render(deltaTime)

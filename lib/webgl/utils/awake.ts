@@ -17,7 +17,7 @@
  * Module state, not context: there is one root canvas.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 
 let awakeUntil = 0
 let holds = 0
@@ -83,6 +83,38 @@ export function useLease(): Lease {
 
 export function isAwake(now: number) {
   return holds > 0 || now < awakeUntil
+}
+
+let sleeps = 0
+const sleepListeners = new Set<() => void>()
+
+/**
+ * Called by `RAF` when the canvas stops drawing: the first frame it skips, or
+ * the tab going hidden while it draws.
+ */
+export function noteSleep() {
+  sleeps++
+  for (const listener of sleepListeners) listener()
+}
+
+function subscribeSleeps(listener: () => void) {
+  sleepListeners.add(listener)
+  return () => {
+    sleepListeners.delete(listener)
+  }
+}
+
+function getSleeps() {
+  return sleeps
+}
+
+/**
+ * How many times the canvas has stopped drawing. Keying frame-timing code on
+ * it starts a fresh measurement for every stretch of continuous frames, so a
+ * gap while asleep is never read as one very slow frame.
+ */
+export function useSleepCount() {
+  return useSyncExternalStore(subscribeSleeps, getSleeps, getSleeps)
 }
 
 /**

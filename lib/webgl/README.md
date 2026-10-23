@@ -114,6 +114,26 @@ material color set from a canvas-side `useState`) calls `wake()` itself.
 `<Canvas root render="always">` draws every frame, which is useful for
 ruling out a missed wake while debugging; `render={false}` never draws.
 
+## Pixel ratio
+
+`WebGLCanvas` (`lib/webgl/components/canvas/webgl.tsx`) owns the canvas DPR
+through r3f's `dpr` prop. Nothing else calls `setDpr`: r3f overwrites it with
+the prop on the next render. The prop is a range, `[1, max]`, so r3f clamps
+`devicePixelRatio` into it and follows the display when the window moves to
+another screen or zooms. `max` is 2, or 1 when postprocessing is on and the
+window is wider than 2048 CSS px.
+
+`max` adapts to the device. drei's `PerformanceMonitor` steps it down by 0.25
+on sustained frame drops (fps under 40 on a 60 Hz display) and back up on
+recovery, never below 1: the planes stand in for DOM images and text, and
+under 1 device pixel per CSS pixel they look blurrier than the page around
+them. It decides from 10 samples of 250 ms of continuous drawing and starts
+over each time the canvas stops drawing, so idle time never counts as slow
+frames and a single 2 s `wake()` never changes the DPR; scrolling or a hold
+can. On its third change of direction it settles on the lower DPR and stops,
+so a device sitting on a threshold doesn't keep resizing the canvas. A DPR
+change wakes the canvas.
+
 ## Architecture
 
 ```
@@ -125,7 +145,7 @@ ruling out a missed wake while debugging; `render={false}` never draws.
 
 - Context persists across navigation (no recreation)
 - Seamless route transitions
-- Shared assets stay loaded
+- Shared assets stay loaded while anything on the page uses them
 - No-op on non-WebGL devices
 
 ## Components
@@ -144,6 +164,17 @@ from, production domains and a wildcard for preview deploys
 (`https://*.vercel.app`), must be in the Sanity project's CORS origins
 (manage.sanity.io > API > CORS origins); Sanity's CDN answers any other
 origin with a 403.
+
+Planes with the same `src` share one texture from drei's `useTexture` cache.
+`Image` counts the planes using each texture; 5 s after the last one
+unmounts, it clears the texture from the cache and frees its GPU memory, so
+navigating between pages doesn't pile up textures on the persistent canvas.
+The delay lets the next page reuse a shared image: its plane mounts only
+after its DOM image loads, and without the delay the shared texture would be
+decoded and uploaded again on every navigation. A page that comes back after
+that loads the image again (usually from the HTTP cache). Image
+textures use mipmaps with trilinear filtering and up to 4x anisotropy, so a
+plane drawn smaller than its source doesn't shimmer as it scrolls.
 
 ## Hooks
 

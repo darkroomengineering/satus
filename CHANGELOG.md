@@ -54,6 +54,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 
 ### Changed
 
+- Dependency pass: `next` 16.4.3, `@sanity/client` 7.28.0, `zustand` 5.0.16, `@dotenvx/dotenvx` 2.38.2, `@dotenvx/next-env` 2.4.12, `@types/bun` 1.4.4, `oxlint-tsgolint` 7.0.2005.
 - `AGENTS.md` keeps engineering rules with their reasons and costs, while pointing to `ARCHITECTURE.md` and READMEs for repeated detail.
 - **Breaking for forks with their own WebGL animation.** The root canvas draws only while something changed, so an idle page stops spending GPU time on identical frames. A placement from `useWebGLRect` that moved, resized, showed or hid its element, a texture loading, a canvas resize, a context restore and tunnel content changing each keep it drawing for 2 s; the flowmap and fluid sims hold it until their trail fades. A custom `useFrame` animation (a spin, a time uniform) freezes about 2 s after the last change unless it calls `useHoldAwake(active)` from `lib/webgl/utils/awake.ts` while it is on screen; the `/webgl` cube does this. `<Canvas root render="always">` draws every frame, as before. Rules and the list of wake sources are in `lib/webgl/README.md` § When the canvas draws.
 - `AGENTS.md` adds three rules from the team's shared notes: infinite animations and frame writes pause while their element is off screen, per-frame writes target `transform`/`opacity` rather than CSS custom properties, and refs passed through objects are destructured into `xRef` names so React Compiler recognizes them.

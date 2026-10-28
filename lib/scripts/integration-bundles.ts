@@ -185,7 +185,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
       // EVERY function that reads a stripped symbol needs its own op, not just
       // the entry point, or a blank or shopify-only scaffold fails typecheck
       // on the removed schema, query, and helpers. The lean-variant test in
-      // setup-project.test.ts pins that.
+      // setup-project.lean-variants.test.ts pins that.
       {
         file: 'lib/seo/routes.ts',
         // Every op is `required: true`: this file is single-owner and this array

@@ -6,7 +6,7 @@ import { projectRoot, resolvePath } from './utils'
 
 // Cancel/EOF guard: stdin closing before the top-level prompt resolves must
 // exit 1 with a readable message, never a silent exit 0 (mirrors the
-// setup-project.test.ts test).
+// setup-project.cli.test.ts test).
 
 describe('P-D2: stdin EOF guard (handoff)', () => {
   it('bun run handoff </dev/null exits 1 with a readable stderr message', () => {
@@ -31,7 +31,7 @@ describe('P-D2: stdin EOF guard (handoff)', () => {
 //
 // `cleanupEnvVars` resolves `.env.example` off `resolvePath`, keyed to the
 // `process.cwd()` captured at module load (same constraint as
-// setup-project.test.ts), so there is no fixture tree to redirect it. This
+// setup-project's tests), so there is no fixture tree to redirect it. This
 // test backs up the real `.env.example`, writes a scratch fixture, runs the
 // real function, and restores the original regardless of outcome.
 

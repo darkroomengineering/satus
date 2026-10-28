@@ -137,7 +137,7 @@ Every WebGL surface uses `useDeviceDetection`'s `isWebGL` gate and a DOM fallbac
   - `e2e/route-sweep.e2e.ts`: routes in `OPT_OUT`, reason in the test name.
   - `e2e/secrets-in-bundle.e2e.ts`: locally, without the `leakcheck-*` values CI sets.
   - `lib/scripts/prerender-manifest.test.ts`: without a prior build, except in ci.yml's build job (`PRERENDER_MANIFEST_REQUIRED`).
-  - `lib/scripts/setup-project.test.ts`: the chmod cases, as root.
+  - `lib/scripts/setup-project.full-run.test.ts` and `setup-project.preflight-and-prune.test.ts`: the chmod cases, as root.
 
 ### Git
 
@@ -238,7 +238,7 @@ Integrations are optional and self-contained in `lib/integrations/{name}/`; see 
 ```bash
 bun dev              # Dev server (Turbopack)
 bun run build        # Production build (runs setup:styles first)
-bun run check        # oxlint + oxfmt --check + lint:types + ensure:typegen + tsc --noEmit + bun test + test:oxlint-plugin + manifest:check + check:assets + check:disables (must pass before pushing)
+bun run check        # oxlint, oxfmt --check, lint:types, typecheck, test:oxlint-plugin, manifest:check, check:assets and check:disables in parallel, then bun test (must pass before pushing)
 bun run check:disables  # lint-disable and @ts-ignore-style directives per rule must match lint-disables.json and carry a `-- <reason>`
 bun lint             # oxlint
 bun lint:fix         # oxlint with auto-fix

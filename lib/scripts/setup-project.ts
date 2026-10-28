@@ -733,12 +733,13 @@ export const codeTransformTargetPaths = (
 }
 
 /**
- * Self-prune deletes the setup script files and the setup-machinery tests,
- * found by globbing `lib/scripts/**\/*.test.ts` minus
- * `SELF_PRUNE_KEEP_TEST_FILES` (a hardcoded list drifted whenever a setup test
- * was added). KEPT because they ship with every project:
+ * Self-prune deletes the setup script files and the setup-machinery tests and
+ * their shared helpers, found by globbing `lib/scripts/**\/*.test.ts` and
+ * `*.test-helpers.ts` minus `SELF_PRUNE_KEEP_TEST_FILES` (a hardcoded list
+ * drifted whenever a setup test was added). KEPT because they ship with every
+ * project:
  *   - lib/scripts/test-setup.ts (bunfig.toml preloads it for ALL bun tests;
- *     not matched by the `*.test.ts` glob)
+ *     not matched by the glob)
  *   - shared production machinery used by `doctor` and `prepare-handoff`:
  *     integration-bundles.ts, bundle-installer.ts, ast-transforms/,
  *     barrel-file.ts, payload-source.ts, prompts.ts
@@ -770,10 +771,12 @@ export const SELF_PRUNE_KEEP_TEST_FILES: ReadonlySet<string> = new Set([
   'lib/scripts/ast-transforms.test.ts',
 ])
 
-/** Setup-machinery tests to delete: every `lib/scripts/**\/*.test.ts` minus the keep list. Exported for unit testing. */
+/** Setup-machinery tests to delete: every `lib/scripts/**\/*.test.ts` and `*.test-helpers.ts` minus the keep list. Exported for unit testing. */
 export const collectSelfPruneTestFiles = async (): Promise<string[]> => {
   const testFiles = await Array.fromAsync(
-    new Bun.Glob('lib/scripts/**/*.test.ts').scan({ cwd: projectRoot })
+    new Bun.Glob('lib/scripts/**/*.test{,-helpers}.ts').scan({
+      cwd: projectRoot,
+    })
   )
   return testFiles
     .filter((file) => !SELF_PRUNE_KEEP_TEST_FILES.has(file))
@@ -808,7 +811,7 @@ const selfPrune = async (
     }
   }
 
-  // test:setup's test file is deleted above, so its entry is removed.
+  // test:setup's test files are deleted above, so its entry is removed.
   // setup:project's script file is deleted below, but its entry is REPLACED
   // with SETUP_PROJECT_PRUNED_STUB.
   const scriptsRemoved: string[] = []

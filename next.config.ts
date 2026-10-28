@@ -1,4 +1,3 @@
-import bundleAnalyzer from '@next/bundle-analyzer'
 import type { NextConfig } from 'next'
 
 // Relative import: Next's config loader mis-resolves `@/*` aliases in
@@ -240,8 +239,4 @@ const nextConfig: NextConfig = {
   ],
 }
 
-const bundleAnalyzerPlugin = bundleAnalyzer({
-  enabled: process.env.ANALYZE === 'true',
-})
-
-export default bundleAnalyzerPlugin(nextConfig)
+export default nextConfig

@@ -1,6 +1,6 @@
 'use client'
 
-import { animate, onScroll, splitText, stagger } from 'animejs'
+import type { TextSplitter } from 'animejs'
 import cn from 'clsx'
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useRef } from 'react'
@@ -8,6 +8,12 @@ import { useEffect, useRef } from 'react'
 import { usePreferredReducedMotion } from '@/hooks/use-sync-external'
 
 import s from './progress-text.module.css'
+
+// anime.js loads after hydration instead of with the page: a static import
+// puts the whole library in the initial JS of every route that renders this.
+// The import() lives outside the component because React Compiler cannot
+// compile a component containing an import expression.
+const loadAnime = () => import('animejs')
 
 type ProgressTextProps = {
   /**
@@ -54,42 +60,52 @@ export function ProgressText({
     const container = containerRef.current
     if (!container) return
 
-    const split = splitText(container, {
-      // `noUncheckedIndexedAccess` types the CSS module's index signature
-      // as `string | undefined`; the class always exists at build time.
-      words: { class: s.word ?? false },
-      // The real accessible text is the sr-only span rendered below; the
-      // default would insert a second hidden copy inside this container.
-      accessible: false,
-    })
+    let split: TextSplitter | undefined
+    let cancelled = false
 
-    // The effect re-runs after any re-split, and `split.revert()` reverts the
-    // animation it returned, its `onScroll`, and the split markup together.
-    split.addEffect(({ words }) => {
-      if (words.length === 0) return
-      if (prefersReducedMotion) {
-        // `sync: 'play'` starts the fade when the text enters, not at mount,
-        // which for below-fold text would finish before anyone sees it.
+    // Until anime.js arrives the text shows fully opaque, the no-JS state.
+    void loadAnime().then(({ animate, onScroll, splitText, stagger }) => {
+      if (cancelled) return
+
+      const textSplit = splitText(container, {
+        // `noUncheckedIndexedAccess` types the CSS module's index signature
+        // as `string | undefined`; the class always exists at build time.
+        words: { class: s.word ?? false },
+        // The real accessible text is the sr-only span rendered below; the
+        // default would insert a second hidden copy inside this container.
+        accessible: false,
+      })
+      split = textSplit
+
+      // The effect re-runs after any re-split, and `revert()` reverts the
+      // animation it returned, its `onScroll`, and the split markup together.
+      textSplit.addEffect(({ words }) => {
+        if (words.length === 0) return
+        if (prefersReducedMotion) {
+          // `sync: 'play'` starts the fade when the text enters, not at mount,
+          // which for below-fold text would finish before anyone sees it.
+          return animate(words, {
+            opacity: [dimOpacity, 1],
+            duration: 300,
+            autoplay: onScroll({ target: container, enter, sync: 'play' }),
+          })
+        }
+        // Each word fades over twice its share of the range, so neighbours
+        // overlap instead of switching on one at a time.
+        const share = 1000 / words.length
         return animate(words, {
           opacity: [dimOpacity, 1],
-          duration: 300,
-          autoplay: onScroll({ target: container, enter, sync: 'play' }),
+          duration: share * 2,
+          delay: stagger(share),
+          ease: 'linear',
+          autoplay: onScroll({ target: container, enter, leave, sync: true }),
         })
-      }
-      // Each word fades over twice its share of the range, so neighbours
-      // overlap instead of switching on one at a time.
-      const share = 1000 / words.length
-      return animate(words, {
-        opacity: [dimOpacity, 1],
-        duration: share * 2,
-        delay: stagger(share),
-        ease: 'linear',
-        autoplay: onScroll({ target: container, enter, leave, sync: true }),
       })
     })
 
     return () => {
-      split.revert()
+      cancelled = true
+      split?.revert()
     }
   }, [enter, leave, dimOpacity, prefersReducedMotion])
 

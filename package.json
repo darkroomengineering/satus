@@ -78,7 +78,7 @@
     "@axe-core/playwright": "4.14.0",
     "@clack/prompts": "^1.8.1",
     "@csstools/postcss-global-data": "^4.0.0",
-    "@happy-dom/global-registrator": "^21.0.3",
+    "@happy-dom/global-registrator": "^21.0.4",
     "@next/bundle-analyzer": "16.4.2",
     "@oxlint/plugins": "1.89.0",
     "@playwright/test": "1.64.1",

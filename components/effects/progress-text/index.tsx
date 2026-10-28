@@ -9,6 +9,12 @@ import { usePreferredReducedMotion } from '@/hooks/use-sync-external'
 
 import s from './progress-text.module.css'
 
+// anime.js loads after hydration instead of with the page: a static import
+// puts the whole library in the initial JS of every route that renders this.
+// The import() lives outside the component because React Compiler cannot
+// compile a component containing an import expression.
+const loadAnime = () => import('animejs')
+
 type ProgressTextProps = {
   /**
    * A string or JSX with inline markup; `splitText` splits every rendered word
@@ -57,10 +63,8 @@ export function ProgressText({
     let split: TextSplitter | undefined
     let cancelled = false
 
-    // anime.js loads after hydration instead of with the page: a static import
-    // puts the whole library in the initial JS of every route that renders
-    // this. Until it arrives the text shows fully opaque, the no-JS state.
-    void import('animejs').then(({ animate, onScroll, splitText, stagger }) => {
+    // Until anime.js arrives the text shows fully opaque, the no-JS state.
+    void loadAnime().then(({ animate, onScroll, splitText, stagger }) => {
       if (cancelled) return
 
       const textSplit = splitText(container, {

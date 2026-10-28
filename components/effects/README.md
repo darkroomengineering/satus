@@ -1,6 +1,6 @@
 # Effect Components
 
-Reveal-on-scroll and entrance animations use `useReveal`, not this directory (AGENTS.md § Animation). This directory holds anime.js effects: scrubbed scroll effects and timeline reveals. anime.js (`animejs`) runs on the Tempus loop, fed by Lenis's scroll, through the bridge in `components/layout/lenis/anime.tsx`.
+Reveal-on-scroll and entrance animations use `useReveal`, not this directory (AGENTS.md § Animation). This directory holds anime.js effects: scrubbed scroll effects and timeline reveals. anime.js (`animejs`) runs on the Tempus loop, fed by Lenis's scroll, through the bridge in `components/layout/lenis/anime.tsx`. Effects load anime.js with `import('animejs')` inside their mount effect, as `progress-text` does: a top-level import puts the whole library (about 47 KB gzipped) in the first-load JavaScript of every route that renders the effect.
 
 ## Components
 

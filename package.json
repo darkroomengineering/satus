@@ -78,7 +78,7 @@
     "@axe-core/playwright": "4.14.0",
     "@clack/prompts": "^1.8.1",
     "@csstools/postcss-global-data": "^4.0.0",
-    "@happy-dom/global-registrator": "^21.0.3",
+    "@happy-dom/global-registrator": "^21.0.4",
     "@next/bundle-analyzer": "16.4.2",
     "@oxlint/plugins": "1.89.0",
     "@playwright/test": "1.64.1",
@@ -113,8 +113,18 @@
     "typescript": "^7.0.2"
   },
   "overrides": {
+    "@module-federation/dts-plugin": {
+      "undici": "7.30.1"
+    },
     "@next/env": "npm:@dotenvx/next-env",
-    "playwright-core": "1.64.1"
+    "@vercel/frameworks": {
+      "js-yaml": "3.15.2"
+    },
+    "playwright-core": "1.64.1",
+    "smol-toml": "1.9.1",
+    "typeid-js": {
+      "uuid": "11.1.1"
+    }
   },
   "engines": {
     "node": ">=24.20.0"

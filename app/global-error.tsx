@@ -1,6 +1,7 @@
 'use client'
 
 import { ErrorView } from '@/components/ui/error-view'
+import { fontsVariable } from '@/lib/styles/fonts'
 
 // global-error replaces the root layout, so it must bring the stylesheet itself
 import '@/lib/styles/css/index.css'
@@ -18,9 +19,9 @@ export default function GlobalError({
   reset: () => void
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={fontsVariable} data-theme="dark">
       <body>
-        <div className="flex min-h-dvh flex-col items-center justify-center font-mono">
+        <div className="flex min-h-svh flex-col items-center justify-center font-mono">
           <ErrorView
             error={error}
             reset={reset}

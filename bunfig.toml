@@ -15,3 +15,5 @@ preload = ["./lib/scripts/test-setup.ts"]
 # less than 3 days ago fails `bun install`; add that package to
 # `minimumReleaseAgeExcludes` until it ages past the window, then remove it.
 minimumReleaseAge = 259200
+# SHORTCUT: @types/three 0.187.0 published 2026-10-30T18:05Z. ceiling: skips the age guard for one types-only package. upgrade: remove after 2026-11-02T18:05Z (OSS-112).
+minimumReleaseAgeExcludes = ["@types/three"]

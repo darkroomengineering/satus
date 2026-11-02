@@ -1,70 +1,41 @@
-import { useFrame, useThree } from '@react-three/fiber'
-import { CopyPass, EffectComposer, RenderPass } from 'postprocessing'
-import { useEffect, useRef, useState } from 'react'
-import { HalfFloatType } from 'three'
+import { useThree } from '@react-three/fiber'
+import { useEffect } from 'react'
+import type { Pass } from 'three/addons/postprocessing/Pass.js'
+
+import { wake } from '@/webgl/utils/awake'
+
+/**
+ * Add effects here: three/addons passes such as `UnrealBloomPass` or
+ * `ShaderPass`. Passes from the `postprocessing` package take their buffers in
+ * the opposite order and do not work in three's output pass.
+ */
+function createEffects(): Pass[] {
+  return []
+}
 
 /**
  * Sanctioned starter scaffold: no default consumer wires this up in the repo
  * today, enable it per-canvas via the `postprocessing` prop on WebGLCanvas.
+ *
+ * Effects run in three's built-in output pass (`renderer.setEffects()`). It
+ * needs the half-float output buffer the `postprocessing` prop gives the
+ * renderer, and multisamples the scene when the canvas antialiases. With no
+ * effects and no tone mapping three skips the pass and draws straight to the
+ * canvas, so the scaffold costs nothing until an effect is added.
  */
 export function PostProcessing() {
   const gl = useThree((state) => state.gl)
-  const viewport = useThree((state) => state.viewport)
-  const camera = useThree((state) => state.camera)
-  const scene = useThree((state) => state.scene)
-  const size = useThree((state) => state.size)
-
-  const isWebgl2 = gl.capabilities.isWebGL2
-  const dpr = viewport.dpr
-  const maxSamples = gl.capabilities.maxSamples
-  const needsAA = dpr < 2
-
-  const [composer] = useState(
-    () =>
-      new EffectComposer(gl, {
-        multisampling: isWebgl2 && needsAA ? maxSamples : 0,
-        frameBufferType: HalfFloatType,
-      })
-  )
-
-  const renderPassRef = useRef<RenderPass | null>(null)
-  const copyPassRef = useRef<CopyPass | null>(null)
 
   useEffect(() => {
-    const renderPass = new RenderPass(scene, camera)
-    const copyPass = new CopyPass()
-    renderPassRef.current = renderPass
-    copyPassRef.current = copyPass
-
-    composer.addPass(renderPass)
-    composer.addPass(copyPass)
+    const effects = createEffects()
+    gl.setEffects(effects)
+    wake()
 
     return () => {
-      composer.removePass(renderPass)
-      composer.removePass(copyPass)
-      renderPass.dispose()
-      copyPass.dispose()
+      gl.setEffects(null)
+      for (const effect of effects) effect.dispose()
     }
-  }, [composer, scene, camera])
-
-  useEffect(() => {
-    return () => {
-      composer.dispose()
-    }
-  }, [composer])
-
-  // The canvas owns the DPR (see `WebGLCanvas`). The composer sizes its
-  // buffers from the renderer's drawing buffer, so a DPR change alone has to
-  // resize it too, and the MSAA sample count follows the DPR.
-  useEffect(() => {
-    composer.setSize(size.width, size.height)
-    // react-doctor-disable-next-line react-hooks-js/immutability
-    composer.multisampling = isWebgl2 && dpr < 2 ? maxSamples : 0 // oxlint-disable-line react/immutability -- imperative GPU work on a state-held composer whose identity never changes
-  }, [composer, size, dpr, isWebgl2, maxSamples])
-
-  useFrame((_, deltaTime) => {
-    composer.render(deltaTime)
-  }, Number.POSITIVE_INFINITY)
+  }, [gl])
 
   return null
 }

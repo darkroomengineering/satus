@@ -648,14 +648,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
   webgl: {
     name: 'WebGL / 3D',
     description: 'Three.js and React Three Fiber for 3D graphics',
-    dependencies: [
-      '@react-three/drei',
-      '@react-three/fiber',
-      'three',
-      // Imported only from lib/webgl, which this bundle deletes; listed here or
-      // it survives as an orphan in package.json.
-      'postprocessing',
-    ],
+    dependencies: ['@react-three/drei', '@react-three/fiber', 'three'],
     devDependencies: ['@types/three'],
     // lib/dev/stats imports `stats-gl`, which is only a transitive dependency
     // of `@react-three/drei` above. Stripping webgl removes it, so lib/dev/stats

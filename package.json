@@ -67,7 +67,6 @@
     "lenis": "2.0.0-dev.5",
     "next": "16.4.3",
     "next-sanity": "^13.4.0",
-    "postprocessing": "^6.39.5",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "tempus": "^1.0.0",

@@ -10,6 +10,7 @@ import { Canvas, useThree } from '@react-three/fiber'
 import cn from 'clsx'
 import { useWindowSize } from 'hamo'
 import { Suspense, useEffect, useState } from 'react'
+import { HalfFloatType } from 'three'
 
 import { SheetProvider } from '@/lib/dev/theatre'
 import { bumpContextGeneration } from '@/lib/webgl/store'
@@ -181,9 +182,13 @@ export function WebGLCanvas({
         gl={{
           precision: 'highp',
           powerPreference: 'high-performance',
-          antialias: !postprocessing && window.devicePixelRatio < 2,
+          // With postprocessing, three multisamples its own scene buffer.
+          antialias: window.devicePixelRatio < 2,
           alpha,
-          ...(postprocessing && { stencil: false, depth: false }),
+          ...(postprocessing && {
+            stencil: false,
+            outputBufferType: HalfFloatType,
+          }),
         }}
         dpr={[1, maxDpr]}
         orthographic

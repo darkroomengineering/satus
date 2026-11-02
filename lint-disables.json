@@ -9,7 +9,7 @@
   "nextjs/no-html-link-for-pages": 9,
   "react/exhaustive-deps": 5,
   "react/forbid-elements": 13,
-  "react/immutability": 2,
+  "react/immutability": 1,
   "react/no-array-index-key": 2,
   "react/no-danger": 1,
   "react/refs": 1,

@@ -88,6 +88,16 @@ the prop on the next render. The prop is a range, `[1, max]`, so r3f clamps
 another screen or zooms. `max` is 2, or 1 when postprocessing is on and the
 window is wider than 2048 CSS px.
 
+## Postprocessing
+
+`<Canvas postprocessing>` creates the renderer with a half-float output buffer,
+and `PostProcessing` (`lib/webgl/components/postprocessing`) passes the effects
+from its `createEffects()` to three's `renderer.setEffects()`. Effects are
+three/addons passes such as `UnrealBloomPass` or `ShaderPass`. three renders the
+scene into its own buffer, multisampled when the canvas antialiases, runs the
+effects, then writes to the canvas. With no effects it skips all of that and
+draws straight to the canvas.
+
 `max` adapts to the device. drei's `PerformanceMonitor` steps it down by 0.25
 on sustained frame drops (fps under 40 on a 60 Hz display) and back up on
 recovery, never below 1: the planes stand in for DOM images and text, and

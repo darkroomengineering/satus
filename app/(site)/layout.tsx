@@ -8,7 +8,7 @@ import { ReactTempus } from 'tempus/react'
 
 import { Link } from '@/components/ui/link'
 import { RealViewport } from '@/components/ui/real-viewport'
-import { ToastProvider, ToastViewport } from '@/components/ui/toast'
+import { ToastProvider } from '@/components/ui/toast'
 import { APP_BASE_URL, env } from '@/lib/env'
 import { OptionalFeatures } from '@/lib/features'
 import { isConfigured } from '@/lib/integrations/registry'
@@ -123,7 +123,6 @@ export default async function AppLayout({ children }: PropsWithChildren) {
             */}
             {children}
           </TransformProvider>
-          <ToastViewport />
         </ToastProvider>
       </RealViewport>
       <OptionalFeatures />

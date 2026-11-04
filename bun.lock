@@ -19,7 +19,7 @@
         "animejs": "^4.5.0",
         "clsx": "^2.1.1",
         "hamo": "^1.0.3",
-        "lenis": "2.0.0-dev.5",
+        "lenis": "2.0.0-dev.6",
         "next": "16.4.3",
         "next-sanity": "^13.4.0",
         "react": "19.3.1",
@@ -1988,7 +1988,7 @@
 
     "lefthook-windows-x64": ["lefthook-windows-x64@2.2.2", "", { "os": "win32", "cpu": "x64" }, "sha512-9Ck4zancQilBfXT3ZeRipm7Lcq4RQfxyMpy8SAVINw0t/BrbjsT25V46ZuziERcwdajnE4myfMzC33GoCBwr7g=="],
 
-    "lenis": ["lenis@2.0.0-dev.5", "", { "peerDependencies": { "@nuxt/kit": ">=3.0.0", "react": ">=18.0.0", "vue": ">=3.0.0" }, "optionalPeers": ["@nuxt/kit", "react", "vue"] }, "sha512-dYpYIoMna4yV+Jr/SCX/aAMKU3/sFrfB7lzOCdpEctjL7Yk2q3PDdCpYHvRQQA0OEIw1DWesJnnivwkElv2fvQ=="],
+    "lenis": ["lenis@2.0.0-dev.6", "", { "peerDependencies": { "@nuxt/kit": ">=3.0.0", "react": ">=18.0.0", "vue": ">=3.0.0" }, "optionalPeers": ["@nuxt/kit", "react", "vue"] }, "sha512-T1gqejMr/I9Tac9WM+VNIxBXMXqJzxg/2Ld5f+7DTBo3RbBjst1EqICGTV3q92borSTxiDgHN0zDhc4AIWUsfA=="],
 
     "leven": ["leven@4.1.0", "", {}, "sha512-KZ9W9nWDT7rF7Dazg8xyLHGLrmpgq2nVNFUckhqdW3szVP6YhCpp/RAnpmVExA9JvrMynjwSLVrEj3AepHR6ew=="],
 

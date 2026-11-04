@@ -102,7 +102,7 @@
     "oxlint-tsgolint": "^7.0.2005",
     "postcss": "^8.5.31",
     "postcss-functions": "^4.0.2",
-    "postcss-preset-env": "^11.6.1",
+    "postcss-preset-env": "^11.6.2",
     "react-scan": "^0.5.7",
     "sanity": "^6.20.0",
     "sanity-plugin-link-field": "^2.1.0",

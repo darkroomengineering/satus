@@ -108,7 +108,7 @@ The webhook is the only thing that refreshes published content. Without it, a ca
 
 ## Draft mode
 
-Presentation enables draft mode through `/api/draft-mode/enable` (`defineEnableDraftMode`, using the Viewer token to validate its preview secret). `app/(site)/layout.tsx` then renders `SanityVisualEditing` (`components/visual-editing.tsx`), which draws the click-to-edit overlays and calls `router.refresh()` when an editor changes a field, so the preview follows typing without Sanity Live. `DisableDraftMode` (`components/disable-draft-mode.tsx`, wired into the `/sanity` example layout) shows a "Disable Draft Mode" link outside the Studio frame: a plain `<a>`, because prefetching `/api/draft-mode/disable` would turn draft mode off.
+Presentation enables draft mode through `/api/draft-mode/enable` (`defineEnableDraftMode`, using the Viewer token to validate its preview secret). `app/(site)/layout.tsx` then renders `SanityVisualEditing` (`components/visual-editing.tsx`), which draws the click-to-edit overlays and calls `router.refresh()` when an editor changes a field, so the preview follows typing without Sanity Live. `DisableDraftMode` (`components/disable-draft-mode.tsx`, wired into the `/sanity` example layout) lazy-loads `components/disable-draft-mode-pill.tsx`, so its `@sanity/ui` dependencies download only in draft mode. The pill shows a "Disable Draft Mode" link outside the Studio frame: a plain `<a>`, because prefetching `/api/draft-mode/disable` would turn draft mode off.
 
 ## Types
 

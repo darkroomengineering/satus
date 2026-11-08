@@ -1,6 +1,8 @@
 'use client'
 
 import {
+  type ComponentProps,
+  type ComponentType,
   createContext,
   lazy,
   type ReactNode,
@@ -8,6 +10,8 @@ import {
   use,
   useState,
 } from 'react'
+
+import type { ToastHost as LoadedToastHost } from './toast'
 
 /**
  * Toasts on Base UI. `ToastProvider` is mounted app-wide in
@@ -53,8 +57,14 @@ interface ToastContextValue {
 
 const ToastContext = createContext<ToastContextValue | null>(null)
 
-const ToastHost = lazy(() =>
-  import('./toast').then((mod) => ({ default: mod.ToastHost }))
+// A failed chunk load (offline, or a deploy replacing chunks) must not reach
+// global-error: an error toast is most likely exactly then. Drop the toast,
+// keep the page.
+const ToastHost = lazy<ComponentType<ComponentProps<typeof LoadedToastHost>>>(
+  () =>
+    import('./toast')
+      .then((mod) => ({ default: mod.ToastHost }))
+      .catch(() => ({ default: () => null }))
 )
 
 export function useToast() {

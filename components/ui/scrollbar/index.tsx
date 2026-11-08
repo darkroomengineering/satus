@@ -1,6 +1,7 @@
 'use client'
 
 import { useRect } from 'hamo'
+import Lenis from 'lenis'
 import { useLenis } from 'lenis/react'
 import { useEffect, useRef } from 'react'
 
@@ -30,9 +31,7 @@ export function Scrollbar({ controlsId }: ScrollbarProps = {}) {
   const [thumbMeasureRef, { height: thumbHeight = 0 }] = useRect()
 
   useLenis(
-    ({ scroll, maxScroll }) => {
-      const progress = maxScroll > 0 ? scroll / maxScroll : 0
-
+    ({ progress }) => {
       thumbRef.current.style.transform = `translate3d(0,${
         progress * (innerHeight - thumbHeight)
       }px,0)`
@@ -60,7 +59,7 @@ export function Scrollbar({ controlsId }: ScrollbarProps = {}) {
         innerHeight - thumbHeight,
         e.clientY - start,
         0,
-        lenis.maxScroll
+        lenis instanceof Lenis ? lenis.maxScroll : lenis.limit
       )
 
       void lenis.scrollTo(scroll, { lerp: 0.2 })

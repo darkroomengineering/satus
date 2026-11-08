@@ -15,5 +15,27 @@ preload = ["./lib/scripts/test-setup.ts"]
 # less than 3 days ago fails `bun install`; add that package to
 # `minimumReleaseAgeExcludes` until it ages past the window, then remove it.
 minimumReleaseAge = 259200
-# SHORTCUT: @types/three 0.187.0 published 2026-10-30T18:05Z. ceiling: skips the age guard for one types-only package. upgrade: remove after 2026-11-02T18:05Z (OSS-112).
-minimumReleaseAgeExcludes = ["@types/three"]
+# SHORTCUT: oxlint and @oxlint/plugins 1.92.0 published 2026-11-06T12:29Z; 1.91.0 has a react/immutability false positive (oxc-project/oxc#28401). ceiling: skips the age guard for oxlint, its plugin package and its 19 native binding packages, all lint-only dev dependencies. upgrade: remove after 2026-11-09T12:29Z (OSS-150).
+minimumReleaseAgeExcludes = [
+  "oxlint",
+  "@oxlint/plugins",
+  "@oxlint/binding-android-arm-eabi",
+  "@oxlint/binding-android-arm64",
+  "@oxlint/binding-darwin-arm64",
+  "@oxlint/binding-darwin-x64",
+  "@oxlint/binding-freebsd-x64",
+  "@oxlint/binding-linux-arm-gnueabihf",
+  "@oxlint/binding-linux-arm-musleabihf",
+  "@oxlint/binding-linux-arm64-gnu",
+  "@oxlint/binding-linux-arm64-musl",
+  "@oxlint/binding-linux-ppc64-gnu",
+  "@oxlint/binding-linux-riscv64-gnu",
+  "@oxlint/binding-linux-riscv64-musl",
+  "@oxlint/binding-linux-s390x-gnu",
+  "@oxlint/binding-linux-x64-gnu",
+  "@oxlint/binding-linux-x64-musl",
+  "@oxlint/binding-openharmony-arm64",
+  "@oxlint/binding-win32-arm64-msvc",
+  "@oxlint/binding-win32-ia32-msvc",
+  "@oxlint/binding-win32-x64-msvc",
+]

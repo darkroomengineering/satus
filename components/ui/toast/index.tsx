@@ -1,30 +1,34 @@
 'use client'
 
-import { Toast as BaseToast } from '@base-ui/react/toast'
-import cn from 'clsx'
-import { type ComponentProps, createContext, type ReactNode, use } from 'react'
+import {
+  type ComponentProps,
+  type ComponentType,
+  createContext,
+  lazy,
+  type ReactNode,
+  Suspense,
+  use,
+  useState,
+} from 'react'
 
-import s from './toast.module.css'
+import type { ToastHost as LoadedToastHost } from './toast'
 
 /**
- * Toast on Base UI. `ToastProvider` and `ToastViewport` are mounted app-wide
- * in `app/(site)/layout.tsx`; call `useToast()` from any client component.
+ * Toasts on Base UI. `ToastProvider` is mounted app-wide in
+ * `app/(site)/layout.tsx`; call `useToast()` from any client component.
  *
- * That layout is a Server Component, so it must import `ToastProvider` and
- * `ToastViewport` as direct named exports, not through the `Toast` compound
- * object: Next's RSC/Turbopack transform gives client references only to
- * top-level export bindings, so `Toast.Provider` resolves to `undefined`
- * across the server to client boundary. `Toast.Root`, `Toast.Title` etc. are
- * safe because only client components consume them.
+ * This module never imports Base UI, so pages that never show a toast don't
+ * download it. `toast()` queues the message and, on the first call, mounts
+ * `ToastHost` (`./toast.tsx`) behind `lazy()`; the host owns Base UI's
+ * provider and viewport. Restyle or recompose toasts there.
  *
  * @example
  * ```tsx
- * // Use the toast hook
  * function MyComponent() {
  *   const { toast } = useToast()
  *
  *   return (
- *     <button onClick={() => toast('Item saved!')}>
+ *     <button type="button" onClick={() => toast('Item saved!')}>
  *       Save
  *     </button>
  *   )
@@ -32,13 +36,18 @@ import s from './toast.module.css'
  * ```
  */
 
-type ToastType = 'default' | 'success' | 'error' | 'info'
+export type ToastType = 'default' | 'success' | 'error' | 'info'
 
-type ToastOptions = {
+interface ToastOptions {
   type?: ToastType
 }
 
-type ToastContextValue = {
+export interface QueuedToast {
+  title: string
+  type: ToastType
+}
+
+interface ToastContextValue {
   toast: ((message: string, options?: ToastOptions) => void) & {
     success: (message: string) => void
     error: (message: string) => void
@@ -48,114 +57,57 @@ type ToastContextValue = {
 
 const ToastContext = createContext<ToastContextValue | null>(null)
 
+// A failed chunk load (offline, or a deploy replacing chunks) must not reach
+// global-error: an error toast is most likely exactly then. Drop the toast,
+// keep the page.
+const ToastHost = lazy<ComponentType<ComponentProps<typeof LoadedToastHost>>>(
+  () =>
+    import('./toast')
+      .then((mod) => ({ default: mod.ToastHost }))
+      .catch(() => ({ default: () => null }))
+)
+
 export function useToast() {
   const context = use(ToastContext)
   if (!context) {
-    throw new Error('useToast must be used within a Toast.Provider')
+    throw new Error('useToast must be used within a ToastProvider')
   }
   return context
 }
 
-function Provider({ children }: { children: ReactNode }) {
-  return (
-    <BaseToast.Provider>
-      <ToastContextWrapper>{children}</ToastContextWrapper>
-    </BaseToast.Provider>
-  )
-}
+export function ToastProvider({ children }: { children: ReactNode }) {
+  const [pending, setPending] = useState<QueuedToast[]>([])
+  const [started, setStarted] = useState(false)
 
-function ToastContextWrapper({ children }: { children: ReactNode }) {
-  const toastManager = BaseToast.useToastManager()
+  function add(title: string, type: ToastType) {
+    setStarted(true)
+    setPending((queue) => [...queue, { title, type }])
+  }
 
   const toast = Object.assign(
     (message: string, options?: ToastOptions) => {
-      toastManager.add({
-        title: message,
-        type: options?.type ?? 'default',
-      })
+      add(message, options?.type ?? 'default')
     },
     {
-      success: (message: string) => {
-        toastManager.add({ title: message, type: 'success' })
-      },
-      error: (message: string) => {
-        toastManager.add({ title: message, type: 'error' })
-      },
-      info: (message: string) => {
-        toastManager.add({ title: message, type: 'info' })
-      },
+      success: (message: string) => add(message, 'success'),
+      error: (message: string) => add(message, 'error'),
+      info: (message: string) => add(message, 'info'),
     }
   )
 
   return (
-    <ToastContext.Provider value={{ toast }}>{children}</ToastContext.Provider>
+    <ToastContext value={{ toast }}>
+      {children}
+      {started && (
+        <Suspense fallback={null}>
+          <ToastHost
+            pending={pending}
+            // Drop only what the host consumed: a toast queued between its
+            // effect and this update must survive.
+            onConsumed={(count) => setPending((queue) => queue.slice(count))}
+          />
+        </Suspense>
+      )}
+    </ToastContext>
   )
 }
-
-type ViewportProps = ComponentProps<typeof BaseToast.Viewport> & {
-  className?: string
-}
-
-// Renders the toast list itself when given no children — Base UI's Viewport
-// displays nothing without a toasts.map(<Toast.Root>) child.
-function Viewport({ className, children, ...props }: ViewportProps) {
-  const { toasts } = BaseToast.useToastManager()
-
-  return (
-    <BaseToast.Portal>
-      <BaseToast.Viewport className={cn(s.viewport, className)} {...props}>
-        {children ??
-          toasts.map((toastObject) => (
-            <Root key={toastObject.id} toast={toastObject}>
-              <Title />
-              <Description />
-              <Close aria-label="Dismiss notification">&times;</Close>
-            </Root>
-          ))}
-      </BaseToast.Viewport>
-    </BaseToast.Portal>
-  )
-}
-
-function Root({ className, ...props }: ComponentProps<typeof BaseToast.Root>) {
-  return <BaseToast.Root className={cn(s.root, className)} {...props} />
-}
-
-function Title({
-  className,
-  ...props
-}: ComponentProps<typeof BaseToast.Title>) {
-  return <BaseToast.Title className={cn(s.title, className)} {...props} />
-}
-
-function Description({
-  className,
-  ...props
-}: ComponentProps<typeof BaseToast.Description>) {
-  return (
-    <BaseToast.Description
-      className={cn(s.description, className)}
-      {...props}
-    />
-  )
-}
-
-function Close({
-  className,
-  ...props
-}: ComponentProps<typeof BaseToast.Close>) {
-  return <BaseToast.Close className={cn(s.close, className)} {...props} />
-}
-
-export const Toast = {
-  Provider,
-  Portal: BaseToast.Portal,
-  Viewport,
-  Root,
-  Title,
-  Description,
-  Close,
-}
-
-// Direct named exports for Server Components (see the JSDoc above).
-export { Provider as ToastProvider, Viewport as ToastViewport }

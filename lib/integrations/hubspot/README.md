@@ -37,6 +37,8 @@ import { EmbedHubspotForm } from '@/integrations/hubspot/embed'
 </Form>
 ```
 
+If `js.hsforms.net` fails to load, often because a content blocker stopped it, `EmbedHubspotForm` shows a short message asking the visitor to allow the script and reload, instead of an empty box.
+
 ## Server action validation
 
 Checks run in this order (1 to 3 in `runFormAction`, 4 in the action's handler):

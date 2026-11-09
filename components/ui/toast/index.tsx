@@ -54,6 +54,12 @@ interface ToastContextValue {
 
 const ToastContext = createContext<ToastContextValue | null>(null)
 
+// Outside the component: React Compiler cannot compile a component body that
+// contains an `import()` expression and skips optimizing it entirely.
+function loadToastHost() {
+  return import('./toast')
+}
+
 // The host chunk's lifecycle. `queue` holds toasts the host has not consumed
 // yet. A failed chunk load (offline, or a deploy replacing chunks) must not
 // reach global-error, since an error toast is most likely exactly then:
@@ -111,7 +117,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!isLoading) return
     let cancelled = false
-    void import('./toast').then(
+    void loadToastHost().then(
       (mod) => {
         if (!cancelled) dispatch({ type: 'loaded', Host: mod.ToastHost })
       },

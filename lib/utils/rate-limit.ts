@@ -6,12 +6,16 @@
  * instances effectively gets N× the limit. Treat this as best-effort,
  * per-instance throttling, NOT a global guarantee.
  *
- * Recorded decision: satus targets Vercel-first, where the platform overwrites
- * `x-forwarded-for` at the edge, so client spoofing of that header doesn't
- * apply and the in-memory store is accepted. Self-hosters behind their own
- * proxy must guarantee a trusted XFF chain themselves, and should swap `store`
- * for a durable backend (`@upstash/ratelimit` with Upstash Redis, any Redis /
- * KV) for anything security-critical. `store` is the single seam to swap.
+ * Limits key on the client IP from `getIPFromHeaders`, which trusts the first
+ * `x-forwarded-for` entry. Vercel overwrites that header at the edge, so there
+ * the key is the real client. Next only fills it in when it is absent, so a
+ * self-hosted `next start` reached directly lets every client choose its own
+ * key, and rotating the header resets every per-IP limit here, the password
+ * gate's included. Self-hosting needs a reverse proxy in front that overwrites
+ * `x-forwarded-for` with the connecting address. For anything
+ * security-critical, also swap `store` for a durable backend
+ * (`@upstash/ratelimit` with Upstash Redis, any Redis / KV); `store` is the
+ * single seam to swap.
  */
 
 interface RateLimitEntry {

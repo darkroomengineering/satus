@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test'
+import { createHash } from 'node:crypto'
 
 import { env } from '@/lib/env'
 
@@ -43,11 +44,43 @@ afterEach(() => {
   }
 })
 
-function stubRequests(noteResult: number | Error = 200, tagStatus = 204) {
-  const bodies: unknown[] = []
+interface StubOptions {
+  noteResult?: number | Error
+  tagStatus?: number
+  member?: () => Response
+}
+
+interface RecordedRequest {
+  url: string
+  method: string | undefined
+  body: unknown
+}
+
+const memberExists = () =>
+  Response.json(
+    {
+      title: 'Member Exists',
+      status: 400,
+      detail: `${contact.email} is already a list member. Use PUT to insert or update list members.`,
+    },
+    { status: 400 }
+  )
+
+function stubRequests({
+  noteResult = 200,
+  tagStatus = 204,
+  member = () => Response.json({ id: 'member-id' }),
+}: StubOptions = {}) {
+  const requests: RecordedRequest[] = []
   globalThis.fetch = Object.assign(
     async (input: Parameters<typeof fetch>[0], options?: RequestInit) => {
       const url = String(input)
+      if (typeof options?.body !== 'string') throw new Error('Missing body')
+      requests.push({
+        url,
+        method: options.method,
+        body: JSON.parse(options.body),
+      })
       if (url.endsWith('/tags')) {
         return new Response(null, { status: tagStatus })
       }
@@ -55,47 +88,118 @@ function stubRequests(noteResult: number | Error = 200, tagStatus = 204) {
         if (noteResult instanceof Error) throw noteResult
         return new Response(null, { status: noteResult })
       }
-      if (typeof options?.body !== 'string') throw new Error('Missing body')
-      bodies.push(JSON.parse(options.body))
-      return Response.json({ id: 'member-id' })
+      return member()
     },
     { preconnect: originalFetch.preconnect }
   )
-  return bodies
+  return requests
 }
 
-test('email-only subscriptions leave existing names untouched', async () => {
-  const bodies = stubRequests()
+function createRequests(requests: RecordedRequest[]) {
+  return requests.filter((request) => request.url.endsWith('/members'))
+}
+
+test('email-only subscriptions create the member without a name', async () => {
+  const requests = stubRequests()
   expect(await addSubscriberToMailchimp({ email: contact.email })).toEqual({
     success: true,
   })
-  expect(bodies[0]).toEqual({
-    email_address: contact.email,
-    status_if_new: 'pending',
-    merge_fields: {},
-  })
+  expect(createRequests(requests)).toEqual([
+    {
+      url: 'https://us1.api.mailchimp.com/3.0/lists/test-value/members',
+      method: 'POST',
+      body: {
+        email_address: contact.email,
+        status: 'pending',
+        merge_fields: {},
+      },
+    },
+  ])
 })
 
 test('subscriptions send supplied names, including an explicit empty name', async () => {
-  const bodies = stubRequests()
+  const requests = stubRequests()
   await addSubscriberToMailchimp({
     email: contact.email,
     firstName: 'Ada',
     lastName: '',
   })
-  expect(bodies[0]).toMatchObject({ merge_fields: { FNAME: 'Ada', LNAME: '' } })
+  expect(createRequests(requests)[0]?.body).toMatchObject({
+    merge_fields: { FNAME: 'Ada', LNAME: '' },
+  })
 })
 
-test('contacts retain full names and succeed after storing the note', async () => {
-  const bodies = stubRequests()
+test('contacts create the member with their full name and succeed after storing the note', async () => {
+  const requests = stubRequests()
   expect(await addContactToMailchimp(contact)).toEqual({ success: true })
-  expect(bodies[0]).toMatchObject({
-    merge_fields: { FNAME: 'Ada', LNAME: 'Lovelace' },
+  expect(createRequests(requests)[0]).toMatchObject({
+    method: 'POST',
+    body: { merge_fields: { FNAME: 'Ada', LNAME: 'Lovelace' } },
+  })
+  expect(requests.map((request) => request.url)).toContain(
+    'https://us1.api.mailchimp.com/3.0/lists/test-value/members/member-id/notes'
+  )
+})
+
+test('contacts for an existing member succeed, keep its name, and still store the note', async () => {
+  const requests = stubRequests({ member: memberExists })
+  expect(await addContactToMailchimp(contact)).toEqual({ success: true })
+
+  const hash = createHash('md5').update(contact.email).digest('hex')
+  const memberUrl = `https://us1.api.mailchimp.com/3.0/lists/test-value/members/${hash}`
+  expect(requests).toEqual([
+    {
+      url: 'https://us1.api.mailchimp.com/3.0/lists/test-value/members',
+      method: 'POST',
+      body: {
+        email_address: contact.email,
+        status: 'pending',
+        merge_fields: { FNAME: 'Ada', LNAME: 'Lovelace' },
+      },
+    },
+    {
+      url: `${memberUrl}/tags`,
+      method: 'POST',
+      body: { tags: [{ name: 'contact-form', status: 'active' }] },
+    },
+    {
+      url: `${memberUrl}/notes`,
+      method: 'POST',
+      body: { note: contact.note },
+    },
+  ])
+})
+
+test('subscriptions for an existing member answer the same as for a new one', async () => {
+  const requests = stubRequests({ member: memberExists })
+  expect(
+    await addSubscriberToMailchimp({ email: contact.email, firstName: 'Eve' })
+  ).toEqual({ success: true })
+  expect(requests.map((request) => request.method)).toEqual(['POST', 'POST'])
+  expect(createRequests(requests)).toHaveLength(1)
+})
+
+test('other member errors still fail', async () => {
+  stubRequests({
+    member: () =>
+      Response.json(
+        {
+          title: 'Forgotten Email Not Subscribed',
+          status: 400,
+          detail: `${contact.email} was permanently deleted and cannot be re-imported.`,
+        },
+        { status: 400 }
+      ),
+  })
+  expect(await addSubscriberToMailchimp({ email: contact.email })).toEqual({
+    success: false,
+    errorCode: 'api_error',
+    error: `${contact.email} was permanently deleted and cannot be re-imported.`,
   })
 })
 
 test('contacts fail when note storage returns an HTTP error', async () => {
-  stubRequests(500)
+  stubRequests({ noteResult: 500 })
   expect(await addContactToMailchimp(contact)).toMatchObject({
     success: false,
     errorCode: 'api_error',
@@ -103,7 +207,7 @@ test('contacts fail when note storage returns an HTTP error', async () => {
 })
 
 test('contacts fail when note storage encounters a network error', async () => {
-  stubRequests(new Error('Connection closed'))
+  stubRequests({ noteResult: new Error('Connection closed') })
   expect(await addContactToMailchimp(contact)).toMatchObject({
     success: false,
     errorCode: 'network_error',
@@ -111,7 +215,7 @@ test('contacts fail when note storage encounters a network error', async () => {
 })
 
 test('tag failures are logged without preventing successful note storage', async () => {
-  stubRequests(200, 500)
+  stubRequests({ tagStatus: 500 })
   expect(await addContactToMailchimp(contact)).toEqual({ success: true })
   expect(errorLog).toHaveBeenCalled()
 })

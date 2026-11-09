@@ -53,7 +53,10 @@ clients (Sanity, Shopify, HubSpot, Mailchimp), and the CI/build configuration.
 ## Safeguards in this repo
 
 CodeQL scanning and Dependabot run on every change, sensitive routes are
-rate-limited, and external input is validated with Zod schemas. The
+rate-limited, and external input is validated with Zod schemas. Rate limits
+key on the first `X-Forwarded-For` address, which Vercel sets itself; a
+self-hosted deployment needs a reverse proxy that overwrites that header, or
+clients can pick their own key and skip the limits. The
 Content-Security-Policy ships enforced, composed per-integration: each kept
 integration declares the origins its browser-visible code needs in
 `lib/integrations/registry.ts`'s `cspSources`, and `lib/integrations/csp.ts`

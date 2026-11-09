@@ -134,9 +134,11 @@ function isGateOpen(pathname: string): boolean {
 /**
  * Pre-launch gate: with `SITE_PASSWORD` set, every response answers 401 until
  * the browser's Basic auth prompt gets the password. It runs on Vercel and on
- * a self-hosted `next start` alike; only `next dev` (`NODE_ENV` development)
- * and a `vercel env pull` checkout (`VERCEL_ENV` development) skip it. CI
- * deletes the env files before e2e, so it never sees a password.
+ * a self-hosted `next start` alike, though self-hosted its wrong-password
+ * limit needs a reverse proxy (see the last cost below); only `next dev`
+ * (`NODE_ENV` development) and a `vercel env pull` checkout (`VERCEL_ENV`
+ * development) skip it. CI deletes the env files before e2e, so it never sees
+ * a password.
  *
  * Costs, accepted while a site is private:
  * - Paths the `matcher` skips never reach this function: `/_next/static`
@@ -153,7 +155,10 @@ function isGateOpen(pathname: string): boolean {
  * - Wrong passwords are limited per IP (`rateLimiters.strict`, see
  *   `checkSitePassword`), in memory per instance like every limit here: it
  *   slows guessing, it does not stop a determined guesser. A long random
- *   password does.
+ *   password does. The IP comes from `x-forwarded-for`, so on a self-hosted
+ *   `next start` the limit holds only behind a reverse proxy that overwrites
+ *   that header; reached directly, a guesser sends a new value each try (see
+ *   `lib/utils/rate-limit.ts`).
  */
 function passwordGate(request: NextRequest): NextResponse | null {
   if (!env.SITE_PASSWORD) return null

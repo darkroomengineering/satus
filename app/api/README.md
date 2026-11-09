@@ -68,7 +68,7 @@ sequenceDiagram
     alt has x-shopify-hmac-sha256 or x-shopify-topic header
         R->>R: HMAC-SHA256(raw body, SHOPIFY_REVALIDATION_SECRET) vs x-shopify-hmac-sha256
         R-->>W: 401 if missing or wrong, 503 if secret unset
-        R-->>W: 200, no action, if x-shopify-triggered-at is stale or the signature or webhook id was already accepted
+        R-->>W: 200, no action, if x-shopify-triggered-at is stale or the signature or webhook id was already accepted for that tag group
         R->>T: revalidateTag(products | collections | pages, { expire: 0 })
     else has sanity-webhook-signature header
         R->>R: parseBody(request, SANITY_REVALIDATE_SECRET) → isValidSignature

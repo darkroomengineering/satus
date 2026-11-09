@@ -68,8 +68,9 @@ project-specific origins the registry can't know about extend
 secret on `/api/revalidate` is compared in constant time (`timingSafeEqual`):
 a missing or wrong signature returns 401 and an unset secret 503. A signed
 request whose `X-Shopify-Triggered-At` is more than 5 minutes off, or whose
-signature or webhook id was already accepted, gets 200 and revalidates nothing.
-That limits replays of a captured request, with two caveats: the timestamp and
-webhook-id headers are not covered by the signature, so someone who can edit
+signature or webhook id was already accepted for the same tag group (products,
+collections or pages), gets 200 and revalidates nothing.
+That limits replays of a captured request, with two caveats: the timestamp,
+webhook-id and topic headers are not covered by the signature, so someone who can edit
 headers can refresh them, and the already-seen memory is per server instance. See
 [app/api/README.md](app/api/README.md) for the full revalidation flow.

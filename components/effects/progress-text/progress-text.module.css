@@ -6,7 +6,10 @@
       /* Opacity is scrubbed by anime.js; a CSS transition would trail the
          scroll-driven value. */
       display: inline-block;
-      /* Permanent on purpose: scrubbed for its whole life. */
+    }
+
+    /* Set from JS while the scroll is inside the scrub range. */
+    &[data-scrubbing] .word {
       will-change: opacity;
     }
   }

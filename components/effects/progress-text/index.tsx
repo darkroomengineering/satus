@@ -98,7 +98,17 @@ export function ProgressText({
           duration: share * 2,
           delay: stagger(share),
           ease: 'linear',
-          autoplay: onScroll({ target: container, enter, leave, sync: true }),
+          autoplay: onScroll({
+            target: container,
+            enter,
+            leave,
+            sync: true,
+            // Promote the words to layers only while the scroll is scrubbing
+            // them: hundreds of permanent layers cost memory for text that is
+            // static before and after its range.
+            onEnter: () => container.setAttribute('data-scrubbing', ''),
+            onLeave: () => container.removeAttribute('data-scrubbing'),
+          }),
         })
       })
     })

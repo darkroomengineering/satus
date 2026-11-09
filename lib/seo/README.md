@@ -12,8 +12,8 @@ HTML vs. Markdown.
 - `json-ld.tsx`: renders a JSON-LD `<script>` tag from a schema.
 - `route-catalog.ts`: `STATIC_ROUTES`, starter-owned pages with no CMS backing
   (label, description, sitemap metadata).
-- `routes.ts`: `ContentRoute` type and CMS-backed route lookup (`getCmsRoutes`),
-  re-exports `STATIC_ROUTES`. Shared by the sitemap, `/llms.txt`, and `/ai` so
+- `routes.ts`: `ContentRoute` type, CMS-backed route lookup (`getCmsRoutes`)
+  and the `listableRoutes` filter, re-exports `STATIC_ROUTES`. Shared by the sitemap, `/llms.txt`, and `/ai` so
   none of them can disagree about which URLs exist.
 - `agent-content.ts`: Markdown builders (`buildStaticRoutesMarkdown`,
   `buildCmsRoutesMarkdown`, `buildAgentGuidanceMarkdown`,
@@ -26,8 +26,9 @@ HTML vs. Markdown.
 - `content-negotiation.ts`: `Accept`-header negotiation between `text/html` and
   `text/markdown`, plus the one-shot HTML override param that breaks a
   negotiation loop.
-- `alternates.ts`: builds a route's `alternates` metadata so every page keeps
-  its `text/plain` link to `/llms.txt`.
+- `alternates.ts`: builds a route's `alternates` metadata (canonical plus the
+  `text/plain` link to `/llms.txt`); `SITE_ALTERNATE_TYPES` is the
+  llms.txt-only block the app layout sets.
 
 **Consumers:** `app/llms.txt/route.ts` (from `SITE` and `getCmsRoutes()`);
 `app/(site)/ai/{layout,page}.tsx` (the `/ai` machine view); `app/agent-content/route.ts`
@@ -45,6 +46,9 @@ the sitemap link).
 - **Entity prose must be in the initial HTML and actually visible.** A visually quiet section is fine; `sr-only` or `display: none` reads as cloaking and gets discounted. A visual-first page (canvas, galleries) needs a plain-prose block or crawlers have nothing to cite.
 - **`Suspense fallback={null}` ships HTML with zero links.** Any client subtree that bails out of prerendering (`useSearchParams`, `cookies()`, `headers()`) leaves its fallback in the static HTML. If that fallback is `null`, crawlers see an empty page and the linked routes lose their only internal link. Server-render a static mirror of the list as the fallback; hydration swaps in the interactive version.
 - **Never redirect on user-agent without exempting bots.** Googlebot Smartphone, site auditors, and AI crawlers send mobile UAs, so a mobile redirect turns every sitemap entry into a 3XX. Gate any such redirect behind a bot check (`isbot`).
+- **Only indexable pages name a canonical.** `app/(site)/layout.tsx` sets none, because every route that declares no `alternates` would inherit it. Home, `/ai` and CMS pages set their own through `generatePageMetadata` (`lib/utils/metadata.ts`), which also builds the page's Open Graph and Twitter tags: Next replaces a parent's `openGraph` object whole, so a page setting only `title` would unfurl with the layout's. A noindex page (`/webgl`, `/sanity`, the 404, a CMS document with `metadata.noIndex`) carries no canonical.
+- **Noindex CMS documents resolve but are not listed.** `getCmsRoutes` returns them, so the page and its existence check work; sitemap.xml, `/llms.txt`, `/ai` and the Markdown page lists pass the routes through `listableRoutes`, which drops them.
+- **Markdown mirrors cover `STATIC_ROUTES` only.** A CMS page has no Markdown body: a `.md` or `Accept: text/markdown` request for one answers 303 to the HTML, or 406 when the client refuses HTML. CMS pages therefore advertise no `text/markdown` alternate; agents reach them through `/llms.txt`, `/ai` or the sitemap.
 - **`metadataBase` must be set** or OG/Twitter image paths stay relative and fail to resolve for scrapers. It is set in `app/(site)/layout.tsx`.
 - **Normalize CMS-authored hrefs** before rendering. Editors paste bare domains and mixed-case protocols; unnormalized values produce broken or duplicate-target links that leak crawl budget.
 - **`/llms.txt`** is generated from `lib/seo/site.ts` at `app/llms.txt/route.ts`.

@@ -111,6 +111,10 @@ interface SetupOptions {
 
 /** Mirrors the reset documented in the header of `app/(site)/page.tsx`. */
 const BLANK_HOMEPAGE = `import { Wrapper } from '@/components/layout/wrapper'
+import { routeAlternates } from '@/lib/seo/alternates'
+
+// The layout sets no canonical; home declares its own.
+export const metadata = { alternates: routeAlternates('/') }
 
 export default function Home() {
   return (

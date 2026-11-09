@@ -1,8 +1,6 @@
-import type { Metadata } from 'next'
-
-import { routeAlternates } from '@/lib/seo/alternates'
-import { getCmsRoutes, STATIC_ROUTES } from '@/lib/seo/routes'
+import { getCmsRoutes, listableRoutes, STATIC_ROUTES } from '@/lib/seo/routes'
 import { formatList, SITE } from '@/lib/seo/site'
+import { generatePageMetadata } from '@/utils/metadata'
 
 /**
  * `/ai`: a plain-HTML index of the site for LLM agents and crawlers, which
@@ -17,59 +15,72 @@ import { formatList, SITE } from '@/lib/seo/site'
  * `<a href>` (identical markup) to keep the route server-only.
  */
 
-export const metadata: Metadata = {
+export const metadata = generatePageMetadata({
   title: 'Machine view',
   description: `Plain-text index of ${SITE.name} for AI agents and crawlers.`,
-  alternates: routeAlternates('/ai'),
-}
+  url: '/ai',
+})
+
+const hasFacts = Boolean(
+  SITE.foundingDate ||
+  SITE.locationName ||
+  SITE.areaServed ||
+  SITE.email ||
+  SITE.services.length > 0 ||
+  SITE.knowsAbout.length > 0
+)
 
 export default async function AiPage() {
-  const cmsRoutes = await getCmsRoutes()
+  const cmsRoutes = listableRoutes(await getCmsRoutes())
 
   return (
     <>
       <h1>{SITE.name}</h1>
       <p>{SITE.description}</p>
 
-      <h2>Facts</h2>
-      <dl>
-        {SITE.foundingDate && (
-          <>
-            <dt>Founded</dt>
-            <dd>{SITE.foundingDate}</dd>
-          </>
-        )}
-        {SITE.locationName && (
-          <>
-            <dt>Location</dt>
-            <dd>{SITE.locationName}</dd>
-          </>
-        )}
-        {SITE.areaServed && (
-          <>
-            <dt>Area served</dt>
-            <dd>{SITE.areaServed}</dd>
-          </>
-        )}
-        {SITE.email && (
-          <>
-            <dt>Email</dt>
-            <dd>{SITE.email}</dd>
-          </>
-        )}
-        {SITE.services.length > 0 && (
-          <>
-            <dt>Services</dt>
-            <dd>{formatList(SITE.services)}</dd>
-          </>
-        )}
-        {SITE.knowsAbout.length > 0 && (
-          <>
-            <dt>Expertise</dt>
-            <dd>{formatList(SITE.knowsAbout)}</dd>
-          </>
-        )}
-      </dl>
+      {hasFacts && (
+        <>
+          <h2>Facts</h2>
+          <dl>
+            {SITE.foundingDate && (
+              <>
+                <dt>Founded</dt>
+                <dd>{SITE.foundingDate}</dd>
+              </>
+            )}
+            {SITE.locationName && (
+              <>
+                <dt>Location</dt>
+                <dd>{SITE.locationName}</dd>
+              </>
+            )}
+            {SITE.areaServed && (
+              <>
+                <dt>Area served</dt>
+                <dd>{SITE.areaServed}</dd>
+              </>
+            )}
+            {SITE.email && (
+              <>
+                <dt>Email</dt>
+                <dd>{SITE.email}</dd>
+              </>
+            )}
+            {SITE.services.length > 0 && (
+              <>
+                <dt>Services</dt>
+                <dd>{formatList(SITE.services)}</dd>
+              </>
+            )}
+            {SITE.knowsAbout.length > 0 && (
+              <>
+                <dt>Expertise</dt>
+                <dd>{formatList(SITE.knowsAbout)}</dd>
+              </>
+            )}
+          </dl>
+        </>
+      )}
 
       <h2>Pages</h2>
       <ul>

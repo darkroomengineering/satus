@@ -17,6 +17,19 @@ export interface ContentRoute {
   path: string
   label: string
   lastModified: Date
+  /** The editor set `metadata.noIndex`: the page exists but is not listed. */
+  noIndex: boolean
+}
+
+/**
+ * Routes to advertise in sitemap.xml, llms.txt, `/ai` and the Markdown page
+ * lists. Existence checks (`isKnownCmsPath`, the Markdown handler's lookup)
+ * keep using every route, or a noindex page would 404.
+ */
+export function listableRoutes(
+  routes: readonly ContentRoute[]
+): ContentRoute[] {
+  return routes.filter((route) => !route.noIndex)
 }
 
 /**
@@ -57,6 +70,7 @@ const routableDocumentSchema = z.object({
     .object({ current: z.string().refine((value) => !value.includes('.')) })
     .nullable(),
   _updatedAt: z.string(),
+  noIndex: z.boolean().nullable().optional(),
 })
 
 const routableContentQuery = defineQuery(`
@@ -64,7 +78,8 @@ const routableContentQuery = defineQuery(`
     _type,
     title,
     slug,
-    _updatedAt
+    _updatedAt,
+    "noIndex": metadata.noIndex
   }
 `)
 
@@ -104,6 +119,7 @@ export function buildRoutesFromDocuments(data: unknown): ContentRoute[] {
       path,
       label: doc.title ?? doc.slug.current,
       lastModified,
+      noIndex: doc.noIndex === true,
     })
   }
 

@@ -78,17 +78,16 @@ async function SanityContent() {
 export async function generateMetadata() {
   const data = await fetchPage()
 
-  const baseMetadata = data
-    ? generateSanityMetadata({
-        document: stegaClean(data),
-        url: '/sanity',
-        type: 'website',
-      })
-    : {}
-
   // A Sanity wiring tutorial for developers, not real site content — see
   // lib/seo/routes.ts for why it's also excluded from the sitemap/llms.txt
   // catalog. noindex, not a robots.txt disallow: a crawl block would
   // prevent this directive from ever being read.
-  return { ...baseMetadata, robots: { index: false, follow: false } }
+  if (!data) return { robots: { index: false, follow: false } }
+
+  return generateSanityMetadata({
+    document: stegaClean(data),
+    url: '/sanity',
+    type: 'website',
+    noIndex: true,
+  })
 }

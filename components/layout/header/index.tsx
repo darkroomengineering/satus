@@ -28,7 +28,7 @@ export function Header() {
   return (
     <header className={s.header}>
       <div className={s.brand}>
-        <span>Satūs</span>
+        <span>Satus</span>
         <span className={s.brandPath}>{pathname}</span>
       </div>
 

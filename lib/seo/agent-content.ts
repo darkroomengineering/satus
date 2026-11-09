@@ -1,5 +1,5 @@
 import { STATIC_ROUTES } from '@/lib/seo/route-catalog'
-import type { ContentRoute } from '@/lib/seo/routes'
+import { type ContentRoute, listableRoutes } from '@/lib/seo/routes'
 import { SITE } from '@/lib/seo/site'
 
 export function absoluteSiteUrl(path: string): string {
@@ -16,9 +16,10 @@ export function buildStaticRoutesMarkdown(): string {
 export function buildCmsRoutesMarkdown(
   cmsRoutes: readonly ContentRoute[]
 ): string {
-  if (cmsRoutes.length === 0) return ''
+  const listed = listableRoutes(cmsRoutes)
+  if (listed.length === 0) return ''
 
-  const links = cmsRoutes
+  const links = listed
     .map((route) => `- [${route.label}](${absoluteSiteUrl(route.path)})`)
     .join('\n')
 

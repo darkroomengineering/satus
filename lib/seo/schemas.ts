@@ -56,29 +56,6 @@ export interface BreadcrumbListSchema {
   itemListElement: BreadcrumbListItem[]
 }
 
-interface CollectionItemListItem {
-  '@type': 'ListItem'
-  position: number
-  name: string
-  url: string
-}
-
-interface CollectionItemList {
-  '@type': 'ItemList'
-  numberOfItems: number
-  itemListElement: CollectionItemListItem[]
-}
-
-export interface CollectionPageSchema {
-  '@context': 'https://schema.org'
-  '@type': 'CollectionPage'
-  name: string
-  url: string
-  isPartOf: { '@id': string }
-  description?: string
-  mainEntity?: CollectionItemList
-}
-
 interface ArticleAuthor {
   '@type': 'Person'
   name: string
@@ -101,7 +78,6 @@ export type JsonLdSchema =
   | OrganizationSchema
   | WebSiteSchema
   | BreadcrumbListSchema
-  | CollectionPageSchema
   | ArticleSchema
 
 export function organizationSchema(): OrganizationSchema {
@@ -155,49 +131,6 @@ export function breadcrumbSchema(
       item: item.url,
     })),
   }
-}
-
-/**
- * A listing page (index, archive, category) as `CollectionPage` wrapping an
- * `ItemList`, so a crawler or answer engine reads the membership and order in
- * one fetch instead of following every link.
- *
- * `url` and every item `url` must be absolute: relative paths are dropped by
- * most consumers, and a half-relative `ItemList` validates clean while
- * pointing nowhere.
- */
-export function collectionPageSchema(input: {
-  name: string
-  url: string
-  description?: string
-  items: { name: string; url: string }[]
-}): CollectionPageSchema {
-  const schema: CollectionPageSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'CollectionPage',
-    name: input.name,
-    url: input.url,
-    isPartOf: { '@id': WEBSITE_ID },
-  }
-
-  if (input.description) schema.description = input.description
-
-  // An empty list is worse than no list: it asserts the collection is
-  // empty rather than leaving the question open.
-  if (input.items.length) {
-    schema.mainEntity = {
-      '@type': 'ItemList',
-      numberOfItems: input.items.length,
-      itemListElement: input.items.map((item, index) => ({
-        '@type': 'ListItem',
-        position: index + 1,
-        name: item.name,
-        url: item.url,
-      })),
-    }
-  }
-
-  return schema
 }
 
 export interface ArticleSchemaInput {

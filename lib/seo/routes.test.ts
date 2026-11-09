@@ -11,6 +11,7 @@ import {
   type CmsRoutesResult,
   getCmsRoutes,
   getCmsRoutesResult,
+  listableRoutes,
   STATIC_ROUTES,
 } from './routes'
 
@@ -44,6 +45,37 @@ describe('buildRoutesFromDocuments', () => {
     expect(routes.map((route) => route.path).sort()).toEqual(
       ['/about', '/articles/hello-world'].sort()
     )
+  })
+
+  it('carries metadata.noIndex so listings can drop the page while it still resolves', () => {
+    const doc = (slug: string, noIndex?: boolean | null) => ({
+      _type: 'page',
+      title: slug,
+      slug: { current: slug },
+      _updatedAt: '2026-01-01T00:00:00.000Z',
+      ...(noIndex !== undefined && { noIndex }),
+    })
+
+    const routes = buildRoutesFromDocuments([
+      doc('hidden', true),
+      doc('shown', false),
+      doc('unset', null),
+      doc('absent'),
+    ])
+
+    expect(routes.map((route) => [route.path, route.noIndex] as const)).toEqual(
+      [
+        ['/hidden', true],
+        ['/shown', false],
+        ['/unset', false],
+        ['/absent', false],
+      ]
+    )
+    expect(listableRoutes(routes).map((route) => route.path)).toEqual([
+      '/shown',
+      '/unset',
+      '/absent',
+    ])
   })
 
   it('returns an empty array when every document is malformed', () => {
@@ -237,6 +269,7 @@ describe('getCmsRoutes / getCmsRoutesResult outage split', () => {
     path: '/about',
     label: 'About',
     lastModified: new Date('2026-01-01T00:00:00.000Z'),
+    noIndex: false,
   }
   const healthy = (): Promise<CmsRoutesResult> =>
     Promise.resolve({ routes: [route], degraded: false })

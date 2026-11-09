@@ -69,7 +69,7 @@ test.describe('agent-readable HTML', () => {
       expect(response?.status()).toBe(200)
       await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1)
       await expect(page.getByRole('heading', { level: 1 })).toContainText(
-        'Satūs'
+        'Satus'
       )
       expect(
         (await page.locator('body').innerText()).trim().length
@@ -103,7 +103,7 @@ test.describe('Markdown content negotiation', () => {
       if (htmlVary.includes(field)) expect(markdownVary).toContain(field)
     }
 
-    expect(body).toMatch(/^# Home \| Satūs/m)
+    expect(body).toMatch(/^# Home \| Satus/m)
     expect(body).toContain('## When to use')
     expect(body).toContain('## How to use')
     expect(body).toContain('## Developer resources')
@@ -181,7 +181,7 @@ test.describe('Markdown content negotiation', () => {
       expect(response.headers()['content-type'], path).toBe(
         'text/markdown; charset=utf-8'
       )
-      expect(await response.text(), path).toMatch(/^# .+ \| Satūs/m)
+      expect(await response.text(), path).toMatch(/^# .+ \| Satus/m)
     }
   })
 
@@ -242,7 +242,7 @@ test.describe('machine-readable discovery files', () => {
     const llmsBody = await llms.text()
     expect(llms.status()).toBe(200)
     expect(llms.headers()['content-type']).toContain('text/plain')
-    expect(llmsBody).toContain('# Satūs')
+    expect(llmsBody).toContain('# Satus')
     expect(llmsBody).toContain('## When to use')
     expect(llmsBody).toContain('## How to use')
     expect(llmsBody).toContain(DEVELOPER_RESOURCE_URL)

@@ -37,7 +37,7 @@ import { EmbedHubspotForm } from '@/integrations/hubspot/embed'
 </Form>
 ```
 
-If `js.hsforms.net` fails to load, often because a content blocker stopped it, `EmbedHubspotForm` shows a short message asking the visitor to allow the script and reload, instead of an empty box.
+If `js.hsforms.net` fails to load, often because a content blocker stopped it, `EmbedHubspotForm` shows a short message asking the visitor to allow the script and reload, instead of an empty box. An embed mounted after a failure (a client-side navigation back to the form, say) tries the script once more. Without `NEXT_PUBLIC_HUBSPOT_PORTAL_ID` the embed loads no script and shows the same message.
 
 ## Server action validation
 

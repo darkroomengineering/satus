@@ -1,14 +1,11 @@
 'use client'
 
 import {
-  type ComponentProps,
-  type ComponentType,
   createContext,
-  lazy,
   type ReactNode,
-  Suspense,
   use,
-  useState,
+  useEffect,
+  useReducer,
 } from 'react'
 
 import type { ToastHost as LoadedToastHost } from './toast'
@@ -18,9 +15,9 @@ import type { ToastHost as LoadedToastHost } from './toast'
  * `app/(site)/layout.tsx`; call `useToast()` from any client component.
  *
  * This module never imports Base UI, so pages that never show a toast don't
- * download it. `toast()` queues the message and, on the first call, mounts
- * `ToastHost` (`./toast.tsx`) behind `lazy()`; the host owns Base UI's
- * provider and viewport. Restyle or recompose toasts there.
+ * download it. `toast()` queues the message and, on the first call, imports
+ * `ToastHost` (`./toast.tsx`) and mounts it once loaded; the host owns Base
+ * UI's provider and viewport. Restyle or recompose toasts there.
  *
  * @example
  * ```tsx
@@ -57,15 +54,53 @@ interface ToastContextValue {
 
 const ToastContext = createContext<ToastContextValue | null>(null)
 
-// A failed chunk load (offline, or a deploy replacing chunks) must not reach
-// global-error: an error toast is most likely exactly then. Drop the toast,
-// keep the page.
-const ToastHost = lazy<ComponentType<ComponentProps<typeof LoadedToastHost>>>(
-  () =>
-    import('./toast')
-      .then((mod) => ({ default: mod.ToastHost }))
-      .catch(() => ({ default: () => null }))
-)
+// Outside the component: React Compiler cannot compile a component body that
+// contains an `import()` expression and skips optimizing it entirely.
+function loadToastHost() {
+  return import('./toast')
+}
+
+// The host chunk's lifecycle. `queue` holds toasts the host has not consumed
+// yet. A failed chunk load (offline, or a deploy replacing chunks) must not
+// reach global-error, since an error toast is most likely exactly then:
+// `failed` drops toasts and keeps the page.
+type HostState =
+  | { status: 'idle' }
+  | { status: 'loading'; queue: QueuedToast[] }
+  | {
+      status: 'ready'
+      Host: typeof LoadedToastHost
+      queue: QueuedToast[]
+    }
+  | { status: 'failed' }
+
+type HostAction =
+  | { type: 'add'; toast: QueuedToast }
+  | { type: 'loaded'; Host: typeof LoadedToastHost }
+  | { type: 'loadFailed' }
+  | { type: 'consumed'; count: number }
+
+function hostReducer(state: HostState, action: HostAction): HostState {
+  switch (action.type) {
+    case 'add':
+      if (state.status === 'failed') return state
+      if (state.status === 'idle') {
+        return { status: 'loading', queue: [action.toast] }
+      }
+      return { ...state, queue: [...state.queue, action.toast] }
+    case 'loaded':
+      if (state.status !== 'loading') return state
+      return { status: 'ready', Host: action.Host, queue: state.queue }
+    case 'loadFailed':
+      if (state.status !== 'loading') return state
+      return { status: 'failed' }
+    case 'consumed':
+      // Drop only what the host consumed: a toast queued between its effect
+      // and this update must survive.
+      if (state.status !== 'ready') return state
+      return { ...state, queue: state.queue.slice(action.count) }
+  }
+}
 
 export function useToast() {
   const context = use(ToastContext)
@@ -76,12 +111,27 @@ export function useToast() {
 }
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const [pending, setPending] = useState<QueuedToast[]>([])
-  const [started, setStarted] = useState(false)
+  const [host, dispatch] = useReducer(hostReducer, { status: 'idle' })
+  const isLoading = host.status === 'loading'
+
+  useEffect(() => {
+    if (!isLoading) return
+    let cancelled = false
+    void loadToastHost().then(
+      (mod) => {
+        if (!cancelled) dispatch({ type: 'loaded', Host: mod.ToastHost })
+      },
+      () => {
+        if (!cancelled) dispatch({ type: 'loadFailed' })
+      }
+    )
+    return () => {
+      cancelled = true
+    }
+  }, [isLoading])
 
   function add(title: string, type: ToastType) {
-    setStarted(true)
-    setPending((queue) => [...queue, { title, type }])
+    dispatch({ type: 'add', toast: { title, type } })
   }
 
   const toast = Object.assign(
@@ -98,15 +148,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext value={{ toast }}>
       {children}
-      {started && (
-        <Suspense fallback={null}>
-          <ToastHost
-            pending={pending}
-            // Drop only what the host consumed: a toast queued between its
-            // effect and this update must survive.
-            onConsumed={(count) => setPending((queue) => queue.slice(count))}
-          />
-        </Suspense>
+      {host.status === 'ready' && (
+        <host.Host
+          pending={host.queue}
+          onConsumed={(count) => dispatch({ type: 'consumed', count })}
+        />
       )}
     </ToastContext>
   )

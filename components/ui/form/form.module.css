@@ -20,7 +20,6 @@
     }
 
     &.error {
-      pointer-events: none;
       background: var(--color-white);
     }
 

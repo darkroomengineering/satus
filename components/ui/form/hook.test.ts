@@ -148,11 +148,46 @@ describe('fieldReducer', () => {
 
 describe('submitLifecycleReducer', () => {
   test('an edit while the success state shows dismisses it without a remount', () => {
-    const succeeded = { phase: 'succeeded' as const, key: 'a' }
+    const succeeded = {
+      phase: 'succeeded' as const,
+      key: 'a',
+      result: { status: 200, message: 'ok' },
+    }
     expect(submitLifecycleReducer(succeeded, { type: 'userEdited' })).toEqual({
       phase: 'dismissed',
       key: 'a',
     })
+  })
+
+  test('a retry hides the previous result until it settles', () => {
+    const failed = submitLifecycleReducer(
+      { phase: 'idle', key: 'a' },
+      { type: 'settled', result: { status: 500, message: 'Server error' } }
+    )
+    expect(failed.phase).toBe('failed')
+
+    const pending = submitLifecycleReducer(failed, { type: 'submitStarted' })
+    expect(pending).toEqual({ phase: 'pending', key: 'a' })
+
+    const success = { status: 200, message: 'ok' }
+    expect(
+      submitLifecycleReducer(pending, { type: 'settled', result: success })
+    ).toEqual({ phase: 'succeeded', key: 'a', result: success })
+  })
+
+  test('an edit after a failure dismisses the error so the form can retry', () => {
+    const failed = {
+      phase: 'failed' as const,
+      key: 'a',
+      result: { status: 500, message: 'Server error' },
+    }
+    expect(submitLifecycleReducer(failed, { type: 'userEdited' })).toEqual({
+      phase: 'dismissed',
+      key: 'a',
+    })
+    expect(
+      submitLifecycleReducer(failed, { type: 'autoReset', key: 'b' })
+    ).toBe(failed)
   })
 
   test('edits and a late auto-reset outside the success state change nothing', () => {

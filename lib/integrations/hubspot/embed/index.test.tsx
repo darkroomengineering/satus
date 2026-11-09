@@ -1,7 +1,7 @@
 /**
- * Tests for EmbedHubspotForm's default target id: two instances without an
+ * Tests for EmbedHubspotForm's default target id (two instances without an
  * explicit `target` must get distinct ids, or the second embed's form
- * injection silently no-ops.
+ * injection silently no-ops) and its fallback without a portal id.
  */
 
 import { afterEach, describe, expect, test } from 'bun:test'
@@ -36,5 +36,26 @@ describe('EmbedHubspotForm default target id', () => {
     )
 
     expect(container.querySelector('#my-custom-target')).not.toBeNull()
+  })
+})
+
+describe('EmbedHubspotForm without a portal id', () => {
+  test('shows the fallback message instead of a blank box', () => {
+    const portalId = process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID
+    delete process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID
+    try {
+      const { container, getByRole } = render(
+        <EmbedHubspotForm formId="form-d" />
+      )
+
+      expect(getByRole('status').textContent).toContain(
+        'This form could not load.'
+      )
+      expect(container.querySelector('script')).toBeNull()
+    } finally {
+      if (portalId !== undefined) {
+        process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID = portalId
+      }
+    }
   })
 })

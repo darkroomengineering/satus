@@ -66,5 +66,11 @@ script, font, avatar and API origins, so site routes never allow them. Forks tha
 project-specific origins the registry can't know about extend
 `PROJECT_CSP_EXTRA_SOURCES` in `lib/integrations/csp.ts`. The Shopify webhook
 secret on `/api/revalidate` is compared in constant time (`timingSafeEqual`):
-an unset, missing or wrong secret returns 401. See
+a missing or wrong signature returns 401 and an unset secret 503. A signed
+request whose `X-Shopify-Triggered-At` is more than 5 minutes off, or whose
+signature or webhook id was already accepted for the same tag group (products,
+collections or pages), gets 200 and revalidates nothing.
+That limits replays of a captured request, with two caveats: the timestamp,
+webhook-id and topic headers are not covered by the signature, so someone who can edit
+headers can refresh them, and the already-seen memory is per server instance. See
 [app/api/README.md](app/api/README.md) for the full revalidation flow.

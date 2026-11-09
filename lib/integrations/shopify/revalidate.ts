@@ -6,6 +6,8 @@ import { env } from '@/lib/env'
 
 import { TAGS } from './constants'
 import {
+  createSeenSet,
+  isFreshShopifyWebhook,
   isValidShopifySignature,
   isWellFormedShopifySignature,
 } from './webhook-signature'
@@ -21,6 +23,13 @@ const productWebhooks = new Set([
   'products/update',
 ])
 const pageWebhooks = new Set(['pages/create', 'pages/delete', 'pages/update'])
+
+// SHORTCUT: per-instance memory. ceiling: serverless instances do not share it,
+// so a replay that lands on another instance is not deduplicated; the
+// freshness check is the protection that holds across instances. upgrade:
+// move the set to a shared store (Redis, KV) if replays inside the freshness
+// window start to matter.
+const seenDeliveries = createSeenSet()
 
 // Called from `app/api/revalidate/route.ts`.
 export async function revalidate(req: NextRequest): Promise<NextResponse> {
@@ -51,29 +60,49 @@ export async function revalidate(req: NextRequest): Promise<NextResponse> {
   }
 
   const topic = req.headers.get('x-shopify-topic') ?? 'unknown'
-  const isCollectionUpdate = collectionWebhooks.has(topic)
-  const isProductUpdate = productWebhooks.has(topic)
-  const isPageUpdate = pageWebhooks.has(topic)
+  let group: 'collections' | 'products' | 'pages' | null = null
+  if (collectionWebhooks.has(topic)) group = 'collections'
+  else if (productWebhooks.has(topic)) group = 'products'
+  else if (pageWebhooks.has(topic)) group = 'pages'
 
-  if (!(isCollectionUpdate || isProductUpdate || isPageUpdate)) {
-    return NextResponse.json({
+  // 200 with no action, not an error: Shopify retries non-2xx responses and
+  // keeps the original trigger time, so a late delivery can never succeed, and
+  // repeated failures can get the subscription removed.
+  const noAction = () =>
+    NextResponse.json({
       data: { revalidated: false, now: Date.now() },
       error: null,
     })
+
+  // An unrecognized topic does nothing, so it records nothing: the same signed
+  // body sent later with a real topic must still revalidate.
+  if (!group) return noAction()
+
+  // The timestamp and webhook id headers are not signed, so they only stop a
+  // verbatim replay.
+  if (!isFreshShopifyWebhook(req.headers.get('x-shopify-triggered-at'))) {
+    console.error('Stale or untimed Shopify webhook.')
+    return noAction()
   }
+
+  // The signature is bound to the body, so it dedupes a replay that rewrites
+  // the webhook id. The key is the decoded digest re-encoded (decoding is
+  // permissive, so the raw header has many spellings of one signature) plus
+  // the tag group.
+  const webhookId = req.headers.get('x-shopify-webhook-id')
+  const keys = [
+    `sig:${Buffer.from(signature, 'base64').toString('base64')}:${group}`,
+    ...(webhookId ? [`id:${webhookId}:${group}`] : []),
+  ]
+  if (!seenDeliveries.rememberAll(keys)) return noAction()
 
   // `expire: 0`, not `max`: the next visit after a price or stock change gets
   // fresh data, not one more stale page.
-  if (isCollectionUpdate) {
-    revalidateTag(TAGS.collections, { expire: 0 })
-  }
-
-  if (isProductUpdate) {
-    revalidateTag(TAGS.products, { expire: 0 })
-  }
-
-  if (isPageUpdate) {
-    revalidateTag(TAGS.pages, { expire: 0 })
+  try {
+    revalidateTag(TAGS[group], { expire: 0 })
+  } catch (error) {
+    seenDeliveries.forget(keys)
+    throw error
   }
 
   return NextResponse.json({

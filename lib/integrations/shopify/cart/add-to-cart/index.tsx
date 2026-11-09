@@ -78,9 +78,10 @@ export function AddToCart({
       // instead of letting the rejection reach the route error boundary.
       console.error('Add to cart failed:', actionError)
       fail('Error adding item to cart')
-    } finally {
-      router.refresh()
     }
+    // Not in a `finally`: React Compiler skips any component with one. Both
+    // branches above handle their errors, so this always runs.
+    router.refresh()
   }
 
   return (

@@ -3,8 +3,8 @@ import {
   type FocusEventHandler,
   type SubmitEvent,
   useActionState,
+  useReducer,
   useRef,
-  useState,
   useTransition,
 } from 'react'
 
@@ -50,6 +50,75 @@ function computeValidity(
   return value !== '' || !isRequired
 }
 
+interface FieldState {
+  active: boolean
+  valid: boolean
+  error: FieldError
+}
+
+type FieldAction =
+  | { type: 'register'; name: string; valid: boolean }
+  | { type: 'unregister'; name: string }
+  | { type: 'change'; name: string; active: boolean }
+  | { type: 'validate'; name: string; valid: boolean; error: FieldError }
+  | { type: 'revealInvalid'; labels: Record<string, string> }
+
+/**
+ * Per-field state transitions for `useForm`. Pure: anything read from the DOM
+ * (validity, labels) is computed by the caller and passed in the action.
+ * Exported for testing.
+ */
+export function fieldReducer(
+  state: Record<string, FieldState>,
+  action: FieldAction
+) {
+  switch (action.type) {
+    case 'register':
+      return {
+        ...state,
+        [action.name]: {
+          active: false,
+          valid: action.valid,
+          error: { state: false, message: '' },
+        },
+      }
+    case 'unregister': {
+      if (!(action.name in state)) return state
+      const next = { ...state }
+      delete next[action.name]
+      return next
+    }
+    case 'change': {
+      const field = state[action.name]
+      if (!field || field.active === action.active) return state
+      return { ...state, [action.name]: { ...field, active: action.active } }
+    }
+    case 'validate': {
+      const field = state[action.name]
+      if (!field) return state
+      return {
+        ...state,
+        [action.name]: { ...field, valid: action.valid, error: action.error },
+      }
+    }
+    case 'revealInvalid': {
+      const invalid = Object.entries(state).filter(([, field]) => !field.valid)
+      if (invalid.length === 0) return state
+      const next = { ...state }
+      for (const [name, field] of invalid) {
+        next[name] = {
+          ...field,
+          error: {
+            state: true,
+            message: `Invalid ${action.labels[name] ?? name}`,
+          },
+        }
+      }
+      return next
+    }
+  }
+}
+
 /**
  * Form hook that integrates with React 19's useActionState for server actions.
  *
@@ -75,9 +144,7 @@ export function useForm<T = unknown>({
 }: UseFormOptions<T>): UseFormReturn<T> {
   const [formState, formAction] = useActionState(action, initialState)
   const [isPending, startTransition] = useTransition()
-  const [isActive, setIsActive] = useState<Record<string, boolean>>({})
-  const [isValid, setIsValid] = useState<Record<string, boolean>>({})
-  const [errors, setErrors] = useState<Record<string, FieldError>>({})
+  const [fields, dispatch] = useReducer(fieldReducer, {})
   const inputsRefs = useRef<
     Record<string, HTMLInputElement | HTMLTextAreaElement | null>
   >({})
@@ -92,41 +159,39 @@ export function useForm<T = unknown>({
     name: string,
     input: HTMLInputElement | HTMLTextAreaElement | null
   ) {
-    setIsActive((prev) => ({ ...prev, [name]: false }))
-    setIsValid((prev) => {
-      const isHidden =
-        input instanceof HTMLInputElement && input.type === 'hidden'
-      if (isHidden || !input) {
-        const isRequired = input?.required ?? false
-        return { ...prev, [name]: isHidden || !isRequired }
-      }
-      return { ...prev, [name]: computeValidity(input.value, input) }
-    })
-    setErrors((prev) => ({
-      ...prev,
-      [name]: { state: false, message: '' },
-    }))
+    const isHidden =
+      input instanceof HTMLInputElement && input.type === 'hidden'
+    const valid =
+      isHidden || !input
+        ? isHidden || !(input?.required ?? false)
+        : computeValidity(input.value, input)
+    dispatch({ type: 'register', name, valid })
   }
 
   // A blocked submit (Enter, or a click that slips through) shows errors
   // instead of silently doing nothing.
   function revealErrorsForInvalidFields() {
-    setErrors((prev) => {
-      const next = { ...prev }
-      for (const [name, valid] of Object.entries(isValid)) {
-        if (valid) continue
-        const element = inputsRefs.current[name]
-        const label = element?.id || element?.name || name
-        next[name] = { state: true, message: `Invalid ${label}` }
-      }
-      return next
-    })
+    const labels: Record<string, string> = {}
+    for (const name of Object.keys(fields)) {
+      const element = inputsRefs.current[name]
+      labels[name] = element?.id || element?.name || name
+    }
+    dispatch({ type: 'revealInvalid', labels })
   }
 
+  const isActive: Record<string, boolean> = {}
+  const isValid: Record<string, boolean> = {}
+  const errors: Record<string, FieldError> = {}
+  for (const [name, field] of Object.entries(fields)) {
+    isActive[name] = field.active
+    isValid[name] = field.valid
+    errors[name] = field.error
+  }
+
+  const fieldStates = Object.values(fields)
   const isReady =
-    Object.values(isValid).length > 0 &&
-    Object.values(isValid).every(Boolean) &&
-    Object.values(errors).every(({ state }) => !state)
+    fieldStates.length > 0 &&
+    fieldStates.every(({ valid, error }) => valid && !error.state)
 
   const onSubmit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -163,7 +228,7 @@ export function useForm<T = unknown>({
   }
 
   function setToActiveInput(value: string, name: string) {
-    setIsActive((prev) => ({ ...prev, [name]: value.length > 0 }))
+    dispatch({ type: 'change', name, active: value.length > 0 })
   }
 
   function validate(value: string, name: string) {
@@ -172,14 +237,15 @@ export function useForm<T = unknown>({
 
     const isValidValue = computeValidity(value, element)
 
-    setIsValid((prev) => ({ ...prev, [name]: isValidValue }))
-    setErrors((prev) => ({
-      ...prev,
-      [name]: {
+    dispatch({
+      type: 'validate',
+      name,
+      valid: isValidValue,
+      error: {
         state: !isValidValue && value !== '',
         message: isValidValue ? '' : `Invalid ${element.id || element.name}`,
       },
-    }))
+    })
   }
 
   function register(name: string) {
@@ -197,25 +263,8 @@ export function useForm<T = unknown>({
 
         // Unmounted (tab switch, wizard, feature flag). Stale entries would
         // wedge isReady forever for a required field that mounted untouched:
-        // it needs every isValid entry true, including removed fields.
-        setIsActive((prev) => {
-          if (!(name in prev)) return prev
-          const next = { ...prev }
-          delete next[name]
-          return next
-        })
-        setIsValid((prev) => {
-          if (!(name in prev)) return prev
-          const next = { ...prev }
-          delete next[name]
-          return next
-        })
-        setErrors((prev) => {
-          if (!(name in prev)) return prev
-          const next = { ...prev }
-          delete next[name]
-          return next
-        })
+        // it needs every field valid, including removed ones.
+        dispatch({ type: 'unregister', name })
       },
       onChange: ({
         target,

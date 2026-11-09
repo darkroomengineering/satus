@@ -1,7 +1,13 @@
 'use client'
 
 import cn from 'clsx'
-import { createContext, type ReactNode, use, useEffect, useState } from 'react'
+import {
+  createContext,
+  type ReactNode,
+  use,
+  useEffect,
+  useReducer,
+} from 'react'
 
 import { mutate } from '@/utils/raf'
 
@@ -59,6 +65,46 @@ export function useFormContext(): FormContextStandard {
   return context
 }
 
+// The post-submit lifecycle. `submitting` is not a phase: `isPending` from
+// useForm already covers it. `key` remounts the inner <form> on a reset.
+// formState survives that remount (it lives in useForm, not in the <form>), so
+// `dismissed` hides a stale success/error state until the next submission.
+interface SubmitLifecycle {
+  phase: 'idle' | 'succeeded' | 'dismissed'
+  key: string | null
+}
+
+type SubmitLifecycleAction =
+  | { type: 'submitStarted' }
+  | { type: 'succeeded' }
+  | { type: 'autoReset'; key: string }
+  | { type: 'manualReset'; key: string }
+  | { type: 'userEdited' }
+
+/** Exported for testing. */
+export function submitLifecycleReducer(
+  state: SubmitLifecycle,
+  action: SubmitLifecycleAction
+): SubmitLifecycle {
+  switch (action.type) {
+    case 'submitStarted':
+      return state.phase === 'idle' ? state : { phase: 'idle', key: state.key }
+    case 'succeeded':
+      return { phase: 'succeeded', key: state.key }
+    case 'autoReset':
+      if (state.phase !== 'succeeded') return state
+      return { phase: 'dismissed', key: action.key }
+    case 'manualReset':
+      return { phase: 'dismissed', key: action.key }
+    case 'userEdited':
+      // Typing while the success state shows keeps the input: dismiss the
+      // success without a remount, which also cancels the pending auto-reset.
+      // A no-op otherwise, so per-keystroke dispatches never re-render.
+      if (state.phase !== 'succeeded') return state
+      return { phase: 'dismissed', key: state.key }
+  }
+}
+
 export function Form<T = unknown>({
   children,
   action,
@@ -66,22 +112,23 @@ export function Form<T = unknown>({
   onSuccess,
   onError,
   className,
+  onInput,
   ...props
 }: FormProps<T>) {
-  const [key, setKey] = useState<string | null>(null)
-  // formState survives the `key` remount below (it lives here, not in the
-  // inner <form>), so a stale success/error state would outlast the visual
-  // reset. Dismissed on every reset path, cleared when a new submission starts.
-  const [isDismissed, setIsDismissed] = useState(false)
+  const [lifecycle, dispatch] = useReducer(submitLifecycleReducer, {
+    phase: 'idle',
+    key: null,
+  })
 
   // onSuccess/onError fire from the action, not from an effect watching
   // formState: such an effect would depend on them, and a parent re-rendering
   // with fresh inline callbacks would re-fire them for a handled submission.
   const actionWithCallbacks: FormAction<T> = async (prevState, formData) => {
-    setIsDismissed(false)
+    dispatch({ type: 'submitStarted' })
     const result = await action(prevState, formData)
 
     if (result.status === 200) {
+      dispatch({ type: 'succeeded' })
       onSuccess?.(result)
     } else if (result.status >= 400) {
       onError?.(result)
@@ -109,9 +156,12 @@ export function Form<T = unknown>({
   // Scheduled through the rAF write queue, off the layout-read path.
   // `cancelled` covers unmounting before the queue drains: `resetTimer` is
   // assigned inside the queued callback, so without the flag the timer could
-  // be created after teardown and call setKey on an unmounted component.
+  // be created after teardown and dispatch on an unmounted component. Keyed on
+  // the lifecycle object, not its phase: every `succeeded` dispatch yields a
+  // new object, so a second success inside the window re-arms the timer, while
+  // leaving `succeeded` (userEdited, manualReset) clears it.
   useEffect(() => {
-    if (formState?.status !== 200) return
+    if (lifecycle.phase !== 'succeeded' || formState?.status !== 200) return
 
     let resetTimer: ReturnType<typeof setTimeout> | undefined
     let cancelled = false
@@ -119,8 +169,7 @@ export function Form<T = unknown>({
     void mutate(() => {
       if (cancelled) return
       resetTimer = setTimeout(() => {
-        setKey(crypto.randomUUID())
-        setIsDismissed(true)
+        dispatch({ type: 'autoReset', key: crypto.randomUUID() })
       }, 2000)
     })
 
@@ -128,16 +177,15 @@ export function Form<T = unknown>({
       cancelled = true
       if (resetTimer) clearTimeout(resetTimer)
     }
-  }, [formState])
+  }, [lifecycle, formState])
 
   const resetForm = () => {
-    setKey(crypto.randomUUID())
-    setIsDismissed(true)
+    dispatch({ type: 'manualReset', key: crypto.randomUUID() })
   }
 
   const contextValue: FormContextStandard = {
     state: {
-      formState: isDismissed ? null : formState,
+      formState: lifecycle.phase === 'dismissed' ? null : formState,
       isPending,
       isReady,
       isActive,
@@ -156,13 +204,19 @@ export function Form<T = unknown>({
   return (
     <FormContext.Provider value={contextValue}>
       <form
+        // `key` (the post-submit remount) goes before the spread for the JSX
+        // runtime; React never passes `key` through props, so it still wins.
+        key={lifecycle.key}
         {...props}
-        // `action`, `onSubmit` and `key` (the post-submit remount) must win
-        // over a consumer's `...props`.
-        key={key}
+        // `action`, `onSubmit` and `onInput` must win over a consumer's
+        // `...props`; a consumer's `onInput` is called from ours.
         className={cn(s.form, className)}
         action={formAction}
         onSubmit={onSubmit}
+        onInput={(event) => {
+          onInput?.(event)
+          dispatch({ type: 'userEdited' })
+        }}
       >
         {children}
       </form>

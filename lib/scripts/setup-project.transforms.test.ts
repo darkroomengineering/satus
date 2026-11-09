@@ -910,23 +910,27 @@ describe('Additive Transforms (remove → add round trips)', () => {
     const result = roundTrip('sanity', 'next.config.ts')
     if (!result) return
 
-    // The optimizer never allows cdn.sanity.io, with or without Sanity: its
-    // images reach the browser through components/ui/image's loader.
-    expect(result.lean).not.toContain("hostname: 'cdn.sanity.io'")
-    expect(result.restored).not.toContain("hostname: 'cdn.sanity.io'")
+    // The optimizer never allows cdn.sanity.io or cdn.shopify.com, with or
+    // without either integration: their images reach the browser through
+    // components/ui/image's loaders.
+    for (const host of ['cdn.sanity.io', 'cdn.shopify.com']) {
+      expect(result.lean).not.toContain(`hostname: '${host}'`)
+      expect(result.restored).not.toContain(`hostname: '${host}'`)
+    }
     expect(count(result.restored, "'@sanity/client'")).toBe(1)
     expect(count(result.restored, "'@sanity/image-url'")).toBe(1)
     expect(count(result.restored, "'@sanity/asset-utils'")).toBe(1)
     expect(count(result.restored, "'@portabletext/react'")).toBe(1)
-    expect(count(result.restored, 'cdn.shopify.com')).toBe(1)
   })
 
-  it('shopify: next.config.ts regains the cdn.shopify.com remotePattern exactly once', () => {
-    const result = roundTrip('shopify', 'next.config.ts')
-    if (!result) return
-
-    expect(result.lean).not.toContain('cdn.shopify.com')
-    expect(count(result.restored, 'cdn.shopify.com')).toBe(1)
+  it('shopify: never touches next.config.ts, whose optimizer never allows cdn.shopify.com', () => {
+    const bundle = INTEGRATION_BUNDLES.shopify
+    const transforms = [
+      ...(bundle?.codeTransforms ?? []),
+      ...(bundle?.addTransforms ?? []),
+    ]
+    expect(transforms.map((t) => t.file)).not.toContain('next.config.ts')
+    expect(sourceFiles['next.config.ts']).toContain('remotePatterns: []')
   })
 
   it('webgl overwrite: the lean wrapper matches the expected lean state', () => {

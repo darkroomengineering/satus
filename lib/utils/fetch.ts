@@ -6,34 +6,25 @@ export interface FetchWithTimeoutOptions extends RequestInit {
   timeout?: number // Timeout in milliseconds (default: 10000ms)
 }
 
-/** Fetch with automatic timeout; throws AbortError if timeout is reached. */
+/**
+ * Fetch with a deadline that also covers reading the body: the signal stays
+ * attached to the response, so a body that stalls after the headers arrive
+ * rejects too. Rejects with a `TimeoutError` DOMException once `timeout` ms
+ * pass, or with the external signal's reason when it aborts first.
+ */
 export async function fetchWithTimeout(
   url: string,
   options: FetchWithTimeoutOptions = {}
 ): Promise<Response> {
   const { timeout = 10000, signal: externalSignal, ...fetchOptions } = options
+  const timeoutSignal = AbortSignal.timeout(timeout)
 
-  const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), timeout)
-
-  const onExternalAbort = () => controller.abort()
-
-  if (externalSignal?.aborted) {
-    controller.abort()
-  } else if (externalSignal) {
-    externalSignal.addEventListener('abort', onExternalAbort)
-  }
-
-  try {
-    const response = await fetch(url, {
-      ...fetchOptions,
-      signal: controller.signal,
-    })
-    return response
-  } finally {
-    clearTimeout(timeoutId)
-    externalSignal?.removeEventListener('abort', onExternalAbort)
-  }
+  return fetch(url, {
+    ...fetchOptions,
+    signal: externalSignal
+      ? AbortSignal.any([externalSignal, timeoutSignal])
+      : timeoutSignal,
+  })
 }
 
 /**

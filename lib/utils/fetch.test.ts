@@ -40,6 +40,18 @@ beforeAll(() => {
         )
       }
 
+      // Headers and a first chunk arrive at once; the body never finishes.
+      if (url.pathname === '/stalled-body') {
+        return new Response(
+          new ReadableStream({
+            start(controller) {
+              controller.enqueue(new TextEncoder().encode('{"partial":'))
+            },
+          }),
+          { headers: { 'Content-Type': 'application/json' } }
+        )
+      }
+
       if (url.pathname === '/error-500') {
         return new Response('Internal Server Error', {
           status: 500,
@@ -68,7 +80,8 @@ beforeAll(() => {
 })
 
 afterAll(() => {
-  void server.stop()
+  // `true` closes the stalled-body connection, which never ends on its own.
+  void server.stop(true)
 })
 
 describe('fetchWithTimeout', () => {
@@ -95,6 +108,22 @@ describe('fetchWithTimeout', () => {
     await expect(
       fetchWithTimeout(`${baseURL}/slow`, { timeout: 100 })
     ).rejects.toThrow()
+  })
+
+  it('times out a body that stalls after the headers arrive', async () => {
+    const started = Date.now()
+    const response = await fetchWithTimeout(`${baseURL}/stalled-body`, {
+      timeout: 200,
+    })
+    expect(response.ok).toBe(true)
+
+    // By name, not class: the test preload swaps in happy-dom's
+    // DOMException, a different class from the one fetch rejects with.
+    await expect(response.text()).rejects.toMatchObject({
+      name: expect.stringMatching(/^(TimeoutError|AbortError)$/),
+    })
+    // By the deadline, with slack for a loaded CI runner.
+    expect(Date.now() - started).toBeLessThan(2000)
   })
 
   it('should pass through fetch options like method', async () => {

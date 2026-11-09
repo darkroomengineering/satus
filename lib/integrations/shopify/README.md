@@ -7,7 +7,7 @@ E-commerce with the Storefront API.
 ```env
 SHOPIFY_STORE_DOMAIN="your-store.myshopify.com"
 SHOPIFY_STOREFRONT_ACCESS_TOKEN="your-token"
-SHOPIFY_REVALIDATION_SECRET="your-secret"
+SHOPIFY_REVALIDATION_SECRET="your-webhook-signing-secret"
 ```
 
 Validated by `shopifyEnvSchema` in the registry.
@@ -38,13 +38,13 @@ Cart state persists in cookies with optimistic UI updates.
 ## Caching
 
 - **Cart data**: never cached (user-specific); every `cart-operations.ts` fetch passes `cache: 'no-store'`.
-- **Products, collections, pages**: every exported reader in `products.ts`, `collections.ts`, and `pages.ts` passes `tags` and `revalidate: CATALOG_REVALIDATE_SECONDS` (one hour, `constants.ts`) to `shopifyFetch`, which caches the response in Next's Data Cache, so a page that calls them can still render statically. Invalidated by `revalidateTag('products' | 'collections' | 'pages')` from the webhook below; the one-hour `revalidate` is the backstop for a lost webhook.
+- **Products, collections, pages**: every exported reader in `products.ts`, `collections.ts`, and `pages.ts` passes `tags` and `revalidate: CATALOG_REVALIDATE_SECONDS` (one hour, `constants.ts`) to `shopifyFetch`, which caches the response in Next's Data Cache, so a page that calls them can still render statically. Invalidated by `revalidateTag('products' | 'collections' | 'pages', { expire: 0 })` from the webhook below, so the next visit gets fresh prices and stock; the one-hour `revalidate` is the backstop for a lost webhook.
 
 ## Webhooks
 
-In Shopify Admin (Settings → Notifications → Webhooks), create one webhook per event below with URL `https://your-domain.com/api/revalidate?secret=YOUR_SHOPIFY_REVALIDATION_SECRET`.
+In Shopify Admin (Settings → Notifications → Webhooks), create one webhook per event below with URL `https://your-domain.com/api/revalidate`, format JSON. The same page shows the key Shopify signs these webhooks with; set `SHOPIFY_REVALIDATION_SECRET` to that key. Webhooks registered by an app are signed with the app's client secret instead.
 
-`app/api/revalidate/route.ts` recognizes Shopify by the `x-shopify-topic` header or the `secret` query param and dispatches to `revalidate()` in `lib/integrations/shopify/revalidate.ts`, which compares the secret with `SHOPIFY_REVALIDATION_SECRET` in constant time and calls `revalidateTag`. The same route serves Sanity's webhook (see `app/api/README.md`).
+`app/api/revalidate/route.ts` recognizes Shopify by the `x-shopify-hmac-sha256` or `x-shopify-topic` header and dispatches to `revalidate()` in `lib/integrations/shopify/revalidate.ts`. It computes the base64 HMAC-SHA256 of the raw body with `SHOPIFY_REVALIDATION_SECRET`, compares it with the `X-Shopify-Hmac-Sha256` header in constant time, and calls `revalidateTag(tag, { expire: 0 })`, so the next request after a product, collection or page change gets fresh data. A missing or wrong signature gets 401; an unset secret gets 503. The same route serves Sanity's webhook (see `app/api/README.md`).
 
 Events: `products/create`, `products/update`, `products/delete`, `collections/create`,
 `collections/update`, `collections/delete`, `pages/create`, `pages/update`, `pages/delete`

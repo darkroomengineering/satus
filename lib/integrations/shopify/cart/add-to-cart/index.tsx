@@ -51,21 +51,38 @@ export function AddToCart({
 
     // Cross-tab lock so simultaneous first-adds can't each create a cart and
     // orphan one's item. The action still creates a cart without it (no JS, no
-    // Web Locks): protection, not a prerequisite.
-    await ensureCart()
+    // Web Locks): protection, not a prerequisite, so a failure falls through.
+    try {
+      await ensureCart()
+    } catch (lockError) {
+      console.warn('Cart lock failed; adding without it:', lockError)
+    }
 
-    const result = await addItem(null, {
-      variantId: variant?.id || '',
-      quantity,
-    })
-
-    setError(result.ok ? null : result.error)
-
-    router.refresh()
+    try {
+      const result = await addItem(null, {
+        variantId: variant?.id || '',
+        quantity,
+      })
+      setError(result.ok ? null : result.error)
+    } catch (actionError) {
+      // The action never ran (network down, deploy skew). Show it inline
+      // instead of letting the rejection reach the route error boundary.
+      console.error('Add to cart failed:', actionError)
+      setError('Error adding item to cart')
+    } finally {
+      router.refresh()
+    }
   }
 
   return (
-    <form action={formAction} className={className}>
+    <form
+      action={formAction}
+      // Cleared here, not in `formAction`: updates inside an async form action
+      // commit only when it finishes, so the old error would stay up during
+      // the retry.
+      onSubmit={() => setError(null)}
+      className={className}
+    >
       <AddToCartSubmitButton
         disabled={!variant}
         className={cn(s.cta, !variant && s.disable)}

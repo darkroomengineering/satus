@@ -146,17 +146,12 @@ const nextConfig: NextConfig = {
   },
   devIndicators: false,
   images: {
-    dangerouslyAllowSVG: true,
-    // Only hosts whose images this optimizer resizes. A host whose own CDN
-    // resizes through a loader (`components/ui/image/sanity-loader.ts`)
-    // stays out: the optimizer never fetches from it, and allowing it would
-    // let anyone resize any image on that host here, on this project's bill.
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'cdn.shopify.com',
-      },
-    ],
+    // Only hosts whose images this optimizer resizes; none by default. Sanity
+    // and Shopify images resize on their own CDNs through the loaders in
+    // `components/ui/image`. Both CDNs are multi-tenant: listing one here
+    // would let anyone resize any image on it through `/_next/image`, on this
+    // project's bill.
+    remotePatterns: [],
     minimumCacheTTL: 60 * 60 * 24 * 30,
     // 90: everything the optimizer encodes. 80: images resized by the CDN
     // loader in `components/ui/image`, which sends `quality` to the CDN, not

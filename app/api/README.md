@@ -65,10 +65,10 @@ sequenceDiagram
     participant R as POST /api/revalidate
     participant T as next/cache
     W->>R: request
-    alt has x-shopify-topic header or ?secret=
-        R->>R: timingSafeEqual(secret, SHOPIFY_REVALIDATION_SECRET)
-        R-->>W: 401 if missing or wrong
-        R->>T: revalidateTag(products | collections | pages)
+    alt has x-shopify-hmac-sha256 or x-shopify-topic header
+        R->>R: HMAC-SHA256(raw body, SHOPIFY_REVALIDATION_SECRET) vs x-shopify-hmac-sha256
+        R-->>W: 401 if missing or wrong, 503 if secret unset
+        R->>T: revalidateTag(products | collections | pages, { expire: 0 })
     else has sanity-webhook-signature header
         R->>R: parseBody(request, SANITY_REVALIDATE_SECRET) → isValidSignature
         R-->>W: 401 if invalid, 503 if secret unset
@@ -83,16 +83,16 @@ Setup: Sanity in [lib/integrations/sanity/README.md § Revalidation](../../lib/i
 
 ## Security
 
-- Webhooks require a secret (`SANITY_REVALIDATE_SECRET`,
-  `SHOPIFY_REVALIDATION_SECRET`).
+- Webhooks require a signing secret (`SANITY_REVALIDATE_SECRET`,
+  `SHOPIFY_REVALIDATION_SECRET`); each provider's handler verifies an HMAC
+  of the raw body against it.
 - Not rate limited, in the route or in `proxy.ts`, so a bulk publish is never
   turned away and the site never stays stale. A request with neither
-  provider's signal gets a 404 without its body being read, and a Shopify
-  secret is compared in constant time before any body read. A request with a
-  Sanity signature header has its whole body read (up to the platform's
-  request body cap) and HMACed before a wrong signature is rejected, with no
-  wait. The cost: anyone can make the route read and hash a body that size as
-  often as they like.
+  provider's signal gets a 404 without its body being read. A request with a
+  Shopify or Sanity signature header has its whole body read (up to the
+  platform's request body cap) and HMACed before a wrong signature is
+  rejected, with no wait. The cost: anyone can make the route read and hash a
+  body that size as often as they like.
 - Sanity: invalid signature 401, malformed body 400, unset secret 503.
 - Shopify: invalid or missing secret 401 (constant-time compare).
 

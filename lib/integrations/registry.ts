@@ -76,7 +76,8 @@ export const integrations = {
     envSchema: shopifyEnvSchema,
     docsUrl: 'https://shopify.dev/docs/api/storefront',
     cspSources: {
-      // Images only (the host `images.remotePatterns` trusts). Every
+      // Images only (the browser loads them from Shopify's CDN through
+      // `components/ui/image`'s Shopify loader, not Next's optimizer). Every
       // Storefront API call (`shopifyFetch`) runs server-side; no 'use client'
       // cart file calls it, so there is no `connect-src` origin.
       'img-src': ['https://cdn.shopify.com'],

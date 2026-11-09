@@ -52,7 +52,7 @@ lib/                    # Everything non-UI
 
 If the Sanity integration is enabled, manage content at [sanity.io/manage](https://sanity.io/manage) or through your project's Sanity Studio.
 
-Content updates publish through webhooks (Sanity publish, Shopify product/collection updates), which call `POST /api/revalidate`. To trigger it by hand: `curl -X POST "https://[domain]/api/revalidate?secret=$SHOPIFY_REVALIDATION_SECRET"` for Shopify tags, or re-publish the document in Sanity Studio. GET is not supported.
+Content updates publish through webhooks (Sanity publish, Shopify product/collection updates), which call `POST /api/revalidate`. To trigger it by hand, save the product or collection again in Shopify Admin, or re-publish the document in Sanity Studio. Both providers sign their requests, so a hand-made `curl` is rejected. GET is not supported.
 
 ## Error reporting
 

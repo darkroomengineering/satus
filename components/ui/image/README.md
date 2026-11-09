@@ -26,4 +26,4 @@ Optimized images with smart loading, blur placeholders, and responsive sizing. N
 
 ## Loaders
 
-Images on `cdn.sanity.io` skip Next's optimizer: `sanity-loader.ts` has Sanity's CDN resize each `srcset` width, as WebP. A `cdn.sanity.io/files/` URL (an image uploaded to a `file` field) can't be resized there, so it renders unoptimized, at its original size. Everything else goes through the optimizer, also as WebP only.
+Images on `cdn.sanity.io` skip Next's optimizer: `sanity-loader.ts` has Sanity's CDN resize each `srcset` width, as WebP. A `cdn.sanity.io/files/` URL (an image uploaded to a `file` field) can't be resized there, so it renders unoptimized, at its original size. Images on `cdn.shopify.com` skip it too: `shopify-loader.ts` sets Shopify's `width` parameter per `srcset` width, and Shopify's CDN picks the format. Neither host is in `images.remotePatterns`, so `/_next/image` never resizes their images for a stranger. Everything else goes through the optimizer, as WebP only; it accepts local images only until a host is added to `remotePatterns`.

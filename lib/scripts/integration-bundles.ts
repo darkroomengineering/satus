@@ -518,17 +518,6 @@ export const INTEGRATION_BUNDLES = defineBundles({
     ],
     barrelExports: [],
     codeTransforms: [
-      {
-        file: 'next.config.ts',
-        ops: [
-          {
-            kind: 'removeArrayObjectElement',
-            variableName: 'nextConfig',
-            propertyPath: 'images.remotePatterns',
-            matchProperty: { name: 'hostname', value: 'cdn.shopify.com' },
-          },
-        ],
-      },
       // Shared with Sanity (its entry on this file is above): strip exactly
       // Shopify's own import and guard dispatch, nothing else.
       {
@@ -556,20 +545,8 @@ export const INTEGRATION_BUNDLES = defineBundles({
       },
     ],
     addTransforms: [
-      {
-        file: 'next.config.ts',
-        ops: [
-          {
-            kind: 'addArrayObjectElement',
-            variableName: 'nextConfig',
-            propertyPath: 'images.remotePatterns',
-            objectText: "{ protocol: 'https', hostname: 'cdn.shopify.com' }",
-            matchProperty: { name: 'hostname', value: 'cdn.shopify.com' },
-          },
-        ],
-      },
-      // Shared with Sanity. Guard order matters: a request with both a
-      // `?secret=` and a `sanity-webhook-signature` header goes to whichever
+      // Shared with Sanity. Guard order matters: a request with both a Shopify
+      // header and a `sanity-webhook-signature` header goes to whichever
       // guard comes first. Shopify's guard anchors before Sanity's when present
       // and before the 404 fallback otherwise, while Sanity's always anchors
       // before the 404, so every keep order lands Shopify, Sanity, 404.
@@ -590,12 +567,15 @@ export const INTEGRATION_BUNDLES = defineBundles({
               'No webhook handler configured',
             ],
             required: true,
-            text: `  // Shopify webhooks identify themselves with an \`x-shopify-topic\` header and
-  // always carry a \`secret\` query param. The handler compares the secret in
-  // constant time before it reads the body.
+            text: `  // Shopify signs each webhook body and sends the signature in
+  // \`x-shopify-hmac-sha256\`, beside an \`x-shopify-topic\` header; either one
+  // routes here, so an unsigned Shopify request gets a 401, not the 404. The
+  // handler reads the whole body (up to the platform's request body cap) and
+  // HMACs it before a wrong signature is rejected. Cost: anyone can make this
+  // route read and hash a body that size as often as they like.
   const isShopifyWebhook =
-    request.headers.has('x-shopify-topic') ||
-    request.nextUrl.searchParams.has('secret')
+    request.headers.has('x-shopify-hmac-sha256') ||
+    request.headers.has('x-shopify-topic')
 
   if (isShopifyWebhook) {
     return shopifyRevalidate(request)

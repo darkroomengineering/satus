@@ -17,12 +17,15 @@ import { revalidate as shopifyRevalidate } from '@/integrations/shopify/revalida
 // being read. What a provider's request can cost before rejection is noted at
 // its guard.
 export async function POST(request: NextRequest) {
-  // Shopify webhooks identify themselves with an `x-shopify-topic` header and
-  // always carry a `secret` query param. The handler compares the secret in
-  // constant time before it reads the body.
+  // Shopify signs each webhook body and sends the signature in
+  // `x-shopify-hmac-sha256`, beside an `x-shopify-topic` header; either one
+  // routes here, so an unsigned Shopify request gets a 401, not the 404. The
+  // handler reads the whole body (up to the platform's request body cap) and
+  // HMACs it before a wrong signature is rejected. Cost: anyone can make this
+  // route read and hash a body that size as often as they like.
   const isShopifyWebhook =
-    request.headers.has('x-shopify-topic') ||
-    request.nextUrl.searchParams.has('secret')
+    request.headers.has('x-shopify-hmac-sha256') ||
+    request.headers.has('x-shopify-topic')
 
   if (isShopifyWebhook) {
     return shopifyRevalidate(request)

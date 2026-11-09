@@ -1,25 +1,14 @@
-import { createHash, timingSafeEqual } from 'node:crypto'
-
 import { revalidateTag } from 'next/cache'
-import { headers } from 'next/headers'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import { env } from '@/lib/env'
 
 import { TAGS } from './constants'
-
-/**
- * Constant-time secret comparison: `!==` short-circuits on the first
- * mismatched character, leaking timing an attacker can use to guess the
- * secret. `timingSafeEqual` needs equal-length buffers, so both sides are
- * hashed first, which also avoids a throw when the lengths differ.
- */
-function secretsMatch(a: string, b: string): boolean {
-  const hashA = createHash('sha256').update(a).digest()
-  const hashB = createHash('sha256').update(b).digest()
-  return timingSafeEqual(hashA, hashB)
-}
+import {
+  isValidShopifySignature,
+  isWellFormedShopifySignature,
+} from './webhook-signature'
 
 const collectionWebhooks = new Set([
   'collections/create',
@@ -36,24 +25,35 @@ const pageWebhooks = new Set(['pages/create', 'pages/delete', 'pages/update'])
 // Called from `app/api/revalidate/route.ts`.
 export async function revalidate(req: NextRequest): Promise<NextResponse> {
   // Non-2xx responses make Shopify keep retrying the webhook.
-  const headersList = await headers()
-  const topic = headersList.get('x-shopify-topic') ?? 'unknown'
-  const secret = req.nextUrl.searchParams.get('secret')
-  const isCollectionUpdate = collectionWebhooks.has(topic)
-  const isProductUpdate = productWebhooks.has(topic)
-  const isPageUpdate = pageWebhooks.has(topic)
+  const secret = env.SHOPIFY_REVALIDATION_SECRET
+  if (!secret) {
+    console.error('SHOPIFY_REVALIDATION_SECRET is not set.')
+    return NextResponse.json(
+      { data: null, error: 'Webhook secret not configured' },
+      { status: 503 }
+    )
+  }
 
+  const signature = req.headers.get('x-shopify-hmac-sha256')
   if (
-    !secret ||
-    !env.SHOPIFY_REVALIDATION_SECRET ||
-    !secretsMatch(secret, env.SHOPIFY_REVALIDATION_SECRET)
+    !isWellFormedShopifySignature(signature) ||
+    !isValidShopifySignature(
+      new Uint8Array(await req.arrayBuffer()),
+      signature,
+      secret
+    )
   ) {
-    console.error('Invalid revalidation secret.')
+    console.error('Invalid Shopify webhook signature.')
     return NextResponse.json(
       { data: null, error: 'Unauthorized' },
       { status: 401 }
     )
   }
+
+  const topic = req.headers.get('x-shopify-topic') ?? 'unknown'
+  const isCollectionUpdate = collectionWebhooks.has(topic)
+  const isProductUpdate = productWebhooks.has(topic)
+  const isPageUpdate = pageWebhooks.has(topic)
 
   if (!(isCollectionUpdate || isProductUpdate || isPageUpdate)) {
     return NextResponse.json({
@@ -62,16 +62,18 @@ export async function revalidate(req: NextRequest): Promise<NextResponse> {
     })
   }
 
+  // `expire: 0`, not `max`: the next visit after a price or stock change gets
+  // fresh data, not one more stale page.
   if (isCollectionUpdate) {
-    revalidateTag(TAGS.collections, {})
+    revalidateTag(TAGS.collections, { expire: 0 })
   }
 
   if (isProductUpdate) {
-    revalidateTag(TAGS.products, {})
+    revalidateTag(TAGS.products, { expire: 0 })
   }
 
   if (isPageUpdate) {
-    revalidateTag(TAGS.pages, {})
+    revalidateTag(TAGS.pages, { expire: 0 })
   }
 
   return NextResponse.json({

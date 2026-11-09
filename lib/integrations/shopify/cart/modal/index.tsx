@@ -25,11 +25,14 @@ interface CartModalProps {
 export function CartModal({ children, isOpen, closeCart }: CartModalProps) {
   const { state } = useCartContext()
   const { cart } = state
+  const dialogRef = useRef<HTMLDivElement>(null)
   const contentsRef = useRef<FragmentInstance>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
 
   // A hand-rolled dialog has no native focus management: move focus in on
-  // open and back to the trigger on close.
+  // open, make the page behind unreachable, and hand focus back to the
+  // trigger on close. Not a native `<dialog>`: a closed one is
+  // `display: none`, which cuts the slide-out short.
   useEffect(() => {
     if (!isOpen) return
 
@@ -38,8 +41,13 @@ export function CartModal({ children, isOpen, closeCart }: CartModalProps) {
         ? document.activeElement
         : null
     contentsRef.current?.focus()
+    const restoreOutside = dialogRef.current
+      ? inertOutside(dialogRef.current)
+      : undefined
 
     return () => {
+      // Before the focus call: an inert trigger can't take focus.
+      restoreOutside?.()
       previousFocusRef.current?.focus()
       previousFocusRef.current = null
     }
@@ -61,7 +69,14 @@ export function CartModal({ children, isOpen, closeCart }: CartModalProps) {
       {children}
       {/* `inert` makes the closed drawer's controls unreachable, not merely
           visually hidden. */}
-      <div className={cn(s.modal, isOpen && s.open)} inert={!isOpen}>
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Cart"
+        className={cn(s.modal, isOpen && s.open)}
+        inert={!isOpen}
+      >
         <button
           className={s['catch-click']}
           onClick={closeCart}
@@ -89,6 +104,28 @@ export function CartModal({ children, isOpen, closeCart }: CartModalProps) {
       </div>
     </>
   )
+}
+
+/**
+ * Sets `inert` on every element beside `node` and beside each of its ancestors
+ * up to `<body>`, so Tab and assistive tech reach only the drawer. Returns the
+ * undo, which leaves alone anything that was inert already. An element added
+ * outside while the drawer is open (a body portal) stays reachable.
+ */
+function inertOutside(node: HTMLElement): () => void {
+  const marked: Element[] = []
+  let current: HTMLElement = node
+  while (current !== document.body && current.parentElement) {
+    for (const sibling of current.parentElement.children) {
+      if (sibling === current || sibling.hasAttribute('inert')) continue
+      sibling.setAttribute('inert', '')
+      marked.push(sibling)
+    }
+    current = current.parentElement
+  }
+  return () => {
+    for (const element of marked) element.removeAttribute('inert')
+  }
 }
 
 function EmptyCart() {

@@ -10,6 +10,7 @@ import type { CSSProperties, Ref } from 'react'
 import { breakpoints } from '@/styles/config'
 
 import { isSanityFile, isSanityImage, sanityLoader } from './sanity-loader'
+import { isShopifyImage, shopifyLoader } from './shopify-loader'
 
 import s from './image.module.css'
 
@@ -270,10 +271,13 @@ export function Image({
       unoptimized={
         unoptimized || isSvg || (isStringSrc(src) && isSanityFile(src))
       }
-      // Sanity's CDN resizes its own images; Next's optimizer would only
-      // re-encode them. Set here because a loader is a function, which a
-      // Server Component can't pass to this Client Component.
+      // Sanity's and Shopify's CDNs resize their own images, and neither host
+      // is in `images.remotePatterns`. Set here because a loader is a
+      // function, which a Server Component can't pass to this Client
+      // Component.
       {...(isStringSrc(src) && isSanityImage(src) && { loader: sanityLoader })}
+      {...(isStringSrc(src) &&
+        isShopifyImage(src) && { loader: shopifyLoader })}
       draggable={false}
       onDragStart={(e) => e.preventDefault()}
       {...(finalPlaceholder && { placeholder: finalPlaceholder })}

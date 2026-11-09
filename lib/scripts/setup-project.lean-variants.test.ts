@@ -176,8 +176,8 @@ declare module '@/integrations/shopify/revalidate' {
         const variant = variantFor(kept)
         if (pristine === undefined || variant === undefined) return
 
-        // The order is behaviour: a request carrying both a `?secret=` and a
-        // `sanity-webhook-signature` header goes to whichever guard is first.
+        // The order is behaviour: a request carrying both a Shopify header and
+        // a `sanity-webhook-signature` header goes to whichever guard is first.
         const handler = (text: string) =>
           text
             .slice(text.indexOf('export async function POST'))

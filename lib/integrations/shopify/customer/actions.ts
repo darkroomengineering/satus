@@ -102,15 +102,22 @@ export async function LoginCustomerAction(
           }
         }
 
-        if (customerAccessToken) {
-          await setCustomerAccessTokenCookie(
-            customerAccessToken.accessToken,
-            customerAccessToken.expiresAt
-          )
+        if (!customerAccessToken) {
+          console.error('Error logging in: no access token returned')
+          return {
+            status: 500,
+            message: 'Login failed. Please try again.',
+          }
         }
 
+        await setCustomerAccessTokenCookie(
+          customerAccessToken.accessToken,
+          customerAccessToken.expiresAt
+        )
+
         return { status: 200, message: 'Login successful' }
-      } catch (_error) {
+      } catch (error) {
+        console.error('Error logging in:', error)
         return {
           status: 500,
           message: 'An unexpected error occurred. Please try again.',
@@ -177,7 +184,8 @@ export async function CreateCustomerAction(
           input,
           liveCreateCustomerAndSignInDeps
         )
-      } catch (_error) {
+      } catch (error) {
+        console.error('Error creating customer:', error)
         return {
           status: 500,
           message: 'An unexpected error occurred. Please try again.',

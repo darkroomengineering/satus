@@ -190,7 +190,7 @@ export async function shopifyFetch<T = unknown>({
   } catch (e) {
     if (
       e instanceof Error &&
-      e.name === 'AbortError' &&
+      (e.name === 'AbortError' || e.name === 'TimeoutError') &&
       process.env.NODE_ENV === 'development'
     ) {
       console.log('Shopify request aborted (cache expired or timeout)')

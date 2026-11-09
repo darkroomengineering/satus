@@ -106,7 +106,8 @@ export async function removeItem(
       await removeFromCart(cartId, [resolved.lineId])
       revalidateTag(TAGS.cart, {})
       return { ok: true }
-    } catch (_e) {
+    } catch (error) {
+      console.error('Error removing item from cart:', error)
       return { ok: false, error: 'Error removing item from cart' }
     }
   })
@@ -138,19 +139,20 @@ export async function addItem(
     if (cartId) {
       try {
         if (!(await getCart(cartId))) cartId = undefined
-      } catch {
+      } catch (error) {
         // Liveness check failed transiently; keep the existing id.
+        console.warn('Cart check failed before adding an item:', error)
       }
     }
 
-    // The cookie can only be set server side.
-    if (!cartId) {
-      const cart = await createCart()
-      cartId = cart.id
-      setCartIdCookie(_cookies, cartId)
-    }
-
     try {
+      // The cookie can only be set server side.
+      if (!cartId) {
+        const cart = await createCart()
+        cartId = cart.id
+        setCartIdCookie(_cookies, cartId)
+      }
+
       await addToCart(cartId, [
         {
           merchandiseId: parsed.data.variantId,
@@ -160,7 +162,8 @@ export async function addItem(
       revalidateTag(TAGS.cart, {})
 
       return { ok: true }
-    } catch (_e) {
+    } catch (error) {
+      console.error('Error adding item to cart:', error)
       return { ok: false, error: 'Error adding item to cart' }
     }
   })
@@ -207,7 +210,8 @@ export async function updateItemQuantity(
       ])
       revalidateTag(TAGS.cart, {})
       return { ok: true }
-    } catch (_e) {
+    } catch (error) {
+      console.error('Error updating cart item quantity:', error)
       return { ok: false, error: 'Error updating item quantity' }
     }
   })

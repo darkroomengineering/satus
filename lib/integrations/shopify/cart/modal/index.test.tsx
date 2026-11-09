@@ -68,3 +68,35 @@ test('an initially open drawer restores prior focus after Strict Mode replays it
     trigger.remove()
   }
 })
+
+test('the open drawer is a named modal dialog and the page behind it is inert until it closes', () => {
+  const outside = document.createElement('a')
+  outside.href = '#behind'
+  document.body.append(outside)
+  try {
+    const view = render(
+      <StrictMode>
+        <Drawer />
+      </StrictMode>
+    )
+    const trigger = view.getByRole('button', { name: 'Open cart' })
+    const dialog = view.getByRole('dialog', { name: 'Cart' })
+    expect(dialog.getAttribute('aria-modal')).toBe('true')
+    expect(dialog.hasAttribute('inert')).toBe(true)
+
+    trigger.focus()
+    fireEvent.click(trigger)
+    expect(dialog.hasAttribute('inert')).toBe(false)
+    expect(trigger.closest('[inert]')).not.toBeNull()
+    expect(outside.closest('[inert]')).not.toBeNull()
+    expect(dialog.closest('[inert]')).toBeNull()
+
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(dialog.hasAttribute('inert')).toBe(true)
+    expect(trigger.closest('[inert]')).toBeNull()
+    expect(outside.closest('[inert]')).toBeNull()
+    expect(document.activeElement).toBe(trigger)
+  } finally {
+    outside.remove()
+  }
+})

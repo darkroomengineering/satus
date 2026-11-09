@@ -13,7 +13,7 @@ Non-UI code: hooks, integrations, styles, and utilities.
 | [utils/](utils/README.md)               | Pure utilities (math, fetch, metadata, strings, validation) | ❌ Core   |
 | `env.ts`                                | Typed environment variables (Zod-validated singleton)       | ❌ Core   |
 | [features/](features/README.md)         | Optional runtime features (WebGL, dev tools)                | ✅ Yes    |
-| [integrations/](integrations/README.md) | Sanity, Shopify, HubSpot                                    | ✅ Yes    |
+| [integrations/](integrations/README.md) | Sanity, Shopify, HubSpot, Mailchimp, Turnstile              | ✅ Yes    |
 | [webgl/](webgl/README.md)               | 3D graphics with R3F                                        | ✅ Yes    |
 | [dev/](dev/README.md)                   | Debug tools (CMD+O)                                         | ✅ Yes    |
 

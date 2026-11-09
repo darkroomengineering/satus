@@ -33,8 +33,9 @@ HTML vs. Markdown.
 `app/(site)/ai/{layout,page}.tsx` (the `/ai` machine view); `app/agent-content/route.ts`
 (the Markdown mirror when negotiation picks `text/markdown`); `proxy.ts`
 (`negotiateDocumentType` and `routePathFromMarkdown` decide HTML, a Markdown
-redirect, or a 406); `app/sitemap.ts` and `app/robots.ts` (read `STATIC_ROUTES`
-/ `BASE_URL` so the sitemap and the AI-bot allowlist match the route catalog).
+redirect, or a 406); `app/sitemap.ts` (reads `STATIC_ROUTES` and `BASE_URL` so
+the sitemap matches the route catalog); `app/robots.ts` (reads `BASE_URL` for
+the sitemap link).
 
 ## Policy
 

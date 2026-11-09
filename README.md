@@ -121,7 +121,7 @@ Satus is built for one job: content-driven marketing and creative sites with rea
 | Feature                                         | Satūs                                | `create-next-app` | `next-forge`   | `create-t3-app`          | `next-enterprise` |
 | ----------------------------------------------- | ------------------------------------ | ----------------- | -------------- | ------------------------ | ----------------- |
 | Built for                                       | creative & marketing sites           | bare scaffold     | SaaS monorepo  | typesafe full-stack apps | enterprise apps   |
-| Next.js today                                   | 16.3                                 | 16.3              | 16.1           | 15.5                     | 15.5              |
+| Next.js today                                   | 16.4                                 | 16.3              | 16.1           | 15.5                     | 15.5              |
 | Bun runtime + test runner                       | ✓                                    | ✗                 | ✗              | ✗                        | ✗                 |
 | oxc toolchain (`oxlint` + `oxfmt`)              | ✓                                    | ✗                 | ✗              | ✗                        | ✗                 |
 | Tailwind + CSS Modules under a cascade contract | ✓                                    | ✗                 | ✗              | ✗                        | ✗                 |

@@ -121,55 +121,72 @@ async function applyMemberTags(
   }
 }
 
-interface SubscriberPayload {
+interface NewMemberPayload {
   email_address: string
-  status_if_new: MailchimpMemberStatus
-  status?: MailchimpMemberStatus
+  status: MailchimpMemberStatus
   merge_fields: { FNAME?: string; LNAME?: string }
 }
 
-interface UpsertMemberOptions {
+interface AddMemberOptions {
   audienceId: string
   email: string
   firstName: string | undefined
   lastName: string | undefined
   status: MailchimpMemberStatus
-  /**
-   * Also apply `status` to an address that is already in the audience.
-   * Off by default so a re-submission cannot downgrade a confirmed
-   * subscriber back to 'pending'.
-   */
-  forceStatus?: boolean
   config: MailchimpConfig
 }
 
-async function upsertMember(
-  opts: UpsertMemberOptions
+/**
+ * Creates the member, or leaves an existing one's name and status as they are.
+ * The forms calling this are anonymous, so anyone can type anyone's address:
+ * an upsert would let them rename a subscriber or change their status. Any
+ * record for the address, archived included, counts as existing; a POST alone
+ * could re-add an archived contact with the submitted fields. Existing and new
+ * addresses get the same success, so the form does not reveal whether an
+ * address is currently on the list. Only a 404 lookup leads to a create; any
+ * other lookup failure is an error, since the member's state is unknown. The cost: an existing member cannot
+ * correct their name through these forms.
+ */
+async function addMember(
+  opts: AddMemberOptions
 ): Promise<
   { ok: true; memberId: string } | { ok: false; result: MailchimpResult }
 > {
   const { audienceId, email, firstName, lastName, status, config } = opts
-  const hash = subscriberHash(email)
 
-  // `status_if_new` alone: existing members keep their status. Also sending
-  // `status` would knock a confirmed subscriber back to 'pending', and they
-  // would silently stop receiving mail until they re-confirmed.
-  const subscriberData: SubscriberPayload = {
+  const memberId = subscriberHash(email)
+  const existing = await makeMailchimpRequest(
+    `/lists/${audienceId}/members/${memberId}?fields=id`,
+    { method: 'GET' },
+    config
+  )
+  if (existing.ok) {
+    return { ok: true, memberId }
+  }
+  if (existing.status !== 404) {
+    return {
+      ok: false,
+      result: {
+        success: false,
+        errorCode: 'api_error',
+        error: `Failed to look up member: HTTP ${existing.status}`,
+      },
+    }
+  }
+
+  const memberData: NewMemberPayload = {
     email_address: email,
-    status_if_new: status,
+    status,
     merge_fields: {},
   }
-  if (firstName !== undefined) subscriberData.merge_fields.FNAME = firstName
-  if (lastName !== undefined) subscriberData.merge_fields.LNAME = lastName
-  if (opts.forceStatus) {
-    subscriberData.status = status
-  }
+  if (firstName !== undefined) memberData.merge_fields.FNAME = firstName
+  if (lastName !== undefined) memberData.merge_fields.LNAME = lastName
 
   const response = await makeMailchimpRequest(
-    `/lists/${audienceId}/members/${hash}`,
+    `/lists/${audienceId}/members`,
     {
-      method: 'PUT',
-      body: JSON.stringify(subscriberData),
+      method: 'POST',
+      body: JSON.stringify(memberData),
     },
     config
   )
@@ -186,7 +203,12 @@ async function upsertMember(
 
   const errorJson: unknown = await response.json().catch(() => ({}))
   const errorData = mailchimpErrorResponseSchema.safeParse(errorJson).data ?? {}
-  const detail = errorData.detail || 'Failed to add/update member'
+
+  if (response.status === 400 && errorData.title === 'Member Exists') {
+    return { ok: true, memberId }
+  }
+
+  const detail = errorData.detail || 'Failed to add member'
 
   const lowerDetail = detail.toLowerCase()
   const errorCode: MailchimpErrorCode =
@@ -225,7 +247,7 @@ export async function addContactToMailchimp(
     const firstName = nameParts[0] || ''
     const lastName = nameParts.slice(1).join(' ') || ''
 
-    const upsert = await upsertMember({
+    const member = await addMember({
       audienceId,
       email: contactData.email,
       firstName,
@@ -234,8 +256,8 @@ export async function addContactToMailchimp(
       config,
     })
 
-    if (!upsert.ok) {
-      return upsert.result
+    if (!member.ok) {
+      return member.result
     }
 
     // Tags are optional segmentation; a supplied note must be stored for success.
@@ -252,7 +274,7 @@ export async function addContactToMailchimp(
 
     if (contactData.note) {
       const response = await makeMailchimpRequest(
-        `/lists/${audienceId}/members/${upsert.memberId}/notes`,
+        `/lists/${audienceId}/members/${member.memberId}/notes`,
         {
           method: 'POST',
           body: JSON.stringify({ note: contactData.note }),
@@ -300,7 +322,7 @@ export async function addSubscriberToMailchimp(
   try {
     const { audienceId } = config
 
-    const upsert = await upsertMember({
+    const member = await addMember({
       audienceId,
       email: subscriptionData.email,
       firstName: subscriptionData.firstName,
@@ -309,12 +331,12 @@ export async function addSubscriberToMailchimp(
       config,
     })
 
-    if (!upsert.ok) {
+    if (!member.ok) {
       console.error(
         'Mailchimp subscription error:',
-        upsert.result.error || 'Failed to subscribe'
+        member.result.error || 'Failed to subscribe'
       )
-      return upsert.result
+      return member.result
     }
 
     // Tagging is best-effort.

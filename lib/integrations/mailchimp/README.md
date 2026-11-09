@@ -24,12 +24,12 @@ import { mailchimpSubscriptionAction } from '@/integrations/mailchimp'
 </Form>
 ```
 
-`mailchimpContactAction` (same module) handles a contact form instead: its schema requires `name`, `email`, `subject`, and `message`; it adds or updates the Mailchimp contact and posts the message as a note. Success requires storing the note; HTTP and network failures return an error even if the contact was saved. It returns the same `FormState` shape as `mailchimpSubscriptionAction`.
+`mailchimpContactAction` (same module) handles a contact form instead: its schema requires `name`, `email`, `subject`, and `message`; it adds the contact to the audience if it is new and posts the message as a note. Success requires storing the note; HTTP and network failures return an error even if the contact was saved. It returns the same `FormState` shape as `mailchimpSubscriptionAction`.
 
 ## Behavior
 
 - Double opt-in (GDPR compliant): new members are added with `status: 'pending'` by default, which sends Mailchimp's confirmation email, so new subscribers appear as "Pending" until they confirm. Pass `status: 'subscribed'` to `addContactToMailchimp` / `addSubscriberToMailchimp` to skip it for projects with their own lawful basis for single opt-in.
 - Tagging is optional: failures are logged without rejecting a saved contact or subscription.
-- Email-only subscriptions preserve existing first and last names; supplied name fields update only those fields, and explicit empty strings clear them.
+- A submission never changes an existing member's name or status. The names it carries are set only when it creates a new member, and any existing record for the address, archived included, is left as it is. New and existing addresses get the same success, so a form does not reveal whether an address is currently on the list. The note and tags still land on the existing member. An address Mailchimp permanently deleted still returns an error, because Mailchimp refuses to re-add it.
 - Both actions validate the `cf-turnstile-response` form field, so render Cloudflare's Turnstile widget inside the form (`lib/integrations/turnstile/README.md`). Turnstile requires HTTPS (auto-disabled in development when its secret key is absent).
 - Both actions validate input with Zod; env vars are validated by `mailchimpEnvSchema` in the registry. Validation failures return `{ fieldErrors: Record<string, string> }`; API and network failures return only `{ status, message }`, with no `fieldErrors`.

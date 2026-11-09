@@ -5,7 +5,10 @@ import { NextResponse } from 'next/server'
 import { env } from '@/lib/env'
 
 import { TAGS } from './constants'
-import { isValidShopifySignature } from './webhook-signature'
+import {
+  isValidShopifySignature,
+  isWellFormedShopifySignature,
+} from './webhook-signature'
 
 const collectionWebhooks = new Set([
   'collections/create',
@@ -31,11 +34,12 @@ export async function revalidate(req: NextRequest): Promise<NextResponse> {
     )
   }
 
-  const rawBody = new Uint8Array(await req.arrayBuffer())
+  const signature = req.headers.get('x-shopify-hmac-sha256')
   if (
+    !isWellFormedShopifySignature(signature) ||
     !isValidShopifySignature(
-      rawBody,
-      req.headers.get('x-shopify-hmac-sha256'),
+      new Uint8Array(await req.arrayBuffer()),
+      signature,
       secret
     )
   ) {

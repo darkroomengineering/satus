@@ -1,7 +1,10 @@
 import { describe, expect, test } from 'bun:test'
 import { createHmac } from 'node:crypto'
 
-import { isValidShopifySignature } from './webhook-signature'
+import {
+  isValidShopifySignature,
+  isWellFormedShopifySignature,
+} from './webhook-signature'
 
 const secret = 'webhook-signing-secret'
 const body = new TextEncoder().encode(
@@ -39,5 +42,18 @@ describe('isValidShopifySignature', () => {
     expect(isValidShopifySignature(body, sign(body).slice(0, 20), secret)).toBe(
       false
     )
+  })
+})
+
+describe('isWellFormedShopifySignature', () => {
+  test('accepts a base64 SHA-256 digest', () => {
+    const digest = createHmac('sha256', 'k').update('b').digest('base64')
+    expect(isWellFormedShopifySignature(digest)).toBe(true)
+  })
+
+  test('rejects a missing, empty, truncated or junk header', () => {
+    for (const value of [null, '', 'abc', 'not base64 at all!']) {
+      expect(isWellFormedShopifySignature(value)).toBe(false)
+    }
   })
 })

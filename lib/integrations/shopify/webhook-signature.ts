@@ -1,6 +1,17 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
 
 /**
+ * Whether `signature` could be an HMAC-SHA256 digest at all: present and 32
+ * bytes once base64-decoded. Checked before reading the body, so a request
+ * with no or junk signature costs no body read or HMAC.
+ */
+export function isWellFormedShopifySignature(
+  signature: string | null
+): signature is string {
+  return !!signature && Buffer.from(signature, 'base64').length === 32
+}
+
+/**
  * Whether `signature` (the `X-Shopify-Hmac-Sha256` header) is Shopify's
  * base64 HMAC-SHA256 of `rawBody` under the webhook signing secret. The body
  * must be the exact bytes received: re-serialized JSON hashes differently.

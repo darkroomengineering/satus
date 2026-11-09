@@ -1,6 +1,5 @@
-import type { Metadata } from 'next'
-
 import { Wrapper } from '@/components/layout/wrapper'
+import { generatePageMetadata } from '@/utils/metadata'
 
 import { Cube } from './_components/cube'
 import { DevControls } from './_components/dev-controls'
@@ -10,10 +9,13 @@ import { TestPattern } from './_components/test-pattern'
 // Not site content: noindex here, and `/webgl` sits in `RESERVED_PATHS`
 // (lib/seo/routes.ts) so it never reaches the sitemap or `/ai`. Same contract
 // as `/sanity`.
-export const metadata: Metadata = {
+export const metadata = generatePageMetadata({
   title: 'WebGL follows CSS',
-  robots: { index: false, follow: false },
-}
+  description:
+    'A worked example of WebGL cubes that take their size and position from CSS-laid-out boxes.',
+  url: '/webgl',
+  noIndex: true,
+})
 
 /**
  * A worked example of WebGL following the DOM: each cube takes its size and

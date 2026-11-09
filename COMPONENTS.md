@@ -109,7 +109,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 |--------|-----------|
 | truncateDescription | `(text: string | null | undefined, maxLength: number = DESCRIPTION_MAX_LENGTH) => string` |
 | generatePageMetadata | `(options: GenerateMetadataOptions) => Metadata` |
-| generateSanityMetadata | `(options: { // Nullable to accept TypeGen query-result types directly. document: { title?: string | null metadata?: { title?: string | null description?: string | null keywords?: string[] | null noIndex?: boolean | null } | null _updatedAt?: string | null publishedAt?: string | null /** Body prose used to derive a description when the editor left one blank. */ excerpt?: string | null } url?: string type?: 'website' | 'article' /** Noindex whatever the document says, for routes that are never indexed. */ noIndex?: boolean }) => Metadata` |
+| generateSanityMetadata | `(options: { // Nullable to accept TypeGen query-result types directly. document: { title?: string | null metadata?: { title?: string | null description?: string | null keywords?: string[] | null /** The Studio's Social Media Image, with its asset dereferenced. */ image?: { alt?: string | null asset?: { url?: string | null } | null hotspot?: { x?: number | null; y?: number | null } | null } | null noIndex?: boolean | null } | null _updatedAt?: string | null publishedAt?: string | null /** Body prose used to derive a description when the editor left one blank. */ excerpt?: string | null } url?: string type?: 'website' | 'article' /** Noindex whatever the document says, for routes that are never indexed. */ noIndex?: boolean }) => Metadata` |
 
 ### Raf (`@/utils/raf`)
 

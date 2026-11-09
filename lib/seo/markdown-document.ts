@@ -79,7 +79,7 @@ function buildMarkdownDegraded(path: string): MarkdownDocument {
     status: 503,
     contentType: 'text/plain; charset=utf-8',
     retryAfterSeconds: 60,
-    body: `Markdown catalog temporarily unavailable while checking \`${path}\`. This is a transient content-source outage, not a confirmation the page doesn't exist — retry shortly, or request text/html for the live page.\n`,
+    body: `Markdown catalog temporarily unavailable while checking \`${path}\`. This is a transient content-source outage, not a confirmation the page doesn't exist. Retry shortly, or request text/html for the live page.\n`,
   }
 }
 

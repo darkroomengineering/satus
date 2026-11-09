@@ -245,6 +245,7 @@ describe('issue #382: selfPrune is gated on collected transform failures', () =>
           console.error(proc.stderr.toString())
         }
         expect(proc.exitCode).toBe(3)
+        expect(proc.stdout.toString()).not.toContain('Setup complete!')
 
         // The script and its package.json entry survive, so it can be re-run.
         expect(

@@ -1,8 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
-import { unlink } from 'node:fs/promises'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
 import { cleanupEnvVars } from './prepare-handoff'
-import { projectRoot, resolvePath } from './utils'
+import { projectRoot } from './utils'
 
 // Cancel/EOF guard: stdin closing before the top-level prompt resolves must
 // exit 1 with a readable message, never a silent exit 0 (mirrors the
@@ -29,19 +31,16 @@ describe('P-D2: stdin EOF guard (handoff)', () => {
 // key, so `bun run handoff` deleted the site key line. Turnstile has no
 // bundle, so both vars must always survive cleanup.
 //
-// `cleanupEnvVars` resolves `.env.example` off `resolvePath`, keyed to the
-// `process.cwd()` captured at module load (same constraint as
-// setup-project's tests), so there is no fixture tree to redirect it. This
-// test backs up the real `.env.example`, writes a scratch fixture, runs the
-// real function, and restores the original regardless of outcome.
+// `cleanupEnvVars` takes the file path, so the test runs on a temp copy and
+// never writes the tracked `.env.example`.
 
 describe('cleanupEnvVars — Turnstile survives (#387)', () => {
-  const envExamplePath = resolvePath('.env.example')
-  let originalContent: string | undefined
+  let tmpDir: string
+  let envExamplePath: string
 
   beforeEach(async () => {
-    const file = Bun.file(envExamplePath)
-    originalContent = (await file.exists()) ? await file.text() : undefined
+    tmpDir = await mkdtemp(join(tmpdir(), 'handoff-env-'))
+    envExamplePath = join(tmpDir, '.env.example')
     await Bun.write(
       envExamplePath,
       [
@@ -53,21 +52,11 @@ describe('cleanupEnvVars — Turnstile survives (#387)', () => {
   })
 
   afterEach(async () => {
-    // Always restore, even when .env.example did not exist: a leftover
-    // fixture would become the committed .env.example.
-    if (originalContent === undefined) {
-      try {
-        await unlink(envExamplePath)
-      } catch {
-        // Already gone — nothing to restore.
-      }
-      return
-    }
-    await Bun.write(envExamplePath, originalContent)
+    await rm(tmpDir, { recursive: true, force: true })
   })
 
   it('keeps both the Turnstile site key and secret key', async () => {
-    await cleanupEnvVars(false)
+    await cleanupEnvVars(false, envExamplePath)
 
     const content = await Bun.file(envExamplePath).text()
     expect(content).toContain('NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY')

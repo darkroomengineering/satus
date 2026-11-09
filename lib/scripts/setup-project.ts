@@ -15,7 +15,7 @@
  * at an interactive terminal.
  */
 
-import { rmSync } from 'node:fs'
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { cp, mkdir, mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -633,12 +633,13 @@ const setupLean = async (
  * `file`, flowing through `setup()`'s step 10 gate and `main()`'s exit 3.
  *
  * KNOWN LIMITATION: the failing bundle's own files are best-effort (whatever
- * `installBundle` wrote before throwing stays), and a re-run does NOT reliably
- * recover: its preflight (`findMissingPaths`) checks the on-disk tree this run
- * already stripped, so if the bundle never wrote its probe path back, the next
- * run refuses before any mutation. Reliable retry needs a snapshot/restore or
- * resumable-apply mechanism, which would restructure `setup()`'s
- * strip-then-readd shape.
+ * `installBundle` wrote before throwing stays), and a re-run on that tree does
+ * NOT reliably recover: its preflight (`findMissingPaths`) checks the on-disk
+ * tree this run already stripped, so if the bundle never wrote its probe path
+ * back, the next run refuses before any mutation. The user restores the tree
+ * from git first (`PARTIAL_RUN_RECOVERY`). Retry without that step needs a
+ * snapshot/restore or resumable-apply mechanism, which would restructure
+ * `setup()`'s strip-then-readd shape.
  *
  * Exported for unit testing.
  */
@@ -856,6 +857,21 @@ const selfPrune = async (
 }
 
 /**
+ * Shown when a real run stops after it changed files. setup:project can't
+ * require a clean git tree up front: create-darkroom edits package.json and
+ * deletes starter-only files before it runs setup:project.
+ */
+const PARTIAL_RUN_RECOVERY =
+  'setup:project changed files before it stopped, and running it again on a partly set-up tree is not reliable. ' +
+  'Restore those files first: if you had no uncommitted changes before this run, `git checkout -- . && git clean -fd` undoes it; ' +
+  'otherwise restore the paths `git status` lists, or start again from a fresh clone. ' +
+  'Then fix the cause and run `bun run setup:project` again.'
+
+// Set once a real run passes preflight, so the top-level catch adds
+// PARTIAL_RUN_RECOVERY only to errors thrown after files changed.
+let treeMutated = false
+
+/**
  * Main setup orchestration (additive model):
  *
  *   1. PREFLIGHT — every file/folder the kept bundles declare, plus every
@@ -873,7 +889,8 @@ const selfPrune = async (
  *  10. selfPrune, gated on zero collected failures from steps 6 and 8. Those
  *      steps never throw on a single file's failure; they collect so the batch
  *      can finish. An ungated selfPrune would delete this script before the
- *      caller reports the failures, breaking the "just re-run it" recovery.
+ *      caller reports the failures, so a tree without git history to restore
+ *      it from would lose the script needed to retry.
  *      With failures, nothing is deleted or touched and main() reports them
  *      and exits non-zero. When it runs, it re-reads package.json from disk:
  *      step 8's `addDependencies` writes pins straight to disk, which the
@@ -882,7 +899,7 @@ const selfPrune = async (
  *      pkg.scripts, and writes package.json a second time. It is deliberately
  *      the LAST mutating step: any failure in steps 3-9, thrown or collected,
  *      leaves this script and its package.json entry intact so the run can be
- *      repeated.
+ *      repeated once the tree is restored (`PARTIAL_RUN_RECOVERY`).
  *  11. bun install (unless --skip-install). Non-fatal: a registry/offline
  *      error is surfaced via `installFailed` but doesn't undo the setup.
  *  12. formatChangedFiles over exactly the files steps 6/8 modified.
@@ -914,9 +931,11 @@ const setup = async (
         .map((rel) => `  - ${rel}`)
         .join(
           '\n'
-        )}\n\nRestore the missing path(s), or edit the bundle manifest in lib/scripts/integration-bundles.ts, then re-run. No files were changed.`
+        )}\n\nIf an earlier setup:project run stopped partway, it removed these: restore what it changed from git (\`git status\` lists it), then re-run. Otherwise restore the missing path(s), or edit the bundle manifest in lib/scripts/integration-bundles.ts, then re-run. No files were changed.`
     )
   }
+
+  if (!dryRun) treeMutated = true
 
   await ensureNextTypeStub(dryRun)
 
@@ -980,7 +999,7 @@ const setup = async (
   } else {
     p.log.warn(
       `Skipping self-prune — ${collectedFailureCount} code-transform failure(s) above. ` +
-        'lib/scripts/setup-project.ts was kept so the run can be repeated after fixing the cause.'
+        'lib/scripts/setup-project.ts was kept so it can run again once the tree is restored (steps below).'
     )
   }
 
@@ -1215,8 +1234,16 @@ const isProcessAlive = (pid: number): boolean => {
   }
 }
 
+// acquireLock installs the release handlers before the lock dir exists and
+// creates the dir in the same synchronous block that sets this flag: a signal
+// handler only runs on an event-loop turn, so none can see the dir without the
+// flag. The flag keeps a run that lost the race from deleting the winner's lock.
+let lockOwned = false
+
 /** Synchronous because `process.on('exit')` and the signal handlers can't await. */
 const releaseLockSync = (): void => {
+  if (!lockOwned) return
+  lockOwned = false
   try {
     rmSync(LOCK_PATH, { recursive: true, force: true })
   } catch {
@@ -1241,8 +1268,17 @@ const releaseLockSync = (): void => {
  * SIGKILL is the case only stale-PID detection can catch.
  */
 const acquireLock = async (): Promise<void> => {
+  process.on('exit', releaseLockSync)
+  for (const signal of ['SIGINT', 'SIGTERM'] as const) {
+    process.on(signal, () => {
+      releaseLockSync()
+      process.exit(1)
+    })
+  }
+
   try {
-    await mkdir(LOCK_PATH)
+    mkdirSync(LOCK_PATH)
+    lockOwned = true
   } catch (error) {
     // SAFETY: mkdir throws Node's own errno-carrying Error subclass on
     // failure (EEXIST/EACCES/...); `catch` only types it `unknown`.
@@ -1271,20 +1307,12 @@ const acquireLock = async (): Promise<void> => {
     p.log.warn(
       `Removing a stale setup:project lock left behind by pid ${stalePid} (no longer running): ${LOCK_PATH}`
     )
-    await rm(LOCK_PATH, { recursive: true, force: true })
-    await mkdir(LOCK_PATH)
+    rmSync(LOCK_PATH, { recursive: true, force: true })
+    mkdirSync(LOCK_PATH)
+    lockOwned = true
   }
 
-  await Bun.write(LOCK_PID_FILE, `${process.pid}\n`)
-
-  process.on('exit', releaseLockSync)
-
-  for (const signal of ['SIGINT', 'SIGTERM'] as const) {
-    process.on(signal, () => {
-      releaseLockSync()
-      process.exit(1)
-    })
-  }
+  writeFileSync(LOCK_PID_FILE, `${process.pid}\n`)
 }
 
 /**
@@ -1540,6 +1568,7 @@ const main = async (): Promise<void> => {
   )
 
   if (transformFailures.length > 0) {
+    p.log.warn(PARTIAL_RUN_RECOVERY)
     p.outro('Setup finished with code-transform errors — review above.')
     // Exit codes: 3 = code transforms failed, 2 = only bun install failed
     // (files are ready), 1 = hard argument/setup error (top-level catch).
@@ -1559,6 +1588,7 @@ const main = async (): Promise<void> => {
 if (import.meta.main) {
   main().catch((err) => {
     p.log.error(`Setup failed: ${err.message}`)
+    if (treeMutated) p.log.warn(PARTIAL_RUN_RECOVERY)
     process.exit(1)
   })
 }

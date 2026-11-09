@@ -14,18 +14,38 @@ type EmbedHubspotFormProps = {
   onSubmit?: () => void
 }
 
-type ScriptStatus = 'loading' | 'ready' | 'failed'
+const SCRIPT_SRC = 'https://js.hsforms.net/forms/v2.js'
 
-// Every embed shares one `<Script id="hubspotScript">`, and next/script only
-// gives the first instance a real onLoad/onError, so the outcome lives here
-// where every mounted embed can read it.
-let scriptStatus: ScriptStatus = 'loading'
+interface ScriptState {
+  status: 'loading' | 'ready' | 'failed'
+  attempt: number
+}
+
+// Every embed shares one `<Script>`, and next/script only gives the first
+// instance a real onLoad/onError, so the outcome lives here where every
+// mounted embed can read it.
+const initialScriptState: ScriptState = { status: 'loading', attempt: 0 }
+let scriptState = initialScriptState
 const scriptListeners = new Set<() => void>()
 
-function setScriptStatus(next: ScriptStatus) {
-  if (scriptStatus === next) return
-  scriptStatus = next
+function setScriptState(next: ScriptState) {
+  scriptState = next
   for (const listener of scriptListeners) listener()
+}
+
+// Callbacks from an earlier attempt's `<Script>` still fire after a retry
+// starts; only the current attempt may settle the status.
+function settleScript(attempt: number, status: 'ready' | 'failed') {
+  if (attempt !== scriptState.attempt || scriptState.status === status) return
+  setScriptState({ status, attempt })
+}
+
+// A mount after a failure retries once. next/script keeps a failed load in
+// its id and src caches for the page session, so a retry needs a new id and
+// src or it would never inject the script again.
+function retryScriptAfterFailure() {
+  if (scriptState.status !== 'failed') return
+  setScriptState({ status: 'loading', attempt: scriptState.attempt + 1 })
 }
 
 function subscribeScriptStatus(listener: () => void) {
@@ -49,18 +69,25 @@ export function EmbedHubspotForm({
   const target = targetProp ?? `hubspot-form-wrapper-${generatedId}`
   const formCreatedRef = useRef(false)
   const targetRef = useRef<HTMLDivElement>(null)
-  const status = useSyncExternalStore(
+  // Read NEXT_PUBLIC_* directly so Next inlines it; the `env` object's
+  // parse(process.env) is not reliably inlined client-side.
+  const portalId = process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID
+  const script = useSyncExternalStore(
     subscribeScriptStatus,
-    () => scriptStatus,
-    () => 'loading'
+    () => scriptState,
+    () => initialScriptState
   )
+  // Without a portal id HubSpot has nothing to render, so the script is not
+  // loaded and the embed shows the fallback.
+  const status = portalId ? script.status : 'unconfigured'
+
+  useEffect(() => {
+    if (portalId) retryScriptAfterFailure()
+  }, [portalId])
 
   function createForm() {
     if (formCreatedRef.current) return
 
-    // Read NEXT_PUBLIC_* directly so Next inlines it; the `env` object's
-    // parse(process.env) is not reliably inlined client-side.
-    const portalId = process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID
     if (window.hbspt && portalId) {
       formCreatedRef.current = true
       window.hbspt.forms.create({
@@ -108,23 +135,39 @@ export function EmbedHubspotForm({
           js.hsforms.net and reload.
         </p>
       )}
-      <Script
-        src="https://js.hsforms.net/forms/v2.js"
-        id="hubspotScript"
-        strategy={strategy}
-        onLoad={() => {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('Form script loaded')
+      {status === 'unconfigured' && (
+        <p role="status" className="dr-py-16 text-center text-pretty">
+          This form could not load.
+        </p>
+      )}
+      {status !== 'unconfigured' && (
+        <Script
+          key={script.attempt}
+          src={
+            script.attempt === 0
+              ? SCRIPT_SRC
+              : `${SCRIPT_SRC}?retry=${script.attempt}`
           }
-          // next/script hands later instances a promise that resolves even
-          // when the script failed, so onLoad alone does not prove a load.
-          setScriptStatus(window.hbspt ? 'ready' : 'failed')
-        }}
-        onError={(e) => {
-          console.error('Form script error:', e)
-          setScriptStatus('failed')
-        }}
-      />
+          id={
+            script.attempt === 0
+              ? 'hubspotScript'
+              : `hubspotScript-retry-${script.attempt}`
+          }
+          strategy={strategy}
+          onLoad={() => {
+            if (process.env.NODE_ENV === 'development') {
+              console.log('Form script loaded')
+            }
+            // next/script hands later instances a promise that resolves even
+            // when the script failed, so onLoad alone does not prove a load.
+            settleScript(script.attempt, window.hbspt ? 'ready' : 'failed')
+          }}
+          onError={(e) => {
+            console.error('Form script error:', e)
+            settleScript(script.attempt, 'failed')
+          }}
+        />
+      )}
     </div>
   )
 }

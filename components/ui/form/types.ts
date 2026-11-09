@@ -17,6 +17,12 @@ export interface UseFormOptions<T = unknown> {
   initialState?: FormState<T> | null
   onBlur?: boolean
   formId?: string
+  /**
+   * Called when a submission passes the gate, outside the action's
+   * transition: an update made here commits with `isPending`, while one made
+   * inside the action waits for the action to finish.
+   */
+  onSubmitStart?: () => void
 }
 
 export interface UseFormReturn<T = unknown> {

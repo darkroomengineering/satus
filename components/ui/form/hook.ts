@@ -141,6 +141,7 @@ export function useForm<T = unknown>({
   initialState = null,
   onBlur = false,
   formId = '',
+  onSubmitStart,
 }: UseFormOptions<T>): UseFormReturn<T> {
   const [formState, formAction] = useActionState(action, initialState)
   const [isPending, startTransition] = useTransition()
@@ -218,6 +219,7 @@ export function useForm<T = unknown>({
     }
 
     submitLockRef.current = true
+    onSubmitStart?.()
     startTransition(async () => {
       // No try/finally: React Compiler can't lower it. Safe here, as
       // `formAction` is `useActionState`'s dispatch (`() => void`) and never

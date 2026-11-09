@@ -15,7 +15,7 @@ Env vars live in the repo as one encrypted `.env` file. The private key above de
 
 - Change or add a value: `bun dotenvx set KEY "value"`, then commit `.env`.
 - Read a value: `bun dotenvx get KEY`.
-- Vercel needs only `DOTENV_PRIVATE_KEY`, set as a Secret for Production and Preview. Don't add other variables in the Vercel dashboard: they override the file.
+- Vercel needs only the private keys: `DOTENV_PRIVATE_KEY`, plus `DOTENV_PRIVATE_KEY_PRODUCTION` once there's a `.env.production`. Set them as Secrets for Production and Preview. Don't add other variables in the Vercel dashboard: they override the file.
 
 ## Scripts
 
@@ -38,7 +38,7 @@ app/                    # Next.js routes; llms.txt/, agent-content/, sitemap.ts,
 components/             # UI components
 lib/                    # Everything non-UI
   ├── hooks/           # Custom React hooks
-  ├── integrations/    # Third-party services (Sanity, Shopify, HubSpot)
+  ├── integrations/    # Third-party services (Sanity, Shopify, HubSpot, Mailchimp, Turnstile)
   ├── features/        # Feature flags gating opt-in surfaces (e.g. WebGL)
   ├── webgl/           # 3D graphics (optional, behind lib/features)
   ├── seo/             # Sitemap, robots, and metadata helpers

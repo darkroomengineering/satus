@@ -109,19 +109,25 @@ html.screenshot {
  *   --reveal-transform : hidden-state offset (default translateY(16px))
  *   --reveal-stagger   : delay step between items (default 60ms)
  *   --reveal-duration  : per-item duration (default 700ms)
+ * The stagger delay caps at 600ms so items deep in a long list do not wait
+ * seconds to appear.
  */
 [data-reveal] [data-reveal-item] {
   opacity: 0;
   transform: var(--reveal-transform, translateY(16px));
   transition: opacity var(--reveal-duration, 700ms) var(--ease-out-expo);
-  transition-delay: calc(var(--reveal-index, 0) * var(--reveal-stagger, 60ms));
+  transition-delay: min(
+    calc(var(--reveal-index, 0) * var(--reveal-stagger, 60ms)),
+    600ms
+  );
 
   @media (--motion-ok) {
     transition:
       opacity var(--reveal-duration, 700ms) var(--ease-out-expo),
       transform var(--reveal-duration, 700ms) var(--ease-out-expo);
-    transition-delay: calc(
-      var(--reveal-index, 0) * var(--reveal-stagger, 60ms)
+    transition-delay: min(
+      calc(var(--reveal-index, 0) * var(--reveal-stagger, 60ms)),
+      600ms
     );
   }
 }
@@ -177,7 +183,7 @@ html.screenshot {
 
 /*
  * Reduced motion: movement off, fades stay. Components declare transform,
- * height and clip-path transitions inside `@media (--motion-ok)`; the view
+ * height, width and clip-path transitions inside `@media (--motion-ok)`; the view
  * transition crossfade and reveal fade are opacity-only and keep running.
  * anime.js and WebGL gate themselves via usePreferredReducedMotion().
  */

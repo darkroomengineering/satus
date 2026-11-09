@@ -26,7 +26,7 @@
     font-size: 0.875rem;
     font-weight: 500;
     color: var(--color-secondary);
-    transition: color 150ms ease;
+    transition: color var(--duration-fast) ease;
   }
 
   .input,
@@ -38,7 +38,7 @@
     color: var(--color-secondary);
     font-size: inherit;
     font-family: inherit;
-    transition: border-color 150ms ease;
+    transition: border-color var(--duration-fast) ease;
     width: 100%;
 
     @media (--desktop) {
@@ -113,9 +113,9 @@
     font-size: 0.875rem;
     cursor: pointer;
     transition:
-      background-color 150ms ease,
-      color 150ms ease,
-      border-color 150ms ease;
+      background-color var(--duration-fast) ease,
+      color var(--duration-fast) ease,
+      border-color var(--duration-fast) ease;
 
     @media (--desktop) {
       gap: desktop-vw(8px);

@@ -6,6 +6,22 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    transition:
+      background-color var(--duration-fast) ease,
+      color var(--duration-fast) ease,
+      opacity var(--duration-fast) ease;
+
+    @media (--motion-ok) {
+      transition:
+        background-color var(--duration-fast) ease,
+        color var(--duration-fast) ease,
+        opacity var(--duration-fast) ease,
+        transform 160ms var(--ease-out-quart);
+
+      &:active {
+        transform: scale(0.97);
+      }
+    }
 
     &.disabled {
       pointer-events: none;
@@ -43,6 +59,10 @@
       height: 100%;
       background-color: var(--color-black);
       clip-path: circle(0%);
+
+      @media (--motion-ok) {
+        transition: clip-path var(--duration-fast) var(--ease-gleasing);
+      }
     }
 
     @media (--hover) {
@@ -50,9 +70,6 @@
         color: var(--color-white);
 
         &::before {
-          @media (--motion-ok) {
-            transition: 1000ms clip-path var(--ease-gleasing);
-          }
           clip-path: circle(100%);
         }
       }

@@ -27,8 +27,8 @@
     background-color: transparent;
     cursor: pointer;
     transition:
-      background-color 150ms ease,
-      border-color 150ms ease;
+      background-color var(--duration-fast) ease,
+      border-color var(--duration-fast) ease;
     flex-shrink: 0;
 
     @media (--desktop) {

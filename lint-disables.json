@@ -5,7 +5,6 @@
   "eslint/no-restricted-imports": 2,
   "hamo/no-raw-layout-read": 3,
   "hamo/no-raw-observer": 4,
-  "jsx-a11y/no-noninteractive-element-interactions": 1,
   "nextjs/no-html-link-for-pages": 9,
   "react/exhaustive-deps": 5,
   "react/forbid-elements": 13,

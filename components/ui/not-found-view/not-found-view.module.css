@@ -107,9 +107,11 @@
     background var(--duration-fast) ease,
     color var(--duration-fast) ease;
 
-  &:hover {
-    background: transparent;
-    color: var(--color-contrast);
+  @media (--hover) {
+    &:hover {
+      background: transparent;
+      color: var(--color-contrast);
+    }
   }
 
   @media (--motion-ok) {

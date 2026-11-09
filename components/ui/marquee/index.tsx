@@ -6,6 +6,7 @@ import { useLenis } from 'lenis/react'
 import { type HTMLAttributes, useId, useRef } from 'react'
 import { useTempus } from 'tempus/react'
 
+import { usePreferredReducedMotion } from '@/hooks/use-sync-external'
 import { modulo } from '@/utils/math'
 
 import s from './marquee.module.css'
@@ -36,8 +37,8 @@ export function Marquee({
   scrollVelocity = true,
   reversed = false,
   pauseOnHover = false,
-  onMouseEnter,
-  onMouseLeave,
+  onPointerEnter,
+  onPointerLeave,
   ...props
 }: MarqueeProps) {
   const [setRectRef, getEntry] = useResizeObserver({
@@ -53,6 +54,7 @@ export function Marquee({
   const [setIntersectionRef, intersection] = useIntersectionObserver()
 
   const lenis = useLenis()
+  const prefersReducedMotion = usePreferredReducedMotion()
 
   // order: 6, after Lenis (order -1; table in components/layout/lenis/index.tsx).
   // Tempus defaults to order 0, which makes sequencing mount-order luck and
@@ -61,6 +63,7 @@ export function Marquee({
     ({ deltaTime }) => {
       const entry = getEntry()
 
+      if (prefersReducedMotion) return
       if (!intersection?.isIntersecting) return
       if (pauseOnHover && isHovered.current) return
 
@@ -94,19 +97,18 @@ export function Marquee({
   )
 
   return (
-    // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- hover-to-pause is a progressive enhancement; marquee content stays readable without it
     <section
       ref={setIntersectionRef}
       className={cn(className, s.marquee)}
       aria-live="off"
       aria-label="Scrolling content"
-      onMouseEnter={(e) => {
+      onPointerEnter={(e) => {
         isHovered.current = true
-        onMouseEnter?.(e)
+        onPointerEnter?.(e)
       }}
-      onMouseLeave={(e) => {
+      onPointerLeave={(e) => {
         isHovered.current = false
-        onMouseLeave?.(e)
+        onPointerLeave?.(e)
       }}
       {...props}
     >

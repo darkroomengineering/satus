@@ -18,10 +18,12 @@
     background-color: var(--color-primary);
     color: var(--color-secondary);
     cursor: pointer;
-    transition: border-color 150ms ease;
+    transition: border-color var(--duration-fast) ease;
 
-    &:hover {
-      border-color: var(--color-contrast);
+    @media (--hover) {
+      &:hover {
+        border-color: var(--color-contrast);
+      }
     }
 
     &:focus-visible {
@@ -47,12 +49,12 @@
     overflow-y: auto;
 
     transform-origin: var(--transform-origin);
-    transition: opacity 150ms ease-out;
+    transition: opacity var(--duration-fast) var(--ease-out-quint);
 
     @media (--motion-ok) {
       transition:
-        transform 150ms ease-out,
-        opacity 150ms ease-out;
+        transform var(--duration-fast) var(--ease-out-quint),
+        opacity var(--duration-fast) var(--ease-out-quint);
     }
     opacity: 1;
     transform: scale(1);

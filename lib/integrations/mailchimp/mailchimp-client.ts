@@ -137,13 +137,14 @@ interface AddMemberOptions {
 }
 
 /**
- * Creates the member, or leaves an existing one exactly as it is. The forms
- * calling this are anonymous, so anyone can type anyone's address: an upsert
- * would let them rename a subscriber or change their status. Mailchimp refuses
- * to create an address already in the audience (400 "Member Exists"); that
- * counts as success with the existing member's id, so the form answers the
- * same either way and never reveals who is on the list. The cost: an existing
- * member cannot correct their name through these forms.
+ * Creates the member, or leaves an existing one's name and status as they are.
+ * The forms calling this are anonymous, so anyone can type anyone's address:
+ * an upsert would let them rename a subscriber or change their status. Any
+ * record for the address, archived included, counts as existing; a POST alone
+ * could re-add an archived contact with the submitted fields. Existing and new
+ * addresses get the same success, so the form does not reveal whether an
+ * address is currently on the list. The cost: an existing member cannot
+ * correct their name through these forms.
  */
 async function addMember(
   opts: AddMemberOptions
@@ -151,6 +152,16 @@ async function addMember(
   { ok: true; memberId: string } | { ok: false; result: MailchimpResult }
 > {
   const { audienceId, email, firstName, lastName, status, config } = opts
+
+  const memberId = subscriberHash(email)
+  const existing = await makeMailchimpRequest(
+    `/lists/${audienceId}/members/${memberId}?fields=id`,
+    { method: 'GET' },
+    config
+  )
+  if (existing.ok) {
+    return { ok: true, memberId }
+  }
 
   const memberData: NewMemberPayload = {
     email_address: email,
@@ -183,7 +194,7 @@ async function addMember(
   const errorData = mailchimpErrorResponseSchema.safeParse(errorJson).data ?? {}
 
   if (response.status === 400 && errorData.title === 'Member Exists') {
-    return { ok: true, memberId: subscriberHash(email) }
+    return { ok: true, memberId }
   }
 
   const detail = errorData.detail || 'Failed to add member'

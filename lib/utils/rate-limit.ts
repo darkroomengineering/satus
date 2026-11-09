@@ -10,11 +10,12 @@
  * `x-forwarded-for` entry. Vercel overwrites that header at the edge, so there
  * the key is the real client. Next only fills it in when it is absent, so a
  * self-hosted `next start` reached directly lets every client choose its own
- * key, and rotating the header resets every per-IP limit here, the password
- * gate's included. Self-hosting needs a reverse proxy in front that overwrites
- * `x-forwarded-for` with the connecting address. For anything
- * security-critical, also swap `store` for a durable backend
- * (`@upstash/ratelimit` with Upstash Redis, any Redis / KV); `store` is the
+ * key, or send an empty header and get none; either way every per-IP limit
+ * here, the password gate's included, stops holding. Self-hosting needs a
+ * reverse proxy in front that overwrites (not appends to) `x-forwarded-for`
+ * with the connecting address. For anything security-critical, also swap
+ * `store` for a durable backend (`@upstash/ratelimit` with Upstash Redis, any
+ * Redis / KV); `store` is the
  * single seam to swap.
  */
 

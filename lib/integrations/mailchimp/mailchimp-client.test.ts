@@ -47,6 +47,7 @@ afterEach(() => {
 interface StubOptions {
   noteResult?: number | Error
   tagStatus?: number
+  existing?: () => Response
   member?: () => Response
 }
 
@@ -69,12 +70,18 @@ const memberExists = () =>
 function stubRequests({
   noteResult = 200,
   tagStatus = 204,
+  existing = () =>
+    Response.json({ title: 'Resource Not Found' }, { status: 404 }),
   member = () => Response.json({ id: 'member-id' }),
 }: StubOptions = {}) {
   const requests: RecordedRequest[] = []
   globalThis.fetch = Object.assign(
     async (input: Parameters<typeof fetch>[0], options?: RequestInit) => {
       const url = String(input)
+      if (options?.method === 'GET') {
+        requests.push({ url, method: 'GET', body: undefined })
+        return existing()
+      }
       if (typeof options?.body !== 'string') throw new Error('Missing body')
       requests.push({
         url,
@@ -93,6 +100,10 @@ function stubRequests({
     { preconnect: originalFetch.preconnect }
   )
   return requests
+}
+
+function writeRequests(requests: RecordedRequest[]) {
+  return requests.filter((request) => request.method !== 'GET')
 }
 
 function createRequests(requests: RecordedRequest[]) {
@@ -147,7 +158,7 @@ test('contacts for an existing member succeed, keep its name, and still store th
 
   const hash = createHash('md5').update(contact.email).digest('hex')
   const memberUrl = `https://us1.api.mailchimp.com/3.0/lists/test-value/members/${hash}`
-  expect(requests).toEqual([
+  expect(writeRequests(requests)).toEqual([
     {
       url: 'https://us1.api.mailchimp.com/3.0/lists/test-value/members',
       method: 'POST',
@@ -175,8 +186,31 @@ test('subscriptions for an existing member answer the same as for a new one', as
   expect(
     await addSubscriberToMailchimp({ email: contact.email, firstName: 'Eve' })
   ).toEqual({ success: true })
-  expect(requests.map((request) => request.method)).toEqual(['POST', 'POST'])
+  expect(requests.map((request) => request.method)).toEqual([
+    'GET',
+    'POST',
+    'POST',
+  ])
   expect(createRequests(requests)).toHaveLength(1)
+})
+
+test('any existing record, archived included, is left alone and never re-created', async () => {
+  const requests = stubRequests({
+    existing: () => Response.json({ id: 'x', status: 'archived' }),
+  })
+  const email = '  Ada@Example.com '
+  expect(
+    await addContactToMailchimp({ ...contact, email, name: 'Eve Mallory' })
+  ).toEqual({ success: true })
+
+  const hash = createHash('md5').update('ada@example.com').digest('hex')
+  const memberUrl = `https://us1.api.mailchimp.com/3.0/lists/test-value/members/${hash}`
+  expect(createRequests(requests)).toHaveLength(0)
+  expect(requests.map((request) => request.url)).toEqual([
+    `${memberUrl}?fields=id`,
+    `${memberUrl}/tags`,
+    `${memberUrl}/notes`,
+  ])
 })
 
 test('other member errors still fail', async () => {

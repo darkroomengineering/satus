@@ -56,7 +56,7 @@ flowchart LR
 
 ## WebGL Architecture
 
-A single root canvas (`<Canvas root>`) hosts the scene; pages portal content in with `<WebGLTunnel>`. Mount it either in the root layout (lazy via `lib/features`, keeps the context alive across navigation) or per page with `<Wrapper webgl>` (remounts per route), never both. It renders only on WebGL-capable devices. See [lib/webgl/README.md](lib/webgl/README.md).
+A single root canvas (`<Canvas root>`) hosts the scene; pages portal content in with `<WebGLTunnel>`. Mount it either in the root layout (lazy via `lib/features`, keeps the context alive across navigation) or per page with `<Wrapper webgl>` (remounts per route), never both. It renders only on WebGL-capable devices, and only once a page portals content into it, so routes without WebGL never download three.js. See [lib/webgl/README.md](lib/webgl/README.md).
 
 ## Animation
 

@@ -24,6 +24,13 @@ wins and the second is a no-op with a dev warning, not a second canvas eating
 GPU. The shared strategy keeps the context and shared assets alive across
 navigation.
 
+Either way, the canvas waits for a consumer: nothing mounts, and the three.js
+chunk is not downloaded, until something portals into `WebGLTunnel` or
+`DOMTunnel` (`hasTunnelConsumer` in `lib/webgl/store.ts`). A route without
+WebGL content, such as `/ai`, never loads three.js. Once anything has
+portaled in, the gate stays open for the rest of the session, so the shared
+canvas and its context survive navigation back to routes without WebGL.
+
 | Component     | Purpose                                                   |
 | ------------- | --------------------------------------------------------- |
 | `Canvas`      | Mounts the canvas via `root` (layout or per-page Wrapper) |
@@ -40,7 +47,9 @@ Pass the sims you use: `<Canvas root simTypes={['flowmap']} />`.
 
 The canvas renders only when `useDeviceDetection().isWebGL` is true (a
 hardware-accelerated WebGL2 context on a desktop viewport that is not
-touch-only) AND the user does not prefer reduced motion. On mobile, phones in
+touch-only) AND the user does not prefer reduced motion AND a page has
+portaled content into a tunnel (see Canvas strategy). `force` skips the
+device, reduced-motion and after-load gates, not the content gate. On mobile, phones in
 landscape, tablets, unsupported devices, or under `prefers-reduced-motion`
 nothing mounts. Rendering is driven by the `RAF` component
 (`frameloop="never"`), not r3f's default render loop.

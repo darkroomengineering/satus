@@ -17,6 +17,35 @@ export function getDOMTunnel(): Tunnel {
   return domTunnelSingleton
 }
 
+/**
+ * Subscribe to content changes in both shared tunnels; pairs with
+ * {@link hasTunnelConsumer} in `useSyncExternalStore`.
+ */
+export function subscribeTunnelContent(listener: () => void): () => void {
+  const unsubscribeWebGL = getWebGLTunnel().subscribe(listener)
+  const unsubscribeDOM = getDOMTunnel().subscribe(listener)
+  return () => {
+    unsubscribeWebGL()
+    unsubscribeDOM()
+  }
+}
+
+/**
+ * Whether anything has portaled into either shared tunnel this session. The
+ * root canvas waits for it, so routes with no WebGL content never download
+ * three.js. `DOMTunnel` counts because its `Out` renders inside the canvas.
+ * It never turns false, so a mounted canvas outlives navigation to a route
+ * with no WebGL content.
+ */
+export function hasTunnelConsumer(): boolean {
+  return getWebGLTunnel().hasHadContent() || getDOMTunnel().hasHadContent()
+}
+
+/** Server snapshot: tunnel content only registers in the browser. */
+export function getServerHasTunnelConsumer(): boolean {
+  return false
+}
+
 // `<Canvas root>` instances currently mounted. A layout canvas plus a per-page
 // `<Wrapper webgl>` would share the singleton tunnels above and silently double
 // GPU cost. Feeds the dev multiple-mount warning and picks the successor when

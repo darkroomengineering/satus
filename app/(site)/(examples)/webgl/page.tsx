@@ -95,8 +95,9 @@ export default function WebGLExamplePage() {
           </li>
           <li>
             Gates: the canvas mounts only on a desktop WebGL2 context, without
-            reduced motion, after window load. Otherwise the boxes stand alone:
-            the layout is the fallback.
+            reduced motion, after window load, once a page portals content into
+            it, as this one does. Routes that never do skip three.js entirely.
+            Otherwise the boxes stand alone: the layout is the fallback.
           </li>
           <li>
             Lazy by default: nothing here runs on a clock. Lenis emits only

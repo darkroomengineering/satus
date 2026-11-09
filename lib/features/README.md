@@ -2,10 +2,10 @@
 
 `OptionalFeatures` is mounted in `app/(site)/layout.tsx` and loads heavy features only when they apply. React `lazy()` keeps code splitting; `use(browser())` keeps their rendering in the browser. It does not by itself reduce bundle size.
 
-| Feature      | Trigger                          | Description                                             |
-| ------------ | -------------------------------- | ------------------------------------------------------- |
-| WebGL Canvas | Always mounted (shared strategy) | Persistent Three.js canvas (no-op on non-WebGL devices) |
-| Dev Tools    | Development mode                 | Orchestra debug panel (`Cmd/Ctrl + O`)                  |
+| Feature      | Trigger                          | Description                                                                                          |
+| ------------ | -------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| WebGL Canvas | Always mounted (shared strategy) | Persistent Three.js canvas, booted by the first page with WebGL content (no-op on non-WebGL devices) |
+| Dev Tools    | Development mode                 | Orchestra debug panel (`Cmd/Ctrl + O`)                                                               |
 
 ## WebGL
 
@@ -15,10 +15,11 @@ WebGL context persists across navigation; pages portal content into it with
 `<Wrapper webgl>`; pick one (see `lib/webgl/README.md`). Either way:
 
 1. The canvas mounts only on WebGL-capable devices; the capability probe and the canvas module still load
-2. GPU capability is detected via a WebGL 2 context probe on a desktop
+2. The canvas, and the three.js chunk behind it, waits for a page to portal content into a tunnel, so routes without WebGL never download three.js. Once mounted it stays mounted
+3. GPU capability is detected via a WebGL 2 context probe on a desktop
    viewport that is not touch-only (`useDeviceDetection().isWebGL`)
-3. With the shared strategy, the context persists across navigation
-4. GPU boot still waits for `window.load` through `useAfterLoad`; `browser()` does not replace that scheduling gate
+4. With the shared strategy, the context persists across navigation
+5. GPU boot still waits for `window.load` through `useAfterLoad`; `browser()` does not replace that scheduling gate
 
 ## How It Works
 

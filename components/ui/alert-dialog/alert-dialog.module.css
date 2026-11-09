@@ -6,7 +6,7 @@
     z-index: 100;
     backdrop-filter: blur(2px);
 
-    transition: opacity 150ms ease-out;
+    transition: opacity var(--duration-fast) var(--ease-out-quint);
     opacity: 1;
 
     &[data-starting-style],
@@ -29,12 +29,12 @@
     width: 100%;
     box-shadow: 0 8px 32px oklch(0 0 0 / 0.2);
 
-    transition: opacity 150ms ease-out;
+    transition: opacity var(--duration-fast) var(--ease-out-quint);
 
     @media (--motion-ok) {
       transition:
-        transform 150ms ease-out,
-        opacity 150ms ease-out;
+        transform var(--duration-fast) var(--ease-out-quint),
+        opacity var(--duration-fast) var(--ease-out-quint);
     }
     opacity: 1;
 
@@ -91,13 +91,13 @@
     cursor: pointer;
     border: none;
     transition:
-      background-color 150ms ease,
-      color 150ms ease;
+      background-color var(--duration-fast) ease,
+      color var(--duration-fast) ease;
 
     @media (--motion-ok) {
       transition:
-        background-color 150ms ease,
-        color 150ms ease,
+        background-color var(--duration-fast) ease,
+        color var(--duration-fast) ease,
         transform 160ms var(--ease-out-quart);
 
       &:active {

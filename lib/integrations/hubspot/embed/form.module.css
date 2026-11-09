@@ -143,8 +143,8 @@
               overflow: hidden;
               flex-shrink: 0;
               transition:
-                500ms background-color var(--ease-gleasing),
-                500ms color var(--ease-gleasing);
+                var(--duration-fast) background-color var(--ease-gleasing),
+                var(--duration-fast) color var(--ease-gleasing);
 
               @media (--desktop) {
                 width: desktop-vw(30px);
@@ -248,7 +248,7 @@
                 background-color: var(--color-green);
                 transform: scale(0.75);
                 opacity: 0;
-                transition: 500ms opacity var(--ease-gleasing);
+                transition: var(--duration-fast) opacity var(--ease-gleasing);
               }
             }
           }
@@ -325,7 +325,8 @@
                 background-color: var(--color-gray);
                 width: mobile-vw(24px);
                 @media (--motion-ok) {
-                  transition: 500ms transform var(--ease-gleasing);
+                  transition: var(--duration-fast) transform
+                    var(--ease-gleasing);
                 }
 
                 @media (--desktop) {

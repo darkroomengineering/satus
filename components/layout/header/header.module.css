@@ -95,6 +95,14 @@
   @media (--mobile) {
     display: flex;
   }
+
+  @media (--motion-ok) {
+    transition: transform 160ms var(--ease-out-quart);
+
+    &:active {
+      transform: scale(0.97);
+    }
+  }
 }
 
 .navList {

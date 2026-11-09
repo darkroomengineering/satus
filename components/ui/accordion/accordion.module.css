@@ -3,7 +3,8 @@
     .body {
       overflow: hidden;
       @media (--motion-ok) {
-        transition: height 600ms var(--ease-out-expo);
+        /* Height, not transform: the panel must push the content below it. */
+        transition: height 300ms var(--ease-out-expo);
       }
     }
   }

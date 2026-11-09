@@ -10,10 +10,15 @@
 
     .catch-click {
       opacity: 0;
+      transition-duration: 300ms;
     }
 
     .inner {
       transform: translateX(100%);
+
+      @media (--motion-ok) {
+        transition-duration: 300ms;
+      }
     }
   }
 }
@@ -24,7 +29,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  transition: 500ms opacity var(--ease-gleasing);
+  transition: 450ms opacity var(--ease-out-quint);
   background: oklch(0 0 0 / 0.7);
 }
 
@@ -40,7 +45,7 @@
   flex-direction: column;
   text-transform: uppercase;
   @media (--motion-ok) {
-    transition: 800ms transform var(--ease-gleasing);
+    transition: 450ms transform var(--ease-out-quint);
   }
 
   @media (--desktop) {
@@ -268,12 +273,24 @@
       position: relative;
     }
 
+    @media (--motion-ok) {
+      transition: transform 160ms var(--ease-out-quart);
+
+      &:active {
+        transform: scale(0.97);
+      }
+    }
+
     &::before {
       content: '';
       position: absolute;
       inset: 0;
       background-color: var(--color-red);
       clip-path: circle(0%);
+
+      @media (--motion-ok) {
+        transition: clip-path var(--duration-fast) var(--ease-gleasing);
+      }
     }
 
     @media (--hover) {
@@ -281,9 +298,6 @@
         color: var(--color-black);
 
         &::before {
-          @media (--motion-ok) {
-            transition: 1000ms clip-path var(--ease-gleasing);
-          }
           clip-path: circle(100%);
         }
       }

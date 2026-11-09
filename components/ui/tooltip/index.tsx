@@ -23,6 +23,15 @@ import s from './tooltip.module.css'
  *   <IconButton icon={<SettingsIcon />} />
  * </Tooltip>
  * ```
+ *
+ * @example
+ * ```tsx
+ * // One shared Provider: once one tooltip is open, the others open without the delay
+ * <Tooltip.Provider>
+ *   <Tooltip content="Bold"><button type="button">B</button></Tooltip>
+ *   <Tooltip content="Italic"><button type="button">I</button></Tooltip>
+ * </Tooltip.Provider>
+ * ```
  */
 
 type TooltipProps = {
@@ -36,21 +45,19 @@ type TooltipProps = {
 
 function Tooltip({ content, children, side = 'top', className }: TooltipProps) {
   return (
-    <BaseTooltip.Provider>
-      <BaseTooltip.Root>
-        <BaseTooltip.Trigger
-          render={isValidElement(children) ? children : <span>{children}</span>}
-        />
-        <BaseTooltip.Portal>
-          <BaseTooltip.Positioner side={side} sideOffset={8}>
-            <BaseTooltip.Popup className={cn(s.popup, className)}>
-              <BaseTooltip.Arrow className={s.arrow} />
-              {content}
-            </BaseTooltip.Popup>
-          </BaseTooltip.Positioner>
-        </BaseTooltip.Portal>
-      </BaseTooltip.Root>
-    </BaseTooltip.Provider>
+    <BaseTooltip.Root>
+      <BaseTooltip.Trigger
+        render={isValidElement(children) ? children : <span>{children}</span>}
+      />
+      <BaseTooltip.Portal>
+        <BaseTooltip.Positioner side={side} sideOffset={8}>
+          <BaseTooltip.Popup className={cn(s.popup, className)}>
+            <BaseTooltip.Arrow className={s.arrow} />
+            {content}
+          </BaseTooltip.Popup>
+        </BaseTooltip.Positioner>
+      </BaseTooltip.Portal>
+    </BaseTooltip.Root>
   )
 }
 

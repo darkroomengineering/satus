@@ -22,7 +22,7 @@
     cursor: pointer;
     font-size: inherit;
     font-family: inherit;
-    transition: opacity 150ms ease;
+    transition: opacity var(--duration-fast) ease;
     position: relative;
 
     @media (--desktop) {
@@ -40,9 +40,14 @@
       outline-offset: 2px;
     }
 
-    &[data-selected] {
+    &[data-active] {
       opacity: 1;
       color: var(--color-contrast);
+    }
+
+    /* Opacity, not scale: the indicator measures the active tab's rect. */
+    &:active {
+      opacity: 0.6;
     }
 
     &[data-disabled] {
@@ -54,8 +59,18 @@
   .indicator {
     position: absolute;
     bottom: 0;
+    left: 0;
+    width: var(--active-tab-width);
     height: 2px;
+    translate: var(--active-tab-left);
     background-color: var(--color-contrast);
+
+    @media (--motion-ok) {
+      /* Width tracks tabs of different lengths; it lays out one 2px bar only. */
+      transition:
+        translate var(--duration-fast) var(--ease-out-quint),
+        width var(--duration-fast) var(--ease-out-quint);
+    }
   }
 
   .panel {

@@ -13,6 +13,6 @@ Debug tools suite, toggled with `Cmd/Ctrl + O`. Mounted by `OptionalFeatures` in
 | React Scan (🔬) | React re-render profiler — opt-in, off by default                                                          |
 | Screenshot (📸) | Clean UI captures                                                                                          |
 
-React Scan (`react-scan`) is mounted only while its toggle is on, so a normal
+React Scan (`react-scan`, `lib/dev/react-scan-provider.tsx`) is mounted only while its toggle is on, so a normal
 dev session carries no profiler overhead. It overlaps Stats only on the FPS
 readout: Stats is a frame-time/GPU meter, React Scan is a re-render profiler.

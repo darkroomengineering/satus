@@ -636,9 +636,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
     folders: ['lib/webgl', 'lib/dev/stats'],
     files: ['lib/hooks/use-device-detection.ts'],
     envVars: [],
-    barrelExports: [
-      { file: 'lib/hooks/index.ts', pattern: 'use-device-detection' },
-    ],
+    barrelExports: [],
     codeTransforms: [
       {
         file: 'next.config.ts',

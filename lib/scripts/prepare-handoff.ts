@@ -227,10 +227,11 @@ const setPackageJsonNameAndDescription = async (
 }
 
 /** Clean up unused environment variables from .env.example. Exported for unit testing. */
-export const cleanupEnvVars = async (dryRun: boolean): Promise<boolean> => {
+export const cleanupEnvVars = async (
+  dryRun: boolean,
+  envExamplePath: string = resolvePath('.env.example')
+): Promise<boolean> => {
   try {
-    const envExamplePath = resolvePath('.env.example')
-
     if (!(await pathExists(envExamplePath))) {
       return false
     }

@@ -1562,14 +1562,16 @@ const main = async (): Promise<void> => {
     return
   }
 
-  p.note(
-    'Next steps:\n' +
-      '  1. Review the changes\n' +
-      '  2. Update README.md with your project info\n' +
-      '  3. Add env vars with bun dotenvx set KEY "value" (README § Environment variables)\n' +
-      '  4. Run: bun dev',
-    'Setup complete!'
-  )
+  if (transformFailures.length === 0) {
+    p.note(
+      'Next steps:\n' +
+        '  1. Review the changes\n' +
+        '  2. Update README.md with your project info\n' +
+        '  3. Add env vars with bun dotenvx set KEY "value" (README § Environment variables)\n' +
+        '  4. Run: bun dev',
+      'Setup complete!'
+    )
+  }
 
   if (transformFailures.length > 0) {
     p.log.warn(PARTIAL_RUN_RECOVERY)

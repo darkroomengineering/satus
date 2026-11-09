@@ -1,6 +1,7 @@
 # Stable patch/minor bumps that pass CI can be auto-merged by
 # .github/workflows/automerge-dependabot.yml. Major, 0.x, prerelease and
-# unrecognized updates stay open for human review.
+# unrecognized updates, GitHub Actions bumps and `trustedDependencies` bumps
+# stay open for human review.
 
 version: 2
 updates:

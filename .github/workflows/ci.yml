@@ -62,10 +62,16 @@ jobs:
       # not listed here, since some have no fixed release; plain `bun audit`
       # lists them.
       # GHSA-g3hv-75wg-m249 (minimatch < 11.0.1) is ignored: it reaches only dev
-      # and CLI tooling (ts-morph, deslop-js, react-doctor, @oclif/core via
-      # Sanity's CLI), whose glob patterns are written by developers. The fix is
-      # minimatch 11, which drops `makeRe()` that deslop-js calls, so an override
-      # breaks deslop. Remove the ignore once deslop-js depends on minimatch 11.
+      # and CLI tooling (ts-morph, deslop-js, react-doctor, eslint via
+      # react-scan and react-doctor, @oclif/core via Sanity's CLI), whose glob
+      # patterns are written by developers. Sanity's CLI also lands in a
+      # production install, as the `sanity` peer of next-sanity, but no route
+      # imports it (only `sanity/cli` does, from
+      # lib/integrations/sanity/sanity.cli.ts). The fix is minimatch 11, which
+      # drops `makeRe()` that deslop-js calls, so an override breaks deslop.
+      # Remove the ignore once deslop-js depends on minimatch 11. Re-check by
+      # 2027-02-09: run `bun why minimatch` and confirm every path is still
+      # one of these.
       - name: bun audit
         run: bun audit --audit-level=moderate --ignore GHSA-g3hv-75wg-m249
 

@@ -116,6 +116,7 @@ export function ProgressText({
     return () => {
       cancelled = true
       split?.revert()
+      container.removeAttribute('data-scrubbing')
     }
   }, [enter, leave, dimOpacity, prefersReducedMotion])
 

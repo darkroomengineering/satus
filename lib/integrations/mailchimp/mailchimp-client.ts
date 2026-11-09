@@ -36,6 +36,8 @@ export interface SubscriptionData {
 
 export type MailchimpErrorCode =
   | 'invalid_email'
+  /** The address was permanently deleted from the audience; Mailchimp calls that "forgotten" and refuses to re-add it through the API. */
+  | 'forgotten_email'
   | 'network_error'
   | 'api_error'
   | 'config_error'
@@ -43,8 +45,37 @@ export type MailchimpErrorCode =
 export interface MailchimpResult {
   success: boolean
   errorCode?: MailchimpErrorCode
-  /** Human-readable detail; not for UI routing — use errorCode for that */
+  /**
+   * For logs, not for UI routing (use errorCode). Mailchimp's `detail` is never
+   * stored here or logged: it quotes the submitted address.
+   */
   error?: string
+}
+
+const FORGOTTEN_EMAIL_TITLE = 'Forgotten Email Not Subscribed'
+
+// Titles logged verbatim. Any other title is unbounded text from Mailchimp, so
+// it is cut to 80 characters and its whitespace flattened before it is logged.
+const KNOWN_ERROR_TITLES = new Set([
+  'Member Exists',
+  'Invalid Resource',
+  FORGOTTEN_EMAIL_TITLE,
+  'Resource Not Found',
+  'Member In Compliance State',
+])
+
+function loggableTitle(title: string): string {
+  return KNOWN_ERROR_TITLES.has(title)
+    ? title
+    : title.slice(0, 80).replace(/\s+/g, ' ')
+}
+
+// Logs get a caught error's name and message, not the object: its other
+// properties are whatever the thrower attached.
+function describeCause(cause: unknown): string {
+  return cause instanceof Error
+    ? `${cause.name}: ${cause.message}`
+    : String(cause)
 }
 
 const mailchimpMemberResponseSchema = z.object({
@@ -208,17 +239,24 @@ async function addMember(
     return { ok: true, memberId }
   }
 
-  const detail = errorData.detail || 'Failed to add member'
+  // The forgotten title is matched exactly and checked first: its `detail` is
+  // free text that the 'invalid' search below could also match.
+  const lowerDetail = (errorData.detail ?? '').toLowerCase()
+  let errorCode: MailchimpErrorCode = 'api_error'
+  if (response.status === 400 && errorData.title === FORGOTTEN_EMAIL_TITLE) {
+    errorCode = 'forgotten_email'
+  } else if (lowerDetail.includes('fake') || lowerDetail.includes('invalid')) {
+    errorCode = 'invalid_email'
+  }
 
-  const lowerDetail = detail.toLowerCase()
-  const errorCode: MailchimpErrorCode =
-    lowerDetail.includes('fake') || lowerDetail.includes('invalid')
-      ? 'invalid_email'
-      : 'api_error'
-
+  const title = errorData.title ? ` ${loggableTitle(errorData.title)}` : ''
   return {
     ok: false,
-    result: { success: false, errorCode, error: detail },
+    result: {
+      success: false,
+      errorCode,
+      error: `Failed to add member: HTTP ${response.status}${title}`,
+    },
   }
 }
 
@@ -229,7 +267,7 @@ export async function addContactToMailchimp(
   try {
     config = getMailchimpConfig()
   } catch (error) {
-    console.error('Mailchimp config error:', error)
+    console.error('Mailchimp config error:', describeCause(error))
     return {
       success: false,
       errorCode: 'config_error',
@@ -269,7 +307,10 @@ export async function addContactToMailchimp(
         config
       )
     } catch (err) {
-      console.error('Mailchimp contact tag error (non-fatal):', err)
+      console.error(
+        'Mailchimp contact tag error (non-fatal):',
+        describeCause(err)
+      )
     }
 
     if (contactData.note) {
@@ -292,7 +333,7 @@ export async function addContactToMailchimp(
 
     return { success: true }
   } catch (error) {
-    console.error('Mailchimp contact error:', error)
+    console.error('Mailchimp contact error:', describeCause(error))
     return {
       success: false,
       errorCode: 'network_error',
@@ -308,7 +349,7 @@ export async function addSubscriberToMailchimp(
   try {
     config = getMailchimpConfig()
   } catch (error) {
-    console.error('Mailchimp config error:', error)
+    console.error('Mailchimp config error:', describeCause(error))
     return {
       success: false,
       errorCode: 'config_error',
@@ -348,12 +389,15 @@ export async function addSubscriberToMailchimp(
         config
       )
     } catch (err) {
-      console.error('Mailchimp newsletter tag error (non-fatal):', err)
+      console.error(
+        'Mailchimp newsletter tag error (non-fatal):',
+        describeCause(err)
+      )
     }
 
     return { success: true }
   } catch (error) {
-    console.error('Mailchimp subscription error:', error)
+    console.error('Mailchimp subscription error:', describeCause(error))
     return {
       success: false,
       errorCode: 'network_error',

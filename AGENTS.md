@@ -198,7 +198,7 @@ Keep `app/(site)/error.tsx` and `app/global-error.tsx` as direct shared `ErrorVi
 
 Do not put `loading.tsx` or `<Suspense>` above `notFound()`: streaming starts with 200 before the check, returning 200 with noindex instead of 404. In `app/(site)/`, `loading.tsx` would cover `[...slug]` and every unmatched URL. Run checks before opening `<Suspense>`; `e2e/not-found.e2e.ts` asserts the 404 status.
 
-`instrumentation.ts` reports render, route handler, server action and proxy errors through `onRequestError`. It logs JSON and POSTs to `ERROR_REPORT_URL` when set, using `ERROR_REPORT_TOKEN` as bearer auth. Include message, stack, digest, query-stripped path and route; never include headers, cookies or bodies. Next awaits delivery for up to 3 seconds; failures are logged and dropped, not retried. Replace the body to use a provider SDK; satus ships none.
+`instrumentation.ts` reports render, route handler, server action and proxy errors through `onRequestError`. It logs JSON and POSTs to `ERROR_REPORT_URL` when set, using `ERROR_REPORT_TOKEN` as bearer auth. Include message, stack, digest, query-stripped path and route; never include headers, cookies or bodies. Delivery does not hold the response: the hook hands it to the host's `waitUntil` and gives up after 3 seconds; failures are logged and dropped, not retried. Replace the body to use a provider SDK; satus ships none.
 
 ### Tailwind v4
 

@@ -6,6 +6,7 @@ import { env } from '@/lib/env'
 import {
   addContactToMailchimp,
   addSubscriberToMailchimp,
+  type MailchimpResult,
 } from './mailchimp-client'
 
 const originalFetch = globalThis.fetch
@@ -228,22 +229,108 @@ test.each([429, 500, 503])(
   }
 )
 
-test('other member errors still fail', async () => {
-  stubRequests({
-    member: () =>
-      Response.json(
-        {
-          title: 'Forgotten Email Not Subscribed',
-          status: 400,
-          detail: `${contact.email} was permanently deleted and cannot be re-imported.`,
-        },
-        { status: 400 }
-      ),
-  })
+const memberError = (title: string, detail: string) => () =>
+  Response.json({ title, status: 400, detail }, { status: 400 })
+
+const forgottenMember = memberError(
+  'Forgotten Email Not Subscribed',
+  `${contact.email} was permanently deleted and cannot be re-imported.`
+)
+
+test('a permanently deleted address fails as forgotten_email without tagging or storing the note', async () => {
+  const requests = stubRequests({ member: forgottenMember })
+  const expected: MailchimpResult = {
+    success: false,
+    errorCode: 'forgotten_email',
+    error: 'Failed to add member: HTTP 400 Forgotten Email Not Subscribed',
+  }
+  expect(await addSubscriberToMailchimp({ email: contact.email })).toEqual(
+    expected
+  )
+  expect(await addContactToMailchimp(contact)).toEqual(expected)
+  expect(writeRequests(requests).map((request) => request.url)).toEqual([
+    'https://us1.api.mailchimp.com/3.0/lists/test-value/members',
+    'https://us1.api.mailchimp.com/3.0/lists/test-value/members',
+  ])
+})
+
+test.each([
+  {
+    name: 'a permanently deleted address',
+    member: forgottenMember,
+    errorCode: 'forgotten_email',
+    title: 'Forgotten Email Not Subscribed',
+  },
+  {
+    name: 'a forgotten title whose detail also says invalid',
+    member: memberError(
+      'Forgotten Email Not Subscribed',
+      `${contact.email} is invalid for import: it was permanently deleted.`
+    ),
+    errorCode: 'forgotten_email',
+    title: 'Forgotten Email Not Subscribed',
+  },
+  {
+    name: 'an invalid address',
+    member: memberError(
+      'Invalid Resource',
+      `${contact.email} looks fake or invalid, please enter a real email address.`
+    ),
+    errorCode: 'invalid_email',
+    title: 'Invalid Resource',
+  },
+  {
+    name: 'an unknown 400 title, even when its detail says permanently deleted',
+    member: memberError(
+      'Bad Request',
+      `${contact.email} was permanently deleted and cannot be re-imported.`
+    ),
+    errorCode: 'api_error',
+    title: 'Bad Request',
+  },
+])(
+  '$name returns $errorCode and keeps the address out of the result and the log',
+  async ({ member, errorCode, title }) => {
+    stubRequests({ member })
+    const results = [
+      await addSubscriberToMailchimp({ email: contact.email }),
+      await addContactToMailchimp(contact),
+    ]
+    for (const result of results) {
+      expect(result).toEqual({
+        success: false,
+        errorCode,
+        error: `Failed to add member: HTTP 400 ${title}`,
+      })
+    }
+    expect(errorLog).toHaveBeenCalled()
+    expect(errorLog.mock.calls.flat().map(String).join('\n')).not.toContain(
+      contact.email
+    )
+  }
+)
+
+test('an unknown member error title is cut to 80 characters on one line', async () => {
+  const title = 'Unexpected\nupstream text '.repeat(12)
+  expect(title).toHaveLength(300)
+  stubRequests({ member: memberError(title, 'detail') })
+  const result = await addSubscriberToMailchimp({ email: contact.email })
+  const prefix = 'Failed to add member: HTTP 400 '
+  expect(result.errorCode).toBe('api_error')
+  expect(result.error?.startsWith(prefix)).toBe(true)
+  expect(result.error).not.toContain('\n')
+  expect(result.error?.slice(prefix.length).length).toBeLessThanOrEqual(80)
+  expect(result.error?.slice(prefix.length)).toBe(
+    title.slice(0, 80).replaceAll('\n', ' ')
+  )
+})
+
+test('a member error without a title reports only the HTTP status', async () => {
+  stubRequests({ member: () => new Response('upstream', { status: 502 }) })
   expect(await addSubscriberToMailchimp({ email: contact.email })).toEqual({
     success: false,
     errorCode: 'api_error',
-    error: `${contact.email} was permanently deleted and cannot be re-imported.`,
+    error: 'Failed to add member: HTTP 502',
   })
 })
 

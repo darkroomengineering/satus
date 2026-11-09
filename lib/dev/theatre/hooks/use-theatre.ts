@@ -74,7 +74,13 @@ export function useTheatreObject(
   config: TheatrePropDescriptors,
   deps: unknown[] = []
 ) {
-  const [object, setObject] = useState<ISheetObject>()
+  // The object is stored with the sheet and key that built it, so a sheet or
+  // key change cannot hand back an object the cleanup already detached.
+  const [owned, setOwned] = useState<{
+    sheet: ISheet
+    theatreKey: string
+    object: ISheetObject
+  }>()
 
   // Value-stable effect key: `config` changes identity every render, and refs
   // can't be read or written during render (the compiler can't track them).
@@ -98,11 +104,13 @@ export function useTheatreObject(
         // on this state to re-run when the object appears or is rebuilt. A ref
         // gives it no signal, and the handle can't be derived during render.
         // react-doctor-disable-next-line react-hooks-js/set-state-in-effect
-        setObject(
-          sheet.object(theatreKey, toTheatreConfig(config, core), {
+        setOwned({
+          sheet,
+          theatreKey,
+          object: sheet.object(theatreKey, toTheatreConfig(config, core), {
             reconfigure: true,
-          })
-        )
+          }),
+        })
       })
       .catch((error) => {
         console.error(`Theatre: failed to load core for '${theatreKey}'`, error)
@@ -116,7 +124,10 @@ export function useTheatreObject(
     // oxlint-disable-next-line react/exhaustive-deps -- complex dependency expression is intentional
   }, [configKey, sheet, theatreKey, ...deps])
 
-  return object
+  if (!owned || owned.sheet !== sheet || owned.theatreKey !== theatreKey) {
+    return undefined
+  }
+  return owned.object
 }
 
 type DescriptorValue<D extends PropDescriptor> = D extends NumberDescriptor

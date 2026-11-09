@@ -60,10 +60,14 @@ export async function loadSourceFiles(): Promise<void> {
   }
 
   for (const file of filesToLoad) {
-    try {
-      sourceFiles[file] = await Bun.file(file).text()
-    } catch {
-      sourceFiles[file] = ''
-    }
+    sourceFiles[file] = await Bun.file(file).text()
   }
+}
+
+// Throws on a file no bundle transforms (or an empty one): a test that
+// returned early there would pass without asserting anything.
+export function sourceOf(file: string): string {
+  const content = sourceFiles[file]
+  if (!content) throw new Error(`no source fixture loaded for ${file}`)
+  return content
 }

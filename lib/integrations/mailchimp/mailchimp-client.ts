@@ -143,7 +143,8 @@ interface AddMemberOptions {
  * record for the address, archived included, counts as existing; a POST alone
  * could re-add an archived contact with the submitted fields. Existing and new
  * addresses get the same success, so the form does not reveal whether an
- * address is currently on the list. The cost: an existing member cannot
+ * address is currently on the list. Only a 404 lookup leads to a create; any
+ * other lookup failure is an error, since the member's state is unknown. The cost: an existing member cannot
  * correct their name through these forms.
  */
 async function addMember(
@@ -161,6 +162,16 @@ async function addMember(
   )
   if (existing.ok) {
     return { ok: true, memberId }
+  }
+  if (existing.status !== 404) {
+    return {
+      ok: false,
+      result: {
+        success: false,
+        errorCode: 'api_error',
+        error: `Failed to look up member: HTTP ${existing.status}`,
+      },
+    }
   }
 
   const memberData: NewMemberPayload = {

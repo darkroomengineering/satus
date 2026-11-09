@@ -213,6 +213,21 @@ test('any existing record, archived included, is left alone and never re-created
   ])
 })
 
+test.each([429, 500, 503])(
+  'a %d member lookup fails without creating the member',
+  async (status) => {
+    const requests = stubRequests({
+      existing: () => Response.json({ title: 'Error' }, { status }),
+    })
+    expect(await addSubscriberToMailchimp({ email: contact.email })).toEqual({
+      success: false,
+      errorCode: 'api_error',
+      error: `Failed to look up member: HTTP ${status}`,
+    })
+    expect(writeRequests(requests)).toHaveLength(0)
+  }
+)
+
 test('other member errors still fail', async () => {
   stubRequests({
     member: () =>

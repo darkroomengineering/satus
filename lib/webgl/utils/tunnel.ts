@@ -41,6 +41,11 @@ export interface Tunnel {
   Out: () => ReactNode
   /** Calls `listener` whenever the registered children change; returns the unsubscribe. */
   subscribe: (listener: () => void) => () => void
+  /**
+   * Whether an `In` has mounted since the tunnel was created. Never turns
+   * false: unmounting every `In` empties the tunnel but keeps this true.
+   */
+  hasHadContent: () => boolean
 }
 
 /** Each call is a separate tunnel with its own store, so unrelated portals never share content. */
@@ -81,5 +86,9 @@ export function tunnel(): Tunnel {
       useStore.subscribe((state, previous) => {
         if (state.current !== previous.current) listener()
       }),
+    // `version` only grows, and `In` bumps it in the effect declared before
+    // the one that pushes `current`, so `subscribe` listeners already read
+    // `true` when they first fire.
+    hasHadContent: () => useStore.getState().version > 0,
   }
 }

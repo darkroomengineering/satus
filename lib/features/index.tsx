@@ -10,7 +10,8 @@ const OrchestraTools = lazy(() =>
 )
 
 // Mounted once in the shared layout so the WebGL context persists across route
-// navigation; pages portal content in via <WebGLTunnel>.
+// navigation; pages portal content in via <WebGLTunnel>. The canvas downloads
+// three.js only once a page does.
 const LazyWebGLCanvas = lazy(() =>
   import('@/webgl/components/canvas').then((mod) => ({
     default: mod.Canvas,

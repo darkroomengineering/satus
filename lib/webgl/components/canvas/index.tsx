@@ -19,13 +19,16 @@ import {
   claimPrimary,
   getDOMTunnel,
   getPrimaryClaimId,
+  getServerHasTunnelConsumer,
   getServerPrimaryClaimId,
   getServerRootCanvasRegistered,
   getWebGLTunnel,
+  hasTunnelConsumer,
   isRootCanvasRegistered,
   registerRootCanvasMount,
   releasePrimary,
   subscribePrimaryClaim,
+  subscribeTunnelContent,
 } from '@/lib/webgl/store'
 import type { Tunnel } from '@/webgl/utils/tunnel'
 
@@ -73,10 +76,14 @@ type CanvasProps = PropsWithChildren<{
   /**
    * Mount the WebGL canvas. Mount it once: in the shared layout or per page
    * via `<Wrapper webgl>`, never both. Without it, children fall back to the
-   * mounted root canvas via {@link useCanvas}.
+   * mounted root canvas via {@link useCanvas}. The canvas, and the three.js
+   * chunk behind it, loads only once something portals into a tunnel.
    */
   root?: boolean
-  /** Force WebGL even on mobile/non-WebGL devices */
+  /**
+   * Force WebGL even on mobile/non-WebGL devices. The canvas still waits for
+   * tunnel content: without any, it would draw nothing.
+   */
   force?: boolean
   /**
    * GPU simulations `FlowmapProvider` mounts (root canvas only). Defaults to
@@ -109,6 +116,11 @@ export function Canvas({
   const { isWebGL, isReducedMotion } = useDeviceDetection()
   const webglDevToggleEnabled = useWebGLDevKillSwitch()
   const afterLoad = useAfterLoad()
+  const hasConsumer = useSyncExternalStore(
+    subscribeTunnelContent,
+    hasTunnelConsumer,
+    getServerHasTunnelConsumer
+  )
 
   const WebGLTunnel = root ? getWebGLTunnel() : undefined
   const DOMTunnel = root ? getDOMTunnel() : undefined
@@ -122,11 +134,17 @@ export function Canvas({
   // anything that puts CONTENT in WebGL needs a DOM fallback, or `force` plus
   // damped motion inside the scene.
   //
+  // Every gate, `force` included, also waits for a tunnel consumer: until a
+  // page portals content, the canvas would draw nothing, and mounting it
+  // would download three.js on routes without WebGL. The consumer flag never
+  // resets, so the context persists after leaving the route that set it.
+  //
   // The Orchestra toggle is a dev-only kill switch above all of that,
   // including `force`.
   const shouldRender =
     webglDevToggleEnabled &&
     root &&
+    hasConsumer &&
     ((isWebGL && !isReducedMotion && afterLoad) || force)
   const contextValue: CanvasContextValue =
     WebGLTunnel && DOMTunnel

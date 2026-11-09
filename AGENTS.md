@@ -166,7 +166,7 @@ Worked patterns (compound components, context, server/client split, integration 
 - Use `<Fragment ref={ref}>` to focus or observe sibling DOM nodes without a wrapper. A `FragmentInstance` is not an HTMLElement or anime.js target. The cart restores previous focus in Effect cleanup, including Strict Mode replay.
 - Use `use(browser())` in a Client Component beneath Suspense when meaningful server HTML is impossible. `lib/features` combines it with lazy imports and independent boundaries; it does not replace code splitting or `useAfterLoad` window-load scheduling for GPU boot.
 - A Server Component may render Context imported from a client module when its value is serializable. Remove only providers that forward data; Theme, Cart and GPU providers own client state/effects.
-- Use `<Activity />` for off-screen tabs, carousels and accordions. Hidden content retains DOM/state, renders at lower priority and cleans up Effects, but pre-rendering still costs work and memory. `Tabs.Panel preserveState` activates it after Base UI exit; retain WebGL capability and load gates.
+- Use `<Activity />` for off-screen tabs and carousels. Hidden content retains DOM/state, renders at lower priority and cleans up Effects, but pre-rendering still costs work and memory. `Tabs.Panel preserveState` activates it after Base UI exit; retain WebGL capability and load gates.
 - `useEffectEvent` keeps event logic out of effect dependencies.
 - Shopify passes `cacheSignal()` so an in-flight request is cancelled when its server render ends or aborts (`lib/integrations/shopify/client.ts`).
 - Do not use `forwardRef`; React 19 refs are props and lint blocks the import.

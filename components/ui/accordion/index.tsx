@@ -4,7 +4,6 @@ import { Collapsible } from '@base-ui/react/collapsible'
 import cn from 'clsx'
 import { useResizeObserver } from 'hamo'
 import {
-  Activity,
   createContext,
   type Dispatch,
   type HTMLAttributes,
@@ -21,7 +20,8 @@ import {
 import s from './accordion.module.css'
 
 /**
- * Accordion on Base UI Collapsible; closed content sits in React's `Activity`.
+ * Accordion on Base UI Collapsible. The panel keeps its content mounted and
+ * visible until the collapse transition ends, then Base UI unmounts it.
  *
  * @example
  * ```tsx
@@ -183,9 +183,7 @@ function Body({
       }}
     >
       <div ref={setRectRef}>
-        <Activity mode={isOpen ? 'visible' : 'hidden'}>
-          <div className={className}>{children}</div>
-        </Activity>
+        <div className={className}>{children}</div>
       </div>
     </Collapsible.Panel>
   )

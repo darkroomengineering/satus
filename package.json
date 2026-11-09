@@ -83,7 +83,7 @@
     "@playwright/test": "1.65.0",
     "@sanity/icons": "^5.2.2",
     "@svgr/webpack": "^8.1.0",
-    "@tailwindcss/node": "^4.3.4",
+    "@tailwindcss/node": "^4.3.5",
     "@tailwindcss/postcss": "^4.3.4",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",

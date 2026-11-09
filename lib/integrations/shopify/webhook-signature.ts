@@ -48,7 +48,8 @@ export function isFreshShopifyWebhook(
   now: number = Date.now()
 ): boolean {
   if (!triggeredAt) return false
-  const at = Date.parse(triggeredAt)
+  // Shopify sends nanosecond fractions; engines only promise milliseconds.
+  const at = Date.parse(triggeredAt.replace(/(\.\d{3})\d+/, '$1'))
   return Number.isFinite(at) && Math.abs(now - at) <= WEBHOOK_FRESHNESS_MS
 }
 
@@ -56,19 +57,24 @@ const SEEN_LIMIT = 1000
 
 /**
  * A bounded set of delivery keys already accepted, oldest evicted first.
- * `remember` returns false for a key seen before.
+ * `rememberAll` returns false, recording nothing, if any key was seen before.
  */
 export function createSeenSet(limit: number = SEEN_LIMIT) {
   const seen = new Set<string>()
   return {
-    remember(key: string): boolean {
-      if (seen.has(key)) return false
-      seen.add(key)
-      if (seen.size > limit) {
+    /** Records every key, or none and false if any was already seen. */
+    rememberAll(keys: string[]): boolean {
+      if (keys.some((key) => seen.has(key))) return false
+      for (const key of keys) seen.add(key)
+      while (seen.size > limit) {
         const oldest = seen.values().next().value
-        if (oldest !== undefined) seen.delete(oldest)
+        if (oldest === undefined) break
+        seen.delete(oldest)
       }
       return true
+    },
+    forget(keys: string[]) {
+      for (const key of keys) seen.delete(key)
     },
   }
 }

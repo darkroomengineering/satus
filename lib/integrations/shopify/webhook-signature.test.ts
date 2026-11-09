@@ -70,6 +70,15 @@ describe('isFreshShopifyWebhook', () => {
     expect(isFreshShopifyWebhook('2026-11-09T11:58:00.000000Z', now)).toBe(true)
   })
 
+  test('parses the nanosecond fractions Shopify sends', () => {
+    const real = '2023-03-29T18:00:27.877041743Z'
+    const at = Date.parse('2023-03-29T18:00:27.877Z')
+    expect(isFreshShopifyWebhook(real, at + 1000)).toBe(true)
+    expect(isFreshShopifyWebhook(real, at + WEBHOOK_FRESHNESS_MS + 1000)).toBe(
+      false
+    )
+  })
+
   test('rejects a stale timestamp', () => {
     expect(isFreshShopifyWebhook(at(-WEBHOOK_FRESHNESS_MS - 1000), now)).toBe(
       false
@@ -90,17 +99,25 @@ describe('isFreshShopifyWebhook', () => {
 })
 
 describe('createSeenSet', () => {
-  test('rejects a key it has seen', () => {
+  test('rejects a batch containing a key it has seen, recording nothing', () => {
     const seen = createSeenSet()
-    expect(seen.remember('a')).toBe(true)
-    expect(seen.remember('a')).toBe(false)
+    expect(seen.rememberAll(['a', 'b'])).toBe(true)
+    expect(seen.rememberAll(['c', 'a'])).toBe(false)
+    expect(seen.rememberAll(['c'])).toBe(true)
+  })
+
+  test('forget makes keys acceptable again', () => {
+    const seen = createSeenSet()
+    seen.rememberAll(['a'])
+    seen.forget(['a'])
+    expect(seen.rememberAll(['a'])).toBe(true)
   })
 
   test('forgets the oldest key past its limit', () => {
     const seen = createSeenSet(2)
-    seen.remember('a')
-    seen.remember('b')
-    seen.remember('c')
-    expect(seen.remember('a')).toBe(true)
+    seen.rememberAll(['a'])
+    seen.rememberAll(['b'])
+    seen.rememberAll(['c'])
+    expect(seen.rememberAll(['a'])).toBe(true)
   })
 })

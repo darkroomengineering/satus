@@ -68,6 +68,7 @@ sequenceDiagram
     alt has x-shopify-hmac-sha256 or x-shopify-topic header
         R->>R: HMAC-SHA256(raw body, SHOPIFY_REVALIDATION_SECRET) vs x-shopify-hmac-sha256
         R-->>W: 401 if missing or wrong, 503 if secret unset
+        R-->>W: 200, no action, if x-shopify-triggered-at is stale or the signature or webhook id was already accepted
         R->>T: revalidateTag(products | collections | pages, { expire: 0 })
     else has sanity-webhook-signature header
         R->>R: parseBody(request, SANITY_REVALIDATE_SECRET) → isValidSignature
@@ -76,10 +77,10 @@ sequenceDiagram
     else neither
         R-->>W: 404 { data: null, error: 'No webhook handler configured' }
     end
-    R-->>W: 200 { data: { revalidated, now }, error: null }
+    R-->>W: 200 { data: { revalidated, now }, error: null } (revalidated is false when nothing was done)
 ```
 
-Setup: Sanity in [lib/integrations/sanity/README.md § Revalidation](../../lib/integrations/sanity/README.md#revalidation), Shopify (including the event list) in [lib/integrations/shopify/README.md § Webhooks](../../lib/integrations/shopify/README.md#webhooks). A valid Shopify request gets 200 so Shopify does not retry.
+Setup: Sanity in [lib/integrations/sanity/README.md § Revalidation](../../lib/integrations/sanity/README.md#revalidation), Shopify (including the event list) in [lib/integrations/shopify/README.md § Webhooks](../../lib/integrations/shopify/README.md#webhooks). A correctly signed Shopify request always gets 200 so Shopify does not retry, even when it is stale, a duplicate or an unhandled topic and nothing is revalidated.
 
 ## Security
 
@@ -94,6 +95,6 @@ Setup: Sanity in [lib/integrations/sanity/README.md § Revalidation](../../lib/i
   rejected, with no wait. The cost: anyone can make the route read and hash a
   body that size as often as they like.
 - Sanity: invalid signature 401, malformed body 400, unset secret 503.
-- Shopify: invalid or missing secret 401 (constant-time compare).
+- Shopify: invalid or missing signature 401 (constant-time compare), unset secret 503. A stale `X-Shopify-Triggered-At` (over 5 minutes) or a repeated signature or webhook id gets 200 with no revalidation.
 
 See also: [SECURITY.md](../../SECURITY.md)

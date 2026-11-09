@@ -7,6 +7,7 @@ import {
   type Ref,
   use,
   useEffect,
+  useEffectEvent,
   useImperativeHandle,
   useLayoutEffect,
   useState,
@@ -23,15 +24,20 @@ type TheatreProjectProviderProps = {
   config: string
 }
 
-// A settled load records the `id` and `config` it belongs to; a state whose
-// key differs from the current props means a newer load is in flight. Loading
-// is derived that way because setting it synchronously in the effect trips
+// A settled load records the `id` it belongs to; a state whose `id` differs
+// from the current prop means a newer load is in flight. Loading is derived
+// that way because setting it synchronously in the effect trips
 // `react(set-state-in-effect)`.
 type ProjectLoadState =
   | { status: 'idle' }
-  | { status: 'ready'; id: string; config: string; project: IProject }
-  | { status: 'failed'; id: string; config: string; error: unknown }
+  | { status: 'ready'; id: string; project: IProject }
+  | { status: 'failed'; id: string; error: unknown }
 
+// Theatre fixes a project's config at the first `getProject(id, config)` call:
+// a second call with another config throws in development and returns the
+// first project in production. So only an `id` change starts a new load; a
+// `config` change for a loaded `id` keeps that project. Use a new `id` for new
+// state.
 export function TheatreProjectProvider({
   children,
   id,
@@ -41,49 +47,54 @@ export function TheatreProjectProvider({
     status: 'idle',
   })
 
+  const loadProject = useEffectEvent(
+    async (projectId: string, isStale: () => boolean) => {
+      const [{ getProject }, state] = await Promise.all([
+        loadTheatreCore(),
+        config ? fetch(config).then((response) => response.json()) : undefined,
+      ])
+      // Checked before `getProject`: a superseded load must not register its
+      // config with Theatre, or the current load would be rejected.
+      if (isStale()) return undefined
+      const project = state
+        ? getProject(projectId, { state })
+        : getProject(projectId)
+      if (!project.isReady) await project.ready
+      return project
+    }
+  )
+
   useLayoutEffect(() => {
-    // Set by cleanup when `id` or `config` changes or the provider unmounts,
-    // so a superseded load cannot overwrite the newer project.
+    // Set by cleanup when `id` changes or the provider unmounts, so a
+    // superseded load cannot overwrite the newer project.
     let stale = false
 
     if (process.env.NODE_ENV === 'development') {
       console.log(`Theatre: project ${id} loading...`)
     }
 
-    const load = config
-      ? Promise.all([
-          loadTheatreCore(),
-          fetch(config).then((response) => response.json()),
-        ]).then(([{ getProject }, state]) => getProject(id, { state }))
-      : loadTheatreCore().then(({ getProject }) => getProject(id))
-
-    void load
-      .then((project) =>
-        project.isReady ? project : project.ready.then(() => project)
-      )
+    loadProject(id, () => stale)
       .then((project) => {
-        if (stale) return
+        if (stale || !project) return
         window.THEATRE_PROJECT_ID = project.address.projectId
-        setLoadState({ status: 'ready', id, config, project })
+        setLoadState({ status: 'ready', id, project })
         if (process.env.NODE_ENV === 'development') {
           console.log(`Theatre: project ${id} loaded`)
         }
       })
       .catch((error) => {
         if (stale) return
-        setLoadState({ status: 'failed', id, config, error })
+        setLoadState({ status: 'failed', id, error })
         console.error(`Theatre: project ${id} failed to load`, error)
       })
 
     return () => {
       stale = true
     }
-  }, [config, id])
+  }, [id])
 
   const project =
-    loadState.status === 'ready' &&
-    loadState.id === id &&
-    loadState.config === config
+    loadState.status === 'ready' && loadState.id === id
       ? loadState.project
       : undefined
 

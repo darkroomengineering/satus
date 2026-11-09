@@ -1,9 +1,4 @@
-// Tripwire: dropping the `rate-limit` wiring from proxy.ts silently leaves
-// `/api/*` unprotected with no build or runtime error.
-
 import { describe, expect, it } from 'bun:test'
-import { existsSync } from 'node:fs'
-import { join } from 'node:path'
 
 import { NextRequest } from 'next/server'
 
@@ -19,37 +14,12 @@ import {
 } from './proxy'
 import vercelConfig from './vercel.json'
 
-const ROOT = import.meta.dir
-const PROXY_PATH = join(ROOT, 'proxy.ts')
-const RATE_LIMIT_PATH = join(ROOT, 'lib/utils/rate-limit.ts')
-
-describe('proxy.ts rate-limit wiring', () => {
-  it('proxy.ts exists at the repo root', () => {
-    expect(existsSync(PROXY_PATH)).toBe(true)
-  })
-
-  it('lib/utils/rate-limit.ts exists', () => {
-    expect(existsSync(RATE_LIMIT_PATH)).toBe(true)
-  })
-
-  // Read guarded by existsSync so a deleted proxy.ts fails these with the
-  // regex assertion (empty string, clear message) instead of an ENOENT throw.
-  const readProxy = () =>
-    existsSync(PROXY_PATH) ? Bun.file(PROXY_PATH).text() : Promise.resolve('')
-
-  it('proxy.ts imports the rate-limit util — deleting/editing this out turns off API rate limiting silently', async () => {
-    expect(await readProxy()).toMatch(/from ['"]@\/lib\/utils\/rate-limit['"]/)
-  })
-
-  it('proxy.ts actually calls rateLimit(), not just imports it unused', async () => {
-    expect(await readProxy()).toMatch(/\brateLimit\s*\(/)
-  })
-})
-
-// Behaviour, not wiring: the revalidation webhook is exempt from the `/api/*`
-// limiter (a bulk publish sends many webhooks from one provider IP), and the
-// exemption is exactly that path. Each case uses its own IP because the
-// limiter's store is module state shared across the whole test file.
+// Dropping the `rate-limit` wiring from proxy.ts leaves `/api/*` unprotected
+// with no build or runtime error; the 429 assertions here catch it. The
+// revalidation webhook is exempt from the `/api/*` limiter (a bulk publish
+// sends many webhooks from one provider IP), and the exemption is exactly that
+// path. Each case uses its own IP because the limiter's store is module state
+// shared across the whole test file.
 describe('proxy.ts /api limiter scope', () => {
   const overLimit = rateLimiters.relaxed.limit + 1
 

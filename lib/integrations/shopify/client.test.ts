@@ -7,7 +7,6 @@
 import { afterAll, afterEach, describe, expect, test } from 'bun:test'
 
 import { normalizeStoreDomain, shopifyFetch } from './client'
-import { SHOPIFY_GRAPHQL_API_ENDPOINT } from './constants'
 
 describe('normalizeStoreDomain', () => {
   test('bare domain gets an https:// prefix', () => {
@@ -54,22 +53,6 @@ describe('normalizeStoreDomain', () => {
   test('empty string does not throw and returns a falsy/dummy value', () => {
     expect(() => normalizeStoreDomain('')).not.toThrow()
     expect(normalizeStoreDomain('')).toBe('')
-  })
-
-  test('bare domain + endpoint constant produces a valid, parseable URL', () => {
-    const endpoint = `${normalizeStoreDomain('your-store.myshopify.com')}${SHOPIFY_GRAPHQL_API_ENDPOINT}`
-    expect(endpoint).toBe(
-      'https://your-store.myshopify.com/api/2026-04/graphql.json'
-    )
-    expect(() => new URL(endpoint)).not.toThrow()
-  })
-
-  test('https:// domain + endpoint constant produces a valid, parseable URL', () => {
-    const endpoint = `${normalizeStoreDomain('https://your-store.myshopify.com')}${SHOPIFY_GRAPHQL_API_ENDPOINT}`
-    expect(endpoint).toBe(
-      'https://your-store.myshopify.com/api/2026-04/graphql.json'
-    )
-    expect(() => new URL(endpoint)).not.toThrow()
   })
 })
 

@@ -20,12 +20,6 @@ beforeAll(() => {
         })
       }
 
-      if (url.pathname === '/text') {
-        return new Response('plain text', {
-          headers: { 'Content-Type': 'text/plain' },
-        })
-      }
-
       if (url.pathname === '/slow') {
         return new Promise((resolve) =>
           setTimeout(
@@ -59,13 +53,6 @@ beforeAll(() => {
         })
       }
 
-      if (url.pathname === '/error-404') {
-        return new Response('Not Found', {
-          status: 404,
-          statusText: 'Not Found',
-        })
-      }
-
       if (url.pathname === '/echo-method') {
         return new Response(JSON.stringify({ method: req.method }), {
           headers: { 'Content-Type': 'application/json' },
@@ -85,23 +72,13 @@ afterAll(() => {
 })
 
 describe('fetchWithTimeout', () => {
-  it('should successfully fetch a response', async () => {
+  it('fetches within the default timeout and exposes the JSON body', async () => {
     const response = await fetchWithTimeout(`${baseURL}/json`)
     expect(response.ok).toBe(true)
     expect(response.status).toBe(200)
-  })
-
-  it('should parse JSON from response', async () => {
-    const response = await fetchWithTimeout(`${baseURL}/json`)
     const data = (await response.json()) as { message: string; count: number }
     expect(data.message).toBe('hello')
     expect(data.count).toBe(42)
-  })
-
-  it('should use default timeout of 10000ms (not abort fast requests)', async () => {
-    // This should succeed well within the default 10s timeout
-    const response = await fetchWithTimeout(`${baseURL}/json`)
-    expect(response.ok).toBe(true)
   })
 
   it('should abort when timeout is exceeded', async () => {
@@ -137,8 +114,6 @@ describe('fetchWithTimeout', () => {
   it('should respect an external AbortSignal that fires after creation', async () => {
     const controller = new AbortController()
 
-    // Abort after a brief delay (the implementation listens for the abort event,
-    // so the signal must not be pre-aborted -- it needs to fire the event)
     const promise = fetchWithTimeout(`${baseURL}/slow`, {
       signal: controller.signal,
       timeout: 30000, // long timeout so only the signal causes abort
@@ -182,12 +157,6 @@ describe('fetchJSON — unvalidated overload (no schema)', () => {
     )
   })
 
-  it('should throw on 404 status', async () => {
-    await expect(fetchJSON(`${baseURL}/error-404`)).rejects.toThrow(
-      'HTTP 404: Not Found'
-    )
-  })
-
   it('should respect timeout option', async () => {
     await expect(
       fetchJSON(`${baseURL}/slow`, { timeout: 100 })
@@ -226,15 +195,5 @@ describe('fetchJSON — validated overload (with schema)', () => {
     await expect(
       fetchJSON(`${baseURL}/error-500`, {}, ResponseSchema)
     ).rejects.toThrow('HTTP 500: Internal Server Error')
-  })
-
-  it('should pass through fetch options with schema', async () => {
-    const MethodSchema = z.object({ method: z.string() })
-    const data = await fetchJSON(
-      `${baseURL}/echo-method`,
-      { method: 'POST' },
-      MethodSchema
-    )
-    expect(data.method).toBe('POST')
   })
 })

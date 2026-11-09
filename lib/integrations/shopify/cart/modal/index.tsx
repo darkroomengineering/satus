@@ -143,6 +143,7 @@ function CartLine({ line }: { line: CartLineItem }) {
   const [isPending, startTransition] = useTransition()
 
   function changeQuantity(type: 'minus' | 'plus') {
+    setError(null)
     startTransition(async () => {
       updateCartItem(merchandise.id, type)
       const result = await updateItemQuantity(null, {
@@ -156,6 +157,7 @@ function CartLine({ line }: { line: CartLineItem }) {
   }
 
   function remove() {
+    setError(null)
     startTransition(async () => {
       updateCartItem(merchandise.id, 'delete')
       const result = await removeItem(null, merchandise.id, id)

@@ -8,8 +8,11 @@
  * 3. The report leaks a secret: the query string, request headers, cookies.
  * 4. The token is dropped, or sent when none is configured.
  * 5. A rejected or non-2xx delivery throws into Next instead of warning once.
- * 6. A hung receiver holds the response past the timeout.
- * 7. The log line is skipped, or is not one parseable JSON line.
+ * 6. The hook waits for the receiver, so Next holds the error response.
+ * 7. A hung receiver is never given up on.
+ * 8. The host has no `waitUntil`, and the report is not sent or its failure
+ *    goes unhandled.
+ * 9. The log line is skipped, or is not one parseable JSON line.
  */
 
 import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test'
@@ -56,16 +59,37 @@ function trigger(handler: Handler) {
   )
 }
 
+// The host's request context, where Next and the hook look up `waitUntil`.
+const REQUEST_CONTEXT = Symbol.for('@next/request-context')
+const handedToHost: Promise<unknown>[] = []
+
+function setHostWaitUntil(
+  waitUntil: ((promise: Promise<unknown>) => void) | undefined
+) {
+  Object.assign(globalThis, {
+    [REQUEST_CONTEXT]: waitUntil && { get: () => ({ waitUntil }) },
+  })
+}
+
+function delivered() {
+  return Promise.all(handedToHost)
+}
+
 let errorSpy: ReturnType<typeof spyOn>
 let warnSpy: ReturnType<typeof spyOn>
 
 beforeEach(() => {
   calls.length = 0
+  handedToHost.length = 0
+  setHostWaitUntil((promise) => {
+    handedToHost.push(promise)
+  })
   errorSpy = spyOn(console, 'error').mockImplementation(() => undefined)
   warnSpy = spyOn(console, 'warn').mockImplementation(() => undefined)
 })
 
 afterEach(() => {
+  setHostWaitUntil(undefined)
   globalThis.fetch = originalFetch
   errorSpy.mockRestore()
   warnSpy.mockRestore()
@@ -78,6 +102,7 @@ describe('onRequestError', () => {
     await trigger(createOnRequestError({ url: undefined }))
 
     expect(calls).toHaveLength(0)
+    expect(handedToHost).toHaveLength(0)
     expect(errorSpy).toHaveBeenCalledTimes(1)
     const line = String(errorSpy.mock.calls[0]?.[0])
     expect(JSON.parse(line)).toMatchObject({
@@ -99,7 +124,9 @@ describe('onRequestError', () => {
     await trigger(
       createOnRequestError({ url: 'https://ingest.example.com/errors' })
     )
+    await delivered()
 
+    expect(handedToHost).toHaveLength(1)
     expect(calls).toHaveLength(1)
     const [call] = calls
     expect(call?.url).toBe('https://ingest.example.com/errors')
@@ -122,6 +149,7 @@ describe('onRequestError', () => {
         token: 'ingest-token',
       })
     )
+    await delivered()
 
     const headers = new Headers(calls[0]?.init?.headers)
     expect(headers.get('authorization')).toBe('Bearer ingest-token')
@@ -133,6 +161,7 @@ describe('onRequestError', () => {
     })
 
     await trigger(createOnRequestError({ url: 'https://ingest.example.com' }))
+    await delivered()
 
     expect(warnSpy).toHaveBeenCalledTimes(1)
     expect(String(warnSpy.mock.calls[0]?.[0])).toContain('connection refused')
@@ -142,12 +171,13 @@ describe('onRequestError', () => {
     stubFetch(async () => new Response(null, { status: 500 }))
 
     await trigger(createOnRequestError({ url: 'https://ingest.example.com' }))
+    await delivered()
 
     expect(warnSpy).toHaveBeenCalledTimes(1)
     expect(String(warnSpy.mock.calls[0]?.[0])).toContain('HTTP 500')
   })
 
-  it('gives up on a hung receiver after the timeout', async () => {
+  it('returns while the receiver is still hung, then gives up after the timeout', async () => {
     stubFetch(
       (init) =>
         new Promise((_, reject) => {
@@ -162,7 +192,28 @@ describe('onRequestError', () => {
       createOnRequestError({ url: 'https://ingest.example.com', timeout: 50 })
     )
 
+    // The warning is logged only once delivery gives up, so its absence
+    // shows the hook returned first.
+    expect(handedToHost).toHaveLength(1)
+    expect(warnSpy).not.toHaveBeenCalled()
+
+    await delivered()
+
     expect(performance.now() - started).toBeLessThan(1000)
+    expect(warnSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('still sends once and warns on failure when the host has no waitUntil', async () => {
+    setHostWaitUntil(undefined)
+    stubFetch(async () => {
+      throw new TypeError('connection refused')
+    })
+
+    await trigger(createOnRequestError({ url: 'https://ingest.example.com' }))
+    // Nothing hands back the delivery here, so let it settle on its own.
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(calls).toHaveLength(1)
     expect(warnSpy).toHaveBeenCalledTimes(1)
   })
 })

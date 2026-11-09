@@ -1,14 +1,16 @@
 /**
- * Tests for form hook validator resolution (issue #230).
+ * Pure tests for the form module: validator resolution (issue #230) and the
+ * field and post-submit lifecycle reducers.
  *
- * Verifies that validators are looked up by element.name first,
- * then element.id, then element.type — so a field where name !== id
- * still applies a name-keyed validator correctly.
+ * Validators are looked up by element.name first, then element.id, then
+ * element.type — so a field where name !== id still applies a name-keyed
+ * validator correctly.
  */
 
 import { describe, expect, test } from 'bun:test'
 
-import { resolveValidator } from './hook'
+import { fieldReducer, resolveValidator } from './hook'
+import { submitLifecycleReducer } from './index'
 
 const noop = () => true
 
@@ -98,5 +100,67 @@ describe('resolveValidator — name takes priority over id and type', () => {
     })
     // must fall through to the type validator, not match the '' key
     expect(resolved).toBe(noop)
+  })
+})
+
+describe('fieldReducer', () => {
+  const valid = {
+    active: true,
+    valid: true,
+    error: { state: false, message: '' },
+  }
+  const invalid = {
+    active: false,
+    valid: false,
+    error: { state: false, message: '' },
+  }
+
+  test('unregistering an absent field returns the same state object', () => {
+    const state = { email: valid }
+    expect(fieldReducer(state, { type: 'unregister', name: 'phone' })).toBe(
+      state
+    )
+  })
+
+  test('revealInvalid only touches invalid fields, labelled from the payload', () => {
+    const state = { email: invalid, name: valid, phone: invalid }
+    const next = fieldReducer(state, {
+      type: 'revealInvalid',
+      labels: { email: 'contact-email' },
+    })
+
+    expect(next.name).toBe(valid)
+    expect(next.email?.error).toEqual({
+      state: true,
+      message: 'Invalid contact-email',
+    })
+    // No label in the payload falls back to the field name.
+    expect(next.phone?.error).toEqual({ state: true, message: 'Invalid phone' })
+  })
+
+  test('revealInvalid with no invalid field returns the same state object', () => {
+    const state = { name: valid }
+    expect(fieldReducer(state, { type: 'revealInvalid', labels: {} })).toBe(
+      state
+    )
+  })
+})
+
+describe('submitLifecycleReducer', () => {
+  test('an edit while the success state shows dismisses it without a remount', () => {
+    const succeeded = { phase: 'succeeded' as const, key: 'a' }
+    expect(submitLifecycleReducer(succeeded, { type: 'userEdited' })).toEqual({
+      phase: 'dismissed',
+      key: 'a',
+    })
+  })
+
+  test('edits and a late auto-reset outside the success state change nothing', () => {
+    const idle = { phase: 'idle' as const, key: 'a' }
+    const dismissed = { phase: 'dismissed' as const, key: 'a' }
+    expect(submitLifecycleReducer(idle, { type: 'userEdited' })).toBe(idle)
+    expect(
+      submitLifecycleReducer(dismissed, { type: 'autoReset', key: 'b' })
+    ).toBe(dismissed)
   })
 })

@@ -69,10 +69,13 @@ export async function revalidate(req: NextRequest): Promise<NextResponse> {
   }
 
   // The signature is bound to the body, so it dedupes a replay that rewrites
-  // the webhook id. 200, not an error: Shopify retries non-2xx responses.
+  // the webhook id. The key is the decoded digest re-encoded: decoding is
+  // permissive, so the raw header has many spellings of one signature. 200, not an error: Shopify retries non-2xx responses.
   const webhookId = req.headers.get('x-shopify-webhook-id')
   const isNew =
-    seenDeliveries.remember(`sig:${signature}`) &&
+    seenDeliveries.remember(
+      `sig:${Buffer.from(signature, 'base64').toString('base64')}`
+    ) &&
     (!webhookId || seenDeliveries.remember(`id:${webhookId}`))
   if (!isNew) {
     return NextResponse.json({

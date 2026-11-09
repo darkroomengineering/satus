@@ -18,14 +18,7 @@
     background-color: var(--color-primary);
     color: var(--color-secondary);
     cursor: pointer;
-    /* Opacity, not scale: the popup anchors to the trigger's measured rect. */
-    transition:
-      border-color var(--duration-fast) ease,
-      opacity var(--duration-fast) ease;
-
-    &:active {
-      opacity: 0.7;
-    }
+    transition: border-color var(--duration-fast) ease;
 
     @media (--hover) {
       &:hover {

@@ -11,12 +11,6 @@
     background-color: var(--color-primary);
     color: var(--color-secondary);
     cursor: pointer;
-    /* Opacity, not scale: the popup anchors to the trigger's measured rect. */
-    transition: opacity var(--duration-fast) ease;
-
-    &:active {
-      opacity: 0.7;
-    }
 
     @media (--desktop) {
       gap: desktop-vw(8px);

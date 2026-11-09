@@ -40,10 +40,14 @@ export async function mailchimpContactAction(
         note: `Contact form submission - Subject: ${input.subject}\n\nMessage: ${input.message}`,
       })
       if (!result.success) {
+        const forgotten = result.errorCode === 'forgotten_email'
+        const message = forgotten
+          ? 'email_permanently_deleted_'
+          : 'submission_failed_'
         return {
-          status: 500,
-          message: 'submission_failed_',
-          fieldErrors: { submit: 'submission_failed_' },
+          status: forgotten ? 409 : 500,
+          message,
+          fieldErrors: { submit: message },
         }
       }
       return { status: 200, message: 'message_sent_' }
@@ -63,12 +67,16 @@ export async function mailchimpSubscriptionAction(
     run: async (input) => {
       const result = await addSubscriberToMailchimp(input)
       if (!result.success) {
+        // `result.error` holds the HTTP status and Mailchimp's error title.
+        // Mailchimp's `detail`, which quotes the submitted address, is never in it.
+        console.error('Mailchimp subscription failed:', result.error)
+        if (result.errorCode === 'forgotten_email') {
+          return { status: 409, message: 'email_permanently_deleted_' }
+        }
         const errorMessage =
           result.errorCode === 'invalid_email'
             ? 'invalid_email_'
             : 'subscription_failed_'
-
-        console.error('Mailchimp subscription failed:', result.error)
         return { status: 500, message: errorMessage }
       }
       return { status: 200, message: 'subscription_successful_' }

@@ -35,7 +35,9 @@ export function CartModal({ children, isOpen, closeCart }: CartModalProps) {
 
   function setLineError(lineId: string, message: string | null) {
     setLineErrors((previous) => {
-      const { [lineId]: _, ...rest } = previous
+      const rest = Object.fromEntries(
+        Object.entries(previous).filter(([id]) => id !== lineId)
+      )
       return message ? { ...rest, [lineId]: message } : rest
     })
   }

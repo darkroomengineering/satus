@@ -72,7 +72,7 @@
     "tempus": "^1.0.0",
     "three": "^0.187.0",
     "zod": "^4.6.6",
-    "zustand": "^5.0.16"
+    "zustand": "^5.1.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",

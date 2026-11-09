@@ -28,6 +28,19 @@ export function CartModal({ children, isOpen, closeCart }: CartModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null)
   const contentsRef = useRef<FragmentInstance>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
+  // Line errors live here, not in `CartLine`: a failed remove has already
+  // unmounted its optimistically deleted line, and the restored line is a new
+  // instance that would start with no error. The modal stays mounted.
+  const [lineErrors, setLineErrors] = useState<Record<string, string>>({})
+
+  function setLineError(lineId: string, message: string | null) {
+    setLineErrors((previous) => {
+      const rest = Object.fromEntries(
+        Object.entries(previous).filter(([id]) => id !== lineId)
+      )
+      return message ? { ...rest, [lineId]: message } : rest
+    })
+  }
 
   // A hand-rolled dialog has no native focus management: move focus in on
   // open, make the page behind unreachable, and hand focus back to the
@@ -98,7 +111,11 @@ export function CartModal({ children, isOpen, closeCart }: CartModalProps) {
             >
               close
             </button>
-            {!cart || cart.lines.length === 0 ? <EmptyCart /> : <InnerCart />}
+            {!cart || cart.lines.length === 0 ? (
+              <EmptyCart />
+            ) : (
+              <InnerCart lineErrors={lineErrors} setLineError={setLineError} />
+            )}
           </Fragment>
         </div>
       </div>
@@ -132,7 +149,12 @@ function EmptyCart() {
   return <p className={s.heading}>your cart is empty</p>
 }
 
-function InnerCart() {
+interface LineErrorProps {
+  lineErrors: Record<string, string>
+  setLineError: (lineId: string, message: string | null) => void
+}
+
+function InnerCart({ lineErrors, setLineError }: LineErrorProps) {
   const { state } = useCartContext()
   const { cart } = state
 
@@ -141,7 +163,12 @@ function InnerCart() {
       <p className={s.heading}>your cart</p>
       <div className={s.lines} data-lenis-prevent>
         {cart?.lines?.map((line) => (
-          <CartLine key={line.id} line={line} />
+          <CartLine
+            key={line.id}
+            line={line}
+            error={lineErrors[line.id] ?? null}
+            setLineError={setLineError}
+          />
         ))}
       </div>
       <div className={s.checkout}>
@@ -171,16 +198,23 @@ function InnerCart() {
  * would win. Disabling controls until the first settles makes each mutation
  * build on the previous one.
  */
-function CartLine({ line }: { line: CartLineItem }) {
+function CartLine({
+  line,
+  error,
+  setLineError,
+}: {
+  line: CartLineItem
+  error: string | null
+  setLineError: LineErrorProps['setLineError']
+}) {
   const { id, merchandise, cost, quantity } = line
   const { actions } = useCartContext()
   const { updateCartItem } = actions
   const router = useRouter()
-  const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   function changeQuantity(type: 'minus' | 'plus') {
-    setError(null)
+    setLineError(id, null)
     startTransition(async () => {
       updateCartItem(merchandise.id, type)
       const result = await updateItemQuantity(null, {
@@ -188,17 +222,17 @@ function CartLine({ line }: { line: CartLineItem }) {
         quantity: Math.max(1, quantity + quantityAction[type]),
         lineId: id,
       })
-      setError(result.ok ? null : result.error)
+      setLineError(id, result.ok ? null : result.error)
       router.refresh()
     })
   }
 
   function remove() {
-    setError(null)
+    setLineError(id, null)
     startTransition(async () => {
       updateCartItem(merchandise.id, 'delete')
       const result = await removeItem(null, merchandise.id, id)
-      setError(result.ok ? null : result.error)
+      setLineError(id, result.ok ? null : result.error)
       router.refresh()
     })
   }

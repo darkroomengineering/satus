@@ -316,7 +316,7 @@ export type AllSanitySchemaTypes =
 
 // Source: queries.ts
 // Variable: pageQuery
-// Query: *[_type == "page" && slug.current == $slug][0] {    _id,    title,    slug,      content[]{    ...,    markDefs[]{      ...,      _type == "link" => {        ...,        internalLink->{_type, slug, title}      }    }  },      link {    ...,    internalLink->{_type, slug, title}  },    metadata,    publishedAt,    _updatedAt  }
+// Query: *[_type == "page" && slug.current == $slug][0] {    _id,    title,    slug,      content[]{    ...,    markDefs[]{      ...,      _type == "link" => {        ...,        internalLink->{_type, slug, title}      }    }  },      link {    ...,    internalLink->{_type, slug, title}  },    metadata{      ...,      image{        ...,        asset->{url}      }    },    publishedAt,    _updatedAt  }
 export type PageQueryResult = {
   _id: string
   title: string | null
@@ -420,7 +420,23 @@ export type PageQueryResult = {
     parameters?: string
     anchor?: string
   } | null
-  metadata: Metadata | null
+  metadata: {
+    _type: 'metadata'
+    title?: string
+    description?: string
+    keywords?: string[]
+    image: {
+      asset: {
+        url: string | null
+      } | null
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      alt?: string
+      _type: 'image'
+    } | null
+    noIndex?: boolean
+  } | null
   publishedAt: string | null
   _updatedAt: string
 } | null
@@ -432,7 +448,7 @@ export type PageExistsQueryResult = false | true
 
 // Source: queries.ts
 // Variable: articleQuery
-// Query: *[_type == "article" && slug.current == $slug][0] {    _id,    title,    slug,    excerpt,    featuredImage,      content[]{    ...,    markDefs[]{      ...,      _type == "link" => {        ...,        internalLink->{_type, slug, title}      }    }  },    categories,    tags,    author,    publishedAt,    metadata,    _updatedAt  }
+// Query: *[_type == "article" && slug.current == $slug][0] {    _id,    title,    slug,    excerpt,    featuredImage,      content[]{    ...,    markDefs[]{      ...,      _type == "link" => {        ...,        internalLink->{_type, slug, title}      }    }  },    categories,    tags,    author,    publishedAt,    metadata{      ...,      image{        ...,        asset->{url}      }    },    _updatedAt  }
 export type ArticleQueryResult = {
   _id: string
   title: string | null
@@ -517,7 +533,23 @@ export type ArticleQueryResult = {
   tags: string[] | null
   author: string | null
   publishedAt: string | null
-  metadata: Metadata | null
+  metadata: {
+    _type: 'metadata'
+    title?: string
+    description?: string
+    keywords?: string[]
+    image: {
+      asset: {
+        url: string | null
+      } | null
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      alt?: string
+      _type: 'image'
+    } | null
+    noIndex?: boolean
+  } | null
   _updatedAt: string
 } | null
 
@@ -542,13 +574,15 @@ export type AllArticlesQueryResult = Array<{
 }>
 
 // Query TypeMap
-import '@sanity/client'
-
-declare module '@sanity/client' {
+declare global {
   interface SanityQueries {
-    '\n  *[_type == "page" && slug.current == $slug][0] {\n    _id,\n    title,\n    slug,\n    \n  content[]{\n    ...,\n    markDefs[]{\n      ...,\n      _type == "link" => {\n        ...,\n        internalLink->{_type, slug, title}\n      }\n    }\n  }\n,\n    \n  link {\n    ...,\n    internalLink->{_type, slug, title}\n  }\n,\n    metadata,\n    publishedAt,\n    _updatedAt\n  }\n': PageQueryResult
+    '\n  *[_type == "page" && slug.current == $slug][0] {\n    _id,\n    title,\n    slug,\n    \n  content[]{\n    ...,\n    markDefs[]{\n      ...,\n      _type == "link" => {\n        ...,\n        internalLink->{_type, slug, title}\n      }\n    }\n  }\n,\n    \n  link {\n    ...,\n    internalLink->{_type, slug, title}\n  }\n,\n    metadata{\n      ...,\n      image{\n        ...,\n        asset->{url}\n      }\n    },\n    publishedAt,\n    _updatedAt\n  }\n': PageQueryResult
     '\n  defined(*[_type == "page" && slug.current == $slug][0]._id)\n': PageExistsQueryResult
-    '\n  *[_type == "article" && slug.current == $slug][0] {\n    _id,\n    title,\n    slug,\n    excerpt,\n    featuredImage,\n    \n  content[]{\n    ...,\n    markDefs[]{\n      ...,\n      _type == "link" => {\n        ...,\n        internalLink->{_type, slug, title}\n      }\n    }\n  }\n,\n    categories,\n    tags,\n    author,\n    publishedAt,\n    metadata,\n    _updatedAt\n  }\n': ArticleQueryResult
+    '\n  *[_type == "article" && slug.current == $slug][0] {\n    _id,\n    title,\n    slug,\n    excerpt,\n    featuredImage,\n    \n  content[]{\n    ...,\n    markDefs[]{\n      ...,\n      _type == "link" => {\n        ...,\n        internalLink->{_type, slug, title}\n      }\n    }\n  }\n,\n    categories,\n    tags,\n    author,\n    publishedAt,\n    metadata{\n      ...,\n      image{\n        ...,\n        asset->{url}\n      }\n    },\n    _updatedAt\n  }\n': ArticleQueryResult
     '\n  *[_type == "article"] | order(publishedAt desc) {\n    _id,\n    title,\n    slug,\n    excerpt,\n    featuredImage,\n    categories,\n    publishedAt\n  }\n': AllArticlesQueryResult
   }
+}
+// Lets @sanity/client releases that predate the global registry read it too
+declare module '@sanity/client' {
+  interface SanityQueries extends globalThis.SanityQueries {}
 }

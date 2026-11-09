@@ -72,7 +72,7 @@ export const SITE: SiteFacts = {
   // the project's own logo or the Organization schema advertises a 404.
   logo: `${BASE_URL}/icon.png`,
   description:
-    'Satus is a Next.js starter by darkroom.engineering — React 19, TypeScript strict, Tailwind v4, and production-ready integrations.',
+    'Satus is a Next.js starter by darkroom.engineering with React 19, strict TypeScript, Tailwind v4, and production-ready integrations.',
   areaServed: 'Worldwide',
   services: [],
   knowsAbout: [],
@@ -117,7 +117,7 @@ export const SITE: SiteFacts = {
   ],
 }
 
-/** "a, b, and c" — prose-friendly list for entity copy. */
+/** "a, b, and c": prose-friendly list for entity copy. */
 export function formatList(items: readonly string[]): string {
   if (items.length <= 1) return items[0] ?? ''
   return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`

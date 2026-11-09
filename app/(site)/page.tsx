@@ -108,7 +108,7 @@ const STEPS: Step[] = [
         <p className={s.text}>
           To turn one on, set its env vars and follow the in-folder notes marked{' '}
           <code className={s.inline}>{'// USAGE'}</code>. Choose what to keep
-          with <code className={s.inline}>bun run setup:project</code> — keeping
+          with <code className={s.inline}>bun run setup:project</code>. Keeping
           one also keeps whatever it requires (e.g. keeping theatre keeps
           webgl).
         </p>

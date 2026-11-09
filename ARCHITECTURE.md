@@ -88,6 +88,7 @@ See AGENTS.md § Next.js 16 Request Proxy.
 - [ ] Assign security-alert review: native Bun Dependabot supports scheduled version updates, not security updates. Verify advisories and update the manifest and lockfile together for security fixes.
 - [ ] Verify normal and Dependabot PR checks before requiring their observed names and app identities. Account for release and direct-push automation before enforcing branch rules.
 - [ ] Make Vercel TypeCheck blocking only after it passes on a production deployment. Trigger a new deployment after changing the setting and verify its checks and promotion.
+- [ ] Entity facts replaced in `lib/seo/site.ts`: `SITE.sameAs` still lists `https://darkroom.engineering`, which tells search engines and answer engines that the fork's site is the same entity as darkroom.engineering. Replace it with the project's own profile URLs (or `[]`), along with `name`, `description`, `logo` and `url`.
 - [ ] Webhooks configured (Sanity, Shopify)
 - [ ] Cache invalidation tested
 - [ ] Performance score > 90

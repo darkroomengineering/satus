@@ -27,7 +27,13 @@ export const pageQuery = defineQuery(`
     slug,
     ${richTextWithLinks},
     ${linkWithLabel},
-    metadata,
+    metadata{
+      ...,
+      image{
+        ...,
+        asset->{url}
+      }
+    },
     publishedAt,
     _updatedAt
   }
@@ -51,7 +57,13 @@ export const articleQuery = defineQuery(`
     tags,
     author,
     publishedAt,
-    metadata,
+    metadata{
+      ...,
+      image{
+        ...,
+        asset->{url}
+      }
+    },
     _updatedAt
   }
 `)

@@ -52,7 +52,7 @@ export function generatePageMetadata(
   options: GenerateMetadataOptions
 ): Metadata {
   const {
-    title,
+    title: pageTitle,
     description,
     keywords,
     image,
@@ -65,11 +65,15 @@ export function generatePageMetadata(
     authors,
   } = options
 
+  // A blank title falls back to the site name. `absolute` skips the layout's
+  // title template, which would render "Satus - Satus".
+  const trimmedTitle = pageTitle?.trim()
+  const title = trimmedTitle || { absolute: siteName }
   const fullUrl = url ? `${BASE_URL}${url}` : BASE_URL
   const imageUrl = image?.url ?? '/opengraph-image.jpg'
   const imageWidth = image?.width ?? 1200
   const imageHeight = image?.height ?? 630
-  const imageAlt = image?.alt ?? title ?? siteName
+  const imageAlt = image?.alt ?? (trimmedTitle || siteName)
 
   const metadata: Metadata = {
     metadataBase: new URL(BASE_URL),
@@ -143,6 +147,12 @@ export function generateSanityMetadata(options: {
       title?: string | null
       description?: string | null
       keywords?: string[] | null
+      /** The Studio's Social Media Image, with its asset dereferenced. */
+      image?: {
+        alt?: string | null
+        asset?: { url?: string | null } | null
+        hotspot?: { x?: number | null; y?: number | null } | null
+      } | null
       noIndex?: boolean | null
     } | null
     _updatedAt?: string | null
@@ -173,10 +183,9 @@ export function generateSanityMetadata(options: {
   }
 
   // Locals let control-flow narrowing strip `null` before generatePageMetadata.
-  // The OG image is not derived from `metadata.image`: the queries don't
-  // dereference the asset (`asset->{url}`), so the default image is used.
   const title = metadata.title ?? document.title
-  const { description, keywords, noIndex } = metadata
+  const { description, keywords, noIndex, image } = metadata
+  const imageUrl = image?.asset?.url
   const { publishedAt, _updatedAt } = document
 
   const resolvedDescription = description || derivedDescription
@@ -185,6 +194,20 @@ export function generateSanityMetadata(options: {
   if (title) pageOptions.title = title
   if (resolvedDescription) pageOptions.description = resolvedDescription
   if (keywords) pageOptions.keywords = keywords
+  // Sanity's CDN crops to the 1200x630 card size around the hotspot's focal
+  // point. The Studio's crop rectangle is ignored: applying it needs
+  // `@sanity/image-url`, which `setup:project` removes with Sanity.
+  if (imageUrl) {
+    const focal = image.hotspot
+    const focalParams =
+      focal?.x != null && focal.y != null
+        ? `&crop=focalpoint&fp-x=${focal.x}&fp-y=${focal.y}`
+        : ''
+    pageOptions.image = {
+      url: `${imageUrl}?w=1200&h=630&fit=crop&auto=format${focalParams}`,
+      ...(image.alt && { alt: image.alt }),
+    }
+  }
   if (url) pageOptions.url = url
   if (forceNoIndex) pageOptions.noIndex = true
   else if (noIndex != null) pageOptions.noIndex = noIndex

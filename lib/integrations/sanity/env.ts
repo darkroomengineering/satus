@@ -19,6 +19,10 @@ export const projectId =
   process.env.SANITY_STUDIO_PROJECT_ID ??
   ''
 
+// Production falls back to '' (same origin), not `lib/env.ts`'s localhost:
+// this module can't read the `VERCEL_*` host, so a localhost default would
+// point a deployed Studio at localhost. '' gives the relative `/studio`, and
+// Presentation resolves an empty `origin` to `location.origin`.
 export const studioUrl =
   process.env.NODE_ENV === 'development'
     ? 'http://localhost:3000/studio'

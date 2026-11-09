@@ -49,7 +49,7 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
       .click()
     await expect(page).toHaveURL('/')
     await expect(
-      page.getByRole('heading', { name: 'Satūs', exact: true })
+      page.getByRole('heading', { name: 'Satus', exact: true })
     ).toBeVisible()
     await expect
       .poll(() =>
@@ -76,7 +76,7 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
     await home.click()
     await expect(page).toHaveURL('/')
     await expect(
-      page.getByRole('heading', { name: 'Satūs', exact: true })
+      page.getByRole('heading', { name: 'Satus', exact: true })
     ).toBeVisible()
 
     // Return again immediately: navigation must remain usable while a prior
@@ -85,7 +85,7 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
     await home.click()
     await expect(page).toHaveURL('/')
     await expect(
-      page.getByRole('heading', { name: 'Satūs', exact: true })
+      page.getByRole('heading', { name: 'Satus', exact: true })
     ).toBeVisible()
     await expect
       .poll(() =>

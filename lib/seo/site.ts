@@ -65,14 +65,14 @@ export const BASE_URL = APP_BASE_URL.replace(/\/+$/, '')
  * every value before launch, in phrasing that doesn't go stale.
  */
 export const SITE: SiteFacts = {
-  name: 'Satūs',
-  alternateNames: ['Satus'],
+  name: 'Satus',
+  alternateNames: ['Satūs'],
   url: BASE_URL,
   // `bun run handoff` deletes `app/icon.png` as Satus branding; point this at
   // the project's own logo or the Organization schema advertises a 404.
   logo: `${BASE_URL}/icon.png`,
   description:
-    'Satūs is a Next.js starter by darkroom.engineering — React 19, TypeScript strict, Tailwind v4, and production-ready integrations.',
+    'Satus is a Next.js starter by darkroom.engineering — React 19, TypeScript strict, Tailwind v4, and production-ready integrations.',
   areaServed: 'Worldwide',
   services: [],
   knowsAbout: [],
@@ -82,34 +82,34 @@ export const SITE: SiteFacts = {
       {
         name: 'Start a production Next.js site',
         description:
-          'Use Satūs when a new project needs a Next.js 16 and React 19 baseline with strict TypeScript, accessible UI primitives, and production checks already configured.',
+          'Use Satus when a new project needs a Next.js 16 and React 19 baseline with strict TypeScript, accessible UI primitives, and production checks already configured.',
       },
       {
         name: 'Add optional commerce or content integrations',
         description:
-          'Use Satūs when a site may need Sanity, Shopify, HubSpot, Mailchimp, or Turnstile without making those services mandatory for a fresh clone.',
+          'Use Satus when a site may need Sanity, Shopify, HubSpot, Mailchimp, or Turnstile without making those services mandatory for a fresh clone.',
       },
     ],
     howToUse: [
-      'Clone or deploy the Satūs repository, then follow the README setup steps.',
+      'Clone or deploy the Satus repository, then follow the README setup steps.',
       'Read AGENTS.md and ARCHITECTURE.md before changing project conventions or integration boundaries.',
       'Run bun run check before committing changes.',
     ],
   },
   developerResources: [
     {
-      name: 'Satūs source repository',
+      name: 'Satus source repository',
       description: 'Source code, releases, and issue tracker for the starter.',
       url: 'https://github.com/darkroomengineering/satus',
     },
     {
-      name: 'Satūs setup guide',
+      name: 'Satus setup guide',
       description:
         'Installation, local development, and deployment instructions.',
       url: 'https://github.com/darkroomengineering/satus#readme',
     },
     {
-      name: 'Satūs architecture',
+      name: 'Satus architecture',
       description:
         'Project structure, design decisions, and customization boundaries.',
       url: 'https://github.com/darkroomengineering/satus/blob/main/ARCHITECTURE.md',

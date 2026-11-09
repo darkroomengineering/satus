@@ -1,20 +1,24 @@
 /**
- * The Satūs manual: a self-contained landing page and the one file to replace
+ * The Satus manual: a self-contained landing page and the one file to replace
  * when starting a real project (swap this component, delete
- * `page.module.css`). Nothing else is wired into it.
+ * `page.module.css`). Nothing else is wired into it. Keep a `metadata` export
+ * with `alternates: routeAlternates('/')` (here via `generatePageMetadata`):
+ * the layout sets no canonical, so home's comes from this file.
  */
 import cn from 'clsx'
 
 import { ProgressText } from '@/components/effects/progress-text'
 import { Wrapper } from '@/components/layout/wrapper'
 import { Link } from '@/components/ui/link'
+import { generatePageMetadata } from '@/utils/metadata'
 
 import s from './page.module.css'
 
-export const metadata = {
-  title: 'Satūs: start here',
+export const metadata = generatePageMetadata({
+  title: 'Satus: start here',
   description: 'From a fresh clone to a shippable site, one step at a time.',
-}
+  url: '/',
+})
 
 interface Step {
   title: string
@@ -140,7 +144,7 @@ export default function HomePage() {
       <section className={cn(s.hero, 'dr-layout-grid')}>
         <div className="col-span-full dt:col-start-2 dt:col-end-11">
           <p className={s.kicker}>Start here</p>
-          <h1 className={s.title}>Satūs</h1>
+          <h1 className={s.title}>Satus</h1>
           <p className={s.lede}>
             A starter, not a product. The steps below take you from a fresh
             clone to something you can ship. When you&apos;re ready, replace

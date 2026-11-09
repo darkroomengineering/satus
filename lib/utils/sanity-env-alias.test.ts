@@ -54,3 +54,40 @@ describe('sanityEnvSchema <-> lib/integrations/sanity/env.ts project ID alias pa
     }
   })
 })
+
+/**
+ * Base URL alignment: `lib/env.ts` derives `APP_BASE_URL` from
+ * `NEXT_PUBLIC_BASE_URL` first, and the dual-compiled `sanity/env.ts` reads the
+ * same variable for `studioUrl` and `previewURL`. Their fallbacks differ on
+ * purpose: `sanity/env.ts` can't see the `VERCEL_*` host, so it falls back to
+ * '' (same origin) where `lib/env.ts` falls back to `https://localhost:3000`.
+ */
+describe('NEXT_PUBLIC_BASE_URL readers in lib/env.ts and sanity/env.ts', () => {
+  it('lib/env.ts prefers NEXT_PUBLIC_BASE_URL for APP_BASE_URL', async () => {
+    const source = await Bun.file('lib/env.ts').text()
+    expect(source).toMatch(
+      /export const APP_BASE_URL =\s*env\.NEXT_PUBLIC_BASE_URL \?\?/
+    )
+  })
+
+  it('sanity/env.ts reads the same variable and falls back to same-origin, never localhost', async () => {
+    const source = await Bun.file('lib/integrations/sanity/env.ts').text()
+
+    for (const name of ['studioUrl', 'previewURL']) {
+      const match = new RegExp(
+        `export const ${name} =([\\s\\S]*?)(?:\\n\\n|$)`
+      ).exec(source)
+      const block = match?.[1] ?? ''
+      // The production branch: the line that reads the variable.
+      const production =
+        block
+          .split('\n')
+          .find((line) => line.includes('NEXT_PUBLIC_BASE_URL')) ?? ''
+
+      expect(production, name).toContain(
+        "process.env.NEXT_PUBLIC_BASE_URL ?? ''"
+      )
+      expect(production, name).not.toContain('localhost')
+    }
+  })
+})

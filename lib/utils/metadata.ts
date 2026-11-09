@@ -76,7 +76,9 @@ export function generatePageMetadata(
     title,
     description,
     keywords,
-    alternates: routeAlternates(url ?? '/'),
+    // A noindex page names no canonical; it inherits the layout's
+    // llms.txt-only alternates.
+    ...(!noIndex && { alternates: routeAlternates(url ?? '/') }),
     openGraph: {
       title,
       description,
@@ -150,8 +152,10 @@ export function generateSanityMetadata(options: {
   }
   url?: string
   type?: 'website' | 'article'
+  /** Noindex whatever the document says, for routes that are never indexed. */
+  noIndex?: boolean
 }): Metadata {
-  const { document, url, type = 'website' } = options
+  const { document, url, type = 'website', noIndex: forceNoIndex } = options
   const metadata = document.metadata
 
   // Editors leave the SEO description empty far more often than the body, and
@@ -164,6 +168,7 @@ export function generateSanityMetadata(options: {
     if (document.title) fallbackOptions.title = document.title
     if (derivedDescription) fallbackOptions.description = derivedDescription
     if (url) fallbackOptions.url = url
+    if (forceNoIndex) fallbackOptions.noIndex = true
     return generatePageMetadata(fallbackOptions)
   }
 
@@ -181,7 +186,8 @@ export function generateSanityMetadata(options: {
   if (resolvedDescription) pageOptions.description = resolvedDescription
   if (keywords) pageOptions.keywords = keywords
   if (url) pageOptions.url = url
-  if (noIndex != null) pageOptions.noIndex = noIndex
+  if (forceNoIndex) pageOptions.noIndex = true
+  else if (noIndex != null) pageOptions.noIndex = noIndex
   if (publishedAt) pageOptions.publishedTime = publishedAt
   if (_updatedAt) pageOptions.modifiedTime = _updatedAt
 

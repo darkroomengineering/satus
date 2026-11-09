@@ -4,6 +4,15 @@ import { markdownPathForRoute } from '@/lib/seo/markdown-path'
 import { STATIC_ROUTES } from '@/lib/seo/route-catalog'
 
 /**
+ * Alternates that hold on every page, including noindex ones: the `/llms.txt`
+ * link. `app/(site)/layout.tsx` sets only these, so a route that declares no
+ * `alternates` inherits no canonical.
+ */
+export const SITE_ALTERNATE_TYPES = {
+  'text/plain': [{ url: '/llms.txt', title: 'llms.txt' }],
+} satisfies NonNullable<Metadata['alternates']>['types']
+
+/**
  * Builds the `alternates` block for one route.
  *
  * Next.js merges metadata shallowly: a child that declares its own
@@ -15,6 +24,10 @@ import { STATIC_ROUTES } from '@/lib/seo/route-catalog'
  * disagrees asks engines to crawl one URL and index another. Pass a
  * root-relative path (`/articles/foo`); Next resolves it against
  * `metadataBase`.
+ *
+ * Only `STATIC_ROUTES` advertise a `text/markdown` alternate. CMS routes have
+ * no Markdown body (negotiation answers 303 or 406, see
+ * `markdown-document.ts`), so a link would send crawlers to a 406.
  */
 export function routeAlternates(path: string): Metadata['alternates'] {
   const hasMarkdownRepresentation = STATIC_ROUTES.some(
@@ -26,7 +39,7 @@ export function routeAlternates(path: string): Metadata['alternates'] {
     // child, telling engines the whole site is one duplicated page.
     canonical: path,
     types: {
-      'text/plain': [{ url: '/llms.txt', title: 'llms.txt' }],
+      ...SITE_ALTERNATE_TYPES,
       ...(hasMarkdownRepresentation && {
         'text/markdown': [
           {

@@ -23,7 +23,7 @@ describe('buildMarkdownDocument', () => {
 
     expect(document.status).toBe(200)
     expect(document.contentType).toBe('text/markdown; charset=utf-8')
-    expect(document.body).toMatch(/^# Home \| Satūs/m)
+    expect(document.body).toMatch(/^# Home \| Satus/m)
     expect(document.body).toContain('## When to use')
     expect(document.body).toContain('## Developer resources')
   })
@@ -47,6 +47,7 @@ describe('buildMarkdownDocument', () => {
           path: '/about',
           label: 'About',
           lastModified: new Date('2026-01-01T00:00:00.000Z'),
+          noIndex: false,
         },
       ],
       { htmlAcceptable: false }
@@ -67,6 +68,7 @@ describe('buildMarkdownDocument', () => {
           path: '/about',
           label: 'About',
           lastModified: new Date('2026-01-01T00:00:00.000Z'),
+          noIndex: false,
         },
       ],
       { htmlAcceptable: true }
@@ -86,6 +88,7 @@ describe('buildMarkdownDocument', () => {
           path: '/about',
           label: 'About',
           lastModified: new Date('2026-01-01T00:00:00.000Z'),
+          noIndex: false,
         },
       ],
       { htmlAcceptable: true, search: '?variant=x' }
@@ -103,10 +106,28 @@ describe('buildMarkdownDocument', () => {
         path: '/about',
         label: 'About',
         lastModified: new Date('2026-01-01T00:00:00.000Z'),
+        noIndex: false,
       },
     ])
 
     expect(document.status).toBe(303)
+  })
+
+  it('leaves a noindex CMS route out of the page list but still resolves it', () => {
+    const hidden = {
+      path: '/hidden',
+      label: 'Hidden page',
+      lastModified: new Date('2026-01-01T00:00:00.000Z'),
+      noIndex: true,
+    }
+
+    const home = buildMarkdownDocumentFromRoutes('/', [hidden])
+    assertDocumentBody(home)
+    expect(home.body).not.toContain(absoluteSiteUrl('/hidden'))
+
+    expect(buildMarkdownDocumentFromRoutes('/hidden', [hidden]).status).toBe(
+      303
+    )
   })
 
   it('returns a 503 with a retry hint when the CMS catalog is degraded rather than confirmed empty', () => {

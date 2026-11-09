@@ -22,6 +22,7 @@ import { formatList, SITE } from '@/lib/seo/site'
  */
 export const dynamic = 'force-static'
 
+/** The About section, or `''` when `lib/seo/site.ts` sets none of its facts. */
 function buildAbout(): string {
   const clauses: string[] = []
 
@@ -32,13 +33,9 @@ function buildAbout(): string {
   if (SITE.knowsAbout.length)
     clauses.push(`Areas of expertise: ${formatList(SITE.knowsAbout)}.`)
 
-  // Fresh clone: no optional SITE fields are set yet. Say so plainly instead
-  // of emitting an empty section or a sentence with a hole in it.
-  if (clauses.length === 0) {
-    return `No additional facts configured yet — populate lib/seo/site.ts.`
-  }
+  if (clauses.length === 0) return ''
 
-  return clauses.join(' ')
+  return `## About\n\n${clauses.join(' ')}\n\n`
 }
 
 async function buildBody(): Promise<string> {
@@ -48,11 +45,7 @@ async function buildBody(): Promise<string> {
 
 > ${SITE.description}
 
-## About
-
-${buildAbout()}
-
-## Key pages
+${buildAbout()}## Key pages
 
 ${buildStaticRoutesMarkdown()}${buildCmsRoutesMarkdown(cmsRoutes)}${buildAgentGuidanceMarkdown()}${buildDeveloperResourcesMarkdown()}
 `

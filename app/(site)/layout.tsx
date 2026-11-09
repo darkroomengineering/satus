@@ -9,34 +9,33 @@ import { ReactTempus } from 'tempus/react'
 import { Link } from '@/components/ui/link'
 import { RealViewport } from '@/components/ui/real-viewport'
 import { ToastProvider } from '@/components/ui/toast'
-import { APP_BASE_URL, env } from '@/lib/env'
+import { env } from '@/lib/env'
 import { OptionalFeatures } from '@/lib/features'
 import { isConfigured } from '@/lib/integrations/registry'
 import { SanityVisualEditing } from '@/lib/integrations/sanity/components/visual-editing'
-import { routeAlternates } from '@/lib/seo/alternates'
+import { SITE_ALTERNATE_TYPES } from '@/lib/seo/alternates'
 import { JsonLd } from '@/lib/seo/json-ld'
 import { organizationSchema, websiteSchema } from '@/lib/seo/schemas'
+import { BASE_URL, SITE } from '@/lib/seo/site'
 import { themes } from '@/lib/styles/colors'
 import AppData from '@/package.json'
 
 const APP_NAME = AppData.name
-const APP_DEFAULT_TITLE = 'Satūs'
-const APP_TITLE_TEMPLATE = '%s - Satūs'
+const APP_DEFAULT_TITLE = SITE.name
+const APP_TITLE_TEMPLATE = `%s - ${SITE.name}`
 const APP_DESCRIPTION = AppData.description
 
 export const metadata: Metadata = {
-  metadataBase: new URL(APP_BASE_URL),
+  metadataBase: new URL(BASE_URL),
   applicationName: APP_NAME,
   title: {
     default: APP_DEFAULT_TITLE,
     template: APP_TITLE_TEMPLATE,
   },
   description: APP_DESCRIPTION,
-  alternates: {
-    // Home canonical only: child routes build their own via `routeAlternates`,
-    // or inheriting this one canonicalizes the whole site to `/`.
-    ...routeAlternates('/'),
-  },
+  // No canonical: a route that sets none (noindex examples, the 404) would
+  // inherit it. Indexable pages set their own through `routeAlternates`.
+  alternates: { types: SITE_ALTERNATE_TYPES },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -45,13 +44,12 @@ export const metadata: Metadata = {
   formatDetection: { telephone: false },
   openGraph: {
     type: 'website',
-    siteName: APP_NAME,
+    siteName: SITE.name,
     title: {
       default: APP_DEFAULT_TITLE,
       template: APP_TITLE_TEMPLATE,
     },
     description: APP_DESCRIPTION,
-    url: APP_BASE_URL,
     images: [
       {
         url: '/opengraph-image.jpg',

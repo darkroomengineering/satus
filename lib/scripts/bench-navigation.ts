@@ -55,7 +55,7 @@ const SCENARIOS = new Map<string, Scenario>([
       from: '/__bench-nonexistent-path',
       fromHeading: '404',
       linkName: /go home/i,
-      shellHeading: 'Satūs',
+      shellHeading: 'Satus',
       describe:
         '404 -> / via "Go Home" (static shell only, no streamed content)',
     },

@@ -6,6 +6,8 @@ import { env } from '@/lib/env'
 
 import { TAGS } from './constants'
 import {
+  createSeenSet,
+  isFreshShopifyWebhook,
   isValidShopifySignature,
   isWellFormedShopifySignature,
 } from './webhook-signature'
@@ -21,6 +23,13 @@ const productWebhooks = new Set([
   'products/update',
 ])
 const pageWebhooks = new Set(['pages/create', 'pages/delete', 'pages/update'])
+
+// SHORTCUT: per-instance memory. ceiling: serverless instances do not share it,
+// so a replay that lands on another instance is not deduplicated; the
+// freshness check is the protection that holds across instances. upgrade:
+// move the set to a shared store (Redis, KV) if replays inside the freshness
+// window start to matter.
+const seenDeliveries = createSeenSet()
 
 // Called from `app/api/revalidate/route.ts`.
 export async function revalidate(req: NextRequest): Promise<NextResponse> {
@@ -48,6 +57,28 @@ export async function revalidate(req: NextRequest): Promise<NextResponse> {
       { data: null, error: 'Unauthorized' },
       { status: 401 }
     )
+  }
+
+  // The headers below are not signed, so they only stop a verbatim replay.
+  if (!isFreshShopifyWebhook(req.headers.get('x-shopify-triggered-at'))) {
+    console.error('Stale or untimed Shopify webhook.')
+    return NextResponse.json(
+      { data: null, error: 'Unauthorized' },
+      { status: 401 }
+    )
+  }
+
+  // The signature is bound to the body, so it dedupes a replay that rewrites
+  // the webhook id. 200, not an error: Shopify retries non-2xx responses.
+  const webhookId = req.headers.get('x-shopify-webhook-id')
+  const isNew =
+    seenDeliveries.remember(`sig:${signature}`) &&
+    (!webhookId || seenDeliveries.remember(`id:${webhookId}`))
+  if (!isNew) {
+    return NextResponse.json({
+      data: { revalidated: false, now: Date.now() },
+      error: null,
+    })
   }
 
   const topic = req.headers.get('x-shopify-topic') ?? 'unknown'

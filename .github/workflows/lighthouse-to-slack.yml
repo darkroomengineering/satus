@@ -19,10 +19,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Commit comments need only `contents: write`. Every other step talks to
+# Vercel, not GitHub, and artifact upload uses the runner's own token.
 permissions:
   contents: write
-  pull-requests: write
-  actions: read
 
 jobs:
   lighthouse:
@@ -190,7 +190,9 @@ jobs:
           runs: 3
           configPath: ${{ steps.lhci_config.outputs.config_path }}
           uploadArtifacts: true
-          temporaryPublicStorage: true
+          # Public storage would publish reports of protected previews; the
+          # comment links to this run's artifacts instead.
+          temporaryPublicStorage: false
 
       - name: Format Results
         id: format
@@ -200,7 +202,7 @@ jobs:
           DEPLOYMENT_FAILED: ${{ steps.await.outcome != 'success' }}
           PREVIEW_URL: ${{ steps.vercel_url.outputs.preview_url }}
           MANIFEST: ${{ steps.lighthouse.outputs.manifest }}
-          LINKS: ${{ steps.lighthouse.outputs.links }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           script: |
             if (process.env.DEPLOYMENT_FAILED === 'true') {
@@ -210,11 +212,10 @@ jobs:
 
             try {
               const manifest = JSON.parse(process.env.MANIFEST);
-              const links = JSON.parse(process.env.LINKS);
               const previewUrl = process.env.PREVIEW_URL;
 
               const scores = manifest[0].summary;
-              const reportUrl = Object.values(links)[0];
+              const reportUrl = process.env.RUN_URL;
 
               const emoji = (score) => score >= 0.9 ? '🟢' : score >= 0.5 ? '🟠' : '🔴';
               const format = (score) => Math.round(score * 100);

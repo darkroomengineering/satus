@@ -55,4 +55,4 @@ post-checkout:
 post-merge:
   commands:
     install-deps:
-      run: bun i
+      run: bun install --frozen-lockfile

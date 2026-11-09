@@ -1,7 +1,8 @@
 name: Auto-merge Dependabot
 
 # Auto-merge stable patch/minor Dependabot bumps once the CI workflow passes.
-# Major, 0.x, prerelease and unrecognized updates require human review.
+# Major, 0.x, prerelease and unrecognized updates require human review, and so
+# do GitHub Actions bumps and bumps of packages in `trustedDependencies`.
 
 on:
   workflow_run:
@@ -14,7 +15,45 @@ permissions:
   pull-requests: write
 
 jobs:
+  # The shared workflow accepts `ci:` titles and has no package exclusion.
+  # Actions run with this repo's token, and trusted packages run install
+  # scripts on every machine that pulls main, so both stay manual.
+  gate:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      eligible: ${{ steps.check.outputs.eligible }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Exclude Actions and trusted-package bumps
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          title=$(gh api --paginate --slurp "/repos/$REPO/commits/$HEAD_SHA/pulls?per_page=100" |
+            jq -r --arg sha "$HEAD_SHA" \
+              '[.[][] | select(.state == "open" and .head.sha == $sha)] | if length == 1 then .[0].title else "" end')
+          pkg=$(printf '%s\n' "$title" | sed -nE 's/^chore\(deps(-dev)?\): [Bb]ump ([^ ]+) from .*/\2/p')
+          eligible=false
+          if [ -n "$pkg" ] &&
+            [ "$(jq -r --arg p "$pkg" 'any(.trustedDependencies[]; . == $p)' package.json)" = false ]; then
+            eligible=true
+          fi
+          echo "Eligible for auto-merge: $eligible"
+          echo "eligible=$eligible" >> "$GITHUB_OUTPUT"
+
   auto-merge:
+    needs: gate
+    if: needs.gate.outputs.eligible == 'true'
     uses: darkroomengineering/.github/.github/workflows/dependabot-merge.yml@a75b42e03f56b5ca5b2808ac4f1b06c81998fbc6
     with:
       update-policy: stable-dependencies

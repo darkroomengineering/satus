@@ -70,9 +70,8 @@
   },
   "trustedDependencies": [
     "@tailwindcss/oxide",
-    "sharp",
-    "oxlint",
     "oxfmt",
+    "sharp",
     "lefthook",
   ],
   "overrides": {

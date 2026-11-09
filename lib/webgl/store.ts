@@ -88,13 +88,39 @@ export function registerRootCanvasMount(id: string): () => void {
 // post-commit (from an effect); the claim is set synchronously in the render
 // body, so the first commit already knows which instance is primary and two
 // instances never both mount a WebGLRenderer on the same tunnels.
+//
+// A claim made in render is a lease until its commit confirms it
+// (`announcePrimaryClaim`). React can discard a render that never commits
+// (suspense, an error boundary, an abandoned transition), and a discarded
+// instance never runs the cleanup that releases its claim; the lease expires
+// so such a claim cannot block the real canvas or report a canvas that
+// never mounted. Cost: a canvas that mounts behind a discarded claim stays
+// blank until that lease expires.
 let primaryClaimId: string | undefined
+// Pending exactly while the claim is unconfirmed; every write to
+// `primaryClaimId` clears or replaces it, so a stale timer never fires.
+let primaryClaimLease: ReturnType<typeof setTimeout> | undefined
 const primaryClaimListeners = new Set<() => void>()
+
+const PRIMARY_CLAIM_LEASE_MS = 5000
 
 function emitPrimaryClaimChange() {
   for (const listener of primaryClaimListeners) {
     listener()
   }
+}
+
+function clearPrimaryClaimLease() {
+  clearTimeout(primaryClaimLease)
+  primaryClaimLease = undefined
+}
+
+// Hands the slot to a committed root canvas, or empties it. Registered ids
+// have committed, so a promoted survivor needs no lease.
+function promotePrimaryClaim(exceptId: string) {
+  clearPrimaryClaimLease()
+  primaryClaimId = rootCanvasIds.find((rootId) => rootId !== exceptId)
+  emitPrimaryClaimChange()
 }
 
 /**
@@ -104,26 +130,40 @@ function emitPrimaryClaimChange() {
  * Never notifies subscribers: doing that during render re-renders subscribed
  * components mid-render ("Cannot update a component while rendering a
  * different component"). The claimer calls `announcePrimaryClaim` from a
- * layout effect instead.
+ * layout effect instead, which also confirms the lease. An unconfirmed claim
+ * expires after `PRIMARY_CLAIM_LEASE_MS`, and subscribers re-render then.
  *
- * Idempotent per id, so Strict Mode's double render (and a render that never
- * commits) is safe. Claiming while a different id holds the slot returns
- * `false`; only that id's `releasePrimary` frees it.
+ * Idempotent per id, so Strict Mode's double render is safe. Claiming while a
+ * different id holds the slot returns `false`; only that id's `releasePrimary`
+ * (or an expired lease) frees it.
  */
 export function claimPrimary(id: string): boolean {
   if (primaryClaimId === undefined) {
     primaryClaimId = id
+    primaryClaimLease = setTimeout(
+      () => promotePrimaryClaim(id),
+      PRIMARY_CLAIM_LEASE_MS
+    )
   }
   return primaryClaimId === id
 }
 
 /**
- * Tell subscribers the claim changed. Call from the primary's layout effect,
- * after the claiming commit and before paint, so `useRootCanvasMounted`
- * consumers update in the same frame. Cost: a consumer that already rendered in
- * the claiming commit renders once more.
+ * Confirm `id`'s claim after its commit and tell subscribers the claim
+ * changed. Call from the primary's layout effect, before paint, so
+ * `useRootCanvasMounted` consumers update in the same frame. Cost: a consumer
+ * that already rendered in the claiming commit renders once more.
+ *
+ * Takes the slot when it is empty: the caller committed as primary, but its
+ * claim can be gone by now. The lease expires under a commit slower than
+ * `PRIMARY_CLAIM_LEASE_MS`, and Strict Mode's effect replay runs the cleanup
+ * that releases the claim, then this, without rendering in between. A slot
+ * another canvas holds stays with it, and the caller re-renders as non-primary
+ * once its subscription sees the change.
  */
-export function announcePrimaryClaim(): void {
+export function announcePrimaryClaim(id: string): void {
+  primaryClaimId ??= id
+  if (primaryClaimId === id) clearPrimaryClaimLease()
   emitPrimaryClaimChange()
 }
 
@@ -135,8 +175,7 @@ export function announcePrimaryClaim(): void {
  */
 export function releasePrimary(id: string): void {
   if (primaryClaimId !== id) return
-  primaryClaimId = rootCanvasIds.find((rootId) => rootId !== id)
-  emitPrimaryClaimChange()
+  promotePrimaryClaim(id)
 }
 
 export function subscribePrimaryClaim(listener: () => void): () => void {

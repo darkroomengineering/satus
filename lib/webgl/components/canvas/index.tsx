@@ -169,10 +169,11 @@ export function Canvas({
   const isPrimary = canMount && claimPrimary(id)
   const isMounting = isPrimary
 
-  // The claim above is silent; announce it once committed, before paint.
+  // The claim above is silent and unconfirmed; confirm and announce it once
+  // committed, before paint.
   useLayoutEffect(() => {
-    if (isPrimary) announcePrimaryClaim()
-  }, [isPrimary])
+    if (isPrimary) announcePrimaryClaim(id)
+  }, [isPrimary, id])
 
   useEffect(() => {
     if (!canMount) return

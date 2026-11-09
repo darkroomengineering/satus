@@ -120,10 +120,6 @@ const FRAME_ANCESTORS = ["'self'", 'https://*.sanity.studio']
  * `worker-src` is absent: `lib/webgl/**` has no decoder workers, and the one
  * `blob:` use (`lib/dev/theatre/studio`'s save-file download link) is
  * dev-only and not a worker or fetch. Add it if a worker appears.
- *
- * `media-src` is present for `checkIsAutoplaySupported()` in
- * `lib/hooks/use-device-detection.ts`, which probes with a `data:video/mp4`
- * source on every route.
  */
 const DIRECTIVE_ORDER: CspDirective[] = [
   'script-src',
@@ -178,9 +174,9 @@ export function composeCsp({
     // source (preview toolbar, Turnstile) replaces that fallback, and without
     // 'self' the Studio's Presentation iframe is blocked.
     'frame-src': ["'self'"],
-    // data: for the autoplay probe (see DIRECTIVE_ORDER). `media-src` falls
-    // back to `default-src 'self'`, which blocks it on every route.
-    'media-src': ["'self'", 'data:'],
+    // Declared although `default-src` covers it: an integration's media host
+    // replaces that fallback, and without 'self' same-origin media is blocked.
+    'media-src': ["'self'"],
     // Does not fall back to default-src: omitting it lets forms submit
     // anywhere. Integrations submit through Server Actions / Route Handlers;
     // a cross-origin <form action> adds its origin via

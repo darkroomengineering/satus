@@ -33,7 +33,7 @@ const ScrollTriggerDebugger = dynamic(
 
 const ReactScan = dynamic(
   () =>
-    import('@/components/react-scan-provider').then(
+    import('./react-scan-provider').then(
       ({ ReactScanProvider }) => ReactScanProvider
     ),
   { ssr: false }

@@ -40,7 +40,7 @@ client bundle.
 ## useDeviceDetection
 
 SSR-safe device capabilities: `isMobile`, `isDesktop`, `isReducedMotion`,
-`isTouchOnly`, `dpr`, `isWebGL`, `isSafari`, `isAutoplaySupported`.
+`isTouchOnly`, `dpr`, `isWebGL`, `isSafari`.
 `isWebGL` is false on software renderers (SwiftShader, llvmpipe, headless
 audit runners), so the DOM fallback is what PageSpeed Insights measures. It is
 also false below the desktop breakpoint and on touch-only devices

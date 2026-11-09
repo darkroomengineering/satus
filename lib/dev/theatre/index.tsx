@@ -9,7 +9,6 @@ import {
   useEffect,
   useImperativeHandle,
   useLayoutEffect,
-  useRef,
   useState,
 } from 'react'
 
@@ -24,66 +23,69 @@ type TheatreProjectProviderProps = {
   config: string
 }
 
+// A settled load records the `id` and `config` it belongs to; a state whose
+// key differs from the current props means a newer load is in flight. Loading
+// is derived that way because setting it synchronously in the effect trips
+// `react(set-state-in-effect)`.
+type ProjectLoadState =
+  | { status: 'idle' }
+  | { status: 'ready'; id: string; config: string; project: IProject }
+  | { status: 'failed'; id: string; config: string; error: unknown }
+
 export function TheatreProjectProvider({
   children,
   id,
   config,
 }: PropsWithChildren<TheatreProjectProviderProps>) {
-  const [project, setproject] = useState<IProject>()
-  const isLoadingRef = useRef(false)
-
-  useEffect(() => {
-    if (project) {
-      isLoadingRef.current = false
-      window.THEATRE_PROJECT_ID = project.address.projectId
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`Theatre: project ${id} loaded`)
-      }
-    }
-  }, [project, id])
+  const [loadState, setLoadState] = useState<ProjectLoadState>({
+    status: 'idle',
+  })
 
   useLayoutEffect(() => {
-    if (config) {
-      if (!isLoadingRef.current) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`Theatre: project ${id} loading...`)
-        }
-        isLoadingRef.current = true
-        void Promise.all([
+    // Set by cleanup when `id` or `config` changes or the provider unmounts,
+    // so a superseded load cannot overwrite the newer project.
+    let stale = false
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Theatre: project ${id} loading...`)
+    }
+
+    const load = config
+      ? Promise.all([
           loadTheatreCore(),
           fetch(config).then((response) => response.json()),
-        ])
-          .then(([{ getProject }, state]) => {
-            const project = getProject(id, { state })
+        ]).then(([{ getProject }, state]) => getProject(id, { state }))
+      : loadTheatreCore().then(({ getProject }) => getProject(id))
 
-            if (project.isReady) {
-              setproject(project)
-            } else {
-              void project.ready.then(() => {
-                setproject(project)
-              })
-            }
-          })
-          .catch((error) => {
-            // Reset so a remount can retry; a stuck flag disables Theatre for the session.
-            isLoadingRef.current = false
-            console.error(`Theatre: project ${id} failed to load`, error)
-          })
-      }
-    } else {
-      loadTheatreCore()
-        .then(({ getProject }) => {
-          const project = getProject(id)
+    void load
+      .then((project) =>
+        project.isReady ? project : project.ready.then(() => project)
+      )
+      .then((project) => {
+        if (stale) return
+        window.THEATRE_PROJECT_ID = project.address.projectId
+        setLoadState({ status: 'ready', id, config, project })
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`Theatre: project ${id} loaded`)
+        }
+      })
+      .catch((error) => {
+        if (stale) return
+        setLoadState({ status: 'failed', id, config, error })
+        console.error(`Theatre: project ${id} failed to load`, error)
+      })
 
-          void project.ready.then(() => {
-            setproject(project)
-          })
-        })
-        .catch((error) => {
-          console.error(`Theatre: project ${id} failed to load`, error)
-        })
+    return () => {
+      stale = true
     }
   }, [config, id])
+
+  const project =
+    loadState.status === 'ready' &&
+    loadState.id === id &&
+    loadState.config === config
+      ? loadState.project
+      : undefined
 
   return (
     <TheatreProjectContext.Provider value={project}>

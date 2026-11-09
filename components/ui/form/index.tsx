@@ -204,11 +204,12 @@ export function Form<T = unknown>({
   return (
     <FormContext.Provider value={contextValue}>
       <form
-        {...props}
-        // `action`, `onSubmit`, `onInput` and `key` (the post-submit remount)
-        // must win over a consumer's `...props`; a consumer's `onInput` is
-        // called from ours.
+        // `key` (the post-submit remount) goes before the spread for the JSX
+        // runtime; React never passes `key` through props, so it still wins.
         key={lifecycle.key}
+        {...props}
+        // `action`, `onSubmit` and `onInput` must win over a consumer's
+        // `...props`; a consumer's `onInput` is called from ours.
         className={cn(s.form, className)}
         action={formAction}
         onSubmit={onSubmit}

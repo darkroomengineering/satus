@@ -29,7 +29,7 @@ export function AddToCart({
 }: AddToCartProps) {
   const { actions } = useCartContext()
   const { addCartItem } = actions
-  const { openCart } = useCartModal()
+  const { openCart, closeCart } = useCartModal()
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
 
@@ -41,6 +41,14 @@ export function AddToCart({
       : 'ADD TO CART'
   } else if (product?.availableForSale) {
     buttonState = 'Select a size'
+  }
+
+  // The open drawer makes the page behind it inert, which hides this form's
+  // error from screen readers. On failure, close it: focus returns to the
+  // button beside the message, and the optimistic line has rolled back anyway.
+  function fail(message: string) {
+    setError(message)
+    closeCart()
   }
 
   async function formAction() {
@@ -63,12 +71,13 @@ export function AddToCart({
         variantId: variant?.id || '',
         quantity,
       })
-      setError(result.ok ? null : result.error)
+      if (result.ok) setError(null)
+      else fail(result.error)
     } catch (actionError) {
       // The action never ran (network down, deploy skew). Show it inline
       // instead of letting the rejection reach the route error boundary.
       console.error('Add to cart failed:', actionError)
-      setError('Error adding item to cart')
+      fail('Error adding item to cart')
     } finally {
       router.refresh()
     }

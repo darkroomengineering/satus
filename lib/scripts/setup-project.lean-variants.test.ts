@@ -4,7 +4,7 @@ import { Project, ts } from 'ts-morph'
 
 import { applyOpsToText } from './ast-transforms'
 import { INTEGRATION_BUNDLES } from './integration-bundles'
-import { loadSourceFiles, sourceFiles } from './setup-project.test-helpers'
+import { loadSourceFiles, sourceOf } from './setup-project.test-helpers'
 
 beforeAll(loadSourceFiles)
 
@@ -35,9 +35,8 @@ describe('Lean-variant validity: app/api/revalidate/route.ts (H1)', () => {
    * re-adds each kept bundle and runs `stripAbsentIntegrationWiring`, which
    * re-applies each absent bundle's strip ops with `required` downgraded.
    */
-  const variantFor = (kept: ('sanity' | 'shopify')[]): string | undefined => {
-    const pristine = sourceFiles[FILE]
-    if (!pristine) return undefined
+  const variantFor = (kept: ('sanity' | 'shopify')[]): string => {
+    const pristine = sourceOf(FILE)
 
     let text = pristine
     for (const id of ['sanity', 'shopify'] as const) {
@@ -118,7 +117,6 @@ declare module '@/integrations/shopify/revalidate' {
   it('the type check catches the unused-parameter bug it was written for', () => {
     // Without the `_request` rename, a blank scaffold failed TS6133.
     const blank = variantFor([])
-    if (blank === undefined) return
     const unrenamed = blank.replace('(_request:', '(request:')
     expect(unrenamed).not.toBe(blank)
     expect(typeErrors(unrenamed).join('\n')).toContain('TS6133')
@@ -139,15 +137,11 @@ declare module '@/integrations/shopify/revalidate' {
     describe(label, () => {
       it('type-checks under the repo strict flags', () => {
         const variant = variantFor(kept)
-        if (variant === undefined) return
-
         expect(typeErrors(variant)).toEqual([])
       })
 
       it('references NextResponse only while its import survives', () => {
         const variant = variantFor(kept)
-        if (variant === undefined) return
-
         if (variant.includes('NextResponse.')) {
           expect(variant).toContain("from 'next/server'")
           expect(variant).toMatch(/import \{[^}]*NextResponse[^}]*\} from/)
@@ -156,8 +150,6 @@ declare module '@/integrations/shopify/revalidate' {
 
       it('ends the POST handler on a return statement', () => {
         const variant = variantFor(kept)
-        if (variant === undefined) return
-
         // Statements at POST's top level start at a two-space indent; the
         // character class drops comment lines and the closing brackets of
         // multi-line statements. The last such line must be the
@@ -172,9 +164,8 @@ declare module '@/integrations/shopify/revalidate' {
       })
 
       it('keeps the pristine guard order: Shopify, then Sanity, then the 404', () => {
-        const pristine = sourceFiles[FILE]
+        const pristine = sourceOf(FILE)
         const variant = variantFor(kept)
-        if (pristine === undefined || variant === undefined) return
 
         // The order is behaviour: a request carrying both a Shopify header and
         // a `sanity-webhook-signature` header goes to whichever guard is first.
@@ -201,8 +192,6 @@ declare module '@/integrations/shopify/revalidate' {
 
       it('leaves no reference to a stripped integration', () => {
         const variant = variantFor(kept)
-        if (variant === undefined) return
-
         for (const id of ['sanity', 'shopify'] as const) {
           if (kept.includes(id)) continue
           expect(variant).not.toContain(`@/integrations/${id}/revalidate`)
@@ -229,10 +218,11 @@ describe('Lean-variant validity: lib/seo/routes.ts', () => {
   const stripTransform = INTEGRATION_BUNDLES.sanity?.codeTransforms.find(
     (t) => t.file === FILE
   )
+  if (!stripTransform)
+    throw new Error(`sanity has no codeTransform for ${FILE}`)
 
-  const variantFor = (kept: ('sanity' | 'shopify')[]): string | undefined => {
-    const pristine = sourceFiles[FILE]
-    if (!(pristine && stripTransform)) return undefined
+  const variantFor = (kept: ('sanity' | 'shopify')[]): string => {
+    const pristine = sourceOf(FILE)
     return kept.includes('sanity')
       ? pristine
       : applyOpsToText(pristine, stripTransform.ops)
@@ -250,8 +240,6 @@ describe('Lean-variant validity: lib/seo/routes.ts', () => {
 
     it(`keeps the exported route API (${label})`, () => {
       const variant = variantFor(kept)
-      if (variant === undefined) return
-
       expect(variant).toContain('export function buildRoutesFromDocuments')
       expect(variant).toContain('export async function getCmsRoutes(')
       expect(variant).toContain('export async function getCmsRoutesResult(')
@@ -260,11 +248,11 @@ describe('Lean-variant validity: lib/seo/routes.ts', () => {
 
     it(`references nothing the strip removed (${label})`, () => {
       const variant = variantFor(kept)
-      if (variant === undefined || kept.includes('sanity')) return
+      if (kept.includes('sanity')) return
 
       // Derived from the ops themselves, so a new op is covered the day it
       // lands: whatever the strip deletes must not be referenced afterwards.
-      for (const op of stripTransform?.ops ?? []) {
+      for (const op of stripTransform.ops) {
         if (op.kind === 'removeImport') {
           expect(variant).not.toContain(op.specifier)
         }
@@ -288,8 +276,6 @@ describe('Lean-variant validity: lib/seo/routes.ts', () => {
 
   it('is idempotent when re-applied to an already-lean file', () => {
     const lean = variantFor([])
-    if (!(lean && stripTransform)) return
-
     const downgraded = stripTransform.ops.map((op) => ({
       ...op,
       required: false,

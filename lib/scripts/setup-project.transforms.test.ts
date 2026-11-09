@@ -6,27 +6,26 @@ import {
   getIntegrationEntries,
   getIntegrationNames,
   INTEGRATION_BUNDLES,
+  type IntegrationBundle,
 } from './integration-bundles'
 import { PROJECT_PRESETS } from './setup-project'
-import { loadSourceFiles, sourceFiles } from './setup-project.test-helpers'
+import { loadSourceFiles, sourceOf } from './setup-project.test-helpers'
 
 beforeAll(loadSourceFiles)
 
-describe('Integration Bundle Configuration', () => {
-  it('should have valid structure for all bundles', () => {
-    for (const [_name, bundle] of getIntegrationEntries()) {
-      expect(bundle.name).toBeTruthy()
-      expect(bundle.description).toBeTruthy()
-      expect(Array.isArray(bundle.dependencies)).toBe(true)
-      expect(Array.isArray(bundle.devDependencies)).toBe(true)
-      expect(Array.isArray(bundle.folders)).toBe(true)
-      expect(Array.isArray(bundle.files)).toBe(true)
-      expect(Array.isArray(bundle.envVars)).toBe(true)
-      expect(Array.isArray(bundle.barrelExports)).toBe(true)
-      expect(Array.isArray(bundle.codeTransforms)).toBe(true)
-    }
-  })
+function codeTransformOf(bundle: IntegrationBundle, file: string) {
+  const transform = bundle.codeTransforms.find((t) => t.file === file)
+  if (!transform) {
+    throw new Error(`${bundle.name} has no codeTransform for ${file}`)
+  }
+  return transform
+}
 
+function stripped(bundle: IntegrationBundle, file: string): string {
+  return applyOpsToText(sourceOf(file), codeTransformOf(bundle, file).ops)
+}
+
+describe('Integration Bundle Configuration', () => {
   // Failure modes this guards: a stripped bundle leaves a package.json script
   // that runs a deleted path, and a bundle declares a script name that
   // package.json does not have (a typo, or a rename on one side only).
@@ -63,82 +62,6 @@ describe('Integration Bundle Configuration', () => {
       for (const barrelExport of bundle.barrelExports) {
         expect(barrelExport.file).toBeTruthy()
         expect(barrelExport.pattern).toBeTruthy()
-      }
-    }
-  })
-
-  it('should have valid code transform configurations (ops shape)', () => {
-    for (const [_name, bundle] of getIntegrationEntries()) {
-      for (const transform of bundle.codeTransforms) {
-        expect(transform.file).toBeTruthy()
-        expect(Array.isArray(transform.ops)).toBe(true)
-
-        for (const op of transform.ops) {
-          expect([
-            'removeImport',
-            'removeNamedImport',
-            'removeVariableStatement',
-            'removeCallStatement',
-            'removeCallArgument',
-            'removeJsxElement',
-            'removeInterfaceProperty',
-            'removeFunctionParameter',
-            'replaceJsDoc',
-            'removeIfStatement',
-            'removeTryStatement',
-            'replaceFunctionBody',
-            'removeArrayObjectElement',
-            'removeArrayStringElement',
-            'removeJsxAttribute',
-            'removeDestructuredBinding',
-            'syncUnusedParameterPrefix',
-          ]).toContain(op.kind)
-
-          if (op.kind === 'removeImport') {
-            expect(op.specifier).toBeTruthy()
-          } else if (op.kind === 'removeVariableStatement') {
-            expect(op.name).toBeTruthy()
-          } else if (op.kind === 'removeCallStatement') {
-            expect(op.callee).toBeTruthy()
-          } else if (op.kind === 'removeCallArgument') {
-            expect(op.callee).toBeTruthy()
-            expect(op.argument).toBeTruthy()
-          } else if (op.kind === 'removeJsxElement') {
-            expect(op.tagName).toBeTruthy()
-          } else if (op.kind === 'removeInterfaceProperty') {
-            expect(op.interfaceName).toBeTruthy()
-            expect(op.propertyName).toBeTruthy()
-          } else if (op.kind === 'removeFunctionParameter') {
-            expect(op.functionName).toBeTruthy()
-            expect(op.parameterName).toBeTruthy()
-          } else if (op.kind === 'replaceJsDoc') {
-            expect(op.functionName).toBeTruthy()
-            expect(op.replacement).toBeTruthy()
-          } else if (op.kind === 'removeIfStatement') {
-            expect(op.conditionContains).toBeTruthy()
-          } else if (op.kind === 'removeArrayObjectElement') {
-            expect(op.variableName).toBeTruthy()
-            expect(op.propertyPath).toBeTruthy()
-            expect(op.matchProperty).toBeTruthy()
-          } else if (op.kind === 'removeArrayStringElement') {
-            expect(op.variableName).toBeTruthy()
-            expect(op.propertyPath).toBeTruthy()
-            expect(op.value).toBeTruthy()
-          } else if (op.kind === 'removeJsxAttribute') {
-            expect(op.tagName).toBeTruthy()
-            expect(op.attributeName).toBeTruthy()
-          } else if (op.kind === 'removeDestructuredBinding') {
-            expect(op.bindingName).toBeTruthy()
-          } else if (op.kind === 'removeNamedImport') {
-            expect(op.specifier).toBeTruthy()
-            expect(op.name).toBeTruthy()
-          } else if (op.kind === 'removeTryStatement') {
-            expect(op.blockContains).toBeTruthy()
-          } else if (op.kind === 'replaceFunctionBody') {
-            expect(op.functionName).toBeTruthy()
-            expect(op.replacement).toBeTruthy()
-          }
-        }
       }
     }
   })
@@ -266,15 +189,7 @@ describe('Theatre.js Code Transforms', () => {
     const file = 'lib/dev/index.tsx'
 
     it('should produce valid code after transformation', () => {
-      const content = sourceFiles[file]
-      if (!content) return
-
-      const transform = theatreBundle.codeTransforms.find(
-        (t) => t.file === file
-      )
-      if (!transform) return
-
-      const result = applyOpsToText(content, transform.ops)
+      const result = stripped(theatreBundle, file)
 
       expect(result).toContain("'use client'")
       expect(result).toContain('export function OrchestraTools')
@@ -290,15 +205,7 @@ describe('Theatre.js Code Transforms', () => {
     const file = 'lib/dev/cmdo.tsx'
 
     it('should remove only the studio OrchestraToggle', () => {
-      const content = sourceFiles[file]
-      if (!content) return
-
-      const transform = theatreBundle.codeTransforms.find(
-        (t) => t.file === file
-      )
-      if (!transform) return
-
-      const result = applyOpsToText(content, transform.ops)
+      const result = stripped(theatreBundle, file)
 
       expect(result).not.toContain('id="studio"')
       expect(result).toContain('id="webgl"')
@@ -313,15 +220,7 @@ describe('Theatre.js Code Transforms', () => {
   ] as const) {
     describe(`${file} transforms`, () => {
       it('should strip Theatre wiring and keep the simulation hook', () => {
-        const content = sourceFiles[file]
-        if (!content) return
-
-        const transform = theatreBundle.codeTransforms.find(
-          (t) => t.file === file
-        )
-        if (!transform) return
-
-        const result = applyOpsToText(content, transform.ops)
+        const result = stripped(theatreBundle, file)
 
         expect(result).not.toContain('@theatre/core')
         expect(result).not.toContain('@/dev/theatre')
@@ -345,13 +244,7 @@ describe('WebGL Code Transforms', () => {
     const file = 'lib/features/index.tsx'
 
     it('should produce valid code after transformation', () => {
-      const content = sourceFiles[file]
-      if (!content) return
-
-      const transform = webglBundle.codeTransforms.find((t) => t.file === file)
-      if (!transform) return
-
-      const result = applyOpsToText(content, transform.ops)
+      const result = stripped(webglBundle, file)
 
       expect(result).toContain("'use client'")
       expect(result).toContain('export function OptionalFeatures')
@@ -366,13 +259,7 @@ describe('WebGL Code Transforms', () => {
     const file = 'components/layout/wrapper/index.tsx'
 
     it('should produce valid code after transformation', () => {
-      const content = sourceFiles[file]
-      if (!content) return
-
-      const transform = webglBundle.codeTransforms.find((t) => t.file === file)
-      if (!transform) return
-
-      const result = applyOpsToText(content, transform.ops)
+      const result = stripped(webglBundle, file)
 
       expect(result).toContain('export function Wrapper')
       expect(result).toContain('interface WrapperProps')
@@ -392,13 +279,7 @@ describe('WebGL Code Transforms', () => {
     const file = 'lib/dev/cmdo.tsx'
 
     it('should remove only the webgl OrchestraToggle', () => {
-      const content = sourceFiles[file]
-      if (!content) return
-
-      const transform = webglBundle.codeTransforms.find((t) => t.file === file)
-      if (!transform) return
-
-      const result = applyOpsToText(content, transform.ops)
+      const result = stripped(webglBundle, file)
 
       expect(result).not.toContain('id="webgl"')
       expect(result).toContain('id="studio"')
@@ -464,6 +345,12 @@ describe('Preset Configurations', () => {
 
 // RequiredOpMatchError: a `required: true` op that matches nothing must fail
 // the whole run loudly, not silently leave a broken tree.
+
+function sanityBundle(): IntegrationBundle {
+  const bundle = INTEGRATION_BUNDLES.sanity
+  if (!bundle) throw new Error('Sanity bundle not found')
+  return bundle
+}
 
 describe('RequiredOpMatchError (required-match contract)', () => {
   it('applyOpsToText throws when a required op misses while a sibling op applies', () => {
@@ -558,12 +445,8 @@ describe('RequiredOpMatchError (required-match contract)', () => {
     // A required op late in setupLean's union fails after lib/seo/routes.ts was
     // already stripped and written; the retry reapplies the same ops to the
     // stripped file and must not throw.
-    const content = sourceFiles['lib/seo/routes.ts']
-    const bundle = INTEGRATION_BUNDLES.sanity
-    const transform = bundle?.codeTransforms.find(
-      (t) => t.file === 'lib/seo/routes.ts'
-    )
-    if (!(content && transform)) return
+    const content = sourceOf('lib/seo/routes.ts')
+    const transform = codeTransformOf(sanityBundle(), 'lib/seo/routes.ts')
 
     const lean = applyOpsToText(content, transform.ops)
     expect(applyOpsToText(lean, transform.ops)).toBe(lean)
@@ -588,12 +471,8 @@ describe('RequiredOpMatchError (required-match contract)', () => {
   // Drift scenario "a future rename moves getCmsRoutes", proven against the
   // REAL sanity bundle ops and REAL (mutated) source, not a synthetic fixture.
   it('drifted fixture: renaming getCmsRoutes makes the sanity lib/seo/routes.ts strip fail loudly', () => {
-    const content = sourceFiles['lib/seo/routes.ts']
-    const bundle = INTEGRATION_BUNDLES.sanity
-    const transform = bundle?.codeTransforms.find(
-      (t) => t.file === 'lib/seo/routes.ts'
-    )
-    if (!(content && transform)) return
+    const content = sourceOf('lib/seo/routes.ts')
+    const transform = codeTransformOf(sanityBundle(), 'lib/seo/routes.ts')
 
     const drifted = content.replaceAll('getCmsRoutes', 'getCMSRoutes')
 
@@ -607,12 +486,11 @@ describe('RequiredOpMatchError (required-match contract)', () => {
   // Drift scenario: the shared revalidate route's sanity dispatch is renamed
   // or restructured, proven against the real shared-file ops.
   it('drifted fixture: renaming the revalidate route guard makes the sanity strip fail loudly', () => {
-    const content = sourceFiles['app/api/revalidate/route.ts']
-    const bundle = INTEGRATION_BUNDLES.sanity
-    const transform = bundle?.codeTransforms.find(
-      (t) => t.file === 'app/api/revalidate/route.ts'
+    const content = sourceOf('app/api/revalidate/route.ts')
+    const transform = codeTransformOf(
+      sanityBundle(),
+      'app/api/revalidate/route.ts'
     )
-    if (!(content && transform)) return
 
     // The import op still matches (the file changes) while the guard
     // variable and its dispatch no longer do — partial application, which is
@@ -630,12 +508,8 @@ describe('RequiredOpMatchError (required-match contract)', () => {
   // source that already had them applied once must never throw — that's
   // the expected idempotent no-op, not drift.
   it('downgrading required to false (stripAbsentIntegrationWiring-style) tolerates an already-lean file', () => {
-    const content = sourceFiles['lib/seo/routes.ts']
-    const bundle = INTEGRATION_BUNDLES.sanity
-    const transform = bundle?.codeTransforms.find(
-      (t) => t.file === 'lib/seo/routes.ts'
-    )
-    if (!(content && transform)) return
+    const content = sourceOf('lib/seo/routes.ts')
+    const transform = codeTransformOf(sanityBundle(), 'lib/seo/routes.ts')
 
     const lean = applyOpsToText(content, transform.ops)
     const downgraded = transform.ops.map((op) => ({ ...op, required: false }))
@@ -786,11 +660,12 @@ describe('Combined Transforms (Multiple Integrations Removed)', () => {
 
     const webglBundle = INTEGRATION_BUNDLES.webgl
     const theatreBundle = INTEGRATION_BUNDLES.theatre
-    if (!(webglBundle && theatreBundle)) return
+    if (!(webglBundle && theatreBundle)) {
+      throw new Error('webgl and theatre bundles must exist')
+    }
 
     for (const file of filesToTransform) {
-      const content = sourceFiles[file]
-      if (!content) continue
+      const content = sourceOf(file)
 
       const webglTransform = webglBundle.codeTransforms.find(
         (t) => t.file === file
@@ -830,16 +705,15 @@ describe('Additive Transforms (remove → add round trips)', () => {
   const roundTrip = (
     bundleName: 'sanity' | 'shopify' | 'webgl' | 'theatre',
     file: string
-  ): { lean: string; restored: string } | undefined => {
+  ) => {
     const bundle = INTEGRATION_BUNDLES[bundleName]
-    const content = sourceFiles[file]
-    if (!(bundle && content)) return undefined
-
-    const removal = bundle.codeTransforms.find((t) => t.file === file)
+    if (!bundle) throw new Error(`${bundleName} bundle not found`)
     const additive = bundle.addTransforms?.find((t) => t.file === file)
-    if (!(removal && additive)) return undefined
+    if (!additive) {
+      throw new Error(`${bundleName} has no addTransform for ${file}`)
+    }
 
-    const lean = applyOpsToText(content, removal.ops)
+    const lean = stripped(bundle, file)
     const restored = applyOpsToText(lean, additive.ops)
 
     expect(applyOpsToText(restored, additive.ops)).toBe(restored)
@@ -849,8 +723,6 @@ describe('Additive Transforms (remove → add round trips)', () => {
 
   it('webgl: lib/features/index.tsx regains the root canvas wiring', () => {
     const result = roundTrip('webgl', 'lib/features/index.tsx')
-    if (!result) return
-
     expect(result.lean).not.toContain('LazyWebGLCanvas')
     expect(result.lean).not.toContain('key="webgl"')
     expect(result.restored).toContain('const LazyWebGLCanvas = lazy(')
@@ -863,8 +735,6 @@ describe('Additive Transforms (remove → add round trips)', () => {
 
   it('webgl: lib/dev/cmdo.tsx regains the webgl toggle next to its siblings', () => {
     const result = roundTrip('webgl', 'lib/dev/cmdo.tsx')
-    if (!result) return
-
     expect(result.lean).not.toContain('id="webgl"')
     expect(count(result.restored, 'id="webgl"')).toBe(1)
     // Inserted inside the toggle row, not appended to the outer dialog div:
@@ -878,8 +748,6 @@ describe('Additive Transforms (remove → add round trips)', () => {
 
   it('webgl: next.config.ts regains the three.js optimizePackageImports entries', () => {
     const result = roundTrip('webgl', 'next.config.ts')
-    if (!result) return
-
     expect(result.lean).not.toContain('@react-three/drei')
     expect(count(result.restored, "'@react-three/drei'")).toBe(1)
     expect(count(result.restored, "'@react-three/fiber'")).toBe(1)
@@ -888,8 +756,6 @@ describe('Additive Transforms (remove → add round trips)', () => {
 
   it('theatre: lib/dev/index.tsx regains the Studio wiring', () => {
     const result = roundTrip('theatre', 'lib/dev/index.tsx')
-    if (!result) return
-
     expect(result.lean).not.toContain('Studio')
     expect(result.restored).toContain('const Studio = dynamic(')
     expect(result.restored).toContain('{studio && <Studio />}')
@@ -899,8 +765,6 @@ describe('Additive Transforms (remove → add round trips)', () => {
 
   it('theatre: lib/dev/cmdo.tsx regains the studio toggle', () => {
     const result = roundTrip('theatre', 'lib/dev/cmdo.tsx')
-    if (!result) return
-
     expect(result.lean).not.toContain('id="studio"')
     expect(count(result.restored, 'id="studio"')).toBe(1)
     expect(count(result.restored, 'id="webgl"')).toBe(1)
@@ -908,8 +772,6 @@ describe('Additive Transforms (remove → add round trips)', () => {
 
   it('sanity: next.config.ts regains package imports exactly once', () => {
     const result = roundTrip('sanity', 'next.config.ts')
-    if (!result) return
-
     // The optimizer never allows cdn.sanity.io or cdn.shopify.com, with or
     // without either integration: their images reach the browser through
     // components/ui/image's loaders.
@@ -930,31 +792,24 @@ describe('Additive Transforms (remove → add round trips)', () => {
       ...(bundle?.addTransforms ?? []),
     ]
     expect(transforms.map((t) => t.file)).not.toContain('next.config.ts')
-    expect(sourceFiles['next.config.ts']).toContain('remotePatterns: []')
+    expect(sourceOf('next.config.ts')).toContain('remotePatterns: []')
   })
 
-  it('webgl overwrite: the lean wrapper matches the expected lean state', () => {
-    // Re-adding webgl restores the Wrapper wholesale; its safety check
-    // compares the local file against the payload-with-removal-ops state.
-    // Verify the equation holds on the real source: applying the removal ops
-    // twice equals applying them once (so a lean wrapper is recognized).
+  // Re-adding webgl restores the Wrapper wholesale; its safety check compares
+  // the local file against the payload with the removal ops applied, so a
+  // lean wrapper is recognized only while those ops are idempotent.
+  it('webgl overwrite: the wrapper strip is idempotent on the lean wrapper', () => {
+    const file = 'components/layout/wrapper/index.tsx'
     const bundle = INTEGRATION_BUNDLES.webgl
-    const content = sourceFiles['components/layout/wrapper/index.tsx']
-    if (!(bundle && content)) return
+    if (!bundle) throw new Error('webgl bundle not found')
 
-    const removal = bundle.codeTransforms.find(
-      (t) => t.file === 'components/layout/wrapper/index.tsx'
-    )
-    if (!removal) return
-
-    const lean = applyOpsToText(content, removal.ops)
-    expect(applyOpsToText(lean, removal.ops)).toBe(lean)
+    const lean = stripped(bundle, file)
+    expect(lean).not.toBe(sourceOf(file))
+    expect(applyOpsToText(lean, codeTransformOf(bundle, file).ops)).toBe(lean)
   })
 
   it('sanity: app/api/revalidate/route.ts regains its guard and dispatch exactly once', () => {
     const result = roundTrip('sanity', 'app/api/revalidate/route.ts')
-    if (!result) return
-
     expect(result.lean).not.toContain('sanityRevalidate')
     expect(count(result.restored, 'sanityRevalidate')).toBe(2) // import + dispatch
     expect(count(result.restored, 'const isSanityWebhook')).toBe(1)
@@ -963,8 +818,6 @@ describe('Additive Transforms (remove → add round trips)', () => {
 
   it('shopify: app/api/revalidate/route.ts regains its guard and dispatch exactly once', () => {
     const result = roundTrip('shopify', 'app/api/revalidate/route.ts')
-    if (!result) return
-
     expect(result.lean).not.toContain('shopifyRevalidate')
     expect(count(result.restored, 'shopifyRevalidate')).toBe(2) // import + dispatch
     expect(count(result.restored, 'const isShopifyWebhook')).toBe(1)

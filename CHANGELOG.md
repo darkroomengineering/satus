@@ -146,6 +146,7 @@ latest tag; security fixes land on the latest release (see `SECURITY.md`).
 - Pages load less JavaScript up front. The scripts the prerendered HTML references drop from 262 to 231 KB gzipped on `/`, 239 to 230 KB on `/ai` and 258 to 240 KB on `/webgl`. Two changes do it:
   - `ProgressText` loads anime.js after hydration instead of importing it with the page, so a route that renders it no longer carries the library (about 46 KB gzipped) up front. Until anime.js arrives the text shows fully opaque, the same as without JavaScript.
   - `app/(site)/error.tsx` no longer renders `Wrapper`. Importing it gave the error boundary its own copy of the page shell (Wrapper, header, footer, Lenis, device detection, about 10 KB gzipped), which every route downloaded next to the page's copy. The error page is now a full-height light view without header or footer; `Theme` sets the light theme on `<html>`. It also keeps working when Wrapper is what crashed.
+- The `setup:project` transform tests fail when a file they transform is renamed or a bundle stops listing it. `lib/scripts/setup-project.transforms.test.ts` and `setup-project.lean-variants.test.ts` returned early in that case and passed without asserting anything (OSS-168).
 
 ### Removed
 

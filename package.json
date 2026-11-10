@@ -63,7 +63,7 @@
     "@vercel/analytics": "^2.0.1",
     "animejs": "^4.5.0",
     "clsx": "^2.1.1",
-    "hamo": "^1.0.3",
+    "hamo": "^1.0.4",
     "lenis": "2.0.0-dev.6",
     "next": "16.4.5",
     "next-sanity": "^13.4.0",

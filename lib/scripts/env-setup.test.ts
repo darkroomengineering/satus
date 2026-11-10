@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'bun:test'
+import { afterEach, describe, expect, it, setDefaultTimeout } from 'bun:test'
 import {
   chmodSync,
   mkdirSync,
@@ -10,6 +10,10 @@ import {
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
+
+import { SUBPROCESS_TEST_TIMEOUT_MS } from './setup-project.test-helpers'
+
+setDefaultTimeout(SUBPROCESS_TEST_TIMEOUT_MS)
 
 /**
  * `vercel` and the clipboard commands are fakes that log what they receive.

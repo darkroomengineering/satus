@@ -1,14 +1,19 @@
-import { describe, expect, it } from 'bun:test'
+import { describe, expect, it, setDefaultTimeout } from 'bun:test'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-import { copyRepo } from './setup-project.test-helpers'
+import {
+  copyRepo,
+  SUBPROCESS_TEST_TIMEOUT_MS,
+} from './setup-project.test-helpers'
 import {
   PENDING_FORMAT_MARKER,
   PENDING_FORMAT_MAX_ATTEMPTS,
   pathExists,
 } from './utils'
+
+setDefaultTimeout(SUBPROCESS_TEST_TIMEOUT_MS)
 
 // prepare.ts's pending-format marker is unvalidated: a malformed marker must
 // not throw before unlinking (bricking every later `bun install`), and a
@@ -47,7 +52,7 @@ describe('prepare.ts pending-format marker (defensive handling)', () => {
     } finally {
       await rm(tmpRoot, { recursive: true, force: true })
     }
-  }, 30000)
+  })
 
   it('a marker missing the required "files" array is deleted, not thrown', async () => {
     const tmpRoot = await setupCopy()
@@ -62,7 +67,7 @@ describe('prepare.ts pending-format marker (defensive handling)', () => {
     } finally {
       await rm(tmpRoot, { recursive: true, force: true })
     }
-  }, 30000)
+  })
 
   it('a listed file that no longer exists is skipped with a note, not a failure', async () => {
     const tmpRoot = await setupCopy()
@@ -83,7 +88,7 @@ describe('prepare.ts pending-format marker (defensive handling)', () => {
     } finally {
       await rm(tmpRoot, { recursive: true, force: true })
     }
-  }, 30000)
+  })
 
   it('a well-formed marker listing an already-formatted file exits 0 and is deleted', async () => {
     const tmpRoot = await setupCopy()
@@ -107,7 +112,7 @@ describe('prepare.ts pending-format marker (defensive handling)', () => {
     } finally {
       await rm(tmpRoot, { recursive: true, force: true })
     }
-  }, 30000)
+  })
 
   it('a repeatedly-failing step keeps the marker (with attempts incrementing) up to the cap, then gives up loudly instead of retrying forever', async () => {
     const tmpRoot = await setupCopy()
@@ -150,5 +155,5 @@ describe('prepare.ts pending-format marker (defensive handling)', () => {
     } finally {
       await rm(tmpRoot, { recursive: true, force: true })
     }
-  }, 60000)
+  })
 })

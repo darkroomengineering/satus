@@ -55,7 +55,9 @@ export interface MailchimpResult {
 const FORGOTTEN_EMAIL_TITLE = 'Forgotten Email Not Subscribed'
 
 // Titles logged verbatim. Any other title is unbounded text from Mailchimp, so
-// it is cut to 80 characters and its whitespace flattened before it is logged.
+// the submitted address is removed from it, it is cut to 80 characters and its
+// whitespace flattened before it is logged. The address is matched in
+// lowercase, so a title that quotes it is logged in lowercase.
 const KNOWN_ERROR_TITLES = new Set([
   'Member Exists',
   'Invalid Resource',
@@ -64,10 +66,15 @@ const KNOWN_ERROR_TITLES = new Set([
   'Member In Compliance State',
 ])
 
-function loggableTitle(title: string): string {
-  return KNOWN_ERROR_TITLES.has(title)
-    ? title
-    : title.slice(0, 80).replace(/\s+/g, ' ')
+function loggableTitle(title: string, email: string): string {
+  if (KNOWN_ERROR_TITLES.has(title)) return title
+  const address = email.trim().toLowerCase()
+  const lowerTitle = title.toLowerCase()
+  const withoutAddress =
+    address && lowerTitle.includes(address)
+      ? lowerTitle.replaceAll(address, '')
+      : title
+  return withoutAddress.slice(0, 80).replace(/\s+/g, ' ')
 }
 
 // Logs get a caught error's name and message, not the object: its other
@@ -80,6 +87,10 @@ function describeCause(cause: unknown): string {
 
 const mailchimpMemberResponseSchema = z.object({
   id: z.string(),
+})
+
+const mailchimpMemberLookupSchema = z.object({
+  status: z.string(),
 })
 
 const mailchimpErrorResponseSchema = z.object({
@@ -167,36 +178,56 @@ interface AddMemberOptions {
   config: MailchimpConfig
 }
 
+type MemberOutcome =
+  /** Created by this submission, or an existing record whose status is `subscribed` or `pending`: tags and the contact note are written. */
+  | { kind: 'writable'; memberId: string }
+  /** An existing record in any other state: nothing is written to it. */
+  | { kind: 'untouched' }
+  | { kind: 'failed'; result: MailchimpResult }
+
+const WRITABLE_STATUSES = new Set(['subscribed', 'pending'])
+
 /**
  * Creates the member, or leaves an existing one's name and status as they are.
  * The forms calling this are anonymous, so anyone can type anyone's address:
  * an upsert would let them rename a subscriber or change their status. Any
  * record for the address, archived included, counts as existing; a POST alone
- * could re-add an archived contact with the submitted fields. Existing and new
- * addresses get the same success, so the form does not reveal whether an
- * address is currently on the list. Only a 404 lookup leads to a create; any
- * other lookup failure is an error, since the member's state is unknown. The cost: an existing member cannot
- * correct their name through these forms.
+ * could re-add an archived contact with the submitted fields. An existing
+ * record is `writable` while its status is `subscribed` or `pending`:
+ * `pending` is the state these forms create, and the submission that created
+ * the member stored a note on it, so a repeat contact message is stored too.
+ * Any other status, a lookup whose status cannot be read, and a record that
+ * appears between the lookup and the create are `untouched`, so a submission
+ * cannot tag or annotate someone who was archived, unsubscribed or cleaned.
+ * `writable` and `untouched` get the same success, so a submission that
+ * succeeds does not show whether the address has a record or in what state; a
+ * rejected create or a failed note write can (see the README). Only a 404
+ * lookup leads to a create; any other lookup failure is an error, since the
+ * member's state is unknown. The costs: an existing member cannot correct their name through
+ * these forms, and a contact message for an `untouched` address is discarded
+ * while its sender is told it was sent.
  */
-async function addMember(
-  opts: AddMemberOptions
-): Promise<
-  { ok: true; memberId: string } | { ok: false; result: MailchimpResult }
-> {
+async function addMember(opts: AddMemberOptions): Promise<MemberOutcome> {
   const { audienceId, email, firstName, lastName, status, config } = opts
 
   const memberId = subscriberHash(email)
   const existing = await makeMailchimpRequest(
-    `/lists/${audienceId}/members/${memberId}?fields=id`,
+    `/lists/${audienceId}/members/${memberId}?fields=id,status`,
     { method: 'GET' },
     config
   )
   if (existing.ok) {
-    return { ok: true, memberId }
+    // An unreadable body must not throw: a failure only existing addresses
+    // can cause would tell them apart from new ones.
+    const json: unknown = await existing.json().catch(() => ({}))
+    const lookup = mailchimpMemberLookupSchema.safeParse(json)
+    return lookup.success && WRITABLE_STATUSES.has(lookup.data.status)
+      ? { kind: 'writable', memberId }
+      : { kind: 'untouched' }
   }
   if (existing.status !== 404) {
     return {
-      ok: false,
+      kind: 'failed',
       result: {
         success: false,
         errorCode: 'api_error',
@@ -223,25 +254,45 @@ async function addMember(
   )
 
   if (response.ok) {
-    const json: unknown = await response.json()
+    let json: unknown
+    try {
+      json = await response.json()
+    } catch (error) {
+      if (!(error instanceof SyntaxError)) throw error
+      // A JSON parse error's message can quote the body, here the member
+      // record, so it never reaches a log. The cost: the member exists but
+      // gets no tag or note, and the visitor is told the submission failed.
+      return {
+        kind: 'failed',
+        result: {
+          success: false,
+          errorCode: 'api_error',
+          error: `Failed to add member: HTTP ${response.status} with an unreadable body`,
+        },
+      }
+    }
     const member = parseApiResponse(
       mailchimpMemberResponseSchema,
       json,
       'Mailchimp members API'
     )
-    return { ok: true, memberId: member.id }
+    return { kind: 'writable', memberId: member.id }
   }
 
   const errorJson: unknown = await response.json().catch(() => ({}))
   const errorData = mailchimpErrorResponseSchema.safeParse(errorJson).data ?? {}
 
   if (response.status === 400 && errorData.title === 'Member Exists') {
-    return { ok: true, memberId }
+    return { kind: 'untouched' }
   }
 
   // The forgotten title is matched exactly and checked first: its `detail` is
-  // free text that the 'invalid' search below could also match.
-  const lowerDetail = (errorData.detail ?? '').toLowerCase()
+  // free text that the 'invalid' search below could also match. `detail`
+  // quotes the submitted address, which is removed before the search:
+  // 'invalid@example.com' is not Mailchimp calling the address invalid.
+  const lowerDetail = (errorData.detail ?? '')
+    .toLowerCase()
+    .replaceAll(email.trim().toLowerCase(), '')
   let errorCode: MailchimpErrorCode = 'api_error'
   if (response.status === 400 && errorData.title === FORGOTTEN_EMAIL_TITLE) {
     errorCode = 'forgotten_email'
@@ -249,9 +300,11 @@ async function addMember(
     errorCode = 'invalid_email'
   }
 
-  const title = errorData.title ? ` ${loggableTitle(errorData.title)}` : ''
+  const title = errorData.title
+    ? ` ${loggableTitle(errorData.title, email)}`
+    : ''
   return {
-    ok: false,
+    kind: 'failed',
     result: {
       success: false,
       errorCode,
@@ -294,11 +347,18 @@ export async function addContactToMailchimp(
       config,
     })
 
-    if (!member.ok) {
+    if (member.kind === 'failed') {
+      console.error(
+        'Mailchimp contact error:',
+        member.result.error || 'Failed to add contact'
+      )
       return member.result
     }
+    if (member.kind === 'untouched') {
+      return { success: true }
+    }
 
-    // Tags are optional segmentation; a supplied note must be stored for success.
+    // Tags are optional segmentation.
     try {
       await applyMemberTags(
         audienceId,
@@ -314,15 +374,50 @@ export async function addContactToMailchimp(
     }
 
     if (contactData.note) {
-      const response = await makeMailchimpRequest(
-        `/lists/${audienceId}/members/${member.memberId}/notes`,
-        {
-          method: 'POST',
-          body: JSON.stringify({ note: contactData.note }),
-        },
-        config
-      )
+      // The note's log lines carry a status or an error name and nothing
+      // else: the response body and a thrown message can quote the address
+      // or the note.
+      let response: Response
+      try {
+        response = await makeMailchimpRequest(
+          `/lists/${audienceId}/members/${member.memberId}/notes`,
+          {
+            method: 'POST',
+            body: JSON.stringify({ note: contactData.note }),
+          },
+          config
+        )
+      } catch (error) {
+        console.error(
+          'Mailchimp contact note error:',
+          error instanceof Error ? error.name : 'unknown error'
+        )
+        return {
+          success: false,
+          errorCode: 'network_error',
+          error: 'Network error occurred',
+        }
+      }
+      const isRefusal =
+        response.status >= 400 &&
+        response.status < 500 &&
+        response.status !== 429
+      if (isRefusal) {
+        // A refused note still answers success: only a writable address is
+        // sent a note, so an error here would tell a visitor that the address
+        // has not left the list. The cost: the message is lost while its
+        // sender is told it was sent, and this line is the only trace.
+        console.error(
+          'Mailchimp contact note refused:',
+          `HTTP ${response.status}`
+        )
+        return { success: true }
+      }
       if (!response.ok) {
+        console.error(
+          'Mailchimp contact note error:',
+          `HTTP ${response.status}`
+        )
         return {
           success: false,
           errorCode: 'api_error',
@@ -372,12 +467,15 @@ export async function addSubscriberToMailchimp(
       config,
     })
 
-    if (!member.ok) {
+    if (member.kind === 'failed') {
       console.error(
         'Mailchimp subscription error:',
         member.result.error || 'Failed to subscribe'
       )
       return member.result
+    }
+    if (member.kind === 'untouched') {
+      return { success: true }
     }
 
     // Tagging is best-effort.

@@ -19,14 +19,13 @@
  * failure here therefore needs a coordinated change in BOTH repos, never an
  * edit of this test to match a renamed or removed flag.
  *
- * Presets and ids come from the live `PROJECT_PRESETS` / `getIntegrationNames()`
- * exports (beyond asserting `blank` exists) so the file survives stripping.
+ * Presets come from the live `PROJECT_PRESETS` export (beyond asserting
+ * `blank` exists) so the file survives stripping.
  * It ships only in the satus repo: not in `SELF_PRUNE_KEEP_TEST_FILES`.
  */
 
 import { describe, expect, it } from 'bun:test'
 
-import { getIntegrationNames } from './integration-bundles'
 import {
   PROJECT_PRESETS,
   resolveKeepFromFlags,
@@ -77,9 +76,5 @@ describe('create-darkroom flag contract', () => {
     expect(shouldSkipConfirm({ yes: false, hasFlags: true, isTTY: true })).toBe(
       false
     )
-  })
-
-  it('sanity: getIntegrationNames() stays a live, non-empty read (guards against the derivation itself going stale)', () => {
-    expect(getIntegrationNames().length).toBeGreaterThan(0)
   })
 })

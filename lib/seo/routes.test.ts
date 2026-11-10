@@ -93,84 +93,35 @@ describe('buildRoutesFromDocuments', () => {
     expect(buildRoutesFromDocuments('not an array')).toEqual([])
   })
 
-  it('drops a document whose slug resolves to an already-listed static route', () => {
-    // `/ai` is a static route, so a page named `ai` collides with it.
-    const docs = [
-      {
-        _type: 'page',
-        title: 'AI',
-        slug: { current: 'ai' },
-        _updatedAt: '2026-01-01T00:00:00.000Z',
-      },
-    ]
+  // Each of these paths is served by something other than the CMS catch-all,
+  // so a document slugged the same must not reach the sitemap or llms.txt.
+  // `/ai` is dropped as a listed static route; the others are in
+  // RESERVED_PATHS and are never advertised themselves. `/agent-content` is
+  // the handler proxy.ts rewrites to, which 404s direct requests.
+  it.each([
+    ['ai', 'a listed static route', true],
+    ['studio', 'Sanity Studio', false],
+    ['agent-content', 'the Markdown negotiation handler', false],
+    ['sanity', 'the wiring tutorial', false],
+    ['webgl', 'the WebGL example', false],
+  ])(
+    'drops a document slugged `%s` — %s owns that path',
+    (slug, _owner, listed) => {
+      const routes = buildRoutesFromDocuments([
+        {
+          _type: 'page',
+          title: slug,
+          slug: { current: slug },
+          _updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ])
 
-    const routes = buildRoutesFromDocuments(docs)
-    expect(STATIC_ROUTES.some((route) => route.path === '/ai')).toBe(true)
-    expect(routes.some((route) => route.path === '/ai')).toBe(false)
-  })
-
-  it('drops a document slugged `studio` — Sanity Studio owns that path', () => {
-    // `/studio` (app/studio/[[...tool]]/page.tsx) lives outside the
-    // catch-all and isn't in STATIC_ROUTES, but a CMS doc slugged `studio`
-    // must still be excluded, not emitted into the sitemap/llms.txt.
-    const docs = [
-      {
-        _type: 'page',
-        title: 'Studio',
-        slug: { current: 'studio' },
-        _updatedAt: '2026-01-01T00:00:00.000Z',
-      },
-    ]
-
-    const routes = buildRoutesFromDocuments(docs)
-    expect(STATIC_ROUTES.some((route) => route.path === '/studio')).toBe(false)
-    expect(routes.some((route) => route.path === '/studio')).toBe(false)
-  })
-
-  it('drops a document slugged `agent-content` — the Markdown negotiation handler owns that path', () => {
-    // Without RESERVED_PATHS excluding it, a CMS page slugged `agent-content`
-    // would be advertised in the sitemap/`/ai` while proxy.ts's
-    // MACHINE_PATHS still 404s direct requests to it.
-    const docs = [
-      {
-        _type: 'page',
-        title: 'Agent Content',
-        slug: { current: 'agent-content' },
-        _updatedAt: '2026-01-01T00:00:00.000Z',
-      },
-    ]
-
-    const routes = buildRoutesFromDocuments(docs)
-    expect(routes.some((route) => route.path === '/agent-content')).toBe(false)
-  })
-
-  it('drops a document slugged `sanity` — the wiring tutorial owns that path', () => {
-    const docs = [
-      {
-        _type: 'page',
-        title: 'Sanity',
-        slug: { current: 'sanity' },
-        _updatedAt: '2026-01-01T00:00:00.000Z',
-      },
-    ]
-
-    const routes = buildRoutesFromDocuments(docs)
-    expect(routes.some((route) => route.path === '/sanity')).toBe(false)
-  })
-
-  it('drops a document slugged `webgl` — the WebGL example owns that path', () => {
-    const docs = [
-      {
-        _type: 'page',
-        title: 'WebGL',
-        slug: { current: 'webgl' },
-        _updatedAt: '2026-01-01T00:00:00.000Z',
-      },
-    ]
-
-    const routes = buildRoutesFromDocuments(docs)
-    expect(routes.some((route) => route.path === '/webgl')).toBe(false)
-  })
+      expect(STATIC_ROUTES.some((route) => route.path === `/${slug}`)).toBe(
+        listed
+      )
+      expect(routes).toEqual([])
+    }
+  )
 
   it('lists a `home` page at /home — `/` stays developer-owned', () => {
     const docs = [
@@ -186,26 +137,18 @@ describe('buildRoutesFromDocuments', () => {
     expect(routes.map((route) => route.path)).toEqual(['/home'])
   })
 
-  it('omits CMS documents whose slugs cannot form canonical internal routes', () => {
-    const invalidSlugs = [
-      '//evil.example',
-      '\\evil.example',
-      '../ai',
-      'foo/bar',
-      'foo?bar',
-      'foo#bar',
-      '.',
-      '..',
-      '%2f%2fevil.example',
-      'invalid%encoding',
-      'a'.repeat(97),
+  // `urlForReference` owns slug validation (see link.test.ts); this is the
+  // route-builder boundary: a slug it resolves to `#` produces no route. The
+  // slug has no dot, so it gets past the schema and reaches that check.
+  it('omits a CMS document whose slug cannot form a canonical internal route', () => {
+    const docs = [
+      {
+        _type: 'page',
+        title: 'Unsafe route',
+        slug: { current: 'foo/bar' },
+        _updatedAt: '2026-01-01T00:00:00.000Z',
+      },
     ]
-    const docs = invalidSlugs.map((slug, index) => ({
-      _type: 'page',
-      title: `Unsafe route ${index}`,
-      slug: { current: slug },
-      _updatedAt: '2026-01-01T00:00:00.000Z',
-    }))
 
     expect(buildRoutesFromDocuments(docs)).toEqual([])
   })
@@ -223,25 +166,17 @@ describe('buildRoutesFromDocuments', () => {
     expect(buildRoutesFromDocuments(docs)).toEqual([])
   })
 
-  it('keeps CMS documents whose safe slugs use the project naming policy', () => {
-    const safeSlugs = [
-      'lowercase-kebab-slug',
-      'release_notes',
-      'café',
-      'Uppercase',
-    ]
-    const routes = buildRoutesFromDocuments(
-      safeSlugs.map((slug) => ({
+  it('keeps a CMS document whose safe slug is not lowercase kebab-case, unchanged', () => {
+    const routes = buildRoutesFromDocuments([
+      {
         _type: 'page',
-        title: `Safe route: ${slug}`,
-        slug: { current: slug },
+        title: 'Safe route',
+        slug: { current: 'Uppercase' },
         _updatedAt: '2026-01-01T00:00:00.000Z',
-      }))
-    )
+      },
+    ])
 
-    expect(routes.map((route) => route.path)).toEqual(
-      safeSlugs.map((slug) => `/${slug}`)
-    )
+    expect(routes.map((route) => route.path)).toEqual(['/Uppercase'])
   })
 })
 

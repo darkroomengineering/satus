@@ -1,38 +1,14 @@
 import { describe, expect, test } from 'bun:test'
 
-import { z } from 'zod'
+import { emailSchema, zodToValidator } from './validation'
 
-import { emailSchema, phoneSchema, zodToValidator } from './validation'
-
+// Which values each schema accepts is covered in validation.test.ts; this is
+// the bridge from a schema's parse result to the form hook's boolean.
 describe('zodToValidator', () => {
-  test('converts email schema to validator function', () => {
+  test('returns whether the value passes the schema', () => {
     const validate = zodToValidator(emailSchema)
     expect(validate('user@example.com')).toBe(true)
     expect(validate('not-an-email')).toBe(false)
     expect(validate('')).toBe(false)
-  })
-
-  test('converts phone schema to validator function', () => {
-    const validate = zodToValidator(phoneSchema)
-    expect(validate('+1234567890')).toBe(true)
-    expect(validate('1234567890')).toBe(true)
-    expect(validate('abc')).toBe(false)
-    expect(validate('')).toBe(false)
-  })
-
-  test('works with a simple string schema', () => {
-    const schema = z.string().min(3)
-    const validate = zodToValidator(schema)
-    expect(validate('abc')).toBe(true)
-    expect(validate('ab')).toBe(false)
-    expect(validate('')).toBe(false)
-  })
-
-  test('works with a regex schema', () => {
-    const schema = z.string().regex(/^[A-Z]{3}$/)
-    const validate = zodToValidator(schema)
-    expect(validate('ABC')).toBe(true)
-    expect(validate('abc')).toBe(false)
-    expect(validate('AB')).toBe(false)
   })
 })

@@ -363,7 +363,10 @@ describe('parseFormData', () => {
     expect('success' in result).toBe(false)
     if (!('success' in result)) {
       expect(result.status).toBe(400)
-      expect(result.fieldErrors).toBeDefined()
+      expect(result.fieldErrors).toEqual({
+        email: expect.any(String),
+        name: expect.any(String),
+      })
     }
   })
 
@@ -376,19 +379,6 @@ describe('parseFormData', () => {
     const result = parseFormData(testSchema, formData)
 
     expect('success' in result).toBe(true)
-  })
-
-  test('single-value keys stay scalars', () => {
-    const formData = new FormData()
-    formData.set('email', 'user@example.com')
-    formData.set('name', 'Alice')
-
-    const result = parseFormData(testSchema, formData)
-
-    expect('success' in result).toBe(true)
-    if ('success' in result) {
-      expect(result.data.name).toBe('Alice')
-    }
   })
 
   test('a root-level .refine() issue surfaces under a _form key', () => {

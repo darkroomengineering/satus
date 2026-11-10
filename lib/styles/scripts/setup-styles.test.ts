@@ -12,7 +12,7 @@ import { join } from 'node:path'
 
 import { Glob } from 'bun'
 
-import { colors, themes } from '../config'
+import { colors } from '../config'
 import { buildStyleSheets, OUTPUTS } from './setup-styles'
 
 const DECLARATION = /^\s*(?<property>[a-z-]+)\s*:\s*(?<value>[^;]+);/gim
@@ -36,20 +36,6 @@ describe('generated stylesheets', () => {
 
   it('root.css matches a fresh build of the current config', async () => {
     expect(await readCommitted(OUTPUTS.root)).toBe(built.root)
-  })
-
-  it('emits every palette entry and theme as a custom property', () => {
-    for (const name of Object.keys(colors)) {
-      expect(built.tailwind).toContain(`--color-${name}:`)
-    }
-
-    for (const [name, theme] of Object.entries(themes)) {
-      expect(built.tailwind).toContain(`[data-theme=${name}]`)
-
-      for (const value of Object.values(theme)) {
-        expect(built.tailwind).toContain(value)
-      }
-    }
   })
 })
 

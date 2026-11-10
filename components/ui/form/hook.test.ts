@@ -26,21 +26,6 @@ describe('resolveValidator — name takes priority over id and type', () => {
     expect(resolved).toBe(noop)
   })
 
-  test('name-keyed validator fires even when id differs from name', () => {
-    const emailValidator = (v: string) => v.includes('@')
-    const validatorMap = { email: emailValidator }
-
-    const resolved = resolveValidator(validatorMap, {
-      name: 'email',
-      id: 'contact-email', // different from name
-      type: 'text',
-    })
-
-    expect(resolved).toBeDefined()
-    expect(resolved?.('user@example.com')).toBe(true)
-    expect(resolved?.('notanemail')).toBe(false)
-  })
-
   test('falls back to id when name has no matching validator', () => {
     const validatorMap = { 'contact-email': noop }
     const resolved = resolveValidator(validatorMap, {

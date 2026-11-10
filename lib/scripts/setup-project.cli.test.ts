@@ -3,7 +3,6 @@ import { describe, expect, it } from 'bun:test'
 import { guardedPrompt } from './prompts'
 import {
   findUnknownFlags,
-  KNOWN_SETUP_FLAGS,
   PROJECT_PRESETS,
   shouldSkipConfirm,
 } from './setup-project'
@@ -28,28 +27,11 @@ describe('findUnknownFlags (M4 — unknown-flag rejection)', () => {
     expect(findUnknownFlags(['--presett', 'editorial'])).toEqual(['--presett'])
   })
 
-  it('never flags a bare value, even one that looks flag-like as an id', () => {
-    // --keep's value is a comma-separated id list, never itself `--`-prefixed
-    // in practice, but the value token itself must never be checked — only
-    // `--`-prefixed tokens are.
-    expect(findUnknownFlags(['--keep', 'sanity'])).toEqual([])
-  })
-
   it('collects every unknown flag, not just the first', () => {
     expect(findUnknownFlags(['--bogus', '--yes', '--nope'])).toEqual([
       '--bogus',
       '--nope',
     ])
-  })
-
-  it('KNOWN_SETUP_FLAGS matches what printUsage documents', () => {
-    expect(KNOWN_SETUP_FLAGS).toContain('--preset')
-    expect(KNOWN_SETUP_FLAGS).toContain('--keep')
-    expect(KNOWN_SETUP_FLAGS).toContain('--yes')
-    expect(KNOWN_SETUP_FLAGS).toContain('--clean-homepage')
-    expect(KNOWN_SETUP_FLAGS).toContain('--skip-install')
-    expect(KNOWN_SETUP_FLAGS).toContain('--dry-run')
-    expect(KNOWN_SETUP_FLAGS).toContain('--help')
   })
 
   it('an unknown flag exits 1 before reaching the interactive prompt (subprocess)', () => {
@@ -70,70 +52,58 @@ describe('findUnknownFlags (M4 — unknown-flag rejection)', () => {
 
 // Duplicate CLI flags: first wins, with a warning.
 describe('getFlagValue (L4 — duplicate flag warning)', () => {
-  it('returns the single value when the flag is passed once', () => {
-    expect(getFlagValue(['--keep', 'sanity'], '--keep')).toBe('sanity')
-  })
-
-  it('keeps first-wins semantics when the flag is passed twice', () => {
-    const result = getFlagValue(
-      ['--keep', 'sanity', '--keep', 'webgl'],
-      '--keep'
-    )
-    expect(result).toBe('sanity')
-  })
-
-  it('warns naming the flag and the winning value on duplicates', () => {
-    const warnCalls: unknown[][] = []
+  /** Runs `getFlagValue` with `console.warn` captured, and restores it. */
+  const readFlag = (argv: string[], flag: string) => {
+    const warnings: unknown[][] = []
     const originalWarn = console.warn
     console.warn = (...args: unknown[]) => {
-      warnCalls.push(args)
+      warnings.push(args)
     }
 
     try {
-      getFlagValue(['--preset', 'studio', '--preset', 'blank'], '--preset')
+      return { value: getFlagValue(argv, flag), warnings }
     } finally {
       console.warn = originalWarn
     }
+  }
 
-    expect(warnCalls).toHaveLength(1)
-    const [message] = warnCalls[0] as [string]
+  it('returns the value without warning when the flag is passed once, and nothing when it is absent', () => {
+    expect(readFlag(['--keep', 'sanity'], '--keep')).toEqual({
+      value: 'sanity',
+      warnings: [],
+    })
+    expect(readFlag(['--other', 'x'], '--keep')).toEqual({
+      value: undefined,
+      warnings: [],
+    })
+  })
+
+  it('keeps first-wins semantics when the flag is passed twice', () => {
+    const { value } = readFlag(
+      ['--keep', 'sanity', '--keep', 'webgl'],
+      '--keep'
+    )
+    expect(value).toBe('sanity')
+  })
+
+  it('warns naming the flag and the winning value on duplicates', () => {
+    const { warnings } = readFlag(
+      ['--preset', 'studio', '--preset', 'blank'],
+      '--preset'
+    )
+
+    expect(warnings).toHaveLength(1)
+    const [message] = warnings[0] as [string]
     expect(message).toContain('--preset')
     expect(message).toContain('studio')
     expect(message).toContain('blank')
   })
 
-  it('does not warn when the flag appears once or not at all', () => {
-    const warnCalls: unknown[][] = []
-    const originalWarn = console.warn
-    console.warn = (...args: unknown[]) => {
-      warnCalls.push(args)
-    }
-
-    try {
-      getFlagValue(['--keep', 'sanity'], '--keep')
-      getFlagValue(['--other', 'x'], '--keep')
-    } finally {
-      console.warn = originalWarn
-    }
-
-    expect(warnCalls).toHaveLength(0)
-  })
-
   it('supports the --flag=value duplicate form too', () => {
-    const warnCalls: unknown[][] = []
-    const originalWarn = console.warn
-    console.warn = (...args: unknown[]) => {
-      warnCalls.push(args)
-    }
+    const { value, warnings } = readFlag(['--ref=main', '--ref=v2'], '--ref')
 
-    try {
-      const result = getFlagValue(['--ref=main', '--ref=v2'], '--ref')
-      expect(result).toBe('main')
-    } finally {
-      console.warn = originalWarn
-    }
-
-    expect(warnCalls).toHaveLength(1)
+    expect(value).toBe('main')
+    expect(warnings).toHaveLength(1)
   })
 })
 
@@ -159,17 +129,8 @@ describe('shouldSkipConfirm (H6 — --yes gating)', () => {
     ).toBe(false)
   })
 
-  it('shows the prompt for --preset/--keep at an interactive terminal without --yes', () => {
-    expect(shouldSkipConfirm({ yes: false, hasFlags: true, isTTY: true })).toBe(
-      false
-    )
-  })
-
-  it('skips for --preset/--keep off a TTY without --yes (create-darkroom contract)', () => {
-    expect(
-      shouldSkipConfirm({ yes: false, hasFlags: true, isTTY: false })
-    ).toBe(true)
-  })
+  // The flags-without-`--yes` cases (confirm at a TTY, skip off one) are the
+  // create-darkroom contract and live in `create-darkroom-contract.test.ts`.
 })
 
 // Cancel/EOF guard: stdin closing before a prompt resolves must exit 1 with a

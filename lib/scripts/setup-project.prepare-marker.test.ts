@@ -85,7 +85,7 @@ describe('prepare.ts pending-format marker (defensive handling)', () => {
     }
   }, 30000)
 
-  it('a real marker is finished successfully: files formatted, manifest regenerated, marker deleted', async () => {
+  it('a well-formed marker listing an already-formatted file exits 0 and is deleted', async () => {
     const tmpRoot = await setupCopy()
     try {
       const markerPath = join(tmpRoot, PENDING_FORMAT_MARKER)

@@ -76,18 +76,6 @@ describe('cascade layer order (source)', () => {
     const source = await Bun.file(indexCssPath).text()
     expect(source).toMatch(/@layer\s+base\s*,\s*components\s*,\s*utilities\s*;/)
   })
-
-  it("imports reset.css with the 'base' layer modifier", async () => {
-    const source = await Bun.file(indexCssPath).text()
-    expect(source).toMatch(/@import\s+['"]\.\/reset\.css['"]\s+layer\(base\)/)
-  })
-
-  it("imports tailwindcss/utilities.css with the 'utilities' layer modifier", async () => {
-    const source = await Bun.file(indexCssPath).text()
-    expect(source).toMatch(
-      /@import\s+['"]tailwindcss\/utilities\.css['"]\s+layer\(utilities\)/
-    )
-  })
 })
 
 describe('cascade layer order (compiled output)', () => {

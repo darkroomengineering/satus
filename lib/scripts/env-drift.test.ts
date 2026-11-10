@@ -33,6 +33,10 @@ function ownsKey(bundleId: string, key: string): boolean {
 }
 
 describe('env-var drift (lib/env.ts <-> integration-bundles.ts)', () => {
+  it('reads a non-empty bundle list, so (a) and (b) cannot pass without checking anything', () => {
+    expect(getIntegrationEntries().length).toBeGreaterThan(0)
+  })
+
   it('(a) no bundle declares an envVar that does not exist in the lib/env.ts schema', async () => {
     const schemaKeys = new Set(await getSchemaKeys())
 

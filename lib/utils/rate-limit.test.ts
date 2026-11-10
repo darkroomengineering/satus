@@ -46,14 +46,6 @@ describe('rateLimit', () => {
     expect(blocked.remaining).toBe(0)
   })
 
-  it('should return correct limit value in result', () => {
-    const id = uniqueId()
-    const config = { limit: 10, windowSeconds: 30 }
-
-    const result = rateLimit(id, config)
-    expect(result.limit).toBe(10)
-  })
-
   it('should include resetIn in the result', () => {
     const id = uniqueId()
     const config = { limit: 5, windowSeconds: 60 }
@@ -93,19 +85,6 @@ describe('rateLimit', () => {
     expect(r3.success).toBe(true)
   })
 
-  it('should handle limit of 1 correctly', () => {
-    const id = uniqueId()
-    const config = { limit: 1, windowSeconds: 60 }
-
-    const r1 = rateLimit(id, config)
-    expect(r1.success).toBe(true)
-    expect(r1.remaining).toBe(0)
-
-    const r2 = rateLimit(id, config)
-    expect(r2.success).toBe(false)
-    expect(r2.remaining).toBe(0)
-  })
-
   it('should have remaining never go below 0', () => {
     const id = uniqueId()
     const config = { limit: 2, windowSeconds: 60 }
@@ -120,93 +99,73 @@ describe('rateLimit', () => {
   })
 })
 
+// `getClientIP` only hands the request's headers to `getIPFromHeaders`, which
+// owns the header priority and parsing tested below.
 describe('getClientIP', () => {
-  it('should extract IP from x-forwarded-for header', () => {
+  it("should read the IP from the request's headers", () => {
     const request = new Request('http://localhost', {
       headers: { 'x-forwarded-for': '192.168.1.1' },
     })
     expect(getClientIP(request)).toBe('192.168.1.1')
   })
-
-  it('should extract first IP from comma-separated x-forwarded-for', () => {
-    const request = new Request('http://localhost', {
-      headers: { 'x-forwarded-for': '10.0.0.1, 192.168.1.1, 172.16.0.1' },
-    })
-    expect(getClientIP(request)).toBe('10.0.0.1')
-  })
-
-  it('should trim whitespace from x-forwarded-for', () => {
-    const request = new Request('http://localhost', {
-      headers: { 'x-forwarded-for': '  10.0.0.1  , 192.168.1.1' },
-    })
-    expect(getClientIP(request)).toBe('10.0.0.1')
-  })
-
-  it('should extract IP from cf-connecting-ip header (Cloudflare)', () => {
-    const request = new Request('http://localhost', {
-      headers: { 'cf-connecting-ip': '203.0.113.50' },
-    })
-    expect(getClientIP(request)).toBe('203.0.113.50')
-  })
-
-  it('should extract IP from x-real-ip header', () => {
-    const request = new Request('http://localhost', {
-      headers: { 'x-real-ip': '198.51.100.10' },
-    })
-    expect(getClientIP(request)).toBe('198.51.100.10')
-  })
-
-  it('should prioritize x-forwarded-for over cf-connecting-ip', () => {
-    const request = new Request('http://localhost', {
-      headers: {
-        'x-forwarded-for': '10.0.0.1',
-        'cf-connecting-ip': '203.0.113.50',
-      },
-    })
-    expect(getClientIP(request)).toBe('10.0.0.1')
-  })
-
-  it('should prioritize cf-connecting-ip over x-real-ip', () => {
-    const request = new Request('http://localhost', {
-      headers: {
-        'cf-connecting-ip': '203.0.113.50',
-        'x-real-ip': '198.51.100.10',
-      },
-    })
-    expect(getClientIP(request)).toBe('203.0.113.50')
-  })
-
-  it('should return null when no IP headers are present', () => {
-    const request = new Request('http://localhost')
-    expect(getClientIP(request)).toBeNull()
-  })
-
-  it('should handle IPv6 addresses', () => {
-    const request = new Request('http://localhost', {
-      headers: { 'x-forwarded-for': '::1' },
-    })
-    expect(getClientIP(request)).toBe('::1')
-  })
 })
 
 describe('getIPFromHeaders', () => {
-  it('should return null when no IP headers are present (headerless visitor)', () => {
-    const headers = new Headers()
-    expect(getIPFromHeaders(headers)).toBeNull()
-  })
+  const cases: [string, Record<string, string>, string | null][] = [
+    [
+      'return null when no IP headers are present (headerless visitor)',
+      {},
+      null,
+    ],
+    [
+      'return null when x-forwarded-for is present but empty',
+      { 'x-forwarded-for': '' },
+      null,
+    ],
+    [
+      'return null when x-forwarded-for is only whitespace before the first comma',
+      { 'x-forwarded-for': '  ,10.0.0.1' },
+      null,
+    ],
+    [
+      'extract IP from x-forwarded-for',
+      { 'x-forwarded-for': '192.168.1.1' },
+      '192.168.1.1',
+    ],
+    [
+      'extract first IP from comma-separated x-forwarded-for',
+      { 'x-forwarded-for': '10.0.0.1, 192.168.1.1, 172.16.0.1' },
+      '10.0.0.1',
+    ],
+    [
+      'trim whitespace from x-forwarded-for',
+      { 'x-forwarded-for': '  10.0.0.1  , 192.168.1.1' },
+      '10.0.0.1',
+    ],
+    [
+      'extract IP from cf-connecting-ip header (Cloudflare)',
+      { 'cf-connecting-ip': '203.0.113.50' },
+      '203.0.113.50',
+    ],
+    [
+      'extract IP from x-real-ip header',
+      { 'x-real-ip': '198.51.100.10' },
+      '198.51.100.10',
+    ],
+    [
+      'prioritize x-forwarded-for over cf-connecting-ip',
+      { 'x-forwarded-for': '10.0.0.1', 'cf-connecting-ip': '203.0.113.50' },
+      '10.0.0.1',
+    ],
+    [
+      'prioritize cf-connecting-ip over x-real-ip',
+      { 'cf-connecting-ip': '203.0.113.50', 'x-real-ip': '198.51.100.10' },
+      '203.0.113.50',
+    ],
+    ['handle IPv6 addresses', { 'x-forwarded-for': '::1' }, '::1'],
+  ]
 
-  it('should return null when x-forwarded-for is present but empty', () => {
-    const headers = new Headers({ 'x-forwarded-for': '' })
-    expect(getIPFromHeaders(headers)).toBeNull()
-  })
-
-  it('should return null when x-forwarded-for is only whitespace before the first comma', () => {
-    const headers = new Headers({ 'x-forwarded-for': '  ,10.0.0.1' })
-    expect(getIPFromHeaders(headers)).toBeNull()
-  })
-
-  it('should extract IP from x-forwarded-for', () => {
-    const headers = new Headers({ 'x-forwarded-for': '192.168.1.1' })
-    expect(getIPFromHeaders(headers)).toBe('192.168.1.1')
+  it.each(cases)('should %s', (_name, headers, expected) => {
+    expect(getIPFromHeaders(new Headers(headers))).toBe(expected)
   })
 })

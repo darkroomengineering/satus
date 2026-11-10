@@ -6,6 +6,17 @@ import { INTEGRATION_BUNDLES } from './integration-bundles'
 import { pathExists, projectRoot } from './utils'
 
 /**
+ * Per-test limits for tests that spawn the real scripts and for tests that
+ * type-check with ts-morph. A heavily loaded machine stretches a process
+ * launch or a type check from under a second to well past Bun's 5 s default
+ * (18 s measured for one type check). Cost: a subprocess or type check that
+ * hangs for good takes this long to fail its test; no spawn in these tests
+ * has a shorter limit of its own.
+ */
+export const SUBPROCESS_TEST_TIMEOUT_MS = 120_000
+export const TYPE_CHECK_TEST_TIMEOUT_MS = 180_000
+
+/**
  * Copies the repo to `tmpRoot` for tests that run the real scripts, leaving out
  * `node_modules`, `.next` and `.git` (no `.git` makes prepare.ts's lefthook step
  * a no-op), then links the nearest real `node_modules` (found by walking up from

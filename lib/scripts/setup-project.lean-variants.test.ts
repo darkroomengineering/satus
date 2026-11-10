@@ -4,7 +4,11 @@ import { Project, ts } from 'ts-morph'
 
 import { applyOpsToText } from './ast-transforms'
 import { INTEGRATION_BUNDLES } from './integration-bundles'
-import { loadSourceFiles, sourceOf } from './setup-project.test-helpers'
+import {
+  loadSourceFiles,
+  sourceOf,
+  TYPE_CHECK_TEST_TIMEOUT_MS,
+} from './setup-project.test-helpers'
 
 beforeAll(loadSourceFiles)
 
@@ -114,13 +118,17 @@ declare module '@/integrations/shopify/revalidate' {
     })
   }
 
-  it('the type check catches the unused-parameter bug it was written for', () => {
-    // Without the `_request` rename, a blank scaffold failed TS6133.
-    const blank = variantFor([])
-    const unrenamed = blank.replace('(_request:', '(request:')
-    expect(unrenamed).not.toBe(blank)
-    expect(typeErrors(unrenamed).join('\n')).toContain('TS6133')
-  })
+  it(
+    'the type check catches the unused-parameter bug it was written for',
+    () => {
+      // Without the `_request` rename, a blank scaffold failed TS6133.
+      const blank = variantFor([])
+      const unrenamed = blank.replace('(_request:', '(request:')
+      expect(unrenamed).not.toBe(blank)
+      expect(typeErrors(unrenamed).join('\n')).toContain('TS6133')
+    },
+    TYPE_CHECK_TEST_TIMEOUT_MS
+  )
 
   const combinations: {
     label: string
@@ -135,10 +143,14 @@ declare module '@/integrations/shopify/revalidate' {
 
   for (const { label, kept } of combinations) {
     describe(label, () => {
-      it('type-checks under the repo strict flags', () => {
-        const variant = variantFor(kept)
-        expect(typeErrors(variant)).toEqual([])
-      })
+      it(
+        'type-checks under the repo strict flags',
+        () => {
+          const variant = variantFor(kept)
+          expect(typeErrors(variant)).toEqual([])
+        },
+        TYPE_CHECK_TEST_TIMEOUT_MS
+      )
 
       it('references NextResponse only while its import survives', () => {
         const variant = variantFor(kept)

@@ -61,9 +61,15 @@ let hasWarnedMultipleRootMounts = false
  * warns when more than one root canvas is mounted. The warning flag resets
  * when the overlap clears, so a later unrelated overlap (navigating between
  * two pages that both mount `<Wrapper webgl>`) warns again.
+ *
+ * Takes the primary claim from another id that has not confirmed it: that
+ * render has not committed and may never, and this canvas has. Subscribers are
+ * notified, so the mounting canvas re-renders as primary.
  */
 export function registerRootCanvasMount(id: string): () => void {
   rootCanvasIds = [...rootCanvasIds, id]
+
+  takeUnconfirmedPrimaryClaim(id)
 
   if (
     process.env.NODE_ENV === 'development' &&
@@ -92,10 +98,12 @@ export function registerRootCanvasMount(id: string): () => void {
 // A claim made in render is a lease until its commit confirms it
 // (`announcePrimaryClaim`). React can discard a render that never commits
 // (suspense, an error boundary, an abandoned transition), and a discarded
-// instance never runs the cleanup that releases its claim; the lease expires
-// so such a claim cannot block the real canvas or report a canvas that
-// never mounted. Cost: a canvas that mounts behind a discarded claim stays
-// blank until that lease expires.
+// instance never runs the cleanup that releases its claim. A root canvas that
+// mounts takes an unconfirmed claim at once (`registerRootCanvasMount`), so
+// such a claim cannot block the real canvas; with no canvas mounting, the
+// lease expires so the claim cannot report a canvas that never mounted. Cost:
+// a render that is only slow to commit loses primacy to a canvas that mounts
+// meanwhile.
 let primaryClaimId: string | undefined
 // Pending exactly while the claim is unconfirmed; every write to
 // `primaryClaimId` clears or replaces it, so a stale timer never fires.
@@ -123,6 +131,16 @@ function promotePrimaryClaim(exceptId: string) {
   emitPrimaryClaimChange()
 }
 
+// Hands the slot to `id`, a root canvas that has committed, when another id
+// holds it unconfirmed. A pending lease is what marks a claim unconfirmed, so
+// a confirmed claim stays where it is.
+function takeUnconfirmedPrimaryClaim(id: string) {
+  if (primaryClaimLease === undefined || primaryClaimId === id) return
+  clearPrimaryClaimLease()
+  primaryClaimId = id
+  emitPrimaryClaimChange()
+}
+
 /**
  * Claim (or confirm) primacy for `id`; call it from the render body, not an
  * effect, so mounting the GL canvas is decided in the render that renders it.
@@ -131,11 +149,13 @@ function promotePrimaryClaim(exceptId: string) {
  * components mid-render ("Cannot update a component while rendering a
  * different component"). The claimer calls `announcePrimaryClaim` from a
  * layout effect instead, which also confirms the lease. An unconfirmed claim
- * expires after `PRIMARY_CLAIM_LEASE_MS`, and subscribers re-render then.
+ * expires after `PRIMARY_CLAIM_LEASE_MS`, or passes to a root canvas that
+ * mounts before then; subscribers re-render in both cases.
  *
  * Idempotent per id, so Strict Mode's double render is safe. Claiming while a
- * different id holds the slot returns `false`; only that id's `releasePrimary`
- * (or an expired lease) frees it.
+ * different id holds the slot returns `false`. A confirmed claim leaves that
+ * id only through its `releasePrimary`; an unconfirmed one also through an
+ * expired lease or another canvas's mount.
  */
 export function claimPrimary(id: string): boolean {
   if (primaryClaimId === undefined) {
@@ -158,8 +178,9 @@ export function claimPrimary(id: string): boolean {
  * claim can be gone by now. The lease expires under a commit slower than
  * `PRIMARY_CLAIM_LEASE_MS`, and Strict Mode's effect replay runs the cleanup
  * that releases the claim, then this, without rendering in between. A slot
- * another canvas holds stays with it, and the caller re-renders as non-primary
- * once its subscription sees the change.
+ * another canvas holds stays with it, whether that canvas claimed the empty
+ * slot or took the caller's unconfirmed claim by mounting first, and the
+ * caller re-renders as non-primary once its subscription sees the change.
  */
 export function announcePrimaryClaim(id: string): void {
   primaryClaimId ??= id

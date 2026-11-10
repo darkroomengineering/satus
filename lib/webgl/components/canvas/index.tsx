@@ -157,8 +157,9 @@ export function Canvas({
   // synchronously in render: the second instance already sees the first's
   // claim. `claimPrimary` is idempotent per id, so Strict Mode's double render
   // is safe. The store subscription only re-renders this instance when the
-  // claim changes elsewhere (primary unmounted, survivor promoted); its return
-  // value is unused. Release happens in the effect cleanup, never in render.
+  // claim changes outside its render (primary unmounted, survivor promoted,
+  // an unconfirmed claim taken by a canvas that mounted); its return value is
+  // unused. Release happens in the effect cleanup, never in render.
   const id = useId()
   useSyncExternalStore(
     subscribePrimaryClaim,

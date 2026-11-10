@@ -1,28 +1,17 @@
 'use server'
 
-import { z } from 'zod'
-
 import type { FormState } from '@/lib/types/form'
 import { runFormAction } from '@/lib/utils/form-action'
-import { emailSchema } from '@/utils/validation'
 
 import {
   addContactToMailchimp,
   addSubscriberToMailchimp,
 } from './mailchimp-client'
-
-const contactSchema = z.object({
-  name: z.string().min(1, { error: 'name_required_' }),
-  email: emailSchema,
-  subject: z.string().min(1, { error: 'subject_required_' }),
-  message: z.string().min(1, { error: 'message_required_' }),
-})
-
-const subscriptionSchema = z.object({
-  email: emailSchema,
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
-})
+import {
+  mailchimpContactNote,
+  mailchimpContactSchema,
+  mailchimpSubscriptionSchema,
+} from './schema'
 
 export async function mailchimpContactAction(
   _initialState: FormState,
@@ -30,14 +19,14 @@ export async function mailchimpContactAction(
 ): Promise<FormState> {
   return runFormAction({
     rateLimitPrefix: 'mailchimp-contact',
-    schema: contactSchema,
+    schema: mailchimpContactSchema,
     formData,
     turnstile: true,
     run: async (input) => {
       const result = await addContactToMailchimp({
         name: input.name,
         email: input.email,
-        note: `Contact form submission - Subject: ${input.subject}\n\nMessage: ${input.message}`,
+        note: mailchimpContactNote(input),
       })
       if (!result.success) {
         const forgotten = result.errorCode === 'forgotten_email'
@@ -61,7 +50,7 @@ export async function mailchimpSubscriptionAction(
 ): Promise<FormState> {
   return runFormAction({
     rateLimitPrefix: 'mailchimp-subscribe',
-    schema: subscriptionSchema,
+    schema: mailchimpSubscriptionSchema,
     formData,
     turnstile: true,
     run: async (input) => {

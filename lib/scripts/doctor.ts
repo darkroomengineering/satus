@@ -28,7 +28,7 @@ const packageJson: { engines?: { node?: string } } = await Bun.file(
   join(ROOT, 'package.json')
 ).json()
 const requiredNodeVersion =
-  packageJson.engines?.node?.replace(/^[^\d]*/, '') ?? '24.20.0'
+  packageJson.engines?.node?.replace(/^[^\d]*/, '') ?? '24.22.3'
 
 interface Check {
   name: string

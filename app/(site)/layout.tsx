@@ -6,6 +6,7 @@ import Script from 'next/script'
 import { type PropsWithChildren, Suspense } from 'react'
 import { ReactTempus } from 'tempus/react'
 
+import { SafariBarDecoys } from '@/components/layout/safari-edges'
 import { Link } from '@/components/ui/link'
 import { RealViewport } from '@/components/ui/real-viewport'
 import { ToastProvider } from '@/components/ui/toast'
@@ -111,6 +112,7 @@ export default async function AppLayout({ children }: PropsWithChildren) {
           Skip to main content
         </Link>
       </Suspense>
+      <SafariBarDecoys />
       <RealViewport>
         <ToastProvider>
           <TransformProvider>

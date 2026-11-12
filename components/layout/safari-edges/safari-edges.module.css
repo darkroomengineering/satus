@@ -22,3 +22,35 @@
   height: calc(env(safe-area-inset-bottom) + 12px);
   background-color: var(--edge-bottom, var(--color-primary));
 }
+
+/*
+ * Safari's sample is a hit test, so the decoys must take pointer events: with
+ * `pointer-events: none` it falls through to the box below. The cost: each
+ * swallows taps on its 4×10px, mid-screen at the top and bottom edges.
+ * `-webkit-touch-callout` exists only in iOS WebKit; Chrome and Firefox on iOS
+ * match too, where the decoys do nothing but that.
+ */
+.decoy {
+  display: none;
+  position: fixed;
+  inset-inline-start: calc(50% - 2px);
+  z-index: 2147483647;
+  inline-size: 4px;
+  block-size: 10px;
+
+  @supports (-webkit-touch-callout: none) {
+    display: block;
+  }
+}
+
+.decoy[data-edge='top'] {
+  top: 0;
+}
+
+.decoy[data-edge='bottom'] {
+  bottom: 0;
+}
+
+:global(:root:has([data-bar-tint])) .decoy {
+  display: none;
+}

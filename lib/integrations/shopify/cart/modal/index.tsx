@@ -89,6 +89,8 @@ export function CartModal({ children, isOpen, closeCart }: CartModalProps) {
         aria-label="Cart"
         className={cn(s.modal, isOpen && s.open)}
         inert={!isOpen}
+        // Lets iOS Safari tint its bars from the open drawer (SafariBarDecoys).
+        data-bar-tint={isOpen ? '' : undefined}
       >
         <button
           className={s['catch-click']}

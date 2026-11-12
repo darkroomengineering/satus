@@ -15,14 +15,14 @@ app/layout.tsx          → Bare html/body shell shared with /studio
 
 ## Components
 
-| Component       | Purpose                                                                                             |
-| --------------- | --------------------------------------------------------------------------------------------------- |
-| `wrapper/`      | Page container with theme, Lenis, WebGL support. **Includes Header + Footer**                       |
-| `header/`       | Site navigation                                                                                     |
-| `footer/`       | Site footer                                                                                         |
-| `lenis/`        | Smooth scroll provider                                                                              |
-| `theme/`        | Theme context provider                                                                              |
-| `safari-edges/` | Fixed edge strips that run the page color behind mobile Safari's toolbars (`<Wrapper safariEdges>`) |
+| Component       | Purpose                                                                                                                                                   |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `wrapper/`      | Page container with theme, Lenis, WebGL support. **Includes Header + Footer**                                                                             |
+| `header/`       | Site navigation                                                                                                                                           |
+| `footer/`       | Site footer                                                                                                                                               |
+| `lenis/`        | Smooth scroll provider                                                                                                                                    |
+| `theme/`        | Theme context provider                                                                                                                                    |
+| `safari-edges/` | Fixed edge strips that run the page color behind mobile Safari's toolbars (`<Wrapper safariEdges>`), and the decoys that keep iOS 26+ Safari's bars clear |
 
 ## Wrapper Props
 
@@ -34,6 +34,17 @@ app/layout.tsx          → Bare html/body shell shared with /studio
 | `className`      | `string`                     | -        | Additional classes for main                                                                                                                                                                                                    |
 | `viewTransition` | `boolean`                    | `true`   | Crossfade main content between pages                                                                                                                                                                                           |
 | `safariEdges`    | `boolean`                    | `false`  | Run the theme's primary color behind mobile Safari's status bar and bottom toolbar via `safari-edges/`. Use it only on pages whose top and bottom edges are one solid color, and keep the strips outside transformed ancestors |
+
+## iOS 26+ Safari bars
+
+iOS 26 Safari draws its status bar and toolbar clear, over the page. Observed in the iOS 27.2 simulator and on the iPhones tested for charge-cars-website#269:
+
+- Safari paints a bar solid with the color of a full-width `position: fixed` (or stuck `sticky`) box it hit-tests mid-screen just inside that edge: a fixed header, a pinned section, an open overlay. `SafariBarDecoys` in `app/(site)/layout.tsx` covers those two points with 4×10px boxes, so the bars stay clear by default. Each decoy swallows taps on its 4×10px; keep tappable controls off the exact top and bottom center.
+- Put `data-bar-tint` on a full-screen overlay while it is open (`AlertDialog` backdrop, Shopify cart). The decoys step aside and both bars take the overlay's color. Without it, the page shows sharp under the bars beside the overlay.
+- Safari draws a fixed box only between the bars. Negative `inset-block` does not reach under them; a `sticky` box does.
+- At scroll 0 Safari shows `body`'s background behind the status bar, not the page's content.
+- `100lvh` can end above the screen's bottom edge, and both safe-area insets read 0 without `viewportFit: 'cover'`. Media meant to fill the screen under the toolbar overflows its box by a fixed amount (64px on an iPhone 17 Pro Max).
+- `@supports (-webkit-touch-callout: none) and (anchor-name: --a)` matches iOS 26+ WebKit, which includes Chrome and Firefox on iOS. Those draw their own bar above the page, so a style that must apply only to Safari also needs a user-agent check in a first-paint script.
 
 ## React 19.3 transitions
 

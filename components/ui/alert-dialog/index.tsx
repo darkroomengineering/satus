@@ -85,7 +85,7 @@ function AlertDialog({
         }
       />
       <BaseAlertDialog.Portal>
-        <BaseAlertDialog.Backdrop className={s.backdrop} />
+        <BaseAlertDialog.Backdrop className={s.backdrop} data-bar-tint="" />
         <BaseAlertDialog.Popup className={cn(s.popup, className)}>
           <BaseAlertDialog.Title className={s.title}>
             {title}
@@ -124,6 +124,7 @@ function Backdrop({
   return (
     <BaseAlertDialog.Backdrop
       className={cn(s.backdrop, className)}
+      data-bar-tint=""
       {...props}
     />
   )

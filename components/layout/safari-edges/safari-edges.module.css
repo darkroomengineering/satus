@@ -51,6 +51,6 @@
   bottom: 0;
 }
 
-:global(:root:has([data-bar-tint])) .decoy {
+:global(:root:has([data-bar-tint]:not([hidden]))) .decoy {
   display: none;
 }

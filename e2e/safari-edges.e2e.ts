@@ -13,7 +13,7 @@ import { expect, test } from '@playwright/test'
 test.use({ viewport: { width: 390, height: 844 } })
 
 async function measureEdges(page: Page) {
-  return page.locator('[data-edge]').evaluateAll((edges) =>
+  return page.locator('[data-edge][data-bar-tint]').evaluateAll((edges) =>
     edges.map((edge) => {
       const style = getComputedStyle(edge)
       const rect = edge.getBoundingClientRect()
@@ -41,7 +41,7 @@ test('safari edge strips stay pinned, page-colored and tap-through on the homepa
 
   await page.goto('/')
   await page.waitForLoadState('load')
-  await expect(page.locator('[data-edge]')).toHaveCount(2)
+  await expect(page.locator('[data-edge][data-bar-tint]')).toHaveCount(2)
 
   const bodyBackground = await page
     .locator('body')
@@ -76,7 +76,7 @@ test('safari edge strips stay pinned, page-colored and tap-through on the homepa
   // A transformed ancestor turns `position: fixed` into positioning against
   // that ancestor, so the strips would scroll with it on a real device.
   const ancestorTransforms = await page
-    .locator('[data-edge]')
+    .locator('[data-edge][data-bar-tint]')
     .evaluateAll((edges) =>
       edges.flatMap((edge) => {
         const found: string[] = []
@@ -150,5 +150,5 @@ test('a Wrapper without safariEdges renders no strips', async ({ page }) => {
   await page.goto('/sanity')
   await page.waitForLoadState('load')
   await expect(page.getByRole('banner')).toBeVisible()
-  await expect(page.locator('[data-edge]')).toHaveCount(0)
+  await expect(page.locator('[data-edge][data-bar-tint]')).toHaveCount(0)
 })

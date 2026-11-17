@@ -11,37 +11,61 @@ on:
   # pull_request run, so it dispatches CI on the PR branch instead.
   workflow_dispatch:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  ci:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
+  # Lint, typecheck, build and test run in parallel, one job each. The
+  # reusable workflow sets its own concurrency, so none is set on this job.
+  bun:
+    uses: darkroomengineering/.github/.github/workflows/bun-ci.yml@main
+    with:
+      runs-on: '"ubuntu-latest"'
       # CI holds no dotenvx key, so it builds without the encrypted env files,
       # with every integration off. Keeping the key out of Actions keeps it
       # away from dependency code in Dependabot and fork PRs. Cost: CI never
       # builds with real config; the Vercel preview build is that check.
       # lib/env-files.test.ts reads the committed files from git, so it still
       # runs on them.
-      - name: Drop encrypted env files
-        run: rm -f .env .env.development .env.production
+      setup: rm -f .env .env.development .env.production && bun next typegen
+      # Same checks as `bun run check`, minus typecheck and the tests (their
+      # own jobs) and test:oxlint-plugin (the extras job, which needs Node).
+      lint: bun run --parallel --no-exit-on-error lint format:check lint:types manifest:check check:assets check:disables
+      typecheck: bun check --no-script
+      # The prerender manifest test needs the build output, so it runs here
+      # and fails, rather than skips, when the manifest is missing.
+      build: PRERENDER_MANIFEST_REQUIRED=1 bun run build && PRERENDER_MANIFEST_REQUIRED=1 bun test lib/scripts/prerender-manifest.test.ts
+      test: bun test
+      # Many tests read repo files from disk (the setup-project suites copy
+      # the repo), which `bun test --changed` cannot see, so any change runs
+      # every test.
+      full-test-paths: .
+      # A run takes about two minutes, so waiting for a newer push saves little.
+      main-delay: 0
 
-      # test:oxlint-plugin (run via `bun run check`) invokes `node` directly on
-      # each ruletest file, so the runner's node must meet the engines floor
-      # (>=24.22.3, the current LTS; native type-stripping of .ts files is unflagged).
-      - name: Build and check
-        uses: darkroomengineering/.github/actions/bun-web-ci@a75b42e03f56b5ca5b2808ac4f1b06c81998fbc6
-        env:
-          PRERENDER_MANIFEST_REQUIRED: '1'
+  # Checks the reusable workflow does not cover. The oxlint plugin rule tests
+  # run on Node, which the runner's default is too old for (engines floor in
+  # package.json, pinned by .node-version).
+  extras:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: ${{ github.workflow }}-extras-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: package.json
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version-file: .node-version
-          oxlint-annotations: 'true'
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Oxlint plugin rule tests
+        run: bun run test:oxlint-plugin
 
       # Every package resolves to as few versions as its ranges allow. A
       # Dependabot PR that leaves a duplicate fails here; run `bun dedupe` on
@@ -78,6 +102,9 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    concurrency:
+      group: ${{ github.workflow }}-e2e-${{ github.ref }}
+      cancel-in-progress: true
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

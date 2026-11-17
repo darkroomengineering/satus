@@ -13,9 +13,8 @@ pre-commit:
       stage_fixed: true
     typecheck:
       glob: '*.{ts,tsx}'
-      # Incremental is safe: tsc is the only writer of tsconfig.tsbuildinfo,
-      # and the warm cache is ~4x faster.
-      run: bun node_modules/typescript/bin/tsc --noEmit
+      # --no-script: package.json has a `check` script that bun check would run instead.
+      run: bun check --no-script
       stage_fixed: false
     # A plain value in a committed env file must never reach git, not even in a
     # commit that is fixed before pushing. The test reads the staged version.
@@ -42,7 +41,7 @@ pre-push:
         - merge
         - rebase
 
-# Stale route types in .next/types (included by tsconfig) cause ghost tsc
+# Stale route types in .next/types (included by tsconfig) cause ghost type
 # errors after a branch switch. {3} is 1 for a branch switch, 0 for a file
 # checkout. They regenerate on the next `bun dev` / `bun run build`.
 post-checkout:

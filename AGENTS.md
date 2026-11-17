@@ -246,7 +246,7 @@ bun lint:fix         # oxlint with auto-fix
 bun run lint:types   # oxlint type-aware rules (no-floating-promises, no-misused-promises)
 bun run format       # oxfmt (writes in place; sorts imports + Tailwind classes)
 bun run ensure:typegen  # runs `next typegen` unless next-env.d.ts and both .next/types files it imports are already there
-bun run typecheck    # ensure:typegen + tsc --noEmit (TypeScript 7 native)
+bun run typecheck    # ensure:typegen + `bun check --no-script` (Bun's native checker; same tsconfig and errors as tsc)
 bun run typecheck:watch  # ensure:typegen + tsc --noEmit --watch (native fast watcher; live feedback)
 bun test             # Unit tests (bun's built-in runner; ignores *.e2e.ts)
 bun run test:e2e     # Playwright E2E smoke test (boots dev server automatically)

@@ -22,7 +22,7 @@
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "ensure:typegen": "test -f next-env.d.ts && test -f .next/types/routes.d.ts && test -f .next/types/root-params.d.ts || next typegen",
-    "typecheck": "bun run ensure:typegen && bun node_modules/typescript/bin/tsc --noEmit",
+    "typecheck": "bun run ensure:typegen && bun check --no-script",
     "typecheck:watch": "bun run ensure:typegen && bun node_modules/typescript/bin/tsc --noEmit --watch",
     "deslop": "deslop",
     "analyze": "next analyze",
